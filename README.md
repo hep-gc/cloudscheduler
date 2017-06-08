@@ -1,1 +1,1 @@
-# cloud-scheduler-2
+# Cloud Scheduler version 2.0
