@@ -8,7 +8,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'echo "Fail!"; exit 1'
+                sh 'echo "Fail!, commit hook working yet?"; exit 1'
             }
         }
         stage('Build') {
