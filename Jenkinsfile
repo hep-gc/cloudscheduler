@@ -1,6 +1,11 @@
 pipeline {
     agent any
     stages {
+        stage('Ansible') {
+            steps {
+                sh 'echo "Figure out ansible syntax for pipeline"; exit 0'
+            }
+        }
         stage('Test') {
             steps {
                 sh 'echo "Fail!"; exit 1'
@@ -14,7 +19,7 @@ pipeline {
     }
     post {
         always {
-            echo 'This will always run'
+            echo 'Always'
         }
         success {
             echo 'successful'
