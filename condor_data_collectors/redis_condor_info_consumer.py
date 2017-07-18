@@ -23,6 +23,11 @@ def import_condor_info():
             # we must rebuild the tree from the string on this side.
             req_etree = classad.ExprTree(str(job["Requirements"]))
             job["Requirements"] = req_etree
+
+        for resource in condor_resources:
+            if "Start" in resource:
+                start_etree = classad.ExprTree(str(resource["Start"]))
+                resource["Start"] = start_etree
         return condor_resources, condor_jobs
 
     except Exception as e:
