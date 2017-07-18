@@ -60,15 +60,17 @@ def collector_command_consumer():
                 # may not need the target
 
                 #need to get machine identifier out of command
-                machine_name = command_dict['machine_name']
+                machine_name = command_dict['machine_name'].encode('ascii','ignore')
                 command = command_dict['command']
                 if command == "condor_off":
                     condor_c = htcondor.Collector()
-                    startd_ad = Collector.locate(htcondor.DaemonTypes.Startd, machine_name)
-                    master_ad = Collector.locate(htcondor.DaemonTypes.Master, machine_name)
+                    logging.info("getting machine ads for %s" % machine_name)
+                    startd_ad = condor_c.locate(htcondor.DaemonTypes.Startd, machine_name)
+                    #master_ad = condor_c.locate(htcondor.DaemonTypes.Master, machine_name)
 
-                    htcondor.send_command(startd_ad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-                    htcondor.send_command(master_ad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                    logging.info("Ads found, issuing condor_off commands...")
+                    htcondor.send_command(startd_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
+                    #htcondor.send_command(master_ad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                 else:
                     logging.error("Unrecognized command")
