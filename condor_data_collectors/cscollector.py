@@ -70,11 +70,13 @@ def collector_command_consumer():
                     condor_c = htcondor.Collector()
                     logging.info("getting machine ads for %s" % machine_name)
                     startd_ad = condor_c.locate(htcondor.DaemonTypes.Startd, machine_name)
-                    #master_ad = condor_c.locate(htcondor.DaemonTypes.Master, machine_name)
+                    logging.info("found startd.. locating master")
+                    master_machine_name = machine_name.split("@")[1]
+                    master_ad = condor_c.locate(htcondor.DaemonTypes.Master, master_machine_name)
 
                     logging.info("Ads found, issuing condor_off commands...")
                     htcondor.send_command(startd_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
-                    #htcondor.send_command(master_ad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                    htcondor.send_command(master_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
 
                 else:
                     logging.error("Unrecognized command")
