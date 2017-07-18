@@ -15,8 +15,13 @@ def job_producer():
 
     job_data_key = config.job_data_key
     sleep_interval = config.job_collection_interval
-    job_attributes = ["JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements", "JobPrio", "Cmd", "ClusterId", "User", "VMInstanceType", "Iwd", "VMType", "VMNetwork", "VMName", "VMLoc", "VMAMI", "VMKeepAlive", "VMHighPriority", "VMMaximumPrice", "VMUserData", "VMAMIConfig", "CSMyProxyCredsName", "CSMyProxyServer", "CSMyProxyServerPort", "x509userproxysubject", "x509userproxy", "SUBMIT_x509userproxy", "VMJobPerCore"]
-    # Thus far the attributes from this list that are available in my tests are: ClusterId, RequestDisk, User, Requirements, JobStatus, JobPrio, RequestMemory, Iwd, Cmd, GlobalJobId
+    job_attributes = ["JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements", "JobPrio", "Cmd", 
+                      "ClusterId", "User", "VMInstanceType", "Iwd", "VMType", "VMNetwork", "VMName", "VMLoc", "VMAMI", 
+                      "VMKeepAlive", "VMHighPriority", "VMMaximumPrice", "VMUserData", "VMAMIConfig",
+                      "CSMyProxyCredsName", "CSMyProxyServer", "CSMyProxyServerPort", "x509userproxysubject", 
+                      "x509userproxy", "SUBMIT_x509userproxy", "VMJobPerCore"]
+    # Thus far the attributes from this list that are available in my tests are: ClusterId, RequestDisk, User, 
+    # Requirements, JobStatus, JobPrio, RequestMemory, Iwd, Cmd, GlobalJobId
     # Not in the list that seem to be returned always: FileSystemDomian, MyType, ServerTime, TargetType, 
     while(True):
         try:
