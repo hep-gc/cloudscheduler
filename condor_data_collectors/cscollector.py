@@ -13,16 +13,20 @@ def setup_redis_connection():
 def resources_producer():
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", "Start", "RemoteOwner", "SlotType", "TotalSlots"] 
 
-    condor_resource_dict_list = []
     sleep_interval = config.machine_collection_interval
     collector_data_key = config.collector_data_key
     while(True):
         try:
             condor_c = htcondor.Collector()
+            condor_resource_dict_list = []
             any_ad = htcondor.AdTypes.Any
             condor_resources = condor_c.query(ad_type=any_ad, constraint=True, projection=resource_attributes)
             for resource in condor_resources:
-                condor_resource_dict_list.append(dict(resource))
+                r_dict = dict(resource)
+                if "Start" in r_dict:
+                    r_dict["Start"] = str(r_dict["Start"])
+                condor_resource_dict_list.append(r_dict)
+            #logging.debug(condor_resource_dict_list)
             condor_resources = json.dumps(condor_resource_dict_list)
 
             redis_con = setup_redis_connection()
