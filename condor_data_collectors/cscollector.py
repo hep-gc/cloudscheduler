@@ -32,8 +32,8 @@ def resources_producer(testrun=False, testfile=None):
             #For Unit Testing only:
             else:
                 res_file = open(testfile, 'r')
-                condor_resources = res_file.read()
-                condor_resources = json.loads(condor_resources)
+                condor_string = res_file.read()[0:-1] #strip newline
+                condor_resources = json.loads(condor_string)
                 for resource in condor_resources:
                     r_dict = dict(resource)
                     if "Start" in r_dict:
@@ -43,7 +43,7 @@ def resources_producer(testrun=False, testfile=None):
             condor_resources = json.dumps(condor_resource_dict_list)
 
             redis_con = setup_redis_connection()
-            logging.info("Setting condor-resources in redis...")
+            logging.error("Setting condor-resources in redis...")
             redis_con.set(collector_data_key, condor_resources)
             if(testrun):
                 return True

@@ -1,3 +1,6 @@
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import json
 import unittest
 import cscollector
 
@@ -72,6 +75,7 @@ class TestCSCollectorMethods(unittest.TestCase):
         self.assertFalse(cscollector.collector_command_consumer(testrun=True))
 
         #Double check to make sure the queue was emptied
+        r = cscollector.setup_redis_connection()
         self.assertIsNone(r.lpop("collector_commands"))
 
 
@@ -87,14 +91,15 @@ class TestCSCollectorMethods(unittest.TestCase):
 
 
     def test_data_dump(self):
-    	cscollector.resources_producer(testrun=True, testfile="test_condor_resources.txt")
+    	self.assertTrue(cscollector.resources_producer(testrun=True, testfile="/opt/cloudscheduler/condor_data_collectors/tests/test_condor_resources.txt"))
     	r = cscollector.setup_redis_connection()
 
     	redis_resources = r.get("condor-resources")
-
-    	res_file = open("test_condor_resources.txt", 'r')
-        condor_resources = res_file.read()
-    	self.assertEqual(redis_resources, condor_resources)
+        redis_resources = json.loads(redis_resources)
+    	res_file = open("/opt/cloudscheduler/condor_data_collectors/tests/test_condor_resources.txt", 'r')
+        condor_resources = res_file.read()[0:-1] #strip newline
+        condor_resources = json.loads(condor_resources)
+        self.assertEqual(redis_resources, condor_resources)
 
 
 
