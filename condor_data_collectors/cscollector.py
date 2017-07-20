@@ -10,40 +10,57 @@ def setup_redis_connection():
     r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db, password=config.redis_password)
     return r
 
-def resources_producer():
+def resources_producer(testrun=False, testfile=None):
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", "Start", "RemoteOwner", "SlotType", "TotalSlots"] 
 
     sleep_interval = config.machine_collection_interval
     collector_data_key = config.collector_data_key
     while(True):
         try:
-            condor_c = htcondor.Collector()
             condor_resource_dict_list = []
-            any_ad = htcondor.AdTypes.Any
-            condor_resources = condor_c.query(ad_type=any_ad, constraint=True, projection=resource_attributes)
-            for resource in condor_resources:
-                r_dict = dict(resource)
-                if "Start" in r_dict:
-                    r_dict["Start"] = str(r_dict["Start"])
-                condor_resource_dict_list.append(r_dict)
-            #logging.debug(condor_resource_dict_list)
+            if not testrun:
+                condor_c = htcondor.Collector()
+                any_ad = htcondor.AdTypes.Any
+                condor_resources = condor_c.query(ad_type=any_ad, constraint=True, projection=resource_attributes)
+                for resource in condor_resources:
+                    r_dict = dict(resource)
+                    if "Start" in r_dict:
+                        r_dict["Start"] = str(r_dict["Start"])
+                    condor_resource_dict_list.append(r_dict)
+                #logging.debug(condor_resource_dict_list)
+
+            #For Unit Testing only:
+            else:
+                res_file = open(testfile, 'r')
+                condor_resources = res_file.read()
+                condor_resources = json.loads(condor_resources)
+                for resource in condor_resources:
+                    r_dict = dict(resource)
+                    if "Start" in r_dict:
+                        r_dict["Start"] = str(r_dict["Start"])
+                    condor_resource_dict_list.append(r_dict)
+
             condor_resources = json.dumps(condor_resource_dict_list)
 
             redis_con = setup_redis_connection()
             logging.info("Setting condor-resources in redis...")
             redis_con.set(collector_data_key, condor_resources)
+            if(testrun):
+                return True
             time.sleep(sleep_interval)
 
         except Exception as e:
             logging.error(e)
             logging.error("Error connecting to condor or redis...")
+            if(testrun):
+                return False
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
-            return
+            return False
 
 
-def collector_command_consumer():
+def collector_command_consumer(testrun=False):
     collector_commands_key = config.collector_commands_key
     sleep_interval = config.command_sleep_interval
     
@@ -77,22 +94,30 @@ def collector_command_consumer():
                     logging.info("Ads found, issuing condor_off commands...")
                     htcondor.send_command(startd_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
                     htcondor.send_command(master_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
+                    if(testrun):
+                        return True
 
                 else:
                     logging.error("Unrecognized command")
+                    if(testrun):
+                        return False
 
             else:
                 logging.info("No command in redis list, begining sleep interval...")
                 #only sleep if there was no command
+                if(testrun):
+                    return False
                 time.sleep(sleep_interval)
 
         except Exception as e:
             logging.error("Failure connecting to redis or executing condor command...")
             logging.error(e)
+            if(testrun):
+                return False
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
-            return
+            return False
 
         
 
