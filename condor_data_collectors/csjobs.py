@@ -11,7 +11,7 @@ def setup_redis_connection():
     r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db, password=config.redis_password)
     return r
 
-def job_producer():
+def job_producer(testrun=False, testfile=None):
 
     job_data_key = config.job_data_key
     sleep_interval = config.job_collection_interval
@@ -26,26 +26,38 @@ def job_producer():
     while(True):
         try:
             job_dict_list = []
+            
+            if(!testrun):
+                condor_s = htcondor.Schedd()
+                job_list = condor_s.query(attr_list=job_attributes) 
 
-            condor_s = htcondor.Schedd()
-            job_list = condor_s.query(attr_list=job_attributes) 
+                for job_ad in job_list:
+                    job_dict = dict(job_ad)
+                    if "Requirements" in job_dict:
+                        job_dict['Requirements'] = str(job_dict['Requirements'])
+                    job_dict_list.append(job_dict)
 
-            for job_ad in job_list:
-                job_dict = dict(job_ad)
-                if "Requirements" in job_dict:
-                    job_dict['Requirements'] = str(job_dict['Requirements'])
-                job_dict_list.append(job_dict)
+            else: #test run code block
+                job_file = open(testfile, 'r')
+                job_list = job_file.read()
+                job_list = json.loads(job_list)
+                for job_dict in job_list:
+                    job_dict_list.append(job_dict)
             
             job_list = json.dumps(job_dict_list)
             redis_con = setup_redis_connection()
             logging.info("Setting condor-jobs in redis...")
             redis_con.set(job_data_key, job_list)
+            if(testrun):
+                return True
 
             time.sleep(sleep_interval)
 
         except Exception as e:
             logging.error(e)
             logging.error("Failure contacting condor or redis..")
+            if(testrun):
+                return False
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
@@ -53,7 +65,7 @@ def job_producer():
 
 
 
-def job_command_consumer():
+def job_command_consumer(testrun=False):
     job_commands_key = config.job_commands_key
     sleep_interval = config.command_sleep_interval
     
@@ -70,15 +82,21 @@ def job_command_consumer():
                     logging.info("Holding %s" % job_id)
                     s = htcondor.Schedd()
                     s.edit([job_id,], "JobStatus", "5")
+                    if(testrun):
+                        return True
                 
 
             else:
                 logging.info("No command in redis list, begining sleep interval...")
+                if(testrun):
+                    return False
                 time.sleep(sleep_interval)
 
         except Exception as e:
             logging.error("Failure connecting to redis or executing condor command, begining sleep interval...")
             logging.error(e)
+            if(testrun):
+                return False
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
