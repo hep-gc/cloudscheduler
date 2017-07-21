@@ -27,7 +27,7 @@ def job_producer(testrun=False, testfile=None):
         try:
             job_dict_list = []
             
-            if(!testrun):
+            if not testrun:
                 condor_s = htcondor.Schedd()
                 job_list = condor_s.query(attr_list=job_attributes) 
 
