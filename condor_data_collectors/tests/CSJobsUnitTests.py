@@ -4,6 +4,9 @@ import unittest
 import csjobs
 import json
 
+valid_job_id = "18.9"
+cloud_sched_root_dir ="/opt/cloudscheduler/"
+
 class TestCSJobsMethods(unittest.TestCase):
 
     def setUp(self):
@@ -12,7 +15,7 @@ class TestCSJobsMethods(unittest.TestCase):
 
     def test_valid_command(self):
         r = csjobs.setup_redis_connection()
-        r.rpush("job_commands", '{"job_id": "18.9", "command": "set_job_hold"}')
+        r.rpush("job_commands", '{"job_id": "' + valid_job_id + '", "command": "set_job_hold"}')
         
         #will return true if a condor command is run, false otherwise.
         self.assertTrue(csjobs.job_command_consumer(testrun=True))
@@ -23,7 +26,7 @@ class TestCSJobsMethods(unittest.TestCase):
 
     def test_invalid_command(self):
         r = csjobs.setup_redis_connection()
-        r.rpush("job_commands", '{"machine_name": "18.21", "command": "condor_FAKE_COMMAND"}')
+        r.rpush("job_commands", '{"machine_name": "' + valid_job_id + '", "command": "condor_FAKE_COMMAND"}')
         
         #will return true if a condor command is run, false otherwise.
         self.assertFalse(csjobs.job_command_consumer(testrun=True))
@@ -45,7 +48,7 @@ class TestCSJobsMethods(unittest.TestCase):
 
     def test_no_command(self):
         r = csjobs.setup_redis_connection()
-        r.rpush("job_commands", '{"job_id": "18.19"')
+        r.rpush("job_commands", '{"job_id": "' + valid_job_id + '"')
         
         #will return true if a condor command is run, false otherwise.
         self.assertFalse(csjobs.job_command_consumer(testrun=True))
@@ -76,12 +79,12 @@ class TestCSJobsMethods(unittest.TestCase):
 
 # BEGIN DATA PRODUCER TESTS
     def test_data_dump(self):
-        self.assertTrue(csjobs.job_producer(testrun=True, testfile="/opt/cloudscheduler/condor_data_collectors/tests/test_job_list.txt"))
+        self.assertTrue(csjobs.job_producer(testrun=True, testfile=cloud_sched_root_dir + "condor_data_collectors/tests/test_job_list.txt"))
         r = csjobs.setup_redis_connection()
         
         redis_jobs = r.get("condor-jobs")
         redis_jobs = json.loads(redis_jobs)
-        job_file = open("/opt/cloudscheduler/condor_data_collectors/tests/test_job_list.txt", 'r')
+        job_file = open(cloud_sched_root_dir + "condor_data_collectors/tests/test_job_list.txt", 'r')
         condor_jobs = job_file.read()
         condor_jobs = json.loads(condor_jobs)
         self.assertEqual(redis_jobs, condor_jobs)
@@ -89,7 +92,7 @@ class TestCSJobsMethods(unittest.TestCase):
 
 
     def test_no_condor_data_dump(self):
-        self.assertFalse(csjobs.job_producer(testrun=True, testfile="/opt/cloudscheduler/condor_data_collectors/tests/empty_condor_data.txt"))
+        self.assertFalse(csjobs.job_producer(testrun=True, testfile=cloud_sched_root_dir + "condor_data_collectors/tests/empty_condor_data.txt"))
         r = csjobs.setup_redis_connection()
 
         redis_jobs = r.get("condor-jobs")
