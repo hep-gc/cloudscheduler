@@ -4,6 +4,8 @@ import json
 import unittest
 import cscollector
 
+valid_machine_name = "slot1_1@beaver-efb4c32d-4cac-4928-9146-37dbaf30b452.novalocal"
+cloud_sched_root_dir ="/opt/cloudscheduler/"
 
 ## THESE TESTS SHOULD BE UPGRADED TO USE THE CONFIG VALUES INSTEAD OF HARD-CODING REDIS KEYS
 
@@ -17,7 +19,7 @@ class TestCSCollectorMethods(unittest.TestCase):
 
     def test_valid_command(self):
         r = cscollector.setup_redis_connection()
-        r.rpush("collector_commands", '{"machine_name": "slot1_1@beaver-efb4c32d-4cac-4928-9146-37dbaf30b452.novalocal", "command": "condor_off"}')
+        r.rpush("collector_commands", '{"machine_name": "' + valid_machine_name + '", "command": "condor_off"}')
         
         #will return true if a condor command is run, false otherwise.
         self.assertTrue(cscollector.collector_command_consumer(testrun=True))
@@ -28,7 +30,7 @@ class TestCSCollectorMethods(unittest.TestCase):
 
     def test_invalid_command(self):
         r = cscollector.setup_redis_connection()
-        r.rpush("collector_commands", '{"machine_name": "slot1_1@beaver-efb4c32d-4cac-4928-9146-37dbaf30b452.novalocal", "command": "condor_FAKE_COMMAND"}')
+        r.rpush("collector_commands", '{"machine_name": "' + valid_machine_name + '", "command": "condor_FAKE_COMMAND"}')
         
         #will return true if a condor command is run, false otherwise.
         self.assertFalse(cscollector.collector_command_consumer(testrun=True))
@@ -91,12 +93,12 @@ class TestCSCollectorMethods(unittest.TestCase):
 
 
     def test_data_dump(self):
-    	self.assertTrue(cscollector.resources_producer(testrun=True, testfile="/opt/cloudscheduler/condor_data_collectors/tests/test_condor_resources.txt"))
+    	self.assertTrue(cscollector.resources_producer(testrun=True, testfile=cloud_sched_root_dir + "condor_data_collectors/tests/test_condor_resources.txt"))
     	r = cscollector.setup_redis_connection()
 
     	redis_resources = r.get("condor-resources")
         redis_resources = json.loads(redis_resources)
-    	res_file = open("/opt/cloudscheduler/condor_data_collectors/tests/test_condor_resources.txt", 'r')
+    	res_file = open(cloud_sched_root_dir + "condor_data_collectors/tests/test_condor_resources.txt", 'r')
         condor_resources = res_file.read()[0:-1] #strip newline
         condor_resources = json.loads(condor_resources)
         self.assertEqual(redis_resources, condor_resources)
