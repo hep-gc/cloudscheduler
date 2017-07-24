@@ -3,6 +3,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import unittest
 import csjobs
 import json
+import subprocess
 
 valid_job_id = "18.9"
 cloud_sched_root_dir ="/opt/cloudscheduler/"
@@ -10,8 +11,21 @@ cloud_sched_root_dir ="/opt/cloudscheduler/"
 class TestCSJobsMethods(unittest.TestCase):
 
     def setUp(self):
+        #empty redis cache
         r = csjobs.setup_redis_connection()
         r.flushall()
+
+        #que jobs and retrieve valid job id
+        q_proc=subprocess.Popen(["condor_submit", cloud_sched_root_dir + "tests/job_submitter/try.job"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = q_proc.communicate()
+
+        output_tokens = output.split()
+        batch_id = output_tokens[-1][0:-1]
+
+        global valid_job_id
+
+        valid_job_id = batch_id + ".1"
+
 
     def test_valid_command(self):
         r = csjobs.setup_redis_connection()
