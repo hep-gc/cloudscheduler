@@ -1,5 +1,5 @@
 Universe   = vanilla
-Executable = try.sh
+Executable = /opt/cloudscheduler/condor_data_collectors/tests/job_submitter/try.sh
 Arguments  = 4 10
 dir           = /opt/cloudscheduler/condor_data_collectors/tests/job_submitter/logs
 output        = $(dir)/$(Cluster).$(Process).out

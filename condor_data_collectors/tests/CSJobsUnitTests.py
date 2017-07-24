@@ -5,7 +5,7 @@ import csjobs
 import json
 import subprocess
 
-valid_job_id = "18.9"
+valid_job_id = ""
 cloud_sched_root_dir ="/opt/cloudscheduler/"
 
 class TestCSJobsMethods(unittest.TestCase):
@@ -16,11 +16,13 @@ class TestCSJobsMethods(unittest.TestCase):
         r.flushall()
 
         #que jobs and retrieve valid job id
-        q_proc=subprocess.Popen(["condor_submit", cloud_sched_root_dir + "tests/job_submitter/try.job"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        q_proc=subprocess.Popen(["condor_submit", cloud_sched_root_dir + "condor_data_collectors/tests/job_submitter/try.job"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = q_proc.communicate()
-
+        
+        print(output)
+        print(error)
         output_tokens = output.split()
-        batch_id = output_tokens[-1][0:-1]
+        batch_id = (output_tokens[-1])[0:-1]
 
         global valid_job_id
 
