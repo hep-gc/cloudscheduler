@@ -19,8 +19,6 @@ class TestCSJobsMethods(unittest.TestCase):
         q_proc=subprocess.Popen(["condor_submit", cloud_sched_root_dir + "condor_data_collectors/tests/job_submitter/try.job"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = q_proc.communicate()
         
-        print(output)
-        print(error)
         output_tokens = output.split()
         batch_id = (output_tokens[-1])[0:-1]
 
