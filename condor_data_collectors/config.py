@@ -42,7 +42,7 @@ if "general" in cfg:
     if "machine_collection_interval" in cfg["general"]:
         machine_collection_interval = cfg["general"]["machine_collection_interval"]
 
-    if "command_sleep_interval" in cfg["general"]):
+    if "command_sleep_interval" in cfg["general"]:
         command_sleep_interval = cfg["general"]["command_sleep_interval"]
 
     if "job_commands_key" in cfg["general"]:
