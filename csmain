@@ -1,3 +1,19 @@
 #!/usr/bin/python3
+import redis
+import json
+import cloudscheduler.jobmanager
 
+def main():
+    jobmanager = cloudscheduler.jobmanager.JobManager()
+
+    while(True):
+        redis_con = redis.StrictRedis(host='localhost', port=6379, db=0, password='heylookaredispasswordthatsprettylongthatsfineiguess')
+        jobsjson = redis_con.get('condor-jobs')
+        jobslist = json.loads(jobsjson)
+        jobmanager.update_jobs(jobslist)
+
+        print(jobslist[0])
+        print(jobmanager[jobslist[0]['GlobalJobId']])
+        break
 print("csmain name subject to change")
+main()

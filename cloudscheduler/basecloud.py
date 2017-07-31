@@ -1,7 +1,10 @@
+import uuid
+
+
 class BaseCloud():
-    def __init__(self, name, enabled=False, slots=0):
+    def __init__(self, name, slots=0):
         self.name = name
-        self.enabled = enabled
+        self.enabled = False
         self.vms = {}
         self.slots = slots
 
@@ -9,7 +12,7 @@ class BaseCloud():
         return ' : '.join([self.name, self.slots, self.enabled])
 
     def num_vms(self):
-        return len(vms.keys())
+        return len(vms)
 
     def get_vm(self, vmid):
         return self.vms[vmid]
@@ -23,7 +26,7 @@ class BaseCloud():
     def vm_update(self, **args):
         assert 0, 'Sublass must implement vm_update()'
 
-    def generate_next_name(self):
+    def _generate_next_name(self):
         name = ''.join([self.name.replace('_', '-').lower(), '-', str(uuid.uuid4())])
         for vm in self.vms.values():
             if name == vm.hostname:
