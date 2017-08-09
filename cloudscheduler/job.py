@@ -1,4 +1,6 @@
 class Job:
+    STATES=("Unscheduled", "Scheduled")
+
     def __init__(self, GlobalJobId, JobStatus=0, RequestMemory=0, RequestDisk=0, Requirements="", JobPrio=0,
                  Cmd="", ClusterId=0, User="", VMInstanceType="", Iwd="", VMType="", VMNetwork="", VMName="",
                  VMLoc="", VMAMI="", VMKeepAlive=0, VMMaximumPrice=0, VMUserData="", VMAMIConfig="",
@@ -33,6 +35,7 @@ class Job:
         self.MyType = MyType
         self.ServerTime = ServerTime
         self.TargetType = TargetType
+        self.state = self.STATES[0]
 
     def __repr__(self):
         return str(self.GlobalJobId)
