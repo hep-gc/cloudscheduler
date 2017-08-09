@@ -1,0 +1,13 @@
+[Unit]
+Description=Queries the condor Collector daemon for machine info and sends it off to redis
+After=network.target
+
+[Service]
+Type=simple
+User=csjobs
+ExecStart=/usr/bin/python /opt/cloudscheduler/condor_data_collectors/cscollector.py
+Restart=on-abort
+
+
+[Install]
+WantedBy=multi-user.target
