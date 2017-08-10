@@ -38,4 +38,7 @@ class Job:
         self.state = self.STATES[0]
 
     def __repr__(self):
-        return str(self.GlobalJobId)
+        return "JobID: " + str(self.GlobalJobId) + " status: " + str(self.JobStatus) + " vmtype: " + str(self.VMType) + " state: " + str(self.state)
+    
+    def set_state(self, state):
+        self.state = self.STATES[state]
