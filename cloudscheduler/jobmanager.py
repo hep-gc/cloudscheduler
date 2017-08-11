@@ -49,9 +49,18 @@ class JobManager:
     def get_unscheduled_jobs_user(self, user):
         return self.unscheduled_jobs_by_user[user]
 
-
     def get_unscheduled_jobs(self):
         return self.unscheduled_jobs
+
+    def get_scheduled_jobs(self):
+        return self.scheduled_jobs
+
+    def get_all_jobs(self):
+        unsched = self.unscheduled_jobs
+        sched = self.scheduled_jobs
+        #python 3 expression for merging 2 dicts, for 2 you need to copy each dict
+        all_jobs = {**unsched, **sched}
+        return all_jobs
 
     def update_users(self):
         self.user_list = list(set(self.unscheduled_jobs_by_user.keys()) + set(self.scheduled_jobs_by_user.keys()))
