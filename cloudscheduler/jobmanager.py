@@ -1,49 +1,60 @@
 from cloudscheduler.job import Job
 
+# We need to decide on logic for deciding if a job has been scheduled or not yet
+# Unsure if we can rely on the metadata from the job but right now it just deaults to not scheduled
+
 class JobManager:
     def __init__(self):
-        self.jobs = {}
-        self.jobs_by_user = {}
+
+        self.unscheduled_jobs = {}
+        self.unscheduled_jobs_by_user = {}
         self.scheduled_jobs = {}
         self.scheduled_jobs_by_user = {}
-
 
         self.user_list = list()
 
     def update_jobs(self, jobs):
         for job in jobs:
             j = Job(**job)
-            self.jobs[j.GlobalJobId] = j
-            self.jobs_by_user[j.User][j.GlobalJobId] = j
+            self.unscheduled_jobs[j.GlobalJobId] = j
+            self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
 
     def schedule_job(self, jobid):
-        self.jobs[jobid].set_state(1)
-        job = self.jobs[jobid]
+        self.unscheduled_jobs[jobid].set_state(1)
+        job = self.unscheduled_jobs[jobid]
         self.scheduled_jobs[jobid] = job
         self.scheduled_jobs_by_user[job.User][jobid] = job
+        del self.unscheduled_jobs[jobid]
+        del self.unscheduled_jobs_by_user[job.User][jobid]
         
 
     def unschedule_job(self, jobid):
-        self.jobs[jobid].set_state(0)
-        job = self.jobs[jobid]
+        self.scheduled_jobs[jobid].set_state(0)
+        job = self.scheduled_jobs[jobid]
+        self.unscheduled_jobs[jobid] = job
+        self.unscheduled_jobs_by_user[job.User][jobid] = job
         del self.scheduled_jobs[jobid]
         del self.scheduled_jobs_by_user[job.User][jobid]
 
     def get_jobs_user(self, user):
-        return self.jobs_by_user[user]
+        unsched = self.unscheduled_jobs_by_user[user]
+        sched = self.scheduled_jobs_by_user[user]
+        #python 3 expression for merging 2 dicts, for 2 you need to copy each dict
+        user_jobs = {**unsched, **sched}
+        return user_jobs
 
     def get_scheduled_jobs_user(self, user):
         return self.scheduled_jobs_by_user[user]
 
     def get_unscheduled_jobs_user(self, user):
-        pass
+        return self.unscheduled_jobs_by_user[user]
 
 
     def get_unscheduled_jobs(self):
-        pass
+        return self.unscheduled_jobs
 
-    def update_users(self, user_list):
-        pass
+    def update_users(self):
+        self.user_list = list(set(self.unscheduled_jobs_by_user.keys()) + set(self.scheduled_jobs_by_user.keys()))
 
     def get_users(self):
-        pass
+        return self.user_list
