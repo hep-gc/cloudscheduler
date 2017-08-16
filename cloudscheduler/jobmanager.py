@@ -13,11 +13,25 @@ class JobManager:
 
         self.user_list = list()
 
+
+# accepts a group of job dictionaries and shuffles them into the existing dictionaries based on their
+# GlobalJobIds.
     def update_jobs(self, jobs):
         for job in jobs:
             j = Job(**job)
-            self.unscheduled_jobs[j.GlobalJobId] = j
-            self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+            if j.GlobalJobId in self.unscheduled_jobs:
+                #update unscheduled entry
+                self.unscheduled_jobs[j.GlobalJobId] = j
+                
+            elif j.GlobalJobId in self.scheduled_jobs:
+                #update scheduled entry
+                j.set_state(1)
+                self.scheduled_jobs[j.GlobalJobId] = j
+                
+            else:
+                #brand new job, insert into unscheduled dicts
+                self.unscheduled_jobs[j.GlobalJobId] = j
+                self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
 
     def schedule_job(self, jobid):
         self.unscheduled_jobs[jobid].set_state(1)
