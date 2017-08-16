@@ -22,11 +22,13 @@ class JobManager:
             if j.GlobalJobId in self.unscheduled_jobs:
                 #update unscheduled entry
                 self.unscheduled_jobs[j.GlobalJobId] = j
+                self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
                 
             elif j.GlobalJobId in self.scheduled_jobs:
                 #update scheduled entry
                 j.set_state(1)
                 self.scheduled_jobs[j.GlobalJobId] = j
+                self.scheduled_jobs_by_user[j.User][j.GlobalJobId] = j
                 
             else:
                 #brand new job, insert into unscheduled dicts
