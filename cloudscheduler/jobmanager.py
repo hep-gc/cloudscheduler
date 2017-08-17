@@ -17,8 +17,10 @@ class JobManager:
 # accepts a group of job dictionaries and shuffles them into the existing dictionaries based on their
 # GlobalJobIds.
     def update_jobs(self, jobs):
+        redis_key_list = {}
         for job in jobs:
             j = Job(**job)
+            redis_key_list.append(j.GlobalJobId)
             if j.GlobalJobId in self.unscheduled_jobs:
                 #update unscheduled entry
                 self.unscheduled_jobs[j.GlobalJobId] = j
@@ -34,6 +36,16 @@ class JobManager:
                 #brand new job, insert into unscheduled dicts
                 self.unscheduled_jobs[j.GlobalJobId] = j
                 self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+        # Clean up jobs that were not in the redis store
+        for key in self.scheduled_jobs:
+            if key not in redis_key_list:
+                del self.scheduled_jobs[key]
+                del self.scheduled_jobs_by_user[key]
+        for key in self.unscheduled_jobs:
+            if key not in redis_key_list:
+                del self.unscheduled_jobs[key]
+                del self.unscheduled_jobs_by_user[key]
+
 
     def schedule_job(self, jobid):
         self.unscheduled_jobs[jobid].set_state(1)
