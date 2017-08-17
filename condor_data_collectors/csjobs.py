@@ -29,7 +29,7 @@ def job_producer(testrun=False, testfile=None):
             
             if not testrun:
                 condor_s = htcondor.Schedd()
-                job_list = condor_s.query(attr_list=job_attributes) 
+                job_list = condor_s.query(constraint='JobStatus=?=1', attr_list=job_attributes)
 
                 for job_ad in job_list:
                     job_dict = dict(job_ad)
