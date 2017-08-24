@@ -6,9 +6,10 @@ from keystoneauth1 import session
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 
-class OpenStackCloud(cloudscheduler.basecloud):
-    def __init__(self, name, slots, authurl, username, password, region=None, keyname=None ,cacert=None, userdomainname=None,
-                 projectdomainname=None, default_securitygroup=[], default_image=None, default_flavor=None):
+class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
+    def __init__(self, name, slots, authurl, username, password, region=None, keyname=None ,cacert=None,
+                 userdomainname=None, projectdomainname=None, defaultsecuritygroup=[], defaultimage=None,
+                 defaultflavor=None, defaultnetwork=None, extrayaml=None, ):
 
         cloudscheduler.basecloud.BaseCloud.__init__(self, name=name, slots=slots)
         self.authurl = authurl
@@ -21,22 +22,35 @@ class OpenStackCloud(cloudscheduler.basecloud):
         self.projectdomainname = projectdomainname
         self.session = self._get_auth_version(authurl)
 
-        self.default_securitygroup = default_securitygroup
-        self.default_image = default_image
-        self.default_flavor = default_flavor
+        self.default_securitygroup = defaultsecuritygroup
+        self.default_image = defaultimage
+        self.default_flavor = defaultflavor
+        self.default_network = defaultnetwork
+
+        self.extrayaml = extrayaml
 
     def vm_create(self, job=None):
         nova = self._get_creds_nova()
         #Check For valid security groups
 
         # Ensure keyname is valid
+        if self.keyname:
+            key_name = self.keyname if self.keyname else ""
+            if not nova.keypairs.findall(name=keyname):
+                key_name = ""
+            elif not nova.keypairs.findall(name=config.keyname):
+                key_name = ""
 
         # Deal with user data - combine and zip etc.
 
         # Check image coming from job, otherwise use cloud default, otherwise global default
-
         try:
-            imageobj = nova.images.find(name=job.image)
+            if self.name in job.image.keys():
+                imageobj = nova.images.find(name=job.image[self.name])
+            elif self.default_image:
+                imageobj = nova.images.find(name=self.default_image)
+            else:
+                pass # global default image
         except novaclient.exceptions.EndpointNotFound:
             print("Endpoint not found, region problem")
             return -1
@@ -44,13 +58,25 @@ class OpenStackCloud(cloudscheduler.basecloud):
             print("Problem finding image %s. Error: %s" % (job.image, e))
 
         # check flavor from job, otherwise cloud default, otherwise global default
-
         try:
-            flavor = nova.flavors.find(name=job.VMInstanceType)
+            if self.name in job.VMInstanceType.keys():
+                flavor = nova.flavors.find(name=job.VMInstanceType[self.name])
+            elif self.default_flavor:
+                flavor = nova.flavors.find(name=self.default_flavor)
+            #else:
+                #flavor = nova.flavors.find(name=config.default_flavor)
         except Exception as e:
             print(e)
 
         # Deal with network if needed
+        if self.name in job.VMNetwork.keys():
+            pass
+        elif self.default_network:
+            pass
+        #elif config.default_network:
+            #pass
+        #else:
+            #pass
 
         hostname = self._generate_next_name()
         instance = None
@@ -64,6 +90,7 @@ class OpenStackCloud(cloudscheduler.basecloud):
         if instance:
             new_vm = VM(vmid=instance.id, hostname=hostname)
             self.vms[instance.id] = new_vm
+            self.slots -= 1
 
 
         
@@ -79,6 +106,7 @@ class OpenStackCloud(cloudscheduler.basecloud):
         except novaclient.exceptions.NotFound as e:
             print("VM %s not found on %s: Removing from CS" % (vm.hostname, self.name))
             del self.vms[vm.vmid]
+            self.slots += 1
         except Exception as e:
             print("Unhandled Exception trying to destroy VM: %s: %s" % (vm.hostname, e))
 
@@ -127,10 +155,10 @@ class OpenStackCloud(cloudscheduler.basecloud):
             authsplit = authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             if version == 2:
-                session = self._get_keystone_session()
+                session = self._get_keystone_session_v2()
             elif version == 3:
                 session = self._get_keystone_session_v3()
-        except:
-            log.error("Error determining keystone version from auth url.")
+        except Exception as e:
+            print("Error determining keystone version from auth url: %s" % e)
             return None
         return session
