@@ -26,25 +26,45 @@ def job_producer():
 
             condor_s = htcondor.Schedd()
             new_poll_time = time.time()
+
+            #
+            # Part 1 - Get new jobs
+            #
             if(last_poll_time == 0):
                 #first poll since starting up, get everything
                 job_list = condor_s.query(attr_list=job_attributes)
             else:
-                #regular polling cycle
+                #regular polling cycle: Get all new jobs
                     ## constraint='JobStatus=?=1 && QDate>=' + last_poll_time, attr_list=job_attributes
                 job_list = condor_s.query(constraint='QDate>=%d' % last_poll_time, attr_list=job_attributes)
-            last_poll_time = new_poll_time
+            
 
-            #Process job data
+            #Process job data & Insert/update jobs in Database
             for job_ad in job_list:
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
-                job_dict_list.append(job_dict)
+                #job_dict_list.append(job_dict)
+                #TODO - Database stuff essentially empty the list into db
+  
+            #   
+            # Part 2 - Detect any job status changes
+            #
+            if(last_poll_time != 0)
+                # get all jobs who've had status changes since last poll excluding brand new jobs since they would have been updated above
+                status_changed_job_list = condor_s.query(constraint='EnteredCurrentStatus>=%d && QDate<=%d' % (last_poll_time, last_poll_time), attr_list=job_attributes)
+
+                for job_ad in status_changed_job_list:
+                    job_dict = dict(job_ad)
+                    print(job_dict["GlobalJobId"])
+                    if "Requirements" in job_dict:
+                        job_dict['Requirements'] = str(job_dict['Requirements'])
+                #job_dict_list.append(job_dict)
+                #TODO - Database stuff essentially update every row in db that is returned in query
 
             
-
-            # Insert jobs into Database
+            last_poll_time = new_poll_time
+            # 
 
             time.sleep(sleep_interval)
 
