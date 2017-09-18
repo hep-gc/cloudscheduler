@@ -50,7 +50,7 @@ def job_producer():
             #   
             # Part 2 - Detect any job status changes
             #
-            if(last_poll_time != 0)
+            if(last_poll_time != 0):
                 # get all jobs who've had status changes since last poll excluding brand new jobs since they would have been updated above
                 status_changed_job_list = condor_s.query(constraint='EnteredCurrentStatus>=%d && QDate<=%d' % (last_poll_time, last_poll_time), attr_list=job_attributes)
 
