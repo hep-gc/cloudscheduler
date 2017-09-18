@@ -32,14 +32,12 @@ def job_producer():
             else:
                 #regular polling cycle
                     ## constraint='JobStatus=?=1 && QDate>=' + last_poll_time, attr_list=job_attributes
-                job_list = condor_s.query(constraint='QDate>=' + last_poll_time, attr_list=job_attributes)
+                job_list = condor_s.query(constraint='QDate>=%d' % last_poll_time, attr_list=job_attributes)
             last_poll_time = new_poll_time
 
             #Process job data
-            print("TEST-RUN: PRINTING JOBIDs\n")
             for job_ad in job_list:
                 job_dict = dict(job_ad)
-                print(job_dict["GlobalJobId"])
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
                 job_dict_list.append(job_dict)
@@ -133,6 +131,5 @@ if __name__ == '__main__':
             process.join()
         except:
             logging.error("failed to join process %s" % process.name)
-
 
 
