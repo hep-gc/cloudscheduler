@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["csv2.heprc.uvic.ca"]
 # Application definition
 
 INSTALLED_APPS = [
+    'csv2.apps.Csv2Config'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
