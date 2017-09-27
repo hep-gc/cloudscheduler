@@ -11,9 +11,9 @@ def getAuthUser(request):
 def getcsv2User(request):
     authorized_user = getAuthUser(request)
     csv2_user_list = user.objects.all()
-    for user in csv2_user_list:
-        if user.username == authorized_user or user.cert_dn == authorized_user:
-            return user
+    for csv2_user in csv2_user_list:
+        if csv2_user.username == authorized_user or csv2_user.cert_dn == authorized_user:
+            return csv2_user
     return 
 
 
