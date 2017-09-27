@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 from django.contrib.auth.models import User #to get auth_user table
-from .models import csv2_user
+from .models import user
 
 # Returns the current authorized user from metadata
 def getAuthUser(request):
@@ -11,7 +11,7 @@ def getAuthUser(request):
 def getcsv2User(request):
     authorized_user = getAuthUser(request)
     auth_user_obj = User.objects.get(username=auth_user)
-    return csv2_user.objects.get(username=auth_user_obj.csv2_user)
+    return user.objects.get(username=auth_user_obj.csv2_user)
 
 
 def verifyUser(request):
@@ -21,14 +21,14 @@ def verifyUser(request):
     if auth_user_obj.csv2_user is not null:
         username = auth_user_obj.csv2_user
         # Double check to see this is a valid user
-        csv2_user_list = csv2_user.objects.all()
+        csv2_user_list = user.objects.all()
         for user in csv2_user_list:
             if user.username == username:
                 return True
 
     # if they don't then they either are not a csv2 user or this is the first time logging in with a certificate
     else:
-        csv2_user_list = csv2_user.objects.all()
+        csv2_user_list = user.objects.all()
         #try to find a user that has "auth_user" as cert_dn
         for user in csv2_user_list:
             if user.cert_dn == auth_user:
