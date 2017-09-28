@@ -40,7 +40,7 @@ def getSuperUserStatus(request):
     csv2_user_list = csv2_user.objects.all()
     for user in csv2_user_list:
         if user.username == authorized_user or user.cert_dn == authorized_user:
-            return authorized_user.is_superuser
+            return user.is_superuser
     return False
 
 
