@@ -14,6 +14,13 @@
     </style>
 </head>
 
+{% if err_message is not None %}
+    <p style="color:red;">{{err_message}}</p>
+{% endif %}
+{% if message is not None %}
+    <p style="color:green;">{{message}}</p>
+{% endif %}
+
 <table>
     <tr><th>Username</th><th>Cert DN</th><th>Superuser</th></tr>
     {% for user in user_list %}
@@ -42,7 +49,7 @@
                 <td><input type="password" name="password1" id="" value="" /></td></tr>
                 <tr><td><label for="password2">Confirm Password</label></td>
                 <td><input type="password" name="password2" id="" value="" /></td></tr>
-                <tr><td><label for="distinguished_name">Distinguished Name</label></td>
+                <tr><td><label for="distinguished_name">Cert DN</label></td>
                 <td><input type="text" name="distinguished_name" id="" value="" /></td></tr>
 
                 <tr><td><input type="submit" value="Create User" /></td></tr>

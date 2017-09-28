@@ -5,6 +5,8 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
+import bcrypt
+
 '''
 UTILITY FUNCTIONS
 '''
@@ -54,7 +56,7 @@ def index(request):
         csv2_user = getcsv2User(request)
         return HttpResponse("Hello, %s. You're at the cloudscheduler v2 index." % csv2_user.username)
 
-def manage_users(request):
+def manage_users(request, message=None, err_message=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -63,7 +65,49 @@ def manage_users(request):
 
     user_list = csv2_user.objects.all()
     context = {
-            'user_list': user_list
+            'user_list': user_list,
+            'message': message,
+            'err_message': err_message
 
     }
     return render(request, 'csv2/manage_users.html', context)
+
+
+def create_user(request):
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        user = request.POST.get('username')
+        pass1 = request.POST.get('password1')
+        pass2 = request.POST.get('password2')
+        cert_dn = request.POST.get('cert_dn')
+
+        # Need to perform several checks
+        # 1. Check that the username is valid (ie no username or cert_dn by that name)
+        # 2. Check that the cert_dn is not equal to any username or other cert_dn
+        # 3. Check that both passwords are the same
+
+        csv2_user_list = csv2_user.objects.all()
+        for csv2_user in csv2_user_list:
+            #check #1
+            if user == csv2_user.username or user == csv2_user.cert_dn:
+                #render manage users page with error message
+                return manage_users(request, err_message="Username unavailable")
+            #check #2
+            if cert_dn is not None and (cert_dn == csv2_user.username or cert_dn == csv2_user.cert_dn):
+                return manage_users(request, err_message="Username unavailable")
+
+        #check #3
+        if pass1 != pass2:
+            return manage_users(request, err_message="Passwords do not match")
+
+        # After checks are made use bcrypt to encrypt password.
+        hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+
+        #if all the checks passed and the hashed password has been generated create a new user object and save import
+        new_usr = csv2_user(username=username, password=hashed_pw, cert_dn=cert_dn, is_superuser=False)
+        new_usr.save()
+        return manage_users(request, message="User added")
