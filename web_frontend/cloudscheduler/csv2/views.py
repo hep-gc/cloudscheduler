@@ -147,7 +147,7 @@ def update_user(request):
         user_to_update.cert_dn = cert_dn
         user_to_update.is_superuser = su_status
         user_to_update.save()
-
+        return manage_users(request, message="User updated")
 
     else:
         #not a post, return to manage users page
