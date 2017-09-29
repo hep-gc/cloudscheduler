@@ -165,7 +165,7 @@ def delete_user(request):
 
     if request.method == 'POST':
         user = request.POST.get('username')
-        user_obj = csv2_user.objects.get(username=user)[0]
+        user_obj = csv2_user.objects.filter(username=user)
         user_obj.delete()
         return True
     return False
