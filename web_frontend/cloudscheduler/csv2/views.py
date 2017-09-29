@@ -98,7 +98,7 @@ def create_user(request):
                 return manage_users(request, err_message="Username unavailable")
             #check #2
             if cert_dn is not None and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
-                return manage_users(request, err_message="Username unavailable")
+                return manage_users(request, err_message="Username unavailable or conflicts with a registered Distinguished Name")
 
         #check #3
         if pass1 != pass2:
