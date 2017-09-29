@@ -40,8 +40,13 @@
                             <tr><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" id="" value="{{user.username}}" /></td></tr>
                             <tr><td><label for="distinguished_name">Distinguished Name</label></td>
-                            <td><input type="text" name="distinguished_name" id="" value="{{user.cert_dn}}" /></td></tr>
-                            <tr><td><label for="is_superuser">Administrator</label></td>
+                            {% if user.cert_dn is not None %}
+                                <td><input type="text" name="distinguished_name" id="" value="{{user.cert_dn}}" /></td>
+                            {% else %}
+                                <td><input type="text" name="distinguished_name" id="" value="" /></td>
+                            {% endif %}
+                            </tr>
+                            <tr><td><label for="is_superuser">Superuser</label></td>
                             {% if user.is_superuser %}
                                 <td><input name="is_superuser" type="checkbox" value="{{user.username}}" checked></td>
                             {% else %}

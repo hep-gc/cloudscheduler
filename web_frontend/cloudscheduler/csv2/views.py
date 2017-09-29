@@ -111,3 +111,44 @@ def create_user(request):
         new_usr = csv2_user(username=user, password=hashed_pw, cert_dn=cert_dn, is_superuser=False)
         new_usr.save()
         return manage_users(request, message="User added")
+    else:
+        #not a post, return to manage users page
+        return manage_users(request)
+
+def update_user(request):
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+
+    if request.method == 'POST':
+        csv2_user_list = csv2_user.objects.all()
+        user_to_update = csv2_user.objects.filter(username=request.POST.get('old_usr'))
+        new_username = request.POST.get('username')
+        cert_dn = request.POST.get('distinguished_name')
+        su_status = request.POST.get('is_superuser')
+
+        # Need to perform two checks
+        # 1. Check that the new username is valid (ie no username or cert_dn by that name)
+        #   if the username hasn't changed we can skip this check since it would have been done on creation.
+        # 2. Check that the cert_dn is not equal to any username or other cert_dn
+
+        for registered_user in csv2_user_list:
+            #check #1
+            if not new_username == user_to_update.username:
+                if user == registered_user.username or user == registered_user.cert_dn:
+                    #render manage users page with error message
+                    return manage_users(request, err_message="Unable to update user: new username unavailable")
+            #check #2
+            if cert_dn is not None and registered_user.username != user_to_update.username and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
+                return manage_users(request, err_message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
+        user_to_update.username = new_username
+        user_to_update.cert_dn = cert_dn
+        user_to_update.is_superuser = su_status
+        user_to_update.save()
+
+
+    else:
+        #not a post, return to manage users page
+        return manage_users(request)
