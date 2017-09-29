@@ -56,7 +56,7 @@
                             <input type="hidden" name="old_usr" value="{{user.username}}" />
 
                             <tr><td><input type="submit" value="Update User" /></td>
-                            <td><input type="button" onclick="confirmDelete('{{user.user_name}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
+                            <td><input type="button" onclick="confirmDelete('{{user.username}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
                         </table>
                     </form>
                 </div>
@@ -85,3 +85,19 @@
         </form>
     </div>
 </div>
+
+
+<script>
+    function confirmDelete(user) {
+        if (confirm("Are you sure you want to delete '" + user + "'") == true) {;
+            $.post("/delete_user/", {username: user, csrfmiddlewaretoken: '{{csrf_token}}'}, function(result){
+                if(result){
+                    window.location.href = "/manage_users/";
+                }
+                else{
+                    //something happened with delete, maybe give an error msg?
+                }
+            })
+        } 
+    }
+</script>
