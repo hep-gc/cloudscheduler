@@ -108,6 +108,6 @@ def create_user(request):
         hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
         #if all the checks passed and the hashed password has been generated create a new user object and save import
-        new_usr = csv2_user(username=username, password=hashed_pw, cert_dn=cert_dn, is_superuser=False)
+        new_usr = csv2_user(username=user, password=hashed_pw, cert_dn=cert_dn, is_superuser=False)
         new_usr.save()
         return manage_users(request, message="User added")
