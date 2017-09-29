@@ -156,3 +156,16 @@ def update_user(request):
     else:
         #not a post, return to manage users page
         return manage_users(request)
+
+def delete_user(request):
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        user = request.POST.get('username')
+        user_obj = csv2_user.objects.get(username=user)[0]
+        user_obj.delete()
+        return True
+    return False
