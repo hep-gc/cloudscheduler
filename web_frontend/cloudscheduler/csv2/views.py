@@ -91,13 +91,13 @@ def create_user(request):
         # 3. Check that both passwords are the same
 
         csv2_user_list = csv2_user.objects.all()
-        for csv2_user in csv2_user_list:
+        for registered_user in csv2_user_list:
             #check #1
-            if user == csv2_user.username or user == csv2_user.cert_dn:
+            if user == registered_user.username or user == registered_user.cert_dn:
                 #render manage users page with error message
                 return manage_users(request, err_message="Username unavailable")
             #check #2
-            if cert_dn is not None and (cert_dn == csv2_user.username or cert_dn == csv2_user.cert_dn):
+            if cert_dn is not None and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
                 return manage_users(request, err_message="Username unavailable")
 
         #check #3
