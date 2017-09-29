@@ -83,7 +83,7 @@ def create_user(request):
         user = request.POST.get('username')
         pass1 = request.POST.get('password1')
         pass2 = request.POST.get('password2')
-        cert_dn = request.POST.get('cert_dn')
+        cert_dn = request.POST.get('distinguished_name')
 
         # Need to perform several checks
         # 1. Check that the username is valid (ie no username or cert_dn by that name)
