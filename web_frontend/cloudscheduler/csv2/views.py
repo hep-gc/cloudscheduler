@@ -124,7 +124,7 @@ def update_user(request):
 
     if request.method == 'POST':
         csv2_user_list = csv2_user.objects.all()
-        user_to_update = csv2_user.objects.filter(username=request.POST.get('old_usr'))
+        user_to_update = csv2_user.objects.filter(username=request.POST.get('old_usr'))[0]
         new_username = request.POST.get('username')
         cert_dn = request.POST.get('distinguished_name')
         su_status = request.POST.get('is_superuser')

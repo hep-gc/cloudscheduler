@@ -9,7 +9,7 @@ class user(models.Model):
     cert_dn = models.CharField(max_length=128, null=True, default=None)   
     password = models.CharField(max_length=128, default="")
     is_superuser = models.BooleanField(default=False)
-    join_date = models.DateField(default=datetime.date.today)
+    join_date = models.DateField(default=datetime.date.today, null=True)
 
     def __str__(self):
-        return "%s" % (self.user_name)
+        return "%s" % (self.username)
