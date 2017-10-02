@@ -194,7 +194,7 @@ def user_settings(request):
         for registered_user in csv2_user_list:
             #check #1
             if not new_username == user_to_update.username:
-                if user == registered_user.username or user == registered_user.cert_dn:
+                if new_username == registered_user.username or new_username == registered_user.cert_dn:
                     context = {
                         'user_obj':user_to_update,
                         'err_message': "Unable to update user: new username unavailable"
@@ -218,7 +218,7 @@ def user_settings(request):
 
         #if we get here all the checks have passed and we can safely update the user data
         user_to_update.username=new_username
-        if new_pass1 is not None:
+        if new_pass1:
             user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
         user_to_update.cert_dn=cert_dn
         user_to_update.save()
