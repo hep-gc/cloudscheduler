@@ -209,7 +209,7 @@ def user_settings(request):
                 return render(request, 'csv2/user_settings.html', context)
 
         #check #3
-        if pass1 != pass2:
+        if new_pass1 != new_pass2:
             context = {
                 'user_obj':user_to_update,
                 'err_message': "Passwords do not match"
@@ -219,7 +219,7 @@ def user_settings(request):
         #if we get here all the checks have passed and we can safely update the user data
         user_to_update.username=new_username
         if pass1 is not None:
-            user_to_update.password = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+            user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
         user_to_update.cert_dn=cert_dn
         user_to_update.save()
         context = {
@@ -235,4 +235,4 @@ def user_settings(request):
         context = {
             'user_obj': user_obj,
         }
-        return render(request, 'csv2/user_settings.html', context)bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+        return render(request, 'csv2/user_settings.html', context)
