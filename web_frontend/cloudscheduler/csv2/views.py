@@ -22,7 +22,7 @@ def getcsv2User(request):
     for user in csv2_user_list:
         if user.username == authorized_user or user.cert_dn == authorized_user:
             return user
-    return None
+    raise PermissionDenied
 
 
 def verifyUser(request):
@@ -55,6 +55,8 @@ def index(request):
     if verifyUser(request):
         csv2_user = getcsv2User(request)
         return HttpResponse("Hello, %s. You're at the cloudscheduler v2 index." % csv2_user.username)
+    else
+        return 
 
 def manage_users(request, message=None, err_message=None):
     if not verifyUser(request):
@@ -169,3 +171,20 @@ def delete_user(request):
         user_obj.delete()
         return manage_users(request, message="User deleted")
     return False
+
+def user_settings(request, message=None, err_message=None):
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        # proccess update
+        return
+
+    else:
+        #render user_settings template
+        user_obj=getcsv2User(request)
+
+        context = {
+            'user_obj': user_obj,
+        }
+        return render(request, 'csv2/user_settings.html', context)

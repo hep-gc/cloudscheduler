@@ -8,4 +8,5 @@ urlpatterns = [
     url(r'^create_user/', views.create_user, name='create_user'),
     url(r'^update_user/', views.update_user, name='update_user'),
     url(r'^delete_user/', views.delete_user, name='delete_user'),
+    url(r'^user_settings/', views.user_settings, name='user_settings'),
 ]
