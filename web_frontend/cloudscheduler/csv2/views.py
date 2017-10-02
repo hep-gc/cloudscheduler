@@ -183,8 +183,8 @@ def user_settings(request):
         user_to_update = user_obj=getcsv2User(request)
         new_username = request.POST.get('username')
         cert_dn = request.POST.get('distinguished_name')
-        new_pass1 = request.POST.get('pass1')
-        new_pass2 = request.POST.get('pass2')
+        new_pass1 = request.POST.get('password1')
+        new_pass2 = request.POST.get('password2')
         
         # Need to perform three checks
         # 1. Check that the new username is valid (ie no username or cert_dn by that name)
@@ -218,7 +218,7 @@ def user_settings(request):
 
         #if we get here all the checks have passed and we can safely update the user data
         user_to_update.username=new_username
-        if pass1 is not None:
+        if new_pass1 is not None:
             user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
         user_to_update.cert_dn=cert_dn
         user_to_update.save()
