@@ -143,19 +143,22 @@ def update_user(request):
             if not new_username == user_to_update.username:
                 if user == registered_user.username or user == registered_user.cert_dn:
                     #render manage users page with error message
-                    return manage_users(request, err_message="Unable to update user: new username unavailable")
+                    #return manage_users(request, err_message="Unable to update user: new username unavailable")
+                    return redirect('manage_users', {'err_message'="Unable to update user: new username unavailable"})
             #check #2
             if cert_dn is not None and registered_user.username != user_to_update.username and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
-                return manage_users(request, err_message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
+                #return manage_users(request, err_message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
+                return redirect('manage_users', {'err_message'="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
         user_to_update.username = new_username
         user_to_update.cert_dn = cert_dn
         user_to_update.is_superuser = su_status
         user_to_update.save()
-        return manage_users(request, message="User updated")
+        #return manage_users(request, message="User updated")
+        redirect('manage_users', {'message'="User updated"})
 
     else:
         #not a post, return to manage users page
-        return manage_users(request)
+        return redirect(manage_users)
 
 def delete_user(request):
     if not verifyUser(request):
