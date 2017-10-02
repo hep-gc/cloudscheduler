@@ -55,8 +55,8 @@ def index(request):
     if verifyUser(request):
         csv2_user = getcsv2User(request)
         return HttpResponse("Hello, %s. You're at the cloudscheduler v2 index." % csv2_user.username)
-    else
-        return 
+    else:
+        raise PermissionDenied
 
 def manage_users(request, message=None, err_message=None):
     if not verifyUser(request):
