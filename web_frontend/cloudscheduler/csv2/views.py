@@ -172,13 +172,61 @@ def delete_user(request):
         return manage_users(request, message="User deleted")
     return False
 
-def user_settings(request, message=None, err_message=None):
+def user_settings(request):
     if not verifyUser(request):
         raise PermissionDenied
 
     if request.method == 'POST':
         # proccess update
-        return
+
+        csv2_user_list = csv2_user.objects.all()
+        user_to_update = user_obj=getcsv2User(request)
+        new_username = request.POST.get('username')
+        cert_dn = request.POST.get('distinguished_name')
+        new_pass1 = request.POST.get('pass1')
+        new_pass2 = request.POST.get('pass2')
+        
+        # Need to perform three checks
+        # 1. Check that the new username is valid (ie no username or cert_dn by that name)
+        #   if the username hasn't changed we can skip this check since it would have been done on creation.
+        # 2. Check that the cert_dn is not equal to any username or other cert_dn
+        # 3. If the passwords aren't blank check if they are the same.
+        for registered_user in csv2_user_list:
+            #check #1
+            if not new_username == user_to_update.username:
+                if user == registered_user.username or user == registered_user.cert_dn:
+                    context = {
+                        'user_obj':user_to_update,
+                        'err_message': "Unable to update user: new username unavailable"
+                    }
+                    return render(request, 'csv2/user_settings.html', context)
+            #check #2
+            if cert_dn is not None and registered_user.username != user_to_update.username and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
+                context = {
+                    'user_obj':user_to_update,
+                    'err_message': "Unable to update user: Username or DN unavailable or conflicts with a registered Distinguished Name"
+                }
+                return render(request, 'csv2/user_settings.html', context)
+
+        #check #3
+        if pass1 != pass2:
+            context = {
+                'user_obj':user_to_update,
+                'err_message': "Passwords do not match"
+            }
+            return render(request, 'csv2/user_settings.html', context)
+
+        #if we get here all the checks have passed and we can safely update the user data
+        user_to_update.username=new_username
+        if pass1 is not None:
+            user_to_update.password = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+        user_to_update.cert_dn=cert_dn
+        user_to_update.save()
+        context = {
+                'user_obj':user_to_update,
+                'message': "Update Successful"
+            }
+        return render(request, 'csv2/user_settings.html', context)
 
     else:
         #render user_settings template
@@ -187,4 +235,4 @@ def user_settings(request, message=None, err_message=None):
         context = {
             'user_obj': user_obj,
         }
-        return render(request, 'csv2/user_settings.html', context)
+        return render(request, 'csv2/user_settings.html', context)bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))

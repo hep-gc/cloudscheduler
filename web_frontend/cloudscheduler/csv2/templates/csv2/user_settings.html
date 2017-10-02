@@ -1,3 +1,10 @@
+{% if err_message is not None %}
+    <p style="color:red;">{{err_message}}</p>
+{% endif %}
+{% if message is not None %}
+    <p style="color:green;">{{message}}</p>
+{% endif %}
+
 <form name="update_settings" action="/user_settings/" method="post">
     {% csrf_token %}
     <table>
