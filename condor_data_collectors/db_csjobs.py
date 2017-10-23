@@ -119,7 +119,8 @@ def job_command_consumer(testrun=False):
                 logging.info("Holding %s" % job.GlobalJobId)
                 try:
                     s = htcondor.Schedd()
-                    s.edit([job.GlobalJobId,], "JobStatus", "5")
+                    local_job_id = job.GlobalJobId.split('#')[1]
+                    s.edit([local_job_id,], "JobStatus", "5")
                     #update job so that it is held, need to finalize encoding here.
                     job.JobStatus=5
                     job.hold_job=2 # ??? back to zero? set to 2 after job is held?
