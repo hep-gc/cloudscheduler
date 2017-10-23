@@ -14,9 +14,12 @@ from sqlalchemy.ext.automap import automap_base
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
-    for key, value in dict_to_trim:
+    keys_to_trim = []
+    for key in dict_to_trim:
         if key not in key_list:
-            dict_to_trim.pop(key, None)
+            keys_to_trim.apend(key)
+    for key in keys_to_trim:
+        dict_to_trim.pop(key, None)
     return dict_to_trim
 
 def job_producer():
