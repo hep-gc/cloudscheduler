@@ -95,7 +95,7 @@ def job_command_consumer(testrun=False):
     while(True):
         try:
             #Make database engine
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host":"+ config.db_port + "/" + config.db_name)
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + config.db_port + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
             session = Session(engine)
             #Query database for any entries that have a command flag
