@@ -133,7 +133,7 @@ def job_command_consumer(testrun=False):
             time.sleep(sleep_interval)
 
         except Exception as e:
-            logging.error("Failure connecting to redis or executing condor command, begining sleep interval...")
+            logging.error("Failure connecting to database or executing condor command, begining sleep interval...")
             logging.error(e)
             if(testrun):
                 return False
@@ -150,9 +150,9 @@ if __name__ == '__main__':
     processes = []
 
     p_job_producer = Process(target=job_producer)
-    #p_command_consumer = Process(target=job_command_consumer)
+    p_command_consumer = Process(target=job_command_consumer)
     processes.append(p_job_producer)
-    #processes.append(p_command_consumer)
+    processes.append(p_command_consumer)
    
 
     # Wait for keyboard input to exit
@@ -162,8 +162,8 @@ if __name__ == '__main__':
         while(True):
             for process in processes:
                 if not process.is_alive():
-                    log.error("%s process died!" % process.name)
-                    log.error("Restarting %s process...")
+                    logging.error("%s process died!" % process.name)
+                    logging.error("Restarting %s process...")
                     process.start()
                 time.sleep(1)
             time.sleep(10)
