@@ -10,6 +10,14 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 
+# condor likes to return extra keys not defined in the projection
+# this function will trim the extra ones so that we can use kwargs
+# to initiate a valid table row based on the data returned
+def trim_keys(dict_to_trim, key_list):
+    for key, value in dict_to_trim:
+        if key not in key_list:
+            dict_to_trim.pop(key, None)
+    return dict_to_trim
 
 def job_producer():
 
@@ -52,6 +60,7 @@ def job_producer():
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
+                job_dict = trim_keys(job_dict, job_attributes)
                 new_job = Job(**job_dict)
                 session.merge(new_job)
             session.commit()
@@ -70,6 +79,7 @@ def job_producer():
                     print(job_dict["GlobalJobId"])
                     if "Requirements" in job_dict:
                         job_dict['Requirements'] = str(job_dict['Requirements'])
+                    job_dict = trim_keys(job_dict, job_attributes)
                     new_job = Job(**job_dict)
                     session.merge(new_job)
                 session.commit()
