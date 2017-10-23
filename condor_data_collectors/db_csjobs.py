@@ -5,11 +5,14 @@ import json
 import logging
 import config
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+
 
 
 def job_producer():
 
-    job_data_key = config.job_data_key
     sleep_interval = config.job_collection_interval
     job_attributes = ["JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements", "JobPrio", "Cmd", 
                       "ClusterId", "User", "VMInstanceType", "Iwd", "VMType", "VMNetwork", "VMName", "VMLoc", "VMAMI", 
@@ -40,13 +43,21 @@ def job_producer():
             
 
             #Process job data & Insert/update jobs in Database
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host":"+ config.db_port + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            Job = Base.classes.condor_jobs
+            session = Session(engine)
             for job_ad in job_list:
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
-                #job_dict_list.append(job_dict)
-                #TODO - Database stuff essentially empty the list into db
-  
+                new_job = Job(**job_dict)
+                session.merge(new_job)
+            session.commit()
+
+
+            session = Session(engine)
             #   
             # Part 2 - Detect any job status changes
             #
@@ -59,12 +70,12 @@ def job_producer():
                     print(job_dict["GlobalJobId"])
                     if "Requirements" in job_dict:
                         job_dict['Requirements'] = str(job_dict['Requirements'])
-                #job_dict_list.append(job_dict)
-                #TODO - Database stuff essentially update every row in db that is returned in query
+                    new_job = Job(**job_dict)
+                    session.merge(new_job)
+                session.commit()
 
             
             last_poll_time = new_poll_time
-            # 
 
             time.sleep(sleep_interval)
 
@@ -77,35 +88,36 @@ def job_producer():
             return
 
 
-'''
-# Might be useful down the road but right now it has no purpose
-# This function reads commands from redis and attempts to execute against condor
-
 def job_command_consumer(testrun=False):
     job_commands_key = config.job_commands_key
     sleep_interval = config.command_sleep_interval
     
     while(True):
         try:
-            redis_con = setup_redis_connection()
-            command_string = redis_con.lpop(job_commands_key)
-            if command_string is not None:
-                command_dict = json.loads(command_string)
-                command = command_dict["command"]
-                if command == "set_job_hold":
-                    job_id = command_dict["job_id"]
-                    #if you don't supply it in a list format it seems to update all jobs
-                    logging.info("Holding %s" % job_id)
+            #Make database engine
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host":"+ config.db_port + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            session = Session(engine)
+            #Query database for any entries that have a command flag
+            for job in session.query(condor_jobs).filter(condor_jobs.hold_job==1)
+                #execute condor hold on the jobs returned
+                logging.info("Holding %s" % job.GlobalJobId)
+                try:
                     s = htcondor.Schedd()
-                    s.edit([job_id,], "JobStatus", "5")
-                    if(testrun):
-                        return True
+                    s.edit([job.GlobalJobId,], "JobStatus", "5")
+                    #update job so that it is held, need to finalize encoding here.
+                    job.JobStatus=5
+                    job.hold_job=2 # ??? back to zero? set to 2 after job is held?
+                    session.merge(job)
+                except:
+                    logging.error("Failed to hold job %s" % job.GlobalJobId)
+                    continue
+            #commit updates enteries
+            session.commit()
                 
 
             else:
-                logging.info("No command in redis list, begining sleep interval...")
-                if(testrun):
-                    return False
+                logging.info("No more jobs to hold, begining sleep interval...")
                 time.sleep(sleep_interval)
 
         except Exception as e:
@@ -117,7 +129,7 @@ def job_command_consumer(testrun=False):
 
         except(SystemExit, KeyboardInterrupt):
             return
-'''
+
         
 
 if __name__ == '__main__':
