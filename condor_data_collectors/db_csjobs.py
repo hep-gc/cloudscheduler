@@ -17,7 +17,7 @@ def trim_keys(dict_to_trim, key_list):
     keys_to_trim = []
     for key in dict_to_trim:
         if key not in key_list:
-            keys_to_trim.apend(key)
+            keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
     return dict_to_trim
@@ -64,6 +64,7 @@ def job_producer():
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
                 job_dict = trim_keys(job_dict, job_attributes)
+                logging.info("Adding job %s" % job_dict["GlobalJobId"])
                 new_job = Job(**job_dict)
                 session.merge(new_job)
             session.commit()
