@@ -30,7 +30,7 @@ database:
 
     # Name of database to connect to
     #
-    db_name: 0
+    db_name: "csv2"
 
     # Database username
     #
