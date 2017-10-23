@@ -111,9 +111,10 @@ def job_command_consumer(testrun=False):
             Base = automap_base()
             engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
+            Job = Base.classes.condor_jobs
             session = Session(engine)
             #Query database for any entries that have a command flag
-            for job in session.query(condor_jobs).filter(condor_jobs.hold_job==1):
+            for job in session.query(Job).filter(Job.hold_job==1):
                 #execute condor hold on the jobs returned
                 logging.info("Holding %s" % job.GlobalJobId)
                 try:
