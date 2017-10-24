@@ -30,6 +30,7 @@ def resources_producer(testrun=False, testfile=None):
     while(True):
         try:
             # Initialize condor and database objects
+            Base = automap_base()
             engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
             Resource = Base.classes.condor_resources
