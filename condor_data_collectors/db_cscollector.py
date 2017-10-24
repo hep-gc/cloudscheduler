@@ -5,6 +5,17 @@ import json
 import config
 import logging
 
+# condor likes to return extra keys not defined in the projection
+# this function will trim the extra ones so that we can use kwargs
+# to initiate a valid table row based on the data returned
+def trim_keys(dict_to_trim, key_list):
+    keys_to_trim = []
+    for key in dict_to_trim:
+        if key not in key_list:
+            keys_to_trim.append(key)
+    for key in keys_to_trim:
+        dict_to_trim.pop(key, None)
+    return dict_to_trim
 
 def resources_producer(testrun=False, testfile=None):
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", "Start", "RemoteOwner", "SlotType", "TotalSlots"] 
@@ -32,6 +43,7 @@ def resources_producer(testrun=False, testfile=None):
                 r_dict = dict(resource)
                 if "Start" in r_dict:
                     r_dict["Start"] = str(r_dict["Start"])
+                r_dict = trim_keys( r_dict, resource_attributes)
                 new_resource = Resource(**r_dict)
                 logging.info("Adding new resource: %s" % r_dict["Name"])
                 session.merge(new_resource)
