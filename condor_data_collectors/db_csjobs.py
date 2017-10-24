@@ -123,7 +123,7 @@ def job_command_consumer(testrun=False):
                     s.edit([local_job_id,], "JobStatus", "5")
                     #update job so that it is held, need to finalize encoding here.
                     job.JobStatus=5
-                    job.hold_job=2 # ??? back to zero? set to 2 after job is held?
+                    job.hold_job=2 # Null/0 normal, 1 means needs to be held, 2 means job has been held
                     session.merge(job)
                 except:
                     logging.error("Failed to hold job %s" % job.GlobalJobId)
@@ -131,7 +131,7 @@ def job_command_consumer(testrun=False):
             #commit updates enteries
             session.commit()
 
-            logging.info("No more jobs to hold, begining sleep interval...")
+            logging.debug("No more jobs to hold, begining sleep interval...")
             time.sleep(sleep_interval)
 
         except Exception as e:
