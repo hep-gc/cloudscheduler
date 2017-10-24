@@ -5,6 +5,11 @@ import json
 import config
 import logging
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+
+
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
