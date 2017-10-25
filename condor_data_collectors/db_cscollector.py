@@ -53,10 +53,12 @@ def resources_producer(testrun=False, testfile=None):
                 new_resource = Resource(**r_dict)
                 logging.info("Adding new resource: %s" % r_dict["Name"])
                 session.merge(new_resource)
+            logging.info("Commiting database session")
             session.commit()
 
 
             last_poll_time = new_poll_time
+            logging.info("Last poll time: %s, commencing sleep interval" % last_poll_time)
             time.sleep(sleep_interval)
 
         except Exception as e:
@@ -70,6 +72,9 @@ def resources_producer(testrun=False, testfile=None):
 ''' Implementation may not be needed in database version
 
 #Should support condor_off and condor_advertise
+
+#condor_advertise - query database for all adds that need to condor_advertise
+#
 
 def collector_command_consumer(testrun=False):
     collector_commands_key = config.collector_commands_key
