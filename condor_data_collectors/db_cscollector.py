@@ -43,7 +43,7 @@ def resources_producer(testrun=False, testfile=None):
             if last_poll_time == 0: 
                 condor_resources = condor_c.query(ad_type=ad_type, constraint=True, projection=resource_attributes)
             else:
-                condor_resources = condor_c.query(ad_type=ad_type, constraint='EnteredCurrentStatus>=%d' % last_poll_time, projection=resource_attributes)
+                condor_resources = condor_c.query(ad_type=ad_type, constraint='EnteredCurrentStatus>=%d || JobStart>=%d' % (last_poll_time, last_poll_time), projection=resource_attributes)
 
             for resource in condor_resources:
                 r_dict = dict(resource)
