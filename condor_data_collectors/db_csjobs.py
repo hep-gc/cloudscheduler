@@ -80,7 +80,6 @@ def job_producer():
 
                 for job_ad in status_changed_job_list:
                     job_dict = dict(job_ad)
-                    print(job_dict["GlobalJobId"])
                     if "Requirements" in job_dict:
                         job_dict['Requirements'] = str(job_dict['Requirements'])
                     job_dict = trim_keys(job_dict, job_attributes)
