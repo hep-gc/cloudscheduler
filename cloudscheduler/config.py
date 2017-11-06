@@ -3,6 +3,7 @@ import yaml
 
 default_config_file_location = "/etc/cloudscheduler/cloudscheduler.yaml"
 
+
 class CSConfig():
     def __init__(self, **kwargs):
         self.name = kwargs['general'].get('name', 'CloudScheduler')
@@ -31,5 +32,5 @@ class CSConfig():
         return config
 
 
-#conf = CSConfig(**CSConfig.setup())
+config = CSConfig(**CSConfig.setup())
 
