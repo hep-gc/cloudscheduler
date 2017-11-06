@@ -13,11 +13,39 @@ class JobManager:
 
         self.user_list = list()
 
+
+# accepts a group of job dictionaries and shuffles them into the existing dictionaries based on their
+# GlobalJobIds.
     def update_jobs(self, jobs):
+        redis_key_list = {}
         for job in jobs:
             j = Job(**job)
-            self.unscheduled_jobs[j.GlobalJobId] = j
-            self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+            redis_key_list.append(j.GlobalJobId)
+            if j.GlobalJobId in self.unscheduled_jobs:
+                #update unscheduled entry
+                self.unscheduled_jobs[j.GlobalJobId] = j
+                self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+                
+            elif j.GlobalJobId in self.scheduled_jobs:
+                #update scheduled entry
+                j.set_state(1)
+                self.scheduled_jobs[j.GlobalJobId] = j
+                self.scheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+                
+            else:
+                #brand new job, insert into unscheduled dicts
+                self.unscheduled_jobs[j.GlobalJobId] = j
+                self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+        # Clean up jobs that were not in the redis store
+        for key in self.scheduled_jobs:
+            if key not in redis_key_list:
+                del self.scheduled_jobs[key]
+                del self.scheduled_jobs_by_user[key]
+        for key in self.unscheduled_jobs:
+            if key not in redis_key_list:
+                del self.unscheduled_jobs[key]
+                del self.unscheduled_jobs_by_user[key]
+
 
     def schedule_job(self, jobid):
         self.unscheduled_jobs[jobid].set_state(1)
@@ -49,9 +77,18 @@ class JobManager:
     def get_unscheduled_jobs_user(self, user):
         return self.unscheduled_jobs_by_user[user]
 
-
     def get_unscheduled_jobs(self):
         return self.unscheduled_jobs
+
+    def get_scheduled_jobs(self):
+        return self.scheduled_jobs
+
+    def get_all_jobs(self):
+        unsched = self.unscheduled_jobs
+        sched = self.scheduled_jobs
+        #python 3 expression for merging 2 dicts, for 2 you need to copy each dict
+        all_jobs = {**unsched, **sched}
+        return all_jobs
 
     def update_users(self):
         self.user_list = list(set(self.unscheduled_jobs_by_user.keys()) + set(self.scheduled_jobs_by_user.keys()))

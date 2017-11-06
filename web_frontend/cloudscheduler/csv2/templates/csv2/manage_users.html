@@ -1,0 +1,103 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+        }
+        th {
+            text-align: right;
+        }
+    </style>
+</head>
+
+{% if err_message is not None %}
+    <p style="color:red;">{{err_message}}</p>
+{% endif %}
+{% if message is not None %}
+    <p style="color:green;">{{message}}</p>
+{% endif %}
+
+<table>
+    <tr><th>Username</th><th>Cert DN</th><th>Superuser</th></tr>
+    {% for user in user_list %}
+        <tr>
+            <td>{{user.username}}</td>
+            <td>{{user.cert_dn}}</td>
+            {% if user.is_superuser %}
+                <td>&#x2714</td>
+            {% else %}
+                <td>&#x2718</td>
+            {% endif %}
+            <td><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{{user.username}}" style="margin-right: 5px"> Edit </button>
+                <div class="collapse" id="{{user.username}}" style="width: 400px">
+                    <form name="{{user.username}}" action="/update_user/" method="post">
+                        {% csrf_token %}
+                        <table>
+                            <tr><td><label for="username">Username</label></td>
+                            <td><input type="text" name="username" id="" value="{{user.username}}" /></td></tr>
+                            <tr><td><label for="distinguished_name">Distinguished Name</label></td>
+                            {% if user.cert_dn is not None %}
+                                <td><input type="text" name="distinguished_name" id="" value="{{user.cert_dn}}" /></td>
+                            {% else %}
+                                <td><input type="text" name="distinguished_name" id="" value="" /></td>
+                            {% endif %}
+                            </tr>
+                            <tr><td><label for="is_superuser">Superuser</label></td>
+                            {% if user.is_superuser %}
+                                <td><input name="is_superuser" type="checkbox" value="{{user.username}}" checked></td>
+                            {% else %}
+                                <td><input name="is_superuser" type="checkbox" value="{{user.username}}"></td>
+                            {% endif %}
+                            </tr>
+                            <input type="hidden" name="old_usr" value="{{user.username}}" />
+
+                            <tr><td><input type="submit" value="Update User" /></td>
+                            <td><input type="button" onclick="confirmDelete('{{user.username}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
+                        </table>
+                    </form>
+                </div>
+</td>
+        </tr>
+    {% endfor %}
+</table>
+
+<div style="padding-left: 25px; padding-top: 25px">
+    <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#create_user" style="margin-right: 5px"> Create User </button>
+    <div class="collapse" id="create_user" style="width: 400px">
+        <form name="create_user" action="/create_user/" method="post">
+            {% csrf_token %}
+            <table>
+                <tr><td><label for="username">Username</label></td>
+                <td><input type="text" name="username" id="" value="" /></td></tr>
+                <tr><td><label for="password1">Password</label></td>
+                <td><input type="password" name="password1" id="" value="" /></td></tr>
+                <tr><td><label for="password2">Confirm Password</label></td>
+                <td><input type="password" name="password2" id="" value="" /></td></tr>
+                <tr><td><label for="distinguished_name">Cert DN</label></td>
+                <td><input type="text" name="distinguished_name" id="" value="" /></td></tr>
+
+                <tr><td><input type="submit" value="Create User" /></td></tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    function confirmDelete(user) {
+        if (confirm("Are you sure you want to delete '" + user + "'") == true) {;
+            $.post("/delete_user/", {username: user, csrfmiddlewaretoken: '{{csrf_token}}'}, function(result){
+                if(result){
+                    window.location.href = "/manage_users/";
+                }
+                else{
+                    //something happened with delete, maybe give an error msg?
+                }
+            })
+        } 
+    }
+</script>

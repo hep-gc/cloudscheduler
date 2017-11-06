@@ -5,17 +5,15 @@ import yaml
 job_collection_interval = 15
 machine_collection_interval = 15
 command_sleep_interval = 10
-job_commands_key = "job_commands"
-collector_commands_key = "collector_commands"
-job_data_key = "condor-jobs"
-collector_data_key = "condor-resources"
-job_log_file = "/var/log/csjobs.log"
-collector_log_file = "/var/log/cscollector.log"
+job_log_file = "/var/log/cloudscheduler/csjobs.log"
+collector_log_file = "/var/log/cloudscheduler/cscollector.log"
 
-redis_host = "localhost"
-redis_port = 6379
-redis_db = 0
-redis_password = ""
+db_host = "localhost"
+db_port = 3306
+db_user = "csv2"
+db_password = ""
+
+
 
 if exists("/etc/condor_data_collectors.yaml"):
     path = "/etc/condor_data_collectors.yaml"
@@ -45,18 +43,6 @@ if "general" in cfg:
     if "command_sleep_interval" in cfg["general"]:
         command_sleep_interval = cfg["general"]["command_sleep_interval"]
 
-    if "job_commands_key" in cfg["general"]:
-        job_commands_key = cfg["general"]["job_commands_key"]
-
-    if "collector_commands_key" in cfg["general"]:
-        collector_commands_key = cfg["general"]["collector_commands_key"]
-
-    if "job_data_key" in cfg["general"]:
-        job_data_key = cfg["general"]["job_data_key"]
-
-    if "collector_data_key":
-        collector_data_key = cfg["general"]["collector_data_key"]
-
     if "job_log_file" in cfg["general"]:
         job_log_file = cfg["general"]["job_log_file"]
 
@@ -64,16 +50,19 @@ if "general" in cfg:
         collector_log_file = cfg["general"]["collector_log_file"]
 
 
-if "redis" in cfg:
-    if "redis_host" in cfg["redis"]:
-        redis_host = cfg["redis"]["redis_host"]
+if "database" in cfg:
+    if "db_host" in cfg["database"]:
+        db_host = cfg["database"]["db_host"]
 
-    if "redis_port" in cfg["redis"]:
-        redis_port = cfg["redis"]["redis_port"]
+    if "db_port" in cfg["database"]:
+        db_port = cfg["database"]["db_port"]
 
-    if "redis_db" in cfg["redis"]:
-        redis_db = cfg["redis"]["redis_db"]
+    if "db_name" in cfg["database"]:
+        db_name = cfg["database"]["db_name"]
 
-    if "redis_password" in cfg["redis"]:
-        redis_password = cfg["redis"]["redis_password"]
+    if "db_user" in cfg["database"]:
+        db_user = cfg["database"]["db_user"]
+
+    if "db_password" in cfg["database"]:
+        db_password = cfg["database"]["db_password"]
 

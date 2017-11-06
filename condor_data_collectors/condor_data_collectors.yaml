@@ -11,35 +11,31 @@ general:
     #
     command_sleep_interval: 10
 
-    # Redis key represnting the queue of job commands
+    # Path and name of csjobs log file
     #
-    job_commands_key: job_commands
+    job_log_file: "/var/log/cloudscheduler/csjobs.log"
 
-    # Redis key representing the queue of collector commands
+    # Path and name of cscollector log file
     #
-    collector_commands_key: collector_commands
+    collector_log_file: "/var/log/cloudscheduler/cscollector.log"
 
-    # Redis key representing the location to place job ads
+database:
+    # Location of database server
     #
-    job_data_key: condor-jobs
+    db_host: csv2.heprc.uvic.ca
 
-    # Redis key represnting the location to place machine ads
+    # Port to connect to database on
     #
-    collector_data_key: condor-resources
+    db_port: 3306
 
-redis:
-    # Location of redis server to send/recieve to/from
+    # Name of database to connect to
     #
-    redis_host: htcs-master.heprc.uvic.ca
+    db_name: "csv2"
 
-    # Port to connect to redis on
+    # Database username
     #
-    redis_port: 6379
+    db_user: "csv2"
 
-    # Number of redis database to connect to, default is Zero
+    # Password to database
     #
-    redis_db: 0
-
-    # Password to redis database
-    #
-    redis_password: 
+    db_password: ""
