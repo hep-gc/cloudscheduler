@@ -1,19 +1,37 @@
 #!/usr/bin/python3
-import redis
+import os
 import json
 import cloudscheduler.jobmanager
+import cloudscheduler.cloudmanager
+import cloudscheduler.config as csconfig
+
+CLOUDRESOURCES = {}
 
 def main():
     jobmanager = cloudscheduler.jobmanager.JobManager()
+    cm = cloudscheduler.cloudmanager.CloudManager(name='default', resource_file='/hepuser/mhp/code/git/cloudscheduler/cloudresources.yaml')
+    cm.setup()
+    CLOUDRESOURCES[cm.name] = cm
+    print(csconfig.config.name, csconfig.config.default_instancetype)
+
 
     while(True):
-        redis_con = redis.StrictRedis(host='localhost', port=6379, db=0, password='heylookaredispasswordthatsprettylongthatsfineiguess')
-        jobsjson = redis_con.get('condor-jobs')
-        jobslist = json.loads(jobsjson)
-        jobmanager.update_jobs(jobslist)
+        pass
 
-        print(jobslist[0])
-        print(jobmanager[jobslist[0]['GlobalJobId']])
+
         break
-print("csmain name subject to change")
+
+# maintain a dict of cloudmanager objects
+# initially load up the default one
+# when new user detected check for a cloud resource file and load / add to dict key user name
+
+def add_user_cloud(user, user_resource_file=None):
+    if not user_resource_file:
+        homedir = os.path.expanduser(''.join['~', user])
+        user_resource_file = ''.join([homedir, '/.cloudscheduler/cloudresources.yaml'])
+    cmuser = cloudscheduler.cloudmanager.CloudManager(name=user, resource_file=user_resource_file)
+    cmuser.setup()
+    CLOUDRESOURCES[cmuser.name] = cmuser
+
+print("csmain")
 main()
