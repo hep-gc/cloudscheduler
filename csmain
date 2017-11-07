@@ -5,6 +5,11 @@ import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
 import cloudscheduler.config as csconfig
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+
+
 CLOUDRESOURCES = {}
 
 def main():
@@ -17,7 +22,23 @@ def main():
 
     while(True):
         pass
-
+        # basic scheduling: fifo w/ condor_prioity
+        #for each of the CLOUDRESOURCES:
+        for user in CLOUDRESOURCES:
+            # get the idle_jobs for the user of current resources
+            # sort jobs of that user by priority
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" +
+                     config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine)
+            Job = Base.classes.condor_jobs # table name?
+            session = Session(engine)
+            idle_jobs = session.query(Job).filter(Job.user == user, Job.job_status == 1).order_by(Job.priority) #check field names
+        # based on idle jobs determine if current resource allocation should change/increase/decrease based on the highest priority job
+        # make needed changes: retire machines/terminate retired ones/check on states and remove from system
+        # boot vms if space available
+            if CLOUDRESOURCES[user].check_for_availability(idle_jobs[0]):
+                CLOUDRESOURCES[user].create_vm(idle_jobs[0])
 
         break
 
