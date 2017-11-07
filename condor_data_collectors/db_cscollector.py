@@ -51,7 +51,7 @@ def resources_producer(testrun=False, testfile=None):
                     r_dict["Start"] = str(r_dict["Start"])
                 r_dict = trim_keys( r_dict, resource_attributes)
                 new_resource = Resource(**r_dict)
-                logging.info("Adding new resource: %s" % r_dict["Name"])
+                logging.info("Adding new or updating resource: %s" % r_dict["Name"])
                 session.merge(new_resource)
             logging.info("Commiting database session")
             session.commit()
@@ -69,64 +69,58 @@ def resources_producer(testrun=False, testfile=None):
         except(SystemExit, KeyboardInterrupt):
             return False
 
-''' Implementation may not be needed in database version
+
 
 #Should support condor_off and condor_advertise
 
 #condor_advertise - query database for all adds that need to condor_advertise
 #
 
-def collector_command_consumer(testrun=False):
-    collector_commands_key = config.collector_commands_key
+def collector_command_consumer():
     sleep_interval = config.command_sleep_interval
     
     while(True):
         try:
-            redis_con = setup_redis_connection()
-            command_string = redis_con.lpop(collector_commands_key)
+            # database setup
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            Resource = Base.classes.condor_resources
+            session = Session(engine)
 
+            condor_c = htcondor.Collector()
+            ad_type = htcondor.AdTypes.Startd # maybe need master here too??
 
-            if command_string is not None:
-                command_dict = json.loads(command_string)
-                #execute command
-                # use htcondor class's send_command function to send condor_off -peaceful to Startd and Master
-                # order matters here, we need to issue the command to Startd first then Master
-                # We will need the class ad for the machine found by using ad = Collector.locate(...)
-                # then do htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
-                #  htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
-                # may not need the target
+            # use htcondor class's send_command function to send condor_off -peaceful to Startd and Master
+            # order matters here, we need to issue the command to Startd first then Master
+            # We will need the class ad for the machine found by using ad = Collector.locate(...)
+            # then do htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
+            #  htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
+            # may not need the target
 
-                #need to get machine identifier out of command
-                machine_name = command_dict['machine_name'].encode('ascii','ignore')
-                command = command_dict['command']
-                if command == "condor_off":
-                    condor_c = htcondor.Collector()
-                    logging.info("getting machine ads for %s" % machine_name)
-                    startd_ad = condor_c.locate(htcondor.DaemonTypes.Startd, machine_name)
-                    logging.info("found startd.. locating master")
-                    master_machine_name = machine_name.split("@")[1]
-                    master_ad = condor_c.locate(htcondor.DaemonTypes.Master, master_machine_name)
+            #first query for any commands to execute
 
-                    logging.info("Ads found, issuing condor_off commands...")
-                    htcondor.send_command(startd_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
-                    htcondor.send_command(master_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
-                    if(testrun):
-                        return True
+            #query for condor_off commands
+            #   get classads
+            for resource in session.query(Resource).filter(Resource.condor_off==1):
+                condor_ad = condor_c.query(ad_type=ad_type, constraint="Name==%s" % resource.Name)
+                logging.info("Found entry: %s flagged for condor_off." % resource.Name)
+                htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
+                #update database entry for condor off if the previous command was a success
+                #flag should be removed and cleanup can be left to another thread?
 
-                else:
-                    logging.error("Unrecognized command")
-                    if(testrun):
-                        return False
+            #query for condor_advertise commands
+            ad_list = []
+            for resource in session.query(Resource).filter(Resource.condor_advertise==1):
+                # get relevent classads object from htcondor, may need to change ad_type from start_d
+                ad = condor_c.query(ad_type=ad_type, constraint="Name==%s" % resource.Name)
+                ad_list.append(ad)
 
-            else:
-                logging.info("No command in redis list, begining sleep interval...")
-                #only sleep if there was no command
-                if(testrun):
-                    return False
-                time.sleep(sleep_interval)
+            #execute condor_advertise on retrieved classads
+            condor_c.advertise(ad_list, command=INVALIDATE_MASTER_ADS)
 
         except Exception as e:
-            logging.error("Failure connecting to redis or executing condor command...")
+            logging.error("Failure connecting to database or executing condor command...")
             logging.error(e)
             if(testrun):
                 return False
@@ -135,7 +129,7 @@ def collector_command_consumer(testrun=False):
         except(SystemExit, KeyboardInterrupt):
             return False
 
-'''
+
 
 if __name__ == '__main__':
 
