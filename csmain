@@ -1,19 +1,58 @@
 #!/usr/bin/python3
-import redis
+import os
 import json
 import cloudscheduler.jobmanager
+import cloudscheduler.cloudmanager
+import cloudscheduler.config as csconfig
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+
+
+CLOUDRESOURCES = {}
 
 def main():
     jobmanager = cloudscheduler.jobmanager.JobManager()
+    cm = cloudscheduler.cloudmanager.CloudManager(name='default', resource_file='/hepuser/mhp/code/git/cloudscheduler/cloudresources.yaml')
+    cm.setup()
+    CLOUDRESOURCES[cm.name] = cm
+    print(csconfig.config.name, csconfig.config.default_instancetype)
+
 
     while(True):
-        redis_con = redis.StrictRedis(host='localhost', port=6379, db=0, password='heylookaredispasswordthatsprettylongthatsfineiguess')
-        jobsjson = redis_con.get('condor-jobs')
-        jobslist = json.loads(jobsjson)
-        jobmanager.update_jobs(jobslist)
+        pass
+        # basic scheduling: fifo w/ condor_prioity
+        #for each of the CLOUDRESOURCES:
+        for user in CLOUDRESOURCES:
+            # get the idle_jobs for the user of current resources
+            # sort jobs of that user by priority
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" +
+                     config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine)
+            Job = Base.classes.condor_jobs # table name?
+            session = Session(engine)
+            idle_jobs = session.query(Job).filter(Job.user == user, Job.job_status == 1).order_by(Job.priority) #check field names
+        # based on idle jobs determine if current resource allocation should change/increase/decrease based on the highest priority job
+        # make needed changes: retire machines/terminate retired ones/check on states and remove from system
+        # boot vms if space available
+            if CLOUDRESOURCES[user].check_for_availability(idle_jobs[0]):
+                CLOUDRESOURCES[user].create_vm(idle_jobs[0])
 
-        print(jobslist[0])
-        print(jobmanager[jobslist[0]['GlobalJobId']])
         break
-print("csmain name subject to change")
+
+# maintain a dict of cloudmanager objects
+# initially load up the default one
+# when new user detected check for a cloud resource file and load / add to dict key user name
+
+def add_user_cloud(user, user_resource_file=None):
+    if not user_resource_file:
+        homedir = os.path.expanduser(''.join['~', user])
+        user_resource_file = ''.join([homedir, '/.cloudscheduler/cloudresources.yaml'])
+    cmuser = cloudscheduler.cloudmanager.CloudManager(name=user, resource_file=user_resource_file)
+    cmuser.setup()
+    CLOUDRESOURCES[cmuser.name] = cmuser
+
+print("csmain")
 main()

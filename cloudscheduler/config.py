@@ -1,45 +1,36 @@
 import yaml
 
-class CSConfig():
-    def __init__(self, **kwargs):
-        self.name = kwargs['general']['name']
-        self.redishost = kwargs['general']['redishost']
-        self.redisport = kwargs['general']['redisport']
-        self.job_data_keys = kwargs['general']['job_data_keys']
-        self.collector_data_keys = kwargs['general']['collector_data_keys']
-        self.vm_data_key = kwargs['general']['vm_data_keys']
-
-        self.default_instancetype = kwargs['job']['instancetype']
-        self.default_image = kwargs['job']['image']
-
 
 default_config_file_location = "/etc/cloudscheduler/cloudscheduler.yaml"
 
-# Declare all the defaults internally so the keys exists
-config = yaml.load("""
-general:
-    name: Test
-    collector_data_keys: [condor-resources]
-    job_data_keys: [condor-jobs]
-    vm_data_keys: [vm-data]
-    redishost: localhost
-    redisport: 1234
-job:
-    instancetype: m1.small
-    image: CentOS 7
-    
-""")
-# Load up any changed values from file
-try:
-    with open(default_config_file_location) as f:
-        config_file = yaml.load(f.read())
-        # Merge them and update the defaults
-        for k, v in config_file.items():
-            config[k] = v
-except Exception as e:
-    print(e)
 
-conf = CSConfig(**config)
+class CSConfig():
+    def __init__(self, **kwargs):
+        self.name = kwargs['general'].get('name', 'CloudScheduler')
+        self.redishost = kwargs['general'].get('redishost', 'localhost')
+        self.redisport = kwargs['general'].get('redisport', 6379)
+        self.job_data_keys = kwargs['general'].get('job_data_keys', ['condor-jobs'])
+        self.collector_data_keys = kwargs['general'].get('collector_data_keys', ['condor-resources'])
+        self.vm_data_key = kwargs['general'].get('vm_data_keys', ['vm-data'])
 
-print(conf.redishost)
-print(conf)
+        self.default_instancetype = kwargs['job'].get('instancetype', 'm1.small')
+        self.default_image = kwargs['job'].get('image', 'Cent OS 7')
+
+    @staticmethod
+    def setup(config_file=default_config_file_location):
+        # Prime the dict with it's sections:
+        config = {'general': {}, 'job': {}}
+        # Load up any changed values from file
+        try:
+            with open(config_file) as f:
+                config_file = yaml.load(f.read())
+                # Merge them and update the defaults
+                for k, v in config_file.items():
+                    config[k] = v
+        except Exception as e:
+            print(e)
+        return config
+
+
+config = CSConfig(**CSConfig.setup())
+
