@@ -89,13 +89,14 @@ def collector_command_consumer():
             session = Session(engine)
 
             condor_c = htcondor.Collector()
-            ad_type = htcondor.AdTypes.Startd # maybe need master here too??
+            startd_type = htcondor.AdTypes.Startd
+            master_type = htcondor.AdTypes.Master
 
             # use htcondor class's send_command function to send condor_off -peaceful to Startd and Master
             # order matters here, we need to issue the command to Startd first then Master
             # We will need the class ad for the machine found by using ad = Collector.locate(...)
             # then do htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
-            #  htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
+            # htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
             # may not need the target
 
             #first query for any commands to execute
@@ -103,21 +104,35 @@ def collector_command_consumer():
             #query for condor_off commands
             #   get classads
             for resource in session.query(Resource).filter(Resource.condor_off==1):
-                condor_ad = condor_c.query(ad_type=ad_type, constraint="Name==%s" % resource.Name)
+                condor_ad = condor_c.query(ad_type=startd_type, constraint="Name==%s" % resource.Name)
                 logging.info("Found entry: %s flagged for condor_off." % resource.Name)
-                htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
+                startd_result = htcondor.send_command(ad=condor_ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
+                logging.info("Startd daemon condor_off status: %s" % startd_result)
+                # Now turn off master daemon
+                condor_ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
+                master_result = htcondor.send_command(ad=condor_ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
                 #update database entry for condor off if the previous command was a success
+                logging.info("Master daemon condor_off status: %s" % master_result)
                 #flag should be removed and cleanup can be left to another thread?
+                updated_resource = Resource(Name=resource.Name, condor_off=0)
+                session.merge(updated_resource)
+
 
             #query for condor_advertise commands
             ad_list = []
             for resource in session.query(Resource).filter(Resource.condor_advertise==1):
-                # get relevent classads object from htcondor, may need to change ad_type from start_d
-                ad = condor_c.query(ad_type=ad_type, constraint="Name==%s" % resource.Name)
+                # get relevent classad objects from htcondor and compile a list for condor_advertise
+                logging.info("Ad found in database flagged for condor_advertise: %s" resource.Name)
+                ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
                 ad_list.append(ad)
+                updated_resource = Resource(Name=resource.Name, condor_advertise=0)
+                session.merge(updated_resource)
 
             #execute condor_advertise on retrieved classads
-            condor_c.advertise(ad_list, command=INVALIDATE_MASTER_ADS)
+            advertise_result = condor_c.advertise(ad_list, command=INVALIDATE_MASTER_ADS)
+            logging.info("condor_advertise result: %s" % advertise_result)
+
+            session.commit() #commit all updates
 
         except Exception as e:
             logging.error("Failure connecting to database or executing condor command...")
