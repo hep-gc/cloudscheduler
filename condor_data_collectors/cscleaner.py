@@ -48,8 +48,23 @@ def cleanUp():
         condor_machine_list = condor_c.query()
         db_machine_list = session.query(Resource)
 
+        condor_name_list = []
+        for ad in condor_machine_list:
+            ad_dict = dict(ad)
+            condor_name_list.append(ad_dict['Name'])
+        for machine in db_machine_list:
+            if machine.Name not in condor_name_list:
+                #machine is missing from condor, clean it up
+                logging.info("Found machine missing from condor: %s, cleaning up." % machine.Name)
+                machine_dict = machine.__dict__
+                logging.info(machine_dict)
+                del machine_dict['_sa_instance_state']
+                new_arch_machine = archResource(**machine_dict)
+                session.merge(new_arch_machine)
+
 
         session.commit()
+        sleep(120) #sleep 2 mins, should probably add this as a config option
 
 
 
