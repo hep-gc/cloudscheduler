@@ -19,6 +19,10 @@ general:
     #
     collector_log_file: "/var/log/cloudscheduler/cscollector.log"
 
+    # Path and name of cscleaner log file
+    #
+    cleaner_log_file: "/var/log/cloudscheduler/cscleaner.log"
+
 database:
     # Location of database server
     #
