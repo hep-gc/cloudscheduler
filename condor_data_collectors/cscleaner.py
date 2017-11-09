@@ -41,6 +41,7 @@ def cleanUp():
                 logging.info(job_dict)
                 del job_dict['_sa_instance_state'] # metadata not relevent to the job ad, must trim to init with kwargs
                 new_arch_job = archJob(**job_dict)
+                session.delete(job)
                 session.merge(new_arch_job)
 
 
@@ -61,11 +62,12 @@ def cleanUp():
                 logging.info(machine_dict)
                 del machine_dict['_sa_instance_state']
                 new_arch_machine = archResource(**machine_dict)
+                session.delete(machine)
                 session.merge(new_arch_machine)
 
 
         session.commit()
-        sleep(120) #sleep 2 mins, should probably add this as a config option
+        time.sleep(120) #sleep 2 mins, should probably add this as a config option
 
 
 
