@@ -18,11 +18,13 @@ def cleanUp():
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
+        session = Session(engine)
+        #setup database objects
         Job = Base.classes.condor_jobs
         archJob = Base.classes.archived_condor_jobs
         Resource = Base.classes.condor_resources
         archResource = Base.classes.archived_condor_resources
-        session = Session(engine)
+        
 
         #Part 1 Clean up job ads
         condor_job_list = condor_s.query()
