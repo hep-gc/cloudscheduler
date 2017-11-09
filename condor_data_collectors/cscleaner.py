@@ -71,7 +71,7 @@ def cleanUp():
 
 if __name__ == '__main__':
     
-    logging.basicConfig(filename=config.cleanup_log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=config.cleaner_log_file,level=logging.DEBUG)
     processes = []
 
     p_cleanup = Process(target=cleanUp)

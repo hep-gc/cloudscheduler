@@ -7,6 +7,7 @@ machine_collection_interval = 15
 command_sleep_interval = 10
 job_log_file = "/var/log/cloudscheduler/csjobs.log"
 collector_log_file = "/var/log/cloudscheduler/cscollector.log"
+cleaner_log_file = "/var/log/cloudscheduler/cscleaner.log"
 
 db_host = "localhost"
 db_port = 3306
@@ -48,6 +49,9 @@ if "general" in cfg:
 
     if "collector_log_file" in cfg["general"]:
         collector_log_file = cfg["general"]["collector_log_file"]
+
+    if "cleaner_log_file" in cfg["general"]:
+        cleaner_log_file = cfg["general"]["cleaner_log_file"]
 
 
 if "database" in cfg:
