@@ -1,116 +1,141 @@
 from multiprocessing import Process
 import time
 import htcondor
-import redis
 import json
 import config
 import logging
 
-def setup_redis_connection():
-    r = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db, password=config.redis_password)
-    return r
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+
+
+# condor likes to return extra keys not defined in the projection
+# this function will trim the extra ones so that we can use kwargs
+# to initiate a valid table row based on the data returned
+def trim_keys(dict_to_trim, key_list):
+    keys_to_trim = []
+    for key in dict_to_trim:
+        if key not in key_list:
+            keys_to_trim.append(key)
+    for key in keys_to_trim:
+        dict_to_trim.pop(key, None)
+    return dict_to_trim
 
 def resources_producer(testrun=False, testfile=None):
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", "Start", "RemoteOwner", "SlotType", "TotalSlots"] 
 
     sleep_interval = config.machine_collection_interval
-    collector_data_key = config.collector_data_key
+    last_poll_time = 0
     while(True):
         try:
-            condor_resource_dict_list = []
-            if not testrun:
-                condor_c = htcondor.Collector()
-                any_ad = htcondor.AdTypes.Any
-                condor_resources = condor_c.query(ad_type=any_ad, constraint=True, projection=resource_attributes)
-                for resource in condor_resources:
-                    r_dict = dict(resource)
-                    if "Start" in r_dict:
-                        r_dict["Start"] = str(r_dict["Start"])
-                    condor_resource_dict_list.append(r_dict)
-                #logging.debug(condor_resource_dict_list)
+            # Initialize condor and database objects
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            Resource = Base.classes.condor_resources
+            session = Session(engine)
 
-            #For Unit Testing only:
+            condor_c = htcondor.Collector()
+            ad_type = htcondor.AdTypes.Startd
+            new_poll_time = time.time()
+            ## This conditional shouldn't be needed but is here anyways incase there are any null "EnteredCurrentStatus" fields
+            if last_poll_time == 0: 
+                condor_resources = condor_c.query(ad_type=ad_type, constraint=True, projection=resource_attributes)
             else:
-                res_file = open(testfile, 'r')
-                condor_string = res_file.read()[0:-1] #strip newline
-                condor_resources = json.loads(condor_string)
-                for resource in condor_resources:
-                    r_dict = dict(resource)
-                    if "Start" in r_dict:
-                        r_dict["Start"] = str(r_dict["Start"])
-                    condor_resource_dict_list.append(r_dict)
+                condor_resources = condor_c.query(ad_type=ad_type, constraint='EnteredCurrentStatus>=%d || JobStart>=%d' % (last_poll_time, last_poll_time), projection=resource_attributes)
 
-            condor_resources = json.dumps(condor_resource_dict_list)
+            for resource in condor_resources:
+                r_dict = dict(resource)
+                if "Start" in r_dict:
+                    r_dict["Start"] = str(r_dict["Start"])
+                r_dict = trim_keys( r_dict, resource_attributes)
+                new_resource = Resource(**r_dict)
+                logging.info("Adding new or updating resource: %s" % r_dict["Name"])
+                session.merge(new_resource)
+            logging.info("Commiting database session")
+            session.commit()
 
-            redis_con = setup_redis_connection()
-            logging.error("Setting condor-resources in redis...")
-            redis_con.set(collector_data_key, condor_resources)
-            if(testrun):
-                return True
+
+            last_poll_time = new_poll_time
+            logging.info("Last poll time: %s, commencing sleep interval" % last_poll_time)
             time.sleep(sleep_interval)
 
         except Exception as e:
             logging.error(e)
-            logging.error("Error connecting to condor or redis...")
-            if(testrun):
-                return False
+            logging.error("Error connecting to condor or database...")
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
             return False
 
 
-def collector_command_consumer(testrun=False):
-    collector_commands_key = config.collector_commands_key
+
+#Should support condor_off and condor_advertise
+
+#condor_advertise - query database for all adds that need to condor_advertise
+#
+
+def collector_command_consumer():
     sleep_interval = config.command_sleep_interval
     
     while(True):
         try:
-            redis_con = setup_redis_connection()
-            command_string = redis_con.lpop(collector_commands_key)
+            # database setup
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            Resource = Base.classes.condor_resources
+            session = Session(engine)
+
+            condor_c = htcondor.Collector()
+            startd_type = htcondor.AdTypes.Startd
+            master_type = htcondor.AdTypes.Master
+
+            # use htcondor class's send_command function to send condor_off -peaceful to Startd and Master
+            # order matters here, we need to issue the command to Startd first then Master
+            # We will need the class ad for the machine found by using ad = Collector.locate(...)
+            # then do htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
+            # htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
+            # may not need the target
+
+            #first query for any commands to execute
+
+            #query for condor_off commands
+            #   get classads
+            for resource in session.query(Resource).filter(Resource.condor_off==1):
+                condor_ad = condor_c.query(ad_type=startd_type, constraint="Name==%s" % resource.Name)
+                logging.info("Found entry: %s flagged for condor_off." % resource.Name)
+                startd_result = htcondor.send_command(ad=condor_ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
+                logging.info("Startd daemon condor_off status: %s" % startd_result)
+                # Now turn off master daemon
+                condor_ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
+                master_result = htcondor.send_command(ad=condor_ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
+                #update database entry for condor off if the previous command was a success
+                logging.info("Master daemon condor_off status: %s" % master_result)
+                #flag should be removed and cleanup can be left to another thread?
+                updated_resource = Resource(Name=resource.Name, condor_off=0)
+                session.merge(updated_resource)
 
 
-            if command_string is not None:
-                command_dict = json.loads(command_string)
-                #execute command
-                # use htcondor class's send_command function to send condor_off -peaceful to Startd and Master
-                # order matters here, we need to issue the command to Startd first then Master
-                # We will need the class ad for the machine found by using ad = Collector.locate(...)
-                # then do htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
-                #  htcondor.send_command(ad=ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
-                # may not need the target
+            #query for condor_advertise commands
+            ad_list = []
+            for resource in session.query(Resource).filter(Resource.condor_advertise==1):
+                # get relevent classad objects from htcondor and compile a list for condor_advertise
+                logging.info("Ad found in database flagged for condor_advertise: %s" resource.Name)
+                ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
+                ad_list.append(ad)
+                updated_resource = Resource(Name=resource.Name, condor_advertise=0)
+                session.merge(updated_resource)
 
-                #need to get machine identifier out of command
-                machine_name = command_dict['machine_name'].encode('ascii','ignore')
-                command = command_dict['command']
-                if command == "condor_off":
-                    condor_c = htcondor.Collector()
-                    logging.info("getting machine ads for %s" % machine_name)
-                    startd_ad = condor_c.locate(htcondor.DaemonTypes.Startd, machine_name)
-                    logging.info("found startd.. locating master")
-                    master_machine_name = machine_name.split("@")[1]
-                    master_ad = condor_c.locate(htcondor.DaemonTypes.Master, master_machine_name)
+            #execute condor_advertise on retrieved classads
+            advertise_result = condor_c.advertise(ad_list, command=INVALIDATE_MASTER_ADS)
+            logging.info("condor_advertise result: %s" % advertise_result)
 
-                    logging.info("Ads found, issuing condor_off commands...")
-                    htcondor.send_command(startd_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
-                    htcondor.send_command(master_ad, htcondor.DaemonCommands.SetPeacefulShutdown)
-                    if(testrun):
-                        return True
-
-                else:
-                    logging.error("Unrecognized command")
-                    if(testrun):
-                        return False
-
-            else:
-                logging.info("No command in redis list, begining sleep interval...")
-                #only sleep if there was no command
-                if(testrun):
-                    return False
-                time.sleep(sleep_interval)
+            session.commit() #commit all updates
 
         except Exception as e:
-            logging.error("Failure connecting to redis or executing condor command...")
+            logging.error("Failure connecting to database or executing condor command...")
             logging.error(e)
             if(testrun):
                 return False
@@ -119,7 +144,7 @@ def collector_command_consumer(testrun=False):
         except(SystemExit, KeyboardInterrupt):
             return False
 
-        
+
 
 if __name__ == '__main__':
 
@@ -127,9 +152,9 @@ if __name__ == '__main__':
     processes = []
 
     p_resource_producer = Process(target=resources_producer)
-    p_command_consumer = Process(target=collector_command_consumer)
+    #p_command_consumer = Process(target=collector_command_consumer)
     processes.append(p_resource_producer)
-    processes.append(p_command_consumer)
+    #processes.append(p_command_consumer)
    
 
     # Wait for keyboard input to exit
