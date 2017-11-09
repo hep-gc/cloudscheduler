@@ -62,9 +62,9 @@ def cleanUp():
                 logging.info("Found machine missing from condor: %s, cleaning up." % machine.Name)
                 machine_dict = machine.__dict__
                 logging.info(machine_dict)
+                session.delete(machine)
                 del machine_dict['_sa_instance_state']
                 new_arch_machine = archResource(**machine_dict)
-                session.delete(machine)
                 session.merge(new_arch_machine)
 
 
