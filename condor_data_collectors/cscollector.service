@@ -1,5 +1,5 @@
 [Unit]
-Description=Queries the condor Collector daemon for machine info and sends it off to redis
+Description=Queries the condor Collector daemon for machine info and sends it off to the configured database
 After=network.target
 
 [Service]
