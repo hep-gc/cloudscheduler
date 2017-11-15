@@ -143,17 +143,61 @@ def job_command_consumer(testrun=False):
         except(SystemExit, KeyboardInterrupt):
             return
 
+def cleanUp():
+    while(True):
+        # Setup condor classes and database connctions
+        # this stuff may be able to be moved outside the while loop, but i think its better to re-mirror the
+        # database each time for the sake on consistency.
+        condor_s = htcondor.Schedd()
+        Base = automap_base()
+        local_hostname = socket.gethostname()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        session = Session(engine)
+        #setup database objects
+        Job = Base.classes.condor_jobs
+        archJob = Base.classes.archived_condor_jobs
+        
+
+        # Clean up job ads
+        condor_job_list = condor_s.query()
+        # this query asks for only jobs that contain the local hostname as part of their JobID
+        db_job_list = session.query(Job).filter(Job.GlobalJobId.like("%" + local_hostname+ "%"))
+        #loop through the condor data and make a list of GlobalJobId
+        #then loop through db list checking if they are in the aforementioned list
+        condor_name_list = []
+        for ad in condor_job_list:
+            ad_dict = dict(ad)
+            condor_name_list.append(ad_dict['GlobalJobId'])
+        for job in db_job_list:
+            if job.GlobalJobId not in condor_name_list:
+                #job is missing from condor, clean it up
+                logging.info("Found Job missing from condor: %s, cleaning up." % job.GlobalJobId)
+                job_dict = job.__dict__
+                logging.info(job_dict)
+                session.delete(job)
+                job_dict.pop('_sa_instance_state', None) # metadata not relevent to the job ad, must trim to init with kwargs
+                new_arch_job = archJob(**job_dict)
+                session.merge(new_arch_job)
+
+
+        session.commit()
+        time.sleep(120) #sleep 2 mins, should probably add this as a config option
         
 
 if __name__ == '__main__':
     
     logging.basicConfig(filename=config.job_log_file,level=logging.DEBUG)
     processes = []
-
+    # job polling proccess
     p_job_producer = Process(target=job_producer)
-    p_command_consumer = Process(target=job_command_consumer)
     processes.append(p_job_producer)
+    # command executer proccess
+    p_command_consumer = Process(target=job_command_consumer)
     processes.append(p_command_consumer)
+    # cleanUp proccess
+    p_cleanup = Process(target=cleanUp)
+    processes.append(p_cleanup)
    
 
     # Wait for keyboard input to exit

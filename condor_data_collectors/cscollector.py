@@ -145,6 +145,46 @@ def collector_command_consumer():
             return False
 
 
+def cleanUp():
+    while(True):
+        # Setup condor classes and database connctions
+        # this stuff may be able to be moved outside the while loop, but i think its better to re-mirror the
+        # database each time for the sake on consistency.
+        condor_c = htcondor.Collector()
+        Base = automap_base()
+        local_hostname = socket.gethostname()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        session = Session(engine)
+        #setup database objects
+        Resource = Base.classes.condor_resources
+        archResource = Base.classes.archived_condor_resources
+    
+
+        # Clean up machine/resource ads
+        condor_machine_list = condor_c.query()
+        #this quert asks for only resources containing the local hostname
+        db_machine_list = session.query(Resource).filter(Resource.Name.like("%" + local_hostname+ "%"))
+
+        condor_name_list = []
+        for ad in condor_machine_list:
+            ad_dict = dict(ad)
+            condor_name_list.append(ad_dict['Name'])
+        for machine in db_machine_list:
+            if machine.Name not in condor_name_list:
+                #machine is missing from condor, clean it up
+                logging.info("Found machine missing from condor: %s, cleaning up." % machine.Name)
+                machine_dict = machine.__dict__
+                logging.info(machine_dict)
+                session.delete(machine)
+                del machine_dict['_sa_instance_state']
+                new_arch_machine = archResource(**machine_dict)
+                session.merge(new_arch_machine)
+
+
+        session.commit()
+        time.sleep(120) #sleep 2 mins, should probably add this as a config option
+
 
 if __name__ == '__main__':
 
@@ -152,9 +192,11 @@ if __name__ == '__main__':
     processes = []
 
     p_resource_producer = Process(target=resources_producer)
-    #p_command_consumer = Process(target=collector_command_consumer)
     processes.append(p_resource_producer)
+    #p_command_consumer = Process(target=collector_command_consumer)
     #processes.append(p_command_consumer)
+    #p_cleanup = Process(target=cleanUp)
+    #processes.append(p_cleanup)
    
 
     # Wait for keyboard input to exit
