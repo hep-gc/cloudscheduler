@@ -183,7 +183,7 @@ def cleanUp():
 
 
         session.commit()
-        time.sleep(120) #sleep 2 mins, should probably add this as a config option
+        time.sleep(config.cleanup_sleep_interval) #sleep 2 mins, should probably add this as a config option
 
 
 if __name__ == '__main__':

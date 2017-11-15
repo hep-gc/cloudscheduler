@@ -11,6 +11,10 @@ general:
     #
     command_sleep_interval: 10
 
+    # Time in seconds to sleep between cleaning up database entries
+    #
+    cleanup_sleep_interval: 120
+
     # Path and name of csjobs log file
     #
     job_log_file: "/var/log/cloudscheduler/csjobs.log"
@@ -22,6 +26,7 @@ general:
     # Path and name of cscleaner log file
     #
     cleaner_log_file: "/var/log/cloudscheduler/cscleaner.log"
+
 
 database:
     # Location of database server

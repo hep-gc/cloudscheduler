@@ -5,6 +5,7 @@ import yaml
 job_collection_interval = 15
 machine_collection_interval = 15
 command_sleep_interval = 10
+cleanup_sleep_interval = 120
 job_log_file = "/var/log/cloudscheduler/csjobs.log"
 collector_log_file = "/var/log/cloudscheduler/cscollector.log"
 cleaner_log_file = "/var/log/cloudscheduler/cscleaner.log"
@@ -52,6 +53,9 @@ if "general" in cfg:
 
     if "cleaner_log_file" in cfg["general"]:
         cleaner_log_file = cfg["general"]["cleaner_log_file"]
+
+    if "cleanup_sleep_interval" in cfg["general"]:
+        cleanup_sleep_interval = cfg["general"]["cleanup_sleep_interval"]
 
 
 if "database" in cfg:
