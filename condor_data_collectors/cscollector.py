@@ -192,12 +192,15 @@ if __name__ == '__main__':
     logging.basicConfig(filename=config.collector_log_file,level=logging.DEBUG)
     processes = []
 
+    # Condor Data Poller proccess
     p_resource_producer = Process(target=resources_producer)
     processes.append(p_resource_producer)
+    # Command executer proccess
     #p_command_consumer = Process(target=collector_command_consumer)
     #processes.append(p_command_consumer)
-    #p_cleanup = Process(target=cleanUp)
-    #processes.append(p_cleanup)
+    # Database cleanup proccess
+    p_cleanup = Process(target=cleanUp)
+    processes.append(p_cleanup)
    
 
     # Wait for keyboard input to exit

@@ -194,8 +194,8 @@ if __name__ == '__main__':
     p_job_producer = Process(target=job_producer)
     processes.append(p_job_producer)
     # command executer proccess
-    p_command_consumer = Process(target=job_command_consumer)
-    processes.append(p_command_consumer)
+    #p_command_consumer = Process(target=job_command_consumer)
+    #processes.append(p_command_consumer)
     # cleanUp proccess
     p_cleanup = Process(target=cleanUp)
     processes.append(p_cleanup)
