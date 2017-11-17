@@ -11,10 +11,13 @@ from sqlalchemy.ext.automap import automap_base
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
 from keystoneauth1 import exceptions
-from novaclient import client
+from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
+from cinderclient import client as cinclient
 
-#NEED TO ADD CACERT TO CONFIG FOR MAKING AUTH CONNECTIONS
+## NEED TO TO CONFIG
+# openstack_metadata_log_file
+# cacert
 
 
 # The purpose of this file is to get some information from the various registered
@@ -42,27 +45,37 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
     elif version == 3:
         #connect using keystone v3
         try:
-            auth = v3.Password(auth_url=auth_url, username=username, password=password, project_name=project, user_domain_name=user_domain, project_domain=project_domain_name)
+            auth = v3.Password(auth_url=auth_url, username=username, password=password, project_name=project, user_domain_name=user_domain, project_domain=project_domain)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as e:
             print("Problem importing keystone modules, and getting session: %s" % e)
         return sess
 
 def get_nova_client(session):
-    nova = client.Client("2", session=session)
+    nova = novaclient.Client("2", session=session)
     return nova
 
 def get_neutron_client(session):
     neutron = neuclient.Client(session=session)
     return neutron
 
+def get_cinder_client(session):
+    cinder = cinclient.Client(session=session)
+    return cinder
+
 def get_flavor_data(nova):
     return  nova.flavors.list()
 
-def get_quota_data(nova, project):
-    #this command gets the default quotas for a project, unsure if this is user specific
-    quotas = nova.quotas.defaults(project)
-    return quotas
+# Returns a tuple of quotas (novaquotas, cinderquotas)
+def get_quota_data(nova, cinder, project):
+    # this command gets the default quotas for a project
+    nova_quotas = nova.quotas.defaults(project)
+    # it should be possible to get quotas at the project-user level but access must be enabled on the openstack side
+    # the command for this is nova.quotas.get(tenant_id, user_id)
+
+    # weneed to also get the storage quotas for a project since they are not available from nova
+    cinder_quotas = cinder.quotas.defaults(project)
+    return (nova_quotas, cinder_quotas)
 
 def get_image_data(nova):
     return nova.glance.list()
@@ -70,7 +83,9 @@ def get_image_data(nova):
 def get_network_data(neutron):
     return neutron.list_networks()
 
-## SubProccess Functions
+
+
+## PROCESS FUNCTIONS
 #
 def metadata_poller():
     # The logic here will depend on how the cloud configuration data is stored in the database
@@ -87,18 +102,20 @@ def metadata_poller():
     return None
 
 
+def cleanUp():
+    # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
+
+
 
 ## MAIN 
 #
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.collector_log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=config.openstack_metadata_log_file,level=logging.DEBUG)
     processes = []
 
     p_metadata_poller = Process(target=metadata_poller)
     processes.append(p_metadata_poller)
-
-   
 
     # Wait for keyboard input to exit
     try:
