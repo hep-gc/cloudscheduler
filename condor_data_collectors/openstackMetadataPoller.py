@@ -63,6 +63,8 @@ def get_cinder_client(session):
     cinder = cinclient.Client(session=session)
     return cinder
 
+
+
 def get_flavor_data(nova):
     return  nova.flavors.list()
 
@@ -75,43 +77,149 @@ def get_quota_data(nova, cinder, project):
 
     # weneed to also get the storage quotas for a project since they are not available from nova
     cinder_quotas = cinder.quotas.defaults(project)
-    return (nova_quotas, cinder_quotas)
+    return nova_quotas, cinder_quotas
 
 def get_image_data(nova):
     return nova.glance.list()
 
 def get_network_data(neutron):
-    return neutron.list_networks()
+    return neutron.list_networks()['networks']
 
 
 
 ## PROCESS FUNCTIONS
 #
 def metadata_poller():
-    # The logic here will depend on how the cloud configuration data is stored in the database
-    # if we can query by cloud type it will be easy to get the openstack ones and itterate over them
 
-    # get cloud configuration data (uname/pw/auth_url/domains)
-    # prepare database session
-    # init neutron and nova clients
-    # get metadata
-    # insert into rows using **kwargs
-    # merge data
-    # commit session
-    # sleep cycle
+    while(True):
+        # Prepare Database session and objets
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Cloud = Base.classes.cloud_resources
+        Flavor = Base.classes.cloud_flavors
+        Image = Base.classes.cloud_images
+        Network = Base.classes.cloud_networks
+        Quota = Base.classes.cloud_quotas
+        # Retrieve registered clouds
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+        # Itterate over cloud list
+        for cloud in cloud_list:
+            # check if v3 or v2
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname):
+ 
+            # setup openstack api objects
+            nova = get_nova_client(session)
+            neutron = get_neutron_client(session)
+            cinder = get_cinder_client(session)
+
+            # Retrieve and proccess metadata
+
+            # FLAVORS
+            flav_list = get_flavor_data(nova)
+            for flavor in flav_list:
+                flav_dict = {
+                    'auth_url': cloud.authurl,
+                    'project': cloud.project,
+                    'ram': flavor.ram,
+                    'vcpus': flavor.vcpus,
+                    'id': flavor.id,
+                    'swap': flavor.swap,
+                    'disk': flavor.disk,
+                    'is_public': flavor.__dict__.get('os-flavor-access:is_public')
+                }
+                new_flav = Flavor(**flav_dict)
+                db_session.merge(new_flav)
+
+            # QUOTAS
+            nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
+            quota_dict = {
+                'auth_url': cloud.authurl,
+                'project': cloud.project,
+                'cores': nova_quotas.cores,
+                'instances': nova_quotas.instances,
+                'ram': nova_quotas.ram,
+                'key_pairs': nova_quotas.key_pairs,
+                'security_groups': nova_quotas.security_groups,
+                'backup_gigabytes': storage_quotas.backup_gigabytes,
+                'backups': storage_quotas.backups,
+                'gigabytes': storage_quotas.gigabytes,
+                'per_volume_gigabytes': storage_quotas.per_volume_gigabytes,
+                'snapshots': storage_quotas.snapshots,
+                'volumes': storage_quotas.volumes
+            }
+            new_quota = Quota(**quota_dict)
+            db_session.merge(new_quota)
+
+            # IMAGES
+            image_list = get_image_data(nova)
+            for image in image_list:
+                img_dict = {
+                    'auth_url': cloud.authurl,
+                    'project': cloud.project,
+                    'container_format': image.container_format,
+                    'disk_format': image.disk_format,
+                    'min_ram': image.min_ram,
+                    'id': image.id,
+                    'size': image.size,
+                    'visibility': image.visibility,
+                    'min_disk': image.min_disk,
+                    'name': image.name
+                }
+                new_image = Image(**img_dict)
+                db_session.merge(new_image)
+
+            # NETWORKS
+            '''
+            name
+            subnets
+            tenant_id
+            router:external
+            shared
+            id
+            '''
+            net_list = get_network_data(neutron)
+            for network in net_list:
+                network_dict = {
+                    'auth_url': cloud.authurl,
+                    'project': cloud.project,
+                    'name': network['name'],
+                    'subnets': network['subnets'],
+                    'tenant_id': network['tenant_id'],
+                    'router:external': network['router:external'],
+                    'shared': network['shared'],
+                    'id': network['id']
+                }
+                new_network = Network(**network_dict)
+                db_session.merge(new_network)
+
+            #finalize session
+            session.commit()
+
+
+        time.sleep(config.sleep_interval) # default 5 mins
+ 
+
     return None
 
 
 def cleanUp():
     # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
-
+    return None
 
 
 ## MAIN 
 #
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.openstack_metadata_log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=config.poller_log_file,level=logging.DEBUG)
     processes = []
 
     p_metadata_poller = Process(target=metadata_poller)
