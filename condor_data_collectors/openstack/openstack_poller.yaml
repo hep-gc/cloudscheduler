@@ -1,0 +1,34 @@
+general:
+    # Time in seconds to sleep in between polling cycles
+    #
+    sleep_interval: 500
+
+    # Path and name of openstack metadata poller log file
+    #
+    collector_log_file: "/var/log/cloudscheduler/openstackpoller.log"
+
+    # Path and name of the certificate bundle used to verify connections with openstack clouds
+    #
+    cacert: "/etc/ssl/certs/CABundle.crt"
+
+
+database:
+    # Location of database server
+    #
+    db_host: csv2.heprc.uvic.ca
+
+    # Port to connect to database on
+    #
+    db_port: 3306
+
+    # Name of database to connect to
+    #
+    db_name: "csv2"
+
+    # Database username
+    #
+    db_user: "csv2"
+
+    # Password to database
+    #
+    db_password: ""
