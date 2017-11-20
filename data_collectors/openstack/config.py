@@ -12,8 +12,8 @@ db_password = ""
 if exists("/etc/openstack_poller.yaml"):
     path = "/etc/openstack_poller.yaml"
 
-elif exists("/opt/cloudscheduler/condor_data_collectors/openstack/openstack_poller.yaml"):
-    path = "/opt/cloudscheduler/condor_data_collectors/openstack/openstack_poller.yaml"
+elif exists("/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"):
+    path = "/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"
 
 
 try:
