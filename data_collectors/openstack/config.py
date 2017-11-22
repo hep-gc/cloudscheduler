@@ -1,5 +1,6 @@
 poller_log_file = "/var/log/cloudscheduler/openstackpoller.log"
 sleep_interval = 500
+cleanup_interval = 3600
 cacert = "/etc/ssl/certs/CABundle.crt"
 
 db_host = "localhost"
@@ -30,6 +31,9 @@ if "general" in cfg:
 
     if "sleep_interval" in cfg["general"]:
         sleep_interval = cfg["general"]["sleep_interval"]
+        
+    if "cleanup_interval" in cfg["general"]:
+        cleanup_interval = cfg["general"]["cleanup_interval"]
 
     if "poller_log_file" in cfg["general"]:
         poller_log_file = cfg["general"]["poller_log_file"]

@@ -3,6 +3,10 @@ general:
     #
     sleep_interval: 500
 
+    # Time in seconds to sleep between cleanup cycles default 1 hour
+    #
+    cleanup_interval: 3600
+
     # Path and name of openstack metadata poller log file
     #
     collector_log_file: "/var/log/cloudscheduler/openstackpoller.log"

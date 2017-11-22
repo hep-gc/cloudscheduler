@@ -133,7 +133,8 @@ def metadata_poller():
                     'id': flavor.id,
                     'swap': flavor.swap,
                     'disk': flavor.disk,
-                    'is_public': flavor.__dict__.get('os-flavor-access:is_public')
+                    'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
+                    'last_updated': int(time.time())
                 }
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
@@ -153,7 +154,8 @@ def metadata_poller():
                 'gigabytes': storage_quotas.gigabytes,
                 'per_volume_gigabytes': storage_quotas.per_volume_gigabytes,
                 'snapshots': storage_quotas.snapshots,
-                'volumes': storage_quotas.volumes
+                'volumes': storage_quotas.volumes,
+                'last_updated': int(time.time())
             }
             new_quota = Quota(**quota_dict)
             db_session.merge(new_quota)
@@ -171,7 +173,8 @@ def metadata_poller():
                     'size': image.size,
                     'visibility': image.visibility,
                     'min_disk': image.min_disk,
-                    'name': image.name
+                    'name': image.name,
+                    'last_updated': int(time.time())
                 }
                 new_image = Image(**img_dict)
                 db_session.merge(new_image)
@@ -195,7 +198,8 @@ def metadata_poller():
                     'tenant_id': network['tenant_id'],
                     'router:external': network['router:external'],
                     'shared': network['shared'],
-                    'id': network['id']
+                    'id': network['id'],
+                    'last_updated': int(time.time())
                 }
                 new_network = Network(**network_dict)
                 db_session.merge(new_network)
@@ -212,6 +216,54 @@ def metadata_poller():
 
 def cleanUp():
     # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
+    last_cycle = 0
+    while(True):
+        #set up database objects
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Flavor = Base.classes.cloud_flavors
+        Image = Base.classes.cloud_images
+        Network = Base.classes.cloud_networks
+        Quota = Base.classes.cloud_quotas
+
+        # get time for current cycle
+        current_cycle_time = time.time()
+        if last_cycle == 0:
+            #first cycle- just sleep for the first while waiting for db updates.
+            last_cycle = current_cycle_time
+            time.sleep(3600) # one hour
+            continue
+
+        # Query for items to delete
+        #
+        # Flavors
+        flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<=last_cycle)
+        for flav in flav_to_delete:
+            session.delete(flav)
+
+        # Images
+        img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
+        for img in img_to_delete:
+            session.delete(img)
+
+        # Networks
+        net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
+        for net in net_to_delete:
+            session.delete(net)
+
+        # Quotas
+        quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
+        for quota in quota_to_delete:
+            session.delete(quota)
+
+        session.commit()
+
+
+
+        time.sleep(3600) # one hour
+    
     return None
 
 
@@ -245,5 +297,4 @@ if __name__ == '__main__':
             process.join()
         except:
             logging.error("failed to join process %s" % process.name)
-
 
