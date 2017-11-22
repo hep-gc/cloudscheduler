@@ -233,7 +233,7 @@ def cleanUp():
         if last_cycle == 0:
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
-            time.sleep(3600) # one hour
+            time.sleep(config.cleanup_interval)
             continue
 
         # Query for items to delete
@@ -262,7 +262,7 @@ def cleanUp():
 
 
 
-        time.sleep(3600) # one hour
+        time.sleep(config.cleanup_interval)
     
     return None
 
