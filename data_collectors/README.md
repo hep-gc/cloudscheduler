@@ -7,7 +7,7 @@ The files must be set up on the system as follows:
 
 /etc/systemd/system/cscollector.service
 /etc/systemd/system/csjobs.service
-/etc/condor_data_collectors.cfg (the config.py will look to the /opt/cloudscheduler/condor_data_collectors location if not found here)
+/etc/condor_data_collectors.cfg (the config.py will look to the /opt/cloudscheduler/data_collectors/condor location if not found here)
 
 Two new users will also be used:
 sudo adduser csjobs -s /sbin/nologin

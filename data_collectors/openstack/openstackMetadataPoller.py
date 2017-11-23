@@ -40,7 +40,7 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
             auth = v2.Password(auth_url=auth_url, username=username, password=password, tenant_name=project)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as e:
-            print("Problem importing keystone modules, and getting session: %s" % e)
+            logging.error("Problem importing keystone modules, and getting session: %s" % e)
         return sess
     elif version == 3:
         #connect using keystone v3
@@ -48,7 +48,7 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
             auth = v3.Password(auth_url=auth_url, username=username, password=password, project_name=project, user_domain_name=user_domain, project_domain=project_domain)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as e:
-            print("Problem importing keystone modules, and getting session: %s" % e)
+            logging.error("Problem importing keystone modules, and getting session: %s" % e)
         return sess
 
 def get_nova_client(session):
@@ -93,6 +93,7 @@ def metadata_poller():
 
     while(True):
         # Prepare Database session and objets
+        logging.info("POLLER - Begining polling cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -107,6 +108,7 @@ def metadata_poller():
 
         # Itterate over cloud list
         for cloud in cloud_list:
+            logging.info("POLLER - Polling metadata for %s - %s" % (cloud.authurl, cloud.project))
             # check if v3 or v2
             authsplit = cloud.authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -123,6 +125,7 @@ def metadata_poller():
             # Retrieve and proccess metadata
 
             # FLAVORS
+            logging.info("POLLER - Polling flavors")
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
                 flav_dict = {
@@ -140,6 +143,7 @@ def metadata_poller():
                 db_session.merge(new_flav)
 
             # QUOTAS
+            logging.info("POLLER - Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
             quota_dict = {
                 'auth_url': cloud.authurl,
@@ -161,6 +165,7 @@ def metadata_poller():
             db_session.merge(new_quota)
 
             # IMAGES
+            logging.info("POLLER - Polling images")
             image_list = get_image_data(nova)
             for image in image_list:
                 img_dict = {
@@ -180,14 +185,7 @@ def metadata_poller():
                 db_session.merge(new_image)
 
             # NETWORKS
-            '''
-            name
-            subnets
-            tenant_id
-            router:external
-            shared
-            id
-            '''
+            logging.info("POLLER - Polling networks")
             net_list = get_network_data(neutron)
             for network in net_list:
                 network_dict = {
@@ -207,7 +205,7 @@ def metadata_poller():
             #finalize session
             session.commit()
 
-
+        logging.info("POLLER - Polling cycle finished, sleeping.")
         time.sleep(config.sleep_interval) # default 5 mins
  
 
@@ -219,6 +217,7 @@ def cleanUp():
     last_cycle = 0
     while(True):
         #set up database objects
+        logging.info("CLEANUP - Begining cleanup cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -231,6 +230,7 @@ def cleanUp():
         # get time for current cycle
         current_cycle_time = time.time()
         if last_cycle == 0:
+            logging.info("CLEANUP - First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
             time.sleep(config.cleanup_interval)
@@ -241,27 +241,30 @@ def cleanUp():
         # Flavors
         flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<=last_cycle)
         for flav in flav_to_delete:
+            logging.info("CLEANUP - Cleaning up flavor: %s" % flav)
             session.delete(flav)
 
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
+            logging.info("CLEANUP - Cleaning up image: %s" % img)
             session.delete(img)
 
         # Networks
         net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
         for net in net_to_delete:
+            logging.info("CLEANUP - Cleaning up network: %s" % net)
             session.delete(net)
 
         # Quotas
         quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
         for quota in quota_to_delete:
+            logging.info("CLEANUP - Cleaning up quota: %s" % quota)
             session.delete(quota)
 
         session.commit()
 
-
-
+        logging.info("CLEANUP - End of cycle, sleeping...")
         time.sleep(config.cleanup_interval)
     
     return None
