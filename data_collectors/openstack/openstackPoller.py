@@ -15,10 +15,6 @@ from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
 
-## NEED TO TO CONFIG
-# openstack_metadata_log_file
-# cacert
-
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
@@ -28,6 +24,8 @@ from cinderclient import client as cinclient
 #       Quota Information
 #       Image Information
 #       Network Information
+#
+# This file also polls the openstack clouds for live VM information and inserts it into the database
 
 ## UTILITY FUNCTIONS
 #
@@ -258,7 +256,7 @@ def vm_poller():
             logging.info("VM POLLER - Poll cycle complete, sleeping...")
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
-            time.sleep(config.vm_cleanup_interval)
+            time.sleep(config.vm_sleep_interval)
 
 
 
