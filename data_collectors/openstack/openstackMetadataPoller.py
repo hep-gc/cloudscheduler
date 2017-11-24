@@ -85,6 +85,9 @@ def get_image_data(nova):
 def get_network_data(neutron):
     return neutron.list_networks()['networks']
 
+def get_vm_list(nova):
+    return nova.servers.list()
+
 
 
 ## PROCESS FUNCTIONS
@@ -93,7 +96,7 @@ def metadata_poller():
 
     while(True):
         # Prepare Database session and objets
-        logging.info("POLLER - Begining polling cycle")
+        logging.info("META POLLER - Begining polling cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -108,7 +111,7 @@ def metadata_poller():
 
         # Itterate over cloud list
         for cloud in cloud_list:
-            logging.info("POLLER - Polling metadata for %s - %s" % (cloud.authurl, cloud.project))
+            logging.info("META POLLER - Polling metadata for %s - %s" % (cloud.authurl, cloud.project))
             # check if v3 or v2
             authsplit = cloud.authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -125,7 +128,7 @@ def metadata_poller():
             # Retrieve and proccess metadata
 
             # FLAVORS
-            logging.info("POLLER - Polling flavors")
+            logging.info("META POLLER - Polling flavors")
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
                 flav_dict = {
@@ -143,7 +146,7 @@ def metadata_poller():
                 db_session.merge(new_flav)
 
             # QUOTAS
-            logging.info("POLLER - Polling quotas")
+            logging.info("META POLLER - Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
             quota_dict = {
                 'auth_url': cloud.authurl,
@@ -165,7 +168,7 @@ def metadata_poller():
             db_session.merge(new_quota)
 
             # IMAGES
-            logging.info("POLLER - Polling images")
+            logging.info("META POLLER - Polling images")
             image_list = get_image_data(nova)
             for image in image_list:
                 img_dict = {
@@ -185,7 +188,7 @@ def metadata_poller():
                 db_session.merge(new_image)
 
             # NETWORKS
-            logging.info("POLLER - Polling networks")
+            logging.info("META POLLER - Polling networks")
             net_list = get_network_data(neutron)
             for network in net_list:
                 network_dict = {
@@ -205,12 +208,58 @@ def metadata_poller():
             #finalize session
             session.commit()
 
-        logging.info("POLLER - Polling cycle finished, sleeping.")
+        logging.info("META POLLER - Polling cycle finished, sleeping.")
         time.sleep(config.sleep_interval) # default 5 mins
  
 
     return None
 
+# This process thread will be responsible for polling the list of VMs from each registered openstack cloud
+# and reporting their state back to the database for use by cloud scheduler
+#
+def vm_poller():
+    while(True):
+        logging.info("VM POLLER - Begining poll cycle")
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Vm = Base.classes.cloud_vm
+        Cloud = Base.classes.cloud_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+        # Itterate over cloud list
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname):
+ 
+            # setup nova object
+            nova = get_nova_client(session)
+
+            # get server list
+            vm_list = get_vm_list(nova)
+
+            for vm in vm_list:
+                vm_dict = {
+                    'auth_url': cloud.authurl,
+                    'project': cloud.prject,
+                    'hostname': vm.name,
+                    'vmid': vm.id,
+                    'status': vm.status,
+                }
+                new_vm = Vm(**vm_dict)
+                db_session.merge(new_vm)
+            session.commit()
+            logging.info("VM POLLER - Poll cycle complete, sleeping...")
+            time.sleep(60) # 1 min
+
+
+
+    return None
 
 def cleanUp():
     # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
@@ -279,6 +328,10 @@ if __name__ == '__main__':
 
     p_metadata_poller = Process(target=metadata_poller)
     processes.append(p_metadata_poller)
+    p_cleanup = Process(target=cleanUp)
+    processes.append(p_cleanup)
+    p_vm_poller = Process(target=vm_poller)
+    processes.append(p_vm_poller)
 
     # Wait for keyboard input to exit
     try:
