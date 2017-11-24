@@ -250,23 +250,26 @@ def vm_poller():
                     'hostname': vm.name,
                     'vmid': vm.id,
                     'status': vm.status,
+                    'last_updated': int(time.time())
                 }
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             session.commit()
             logging.info("VM POLLER - Poll cycle complete, sleeping...")
-            time.sleep(60) # 1 min
+            # This cycle should be reasonably fast such that the scheduler will always have the most
+            # up to date data during a given execution cycle.
+            time.sleep(config.vm_cleanup_interval)
 
 
 
     return None
 
-def cleanUp():
+def metadataCleanUp():
     # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
     last_cycle = 0
     while(True):
         #set up database objects
-        logging.info("CLEANUP - Begining cleanup cycle")
+        logging.info("META CLEANUP - Begining cleanup cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -279,7 +282,7 @@ def cleanUp():
         # get time for current cycle
         current_cycle_time = time.time()
         if last_cycle == 0:
-            logging.info("CLEANUP - First cycle, sleeping for now...")
+            logging.info("META CLEANUP - First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
             time.sleep(config.cleanup_interval)
@@ -290,32 +293,65 @@ def cleanUp():
         # Flavors
         flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<=last_cycle)
         for flav in flav_to_delete:
-            logging.info("CLEANUP - Cleaning up flavor: %s" % flav)
+            logging.info("META CLEANUP - Cleaning up flavor: %s" % flav)
             session.delete(flav)
 
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
-            logging.info("CLEANUP - Cleaning up image: %s" % img)
+            logging.info("META CLEANUP - Cleaning up image: %s" % img)
             session.delete(img)
 
         # Networks
         net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
         for net in net_to_delete:
-            logging.info("CLEANUP - Cleaning up network: %s" % net)
+            logging.info("META CLEANUP - Cleaning up network: %s" % net)
             session.delete(net)
 
         # Quotas
         quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
         for quota in quota_to_delete:
-            logging.info("CLEANUP - Cleaning up quota: %s" % quota)
+            logging.info("META CLEANUP - Cleaning up quota: %s" % quota)
             session.delete(quota)
 
         session.commit()
 
-        logging.info("CLEANUP - End of cycle, sleeping...")
+        logging.info("META CLEANUP - End of cycle, sleeping...")
+        last_cycle = current_cycle_time
         time.sleep(config.cleanup_interval)
     
+    return None
+
+
+# The VMs will need to be cleaned up more frequently and as such
+# the vm cleanup routine will have its own proccess on its own cycle
+def vmCleanUp():
+    last_cycle = 0
+    while(True):
+        current_cycle_time = time.time()
+        #set up database objects
+        logging.info("VM CLEANUP - Begining cleanup cycle")
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Vm = Base.classes.cloud_vm
+
+
+        if last_cycle == 0:
+            logging.info("VM CLEANUP - First cycle, sleeping for now...")
+            #first cycle- just sleep for the first while waiting for db updates.
+            last_cycle = current_cycle_time
+            time.sleep(config.vm_cleanup_interval)
+            continue
+
+        vm_to_delete = db_session.query(Vm).filter(Vm.last_updated<=last_cycle)
+        for vm in vm_to_delete:
+            logging.info("VM CLEANUP - Cleaning up VM: %s" % vm)
+            session.delete(vm)
+
+        last_cycle = current_cycle_time
+        time.sleep(config.vm_cleanup_interval)
     return None
 
 
@@ -328,10 +364,12 @@ if __name__ == '__main__':
 
     p_metadata_poller = Process(target=metadata_poller)
     processes.append(p_metadata_poller)
-    p_cleanup = Process(target=cleanUp)
-    processes.append(p_cleanup)
+    p_metadata_cleanup = Process(target=metadataCleanUp)
+    processes.append(p_metadata_cleanup)
     p_vm_poller = Process(target=vm_poller)
     processes.append(p_vm_poller)
+    p_vm_cleanup = Process(target=vmCleanUp)
+    processes.append(p_vm_cleanup)
 
     # Wait for keyboard input to exit
     try:
