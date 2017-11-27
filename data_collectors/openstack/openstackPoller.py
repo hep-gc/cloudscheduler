@@ -358,7 +358,7 @@ def vmCleanUp():
 #
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.poller_log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=config.poller_log_file,level=logging.INFO)
     processes = []
 
     p_metadata_poller = Process(target=metadata_poller)
