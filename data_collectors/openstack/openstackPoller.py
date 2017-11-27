@@ -132,6 +132,7 @@ def metadata_poller():
                 flav_dict = {
                     'auth_url': cloud.authurl,
                     'project': cloud.project,
+                    'name': flavor.name,
                     'ram': flavor.ram,
                     'vcpus': flavor.vcpus,
                     'id': flavor.id,
