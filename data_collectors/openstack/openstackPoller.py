@@ -58,7 +58,7 @@ def get_neutron_client(session):
     return neutron
 
 def get_cinder_client(session):
-    cinder = cinclient.Client(session=session)
+    cinder = cinclient.Client("2", session=session)
     return cinder
 
 
@@ -114,9 +114,9 @@ def metadata_poller():
             authsplit = cloud.authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             if version == 2:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname):
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
  
             # setup openstack api objects
             nova = get_nova_client(session)
@@ -204,7 +204,7 @@ def metadata_poller():
                 db_session.merge(new_network)
 
             #finalize session
-            session.commit()
+            db_session.commit()
 
         logging.info("META POLLER - Polling cycle finished, sleeping.")
         time.sleep(config.sleep_interval) # default 5 mins
@@ -231,9 +231,9 @@ def vm_poller():
             authsplit = cloud.authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             if version == 2:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.prject, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname):
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
  
             # setup nova object
             nova = get_nova_client(session)
@@ -244,7 +244,7 @@ def vm_poller():
             for vm in vm_list:
                 vm_dict = {
                     'auth_url': cloud.authurl,
-                    'project': cloud.prject,
+                    'project': cloud.project,
                     'hostname': vm.name,
                     'vmid': vm.id,
                     'status': vm.status,
@@ -252,7 +252,7 @@ def vm_poller():
                 }
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
-            session.commit()
+            db_session.commit()
             logging.info("VM POLLER - Poll cycle complete, sleeping...")
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -292,27 +292,27 @@ def metadataCleanUp():
         flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<=last_cycle)
         for flav in flav_to_delete:
             logging.info("META CLEANUP - Cleaning up flavor: %s" % flav)
-            session.delete(flav)
+            db_session.delete(flav)
 
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
             logging.info("META CLEANUP - Cleaning up image: %s" % img)
-            session.delete(img)
+            db_session.delete(img)
 
         # Networks
         net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
         for net in net_to_delete:
             logging.info("META CLEANUP - Cleaning up network: %s" % net)
-            session.delete(net)
+            db_session.delete(net)
 
         # Quotas
         quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
         for quota in quota_to_delete:
             logging.info("META CLEANUP - Cleaning up quota: %s" % quota)
-            session.delete(quota)
+            db_session.delete(quota)
 
-        session.commit()
+        db_session.commit()
 
         logging.info("META CLEANUP - End of cycle, sleeping...")
         last_cycle = current_cycle_time

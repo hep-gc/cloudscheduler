@@ -1,3 +1,7 @@
+import os
+import sys
+import yaml
+
 poller_log_file = "/var/log/cloudscheduler/openstackpoller.log"
 sleep_interval = 300
 vm_sleep_interval = 60
@@ -12,10 +16,10 @@ db_password = ""
 
 
 
-if exists("/etc/openstack_poller.yaml"):
+if os.path.isfile("/etc/openstack_poller.yaml"):
     path = "/etc/openstack_poller.yaml"
 
-elif exists("/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"):
+elif os.path.isfile("/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"):
     path = "/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"
 
 
