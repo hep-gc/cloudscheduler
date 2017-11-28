@@ -349,6 +349,8 @@ def vmCleanUp():
             logging.info("VM CLEANUP - Cleaning up VM: %s" % vm)
             db_session.delete(vm)
 
+        db_session.commit()
+
         last_cycle = current_cycle_time
         time.sleep(config.vm_cleanup_interval)
     return None
