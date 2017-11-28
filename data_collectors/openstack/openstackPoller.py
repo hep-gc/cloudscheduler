@@ -96,7 +96,7 @@ def metadata_poller():
 
     while(True):
         # Prepare Database session and objets
-        logging.info("META POLLER - Begining polling cycle")
+        logging.info("Begining polling cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -111,7 +111,7 @@ def metadata_poller():
 
         # Itterate over cloud list
         for cloud in cloud_list:
-            logging.info("META POLLER - Polling metadata for %s - %s" % (cloud.authurl, cloud.project))
+            logging.info("Polling metadata for %s - %s" % (cloud.authurl, cloud.project))
             # check if v3 or v2
             authsplit = cloud.authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -128,7 +128,7 @@ def metadata_poller():
             # Retrieve and proccess metadata
 
             # FLAVORS
-            logging.info("META POLLER - Polling flavors")
+            logging.info("Polling flavors")
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
                 flav_dict = {
@@ -147,7 +147,7 @@ def metadata_poller():
                 db_session.merge(new_flav)
 
             # QUOTAS
-            logging.info("META POLLER - Polling quotas")
+            logging.info("Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
             quota_dict = {
                 'auth_url': cloud.authurl,
@@ -169,7 +169,7 @@ def metadata_poller():
             db_session.merge(new_quota)
 
             # IMAGES
-            logging.info("META POLLER - Polling images")
+            logging.info("Polling images")
             image_list = get_image_data(nova)
             for image in image_list:
                 img_dict = {
@@ -189,7 +189,7 @@ def metadata_poller():
                 db_session.merge(new_image)
 
             # NETWORKS
-            logging.info("META POLLER - Polling networks")
+            logging.info("Polling networks")
             net_list = get_network_data(neutron)
             for network in net_list:
                 network_dict = {
@@ -209,7 +209,7 @@ def metadata_poller():
             #finalize session
             db_session.commit()
 
-        logging.info("META POLLER - Polling cycle finished, sleeping.")
+        logging.info("Polling cycle finished, sleeping.")
         time.sleep(config.sleep_interval) # default 5 mins
  
 
@@ -221,7 +221,7 @@ def metadata_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
     while(True):
-        logging.info("VM POLLER - Begining poll cycle")
+        logging.info("Begining poll cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -272,7 +272,7 @@ def metadataCleanUp():
     last_cycle = 0
     while(True):
         #set up database objects
-        logging.info("META CLEANUP - Begining cleanup cycle")
+        logging.info("Begining cleanup cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -285,7 +285,7 @@ def metadataCleanUp():
         # get time for current cycle
         current_cycle_time = time.time()
         if last_cycle == 0:
-            logging.info("META CLEANUP - First cycle, sleeping for now...")
+            logging.info("First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
             time.sleep(config.cleanup_interval)
@@ -296,19 +296,19 @@ def metadataCleanUp():
         # Flavors
         flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<=last_cycle)
         for flav in flav_to_delete:
-            logging.info("META CLEANUP - Cleaning up flavor: %s" % flav)
+            logging.info("Cleaning up flavor: %s" % flav)
             db_session.delete(flav)
 
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
-            logging.info("META CLEANUP - Cleaning up image: %s" % img)
+            logging.info("Cleaning up image: %s" % img)
             db_session.delete(img)
 
         # Networks
         net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
         for net in net_to_delete:
-            logging.info("META CLEANUP - Cleaning up network: %s" % net)
+            logging.info("Cleaning up network: %s" % net)
             db_session.delete(net)
 
         # Quotas
@@ -319,7 +319,7 @@ def metadataCleanUp():
 
         db_session.commit()
 
-        logging.info("META CLEANUP - End of cycle, sleeping...")
+        logging.info("End of cycle, sleeping...")
         last_cycle = current_cycle_time
         time.sleep(config.cleanup_interval)
     
@@ -334,7 +334,7 @@ def vmCleanUp():
     while(True):
         current_cycle_time = time.time()
         #set up database objects
-        logging.info("VM CLEANUP - Begining cleanup cycle")
+        logging.info("Begining cleanup cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -343,7 +343,7 @@ def vmCleanUp():
 
 
         if last_cycle == 0:
-            logging.info("VM CLEANUP - First cycle, sleeping for now...")
+            logging.info("First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
             time.sleep(config.vm_cleanup_interval)
@@ -351,7 +351,7 @@ def vmCleanUp():
 
         vm_to_delete = db_session.query(Vm).filter(Vm.last_updated<=last_cycle)
         for vm in vm_to_delete:
-            logging.info("VM CLEANUP - Cleaning up VM: %s" % vm)
+            logging.info("Cleaning up VM: %s" % vm)
             db_session.delete(vm)
 
         db_session.commit()
