@@ -257,7 +257,7 @@ def vm_poller():
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
-            logging.info("VM POLLER - Poll cycle complete, sleeping...")
+            logging.info("Poll cycle complete, sleeping...")
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             time.sleep(config.vm_sleep_interval)

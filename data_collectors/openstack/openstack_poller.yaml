@@ -5,7 +5,7 @@ general:
 
     # Time in seconds to sleep in between vm polling cycles
     # 
-    vm_sleep_interval: 120
+    vm_sleep_interval: 60
     
     # Time in seconds to sleep between cleanup cycles default 1 hour
     #
@@ -13,7 +13,7 @@ general:
 
     # Time in seconds to sleep between vm cleanup cycles default 1 min
     #
-    vm_cleanup_interval: 60
+    vm_cleanup_interval: 120
 
 
     # Path and name of openstack metadata poller log file
