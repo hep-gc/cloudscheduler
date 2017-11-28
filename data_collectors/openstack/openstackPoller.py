@@ -347,7 +347,7 @@ def vmCleanUp():
         vm_to_delete = db_session.query(Vm).filter(Vm.last_updated<=last_cycle)
         for vm in vm_to_delete:
             logging.info("VM CLEANUP - Cleaning up VM: %s" % vm)
-            session.delete(vm)
+            db_session.delete(vm)
 
         last_cycle = current_cycle_time
         time.sleep(config.vm_cleanup_interval)
@@ -378,7 +378,7 @@ if __name__ == '__main__':
             for process in processes:
                 if not process.is_alive():
                     logging.error("%s process died!" % process.name)
-                    logging.error("Restarting %s process...")
+                    logging.error("Restarting %s process..." % process.name)
                     process.start()
                 time.sleep(1)
             time.sleep(10)
