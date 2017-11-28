@@ -91,6 +91,7 @@ def get_vm_list(nova):
 ## PROCESS FUNCTIONS
 #
 def metadata_poller():
+    multiprocessing.current_process().name = "META Poller"
 
     while(True):
         # Prepare Database session and objets
@@ -217,6 +218,7 @@ def metadata_poller():
 # and reporting their state back to the database for use by cloud scheduler
 #
 def vm_poller():
+    multiprocessing.current_process().name = "VM Poller"
     while(True):
         logging.info("VM POLLER - Begining poll cycle")
         Base = automap_base()
@@ -264,6 +266,7 @@ def vm_poller():
     return None
 
 def metadataCleanUp():
+    multiprocessing.current_process().name = "META Cleanup"
     # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
     last_cycle = 0
     while(True):
@@ -325,6 +328,7 @@ def metadataCleanUp():
 # The VMs will need to be cleaned up more frequently and as such
 # the vm cleanup routine will have its own proccess on its own cycle
 def vmCleanUp():
+    multiprocessing.current_process().name = "VM Cleanup"
     last_cycle = 0
     while(True):
         current_cycle_time = time.time()
@@ -360,7 +364,7 @@ def vmCleanUp():
 #
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.poller_log_file,level=logging.INFO, format='%(asctime)s - %(threadName)s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=config.poller_log_file,level=logging.INFO, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
 
     p_metadata_poller = Process(target=metadata_poller)
