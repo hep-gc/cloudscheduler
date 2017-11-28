@@ -24,6 +24,7 @@ def trim_keys(dict_to_trim, key_list):
     return dict_to_trim
 
 def job_producer():
+    multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.job_collection_interval
     job_attributes = ["JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements", "JobPrio", "Cmd", 
@@ -103,6 +104,7 @@ def job_producer():
 
 
 def job_command_consumer(testrun=False):
+    multiprocessing.current_process().name = "Cmd Consumer"
     sleep_interval = config.command_sleep_interval
     
     while(True):
@@ -145,6 +147,7 @@ def job_command_consumer(testrun=False):
             return
 
 def cleanUp():
+    multiprocessing.current_process().name = "Cleanup"
     while(True):
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its better to re-mirror the
@@ -188,7 +191,7 @@ def cleanUp():
 
 if __name__ == '__main__':
     
-    logging.basicConfig(filename=config.job_log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=config.job_log_file,level=logging.DEBUG, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
     # job polling proccess
     p_job_producer = Process(target=job_producer)

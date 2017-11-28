@@ -24,6 +24,7 @@ def trim_keys(dict_to_trim, key_list):
     return dict_to_trim
 
 def resources_producer(testrun=False, testfile=None):
+    multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", "Start", "RemoteOwner", "SlotType", "TotalSlots"] 
 
     sleep_interval = config.machine_collection_interval
@@ -59,7 +60,7 @@ def resources_producer(testrun=False, testfile=None):
 
 
             last_poll_time = new_poll_time
-            logging.info("Last poll time: %s, commencing sleep interval" % last_poll_time)
+            logging.info("Last poll time: %10s, commencing sleep interval" % last_poll_time)
             time.sleep(sleep_interval)
 
         except Exception as e:
@@ -78,6 +79,7 @@ def resources_producer(testrun=False, testfile=None):
 #
 
 def collector_command_consumer():
+    multiprocessing.current_process().name = "Cmd Consumer"
     sleep_interval = config.command_sleep_interval
     
     while(True):
@@ -147,6 +149,7 @@ def collector_command_consumer():
 
 
 def cleanUp():
+    multiprocessing.current_process().name = "Cleanup"
     while(True):
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its better to re-mirror the
@@ -189,7 +192,7 @@ def cleanUp():
 
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.collector_log_file,level=logging.DEBUG)
+    logging.basicConfig(filename=config.collector_log_file,level=logging.DEBUG, format='%(asctime)s - %(processName)-14s - %(levelname)s - %(message)s')
     processes = []
 
     # Condor Data Poller proccess
