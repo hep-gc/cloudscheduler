@@ -4,12 +4,14 @@ machine that will collect job and machine data and package them up and send them
 First clone the repo into /opt/
 
 The files must be set up on the system as follows:
-
-/etc/systemd/system/cscollector.service
-/etc/systemd/system/csjobs.service
-/etc/systemd/system/csmetdata.service
-/etc/condor_data_collectors.yaml (the config.py will look to the /opt/cloudscheduler/data_collectors/condor location if not found here)
-/etc/openstack_poller.yaml (the config.py will look to the /opt/cloudscheduler/data_collectors/openstack location if not found here)
+/opt/cloudscheduler/data_collectors/cspollers.logrotate                -> /etc/logrotate.d/cspollers.logrotate
+/opt/cloudscheduler/data_collectors/condor/cscollector.service         -> /etc/systemd/system/cscollector.service
+/opt/cloudscheduler/data_collectors/condor/csjobs.service              -> /etc/systemd/system/csjobs.service
+/opt/cloudscheduler/data_collectors/openstack/csmetadata.service       -> /etc/systemd/system/csmetadata.service
+/opt/cloudscheduler/data_collectors/condor/condor_data_collectors.yaml -> /etc/condor_data_collectors.yaml
+ (the config.py will look to the /opt/cloudscheduler/data_collectors/condor location if not found here)
+/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml    -> /etc/openstack_poller.yaml
+ (the config.py will look to the /opt/cloudscheduler/data_collectors/openstack location if not found here)
 
 A new user will also be used:
 sudo adduser cloudscheduler -s /sbin/nologin

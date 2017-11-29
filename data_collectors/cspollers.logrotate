@@ -1,0 +1,23 @@
+/var/log/cloudscheduler/csjobs.log {
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+
+/var/log/cloudscheduler/cscollector.log {
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+
+/var/log/cloudscheduler/openstackpoller.log {
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
