@@ -8,6 +8,7 @@ command_sleep_interval = 10
 cleanup_sleep_interval = 120
 job_log_file = "/var/log/cloudscheduler/csjobs.log"
 collector_log_file = "/var/log/cloudscheduler/cscollector.log"
+log_level = 20 #INFO
 
 db_host = "localhost"
 db_port = 3306
@@ -52,6 +53,9 @@ if "general" in cfg:
 
     if "cleanup_sleep_interval" in cfg["general"]:
         cleanup_sleep_interval = cfg["general"]["cleanup_sleep_interval"]
+
+    if "log_level" in cfg["general"]:
+        log_level = cfg["general"]["log_level"]
 
 
 if "database" in cfg:

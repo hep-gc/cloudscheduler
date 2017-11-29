@@ -192,7 +192,7 @@ def cleanUp():
 
 if __name__ == '__main__':
     
-    logging.basicConfig(filename=config.job_log_file,level=logging.DEBUG, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=config.job_log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
     # job polling proccess
     p_job_producer = Process(target=job_producer)

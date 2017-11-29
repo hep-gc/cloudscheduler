@@ -23,6 +23,16 @@ general:
     #
     collector_log_file: "/var/log/cloudscheduler/cscollector.log"
 
+    # Log level
+    # 
+    #       Debug       10
+    #       INFO        20
+    #       WARNING     30
+    #       ERROR       40
+    #       CRITICAL    50
+    #
+    log_level: 20
+
 
 database:
     # Location of database server
