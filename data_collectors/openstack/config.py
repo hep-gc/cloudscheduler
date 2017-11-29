@@ -8,6 +8,7 @@ vm_sleep_interval = 60
 cleanup_interval = 3600
 vm_cleanup_interval = 120
 cacert = "/etc/ssl/certs/CABundle.crt"
+log_level = 20 #INFO
 
 db_host = "localhost"
 db_port = 3306
@@ -52,6 +53,9 @@ if "general" in cfg:
 
     if "cacert" in cfg["general"]:
         cacert = cfg["general"]["cacert"]
+
+    if "log_level" in cfg["general"]:
+        log_level = cfg["general"]["log_level"]
 
 
 if "database" in cfg:

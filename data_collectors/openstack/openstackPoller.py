@@ -96,7 +96,7 @@ def metadata_poller():
 
     while(True):
         # Prepare Database session and objets
-        logging.info("Begining polling cycle")
+        logging.debug("Begining polling cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -128,7 +128,7 @@ def metadata_poller():
             # Retrieve and proccess metadata
 
             # FLAVORS
-            logging.info("Polling flavors")
+            logging.debug("Polling flavors")
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
                 flav_dict = {
@@ -147,7 +147,7 @@ def metadata_poller():
                 db_session.merge(new_flav)
 
             # QUOTAS
-            logging.info("Polling quotas")
+            logging.debug("Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
             quota_dict = {
                 'auth_url': cloud.authurl,
@@ -169,7 +169,7 @@ def metadata_poller():
             db_session.merge(new_quota)
 
             # IMAGES
-            logging.info("Polling images")
+            logging.debug("Polling images")
             image_list = get_image_data(nova)
             for image in image_list:
                 img_dict = {
@@ -189,7 +189,7 @@ def metadata_poller():
                 db_session.merge(new_image)
 
             # NETWORKS
-            logging.info("Polling networks")
+            logging.debug("Polling networks")
             net_list = get_network_data(neutron)
             for network in net_list:
                 network_dict = {
@@ -209,7 +209,7 @@ def metadata_poller():
             #finalize session
             db_session.commit()
 
-        logging.info("Polling cycle finished, sleeping.")
+        logging.debug("Polling cycle finished, sleeping.")
         time.sleep(config.sleep_interval) # default 5 mins
  
 
@@ -221,7 +221,7 @@ def metadata_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
     while(True):
-        logging.info("Begining poll cycle")
+        logging.debug("Begining poll cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -257,7 +257,7 @@ def vm_poller():
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
-        logging.info("Poll cycle complete, sleeping...")
+        logging.debug("Poll cycle complete, sleeping...")
         # This cycle should be reasonably fast such that the scheduler will always have the most
         # up to date data during a given execution cycle.
         time.sleep(config.vm_sleep_interval)
@@ -272,7 +272,7 @@ def metadataCleanUp():
     last_cycle = 0
     while(True):
         #set up database objects
-        logging.info("Begining cleanup cycle")
+        logging.debug("Begining cleanup cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -319,7 +319,7 @@ def metadataCleanUp():
 
         db_session.commit()
 
-        logging.info("End of cycle, sleeping...")
+        logging.debug("End of cycle, sleeping...")
         last_cycle = current_cycle_time
         time.sleep(config.cleanup_interval)
     
@@ -334,7 +334,7 @@ def vmCleanUp():
     while(True):
         current_cycle_time = time.time()
         #set up database objects
-        logging.info("Begining cleanup cycle")
+        logging.debug("Begining cleanup cycle")
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
@@ -365,7 +365,7 @@ def vmCleanUp():
 #
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.poller_log_file,level=logging.INFO, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=config.poller_log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
 
     p_metadata_poller = Process(target=metadata_poller)
