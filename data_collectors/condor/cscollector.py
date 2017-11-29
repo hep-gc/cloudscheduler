@@ -126,7 +126,7 @@ def collector_command_consumer():
             ad_list = []
             for resource in session.query(Resource).filter(Resource.condor_advertise==1):
                 # get relevent classad objects from htcondor and compile a list for condor_advertise
-                logging.info("Ad found in database flagged for condor_advertise: %s" resource.Name)
+                logging.info("Ad found in database flagged for condor_advertise: %s" % resource.Name)
                 ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
                 ad_list.append(ad)
                 updated_resource = Resource(Name=resource.Name, condor_advertise=0)

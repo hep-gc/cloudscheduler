@@ -21,6 +21,7 @@ mkdir /var/log/cloudscheduler
 touch /var/log/cloudscheduler/csjobs.log
 touch /var/log/cloudscheduler/cscollector.log
 touch /var/log/cloudscheduler/openstackpoller.log
+chown cloudscheduler:cloudscheduler /var/log/cloudscheduler
 chown cloudscheduler:cloudscheduler /var/log/cloudscheduler/csjobs.log
 chown cloudscheduler:cloudscheduler /var/log/cloudscheduler/cscollector.log
 chown cloudscheduler:cloudscheduler /var/log/cloudscheduler/openstackpoller.log
