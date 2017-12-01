@@ -14,34 +14,50 @@ CLOUDRESOURCES = {}
 
 def main():
     jobmanager = cloudscheduler.jobmanager.JobManager()
-    cm = cloudscheduler.cloudmanager.CloudManager(name='default', resource_file='/hepuser/mhp/code/git/cloudscheduler/cloudresources.yaml')
+    cm = cloudscheduler.cloudmanager.CloudManager(name='mhp', resource_file='/home/mhp/cloudscheduler/cloudresources.yaml')
     cm.setup()
     CLOUDRESOURCES[cm.name] = cm
-    print(csconfig.config.name, csconfig.config.default_instancetype)
-
+    print(CLOUDRESOURCES['mhp'])
 
     while(True):
         pass
         # basic scheduling: fifo w/ condor_prioity
         #for each of the CLOUDRESOURCES:
         for user in CLOUDRESOURCES:
+            print(user)
             # get the idle_jobs for the user of current resources
             # sort jobs of that user by priority
             Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" +
-                     config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine)
+            engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                     csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+            Base.prepare(engine, reflect=True)
             Job = Base.classes.condor_jobs # table name?
             session = Session(engine)
-            idle_jobs = session.query(Job).filter(Job.user == user, Job.job_status == 1).order_by(Job.priority) #check field names
+            idle_jobs = session.query(Job).filter(Job.User.contains(user), Job.JobStatus == 1).order_by(Job.JobPrio) 
+            # Not sure I like the contains since it could get other things, but the DB stores the user as user@hostname
+            # so would either need to build that in or ignore, but with multiple schedd the hostname may not be of interest much? depends on how schedds are related to collectors
+            print(idle_jobs[0])
+            print(CLOUDRESOURCES[user].clouds.keys())
+            CLOUDRESOURCES[user].clouds['beaver'].vm_create(idle_jobs[0])
+            #for job in idle_jobs:
+                #print(job)
+                #print(job.__dict__)
         # based on idle jobs determine if current resource allocation should change/increase/decrease based on the highest priority job
         # make needed changes: retire machines/terminate retired ones/check on states and remove from system
         # boot vms if space available
-            if CLOUDRESOURCES[user].check_for_availability(idle_jobs[0]):
-                CLOUDRESOURCES[user].create_vm(idle_jobs[0])
+            #if CLOUDRESOURCES[user].check_for_availability(idle_jobs[0]):
+                #CLOUDRESOURCES[user].create_vm(idle_jobs[0])
 
         break
 
+    import time
+    time.sleep(15)
+
+    # Remove all the VMs for the moment
+    for user in CLOUDRESOURCES:
+        for cloud in CLOUDRESOURCES[user].clouds:
+            for vm in list(CLOUDRESOURCES[user].clouds[cloud].vms.keys()):
+                CLOUDRESOURCES[user].clouds[cloud].vm_destroy(CLOUDRESOURCES[user].clouds[cloud].vms[vm])
 # maintain a dict of cloudmanager objects
 # initially load up the default one
 # when new user detected check for a cloud resource file and load / add to dict key user name
