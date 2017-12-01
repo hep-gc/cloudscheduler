@@ -7,6 +7,8 @@ from email.mime.text import MIMEText
 
 def build_multi_mime_message(file_type_pairs):
     """file_type_pairs - list of strings in path : mime-type format"""
+    if not file_type_pairs:
+        return ""
     combined_message = MIMEMultipart()
     for i in file_type_pairs:
         (contents, format_type) = read_file_type_pairs(i)
