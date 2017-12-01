@@ -1,4 +1,4 @@
-import cloudscheduler.vm
+#from cloudscheduler.vm import VM
 import cloudscheduler.basecloud
 import cloudscheduler.config as csconfig
 import novaclient.exceptions
@@ -7,11 +7,15 @@ from keystoneauth1 import session
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from neutronclient.v2_0 import client as neuclient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+import time
 
 class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
     def __init__(self, name, slots, authurl, username, password, region=None, keyname=None ,cacert=None,
                  userdomainname=None, projectdomainname=None, defaultsecuritygroup=[], defaultimage=None,
-                 defaultflavor=None, defaultnetwork=None, extrayaml=None, ):
+                 defaultflavor=None, defaultnetwork=None, extrayaml=None, tenantname=None):
 
         cloudscheduler.basecloud.BaseCloud.__init__(self, name=name, slots=slots, extrayaml=extrayaml)
         self.authurl = authurl
@@ -20,6 +24,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.region = region
         self.keyname = keyname
         self.cacert = cacert
+        self.tenantname = tenantname
         self.userdomainname = userdomainname
         self.projectdomainname = projectdomainname
         self.session = self._get_auth_version(authurl)
@@ -40,64 +45,95 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             key_name = self.keyname if self.keyname else ""
             if not nova.keypairs.findall(name=self.keyname):
                 key_name = ""
-            elif not nova.keypairs.findall(name=config.keyname):
+            elif not nova.keypairs.findall(name=csconfig.config.keyname):
                 key_name = ""
 
         # Deal with user data - combine and zip etc.
         userdata = self.prepare_userdata(job.VMUserData)
 
         # Check image coming from job, otherwise use cloud default, otherwise global default
+        imageobj = None
         try:
-            if self.name in job.image.keys():
-                imageobj = nova.images.find(name=job.image[self.name])
+            if job.VMAMIConfig and self.name in job.VMAMIConfig.keys():
+                imageobj = nova.glance.find_image(job.VMAMIConfig[self.name]) # update to glance?
             elif self.default_image:
-                imageobj = nova.images.find(name=self.default_image)
+                imageobj = nova.glance.find_image(self.default_image)
             else:
-                pass # global default image
+                imageobj = nova.glance.find_image(csconfig.config.default_image)
         except novaclient.exceptions.EndpointNotFound:
             print("Endpoint not found, region problem")
             return -1
         except Exception as e:
-            print("Problem finding image %s. Error: %s" % (job.image, e))
+            print("Problem finding image. Error: %s" % (e))
+        if not imageobj:
+            print("Unable to find an image to use")
+            return -1
 
         # check flavor from job, otherwise cloud default, otherwise global default
+        flavor = None
         try:
-            if self.name in job.VMInstanceType.keys():
-                flavor = nova.flavors.find(name=job.VMInstanceType[self.name])
+            instancetype_dict = self._attr_list_to_dict(job.VMInstanceType)
+            if instancetype_dict and self.name in instancetype_dict.keys():
+                flavor = nova.flavors.find(name=instancetype_dict[self.name])
+            elif 'default' in instancetype_dict.keys():
+                flavor = nova.flavors.find(name=instancetype_dict['default'])
             elif self.default_flavor:
                 flavor = nova.flavors.find(name=self.default_flavor)
-            #else:
-                #flavor = nova.flavors.find(name=config.default_flavor)
+            else:
+                flavor = nova.flavors.find(name=csconfig.config.default_flavor)
         except Exception as e:
             print(e)
-
         # Deal with network if needed
         netid = []
-        if self.name in job.VMNetwork.keys():
-            network = self._find_network(job.VMNetwork[self.name])
+        network = None
+        network_dict = self._attr_list_to_dict(job.VMNetwork)
+        if network_dict and self.name in network_dict.keys():
+            if len(network_dict[self.name].split('-')) == 5: # uuid
+                netid = [{'net-id': network_dict[self.name]}]
+            else:
+                network = self._find_network(network_dict[self.name])
         elif self.default_network:
-            network = self._find_network(self.default_network)
-        elif config.default_network:
-            network = self._find_network(config.default_network)
-        if network:
+            if len(self.default_network.split('-')) == 5: # uuid
+                netid = [{'net-id': self.default_network}]
+            else:
+                network = self._find_network(self.default_network)
+        elif csconfig.config.default_network:
+            if len(csconfig.config.default_network.split('-')) == 5: # uuid
+                netid = [{'net-id': csconfig.config.default_network}]
+            else:
+                network = self._find_network(csconfig.config.default_network)
+        if network and not netid:
             netid = [{'net-id': network.id}]
-        else:
-            if self.name in job.VMNetwork.keys() and len(job.VMNetwork[self.name]).split('-') == 5: #uuid
-                netid = [{'net-id': job.VMNetwork[self.name]}]
-
         hostname = self._generate_next_name()
         instance = None
         try:
             instance = nova.servers.create(name=hostname, image=imageobj, flavor=flavor, key_name=self.keyname,
-                                       availability_zone=None, nics=[], userdata=userdata, security_groups=None)
+                                       availability_zone=None, nics=netid, userdata=userdata, security_groups=None)
         except novaclient.exceptions.OverLimit as e:
             print(e)
         except Exception as e:
             print(e)
         if instance:
-            new_vm = VM(vmid=instance.id, hostname=hostname)
-            self.vms[instance.id] = new_vm
+            #new_vm = VM(vmid=instance.id, hostname=hostname)
+            #self.vms[instance.id] = new_vm
             self.slots -= 1
+            engine = self._get_db_engine()
+            Base = automap_base()
+            Base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            VM = Base.classes.cloud_vm
+            vm_dict = {
+                'auth_url': self.authurl,
+                'project': self.tenantname,
+                'vmid': instance.id,
+                'hostname': hostname,
+                'status': 'New',
+                'last_updated': int(time.time()),
+            }
+            new_vm = VM(**vm_dict)
+            db_session.merge(new_vm)
+            db_session.commit()
+            
 
 
         
@@ -131,35 +167,31 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             print(e)
 
     def _get_keystone_session_v2(self):
-        auth = v2.Password(auth_url="", username="", password="", tenant_name="", )
-        sess = session.Session(auth=auth, verify="")
+        auth = v2.Password(auth_url=self.authurl, username=self.username, password=self.password, tenant_name=self.tenantname,)
+        sess = session.Session(auth=auth, verify=self.cacert)
         return sess
 
     def _get_keystone_session_v3(self):
-        auth = v3.Password(auth_url="", username="", password="", project_name="", project_domain_name="",
-                           user_domain_name="",)
-        sess = session.Session(auth=auth, verify="")
+        auth = v3.Password(auth_url=self.authurl, username=self.username, password=self.password, project_name="", project_domain_name=self.projectdomainname,
+                           user_domain_name=self.userdomainname,)
+        sess = session.Session(auth=auth, verify=self.cacert)
         return sess
 
     def _get_creds_nova(self):
-        client = nvclient.Client("2.0", session=self.session, region_name="", timeout=10,)
+        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10,)
         return client
 
     def _get_creds_neutron(self):
         return neuclient.Client(session=self.session)
 
     def _find_network(self, netname):
-        #frnova = self._get_creds_nova()
-        neutron = self.get_creds_neutron() # might also be able to access via the novaclient.neutron.list_networks()?
+        nova = self._get_creds_nova()
         network = None
         try:
-            networks = neutron.list_networks() #['networks']
-            #networks = nova.networks.list()
-            for net in networks:
-                if net.label == netname:
-                    network = net
+            network = nova.neutron.find_network(netname)
         except Exception as e:
             print("Unable to list networks for %s: Exception: %s" % (self.name, e))
+        return network
 
     def _get_auth_version(self, authurl):
         session = None
@@ -174,3 +206,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             print("Error determining keystone version from auth url: %s" % e)
             return None
         return session
+
+    def _get_db_engine(self):
+        return create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                     csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
