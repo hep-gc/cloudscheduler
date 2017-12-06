@@ -101,7 +101,7 @@ def metadata_poller():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Cloud = Base.classes.cloud_resources
+        Cloud = Base.classes.csv2_clouds
         Flavor = Base.classes.cloud_flavors
         Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
@@ -227,7 +227,7 @@ def vm_poller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Vm = Base.classes.cloud_vm
-        Cloud = Base.classes.cloud_resources
+        Cloud = Base.classes.csv2_clouds
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
         # Itterate over cloud list
@@ -324,6 +324,9 @@ def metadataCleanUp():
         time.sleep(config.cleanup_interval)
     
     return None
+
+# def vmExecutor():
+# May need a process to relay commands to the VMs (peaceful shutdown//kill)
 
 
 # The VMs will need to be cleaned up more frequently and as such
