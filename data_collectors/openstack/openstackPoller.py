@@ -101,7 +101,7 @@ def metadata_poller():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Cloud = Base.classes.csv2_clouds
+        Cloud = Base.classes.group_resources
         Flavor = Base.classes.cloud_flavors
         Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
@@ -227,7 +227,7 @@ def vm_poller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Vm = Base.classes.cloud_vm
-        Cloud = Base.classes.csv2_clouds
+        Cloud = Base.classes.group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
         # Itterate over cloud list
