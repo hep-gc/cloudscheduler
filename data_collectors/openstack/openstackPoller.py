@@ -101,7 +101,7 @@ def metadata_poller():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Cloud = Base.classes.group_resources
+        Cloud = Base.classes.csv2_group_resources
         Flavor = Base.classes.cloud_flavors
         Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
@@ -132,8 +132,8 @@ def metadata_poller():
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
                 flav_dict = {
-                    'auth_url': cloud.authurl,
-                    'project': cloud.project,
+                    'groupid': cloud.groupid,
+                    'cloud_name': cloud.cloud_name,
                     'name': flavor.name,
                     'ram': flavor.ram,
                     'vcpus': flavor.vcpus,
@@ -150,8 +150,8 @@ def metadata_poller():
             logging.debug("Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
             quota_dict = {
-                'auth_url': cloud.authurl,
-                'project': cloud.project,
+                'groupid': cloud.groupid,
+                'cloud_name': cloud.cloud_name,
                 'cores': nova_quotas.cores,
                 'instances': nova_quotas.instances,
                 'ram': nova_quotas.ram,
@@ -173,8 +173,8 @@ def metadata_poller():
             image_list = get_image_data(nova)
             for image in image_list:
                 img_dict = {
-                    'auth_url': cloud.authurl,
-                    'project': cloud.project,
+                    'groupid': cloud.groupid,
+                    'cloud_name': cloud.cloud_name,
                     'container_format': image.container_format,
                     'disk_format': image.disk_format,
                     'min_ram': image.min_ram,
@@ -227,7 +227,7 @@ def vm_poller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Vm = Base.classes.cloud_vm
-        Cloud = Base.classes.group_resources
+        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
         # Itterate over cloud list
@@ -247,6 +247,8 @@ def vm_poller():
 
             for vm in vm_list:
                 vm_dict = {
+                    'groupid': cloud.groupid,
+                    'cloud_name': cloud.cloud_name,
                     'auth_url': cloud.authurl,
                     'project': cloud.project,
                     'hostname': vm.name,
