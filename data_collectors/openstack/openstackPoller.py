@@ -193,8 +193,8 @@ def metadata_poller():
             net_list = get_network_data(neutron)
             for network in net_list:
                 network_dict = {
-                    'auth_url': cloud.authurl,
-                    'project': cloud.project,
+                    'groupid': cloud.groupid,
+                    'cloud_name': cloud.cloud_name,
                     'name': network['name'],
                     'subnets': network['subnets'],
                     'tenant_id': network['tenant_id'],
