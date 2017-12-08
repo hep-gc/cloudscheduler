@@ -132,7 +132,7 @@ def metadata_poller():
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
                 flav_dict = {
-                    'groupid': cloud.groupid,
+                    'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
                     'name': flavor.name,
                     'ram': flavor.ram,
@@ -150,7 +150,7 @@ def metadata_poller():
             logging.debug("Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
             quota_dict = {
-                'groupid': cloud.groupid,
+                'group_name': cloud.group_name,
                 'cloud_name': cloud.cloud_name,
                 'cores': nova_quotas.cores,
                 'instances': nova_quotas.instances,
@@ -173,7 +173,7 @@ def metadata_poller():
             image_list = get_image_data(nova)
             for image in image_list:
                 img_dict = {
-                    'groupid': cloud.groupid,
+                    'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
                     'container_format': image.container_format,
                     'disk_format': image.disk_format,
@@ -193,7 +193,7 @@ def metadata_poller():
             net_list = get_network_data(neutron)
             for network in net_list:
                 network_dict = {
-                    'groupid': cloud.groupid,
+                    'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
                     'name': network['name'],
                     'subnets': network['subnets'],
@@ -247,7 +247,7 @@ def vm_poller():
 
             for vm in vm_list:
                 vm_dict = {
-                    'groupid': cloud.groupid,
+                    'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
                     'auth_url': cloud.authurl,
                     'project': cloud.project,
