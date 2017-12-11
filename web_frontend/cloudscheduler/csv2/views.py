@@ -91,6 +91,7 @@ def create_user(request):
         # 1. Check that the username is valid (ie no username or cert_dn by that name)
         # 2. Check that the cert_dn is not equal to any username or other cert_dn
         # 3. Check that both passwords are the same
+        # 4. Check that password isn't empty
 
         csv2_user_list = csv2_user.objects.all()
         for registered_user in csv2_user_list:
@@ -208,7 +209,14 @@ def user_settings(request):
                 }
                 return render(request, 'csv2/user_settings.html', context)
 
-        #check #3
+        #check #3 part 1
+        if new_pass1 or new_pass2 is None:
+            context = {
+                'user_obj':user_to_update,
+                'err_message': "Password is empty"
+            }
+            return render(request, 'csv2/user_settings.html', context)
+        #check #3 part 2
         if new_pass1 != new_pass2:
             context = {
                 'user_obj':user_to_update,
