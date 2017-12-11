@@ -1,0 +1,20 @@
+database:
+    # Location of database server
+    #
+    db_host: csv2.heprc.uvic.ca
+
+    # Port to connect to database on
+    #
+    db_port: 3306
+
+    # Name of database to connect to
+    #
+    db_name: "csv2"
+
+    # Database username
+    #
+    db_user: "csv2"
+
+    # Password to database
+    #
+    db_password: ""
