@@ -28,11 +28,9 @@ def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.job_collection_interval
-    job_attributes = ["JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements", "JobPrio", "Cmd", 
-                      "ClusterId", "User", "VMInstanceType", "Iwd", "VMType", "VMNetwork", "VMName", "VMLoc", "VMAMI", 
-                      "VMKeepAlive", "VMHighPriority", "VMMaximumPrice", "VMUserData", "VMAMIConfig",
-                      "CSMyProxyCredsName", "CSMyProxyServer", "CSMyProxyServerPort", "x509userproxysubject", 
-                      "x509userproxy", "SUBMIT_x509userproxy", "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
+    job_attributes = ["group_name", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements",
+                     "JobPrio", "ClusterId", "User", "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData",
+                     "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
     # Thus far the attributes from this list that are available in my tests are: ClusterId, RequestDisk, User, 
     # Requirements, JobStatus, JobPrio, RequestMemory, Iwd, Cmd, GlobalJobId
     # Not in the list that seem to be returned always: FileSystemDomian, MyType, ServerTime, TargetType, 
