@@ -7,17 +7,15 @@ from .models import user as csv2_user
 
 from view_utils import getAuthUser, getcsv2User, verifyUser, getSuperUserStatus
 
-import bcrypt
+# 
+# This function should recieve a post request with a payload of yaml to add to a given group (group_yaml)
+#
+def add_group_yaml(request):
+    return None
 
-
-'''
-WEB REQUEST VIEWS
-'''
-
-def index(request):
-    if verifyUser(request):
-        csv2_user = getcsv2User(request)
-        return HttpResponse("Hello, %s. You're at the cloudscheduler v2 index." % csv2_user.username)
-    else:
-        raise PermissionDenied
+# 
+# This function should recieve a post request with a payload of yaml to add to a given cloud (group_resources_yaml)
+#
+def add_cloud_yaml(request):
+    return None
 
