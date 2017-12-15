@@ -22,13 +22,25 @@ def trim_keys(dict_to_trim, key_list):
             keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
+    # need to change GroupName (condor attribute) to group_name (db attribute)
+    dict_to_trim["group_name"] = dict_to_trim["GroupName"]
+    dict_to_trim.pop("GroupName", None)
     return dict_to_trim
+
+def build_user_group_dict(db_list):
+    user_group_dict = {}
+    for entry in db_list:
+        if user_group_dict[entry.username]:
+            user_group_dict[entry.username].append(entry.group_name)
+        else:
+            user_group_dict[entry.username] = [entry.group_name]
+    return user_group_dict
 
 def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.job_collection_interval
-    job_attributes = ["group_name", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements",
+    job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements",
                      "JobPrio", "ClusterId", "User", "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData",
                      "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
     # Thus far the attributes from this list that are available in my tests are: ClusterId, RequestDisk, User, 
@@ -37,9 +49,22 @@ def job_producer():
     last_poll_time = 0
     while(True):
         try:
+            # 
+            # Setup - initialize condor and database objects and build user-group list
+            #
             job_dict_list = []
 
             condor_s = htcondor.Schedd()
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            Job = Base.classes.condor_jobs
+            User_Groups = Base.classes.csv2_user_groups
+            session = Session(engine)
+
+            db_user_grps = session.query(User_Groups)
+            user_group_dict = build_user_group_dict(db_user_grps)
+
             new_poll_time = time.time()
 
             #
@@ -55,16 +80,42 @@ def job_producer():
             
 
             #Process job data & Insert/update jobs in Database
-            Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            Job = Base.classes.condor_jobs
-            session = Session(engine)
             for job_ad in job_list:
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
+                
+                #
+                # check if there is a group_name
+                # if not, try and assign one, if default is ambiguos ignore ad
+                # if a group is found update job ad in condor before adding to database
+                #
+                if job_dict["GroupName"]:
+                    # if there is a grp name check that it is a valid one.
+                    if job_dict["GroupName"] not in user_group_dict[job_dict["User"]]:
+                        logging.info("Job ad: %s has invalid group_name, ignoring..." % job_dict["GlobalJobId"])
+                        # Invalid group name
+                        # IGNORE
+                        continue
+
+                else:
+                    # else if there is no group name try to assign one
+                    logging.info("Job ad: %s has no group_name, attemping to resolve..." % job_dict["GlobalJobId"])
+                    job_user = job_dict["User"]
+                    if len(user_group_dict[job_user]) = 1:
+                        job_dict["group_name"] = user_group_dict[job_user][0]
+                        #UPDATE CLASSAD
+                        cluster = job_dict["ClusterId"]
+                        proc = job_dict["ProcId"]
+                        expr = str(cluster) + "." + str(proc)
+                        condor_s.edit([expr], "GroupName", user_group_dict[job_user][0])
+                    else:
+                        #AMBIGUOUS GROUP NAME, IGNORE
+                        logging.info("Could not automatically resolve group_name for: %s, ignoring... " % job_dict["GlobalJobId"])
+                        continue
+
                 job_dict = trim_keys(job_dict, job_attributes)
+
                 logging.info("Adding job %s" % job_dict["GlobalJobId"])
                 new_job = Job(**job_dict)
                 session.merge(new_job)
