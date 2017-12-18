@@ -30,7 +30,7 @@ def trim_keys(dict_to_trim, key_list):
 def build_user_group_dict(db_list):
     user_group_dict = {}
     for entry in db_list:
-        if user_group_dict[entry.username]:
+        if user_group_dict.get(entry.username):
             user_group_dict[entry.username].append(entry.group_name)
         else:
             user_group_dict[entry.username] = [entry.group_name]
@@ -41,8 +41,8 @@ def job_producer():
 
     sleep_interval = config.job_collection_interval
     job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements",
-                     "JobPrio", "ClusterId", "User", "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData",
-                     "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
+                     "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive",
+                     "VMMaximumPrice", "VMUserData", "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
     # Thus far the attributes from this list that are available in my tests are: ClusterId, RequestDisk, User, 
     # Requirements, JobStatus, JobPrio, RequestMemory, Iwd, Cmd, GlobalJobId
     # Not in the list that seem to be returned always: FileSystemDomian, MyType, ServerTime, TargetType, 
@@ -64,7 +64,7 @@ def job_producer():
 
             db_user_grps = session.query(User_Groups)
             if db_user_grps:
-                user_group_dict = build_user_group_dict(db_user_grps)
+                user_group_dict = build_user_group_dict(list(db_user_grps))
             else:
                 user_group_dict = {}
                 
@@ -94,9 +94,11 @@ def job_producer():
                 # if a group is found update job ad in condor before adding to database
                 #
                 logging.info("Checking group name...")
-                if job_dict.get("GroupName") and user_group_dict.get(job_dict["User"]):
+                job_user = job_dict["User"].split("@")[0]
+                if job_dict.get("GroupName") is not None and user_group_dict.get(job_user) is not None:
                     # if there is a grp name check that it is a valid one.
-                    if job_dict["GroupName"] not in user_group_dict.get(job_dict["User"]):
+                    # This looks confusing but it's just saying if the job group name is not in any of the user's groups
+                    if not any(str(job_dict["GroupName"]) in grp for grp in user_group_dict.get(job_user)):
                         logging.info("Job ad: %s has invalid group_name, ignoring..." % job_dict["GlobalJobId"])
                         # Invalid group name
                         # IGNORE
@@ -105,12 +107,13 @@ def job_producer():
                 else:
                     # else if there is no group name try to assign one
                     # can also get here if the user_group list is empty
-                    if not user_group_dict.get(job_dict["User"]):
+                    job_user = job_dict["User"].split("@")[0]
+                    if not user_group_dict.get(job_user):
                         # User not registered to any groups
-                        logging.info("User: %s not registered to any groups or unable to retrieve user groups, ignoring..." % job_dict["User"])
+                        logging.info("User: %s not registered to any groups or unable to retrieve user groups, ignoring..." % job_user)
                         continue
                     logging.info("Job ad: %s has no group_name, attemping to resolve..." % job_dict["GlobalJobId"])
-                    job_user = job_dict["User"]
+
                     if len(user_group_dict[job_user]) == 1:
                         job_dict["group_name"] = user_group_dict[job_user][0]
                         #UPDATE CLASSAD
