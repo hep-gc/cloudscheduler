@@ -36,7 +36,7 @@ def resources_producer(testrun=False, testfile=None):
             Base = automap_base()
             engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
-            Resource = Base.classes.condor_resources
+            Resource = Base.classes.condor_machines
             session = Session(engine)
 
             condor_c = htcondor.Collector()
@@ -89,7 +89,7 @@ def collector_command_consumer():
             Base = automap_base()
             engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
-            Resource = Base.classes.condor_resources
+            Resource = Base.classes.condor_machines
             session = Session(engine)
 
             condor_c = htcondor.Collector()
@@ -162,8 +162,8 @@ def cleanUp():
         Base.prepare(engine, reflect=True)
         session = Session(engine)
         #setup database objects
-        Resource = Base.classes.condor_resources
-        archResource = Base.classes.archived_condor_resources
+        Resource = Base.classes.condor_machines
+        archResource = Base.classes.archived_condor_machines
     
 
         # Clean up machine/resource ads
