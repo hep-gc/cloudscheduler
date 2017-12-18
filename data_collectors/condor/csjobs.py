@@ -63,8 +63,11 @@ def job_producer():
             session = Session(engine)
 
             db_user_grps = session.query(User_Groups)
-            user_group_dict = build_user_group_dict(db_user_grps)
-
+            if db_user_grps:
+                user_group_dict = build_user_group_dict(db_user_grps)
+            else:
+                user_group_dict = {}
+                
             new_poll_time = time.time()
 
             #
@@ -90,9 +93,10 @@ def job_producer():
                 # if not, try and assign one, if default is ambiguos ignore ad
                 # if a group is found update job ad in condor before adding to database
                 #
-                if job_dict["GroupName"]:
+                logging.info("Checking group name...")
+                if job_dict.get("GroupName") and user_group_dict.get(job_dict["User"]):
                     # if there is a grp name check that it is a valid one.
-                    if job_dict["GroupName"] not in user_group_dict[job_dict["User"]]:
+                    if job_dict["GroupName"] not in user_group_dict.get(job_dict["User"]):
                         logging.info("Job ad: %s has invalid group_name, ignoring..." % job_dict["GlobalJobId"])
                         # Invalid group name
                         # IGNORE
@@ -100,9 +104,14 @@ def job_producer():
 
                 else:
                     # else if there is no group name try to assign one
+                    # can also get here if the user_group list is empty
+                    if not user_group_dict.get(job_dict["User"]):
+                        # User not registered to any groups
+                        logging.info("User: %s not registered to any groups or unable to retrieve user groups, ignoring..." % job_dict["User"])
+                        continue
                     logging.info("Job ad: %s has no group_name, attemping to resolve..." % job_dict["GlobalJobId"])
                     job_user = job_dict["User"]
-                    if len(user_group_dict[job_user]) = 1:
+                    if len(user_group_dict[job_user]) == 1:
                         job_dict["group_name"] = user_group_dict[job_user][0]
                         #UPDATE CLASSAD
                         cluster = job_dict["ClusterId"]
