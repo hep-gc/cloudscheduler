@@ -69,3 +69,21 @@ def get_group_resources(filter=None):
     GroupResources = Base.classes.csv2_group_resources
     group_resources_list = db_session.query(GroupResources)
     return group_resources_list
+
+
+def get_condor_jobs(filter=None):
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Jobs = Base.classes.condor_jobs
+    job_list = db_session.query(Jobs)
+    return job_list
+
+
+def get_condor_machines(filter=None):
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Machines = Base.classes.condor_machines
+    machine_list = db_session.query(Machines)
+    return machine_list
