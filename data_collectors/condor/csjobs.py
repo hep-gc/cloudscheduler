@@ -115,12 +115,12 @@ def job_producer():
                     logging.info("Job ad: %s has no group_name, attemping to resolve..." % job_dict["GlobalJobId"])
 
                     if len(user_group_dict[job_user]) == 1:
-                        job_dict["group_name"] = user_group_dict[job_user][0]
+                        job_dict["GroupName"] = user_group_dict[job_user][0]
                         #UPDATE CLASSAD
                         cluster = job_dict["ClusterId"]
                         proc = job_dict["ProcId"]
                         expr = str(cluster) + "." + str(proc)
-                        condor_s.edit([expr], "GroupName", user_group_dict[job_user][0])
+                        condor_s.edit([expr], "GroupName", str(user_group_dict[job_user][0]))
                     else:
                         #AMBIGUOUS GROUP NAME, IGNORE
                         logging.info("Could not automatically resolve group_name for: %s, ignoring... " % job_dict["GlobalJobId"])
