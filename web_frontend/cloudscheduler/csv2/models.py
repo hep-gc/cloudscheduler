@@ -10,6 +10,7 @@ class user(models.Model):
     password = models.CharField(max_length=128, default="")
     is_superuser = models.BooleanField(default=False)
     join_date = models.DateField(default=datetime.date.today, null=True)
+    last_page_visited = models.CharField(max_length=128, null=True)
 
     def __str__(self):
         return "%s" % (self.username)
