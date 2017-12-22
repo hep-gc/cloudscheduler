@@ -171,6 +171,11 @@ def cleanUp():
         #this quert asks for only resources containing the local hostname
         db_machine_list = session.query(Resource).filter(Resource.Name.like("%" + local_hostname+ "%"))
 
+
+        # if a machine is found in the db but not condor we need to check if it was flagged for
+        # shutdown, in that case we need to update the the entry in the vm table who was running the job
+        # such that we can also destroy the VM
+
         condor_name_list = []
         for ad in condor_machine_list:
             ad_dict = dict(ad)

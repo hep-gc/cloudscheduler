@@ -43,8 +43,6 @@ def job_producer():
     job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements",
                      "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive",
                      "VMMaximumPrice", "VMUserData", "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
-    # Thus far the attributes from this list that are available in my tests are: ClusterId, RequestDisk, User, 
-    # Requirements, JobStatus, JobPrio, RequestMemory, Iwd, Cmd, GlobalJobId
     # Not in the list that seem to be returned always: FileSystemDomian, MyType, ServerTime, TargetType, 
     last_poll_time = 0
     while(True):
@@ -229,8 +227,9 @@ def cleanUp():
         condor_job_list = condor_s.query()
         # this query asks for only jobs that contain the local hostname as part of their JobID
         db_job_list = session.query(Job).filter(Job.GlobalJobId.like("%" + local_hostname+ "%"))
-        #loop through the condor data and make a list of GlobalJobId
-        #then loop through db list checking if they are in the aforementioned list
+        # loop through the condor data and make a list of GlobalJobId
+        # then loop through db list checking if they are in the aforementioned list
+
         condor_name_list = []
         for ad in condor_job_list:
             ad_dict = dict(ad)
