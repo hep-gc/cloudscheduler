@@ -60,7 +60,7 @@ def create_user(request):
             if cert_dn is not None and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
                 return manage_users(request, err_message="Username unavailable or conflicts with a registered Distinguished Name")
         #check #3 part 1
-        if pass1 or pass2 is None:
+        if pass1 is None or pass2 is None:
             return manage_users(request, err_message="Password is empty")
         if len(pass1)<4:
             return manage_users(request, err_message="Password must be at least 4 characters")
@@ -171,7 +171,7 @@ def user_settings(request):
                 return render(request, 'csv2/user_settings.html', context)
 
         #check #3 part 1
-        if new_pass1 or new_pass2 is None:
+        if new_pass1 is None or new_pass2 is None:
             context = {
                 'user_obj':user_to_update,
                 'err_message': "Password is empty"
