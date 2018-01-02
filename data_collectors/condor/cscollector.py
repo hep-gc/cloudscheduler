@@ -164,6 +164,7 @@ def cleanUp():
         #setup database objects
         Resource = Base.classes.condor_machines
         archResource = Base.classes.archived_condor_machines
+        Vm = Base.classes.cloud_vm
     
 
         # Clean up machine/resource ads
@@ -174,7 +175,8 @@ def cleanUp():
 
         # if a machine is found in the db but not condor we need to check if it was flagged for
         # shutdown, in that case we need to update the the entry in the vm table who was running the job
-        # such that we can also destroy the VM
+        # such that we can also destroy the VM, if there is no recovery proccess with a vm with a dead
+        # condor thread we can forgo the retire/shutdown check and just mark them all for termination
 
         condor_name_list = []
         for ad in condor_machine_list:
@@ -184,6 +186,12 @@ def cleanUp():
             if machine.Name not in condor_name_list:
                 #machine is missing from condor, clean it up
                 logging.info("Found machine missing from condor: %s, cleaning up." % machine.Name)
+                # if the classad was marked for retirement update the vm entry
+                if machine.condor_off>=1:
+                    #mark relavent VM entry for termination
+                    pass #TODO#
+
+
                 machine_dict = machine.__dict__
                 logging.info(machine_dict)
                 session.delete(machine)
@@ -193,7 +201,7 @@ def cleanUp():
 
 
         session.commit()
-        time.sleep(config.cleanup_sleep_interval) #sleep 2 mins, should probably add this as a config option
+        time.sleep(config.cleanup_sleep_interval)
 
 
 if __name__ == '__main__':

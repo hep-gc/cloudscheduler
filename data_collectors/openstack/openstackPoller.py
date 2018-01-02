@@ -87,6 +87,16 @@ def get_network_data(neutron):
 def get_vm_list(nova):
     return nova.servers.list()
 
+def terminate_vm(session, vm):
+    nova = get_nova_client(session)
+    try:
+        nova.servers.delete(vm.vmid)
+        return True
+    except Exception as e:
+        logging.error("Unable to terminate vm: %s" % vm.hostname)
+        logging.error(e)
+        return False
+
 
 
 ## PROCESS FUNCTIONS
@@ -345,6 +355,7 @@ def vmCleanUp():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Vm = Base.classes.cloud_vm
+        Cloud = Base.classes.csv2_group_resources
 
 
         if last_cycle == 0:
@@ -354,10 +365,30 @@ def vmCleanUp():
             time.sleep(config.vm_cleanup_interval)
             continue
 
+        # check for vms that have dissapeared since the last cycle
         vm_to_delete = db_session.query(Vm).filter(Vm.last_updated<=last_cycle)
         for vm in vm_to_delete:
             logging.info("Cleaning up VM: %s" % vm)
             db_session.delete(vm)
+
+        # check for vms that have been marked for termination
+        vm_to_destroy = db_session.query(Vm).filter(Vm.terminate==1)
+        for vm in vm_to_destroy:
+            logging.info("VM marked for termination... terminating: %s" % vm.hostname)
+            # terminate vm
+            # need to get cloud data from csv2_group_resources using group_name and cloud_name from vm
+            cloud = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack", Cloud.group_name==vm.group_name, Cloud.cloud_name==vm.cloud_name)
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+            
+            # returns true if vm terminated, false if an error occured
+            # probably wont need to use this result outside debugging as
+            # deleted VMs should be removed on the next cycle
+            result = terminate_vm(session, vm)
 
         db_session.commit()
 
