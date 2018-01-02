@@ -47,8 +47,8 @@ def create_user(request):
         # Need to perform several checks
         # 1. Check that the username is valid (ie no username or cert_dn by that name)
         # 2. Check that the cert_dn is not equal to any username or other cert_dn
-        # 3. Check that both passwords are the same
-        # 4. Check that password isn't empty
+        # 3. Check that password isn't empty or less than 4 chars
+        # 4. Check that both passwords are the same
 
         csv2_user_list = csv2_user.objects.all()
         for registered_user in csv2_user_list:
@@ -59,8 +59,12 @@ def create_user(request):
             #check #2
             if cert_dn is not None and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
                 return manage_users(request, err_message="Username unavailable or conflicts with a registered Distinguished Name")
-
-        #check #3
+        #check #3 part 1
+        if pass1 or pass2 is None:
+            return manage_users(request, err_message="Password is empty")
+        if len(pass1)<4:
+            return manage_users(request, err_message="Password must be at least 4 characters")
+        #check #4
         if pass1 != pass2:
             return manage_users(request, err_message="Passwords do not match")
 
@@ -148,7 +152,7 @@ def user_settings(request):
         # 1. Check that the new username is valid (ie no username or cert_dn by that name)
         #   if the username hasn't changed we can skip this check since it would have been done on creation.
         # 2. Check that the cert_dn is not equal to any username or other cert_dn
-        # 3. If the passwords aren't blank check if they are the same.
+        # 3. If the passwords aren't 0-3 chars and check if they are the same.
         for registered_user in csv2_user_list:
             #check #1
             if not new_username == user_to_update.username:
@@ -174,6 +178,13 @@ def user_settings(request):
             }
             return render(request, 'csv2/user_settings.html', context)
         #check #3 part 2
+        if len(new_pass1)<4:
+            context = {
+                'user_obj':user_to_update,
+                'err_message': "Password must be at least 4 characters"
+            }
+            return render(request, 'csv2/user_settings.html', context)
+        #check #3 part 3
         if new_pass1 != new_pass2:
             context = {
                 'user_obj':user_to_update,
