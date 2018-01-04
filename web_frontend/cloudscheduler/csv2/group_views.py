@@ -6,7 +6,7 @@ from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
 from .view_utils import getAuthUser, getcsv2User, verifyUser, getSuperUserStatus
-import .db_utils
+from utils import db_utils
 
 # 
 # This function should recieve a post request with a payload of yaml to add to a given group
@@ -68,7 +68,7 @@ def system_status(request, group_name=None):
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
-            'user_groups': user_groups
+            'user_groups': user_groups,
             'vm_list': vm_list,
             'job_list': job_list,
             #'machine_list': machine_list, #Not yet implemented
