@@ -1,11 +1,5 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script>
-    /* When the user clicks on the button,
-    toggle between hiding and showing the dropdown content */
-    function doDropdown() {
-        document.getElementById("myDropdown").classList.toggle("show");
-    }
-</script>
+
 <style>
 /* drop down style */
  /* Dropdown Button */
@@ -54,10 +48,11 @@
     <li><div><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{active_group}}</a>
         <div id="myDropdown" class="dropdown-content">
             {% for grp in user_groups %}
-                {% if grp==active_group %}
+                {% ifequal grp active_group %}
                     {{pass}}
                 {% else %}
                     <a href='/system_status/{{grp}}/'>{{grp}}</a>
+                {% endifequal %}
             {% endfor %}
         </div>
     </div>
@@ -116,3 +111,11 @@
         {% endfor %}
     {% endif %}
 </table>
+
+<script>
+/* When the user clicks on the button,
+toggle between hiding and showing the dropdown content */
+function doDropdown() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
+</script>
