@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
-from csv2 import config
+import config
 
 
 '''
@@ -14,6 +14,7 @@ db_session.commit()
 
 
 def get_quotas(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -26,6 +27,7 @@ def get_quotas(filter=None):
 # if no group name is given it returns the entire list of vms
 #
 def get_vms(group_name=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -37,6 +39,7 @@ def get_vms(group_name=None):
     return vm_list
 
 def get_flavors(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -45,6 +48,7 @@ def get_flavors(filter=None):
     return flavor_list
 
 def get_images(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -53,6 +57,7 @@ def get_images(filter=None):
     return image_list
 
 def get_networks(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -61,6 +66,7 @@ def get_networks(filter=None):
     return network_list
 
 def get_groups(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -70,6 +76,7 @@ def get_groups(filter=None):
 
 # may be best to query the view instead of the resources table
 def get_group_resources(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -82,6 +89,7 @@ def get_group_resources(filter=None):
 #
 def get_user_groups(user):
     group_list = []
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -97,6 +105,7 @@ def get_user_groups(user):
 # if no group name is given it returns the entire list of jobs
 #
 def get_condor_jobs(group_name=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -104,11 +113,12 @@ def get_condor_jobs(group_name=None):
     if group_name is None:
         job_list = db_session.query(Jobs)
     else:
-        job_list = db_session.query(Jobs).filter(Jobs.group_name==group_name)
+        job_list = db_session.query(Jobs).filter(Jobs.group_name=group_name)
     return job_list
 
 
 def get_condor_machines(filter=None):
+    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
