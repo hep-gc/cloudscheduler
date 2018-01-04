@@ -113,7 +113,7 @@ def get_condor_jobs(group_name=None):
     if group_name is None:
         job_list = db_session.query(Jobs)
     else:
-        job_list = db_session.query(Jobs).filter(Jobs.group_name=group_name)
+        job_list = db_session.query(Jobs).filter(Jobs.group_name==group_name)
     return job_list
 
 
