@@ -54,6 +54,9 @@ def system_status(request, group_name=None):
         active_user.active_group = user_groups[0]
         active_user.save()
 
+    #get cloud info
+    cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
+
     #get vms
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
 
@@ -69,6 +72,7 @@ def system_status(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
+            'cloud_list': cloud_list,
             'vm_list': vm_list,
             'job_list': job_list,
             #'machine_list': machine_list, #Not yet implemented

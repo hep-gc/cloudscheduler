@@ -75,13 +75,13 @@ def get_groups(filter=None):
     return group_list
 
 # may be best to query the view instead of the resources table
-def get_group_resources(filter=None):
+def get_group_resources(group_name):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     GroupResources = Base.classes.csv2_group_resources
-    group_resources_list = db_session.query(GroupResources)
+    group_resources_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
     return group_resources_list
 
 #

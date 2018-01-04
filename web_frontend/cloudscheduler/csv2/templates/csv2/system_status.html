@@ -90,6 +90,26 @@ li a:hover {
     </li>
 </ul>
 
+<h2>Registered Clouds</h2>
+<table>
+    <tr>
+        <th>Cloud Name</th>
+        <th>Project</th>
+        <th>Region</th>
+        <th>Cloud Type</th>
+    </tr>
+    {% if cloud_list is not None %}
+        {% for cloud in cloud_list %}
+            <tr>
+                <td>{{cloud.cloud_name}}</td>
+                <td>{{cloud.project}}</td>
+                <td>{{cloud.region}}</td>
+                <td>{{cloud.cloud_type}}</td>
+            </tr>
+        {% endfor %}
+    {% endif %}
+</table>
+
 <h2>Jobs</h2>
 <table>
     <tr>
