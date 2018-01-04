@@ -21,12 +21,19 @@ def get_quotas(filter=None):
     quota_list = db_session.query(Quota)
     return quota_list
 
-def get_vms(filter=None):
+#
+# This function accepts a group name and returns all virtual machines related to that group
+# if no group name is given it returns the entire list of vms
+#
+def get_vms(group_name=None):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    VM = Base.classes.cloud_vm
-    vm_list = db_session.query(VM)
+    VM = Base.classes.csv2_vms
+    if group_name is None:
+        vm_list = db_session.query(VM)
+    else:
+        vm_list = db_session.query(VM).filter(VM.group_name==group_name)
     return vm_list
 
 def get_flavors(filter=None):
@@ -70,13 +77,34 @@ def get_group_resources(filter=None):
     group_resources_list = db_session.query(GroupResources)
     return group_resources_list
 
+#
+# This function accepts a user name and retrieves & returns all groups associated with the user
+#
+def get_user_groups(user):
+    group_list = []
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    User_groups = Base.classes.csv2_groups
+    user_group_rows = db_session.query(User_groups).filter(User_groups.username==user)
+    if user_group_rows is not None:
+        for row in user_group_rows:
+            group_list.append(row.group_name)
+    return group_list
 
-def get_condor_jobs(filter=None):
+#
+# This function accepts a group name and returns all jobs related to that group
+# if no group name is given it returns the entire list of jobs
+#
+def get_condor_jobs(group_name=None):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     Jobs = Base.classes.condor_jobs
-    job_list = db_session.query(Jobs)
+    if group_name is None:
+        job_list = db_session.query(Jobs)
+    else:
+        job_list = db_session.query(Jobs).filter(Jobs.group_name=group_name)
     return job_list
 
 
@@ -85,5 +113,15 @@ def get_condor_machines(filter=None):
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     Machines = Base.classes.condor_machines
-    machine_list = db_session.query(Machines)
+    if group_name is None:
+        machine_list = db_session.query(Machines)
+    else:
+        # machines do not currently have group_name in their classad (and therefore not in database)
+        # there are several possible solutions
+        #   1. find a way to inject it on boot
+        #   2. have the cscollector update the classad by cross referencing the job_id
+        #   3. do not add group_name to machine classads and instead cross reference job_ids every time to get machine list
+        #machine_list = db_session.query(Machines).filter(Machines.group_name=group_name)
+        machine_list = []
+        
     return machine_list

@@ -142,7 +142,7 @@ def user_settings(request):
         # proccess update
 
         csv2_user_list = csv2_user.objects.all()
-        user_to_update = user_obj=getcsv2User(request)
+        user_to_update = getcsv2User(request)
         new_username = request.POST.get('username')
         cert_dn = request.POST.get('distinguished_name')
         new_pass1 = request.POST.get('password1')
