@@ -158,7 +158,9 @@ td {
                 <td>{{vm.cloud_name}}
                 <td>{{vm.vmid}}</td>
                 <td>{{vm.status}}</td>
-                {% if vm.terminate == 0 %}
+                {% if vm.terminate is None %}
+                    <td>No</td>
+                {% elif vm.terminate == 0 %}
                     <td>No</td>
                 {% elif vm.terminate == 1 %}
                     <td>Terminate Pending</td>
