@@ -1,0 +1,118 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+    /* When the user clicks on the button,
+    toggle between hiding and showing the dropdown content */
+    function doDropdown() {
+        document.getElementById("myDropdown").classList.toggle("show");
+    }
+</script>
+<style>
+/* drop down style */
+ /* Dropdown Button */
+.dropbtn {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 230px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}
+</style>
+
+<ul>
+    <li><h4>Group:</h4></li>
+    <li><div><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{active_group}}</a>
+        <div id="myDropdown" class="dropdown-content">
+            {% for grp in user_groups %}
+                {% if grp==active_group %}
+                    {{pass}}
+                {% else %}
+                    <a href='/system_status/{{grp}}/'>{{grp}}</a>
+            {% endfor %}
+        </div>
+    </div>
+</ul>
+
+<h2>Jobs</h2>
+<table>
+    <tr>
+        <th>Global JobID</th>
+        <th>Job Status</th>
+        <th>User</th>
+        <th>Hold Job</th>
+    </tr>
+    {% if job_list is not None %}
+        {% for job in job_list %}
+            <tr>
+                <td>{{job.GlobalJobId}}</td>
+                <td>{{job.JobStatus}}</td>
+                <td>{{job.User}}</td>
+                {% if job.hold_job == 0 %}
+                    <td>Not Held</td>
+                {% elif job.hold_job == 1 %}
+                    <td>Hold Pending</td>
+                {% elif job.hold_job == 2 %}
+                    <td>Held</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    {% endif %}
+</table>
+
+<h2>Machines</h2>
+<table>
+    <tr>
+        <th>Hostname</th>
+        <th>Cloud</th>
+        <th>VM ID</th>
+        <th>status</th>
+        <th>Terminate</th>
+    </tr>
+    {% if vm_list is not None %}
+        {% for vm in vm_list %}
+            <tr>
+                <td>{{vm.hostname}}</td>
+                <td>{{vm.cloud_name}}
+                <td>{{vm.vmid}}</td>
+                <td>{{vm.status}}</td>
+                {% if vm.terminate == 0 %}
+                    <td>No</td>
+                {% elif vm.terminate == 1 %}
+                    <td>Terminate Pending</td>
+                {% elif vm.terminate == 2 %}
+                    <td>Terminated</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    {% endif %}
+</table>
