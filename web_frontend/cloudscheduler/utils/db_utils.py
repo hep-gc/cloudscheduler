@@ -13,13 +13,16 @@ db_session.commit()
 '''
 
 
-def get_quotas(filter=None):
+def get_quotas(group_name=None):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     Quota = Base.classes.cloud_quotas
-    quota_list = db_session.query(Quota)
+    if group_name is None:
+        quota_list = db_session.query(Quota)
+    else:
+        quota_list = db_session.query(Quota).filter(Quota.group_name==group_name)
     return quota_list
 
 #

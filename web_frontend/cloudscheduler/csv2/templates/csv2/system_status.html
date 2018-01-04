@@ -101,6 +101,7 @@ td {
         <th>Project</th>
         <th>Region</th>
         <th>Cloud Type</th>
+        <th>Quota Info</th>
     </tr>
     {% if cloud_list is not None %}
         {% for cloud in cloud_list %}
@@ -109,6 +110,28 @@ td {
                 <td>{{cloud.project}}</td>
                 <td>{{cloud.region}}</td>
                 <td>{{cloud.cloud_type}}</td>
+                {% for quota in cloud_quotas %}
+                    {% ifequal quota.cloud_name cloud.cloud_name %}
+                        <table>
+                            <tr>
+                                <th>Cores</th>
+                                <th>Instances</th>
+                                <th>RAM</th>
+                                <th>Volumes</th>
+                                <th>GB per Volume</th>
+                                <th>Total GB</th>
+                            </tr>
+                            <tr>
+                                <td>{{quota.cores}}</td>
+                                <td>{{quota.instances}}</td>
+                                <td>{{quota.ram}}</td>
+                                <td>{{quota.volumes}}</td>
+                                <td>{{quota.per_volume_gigabytes}}</td>
+                                <td>{{quota.gigabytes}}</td>
+                            </tr>
+                        </table>
+                    {% endifequal %}
+                {% endfor %}
             </tr>
         {% endfor %}
     {% endif %}
@@ -148,7 +171,7 @@ td {
         <th>Hostname</th>
         <th>Cloud</th>
         <th>VM ID</th>
-        <th>status</th>
+        <th>Status</th>
         <th>Terminate</th>
     </tr>
     {% if vm_list is not None %}

@@ -60,6 +60,9 @@ def system_status(request, group_name=None):
     #get vms
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
 
+    #get default quotas
+    cloud_quotas = db_utils.get_quotas(group_name=active_user.active_group)
+
     #get jobs
     job_list = db_utils.get_condor_jobs(group_name=active_user.active_group)
 
@@ -74,6 +77,7 @@ def system_status(request, group_name=None):
             'user_groups': user_groups,
             'cloud_list': cloud_list,
             'vm_list': vm_list,
+            'cloud_quotas': cloud_quotas,
             'job_list': job_list,
             #'machine_list': machine_list, #Not yet implemented
 
