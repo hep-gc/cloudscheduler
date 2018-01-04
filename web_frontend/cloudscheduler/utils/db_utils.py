@@ -93,7 +93,7 @@ def get_user_groups(user):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    User_groups = Base.classes.csv2_groups
+    User_groups = Base.classes.csv2_user_groups
     user_group_rows = db_session.query(User_groups).filter(User_groups.username==user)
     if user_group_rows is not None:
         for row in user_group_rows:
