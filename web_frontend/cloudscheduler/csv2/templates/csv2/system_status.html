@@ -112,7 +112,7 @@ td {
                 <td>{{cloud.cloud_type}}</td>
                 {% for quota in cloud_quotas %}
                     {% ifequal quota.cloud_name cloud.cloud_name %}
-                        <table>
+                        <td><table>
                             <tr>
                                 <th>Cores</th>
                                 <th>Instances</th>
@@ -129,7 +129,7 @@ td {
                                 <td>{{quota.per_volume_gigabytes}}</td>
                                 <td>{{quota.gigabytes}}</td>
                             </tr>
-                        </table>
+                        </table></td>
                     {% endifequal %}
                 {% endfor %}
             </tr>
