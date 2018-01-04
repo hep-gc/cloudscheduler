@@ -236,7 +236,7 @@ def vm_poller():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Vm = Base.classes.cloud_vm
+        Vm = Base.classes.csv2_vm
         Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
@@ -354,7 +354,7 @@ def vmCleanUp():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Vm = Base.classes.cloud_vm
+        Vm = Base.classes.csv2_vm
         Cloud = Base.classes.csv2_group_resources
 
 
