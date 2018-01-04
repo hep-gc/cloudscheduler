@@ -41,11 +41,42 @@
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
 .show {display:block;}
+
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+
+li {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: #111;
+    cursor: pointer; cursor: hand;
+}
 </style>
 
 <ul>
     <li><h4>Group:</h4></li>
-    <li><div><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{active_group}}</a>
+    <li><div class="dropdown"><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{active_group}}</a>
         <div id="myDropdown" class="dropdown-content">
             {% for grp in user_groups %}
                 {% ifequal grp active_group %}
@@ -56,6 +87,7 @@
             {% endfor %}
         </div>
     </div>
+    </li>
 </ul>
 
 <h2>Jobs</h2>
@@ -72,7 +104,9 @@
                 <td>{{job.GlobalJobId}}</td>
                 <td>{{job.JobStatus}}</td>
                 <td>{{job.User}}</td>
-                {% if job.hold_job == 0 %}
+                {% if job.hold_job is None %}
+                    <td>Not Held</td>
+                {% elif job.hold_job == 0 %}
                     <td>Not Held</td>
                 {% elif job.hold_job == 1 %}
                     <td>Hold Pending</td>
