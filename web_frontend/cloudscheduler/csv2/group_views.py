@@ -33,12 +33,18 @@ def add_cloud_resources(request):
 # This function generates a the status of a given groups operations
 # VM status, job status, and machine status should all be available for a given group on this page
 #
-def system_status(request):
+def system_status(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
 
     active_user = getcsv2User(request)
     user_groups = db_utils.get_user_groups(active_user)
+    #check to see if specified group is a valid one for this user, if it is set it as active
+    if group_name is not None:
+        if group_name in user_groups:
+            active_user.active_group = group_name
+            active_user.save()
+
     if len(user_groups)==0:
         # active user isn't registered to any groups, display blank page with msg
         #TODO#
@@ -46,6 +52,7 @@ def system_status(request):
     # get data based on active group, if no active group pick the first from the list
     if active_user.active_group is None:
         active_user.active_group = user_groups[0]
+        active_user.save()
 
     #get vms
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
