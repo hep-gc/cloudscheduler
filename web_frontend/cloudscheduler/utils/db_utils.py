@@ -29,7 +29,7 @@ def get_quotas(group_name=None):
 # This function accepts a group name and returns all virtual machines related to that group
 # if no group name is given it returns the entire list of vms
 #
-def get_vms(group_name=None):
+def get_vms(group_name=None, cloud_name=None):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
@@ -38,7 +38,10 @@ def get_vms(group_name=None):
     if group_name is None:
         vm_list = db_session.query(VM)
     else:
-        vm_list = db_session.query(VM).filter(VM.group_name==group_name)
+        if cloud_name is None:
+            vm_list = db_session.query(VM).filter(VM.group_name==group_name)
+        else:
+            vm_list = db_session.query(VM).filter(VM.group_name==group_name, VM.cloud_name==cloud_name)
     return vm_list
 
 def get_flavors(filter=None):
