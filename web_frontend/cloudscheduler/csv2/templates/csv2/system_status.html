@@ -101,7 +101,6 @@ td {
         <th>Project</th>
         <th>Region</th>
         <th>Cloud Type</th>
-        <th>Quota Info</th>
     </tr>
     {% if cloud_list is not None %}
         {% for cloud in cloud_list %}
@@ -112,7 +111,7 @@ td {
                 <td>{{cloud.cloud_type}}</td>
                 {% for quota in cloud_quotas %}
                     {% ifequal quota.cloud_name cloud.cloud_name %}
-                        <td><table>
+                        <td><button onclick="toggleQuota('{{cloud.cloud_name}}')">Show Quotas</button><table id="{{cloud.cloud_name}}" hidden="true">
                             <tr>
                                 <th>Cores</th>
                                 <th>Instances</th>
@@ -201,4 +200,9 @@ toggle between hiding and showing the dropdown content */
 function doDropdown() {
     document.getElementById("myDropdown").classList.toggle("show");
 }
+
+function toggleQuota(id){
+    $('#'+id).toggle();
+}
+
 </script>
