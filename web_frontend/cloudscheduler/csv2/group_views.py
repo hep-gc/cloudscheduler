@@ -39,6 +39,7 @@ def system_status(request, group_name=None):
 
     active_user = getcsv2User(request)
     user_groups = db_utils.get_user_groups(active_user)
+    cloud_name = 
     #check to see if specified group is a valid one for this user, if it is set it as active
     if group_name is not None:
         if group_name in user_groups:
@@ -61,7 +62,8 @@ def system_status(request, group_name=None):
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
     
     #vm count per cloud
-    vm_count = len(db_utils.get_vms(group_name=active_user.active_group, cloud_name=active_user.active_group.active_cloud))
+    for cloud in cloud_list:
+        vm_count.update({cloud.cloud_name:len(db_utils.get_vms(group_name=active_user.active_group, cloud_name=cloud.cloud_name)})
     
     #get default quotas
     cloud_quotas = db_utils.get_quotas(group_name=active_user.active_group)
