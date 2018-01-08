@@ -39,7 +39,6 @@ def system_status(request, group_name=None):
 
     active_user = getcsv2User(request)
     user_groups = db_utils.get_user_groups(active_user)
-    cloud_name = 
     #check to see if specified group is a valid one for this user, if it is set it as active
     if group_name is not None:
         if group_name in user_groups:
