@@ -121,7 +121,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             Base = automap_base()
             Base.prepare(engine, reflect=True)
             db_session = Session(engine)
-            VM = Base.classes.cloud_vm
+            VM = Base.classes.csv2_vms
             vm_dict = {
                 'auth_url': self.authurl,
                 'project': self.tenantname,

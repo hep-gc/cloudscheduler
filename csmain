@@ -38,7 +38,7 @@ def main():
             # so would either need to build that in or ignore, but with multiple schedd the hostname may not be of interest much? depends on how schedds are related to collectors
             print(idle_jobs[0])
             print(CLOUDRESOURCES[user].clouds.keys())
-            CLOUDRESOURCES[user].clouds['beaver'].vm_create(idle_jobs[0])
+            #CLOUDRESOURCES[user].clouds['beaver'].vm_create(idle_jobs[0])
             #for job in idle_jobs:
                 #print(job)
                 #print(job.__dict__)
