@@ -61,8 +61,10 @@ def system_status(request, group_name=None):
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
     
     #vm count per cloud
+    vm_count = {}
     for cloud in cloud_list:
-        vm_count.update({cloud.cloud_name:len(db_utils.get_vms(group_name=active_user.active_group, cloud_name=cloud.cloud_name)})
+        cloud_vm_list = db_utils.get_vms(group_name=active_user.active_group, cloud_name=cloud.cloud_name)
+        vm_count[cloud.cloud_name] = len(cloud_vm_list)
     
     #get default quotas
     cloud_quotas = db_utils.get_quotas(group_name=active_user.active_group)
