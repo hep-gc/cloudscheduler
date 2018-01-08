@@ -26,8 +26,8 @@ def get_quotas(group_name=None):
     return quota_list
 
 #
-# This function accepts a group name and returns all virtual machines related to that group
-# if no group name is given it returns the entire list of vms
+# This function accepts a group name and cloud name and returns all virtual machines related to that group and cloud
+# if no group and cloud name is given it returns the entire list of vms
 #
 def get_vms(group_name=None, cloud_name=None):
     Base = automap_base()
