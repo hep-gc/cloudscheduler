@@ -59,10 +59,10 @@ def system_status(request, group_name=None):
 
     #get vms
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
-
-    #get vm count for a specific cloud
-    vm_count = len(db_utils.get_vms(group_name=active_user.active_group, cloud_name=cloud_name))
-
+    
+    #vm count per cloud
+    vm_count = len(db_utils.get_vms(group_name=active_user.active_group, cloud_name=active_user.active_group.active_cloud))
+    
     #get default quotas
     cloud_quotas = db_utils.get_quotas(group_name=active_user.active_group)
 
@@ -77,6 +77,7 @@ def system_status(request, group_name=None):
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
+            'active_cloud': active_user.active_group.active_cloud,
             'user_groups': user_groups,
             'cloud_list': cloud_list,
             'vm_list': vm_list,
