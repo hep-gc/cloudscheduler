@@ -97,7 +97,7 @@ def get_group_list(group_name):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    GroupResources = Base.classes.csv2_group_list
+    GroupResources = Base.classes.view_group_list
     group_resources_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
     return group_list
 
