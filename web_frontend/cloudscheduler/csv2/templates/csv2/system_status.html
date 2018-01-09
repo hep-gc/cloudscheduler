@@ -110,7 +110,7 @@ td {
                 <td>{{cloud.project}}</td>
                 <td>{{cloud.region}}</td>
                 <td>{{cloud.cloud_type}}</td>
-                <td>{{group_list}}</td>
+                <td>{{count_list}}</td>
                 {% for quota in cloud_quotas %}
                     {% ifequal quota.cloud_name cloud.cloud_name %}
                         <td><button onclick="toggleQuota('{{cloud.cloud_name}}')">Show Quotas</button><table id="{{cloud.cloud_name}}" hidden="true">
