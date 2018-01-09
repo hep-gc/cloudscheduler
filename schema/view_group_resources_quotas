@@ -1,0 +1,93 @@
+-- MySQL dump 10.14  Distrib 5.5.56-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	5.5.56-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `view_group_resources_quotas`
+--
+
+DROP TABLE IF EXISTS `view_group_resources_quotas`;
+/*!50001 DROP VIEW IF EXISTS `view_group_resources_quotas`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `view_group_resources_quotas` (
+  `group_name` tinyint NOT NULL,
+  `cloud_name` tinyint NOT NULL,
+  `authurl` tinyint NOT NULL,
+  `project` tinyint NOT NULL,
+  `username` tinyint NOT NULL,
+  `password` tinyint NOT NULL,
+  `keyname` tinyint NOT NULL,
+  `cacertificate` tinyint NOT NULL,
+  `region` tinyint NOT NULL,
+  `userdomainname` tinyint NOT NULL,
+  `projectdomainname` tinyint NOT NULL,
+  `extrayaml` tinyint NOT NULL,
+  `cloud_type` tinyint NOT NULL,
+  `backups` tinyint NOT NULL,
+  `backups_max` tinyint NOT NULL,
+  `backup_gigabytes` tinyint NOT NULL,
+  `backup_gigabytes_max` tinyint NOT NULL,
+  `cores` tinyint NOT NULL,
+  `cores_max` tinyint NOT NULL,
+  `gigabytes` tinyint NOT NULL,
+  `gigabytes_max` tinyint NOT NULL,
+  `instances` tinyint NOT NULL,
+  `instances_max` tinyint NOT NULL,
+  `key_pairs` tinyint NOT NULL,
+  `key_pairs_max` tinyint NOT NULL,
+  `ram` tinyint NOT NULL,
+  `ram_max` tinyint NOT NULL,
+  `security_groups` tinyint NOT NULL,
+  `security_groups_max` tinyint NOT NULL,
+  `snapshots` tinyint NOT NULL,
+  `snapshots_max` tinyint NOT NULL,
+  `volumes` tinyint NOT NULL,
+  `volumes_max` tinyint NOT NULL,
+  `per_volume_gigabytes` tinyint NOT NULL,
+  `per_volume_gigabytes_max` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `view_group_resources_quotas`
+--
+
+/*!50001 DROP TABLE IF EXISTS `view_group_resources_quotas`*/;
+/*!50001 DROP VIEW IF EXISTS `view_group_resources_quotas`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `view_group_resources_quotas` AS select `csv2_group_resources`.`group_name` AS `group_name`,`csv2_group_resources`.`cloud_name` AS `cloud_name`,`csv2_group_resources`.`authurl` AS `authurl`,`csv2_group_resources`.`project` AS `project`,`csv2_group_resources`.`username` AS `username`,`csv2_group_resources`.`password` AS `password`,`csv2_group_resources`.`keyname` AS `keyname`,`csv2_group_resources`.`cacertificate` AS `cacertificate`,`csv2_group_resources`.`region` AS `region`,`csv2_group_resources`.`userdomainname` AS `userdomainname`,`csv2_group_resources`.`projectdomainname` AS `projectdomainname`,`csv2_group_resources`.`extrayaml` AS `extrayaml`,`csv2_group_resources`.`cloud_type` AS `cloud_type`,`csv2_group_resources`.`backups` AS `backups`,`cloud_quotas`.`backups` AS `backups_max`,`csv2_group_resources`.`backup_gigabytes` AS `backup_gigabytes`,`cloud_quotas`.`backup_gigabytes` AS `backup_gigabytes_max`,`csv2_group_resources`.`cores` AS `cores`,`cloud_quotas`.`cores` AS `cores_max`,`csv2_group_resources`.`gigabytes` AS `gigabytes`,`cloud_quotas`.`gigabytes` AS `gigabytes_max`,`csv2_group_resources`.`instances` AS `instances`,`cloud_quotas`.`instances` AS `instances_max`,`csv2_group_resources`.`key_pairs` AS `key_pairs`,`cloud_quotas`.`key_pairs` AS `key_pairs_max`,`csv2_group_resources`.`ram` AS `ram`,`cloud_quotas`.`ram` AS `ram_max`,`csv2_group_resources`.`security_groups` AS `security_groups`,`cloud_quotas`.`security_groups` AS `security_groups_max`,`csv2_group_resources`.`snapshots` AS `snapshots`,`cloud_quotas`.`snapshots` AS `snapshots_max`,`csv2_group_resources`.`volumes` AS `volumes`,`cloud_quotas`.`volumes` AS `volumes_max`,`csv2_group_resources`.`per_volume_gigabytes` AS `per_volume_gigabytes`,`cloud_quotas`.`per_volume_gigabytes` AS `per_volume_gigabytes_max` from (`csv2_group_resources` join `cloud_quotas` on(((`csv2_group_resources`.`group_name` = `cloud_quotas`.`group_name`) and (`csv2_group_resources`.`cloud_name` = `cloud_quotas`.`cloud_name`)))) order by `csv2_group_resources`.`group_name`,`csv2_group_resources`.`cloud_name` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-01-09 15:07:40
