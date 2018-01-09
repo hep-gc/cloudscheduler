@@ -92,14 +92,14 @@ def get_group_resources(group_name):
 
 
 # may be best to query the view instead of the resources table
-def get_group_list(group_name):
+def get_counts(filter=None):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    GroupResources = Base.classes.view_group_list
-    group_list_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
-    return group_list_list
+    Counts = Base.classes.view_group_list
+    count_list = db_session.query(Counts)
+    return count_list
 
 #
 # This function accepts a user name and retrieves & returns all groups associated with the user

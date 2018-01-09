@@ -61,7 +61,7 @@ def system_status(request, group_name=None):
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
     
     #vm count per cloud
-    group_list = db_utils.get_group_list(group_name=active_user.active_group)
+    count_list = db_utils.get_counts()
     #vm_count = {}
     #for cloud in cloud_list:
     #    vm_count[cloud.cloud_name] = db_utils.get_vms(group_name=active_user.active_group, cloud_name=cloud.cloud_name).count()
@@ -82,7 +82,7 @@ def system_status(request, group_name=None):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_list': cloud_list,
-            'group_list': group_list,
+            'count_list': count_list,
             'cloud_quotas': cloud_quotas,
             'job_list': job_list,
             #'machine_list': machine_list, #Not yet implemented
