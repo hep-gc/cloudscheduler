@@ -90,21 +90,32 @@ def get_group_resources(group_name):
     group_resources_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
     return group_resources_list
 
-#
-# This function accepts a user name and retrieves & returns all groups associated with the user
-#
-def get_user_groups(user):
-    group_list = []
+
+# may be best to query the view instead of the resources table
+def get_group_list(group_name):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    User_groups = Base.classes.csv2_user_groups
-    user_group_rows = db_session.query(User_groups).filter(User_groups.username==user)
+    GroupResources = Base.classes.csv2_group_list
+    group_resources_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
+    return group_list
+
+#
+# This function accepts a user name and retrieves & returns all groups associated with the user
+#
+def get_user_groups(user):
+    user_group_list = []
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    user_groups = Base.classes.csv2_user_groups
+    user_group_rows = db_session.query(user_groups).filter(user_groups.username==user)
     if user_group_rows is not None:
         for row in user_group_rows:
-            group_list.append(row.group_name)
-    return group_list
+            user_group_list.append(row.group_name)
+    return user_group_list
 
 #
 # This function accepts a group name and returns all jobs related to that group
