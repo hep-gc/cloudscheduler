@@ -98,8 +98,8 @@ def get_group_list(group_name):
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     GroupResources = Base.classes.view_group_list
-    group_resources_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
-    return group_list
+    group_list_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
+    return group_list_list
 
 #
 # This function accepts a user name and retrieves & returns all groups associated with the user
