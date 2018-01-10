@@ -264,6 +264,7 @@ def vm_poller():
                     'hostname': vm.name,
                     'vmid': vm.id,
                     'status': vm.status,
+                    'flavor_id': vm.flavor["id"],
                     'last_updated': int(time.time())
                 }
                 new_vm = Vm(**vm_dict)
