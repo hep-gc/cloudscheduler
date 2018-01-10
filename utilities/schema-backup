@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+from subprocess import Popen, PIPE
+from tempfile import mkdtemp
+import os
+import shutil
+import sys
+
+cmd_path = os.path.abspath(sys.argv[0])
+path_info = cmd_path.split('/')
+ix = path_info.index('cloudscheduler')
+temp_dir = mkdtemp()
+schema_dir = '%s/schema' % '/'.join(path_info[:ix+1])
+secrets_file = '%s/ansible-systems/heprc/staticvms/roles/csv2/vars/csv2_secrets.yaml' % '/'.join(path_info[:ix])
+vp_file = '%s/.pw/staticvms' % '/'.join(path_info[:3])
+
+p1 = Popen(['ansible-vault', 'view', secrets_file, '--vault-password-file', vp_file], stdout=PIPE, stderr=PIPE)
+p2 = Popen(['awk', '/^mariadb_root:/ {print $2}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+stdout, stderr = p2.communicate()
+if stderr != '':
+  'Failed to retrieve DB password.'
+  exit(1)
+
+pw = stdout.strip()
+
+p1 = Popen(['mysql', '-uroot', '-p%s' % pw, '-e', 'show tables;', 'csv2'], stdout=PIPE, stderr=PIPE)
+p2 = Popen(['awk', '!/Tables_in_csv2/ {print $1}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+stdout, stderr = p2.communicate()
+if stderr != '':
+  'Failed to retrieve table list.'
+  exit(1)
+
+tables = stdout.split()
+for table in tables:
+  p1 = Popen(['mysqldump', '-uroot', '-p%s' % pw, '--no-data', 'csv2', table], stdout=PIPE, stderr=PIPE)
+  stdout, stderr = p1.communicate()
+  if stderr != '':
+    print 'Failed to retrieve table definition for: %s' % table
+    exit(1)
+
+  fd = open('%s/%s' % (temp_dir, table), 'w')
+  fd.write(stdout)
+  fd.close()
+
+  p1 = Popen(['diff', '%s/%s' % (schema_dir, table), '%s/%s' % (temp_dir, table)], stdout=PIPE, stderr=PIPE)
+  p2 = Popen(['awk', '/^<|^>/ && !/Dump completed on /'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+  stdout, stderr = p2.communicate()
+  if stderr != '':
+    print 'Failed to compare table definition for: %s' % table
+    exit(1)
+
+  if stdout != '':
+    p1 = Popen(['mv', '-f', '%s/%s' % (temp_dir, table), '%s/%s' % (schema_dir, table)], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p1.communicate()
+    if stderr != '':
+      print 'Failed to update table definition for: %s' % table
+      exit(1)
+
+    print 'Updated table definition for: %s' % table
+
+shutil.rmtree(temp_dir)
