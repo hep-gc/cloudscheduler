@@ -92,13 +92,13 @@ def get_group_resources(group_name):
 
 
 # may be best to query the view instead of the resources table
-def get_counts(filter=None):
+def get_counts(group_name=None, cloud_name=None):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     Counts = Base.classes.view_group_list
-    count_list = db_session.query(Counts)
+    count_list = db_session.query(Counts).filter(Counts.group_name==group_name, Counts.cloud_name==cloud_name)
     return count_list
 
 #
