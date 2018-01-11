@@ -78,6 +78,15 @@ def get_quota_data(nova, cinder, project):
     cinder_quotas = cinder.quotas.defaults(project)
     return nova_quotas, cinder_quotas
 
+# Returns the limits of the openstack project associated with the passed in nova object
+def get_limit_data(nova):
+    limits = {}
+    limit_generator = nova.limits.get().absolute
+    for limit in limit_generator:
+        limits[limit.name] = [limit.value]
+    return limits
+
+
 def get_image_data(nova):
     return nova.glance.list()
 
@@ -115,7 +124,8 @@ def metadata_poller():
         Flavor = Base.classes.cloud_flavors
         Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
-        Quota = Base.classes.cloud_quotas
+        Limit = Base.classes.cloud_limits
+        #Quota = Base.classes.cloud_quotas
         # Retrieve registered clouds
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
@@ -156,6 +166,17 @@ def metadata_poller():
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
 
+
+            # LIMITS
+            logging.debug("Polling limits")
+            limits_dict = get_limit_data(nova)
+            limits_dict['group_name'] = cloud.group_name
+            limits_dict['cloud_name'] = cloud.cloud_name
+            limits_dict['last_updated'] = int(time.time())
+            new_limits = Limit(**limits_dict)
+            db_session.merge(new_limits)
+
+            '''
             # QUOTAS
             logging.debug("Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
@@ -177,6 +198,7 @@ def metadata_poller():
             }
             new_quota = Quota(**quota_dict)
             db_session.merge(new_quota)
+            '''
 
             # IMAGES
             logging.debug("Polling images")
@@ -293,7 +315,8 @@ def metadataCleanUp():
         Flavor = Base.classes.cloud_flavors
         Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
-        Quota = Base.classes.cloud_quotas
+        Limit = Base.classes.cloud_limits
+        #Quota = Base.classes.cloud_quotas
 
         # get time for current cycle
         current_cycle_time = time.time()
@@ -324,11 +347,19 @@ def metadataCleanUp():
             logging.info("Cleaning up network: %s" % net)
             db_session.delete(net)
 
+        # Limits
+        limit_to_delete = db_session.query(Limit).filter(Limit.last_updated<=last_cycle)
+        for limit in limit_to_delete:
+            logging.info("Cleaning up limit %s" % limit)
+            db_session.delete(limit)
+
+        '''
         # Quotas
         quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
         for quota in quota_to_delete:
             logging.info("META CLEANUP - Cleaning up quota: %s" % quota)
             db_session.delete(quota)
+        '''
 
         db_session.commit()
 
