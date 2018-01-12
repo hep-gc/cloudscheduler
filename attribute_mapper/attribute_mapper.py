@@ -41,8 +41,6 @@ def build_mapping_dictionaries():
                 row_dict[row.csv2] = row_id
             elif language == "os_limits":
                 row_dict[row.os_limits] = row_id
-            elif language == "openstack":
-                row_dict[row.openstack] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
@@ -60,8 +58,6 @@ def build_mapping_dictionaries():
                 attr_list.append(row.csv2) 
             elif language == "os_limits":
                 attr_list.append(row.os_limits)
-            elif language == "openstack":
-                attr_list.append(row.openstack)
             else:
                 print("Found column not implemented in code, breaking")
                 break
