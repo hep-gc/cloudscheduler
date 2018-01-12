@@ -81,10 +81,20 @@ build_mapping_dictionaries()
 #dump_dicts()
 src = "os_limits"
 dest = "csv2"
-a_list = ["maxTotalCores", "totalCoresUsed"]
+a_list = ["maxTotalCores",]
 trans_list = map_attributes(src=src, dest=dest, attr_list=a_list)
 
 print("Input list:")
 print(a_list)
 print("Translated list:")
 print(trans_list)
+print()
+
+a_list = ["maxServerMeta", "maxTotalRAMSize"]
+trans_list = map_attributes(src=src, dest=dest, attr_list=a_list)
+
+print("Input list:")
+print(a_list)
+print("Translated list:")
+print(trans_list)
+print()
