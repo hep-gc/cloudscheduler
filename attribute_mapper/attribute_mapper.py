@@ -10,6 +10,8 @@ attr_list_dict = {}
 def map_attributes(src, dest, attr_list):
     global rowid_dict
     global attr_list_dict
+    if len(rowid_dict)==0 or len(attr_list_dict)==0:
+        build_mapping_dictionaries()
 
     mapped_list = []
     for attr in attr_list:
@@ -73,7 +75,7 @@ def dump_dicts():
     print rowid_dict
 
 
-build_mapping_dictionaries()
+#build_mapping_dictionaries()
 #dump_dicts()
 src = "os_limits"
 dest = "csv2"
