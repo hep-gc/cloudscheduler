@@ -8,7 +8,12 @@ rowid_dict = {}
 attr_list_dict = {}
 
 def map_attributes(src, dest, attr_list):
+    global rowid_dict
+    global attr_list_dict
+
     mapped_list = []
+    for attr in attr_list:
+        mapped_list.append(attr_list_dict[dest][rowid_dict[src][attr]])
 
     return mapped_list
 
@@ -73,4 +78,13 @@ def dump_dicts():
 
 
 build_mapping_dictionaries()
-dump_dicts()
+#dump_dicts()
+src = "os_limits"
+dest = "csv2"
+a_list = ["maxTotalCores", "totalCoresUsed"]
+trans_list = map_attributes(src=src, dest=dest, attr_list=a_list)
+
+print("Input list:")
+print(a_list)
+print("Translated list:")
+print(trans_list)
