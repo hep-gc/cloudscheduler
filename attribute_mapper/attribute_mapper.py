@@ -14,8 +14,8 @@ def map_attributes(src, dest, attr_dict):
         build_mapping_dictionaries()
 
     mapped_dict = {}
-    for key, value in attr_dict:
-        mapped_dict[attr_list_dict[dest][rowid_dict[src][attr]]] = value
+    for key, value in attr_dict.items():
+        mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = value
 
     return mapped_dict
 
@@ -80,9 +80,9 @@ def dump_dicts():
 src = "os_limits"
 dest = "csv2"
 a_dict = {
-    "maxTotalCores": 4,
+    "maxTotalCores": 4
 }
-trans_dict = map_attributes(src=src, dest=dest, attr_list=a_dict)
+trans_dict = map_attributes(src=src, dest=dest, attr_dict=a_dict)
 
 print("Input dict:")
 print(a_dict)
@@ -93,9 +93,9 @@ print()
 
 a_dict = {
     "maxServerMeta": 500,
-    "maxTotalRAMSize": 12000,
+    "maxTotalRAMSize": 12000
 }
-trans_dict = map_attributes(src=src, dest=dest, attr_list=a_dict)
+trans_dict = map_attributes(src=src, dest=dest, attr_dict=a_dict)
 
 print("Input dict:")
 print(a_dict)
