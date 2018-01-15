@@ -7,17 +7,17 @@ from sqlalchemy.ext.automap import automap_base
 rowid_dict = {}
 attr_list_dict = {}
 
-def map_attributes(src, dest, attr_list):
+def map_attributes(src, dest, attr_dict):
     global rowid_dict
     global attr_list_dict
     if len(rowid_dict)==0 or len(attr_list_dict)==0:
         build_mapping_dictionaries()
 
-    mapped_list = []
-    for attr in attr_list:
-        mapped_list.append(attr_list_dict[dest][rowid_dict[src][attr]])
+    mapped_dict = {}
+    for key, value in attr_dict:
+        mapped_dict[attr_list_dict[dest][rowid_dict[src][attr]]] = value
 
-    return mapped_list
+    return mapped_dict
 
 def build_mapping_dictionaries():
     global rowid_dict
@@ -79,20 +79,26 @@ def dump_dicts():
 #dump_dicts()
 src = "os_limits"
 dest = "csv2"
-a_list = ["maxTotalCores",]
-trans_list = map_attributes(src=src, dest=dest, attr_list=a_list)
+a_dict = {
+    "maxTotalCores": 4,
+}
+trans_dict = map_attributes(src=src, dest=dest, attr_list=a_dict)
 
-print("Input list:")
-print(a_list)
-print("Translated list:")
-print(trans_list)
+print("Input dict:")
+print(a_dict)
+print("Translated dict:")
+print(trans_dict)
 print()
 
-a_list = ["maxServerMeta", "maxTotalRAMSize"]
-trans_list = map_attributes(src=src, dest=dest, attr_list=a_list)
 
-print("Input list:")
-print(a_list)
-print("Translated list:")
-print(trans_list)
+a_dict = {
+    "maxServerMeta": 500,
+    "maxTotalRAMSize": 12000,
+}
+trans_dict = map_attributes(src=src, dest=dest, attr_list=a_dict)
+
+print("Input dict:")
+print(a_dict)
+print("Translated dict:")
+print(trans_dict)
 print()
