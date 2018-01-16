@@ -16,6 +16,7 @@ from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
 
+from attribute_mapper.attribute_mapper import map_attributes 
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
