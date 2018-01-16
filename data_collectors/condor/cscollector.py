@@ -167,7 +167,7 @@ def cleanUp():
         #setup database objects
         Resource = Base.classes.condor_machines
         archResource = Base.classes.archived_condor_machines
-        Vm = Base.classes.cloud_vm
+        Vm = Base.classes.csv2_vms
     
 
         # Clean up machine/resource ads
