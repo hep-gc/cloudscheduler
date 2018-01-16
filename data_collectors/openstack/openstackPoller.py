@@ -164,6 +164,7 @@ def metadata_poller():
                     'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                     'last_updated': int(time.time())
                 }
+                flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
 
@@ -174,6 +175,7 @@ def metadata_poller():
             limits_dict['group_name'] = cloud.group_name
             limits_dict['cloud_name'] = cloud.cloud_name
             limits_dict['last_updated'] = int(time.time())
+            limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
             new_limits = Limit(**limits_dict)
             db_session.merge(new_limits)
 
@@ -218,6 +220,7 @@ def metadata_poller():
                     'name': image.name,
                     'last_updated': int(time.time())
                 }
+                img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
                 db_session.merge(new_image)
 
@@ -236,6 +239,7 @@ def metadata_poller():
                     'id': network['id'],
                     'last_updated': int(time.time())
                 }
+                network_dict = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
                 new_network = Network(**network_dict)
                 db_session.merge(new_network)
 
@@ -290,6 +294,7 @@ def vm_poller():
                     'flavor_id': vm.flavor["id"],
                     'last_updated': int(time.time())
                 }
+                vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
