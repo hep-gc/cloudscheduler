@@ -49,6 +49,8 @@ def build_mapping_dictionaries():
                 row_dict[row.os_images] = row_id
             elif language == "os_networks":
                 row_dict[row.os_networks] = row_id
+            elif language == "os_vms":
+                row_dict[row.os_vms] = row_id
             elif language == "condor":
                 row_dict[row.condor] = row_id
             else:
@@ -74,6 +76,8 @@ def build_mapping_dictionaries():
                 attr_list.append(row.os_images)
             elif language == "os_networks":
                 attr_list.append(row.os_networks)
+            elif language == "os_vms":
+                attr_list.append(row.os_vms)
             elif language == "condor":
                 attr_list.append(row.condor)
             else:
