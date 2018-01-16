@@ -11,6 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+from attribute_mapper.attribute_mapper import map_attributes 
+
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -22,9 +24,6 @@ def trim_keys(dict_to_trim, key_list):
             keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
-    # need to change GroupName (condor attribute) to group_name (db attribute)
-    dict_to_trim["group_name"] = dict_to_trim["GroupName"]
-    dict_to_trim.pop("GroupName", None)
     return dict_to_trim
 
 def build_user_group_dict(db_list):
@@ -125,8 +124,9 @@ def job_producer():
                         continue
 
                 job_dict = trim_keys(job_dict, job_attributes)
+                job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
 
-                logging.info("Adding job %s" % job_dict["GlobalJobId"])
+                logging.info("Adding job %s" % job_dict["global_job_id"])
                 new_job = Job(**job_dict)
                 session.merge(new_job)
             session.commit()
@@ -145,6 +145,7 @@ def job_producer():
                     if "Requirements" in job_dict:
                         job_dict['Requirements'] = str(job_dict['Requirements'])
                     job_dict = trim_keys(job_dict, job_attributes)
+                    job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
                     new_job = Job(**job_dict)
                     session.merge(new_job)
                 session.commit()
@@ -178,17 +179,17 @@ def job_command_consumer(testrun=False):
             #Query database for any entries that have a command flag
             for job in session.query(Job).filter(Job.hold_job==1):
                 #execute condor hold on the jobs returned
-                logging.info("Holding %s" % job.GlobalJobId)
+                logging.info("Holding %s" % job.global_job_id)
                 try:
                     s = htcondor.Schedd()
-                    local_job_id = job.GlobalJobId.split('#')[1]
+                    local_job_id = job.global_job_id.split('#')[1]
                     s.edit([local_job_id,], "JobStatus", "5")
                     #update job so that it is held, need to finalize encoding here.
-                    job.JobStatus=5
+                    job.job_status=5
                     job.hold_job=2 # Null/0 normal, 1 means needs to be held, 2 means job has been held
                     session.merge(job)
                 except:
-                    logging.error("Failed to hold job %s" % job.GlobalJobId)
+                    logging.error("Failed to hold job %s" % job.global_job_id)
                     continue
             #commit updates enteries
             session.commit()
@@ -226,7 +227,7 @@ def cleanUp():
         # Clean up job ads
         condor_job_list = condor_s.query()
         # this query asks for only jobs that contain the local hostname as part of their JobID
-        db_job_list = session.query(Job).filter(Job.GlobalJobId.like("%" + local_hostname+ "%"))
+        db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname+ "%"))
         # loop through the condor data and make a list of GlobalJobId
         # then loop through db list checking if they are in the aforementioned list
 
@@ -235,9 +236,9 @@ def cleanUp():
             ad_dict = dict(ad)
             condor_name_list.append(ad_dict['GlobalJobId'])
         for job in db_job_list:
-            if job.GlobalJobId not in condor_name_list:
+            if job.global_job_id not in condor_name_list:
                 #job is missing from condor, clean it up
-                logging.info("Found Job missing from condor: %s, cleaning up." % job.GlobalJobId)
+                logging.info("Found Job missing from condor: %s, cleaning up." % job.global_job_id)
                 job_dict = job.__dict__
                 logging.info(job_dict)
                 session.delete(job)
