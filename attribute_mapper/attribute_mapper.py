@@ -74,31 +74,31 @@ def dump_dicts():
     print attr_list_dict
     print rowid_dict
 
+if __name__ == "__main__":
+    #build_mapping_dictionaries()
+    #dump_dicts()
+    src = "os_limits"
+    dest = "csv2"
+    a_dict = {
+        "maxTotalCores": 4
+    }
+    trans_dict = map_attributes(src=src, dest=dest, attr_dict=a_dict)
 
-#build_mapping_dictionaries()
-#dump_dicts()
-src = "os_limits"
-dest = "csv2"
-a_dict = {
-    "maxTotalCores": 4
-}
-trans_dict = map_attributes(src=src, dest=dest, attr_dict=a_dict)
-
-print("Input dict:")
-print(a_dict)
-print("Translated dict:")
-print(trans_dict)
-print()
+    print("Input dict:")
+    print(a_dict)
+    print("Translated dict:")
+    print(trans_dict)
+    print()
 
 
-a_dict = {
-    "maxServerMeta": 500,
-    "maxTotalRAMSize": 12000
-}
-trans_dict = map_attributes(src=src, dest=dest, attr_dict=a_dict)
+    a_dict = {
+        "maxServerMeta": 500,
+        "maxTotalRAMSize": 12000
+    }
+    trans_dict = map_attributes(src=src, dest=dest, attr_dict=a_dict)
 
-print("Input dict:")
-print(a_dict)
-print("Translated dict:")
-print(trans_dict)
-print()
+    print("Input dict:")
+    print(a_dict)
+    print("Translated dict:")
+    print(trans_dict)
+    print()
