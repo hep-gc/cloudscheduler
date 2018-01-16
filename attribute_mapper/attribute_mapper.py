@@ -43,6 +43,14 @@ def build_mapping_dictionaries():
                 row_dict[row.csv2] = row_id
             elif language == "os_limits":
                 row_dict[row.os_limits] = row_id
+            elif language == "os_flavors":
+                row_dict[row.os_flavors] = row_id
+            elif language == "os_images":
+                row_dict[row.os_images] = row_id
+            elif language == "os_networks":
+                row_dict[row.os_networks] = row_id
+            elif language == "condor":
+                row_dict[row.condor] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
@@ -60,6 +68,14 @@ def build_mapping_dictionaries():
                 attr_list.append(row.csv2) 
             elif language == "os_limits":
                 attr_list.append(row.os_limits)
+            elif language == "os_flavors":
+                attr_list.append(row.os_flavors)
+            elif language == "os_images":
+                attr_list.append(row.os_images)
+            elif language == "os_networks":
+                attr_list.append(row.os_networks)
+            elif language == "condor":
+                attr_list.append(row.condor)
             else:
                 print("Found column not implemented in code, breaking")
                 break
