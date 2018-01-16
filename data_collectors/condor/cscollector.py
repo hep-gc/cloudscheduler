@@ -11,6 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+from attribute_mapper.attribute_mapper import map_attributes 
+
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -53,8 +55,9 @@ def resources_producer(testrun=False, testfile=None):
                 if "Start" in r_dict:
                     r_dict["Start"] = str(r_dict["Start"])
                 r_dict = trim_keys( r_dict, resource_attributes)
+                r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
                 new_resource = Resource(**r_dict)
-                logging.info("Adding new or updating resource: %s" % r_dict["Name"])
+                logging.info("Adding new or updating resource: %s" % r_dict["name"])
                 session.merge(new_resource)
             logging.info("Commiting database session")
             session.commit()
@@ -108,17 +111,17 @@ def collector_command_consumer():
             #query for condor_off commands
             #   get classads
             for resource in session.query(Resource).filter(Resource.condor_off==1):
-                condor_ad = condor_c.query(ad_type=startd_type, constraint="Name==%s" % resource.Name)
-                logging.info("Found entry: %s flagged for condor_off." % resource.Name)
+                condor_ad = condor_c.query(ad_type=startd_type, constraint="Name==%s" % resource.name)
+                logging.info("Found entry: %s flagged for condor_off." % resource.name)
                 startd_result = htcondor.send_command(ad=condor_ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Startd")
                 logging.info("Startd daemon condor_off status: %s" % startd_result)
                 # Now turn off master daemon
-                condor_ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
+                condor_ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.name)
                 master_result = htcondor.send_command(ad=condor_ad, dc=htcondor.DaemonCommands.DaemonsOffPeaceful, target="-daemon Master")
                 #update database entry for condor off if the previous command was a success
                 logging.info("Master daemon condor_off status: %s" % master_result)
                 #flag should be removed and cleanup can be left to another thread?
-                updated_resource = Resource(Name=resource.Name, condor_off=0)
+                updated_resource = Resource(name=resource.name, condor_off=0)
                 session.merge(updated_resource)
 
 
@@ -126,10 +129,10 @@ def collector_command_consumer():
             ad_list = []
             for resource in session.query(Resource).filter(Resource.condor_advertise==1):
                 # get relevent classad objects from htcondor and compile a list for condor_advertise
-                logging.info("Ad found in database flagged for condor_advertise: %s" % resource.Name)
-                ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.Name)
+                logging.info("Ad found in database flagged for condor_advertise: %s" % resource.name)
+                ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.name)
                 ad_list.append(ad)
-                updated_resource = Resource(Name=resource.Name, condor_advertise=0)
+                updated_resource = Resource(name=resource.name, condor_advertise=0)
                 session.merge(updated_resource)
 
             #execute condor_advertise on retrieved classads
@@ -170,7 +173,7 @@ def cleanUp():
         # Clean up machine/resource ads
         condor_machine_list = condor_c.query()
         #this quert asks for only resources containing the local hostname
-        db_machine_list = session.query(Resource).filter(Resource.Name.like("%" + local_hostname+ "%"))
+        db_machine_list = session.query(Resource).filter(Resource.name.like("%" + local_hostname+ "%"))
 
 
         # if a machine is found in the db but not condor we need to check if it was flagged for
@@ -183,12 +186,13 @@ def cleanUp():
             ad_dict = dict(ad)
             condor_name_list.append(ad_dict['Name'])
         for machine in db_machine_list:
-            if machine.Name not in condor_name_list:
+            if machine.name not in condor_name_list:
                 #machine is missing from condor, clean it up
-                logging.info("Found machine missing from condor: %s, cleaning up." % machine.Name)
+                logging.info("Found machine missing from condor: %s, cleaning up." % machine.name)
                 # if the classad was marked for retirement update the vm entry
                 if machine.condor_off>=1:
                     #mark relavent VM entry for termination
+                    # can use group_name and Name?
                     pass #TODO#
 
 
