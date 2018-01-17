@@ -94,7 +94,7 @@ def get_group_resources(group_name):
 
 
 # may be best to query the view instead of the resources table
-def get_counts(group_name=None, cloud_name=None):
+def get_counts(group_name=None):
     metadata = MetaData()
     view_group_list = Table('view_group_list', metadata, 
         Column("group_name", String), 
@@ -105,7 +105,7 @@ def get_counts(group_name=None, cloud_name=None):
     
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     conn = engine.connect()
-    s = select([view_group_list]).where(view_group_list.c.group_name == group_name).where(view_group_list.c.cloud_name == cloud_name)
+    s = select([view_group_list]).where(view_group_list.c.group_name == group_name)
     #count_list = conn.execute(s).fetchone()
     count_list = conn.execute(s)
     return count_list
