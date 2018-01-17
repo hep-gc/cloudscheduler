@@ -115,6 +115,8 @@ td {
                     {% ifequal count.cloud_name cloud.cloud_name %}
                         <td>{{count.VMs}}</td>
                         <td>{{count.Jobs}}</td>
+                    {% endifequal %}
+                {% endfor %}
                 {% for quota in cloud_quotas %}
                     {% ifequal quota.cloud_name cloud.cloud_name %}
                         <td><button onclick="toggleQuota('{{cloud.cloud_name}}')">Show Quotas</button><table id="{{cloud.cloud_name}}" hidden="true">
