@@ -2,25 +2,13 @@ import yaml
 import cloudscheduler.openstackcloud
 
 class CloudManager():
-    def __init__(self, name, resource_file):
+    def __init__(self, name, group_resources):
         self.name = name
         self.clouds = {}
-        self.resource_file = resource_file
+        self.group_resources = group_resources
 
     def setup(self):
-        try:
-            pass
-            # Have to connect to db and get cloud info from there instead
 
-            with open(self.resource_file) as f:
-                cloudresources = yaml.load(f)
-        except Exception as e:
-            print(e)
-        
-        #print(type(cloudresources))
-        #print(cloudresources)
-        for cloud in cloudresources:
-            # determine type of cloud (would be nice if this could be done from the config keys?
+        for cloud in self.group_resources:
             newcloud = cloudscheduler.openstackcloud.OpenStackCloud(**cloud)
             self.clouds[newcloud.name] = newcloud
-

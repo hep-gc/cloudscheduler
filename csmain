@@ -20,11 +20,22 @@ def main():
     print(CLOUDRESOURCES['mhp'])
 
     while(True):
-        pass
         # basic scheduling: fifo w/ condor_prioity
-        #for each of the CLOUDRESOURCES:
-        for user in CLOUDRESOURCES:
-            print(user)
+        # Get all the current csv2_groups
+        Base0 = automap_base()
+        engine0 = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                     csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+        Base0.prepare(engine0, reflect=True)
+        CSGroups = Base0.classes.csv2_groups
+        session0 = Session(engine0)
+        csv2groups = session0.query(CSGroups)
+        print(type(csv2groups))
+        print(type(csv2groups[0]),csv2groups[0])
+        for csgroup in csv2groups:
+            print(csgroup.group_name)
+        #for each of the CLOUDRESOURCES
+        #for user in CLOUDRESOURCES:
+            #print(user)
             # get the idle_jobs for the user of current resources
             # sort jobs of that user by priority
             Base = automap_base()
@@ -33,11 +44,24 @@ def main():
             Base.prepare(engine, reflect=True)
             Job = Base.classes.condor_jobs # table name?
             session = Session(engine)
-            idle_jobs = session.query(Job).filter(Job.User.contains(user), Job.JobStatus == 1).order_by(Job.JobPrio) 
+            idle_jobs = session.query(Job).filter(Job.group_name.contains(csgroup.group_name), Job.JobStatus == 1).order_by(Job.JobPrio)
             # Not sure I like the contains since it could get other things, but the DB stores the user as user@hostname
             # so would either need to build that in or ignore, but with multiple schedd the hostname may not be of interest much? depends on how schedds are related to collectors
-            print(idle_jobs[0])
-            print(CLOUDRESOURCES[user].clouds.keys())
+            print(idle_jobs)
+            Resources = Base.classes.csv2_group_resources
+            group_resources = session.query(Resources).filter(Resources.group_name.contains(csgroup.group_name))
+            cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources)
+            cm_group.setup_from_db()
+
+            for res in group_resources:
+                print(res.cloud_name) # yay we've got a cloud associated with a group at this point
+                # convert the table resource into a usable python class
+
+                # select usable resource and try to boot job
+
+
+             ### Older testing code pre-db resources
+            #print(CLOUDRESOURCES[user].clouds.keys())
             #CLOUDRESOURCES[user].clouds['beaver'].vm_create(idle_jobs[0])
             #for job in idle_jobs:
                 #print(job)
