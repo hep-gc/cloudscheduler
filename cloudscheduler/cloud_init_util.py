@@ -17,13 +17,6 @@ def build_multi_mime_message(file_type_pairs):
         sub_message = MIMEText(contents, format_type, sys.getdefaultencoding())
         sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % (i))
         combined_message.attach(sub_message)
-    #for i in content_type_pairs:
-    #    sub_message = MIMEText(i[0], i[1].strip(), sys.getdefaultencoding())
-    #    if len(i) <= 3:
-    #        sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % (i[2].strip()))
-    #    else:
-    #        sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % ("cs-cloud-init.yaml"))
-    #    combined_message.attach(sub_message)
 
     return str(combined_message)
 
