@@ -49,7 +49,7 @@ write_files:
         #UID_DOMAIN=$(CONDOR_HOST)
         #FILESYSTEM_DOMAIN=$(CONDOR_HOST)
 
-        START = TRUE
+        START = (Owner == {{cs_user}})
 
         DAEMON_LIST = MASTER, STARTD
 
@@ -89,7 +89,7 @@ write_files:
         PREEMPT = False
         KILL = False
 
-        STARTD_ATTRS = COLLECTOR_HOST_STRING VMType
+        STARTD_ATTRS = COLLECTOR_HOST_STRING GROUP_NAME
 
         HIGHPORT = 50000
         LOWPORT = 40000
