@@ -102,6 +102,7 @@ td {
         <th>Region</th>
         <th>Cloud Type</th>
         <th>VMs</th>
+        <th>Jobs</th>
     </tr>
     {% if cloud_list is not None %}
         {% for cloud in cloud_list %}
@@ -110,7 +111,12 @@ td {
                 <td>{{cloud.project}}</td>
                 <td>{{cloud.region}}</td>
                 <td>{{cloud.cloud_type}}</td>
-                <td>{{count_list.VMs}}</td>
+                {% for count in count_list %}
+                    {% ifequal count.cloud_name cloud.cloud_name %}
+                        <td>{{count.VMs}}</td>
+                        <td>{{count.Jobs}}</td>
+                    {% endifequal %}
+                {% endfor %}
                 {% for quota in cloud_quotas %}
                     {% ifequal quota.cloud_name cloud.cloud_name %}
                         <td><button onclick="toggleQuota('{{cloud.cloud_name}}')">Show Quotas</button><table id="{{cloud.cloud_name}}" hidden="true">

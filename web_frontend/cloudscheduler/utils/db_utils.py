@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
-
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import select
 from csv2 import config
 
 
@@ -45,7 +47,7 @@ def get_vms(group_name=None, cloud_name=None):
     return vm_list
 
 def get_flavors(filter=None):
-    Base = automap_base()
+    Base = declarative_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
@@ -92,13 +94,20 @@ def get_group_resources(group_name):
 
 
 # may be best to query the view instead of the resources table
-def get_counts(group_name=None, cloud_name=None):
-    Base = automap_base()
+def get_counts(group_name=None):
+    metadata = MetaData()
+    view_group_list = Table('view_group_list', metadata, 
+        Column("group_name", String), 
+        Column("cloud_name", String),
+        Column("VMs", Integer),
+        Column("Jobs", Integer),
+        )
+    
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
-    Counts = Base.classes.view_group_list
-    count_list = db_session.query(Counts).filter(Counts.group_name==group_name, Counts.cloud_name==cloud_name)
+    conn = engine.connect()
+    s = select([view_group_list]).where(view_group_list.c.group_name == group_name)
+    #count_list = conn.execute(s).fetchone()
+    count_list = conn.execute(s)
     return count_list
 
 #
