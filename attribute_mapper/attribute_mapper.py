@@ -26,7 +26,7 @@ def build_mapping_dictionaries():
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    Mappings = Base.classes.csv2_name_mapping
+    Mappings = Base.classes.csv2_attribute_mapping
     session = Session(engine)
 
     mapping_rows = session.query(Mappings)
