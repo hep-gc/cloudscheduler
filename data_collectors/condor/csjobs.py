@@ -39,7 +39,7 @@ def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.job_collection_interval
-    job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "Requirements",
+    job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk", "RequestCpus", "RequestScratch", "Requirements",
                      "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive",
                      "VMMaximumPrice", "VMUserData", "VMJobPerCore", "EnteredCurrentStatus", "QDate"]
     # Not in the list that seem to be returned always: FileSystemDomian, MyType, ServerTime, TargetType, 
