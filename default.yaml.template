@@ -3,12 +3,12 @@ merge_type: 'list(append)+dict(recurse_array)+str()'
 
 write_files:
 -   content: |
-        {{cloud_type}}
+        {{cs_cloud_type}}
         owner: root:root
         permissions: 0644
         path: /var/lib/cloud_type
 -   content: |
-        {{cloud_name}}
+        {{cs_cloud_name}}
         owner: root:root
         permissions: 0644
         path: /var/lib/cloud_name
