@@ -22,7 +22,7 @@ general:
 
     # Path and name of the certificate bundle used to verify connections with openstack clouds
     #
-    cacert: "/etc/ssl/certs/CABundle.crt"
+    cacert: "/etc/ssl/certs/ca-bundle.crt"
 
     # Log level
     # 
@@ -54,4 +54,4 @@ database:
 
     # Password to database
     #
-    db_password: ""
+    db_password: "UriLY6gn77MrGhbu"
