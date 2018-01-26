@@ -5,9 +5,6 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from django.contrib.auth.models import Cloud #to get auth_user table
-from .models import cloud as csv2_group_resources
-
 from .view_utils import getAuthUser, getcsv2User, verifyUser, getSuperUserStatus
 from utils import db_utils
 
@@ -42,12 +39,11 @@ def add_cloud_resources(request):
         user = request.POST.get('username')
         passwd = request.POST.get('password')
 
-# After checks are made use bcrypt to encrypt password.
+        # Use bcrypt to encrypt password.
         hashed_pw = bcrypt.hashpw(passwd.encode(), bcrypt.gensalt(prefix=b"2a"))
 
-        #if all the checks passed and the hashed password has been generated create a new user object and save import
-        new_cloud = csv2_group_resources(group_name=group, cloud_name=cloud, authurl=url, username=user, password=hashed_pw, is_superuser=False)
-        new_cloud.save()
+        put_group_resources(group_name=group, cloud_name=cloud, authurl=url, username=user, password=hashed_pw)
+
         return manage_clouds(request, message="Cloud added")
     else:
         #not a post, return to manage users page

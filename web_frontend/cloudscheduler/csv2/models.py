@@ -14,13 +14,3 @@ class user(models.Model):
 
     def __str__(self):
         return "%s" % (self.username)
-
-class cloud(models.Model):
-	cloud_name = models.CharField(max_length=32)
-	authurl = models.CharField(max_length=32)
-    username = models.CharField(max_length=32)
-    password = models.CharField(max_length=128, default="")
-    group_name = models.CharField(max_length=128, null=True)
-
-    def __str__(self):
-        return "%s" % (self.username)
