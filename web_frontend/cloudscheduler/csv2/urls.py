@@ -11,6 +11,6 @@ urlpatterns = [
     url(r'^user_settings/', user_views.user_settings, name='user_settings'),
     url(r'^system_status/', group_views.system_status, name='system_status'),
     url(r'^system_status/(?P<group_name>.+)/$', group_views.system_status, name='system_status'),
-    url(r'^cloud_settings/', group_views.system_status, name='cloud_settings'),
-	url(r'^cloud_settings/(?P<group_name>.+)/$', group_views.system_status, name='cloud_settings')
+    url(r'^manage_clouds/', group_views.system_status, name='manage_clouds'),
+	url(r'^manage_clouds/(?P<group_name>.+)/$', group_views.system_status, name='manage_clouds')
 ]
