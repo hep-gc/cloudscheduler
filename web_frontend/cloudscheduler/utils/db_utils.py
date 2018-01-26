@@ -161,3 +161,29 @@ def get_condor_machines(filter=None):
         machine_list = []
         
     return machine_list
+
+
+# add new group resources
+def put_group_resources(group, cloud, url, uname, pword):
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+
+    metadata = MetaData(engine)
+
+    table = Table('csv2_group_resources', metadata, 
+        Column("group_name", String), 
+        Column("cloud_name", String),
+        Column("authurl", String),
+        Column("username", String),
+        Column("password", String)
+        )
+
+    ins = table.insert().values(
+          group_name=group,
+          cloud_name=cloud,
+          authurl=url,
+          username=uname,
+          password=pword)
+    conn = engine.connect()
+    conn.execute(ins)
+
+    return 0
