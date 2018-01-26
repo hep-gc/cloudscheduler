@@ -124,7 +124,7 @@ def metadata_poller():
         Cloud = Base.classes.csv2_group_resources
         #Flavor = Base.classes.cloud_flavors
         #Image = Base.classes.cloud_images
-        Network = Base.classes.cloud_networks
+        #Network = Base.classes.cloud_networks
         #Limit = Base.classes.cloud_limits
         #Quota = Base.classes.cloud_quotas
         # Retrieve registered clouds
@@ -225,7 +225,7 @@ def metadata_poller():
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
                 db_session.merge(new_image)
-            '''
+            
             # NETWORKS
             logging.debug("Polling networks")
             net_list = get_network_data(neutron)
@@ -244,7 +244,7 @@ def metadata_poller():
                 network_dict = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
                 new_network = Network(**network_dict)
                 db_session.merge(new_network)
-
+            '''
             #finalize session
             db_session.commit()
 
@@ -322,7 +322,7 @@ def metadataCleanUp():
         db_session = Session(engine)
         #Flavor = Base.classes.cloud_flavors
         #Image = Base.classes.cloud_images
-        Network = Base.classes.cloud_networks
+        #Network = Base.classes.cloud_networks
         #Limit = Base.classes.cloud_limits
         #Quota = Base.classes.cloud_quotas
 
@@ -349,13 +349,13 @@ def metadataCleanUp():
         for img in img_to_delete:
             logging.info("Cleaning up image: %s" % img)
             db_session.delete(img)
-        '''
+        
         # Networks
         net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
         for net in net_to_delete:
             logging.info("Cleaning up network: %s" % net)
             db_session.delete(net)
-        '''
+        
         # Limits
         limit_to_delete = db_session.query(Limit).filter(Limit.last_updated<=last_cycle)
         for limit in limit_to_delete:
@@ -551,6 +551,47 @@ def networkPoller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Network = Base.classes.cloud_networks
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api objects
+            neutron = get_neutron_client(session)
+            net_list = get_network_data(neutron)
+            for network in net_list:
+                network_dict = {
+                    'group_name': cloud.group_name,
+                    'cloud_name': cloud.cloud_name,
+                    'name': network['name'],
+                    'subnets': network['subnets'],
+                    'tenant_id': network['tenant_id'],
+                    'router:external': network['router:external'],
+                    'shared': network['shared'],
+                    'id': network['id'],
+                    'last_updated': int(time.time())
+                }
+                network_dict = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
+                new_network = Network(**network_dict)
+                db_session.merge(new_network)
+
+            #now remove any that were not updated
+            net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle, Network.group_name==cloud.group_name, Network.cloud_name==cloud.cloud_name)
+            for net in net_to_delete:
+                logging.info("Cleaning up network: %s" % net)
+                db_session.delete(net)
+
+        db_session.commit()
+        logging.debug("End of cycle, sleeping...")
+        time.sleep(config.cleanup_interval)
 
     return None
 
@@ -621,10 +662,10 @@ if __name__ == '__main__':
     logging.basicConfig(filename=config.poller_log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
 
-    p_metadata_poller = Process(target=metadata_poller)
-    processes.append(p_metadata_poller)
-    p_metadata_cleanup = Process(target=metadataCleanUp)
-    processes.append(p_metadata_cleanup)
+    #p_metadata_poller = Process(target=metadata_poller)
+    #processes.append(p_metadata_poller)
+    #p_metadata_cleanup = Process(target=metadataCleanUp)
+    #processes.append(p_metadata_cleanup)
     p_vm_poller = Process(target=vm_poller)
     processes.append(p_vm_poller)
     p_vm_cleanup = Process(target=vmCleanUp)
@@ -635,6 +676,8 @@ if __name__ == '__main__':
     processes.append(p_image_poller)
     p_limit_poller = Process(target=limitPoller)
     processes.append(p_limit_poller)
+    p_network_poller = Process(target=networkPoller)
+    processes.append(p_network_poller)
     
 
     # Wait for keyboard input to exit
