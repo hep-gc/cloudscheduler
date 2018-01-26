@@ -147,7 +147,7 @@ def metadata_poller():
             cinder = get_cinder_client(session)
 
             # Retrieve and proccess metadata
-''' Flavors disabled due to new function
+            ''' Flavors disabled due to new function
             # FLAVORS
             logging.debug("Polling flavors")
             flav_list = get_flavor_data(nova)
@@ -168,9 +168,10 @@ def metadata_poller():
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
-'''
+            '''
 
             # LIMITS
+
             logging.debug("Polling limits")
             limits_dict = get_limit_data(nova)
             limits_dict['group_name'] = cloud.group_name
@@ -334,7 +335,7 @@ def metadataCleanUp():
             time.sleep(config.cleanup_interval)
             continue
 
-''' Flavors disabled due to new function
+        ''' Flavors disabled due to new function
         # Query for items to delete
         #
         # Flavors
@@ -342,7 +343,7 @@ def metadataCleanUp():
         for flav in flav_to_delete:
             logging.info("Cleaning up flavor: %s" % flav)
             db_session.delete(flav)
-'''
+        '''
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
@@ -394,7 +395,7 @@ def flavorPoller():
 
         logging.debug("Polling flavors")
         current_cycle = int(time.time())
-        for cloud in cloud_list
+        for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
             version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             if version == 2:
@@ -416,7 +417,7 @@ def flavorPoller():
                     'id': flavor.id,
                     'swap': flavor.swap,
                     'disk': flavor.disk,
-                    'ephemeral_disk': flavor.ephemeral
+                    'ephemeral_disk': flavor.ephemeral,
                     'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                     'last_updated': current_cycle
                 }
