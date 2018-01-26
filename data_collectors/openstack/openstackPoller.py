@@ -494,7 +494,6 @@ def imagePoller():
 
 def limitPoller():
     multiprocessing.current_process().name = "Limit Poller"
-    last_cycle = 0
 
     while(True):
         #thingdo
