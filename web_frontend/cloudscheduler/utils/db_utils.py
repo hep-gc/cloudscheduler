@@ -15,17 +15,17 @@ db_session.commit()
 '''
 
 
-def get_quotas(group_name=None):
+def get_limits(group_name=None):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    Quota = Base.classes.cloud_quotas
+    Limit = Base.classes.cloud_limits
     if group_name is None:
-        quota_list = db_session.query(Quota)
+        limit_list = db_session.query(Limit)
     else:
-        quota_list = db_session.query(Quota).filter(Quota.group_name==group_name)
-    return quota_list
+        limit_list = db_session.query(Limit).filter(Limit.group_name==group_name)
+    return limit_list
 
 #
 # This function accepts a group name and cloud name and returns all virtual machines related to that group and cloud
