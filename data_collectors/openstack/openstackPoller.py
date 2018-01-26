@@ -541,8 +541,6 @@ def limitPoller():
 
     return None
 
-    return None
-
 def networkPoller():
     multiprocessing.current_process().name = "Network Poller"
     last_cycle = 0
