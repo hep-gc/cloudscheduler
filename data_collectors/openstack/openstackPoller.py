@@ -161,6 +161,7 @@ def metadata_poller():
                     'id': flavor.id,
                     'swap': flavor.swap,
                     'disk': flavor.disk,
+                    'ephemeral_disk': flavor.ephemeral
                     'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                     'last_updated': int(time.time())
                 }
