@@ -596,7 +596,7 @@ if __name__ == '__main__':
     processes.append(p_vm_cleanup)
     p_flavor_poller = Process(target=flavorPoller)
     processes.append(p_flavor_poller)
-    p_image_poller = Process(target=ImagePoller)
+    p_image_poller = Process(target=imagePoller)
     processes.append(p_image_poller)
     
 
