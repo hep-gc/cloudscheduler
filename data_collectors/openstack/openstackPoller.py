@@ -123,9 +123,9 @@ def metadata_poller():
         db_session = Session(engine)
         Cloud = Base.classes.csv2_group_resources
         #Flavor = Base.classes.cloud_flavors
-        Image = Base.classes.cloud_images
+        #Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
-        Limit = Base.classes.cloud_limits
+        #Limit = Base.classes.cloud_limits
         #Quota = Base.classes.cloud_quotas
         # Retrieve registered clouds
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
@@ -168,7 +168,7 @@ def metadata_poller():
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
-            '''
+            
 
             # LIMITS
 
@@ -181,7 +181,7 @@ def metadata_poller():
             new_limits = Limit(**limits_dict)
             db_session.merge(new_limits)
 
-            '''
+            
             # QUOTAS
             logging.debug("Polling quotas")
             nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
@@ -323,7 +323,7 @@ def metadataCleanUp():
         #Flavor = Base.classes.cloud_flavors
         #Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
-        Limit = Base.classes.cloud_limits
+        #Limit = Base.classes.cloud_limits
         #Quota = Base.classes.cloud_quotas
 
         # get time for current cycle
@@ -335,7 +335,7 @@ def metadataCleanUp():
             time.sleep(config.cleanup_interval)
             continue
 
-        ''' Flavors & Images disabled due to new function
+        ''' Flavors & Images & Limits disabled due to new function
         # Query for items to delete
         #
         # Flavors
@@ -355,14 +355,14 @@ def metadataCleanUp():
         for net in net_to_delete:
             logging.info("Cleaning up network: %s" % net)
             db_session.delete(net)
-
+        '''
         # Limits
         limit_to_delete = db_session.query(Limit).filter(Limit.last_updated<=last_cycle)
         for limit in limit_to_delete:
             logging.info("Cleaning up limit %s" % limit)
             db_session.delete(limit)
 
-        '''
+        
         # Quotas
         quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
         for quota in quota_to_delete:
@@ -503,6 +503,43 @@ def limitPoller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Limit = Base.classes.cloud_limits
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api objects
+            nova = get_nova_client(session)
+
+            logging.debug("Polling limits")
+            limits_dict = get_limit_data(nova)
+            limits_dict['group_name'] = cloud.group_name
+            limits_dict['cloud_name'] = cloud.cloud_name
+            limits_dict['last_updated'] = int(time.time())
+            limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+            new_limits = Limit(**limits_dict)
+            db_session.merge(new_limits)
+            
+
+            #now remove any that were not updated
+            limit_to_delete = db_session.query(Limit).filter(Limit.last_updated<current_cycle, Limit.group_name==cloud.group_name, Limit.cloud_name==cloud.cloud_name)
+            for limit in limit_to_delete:
+                logging.info("Cleaning up limit %s" % limit)
+                db_session.delete(limit)
+
+        db_session.commit()
+        logging.debug("End of cycle, sleeping...")
+        time.sleep(config.cleanup_interval)
+
+    return None
 
     return None
 
@@ -599,6 +636,8 @@ if __name__ == '__main__':
     processes.append(p_flavor_poller)
     p_image_poller = Process(target=imagePoller)
     processes.append(p_image_poller)
+    p_limit_poller = Process(target=limitPoller)
+    processes.append(p_limit_poller)
     
 
     # Wait for keyboard input to exit
