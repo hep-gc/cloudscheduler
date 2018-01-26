@@ -147,7 +147,7 @@ def metadata_poller():
             cinder = get_cinder_client(session)
 
             # Retrieve and proccess metadata
-            ''' Flavors disabled due to new function
+            ''' Flavors & Images disabled due to new function
             # FLAVORS
             logging.debug("Polling flavors")
             flav_list = get_flavor_data(nova)
@@ -203,7 +203,7 @@ def metadata_poller():
             }
             new_quota = Quota(**quota_dict)
             db_session.merge(new_quota)
-            '''
+            
 
             # IMAGES
             logging.debug("Polling images")
@@ -225,7 +225,7 @@ def metadata_poller():
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
                 db_session.merge(new_image)
-
+            '''
             # NETWORKS
             logging.debug("Polling networks")
             net_list = get_network_data(neutron)
@@ -320,8 +320,8 @@ def metadataCleanUp():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Flavor = Base.classes.cloud_flavors
-        Image = Base.classes.cloud_images
+        #Flavor = Base.classes.cloud_flavors
+        #Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
         Limit = Base.classes.cloud_limits
         #Quota = Base.classes.cloud_quotas
@@ -335,7 +335,7 @@ def metadataCleanUp():
             time.sleep(config.cleanup_interval)
             continue
 
-        ''' Flavors disabled due to new function
+        ''' Flavors & Images disabled due to new function
         # Query for items to delete
         #
         # Flavors
@@ -343,13 +343,13 @@ def metadataCleanUp():
         for flav in flav_to_delete:
             logging.info("Cleaning up flavor: %s" % flav)
             db_session.delete(flav)
-        '''
+        
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
             logging.info("Cleaning up image: %s" % img)
             db_session.delete(img)
-
+        '''
         # Networks
         net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
         for net in net_to_delete:
@@ -438,7 +438,6 @@ def flavorPoller():
 
 def imagePoller():
     multiprocessing.current_process().name = "Image Poller"
-    last_cycle = 0
 
     while(True):
         #thingdo
@@ -447,9 +446,50 @@ def imagePoller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Image = Base.classes.cloud_images
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
+        logging.debug("Polling Images")
+        current_cycle = int(time.time())
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api object
+            nova = get_nova_client(session)
 
-    return None
+            image_list = get_image_data(nova)
+            for image in image_list:
+                img_dict = {
+                    'group_name': cloud.group_name,
+                    'cloud_name': cloud.cloud_name,
+                    'container_format': image.container_format,
+                    'disk_format': image.disk_format,
+                    'min_ram': image.min_ram,
+                    'id': image.id,
+                    'size': image.size,
+                    'visibility': image.visibility,
+                    'min_disk': image.min_disk,
+                    'name': image.name,
+                    'last_updated': current_cycle
+                }
+                img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                new_image = Image(**img_dict)
+                db_session.merge(new_image)
+
+            # do Image cleanup
+            img_to_delete = db_session.query(Image).filter(Image.last_updated<current_cycle, Image.group_name==cloud.group_name, Image.cloud_name==cloud.cloud_name)
+            for img in img_to_delete:
+                logging.info("Cleaning up image: %s" % img)
+                db_session.delete(img)
+
+            logging.debug("End of cycle, sleeping...")
+        time.sleep(config.cleanup_interval)
 
 def limitPoller():
     multiprocessing.current_process().name = "Limit Poller"
@@ -556,6 +596,8 @@ if __name__ == '__main__':
     processes.append(p_vm_cleanup)
     p_flavor_poller = Process(target=flavorPoller)
     processes.append(p_flavor_poller)
+    p_image_poller = Process(target=ImagePoller)
+    processes.append(p_image_poller)
     
 
     # Wait for keyboard input to exit
