@@ -122,7 +122,7 @@ def metadata_poller():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Cloud = Base.classes.csv2_group_resources
-        Flavor = Base.classes.cloud_flavors
+        #Flavor = Base.classes.cloud_flavors
         Image = Base.classes.cloud_images
         Network = Base.classes.cloud_networks
         Limit = Base.classes.cloud_limits
@@ -147,7 +147,7 @@ def metadata_poller():
             cinder = get_cinder_client(session)
 
             # Retrieve and proccess metadata
-
+''' Flavors disabled due to new function
             # FLAVORS
             logging.debug("Polling flavors")
             flav_list = get_flavor_data(nova)
@@ -168,7 +168,7 @@ def metadata_poller():
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
-
+'''
 
             # LIMITS
             logging.debug("Polling limits")
@@ -334,6 +334,7 @@ def metadataCleanUp():
             time.sleep(config.cleanup_interval)
             continue
 
+''' Flavors disabled due to new function
         # Query for items to delete
         #
         # Flavors
@@ -341,7 +342,7 @@ def metadataCleanUp():
         for flav in flav_to_delete:
             logging.info("Cleaning up flavor: %s" % flav)
             db_session.delete(flav)
-
+'''
         # Images
         img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
         for img in img_to_delete:
@@ -374,6 +375,107 @@ def metadataCleanUp():
         last_cycle = current_cycle_time
         time.sleep(config.cleanup_interval)
     
+    return None
+
+def flavorPoller():
+    multiprocessing.current_process().name = "Flavor Poller"
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Flavor = Base.classes.cloud_flavors
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+
+
+        logging.debug("Polling flavors")
+        current_cycle = int(time.time())
+        for cloud in cloud_list
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api objects
+            nova = get_nova_client(session)
+
+            flav_list = get_flavor_data(nova)
+            for flavor in flav_list:
+                flav_dict = {
+                    'group_name': cloud.group_name,
+                    'cloud_name': cloud.cloud_name,
+                    'name': flavor.name,
+                    'ram': flavor.ram,
+                    'vcpus': flavor.vcpus,
+                    'id': flavor.id,
+                    'swap': flavor.swap,
+                    'disk': flavor.disk,
+                    'ephemeral_disk': flavor.ephemeral
+                    'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
+                    'last_updated': current_cycle
+                }
+                flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                new_flav = Flavor(**flav_dict)
+                db_session.merge(new_flav)
+
+            #now remove any that were not updated
+            flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<current_cycle, Flavor.group_name==cloud.group_name, Flavor.cloud_name==cloud.cloud_name)
+            for flav in flav_to_delete:
+                logging.info("Cleaning up flavor: %s" % flav)
+                db_session.delete(flav)
+
+        logging.debug("End of cycle, sleeping...")
+        time.sleep(config.cleanup_interval)
+
+    return None
+
+def imagePoller():
+    multiprocessing.current_process().name = "Image Poller"
+    last_cycle = 0
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Image = Base.classes.cloud_images
+
+
+    return None
+
+def limitPoller():
+    multiprocessing.current_process().name = "Limit Poller"
+    last_cycle = 0
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Limit = Base.classes.cloud_limits
+
+    return None
+
+def networkPoller():
+    multiprocessing.current_process().name = "Network Poller"
+    last_cycle = 0
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Network = Base.classes.cloud_networks
+
     return None
 
 # def vmExecutor():
@@ -451,6 +553,9 @@ if __name__ == '__main__':
     processes.append(p_vm_poller)
     p_vm_cleanup = Process(target=vmCleanUp)
     processes.append(p_vm_cleanup)
+    p_flavor_poller = Process(target=flavorPoller)
+    processes.append(p_flavor_poller)
+    
 
     # Wait for keyboard input to exit
     try:
