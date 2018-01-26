@@ -430,7 +430,7 @@ def flavorPoller():
             for flav in flav_to_delete:
                 logging.info("Cleaning up flavor: %s" % flav)
                 db_session.delete(flav)
-
+        db_session.commit()
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.cleanup_interval)
 
@@ -488,7 +488,8 @@ def imagePoller():
                 logging.info("Cleaning up image: %s" % img)
                 db_session.delete(img)
 
-            logging.debug("End of cycle, sleeping...")
+        db_session.commit()
+        logging.debug("End of cycle, sleeping...")
         time.sleep(config.cleanup_interval)
 
 def limitPoller():
