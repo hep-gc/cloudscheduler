@@ -1,24 +1,7 @@
 general:
-    # Time in seconds to sleep in between polling cycles
-    #
-    sleep_interval: 300
-
-    # Time in seconds to sleep in between vm polling cycles
-    # 
-    vm_sleep_interval: 60
-    
-    # Time in seconds to sleep between cleanup cycles default 1 hour
-    #
-    cleanup_interval: 3600
-
-    # Time in seconds to sleep between vm cleanup cycles default 1 min
-    #
-    vm_cleanup_interval: 120
-
-
     # Path and name of openstack metadata poller log file
     #
-    collector_log_file: "/var/log/cloudscheduler/openstackpoller.log"
+    collector_log_file: "/var/log/cloudscheduler/csmetadata.log"
 
     # Path and name of the certificate bundle used to verify connections with openstack clouds
     #
@@ -34,6 +17,50 @@ general:
     #
     log_level: 20
 
+openstack_vms:
+    # Time in seconds to sleep in between vm polling cycles
+    # 
+    vsleep_interval: 60
+
+    # Time in seconds to sleep between vm cleanup cycles default 1 min
+    #
+    cleanup_interval: 120
+
+openstack_networks:
+    # Time in seconds to sleep in between network polling cycles
+    #
+    sleep_interval: 300
+
+    # Time in seconds to sleep between network cleanup cycles default 1 hour
+    #
+    cleanup_interval: 3600
+
+openstack_limits:
+    # Time in seconds to sleep in between polling cycles
+    #
+    sleep_interval: 300
+
+    # Time in seconds to sleep between cleanup cycles default 1 hour
+    #
+    cleanup_interval: 3600
+
+openstack_images:
+    # Time in seconds to sleep in between polling cycles
+    #
+    sleep_interval: 300
+
+    # Time in seconds to sleep between cleanup cycles default 1 hour
+    #
+    cleanup_interval: 3600
+
+openstack_flavors:
+    # Time in seconds to sleep in between polling cycles
+    #
+    sleep_interval: 300
+
+    # Time in seconds to sleep between cleanup cycles default 1 hour
+    #
+    cleanup_interval: 3600
 
 database:
     # Location of database server
