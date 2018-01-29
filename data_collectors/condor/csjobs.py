@@ -4,7 +4,7 @@ import time
 import htcondor
 import json
 import logging
-import config
+import job_config as config
 import socket
 
 from sqlalchemy import create_engine
@@ -38,7 +38,7 @@ def build_user_group_dict(db_list):
 def job_producer():
     multiprocessing.current_process().name = "Poller"
 
-    sleep_interval = config.job_collection_interval
+    sleep_interval = config.collection_interval
     job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "RequestDisk",
                      "RequestCpus", "RequestScratch", "RequestSwap", "Requirements", "JobPrio", "ClusterId", "ProcId", "User",
                      "VMInstanceType", "VMNetwork", "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData",
@@ -254,7 +254,7 @@ def cleanUp():
 
 if __name__ == '__main__':
     
-    logging.basicConfig(filename=config.job_log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=config.log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
     # job polling proccess
     p_job_producer = Process(target=job_producer)
