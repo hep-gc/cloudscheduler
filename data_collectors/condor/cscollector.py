@@ -210,7 +210,7 @@ def cleanUp():
 
 if __name__ == '__main__':
 
-    logging.basicConfig(filename=config.collector_log_file,level=config.log_level, format='%(asctime)s - %(processName)-14s - %(levelname)s - %(message)s')
+    logging.basicConfig(filename=config.log_file,level=config.log_level, format='%(asctime)s - %(processName)-14s - %(levelname)s - %(message)s')
     processes = []
 
     # Condor Data Poller proccess
