@@ -1,67 +1,3 @@
-general:
-    # Path and name of openstack metadata poller log file
-    #
-    collector_log_file: "/var/log/cloudscheduler/csmetadata.log"
-
-    # Path and name of the certificate bundle used to verify connections with openstack clouds
-    #
-    cacert: "/etc/ssl/certs/ca-bundle.crt"
-
-    # Log level
-    # 
-    #       Debug       10
-    #       INFO        20
-    #       WARNING     30
-    #       ERROR       40
-    #       CRITICAL    50
-    #
-    log_level: 20
-
-openstack_vms:
-    # Time in seconds to sleep in between vm polling cycles
-    # 
-    vsleep_interval: 60
-
-    # Time in seconds to sleep between vm cleanup cycles default 1 min
-    #
-    cleanup_interval: 120
-
-openstack_networks:
-    # Time in seconds to sleep in between network polling cycles
-    #
-    sleep_interval: 300
-
-    # Time in seconds to sleep between network cleanup cycles default 1 hour
-    #
-    cleanup_interval: 3600
-
-openstack_limits:
-    # Time in seconds to sleep in between polling cycles
-    #
-    sleep_interval: 300
-
-    # Time in seconds to sleep between cleanup cycles default 1 hour
-    #
-    cleanup_interval: 3600
-
-openstack_images:
-    # Time in seconds to sleep in between polling cycles
-    #
-    sleep_interval: 300
-
-    # Time in seconds to sleep between cleanup cycles default 1 hour
-    #
-    cleanup_interval: 3600
-
-openstack_flavors:
-    # Time in seconds to sleep in between polling cycles
-    #
-    sleep_interval: 300
-
-    # Time in seconds to sleep between cleanup cycles default 1 hour
-    #
-    cleanup_interval: 3600
-
 database:
     # Location of database server
     #
@@ -81,4 +17,4 @@ database:
 
     # Password to database
     #
-    db_password: "UriLY6gn77MrGhbu"
+    db_password: ""
