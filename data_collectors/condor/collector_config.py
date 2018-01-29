@@ -20,7 +20,7 @@ db_password = ""
 
 
 if exists("/etc/cloudscheduler/cloudscheduler.yaml"):
-    path = "/etc/cloudscheduler/condor_data_collectors.yaml"
+    path = "/etc/cloudscheduler/cloudscheduler.yaml"
 
 elif exists("/opt/cloudscheduler/cloudscheduler.yaml"):
     path = "/opt/cloudscheduler/cloudscheduler.yaml"
