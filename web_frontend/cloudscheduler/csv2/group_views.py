@@ -109,3 +109,36 @@ def system_status(request, group_name=None):
 
     return render(request, 'csv2/system_status.html', context)
 
+
+def manage_clouds(request, group_name=None):
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    active_user = getcsv2User(request)
+    user_groups = db_utils.get_user_groups(active_user)
+    #check to see if specified group is a valid one for this user, if it is set it as active
+    if group_name is not None:
+        if group_name in user_groups:
+            active_user.active_group = group_name
+            active_user.save()
+
+    if len(user_groups)==0:
+        # active user isn't registered to any groups, display blank page with msg
+        #TODO#
+        pass
+    # get data based on active group, if no active group pick the first from the list
+    if active_user.active_group is None:
+        active_user.active_group = user_groups[0]
+        active_user.save()
+
+    #get cloud info
+    cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
+
+    context = {
+            'active_user': active_user,
+            'active_group': active_user.active_group,
+            'user_groups': user_groups,
+            'cloud_list': cloud_list,
+        }
+
+    return render(request, 'csv2/manage_clouds.html', context)
