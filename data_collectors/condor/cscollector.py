@@ -3,7 +3,7 @@ from multiprocessing import Process
 import time
 import htcondor
 import json
-import config
+import collector_config as config
 import logging
 import socket
 
@@ -30,7 +30,7 @@ def resources_producer(testrun=False, testfile=None):
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", "Start", "RemoteOwner", "SlotType", "TotalSlots"] 
 
-    sleep_interval = config.machine_collection_interval
+    sleep_interval = config.collection_interval
     last_poll_time = 0
     while(True):
         try:
