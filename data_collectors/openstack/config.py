@@ -26,12 +26,11 @@ db_user = "csv2"
 db_password = ""
 
 
+if exists("/etc/cloudscheduler/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler/condor_data_collectors.yaml"
 
-if os.path.isfile("/etc/openstack_poller.yaml"):
-    path = "/etc/openstack_poller.yaml"
-
-elif os.path.isfile("/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"):
-    path = "/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"
+elif exists("/opt/cloudscheduler/cloudscheduler.yaml"):
+    path = "/opt/cloudscheduler/cloudscheduler.yaml"
 
 
 try:

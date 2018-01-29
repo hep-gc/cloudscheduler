@@ -19,11 +19,11 @@ db_password = ""
 
 
 
-if exists("/etc/condor_data_collectors.yaml"):
-    path = "/etc/condor_data_collectors.yaml"
+if exists("/etc/cloudscheduler/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler/condor_data_collectors.yaml"
 
-elif exists("/opt/cloudscheduler/data_collectors/condor/condor_data_collectors.yaml"):
-    path = "/opt/cloudscheduler/data_collectors/condor/condor_data_collectors.yaml"
+elif exists("/opt/cloudscheduler/cloudscheduler.yaml"):
+    path = "/opt/cloudscheduler/cloudscheduler.yaml"
 
 
 try:
