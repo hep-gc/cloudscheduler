@@ -1,4 +1,4 @@
-import os
+from os.path import join, expanduser, exists, abspath
 import sys
 import yaml
 
@@ -26,12 +26,11 @@ db_user = "csv2"
 db_password = ""
 
 
+if exists("/etc/cloudscheduler/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler/cloudscheduler.yaml"
 
-if os.path.isfile("/etc/openstack_poller.yaml"):
-    path = "/etc/openstack_poller.yaml"
-
-elif os.path.isfile("/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"):
-    path = "/opt/cloudscheduler/data_collectors/openstack/openstack_poller.yaml"
+elif exists("/opt/cloudscheduler/cloudscheduler.yaml"):
+    path = "/opt/cloudscheduler/cloudscheduler.yaml"
 
 
 try:
