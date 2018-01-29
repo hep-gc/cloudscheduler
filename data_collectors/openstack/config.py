@@ -2,6 +2,10 @@ import os
 import sys
 import yaml
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
+
 poller_log_file = "/var/log/cloudscheduler/openstackpoller.log"
 vm_sleep_interval = 60
 vm_cleanup_interval = 120
@@ -168,4 +172,5 @@ try:
 except Exception as e:
     print >> sys.stderr, "Unable to connect to the database and extract relevent config," \
                      "please ensure the database parameters are correct and restart csmetadata"
+    print >> sys.stderr, e
     sys.exit(1)
