@@ -197,6 +197,15 @@ def flavorPoller():
 
             flav_list = get_flavor_data(nova)
             for flavor in flav_list:
+                if flavor.swap == "":
+                    swap = 0
+                else:
+                    swap = flavor.swap
+
+                if flavor.disk == "":
+                    disk = 0
+                else:
+                    disk = flavor.disk
                 flav_dict = {
                     'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
@@ -204,8 +213,8 @@ def flavorPoller():
                     'ram': flavor.ram,
                     'vcpus': flavor.vcpus,
                     'id': flavor.id,
-                    'swap': flavor.swap,
-                    'disk': flavor.disk,
+                    'swap': swap,
+                    'disk': disk,
                     'ephemeral_disk': flavor.ephemeral,
                     'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                     'last_updated': current_cycle
@@ -213,7 +222,7 @@ def flavorPoller():
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
                 db_session.merge(new_flav)
-
+            
             #now remove any that were not updated
             flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<current_cycle, Flavor.group_name==cloud.group_name, Flavor.cloud_name==cloud.cloud_name)
             for flav in flav_to_delete:
@@ -234,6 +243,7 @@ def imagePoller():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
+        db_session.autoflush = False
         Image = Base.classes.cloud_images
         Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
@@ -254,6 +264,11 @@ def imagePoller():
 
             image_list = get_image_data(nova)
             for image in image_list:
+                if image.size == "":
+                    size = 0
+                else:
+                    size = image.size
+
                 img_dict = {
                     'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
@@ -339,6 +354,7 @@ def networkPoller():
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
+        db_session.autoflush = False
         Network = Base.classes.cloud_networks
         Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
@@ -451,10 +467,6 @@ if __name__ == '__main__':
     logging.basicConfig(filename=config.poller_log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
 
-    #p_metadata_poller = Process(target=metadata_poller)
-    #processes.append(p_metadata_poller)
-    #p_metadata_cleanup = Process(target=metadataCleanUp)
-    #processes.append(p_metadata_cleanup)
     p_vm_poller = Process(target=vm_poller)
     processes.append(p_vm_poller)
     p_vm_cleanup = Process(target=vmCleanUp)
