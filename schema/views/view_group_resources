@@ -1,0 +1,68 @@
+/*
+** Combine the resource information from csv2_group_resources and cloud_limits, setting defaults for missing values.
+*/
+create or replace view view_group_resources as
+
+select
+
+cgr.group_name,
+cgr.cloud_name,
+authurl,
+project,
+username,
+password,
+keyname,
+cacertificate,
+region,
+userdomainname,
+projectdomainname,
+extrayaml,
+cloud_type,
+
+ifnull(cores_ctl, -1) as cores_ctl,
+ifnull(cores_max, -1) as cores_max,
+ifnull(cores_used, -1) as cores_used,
+
+ifnull(floating_ips_ctl, -1) as floating_ips_ctl,
+ifnull(floating_ips_max, -1) as floating_ips_max,
+ifnull(floating_ips_used, -1) as floating_ips_used,
+
+ifnull(image_meta_ctl, -1) as image_meta_ctl,
+ifnull(image_meta_max, -1) as image_meta_max,
+
+ifnull(instances_ctl, -1) as instances_ctl,
+ifnull(instances_max, -1) as instances_max,
+ifnull(instances_used, -1) as instances_used,
+
+ifnull(keypairs_ctl, -1) as keypairs_ctl,
+ifnull(keypairs_max, -1) as keypairs_max,
+
+ifnull(personality_ctl, -1) as personality_ctl,
+ifnull(personality_max, -1) as personality_max,
+ifnull(personality_size_ctl, -1) as personality_size_ctl,
+ifnull(personality_size_max, -1) as personality_size_max,
+
+ifnull(ram_ctl, -1) as ram_ctl,
+ifnull(ram_max, -1) as ram_max,
+ifnull(ram_used, -1) as ram_used,
+
+ifnull(security_groups_ctl, -1) as security_groups_ctl,
+ifnull(security_group_rules_ctl, -1) as security_group_rules_ctl,
+ifnull(security_group_rules_max, -1) as security_group_rules_max,
+ifnull(security_groups_max, -1) as security_groups_max,
+ifnull(security_groups_used, -1) as security_groups_used,
+
+ifnull(server_group_members_ctl, -1) as server_group_members_ctl,
+ifnull(server_group_members_max, -1) as server_group_members_max,
+ifnull(server_groups_ctl, -1) as server_groups_ctl,
+ifnull(server_groups_max, -1) as server_groups_max,
+ifnull(server_groups_used, -1) as server_groups_used,
+ifnull(server_meta_ctl, -1) as server_meta_ctl,
+ifnull(server_meta_max, -1) as server_meta_max
+
+from csv2_group_resources as cgr
+left outer join cloud_limits as cl on cgr.group_name=cl.group_name and cgr.cloud_name=cl.cloud_name
+
+order by cgr.group_name,cgr.cloud_name
+
+;

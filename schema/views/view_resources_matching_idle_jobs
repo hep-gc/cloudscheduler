@@ -1,0 +1,23 @@
+/*
+** Create a uniqie flavor ID for each group/cloud/flavor combination, and drop
+** any row where the resources available cannot meet the demands of the flavor.
+*/
+create or replace view view_resources_matching_idle_jobs as
+
+/*
+** Retrieve information.
+*/
+select
+  *,
+
+  /*
+  ** User the concat() DB function to create (a unique ID for the) flavor.
+  */
+  concat(group_name, ":", cloud_name, ":", flavor_name) as flavor
+
+from view_resources_matching_idle_jobs_raw 
+where
+  flavor_cores<=cores and
+  flavor_ram<=ram
+
+order by group_name,cloud_name,flavor_priority;
