@@ -102,6 +102,7 @@ td {
         <th>Region</th>
         <th>Cloud Type</th>
         <th>VMs</th>
+        <th>Jobs</th>
     </tr>
     {% if cloud_list is not None %}
         {% for cloud in cloud_list %}
@@ -110,10 +111,15 @@ td {
                 <td>{{cloud.project}}</td>
                 <td>{{cloud.region}}</td>
                 <td>{{cloud.cloud_type}}</td>
-                <td>{{count_list}}</td>
-                {% for quota in cloud_quotas %}
-                    {% ifequal quota.cloud_name cloud.cloud_name %}
-                        <td><button onclick="toggleQuota('{{cloud.cloud_name}}')">Show Quotas</button><table id="{{cloud.cloud_name}}" hidden="true">
+                {% for count in count_list %}
+                    {% ifequal count.cloud_name cloud.cloud_name %}
+                        <td>{{count.VMs}}</td>
+                        <td>{{count.Jobs}}</td>
+                    {% endifequal %}
+                {% endfor %}
+                {% for limit in cloud_limits %}
+                    {% ifequal limit.cloud_name cloud.cloud_name %}
+                        <td><button onclick="toggleLimit('{{cloud.cloud_name}}')">Show Limits</button><table id="{{cloud.cloud_name}}" hidden="true">
                             <tr>
                                 <th>Cores</th>
                                 <th>Instances</th>
@@ -123,74 +129,16 @@ td {
                                 <th>Total GB</th>
                             </tr>
                             <tr>
-                                <td>{{quota.cores}}</td>
-                                <td>{{quota.instances}}</td>
-                                <td>{{quota.ram}}</td>
-                                <td>{{quota.volumes}}</td>
-                                <td>{{quota.per_volume_gigabytes}}</td>
-                                <td>{{quota.gigabytes}}</td>
+                                <td>{{limit.cores}}</td>
+                                <td>{{limit.instances}}</td>
+                                <td>{{limit.ram}}</td>
+                                <td>{{limit.volumes}}</td>
+                                <td>{{limit.per_volume_gigabytes}}</td>
+                                <td>{{limit.gigabytes}}</td>
                             </tr>
                         </table></td>
                     {% endifequal %}
                 {% endfor %}
-            </tr>
-        {% endfor %}
-    {% endif %}
-</table>
-
-<h2>Jobs</h2>
-<table>
-    <tr>
-        <th>Global JobID</th>
-        <th>Job Status</th>
-        <th>User</th>
-        <th>Hold Job</th>
-    </tr>
-    {% if job_list is not None %}
-        {% for job in job_list %}
-            <tr>
-                <td>{{job.GlobalJobId}}</td>
-                <td>{{job.JobStatus}}</td>
-                <td>{{job.User}}</td>
-                {% if job.hold_job is None %}
-                    <td>Not Held</td>
-                {% elif job.hold_job == 0 %}
-                    <td>Not Held</td>
-                {% elif job.hold_job == 1 %}
-                    <td>Hold Pending</td>
-                {% elif job.hold_job == 2 %}
-                    <td>Held</td>
-                {% endif %}
-            </tr>
-        {% endfor %}
-    {% endif %}
-</table>
-
-<h2>VMs</h2>
-<table>
-    <tr>
-        <th>Hostname</th>
-        <th>Cloud</th>
-        <th>VM ID</th>
-        <th>Status</th>
-        <th>Terminate</th>
-    </tr>
-    {% if vm_list is not None %}
-        {% for vm in vm_list %}
-            <tr>
-                <td>{{vm.hostname}}</td>
-                <td>{{vm.cloud_name}}
-                <td>{{vm.vmid}}</td>
-                <td>{{vm.status}}</td>
-                {% if vm.terminate is None %}
-                    <td>No</td>
-                {% elif vm.terminate == 0 %}
-                    <td>No</td>
-                {% elif vm.terminate == 1 %}
-                    <td>Terminate Pending</td>
-                {% elif vm.terminate == 2 %}
-                    <td>Terminated</td>
-                {% endif %}
             </tr>
         {% endfor %}
     {% endif %}
@@ -203,7 +151,7 @@ function doDropdown() {
     document.getElementById("myDropdown").classList.toggle("show");
 }
 
-function toggleQuota(id){
+function toggleLimit(id){
     $('#'+id).toggle();
 }
 

@@ -16,6 +16,7 @@ from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
 
+from attribute_mapper.attribute_mapper import map_attributes 
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
@@ -78,6 +79,15 @@ def get_quota_data(nova, cinder, project):
     cinder_quotas = cinder.quotas.defaults(project)
     return nova_quotas, cinder_quotas
 
+# Returns the limits of the openstack project associated with the passed in nova object
+def get_limit_data(nova):
+    limits = {}
+    limit_generator = nova.limits.get().absolute
+    for limit in limit_generator:
+        limits[limit.name] = [limit.value]
+    return limits
+
+
 def get_image_data(nova):
     return nova.glance.list()
 
@@ -98,132 +108,8 @@ def terminate_vm(session, vm):
         return False
 
 
-
 ## PROCESS FUNCTIONS
 #
-def metadata_poller():
-    multiprocessing.current_process().name = "META Poller"
-
-    while(True):
-        # Prepare Database session and objets
-        logging.debug("Begining polling cycle")
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Cloud = Base.classes.csv2_group_resources
-        Flavor = Base.classes.cloud_flavors
-        Image = Base.classes.cloud_images
-        Network = Base.classes.cloud_networks
-        Quota = Base.classes.cloud_quotas
-        # Retrieve registered clouds
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
-
-        # Itterate over cloud list
-        for cloud in cloud_list:
-            logging.info("Polling metadata for %s - %s" % (cloud.authurl, cloud.project))
-            # check if v3 or v2
-            authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            if version == 2:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
-            else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
- 
-            # setup openstack api objects
-            nova = get_nova_client(session)
-            neutron = get_neutron_client(session)
-            cinder = get_cinder_client(session)
-
-            # Retrieve and proccess metadata
-
-            # FLAVORS
-            logging.debug("Polling flavors")
-            flav_list = get_flavor_data(nova)
-            for flavor in flav_list:
-                flav_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'name': flavor.name,
-                    'ram': flavor.ram,
-                    'vcpus': flavor.vcpus,
-                    'id': flavor.id,
-                    'swap': flavor.swap,
-                    'disk': flavor.disk,
-                    'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
-                    'last_updated': int(time.time())
-                }
-                new_flav = Flavor(**flav_dict)
-                db_session.merge(new_flav)
-
-            # QUOTAS
-            logging.debug("Polling quotas")
-            nova_quotas, storage_quotas = get_quota_data(nova, cinder, cloud.project)
-            quota_dict = {
-                'group_name': cloud.group_name,
-                'cloud_name': cloud.cloud_name,
-                'cores': nova_quotas.cores,
-                'instances': nova_quotas.instances,
-                'ram': nova_quotas.ram,
-                'key_pairs': nova_quotas.key_pairs,
-                'security_groups': nova_quotas.security_groups,
-                'backup_gigabytes': storage_quotas.backup_gigabytes,
-                'backups': storage_quotas.backups,
-                'gigabytes': storage_quotas.gigabytes,
-                'per_volume_gigabytes': storage_quotas.per_volume_gigabytes,
-                'snapshots': storage_quotas.snapshots,
-                'volumes': storage_quotas.volumes,
-                'last_updated': int(time.time())
-            }
-            new_quota = Quota(**quota_dict)
-            db_session.merge(new_quota)
-
-            # IMAGES
-            logging.debug("Polling images")
-            image_list = get_image_data(nova)
-            for image in image_list:
-                img_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'container_format': image.container_format,
-                    'disk_format': image.disk_format,
-                    'min_ram': image.min_ram,
-                    'id': image.id,
-                    'size': image.size,
-                    'visibility': image.visibility,
-                    'min_disk': image.min_disk,
-                    'name': image.name,
-                    'last_updated': int(time.time())
-                }
-                new_image = Image(**img_dict)
-                db_session.merge(new_image)
-
-            # NETWORKS
-            logging.debug("Polling networks")
-            net_list = get_network_data(neutron)
-            for network in net_list:
-                network_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'name': network['name'],
-                    'subnets': network['subnets'],
-                    'tenant_id': network['tenant_id'],
-                    'router:external': network['router:external'],
-                    'shared': network['shared'],
-                    'id': network['id'],
-                    'last_updated': int(time.time())
-                }
-                new_network = Network(**network_dict)
-                db_session.merge(new_network)
-
-            #finalize session
-            db_session.commit()
-
-        logging.debug("Polling cycle finished, sleeping.")
-        time.sleep(config.sleep_interval) # default 5 mins
- 
-
-    return None
 
 # This process thread will be responsible for polling the list of VMs from each registered openstack cloud
 # and reporting their state back to the database for use by cloud scheduler
@@ -264,8 +150,10 @@ def vm_poller():
                     'hostname': vm.name,
                     'vmid': vm.id,
                     'status': vm.status,
+                    'flavor_id': vm.flavor["id"],
                     'last_updated': int(time.time())
                 }
+                vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
@@ -278,63 +166,238 @@ def vm_poller():
 
     return None
 
-def metadataCleanUp():
-    multiprocessing.current_process().name = "META Cleanup"
-    # Will need some sort of cleanup routine to remove db enteries for images and networks that have been renamed/deleted
-    last_cycle = 0
+
+def flavorPoller():
+    multiprocessing.current_process().name = "Flavor Poller"
+
     while(True):
-        #set up database objects
-        logging.debug("Begining cleanup cycle")
+        #thingdo
         Base = automap_base()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Flavor = Base.classes.cloud_flavors
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+
+
+        logging.debug("Polling flavors")
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api objects
+            nova = get_nova_client(session)
+
+            flav_list = get_flavor_data(nova)
+            for flavor in flav_list:
+                if flavor.swap == "":
+                    swap = 0
+                else:
+                    swap = flavor.swap
+
+                if flavor.disk == "":
+                    disk = 0
+                else:
+                    disk = flavor.disk
+                flav_dict = {
+                    'group_name': cloud.group_name,
+                    'cloud_name': cloud.cloud_name,
+                    'name': flavor.name,
+                    'ram': flavor.ram,
+                    'vcpus': flavor.vcpus,
+                    'id': flavor.id,
+                    'swap': swap,
+                    'disk': disk,
+                    'ephemeral_disk': flavor.ephemeral,
+                    'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
+                    'last_updated': current_cycle
+                }
+                flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                new_flav = Flavor(**flav_dict)
+                db_session.merge(new_flav)
+            
+            #now remove any that were not updated
+            flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<current_cycle, Flavor.group_name==cloud.group_name, Flavor.cloud_name==cloud.cloud_name)
+            for flav in flav_to_delete:
+                logging.info("Cleaning up flavor: %s" % flav)
+                db_session.delete(flav)
+        db_session.commit()
+        logging.debug("End of cycle, sleeping...")
+        time.sleep(config.flavor_sleep_interval)
+
+    return None
+
+def imagePoller():
+    multiprocessing.current_process().name = "Image Poller"
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        db_session.autoflush = False
         Image = Base.classes.cloud_images
-        Network = Base.classes.cloud_networks
-        Quota = Base.classes.cloud_quotas
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
 
-        # get time for current cycle
-        current_cycle_time = time.time()
-        if last_cycle == 0:
-            logging.info("First cycle, sleeping for now...")
-            #first cycle- just sleep for the first while waiting for db updates.
-            last_cycle = current_cycle_time
-            time.sleep(config.cleanup_interval)
-            continue
+        logging.debug("Polling Images")
+        current_cycle = int(time.time())
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api object
+            nova = get_nova_client(session)
 
-        # Query for items to delete
-        #
-        # Flavors
-        flav_to_delete = db_session.query(Flavor).filter(Flavor.last_updated<=last_cycle)
-        for flav in flav_to_delete:
-            logging.info("Cleaning up flavor: %s" % flav)
-            db_session.delete(flav)
+            image_list = get_image_data(nova)
+            for image in image_list:
+                if image.size == "":
+                    size = 0
+                else:
+                    size = image.size
 
-        # Images
-        img_to_delete = db_session.query(Image).filter(Image.last_updated<=last_cycle)
-        for img in img_to_delete:
-            logging.info("Cleaning up image: %s" % img)
-            db_session.delete(img)
+                img_dict = {
+                    'group_name': cloud.group_name,
+                    'cloud_name': cloud.cloud_name,
+                    'container_format': image.container_format,
+                    'disk_format': image.disk_format,
+                    'min_ram': image.min_ram,
+                    'id': image.id,
+                    'size': image.size,
+                    'visibility': image.visibility,
+                    'min_disk': image.min_disk,
+                    'name': image.name,
+                    'last_updated': current_cycle
+                }
+                img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                new_image = Image(**img_dict)
+                db_session.merge(new_image)
 
-        # Networks
-        net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle)
-        for net in net_to_delete:
-            logging.info("Cleaning up network: %s" % net)
-            db_session.delete(net)
-
-        # Quotas
-        quota_to_delete = db_session.query(Quota).filter(Quota.last_updated<=last_cycle)
-        for quota in quota_to_delete:
-            logging.info("META CLEANUP - Cleaning up quota: %s" % quota)
-            db_session.delete(quota)
+            # do Image cleanup
+            img_to_delete = db_session.query(Image).filter(Image.last_updated<current_cycle, Image.group_name==cloud.group_name, Image.cloud_name==cloud.cloud_name)
+            for img in img_to_delete:
+                logging.info("Cleaning up image: %s" % img)
+                db_session.delete(img)
 
         db_session.commit()
-
         logging.debug("End of cycle, sleeping...")
-        last_cycle = current_cycle_time
-        time.sleep(config.cleanup_interval)
-    
+        time.sleep(config.image_sleep_interval)
+
+def limitPoller():
+    multiprocessing.current_process().name = "Limit Poller"
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Limit = Base.classes.cloud_limits
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api objects
+            nova = get_nova_client(session)
+
+            logging.debug("Polling limits")
+            limits_dict = get_limit_data(nova)
+            limits_dict['group_name'] = cloud.group_name
+            limits_dict['cloud_name'] = cloud.cloud_name
+            limits_dict['last_updated'] = int(time.time())
+            limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+            new_limits = Limit(**limits_dict)
+            db_session.merge(new_limits)
+            
+
+            #now remove any that were not updated
+            limit_to_delete = db_session.query(Limit).filter(Limit.last_updated<current_cycle, Limit.group_name==cloud.group_name, Limit.cloud_name==cloud.cloud_name)
+            for limit in limit_to_delete:
+                logging.info("Cleaning up limit %s" % limit)
+                db_session.delete(limit)
+
+        db_session.commit()
+        logging.debug("End of cycle, sleeping...")
+        time.sleep(config.limit_sleep_interval)
+
+    return None
+
+def networkPoller():
+    multiprocessing.current_process().name = "Network Poller"
+    last_cycle = 0
+
+    while(True):
+        #thingdo
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        db_session.autoflush = False
+        Network = Base.classes.cloud_networks
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type=="openstack")
+
+
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            authsplit = cloud.authurl.split('/')
+            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            if version == 2:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
+            else:
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+ 
+            # setup openstack api objects
+            neutron = get_neutron_client(session)
+            net_list = get_network_data(neutron)
+            for network in net_list:
+                network_dict = {
+                    'group_name': cloud.group_name,
+                    'cloud_name': cloud.cloud_name,
+                    'name': network['name'],
+                    'subnets': network['subnets'],
+                    'tenant_id': network['tenant_id'],
+                    'router:external': network['router:external'],
+                    'shared': network['shared'],
+                    'id': network['id'],
+                    'last_updated': int(time.time())
+                }
+                network_dict = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
+                new_network = Network(**network_dict)
+                db_session.merge(new_network)
+
+            #now remove any that were not updated
+            net_to_delete = db_session.query(Network).filter(Network.last_updated<=last_cycle, Network.group_name==cloud.group_name, Network.cloud_name==cloud.cloud_name)
+            for net in net_to_delete:
+                logging.info("Cleaning up network: %s" % net)
+                db_session.delete(net)
+
+        db_session.commit()
+        logging.debug("End of cycle, sleeping...")
+        time.sleep(config.network_sleep_interval)
+
     return None
 
 # def vmExecutor():
@@ -404,14 +467,19 @@ if __name__ == '__main__':
     logging.basicConfig(filename=config.poller_log_file,level=config.log_level, format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
     processes = []
 
-    p_metadata_poller = Process(target=metadata_poller)
-    processes.append(p_metadata_poller)
-    p_metadata_cleanup = Process(target=metadataCleanUp)
-    processes.append(p_metadata_cleanup)
     p_vm_poller = Process(target=vm_poller)
     processes.append(p_vm_poller)
     p_vm_cleanup = Process(target=vmCleanUp)
     processes.append(p_vm_cleanup)
+    p_flavor_poller = Process(target=flavorPoller)
+    processes.append(p_flavor_poller)
+    p_image_poller = Process(target=imagePoller)
+    processes.append(p_image_poller)
+    p_limit_poller = Process(target=limitPoller)
+    processes.append(p_limit_poller)
+    p_network_poller = Process(target=networkPoller)
+    processes.append(p_network_poller)
+    
 
     # Wait for keyboard input to exit
     try:

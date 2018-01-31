@@ -13,17 +13,17 @@ from sqlalchemy.ext.automap import automap_base
 import time
 
 class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
-    def __init__(self, name, slots, authurl, username, password, region=None, keyname=None ,cacert=None,
+    def __init__(self, cloud_name, instances, authurl, username, password, region=None, keyname=None ,cacertificate=None,
                  userdomainname=None, projectdomainname=None, defaultsecuritygroup=[], defaultimage=None,
                  defaultflavor=None, defaultnetwork=None, extrayaml=None, tenantname=None):
 
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=name, slots=slots, extrayaml=extrayaml)
+        cloudscheduler.basecloud.BaseCloud.__init__(self, name=cloud_name, slots=instances, extrayaml=extrayaml)
         self.authurl = authurl
         self.username = username
         self.password = password
         self.region = region
         self.keyname = keyname
-        self.cacert = cacert
+        self.cacertificate = cacertificate
         self.tenantname = tenantname
         self.userdomainname = userdomainname
         self.projectdomainname = projectdomainname
@@ -121,7 +121,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             Base = automap_base()
             Base.prepare(engine, reflect=True)
             db_session = Session(engine)
-            VM = Base.classes.cloud_vm
+            VM = Base.classes.csv2_vms
             vm_dict = {
                 'auth_url': self.authurl,
                 'project': self.tenantname,
@@ -168,13 +168,13 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
 
     def _get_keystone_session_v2(self):
         auth = v2.Password(auth_url=self.authurl, username=self.username, password=self.password, tenant_name=self.tenantname,)
-        sess = session.Session(auth=auth, verify=self.cacert)
+        sess = session.Session(auth=auth, verify=self.cacertificate)
         return sess
 
     def _get_keystone_session_v3(self):
         auth = v3.Password(auth_url=self.authurl, username=self.username, password=self.password, project_name="", project_domain_name=self.projectdomainname,
                            user_domain_name=self.userdomainname,)
-        sess = session.Session(auth=auth, verify=self.cacert)
+        sess = session.Session(auth=auth, verify=self.cacertificate)
         return sess
 
     def _get_creds_nova(self):
