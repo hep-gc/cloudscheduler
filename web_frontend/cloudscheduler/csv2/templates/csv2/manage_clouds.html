@@ -39,6 +39,7 @@
                             <td><input type="text" name="username" id="" value="{{cloud.username}}" /></td></tr>
                             <tr><td><label for="password">Password</label></td>
                             <td><input type="text" name="password" id="" value="{{cloud.password}}" /></td></tr>
+                            <input type="hidden" name="action" value="modify" />
                             <tr><td><input type="submit" value="Update Cloud" /></td>
                             <td><input type="button" onclick="confirmDelete('{{cloud.cloud_name}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
                         </table>
@@ -63,7 +64,8 @@
                 <td><input type="text" name="username" id="" value="" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
                 <td><input type="text" name="password" id="" value="" /></td></tr>
-                <tr><td><input type="submit" value="Create User" /></td></tr>
+                <input type="hidden" name="action" value="add" />
+                <tr><td><input type="submit" value="Add Cloud" /></td></tr>
             </table>
         </form>
     </div>

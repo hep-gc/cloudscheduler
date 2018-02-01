@@ -53,7 +53,7 @@
                                 <td><input name="is_superuser" type="checkbox" value="{{user.username}}"></td>
                             {% endif %}
                             </tr>
-                            <input type="hidden" name="action" value="modify" />
+                            <input type="hidden" name="old_usr" value="{{user.username}}" />
 
                             <tr><td><input type="submit" value="Update User" /></td>
                             <td><input type="button" onclick="confirmDelete('{{user.username}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
@@ -79,8 +79,8 @@
                 <td><input type="password" name="password2" id="" value="" /></td></tr>
                 <tr><td><label for="distinguished_name">Cert DN</label></td>
                 <td><input type="text" name="distinguished_name" id="" value="" /></td></tr>
-                <input type="hidden" value="action" name="add" />
-                <tr><td><input type="submit" value="Add Cloud" /></td></tr>
+
+                <tr><td><input type="submit" value="Create User" /></td></tr>
             </table>
         </form>
     </div>
