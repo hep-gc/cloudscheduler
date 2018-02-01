@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
@@ -167,22 +168,45 @@ def get_condor_machines(filter=None):
 def put_group_resources(group, cloud, url, uname, pword):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
 
-    metadata = MetaData(engine)
+    metadata = MetaData(bind=engine)
 
-    table = Table('csv2_group_resources', metadata, 
-        Column("group_name", String), 
-        Column("cloud_name", String),
-        Column("authurl", String),
-        Column("username", String),
-        Column("password", String)
+    table = Table('csv2_group_resources', metadata, autoload=True)
+    db_session = Session(engine)
+
+    if(db_session.query(exists().where(table.c.cloud_name==cloud)).scalar()):
+        ins = table.update().where(table.c.cloud_name==cloud).values(
+        group_name="Testing",
+        cloud_name=cloud,
+        authurl=url,
+        project="default",
+        username=uname,
+        password=pword,
+        keyname="",
+        cacertificate="",
+        region="",
+        userdomainname="",
+        projectdomainname="",
+        extrayaml="",  
+        cloud_type="",
         )
 
-    ins = table.insert().values(
-          group_name=group,
-          cloud_name=cloud,
-          authurl=url,
-          username=uname,
-          password=pword)
+    else:
+        ins = table.insert().values(
+        group_name="Testing",
+        cloud_name=cloud,
+        authurl=url,
+        project="default",
+        username=uname,
+        password=pword,
+        keyname="",
+        cacertificate="",
+        region="",
+        userdomainname="",
+        projectdomainname="",
+        extrayaml="",  
+        cloud_type="",
+        )
+
     conn = engine.connect()
     conn.execute(ins)
 

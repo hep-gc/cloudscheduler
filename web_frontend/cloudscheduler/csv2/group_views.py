@@ -7,7 +7,7 @@ from .models import user as csv2_user
 
 from .view_utils import getAuthUser, getcsv2User, verifyUser, getSuperUserStatus
 from utils import db_utils
-
+import bcrypt
 # 
 # This function should recieve a post request with a payload of yaml to add to a given group
 # (group_yaml)
@@ -33,18 +33,18 @@ def add_cloud_resources(request):
         raise PermissionDenied
 
     if request.method == 'POST':
-        group = request.POST.get('group_name')
-        cloud = request.POST.get('cloud_name')
-        url = request.POST.get('authurl')
-        user = request.POST.get('username')
-        passwd = request.POST.get('password')
+        group_name = request.POST.get('group_name')
+        cloud_name = request.POST.get('cloud_name')
+        authurl = request.POST.get('authurl')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
         # Use bcrypt to encrypt password.
-        hashed_pw = bcrypt.hashpw(passwd.encode(), bcrypt.gensalt(prefix=b"2a"))
+        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
 
-        put_group_resources(group_name=group, cloud_name=cloud, authurl=url, username=user, password=hashed_pw)
+        db_utils.put_group_resources(group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw)
 
-        return manage_clouds(request, message="Cloud added")
+        return manage_clouds(request)
     else:
         #not a post, return to manage users page
         return manage_clouds(request)

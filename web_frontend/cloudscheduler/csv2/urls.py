@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^system_status/', group_views.system_status, name='system_status'),
     url(r'^system_status/(?P<group_name>.+)/$', group_views.system_status, name='system_status'),
     url(r'^manage_clouds/', group_views.manage_clouds, name='manage_clouds'),
+    url(r'^update_cloud/', group_views.add_cloud_resources, name='update_cloud'),
 ]
