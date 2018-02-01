@@ -187,7 +187,7 @@ def put_group_resources(action, group, cloud, url, uname, pword):
             cloud_type="",
             )
 
-    elif(action=="modifiy"):
+    elif(action=="modify"):
         ins = table.update().where(table.c.cloud_name==cloud).values(
             group_name="Testing",
             cloud_name=cloud,
