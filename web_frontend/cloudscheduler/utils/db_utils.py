@@ -165,7 +165,7 @@ def put_group_resources(action, group, cloud, url, uname, pword):
     table = Table('csv2_group_resources', metadata, autoload=True)
     db_session = Session(engine)
 
-    if(action=="add"):
+    if action=="add":
 
         if(db_session.query(exists().where(table.c.cloud_name==cloud)).scalar()):
             return 0
@@ -187,7 +187,7 @@ def put_group_resources(action, group, cloud, url, uname, pword):
             cloud_type="",
             )
 
-    elif(action=="modify"):
+    elif action=="modify":
         ins = table.update().where(table.c.cloud_name==cloud).values(
             group_name="Testing",
             cloud_name=cloud,
