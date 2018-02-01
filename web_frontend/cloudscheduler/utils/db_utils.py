@@ -6,6 +6,7 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import select
 from csv2 import config
+from lib.schema import *
 
 
 '''
@@ -85,29 +86,20 @@ def get_groups(filter=None):
 
 # may be best to query the view instead of the resources table
 def get_group_resources(group_name):
-    Base = automap_base()
+    metadata = MetaData()    
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
-    GroupResources = Base.classes.csv2_group_resources
-    group_resources_list = db_session.query(GroupResources).filter(GroupResources.group_name==group_name)
+    conn = engine.connect()
+    s = select([view_group_resources]).where(view_group_resources.c.group_name == group_name)
+    group_resources_list = conn.execute(s)
     return group_resources_list
 
 
 # may be best to query the view instead of the resources table
 def get_counts(group_name=None):
-    metadata = MetaData()
-    view_group_list = Table('view_group_list', metadata, 
-        Column("group_name", String), 
-        Column("cloud_name", String),
-        Column("VMs", Integer),
-        Column("Jobs", Integer),
-        )
-    
+    metadata = MetaData()    
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     conn = engine.connect()
     s = select([view_group_list]).where(view_group_list.c.group_name == group_name)
-    #count_list = conn.execute(s).fetchone()
     count_list = conn.execute(s)
     return count_list
 
@@ -165,7 +157,7 @@ def get_condor_machines(filter=None):
 
 
 # add new group resources
-def put_group_resources(group, cloud, url, uname, pword):
+def put_group_resources(action, group, cloud, url, uname, pword):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
 
     metadata = MetaData(bind=engine)
@@ -173,41 +165,46 @@ def put_group_resources(group, cloud, url, uname, pword):
     table = Table('csv2_group_resources', metadata, autoload=True)
     db_session = Session(engine)
 
-    if(db_session.query(exists().where(table.c.cloud_name==cloud)).scalar()):
-        ins = table.update().where(table.c.cloud_name==cloud).values(
-        group_name="Testing",
-        cloud_name=cloud,
-        authurl=url,
-        project="default",
-        username=uname,
-        password=pword,
-        keyname="",
-        cacertificate="",
-        region="",
-        userdomainname="",
-        projectdomainname="",
-        extrayaml="",  
-        cloud_type="",
-        )
+    if(action=="add"):
 
-    else:
-        ins = table.insert().values(
-        group_name="Testing",
-        cloud_name=cloud,
-        authurl=url,
-        project="default",
-        username=uname,
-        password=pword,
-        keyname="",
-        cacertificate="",
-        region="",
-        userdomainname="",
-        projectdomainname="",
-        extrayaml="",  
-        cloud_type="",
-        )
+        if(db_session.query(exists().where(table.c.cloud_name==cloud)).scalar()):
+            return 0
+
+        else:
+            ins = table.insert().values(
+            group_name="Testing",
+            cloud_name=cloud,
+            authurl=url,
+            project="default",
+            username=uname,
+            password=pword,
+            keyname="",
+            cacertificate="",
+            region="",
+            userdomainname="",
+            projectdomainname="",
+            extrayaml="",  
+            cloud_type="",
+            )
+
+    else if(action=="modifiy"):
+        ins = table.update().where(table.c.cloud_name==cloud).values(
+            group_name="Testing",
+            cloud_name=cloud,
+            authurl=url,
+            project="default",
+            username=uname,
+            password=pword,
+            keyname="",
+            cacertificate="",
+            region="",
+            userdomainname="",
+            projectdomainname="",
+            extrayaml="",  
+            cloud_type="",
+            )
 
     conn = engine.connect()
     conn.execute(ins)
 
-    return 0
+    return 1

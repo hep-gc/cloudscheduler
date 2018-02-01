@@ -38,6 +38,7 @@ def add_cloud_resources(request):
         authurl = request.POST.get('authurl')
         username = request.POST.get('username')
         password = request.POST.get('password')
+        action = request.POST.get('action')
 
         # Use bcrypt to encrypt password.
         hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
