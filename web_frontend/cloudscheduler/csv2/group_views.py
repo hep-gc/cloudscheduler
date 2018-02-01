@@ -43,7 +43,7 @@ def add_cloud_resources(request):
         # Use bcrypt to encrypt password.
         hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
 
-        db_utils.put_group_resources(group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw)
+        db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw)
 
         return manage_clouds(request)
     else:
