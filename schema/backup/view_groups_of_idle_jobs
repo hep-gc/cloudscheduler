@@ -1,0 +1,77 @@
+-- MySQL dump 10.16  Distrib 10.2.12-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.2.12-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `view_groups_of_idle_jobs`
+--
+
+DROP TABLE IF EXISTS `view_groups_of_idle_jobs`;
+/*!50001 DROP VIEW IF EXISTS `view_groups_of_idle_jobs`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `view_groups_of_idle_jobs` (
+  `group_name` tinyint NOT NULL,
+  `target_clouds` tinyint NOT NULL,
+  `request_cpus` tinyint NOT NULL,
+  `request_ram` tinyint NOT NULL,
+  `request_disk` tinyint NOT NULL,
+  `request_swap` tinyint NOT NULL,
+  `request_scratch` tinyint NOT NULL,
+  `requirements` tinyint NOT NULL,
+  `job_priority` tinyint NOT NULL,
+  `user` tinyint NOT NULL,
+  `image` tinyint NOT NULL,
+  `instance_type` tinyint NOT NULL,
+  `network` tinyint NOT NULL,
+  `max_price` tinyint NOT NULL,
+  `user_data` tinyint NOT NULL,
+  `job_per_core` tinyint NOT NULL,
+  `q_date` tinyint NOT NULL,
+  `flavors` tinyint NOT NULL,
+  `count` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `view_groups_of_idle_jobs`
+--
+
+/*!50001 DROP TABLE IF EXISTS `view_groups_of_idle_jobs`*/;
+/*!50001 DROP VIEW IF EXISTS `view_groups_of_idle_jobs`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `view_groups_of_idle_jobs` AS select `view_groups_of_idle_jobs_raw`.`group_name` AS `group_name`,`view_groups_of_idle_jobs_raw`.`target_clouds` AS `target_clouds`,`view_groups_of_idle_jobs_raw`.`request_cpus` AS `request_cpus`,`view_groups_of_idle_jobs_raw`.`request_ram` AS `request_ram`,`view_groups_of_idle_jobs_raw`.`request_disk` AS `request_disk`,`view_groups_of_idle_jobs_raw`.`request_swap` AS `request_swap`,`view_groups_of_idle_jobs_raw`.`request_scratch` AS `request_scratch`,`view_groups_of_idle_jobs_raw`.`requirements` AS `requirements`,`view_groups_of_idle_jobs_raw`.`job_priority` AS `job_priority`,`view_groups_of_idle_jobs_raw`.`user` AS `user`,`view_groups_of_idle_jobs_raw`.`image` AS `image`,`view_groups_of_idle_jobs_raw`.`instance_type` AS `instance_type`,`view_groups_of_idle_jobs_raw`.`network` AS `network`,`view_groups_of_idle_jobs_raw`.`max_price` AS `max_price`,`view_groups_of_idle_jobs_raw`.`user_data` AS `user_data`,`view_groups_of_idle_jobs_raw`.`job_per_core` AS `job_per_core`,`view_groups_of_idle_jobs_raw`.`q_date` AS `q_date`,group_concat(`view_groups_of_idle_jobs_raw`.`flavor` separator ',') AS `flavors`,`view_groups_of_idle_jobs_raw`.`count` AS `count` from `view_groups_of_idle_jobs_raw` group by `view_groups_of_idle_jobs_raw`.`group_name`,`view_groups_of_idle_jobs_raw`.`target_clouds`,`view_groups_of_idle_jobs_raw`.`request_cpus`,`view_groups_of_idle_jobs_raw`.`request_ram`,`view_groups_of_idle_jobs_raw`.`request_disk`,`view_groups_of_idle_jobs_raw`.`request_swap`,`view_groups_of_idle_jobs_raw`.`request_scratch`,`view_groups_of_idle_jobs_raw`.`requirements`,`view_groups_of_idle_jobs_raw`.`job_priority`,`view_groups_of_idle_jobs_raw`.`user`,`view_groups_of_idle_jobs_raw`.`image`,`view_groups_of_idle_jobs_raw`.`instance_type`,`view_groups_of_idle_jobs_raw`.`network`,`view_groups_of_idle_jobs_raw`.`max_price`,`view_groups_of_idle_jobs_raw`.`user_data`,`view_groups_of_idle_jobs_raw`.`job_per_core`,`view_groups_of_idle_jobs_raw`.`q_date` order by `view_groups_of_idle_jobs_raw`.`job_priority`,`view_groups_of_idle_jobs_raw`.`q_date` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-01-31 13:02:34

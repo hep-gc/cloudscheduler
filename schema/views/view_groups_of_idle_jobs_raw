@@ -1,0 +1,96 @@
+/*
+** From condor_jobs, summarise idle jobs with matching requirements and combine
+** with resources capable of meeting the job requirements. The result is one row
+** per job group/resource combination order by flavor_priority (base on cores,
+** ram, disk, scratch, and swap) within job_priority/q_date.
+*/
+create or replace view view_groups_of_idle_jobs_raw as
+
+/*
+** Retrieve data from condor_jos and view_resources_matching_idle_jobs.
+select
+
+  cj.group_name,
+  target_clouds,
+  request_cpus,
+  request_ram,
+  round(request_disk/1024/1024,0) as request_disk,
+  request_swap,
+  request_scratch,
+  requirements,
+  job_priority,
+  user,
+  image,
+  instance_type,
+  network,
+  max_price,
+  user_data,
+  job_per_core,
+  min(q_date) as q_date,
+  flavor,
+
+  /*
+  ** Use row_number() DB window function to create the flavor_priority.
+  */
+  row_number() over (partition by 
+    cj.group_name,
+    target_clouds,
+    request_cpus,
+    request_ram,
+    request_disk,
+    request_swap,
+    request_scratch,
+    requirements,
+    job_priority,
+    user,
+    image,
+    instance_type,
+    network,
+    max_price,
+    user_data,
+    job_per_core,
+    q_date
+  order by
+    flavor_cores,
+    flavor_ram,
+    flavor_disk,
+    flavor_scratch,
+    flavor_swap
+  ) as flavor_priority,
+  
+  /*
+  ** Count the items in each group.
+  */
+  count(global_job_id) as count
+
+from condor_jobs as cj
+join view_resources_matching_idle_jobs as vrmij
+on cj.group_name=vrmij.group_name and request_cpus<=cores and request_ram<=ram 
+where job_status=1 and flavor_priority=1
+
+/*
+** Define the grouping.
+*/
+group by
+  cj.group_name,
+  target_clouds,
+  request_cpus,
+  request_ram,
+  request_disk,
+  request_swap,
+  request_scratch,
+  requirements,
+  job_priority,
+  user,
+  image,
+  instance_type,
+  network,
+  max_price,
+  user_data,
+  job_per_core,
+  q_date,
+  flavor
+
+order by job_priority,q_date
+
+;

@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+from subprocess import Popen, PIPE
+from tempfile import mkdtemp
+import os
+import shutil
+import sys
+
+def backup (gvar, table, data=False):
+  if data:
+    backup_cmd = ['mysqldump', '-uroot', '-p%s' % gvar['pw'], 'csv2', table]
+    schema_backup_dir = '%s/schema/backup_with_data' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+  else:
+    backup_cmd = ['mysqldump', '-uroot', '-p%s' % gvar['pw'], '--no-data', 'csv2', table]
+    schema_backup_dir = '%s/schema/backup' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+
+
+  p1 = Popen(backup_cmd, stdout=PIPE, stderr=PIPE)
+  stdout, stderr = p1.communicate()
+  if p1.returncode !=0:
+    print 'Failed to retrieve table definition for: %s' % table
+    exit(1)
+
+  fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
+  fd.write(stdout)
+  fd.close()
+
+  if not os.path.isfile('%s/%s' % (schema_backup_dir, table)):
+    stdout = 'File %s/%s does not exist.' % (schema_backup_dir, table)
+  else:
+    p1 = Popen(['diff', '%s/%s' % (schema_backup_dir, table), '%s/%s' % (gvar['temp_dir'], table)], stdout=PIPE, stderr=PIPE)
+    p2 = Popen(['awk', '/^<|^>/ && !/Dump completed on /'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p2.communicate()
+    if stderr != '':
+      print 'Failed to compare table definition for: %s' % table
+      exit(1)
+
+  if stdout !='':
+    p1 = Popen(['mv', '-f', '%s/%s' % (gvar['temp_dir'], table), '%s/%s' % (schema_backup_dir, table)], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p1.communicate()
+    if stderr != '':
+      print 'Failed to update table definition for: %s' % table
+      exit(1)
+
+    print 'Updated table definition for: %s' % table
+
+
+def main(args):
+  gvar = {'backup_data': [
+    'csv2_attribute_mapping',
+    ],
+    'cmd_path': os.path.abspath(args[0]),
+    }
+
+  gvar['path_info'] = gvar['cmd_path'].split('/')
+  gvar['ix'] = gvar['path_info'].index('cloudscheduler')
+  gvar['temp_dir'] = mkdtemp()
+  gvar['secrets_file'] = '%s/ansible-systems/heprc/staticvms/roles/csv2/vars/csv2_secrets.yaml' % '/'.join(gvar['path_info'][:gvar['ix']])
+  gvar['vp_file'] = '%s/.pw/staticvms' % '/'.join(gvar['path_info'][:3])
+
+  p1 = Popen(['ansible-vault', 'view', gvar['secrets_file'], '--vault-password-file', gvar['vp_file']], stdout=PIPE, stderr=PIPE)
+  p2 = Popen(['awk', '/^mariadb_root:/ {print $2}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+  stdout, stderr = p2.communicate()
+  if stderr != '':
+    'Failed to retrieve DB password.'
+    exit(1)
+
+  gvar['pw'] = stdout.strip()
+
+  p1 = Popen(['mysql', '-uroot', '-p%s' % gvar['pw'], '-e', 'show tables;', 'csv2'], stdout=PIPE, stderr=PIPE)
+  p2 = Popen(['awk', '!/Tables_in_csv2/ {print $1}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+  stdout, stderr = p2.communicate()
+  if stderr != '':
+    'Failed to retrieve table list.'
+    exit(1)
+
+  tables = stdout.split()
+  for table in tables:
+    backup(gvar, table)
+
+    if table in gvar['backup_data']:
+      backup(gvar, table, data=True)
+
+  shutil.rmtree(gvar['temp_dir'])
+  print 'csv2 schema-backup completed.'
+
+if __name__ == "__main__":
+  main(sys.argv)

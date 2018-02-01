@@ -1,0 +1,103 @@
+-- MySQL dump 10.16  Distrib 10.2.12-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.2.12-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `view_group_resources`
+--
+
+DROP TABLE IF EXISTS `view_group_resources`;
+/*!50001 DROP VIEW IF EXISTS `view_group_resources`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `view_group_resources` (
+  `group_name` tinyint NOT NULL,
+  `cloud_name` tinyint NOT NULL,
+  `authurl` tinyint NOT NULL,
+  `project` tinyint NOT NULL,
+  `username` tinyint NOT NULL,
+  `password` tinyint NOT NULL,
+  `keyname` tinyint NOT NULL,
+  `cacertificate` tinyint NOT NULL,
+  `region` tinyint NOT NULL,
+  `userdomainname` tinyint NOT NULL,
+  `projectdomainname` tinyint NOT NULL,
+  `extrayaml` tinyint NOT NULL,
+  `cloud_type` tinyint NOT NULL,
+  `cores_ctl` tinyint NOT NULL,
+  `cores_max` tinyint NOT NULL,
+  `cores_used` tinyint NOT NULL,
+  `floating_ips_ctl` tinyint NOT NULL,
+  `floating_ips_max` tinyint NOT NULL,
+  `floating_ips_used` tinyint NOT NULL,
+  `image_meta_ctl` tinyint NOT NULL,
+  `image_meta_max` tinyint NOT NULL,
+  `instances_ctl` tinyint NOT NULL,
+  `instances_max` tinyint NOT NULL,
+  `instances_used` tinyint NOT NULL,
+  `keypairs_ctl` tinyint NOT NULL,
+  `keypairs_max` tinyint NOT NULL,
+  `personality_ctl` tinyint NOT NULL,
+  `personality_max` tinyint NOT NULL,
+  `personality_size_ctl` tinyint NOT NULL,
+  `personality_size_max` tinyint NOT NULL,
+  `ram_ctl` tinyint NOT NULL,
+  `ram_max` tinyint NOT NULL,
+  `ram_used` tinyint NOT NULL,
+  `security_groups_ctl` tinyint NOT NULL,
+  `security_group_rules_ctl` tinyint NOT NULL,
+  `security_group_rules_max` tinyint NOT NULL,
+  `security_groups_max` tinyint NOT NULL,
+  `security_groups_used` tinyint NOT NULL,
+  `server_group_members_ctl` tinyint NOT NULL,
+  `server_group_members_max` tinyint NOT NULL,
+  `server_groups_ctl` tinyint NOT NULL,
+  `server_groups_max` tinyint NOT NULL,
+  `server_groups_used` tinyint NOT NULL,
+  `server_meta_ctl` tinyint NOT NULL,
+  `server_meta_max` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `view_group_resources`
+--
+
+/*!50001 DROP TABLE IF EXISTS `view_group_resources`*/;
+/*!50001 DROP VIEW IF EXISTS `view_group_resources`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `view_group_resources` AS select `csv2_group_resources`.`group_name` AS `group_name`,`csv2_group_resources`.`cloud_name` AS `cloud_name`,`csv2_group_resources`.`authurl` AS `authurl`,`csv2_group_resources`.`project` AS `project`,`csv2_group_resources`.`username` AS `username`,`csv2_group_resources`.`password` AS `password`,`csv2_group_resources`.`keyname` AS `keyname`,`csv2_group_resources`.`cacertificate` AS `cacertificate`,`csv2_group_resources`.`region` AS `region`,`csv2_group_resources`.`userdomainname` AS `userdomainname`,`csv2_group_resources`.`projectdomainname` AS `projectdomainname`,`csv2_group_resources`.`extrayaml` AS `extrayaml`,`csv2_group_resources`.`cloud_type` AS `cloud_type`,ifnull(`csv2_group_resources`.`cores_ctl`,-1) AS `cores_ctl`,ifnull(`cloud_limits`.`cores_max`,-1) AS `cores_max`,ifnull(`cloud_limits`.`cores_used`,-1) AS `cores_used`,ifnull(`csv2_group_resources`.`floating_ips_ctl`,-1) AS `floating_ips_ctl`,ifnull(`cloud_limits`.`floating_ips_max`,-1) AS `floating_ips_max`,ifnull(`cloud_limits`.`floating_ips_used`,-1) AS `floating_ips_used`,ifnull(`csv2_group_resources`.`image_meta_ctl`,-1) AS `image_meta_ctl`,ifnull(`cloud_limits`.`image_meta_max`,-1) AS `image_meta_max`,ifnull(`csv2_group_resources`.`instances_ctl`,-1) AS `instances_ctl`,ifnull(`cloud_limits`.`instances_max`,-1) AS `instances_max`,ifnull(`cloud_limits`.`instances_used`,-1) AS `instances_used`,ifnull(`csv2_group_resources`.`keypairs_ctl`,-1) AS `keypairs_ctl`,ifnull(`cloud_limits`.`keypairs_max`,-1) AS `keypairs_max`,ifnull(`csv2_group_resources`.`personality_ctl`,-1) AS `personality_ctl`,ifnull(`cloud_limits`.`personality_max`,-1) AS `personality_max`,ifnull(`csv2_group_resources`.`personality_size_ctl`,-1) AS `personality_size_ctl`,ifnull(`cloud_limits`.`personality_size_max`,-1) AS `personality_size_max`,ifnull(`csv2_group_resources`.`ram_ctl`,-1) AS `ram_ctl`,ifnull(`cloud_limits`.`ram_max`,-1) AS `ram_max`,ifnull(`cloud_limits`.`ram_used`,-1) AS `ram_used`,ifnull(`csv2_group_resources`.`security_groups_ctl`,-1) AS `security_groups_ctl`,ifnull(`csv2_group_resources`.`security_group_rules_ctl`,-1) AS `security_group_rules_ctl`,ifnull(`cloud_limits`.`security_group_rules_max`,-1) AS `security_group_rules_max`,ifnull(`cloud_limits`.`security_groups_max`,-1) AS `security_groups_max`,ifnull(`cloud_limits`.`security_groups_used`,-1) AS `security_groups_used`,ifnull(`csv2_group_resources`.`server_group_members_ctl`,-1) AS `server_group_members_ctl`,ifnull(`cloud_limits`.`server_group_members_max`,-1) AS `server_group_members_max`,ifnull(`csv2_group_resources`.`server_groups_ctl`,-1) AS `server_groups_ctl`,ifnull(`cloud_limits`.`server_groups_max`,-1) AS `server_groups_max`,ifnull(`cloud_limits`.`server_groups_used`,-1) AS `server_groups_used`,ifnull(`csv2_group_resources`.`server_meta_ctl`,-1) AS `server_meta_ctl`,ifnull(`cloud_limits`.`server_meta_max`,-1) AS `server_meta_max` from (`csv2_group_resources` left join `cloud_limits` on(`csv2_group_resources`.`group_name` = `cloud_limits`.`group_name` and `csv2_group_resources`.`cloud_name` = `cloud_limits`.`cloud_name`)) order by `csv2_group_resources`.`group_name`,`csv2_group_resources`.`cloud_name` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-01-31 13:02:34

@@ -1,0 +1,62 @@
+/*
+** From view_groups_of_idle_jobs_raw, consolidate  produce a single row per job
+** group containing a concatenation of all matching resources.
+*/
+create or replace view view_groups_of_idle_jobs as
+
+/*
+** Retrieve information.
+*/
+select
+  group_name,
+  target_clouds,
+  request_cpus,
+  request_ram,
+  request_disk,
+  request_swap,
+  request_scratch,
+  requirements,
+  job_priority,
+  user,
+  image,
+  instance_type,
+  network,
+  max_price,
+  user_data,
+  job_per_core,
+  q_date,
+
+  /*
+  ** Use group_concat() DB function to create (a list of) flavors.
+  */
+  group_concat(flavor) as flavors,
+
+  count
+
+from view_groups_of_idle_jobs_raw
+
+/*
+** Define the grouping.
+*/
+group by
+  group_name,
+  target_clouds,
+  request_cpus,
+  request_ram,
+  request_disk,
+  request_swap,
+  request_scratch,
+  requirements,
+  job_priority,
+  user,
+  image,
+  instance_type,
+  network,
+  max_price,
+  user_data,
+  job_per_core,
+  q_date
+
+order by job_priority,q_date
+
+;
