@@ -203,6 +203,10 @@ def put_group_resources(action, group, cloud, url, uname, pword):
             extrayaml="",  
             cloud_type="",
             )
+    elif action=="delete":
+        ins = table.delete(table.c.cloud_name==cloud)
+    else:
+        return 0
 
     conn = engine.connect()
     conn.execute(ins)

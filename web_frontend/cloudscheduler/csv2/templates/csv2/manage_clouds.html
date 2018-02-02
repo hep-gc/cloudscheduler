@@ -38,7 +38,7 @@
                             <tr><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" id="" value="{{cloud.username}}" /></td></tr>
                             <tr><td><label for="password">Password</label></td>
-                            <td><input type="text" name="password" id="" value="{{cloud.password}}" /></td></tr>
+                            <td><input type="password" name="password" id="" value="{{cloud.password}}" /></td></tr>
                             <input type="hidden" name="action" value="modify" />
                             <tr><td><input type="submit" value="Update Cloud" /></td>
                             <td><input type="button" onclick="confirmDelete('{{cloud.cloud_name}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
@@ -63,7 +63,7 @@
                 <tr><td><label for="username">Username</label></td>
                 <td><input type="text" name="username" id="" value="" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
-                <td><input type="text" name="password" id="" value="" /></td></tr>
+                <td><input type="password" name="password" id="" value="" /></td></tr>
                 <input type="hidden" name="action" value="add" />
                 <tr><td><input type="submit" value="Add Cloud" /></td></tr>
             </table>
@@ -73,11 +73,11 @@
 
 
 <script>
-    function confirmDelete(user) {
+    function confirmDelete(cloud) {
         if (confirm("Are you sure you want to delete '" + cloud + "'") == true) {;
-            $.post("/delete_cloud/", {cloud_name: cloud, csrfmiddlewaretoken: '{{csrf_token}}'}, function(result){
+            $.post("/update_cloud/", {cloud_name: cloud, csrfmiddlewaretoken: '{{csrf_token}}', authurl: "", username: "", password: "" , action: 'delete'}, function(result){
                 if(result){
-                    window.location.href = "/manage_clouds/";
+                    window.location.href = "/update_cloud/";
                 }
                 else{
                     //something happened with delete, maybe give an error msg?
