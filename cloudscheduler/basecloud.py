@@ -6,13 +6,13 @@ import cloudscheduler.cloud_init_util
 from io import StringIO
 
 class BaseCloud():
-    def __init__(self, name, slots=0, extrayaml=""):
+    def __init__(self, name, slots=0, extrayaml=[]):
         self.name = name
         self.enabled = False
         self.vms = {}
         self.slots = slots
         self.max_slots = slots
-        self.extrayaml = extrayaml.split(',') if extrayaml else []
+        self.extrayaml = extrayaml
 
     def __repr__(self):
         return ' : '.join([self.name, self.slots, self.enabled])
@@ -39,10 +39,17 @@ class BaseCloud():
                 name = self._generate_next_name()
         return name
 
-    def prepare_userdata(self, yamllist):
-        if yamllist:
-            yamllist.extend(self.extrayaml)
-        userdata = cloudscheduler.cloud_init_util.build_multi_mime_message(yamllist)
+    def prepare_userdata(self, group_yaml, yaml_list):
+        """ yamllist is a list of strings of file:mimetype format"""
+        if yaml_list:
+            raw_yaml_list = []
+            for yam in yaml_list:
+                (contents, mimetype) = cloudscheduler.cloud_init_util.read_file_type_pairs(yam)
+                raw_yaml_list.append(('jobyaml', contents, mimetype))
+            group_yaml.extend(raw_yaml_list)
+        if self.extrayaml
+            group_yaml.extend(self.extrayaml)
+        userdata = cloudscheduler.cloud_init_util.build_multi_mime_message(group_yaml)
         if not userdata:
             return ""
         udbuf = StringIO()

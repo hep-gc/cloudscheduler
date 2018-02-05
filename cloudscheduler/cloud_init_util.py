@@ -5,19 +5,17 @@ import yaml
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-def build_multi_mime_message(file_type_pairs):
-    """file_type_pairs - list of strings in path : mime-type format"""
-    if not file_type_pairs:
+def build_multi_mime_message(yaml_tuples):
+    """yaml_tuples - a list of tuples with name, yaml content, mime type """
+    if not yaml_tuples:
         return ""
     combined_message = MIMEMultipart()
-    for i in file_type_pairs:
-        (contents, format_type) = read_file_type_pairs(i)
-        if contents == None or format_type == None:
+    for i in yaml_tuples:
+        if i[1] == None or i[2] == None:
             return None
-        sub_message = MIMEText(contents, format_type, sys.getdefaultencoding())
-        sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % (i))
+        sub_message = MIMEText(i[1], i[2], sys.getdefaultencoding())
+        sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % (i[0]))
         combined_message.attach(sub_message)
-
     return str(combined_message)
 
 def read_file_type_pairs(file_type_pair):
