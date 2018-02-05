@@ -1,4 +1,4 @@
-#from cloudscheduler.vm import VM
+# from cloudscheduler.vm import VM
 import cloudscheduler.basecloud
 import cloudscheduler.config as csconfig
 import novaclient.exceptions
@@ -12,8 +12,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 import time
 
+
 class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
-    def __init__(self, cloud_name, instances, authurl, username, password, region=None, keyname=None ,cacertificate=None,
+    def __init__(self, cloud_name, instances, authurl, username, password, region=None, keyname=None,
+                 cacertificate=None,
                  userdomainname=None, projectdomainname=None, defaultsecuritygroup=[], defaultimage=None,
                  defaultflavor=None, defaultnetwork=None, extrayaml=None, tenantname=None):
 
@@ -34,10 +36,9 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.default_flavor = defaultflavor
         self.default_network = defaultnetwork
 
-
-    def vm_create(self, job=None):
+    def vm_create(self,group_yaml_list=None,job=None):
         nova = self._get_creds_nova()
-        #Check For valid security groups
+        # Check For valid security groups
 
 
         # Ensure keyname is valid
@@ -49,13 +50,14 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 key_name = ""
 
         # Deal with user data - combine and zip etc.
-        userdata = self.prepare_userdata(job.VMUserData)
+        user_data_list = job.VMUserData.split(',')
+        userdata = self.prepare_userdata(group_yaml=group_yaml_list,yaml_list=user_data_list)
 
         # Check image coming from job, otherwise use cloud default, otherwise global default
         imageobj = None
         try:
             if job.VMAMIConfig and self.name in job.VMAMIConfig.keys():
-                imageobj = nova.glance.find_image(job.VMAMIConfig[self.name]) # update to glance?
+                imageobj = nova.glance.find_image(job.VMAMIConfig[self.name])  # update to glance?
             elif self.default_image:
                 imageobj = nova.glance.find_image(self.default_image)
             else:
@@ -88,17 +90,17 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         network = None
         network_dict = self._attr_list_to_dict(job.VMNetwork)
         if network_dict and self.name in network_dict.keys():
-            if len(network_dict[self.name].split('-')) == 5: # uuid
+            if len(network_dict[self.name].split('-')) == 5:  # uuid
                 netid = [{'net-id': network_dict[self.name]}]
             else:
                 network = self._find_network(network_dict[self.name])
         elif self.default_network:
-            if len(self.default_network.split('-')) == 5: # uuid
+            if len(self.default_network.split('-')) == 5:  # uuid
                 netid = [{'net-id': self.default_network}]
             else:
                 network = self._find_network(self.default_network)
         elif csconfig.config.default_network:
-            if len(csconfig.config.default_network.split('-')) == 5: # uuid
+            if len(csconfig.config.default_network.split('-')) == 5:  # uuid
                 netid = [{'net-id': csconfig.config.default_network}]
             else:
                 network = self._find_network(csconfig.config.default_network)
@@ -108,14 +110,14 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         instance = None
         try:
             instance = nova.servers.create(name=hostname, image=imageobj, flavor=flavor, key_name=self.keyname,
-                                       availability_zone=None, nics=netid, userdata=userdata, security_groups=None)
+                                           availability_zone=None, nics=netid, userdata=userdata, security_groups=None)
         except novaclient.exceptions.OverLimit as e:
             print(e)
         except Exception as e:
             print(e)
         if instance:
-            #new_vm = VM(vmid=instance.id, hostname=hostname)
-            #self.vms[instance.id] = new_vm
+            # new_vm = VM(vmid=instance.id, hostname=hostname)
+            # self.vms[instance.id] = new_vm
             self.slots -= 1
             engine = self._get_db_engine()
             Base = automap_base()
@@ -133,10 +135,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             new_vm = VM(**vm_dict)
             db_session.merge(new_vm)
             db_session.commit()
-            
 
-
-        
         print('vm create')
 
     def vm_destroy(self, vm):
@@ -162,23 +161,25 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 try:
                     self.vms[ovm.id].status = ovm.status
                 except KeyError:
-                    pass # Will need to deal with unexpected vm still there by checking hostname and rebuilding vm obj if its a CS booted vm - probably have this as a config option since we sometimes remove  VMs intentionally
+                    pass  # Will need to deal with unexpected vm still there by checking hostname and rebuilding vm obj if its a CS booted vm - probably have this as a config option since we sometimes remove  VMs intentionally
         except Exception as e:
             print(e)
 
     def _get_keystone_session_v2(self):
-        auth = v2.Password(auth_url=self.authurl, username=self.username, password=self.password, tenant_name=self.tenantname,)
+        auth = v2.Password(auth_url=self.authurl, username=self.username, password=self.password,
+                           tenant_name=self.tenantname, )
         sess = session.Session(auth=auth, verify=self.cacertificate)
         return sess
 
     def _get_keystone_session_v3(self):
-        auth = v3.Password(auth_url=self.authurl, username=self.username, password=self.password, project_name="", project_domain_name=self.projectdomainname,
-                           user_domain_name=self.userdomainname,)
+        auth = v3.Password(auth_url=self.authurl, username=self.username, password=self.password, project_name="",
+                           project_domain_name=self.projectdomainname,
+                           user_domain_name=self.userdomainname, )
         sess = session.Session(auth=auth, verify=self.cacertificate)
         return sess
 
     def _get_creds_nova(self):
-        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10,)
+        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10, )
         return client
 
     def _get_creds_neutron(self):
@@ -209,4 +210,5 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
 
     def _get_db_engine(self):
         return create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                     csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+                             csconfig.config.db_host + ":" + str(
+            csconfig.config.db_port) + "/" + csconfig.config.db_name)
