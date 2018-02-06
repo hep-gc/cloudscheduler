@@ -9,6 +9,7 @@ create or replace view view_resources_matching_idle_jobs as
 */
 select
   *,
+  cast(least(round(cores/flavor_cores), round(ram/flavor_ram)) as integer) as flavor_slots,
 
   /*
   ** User the concat() DB function to create (a unique ID for the) flavor.

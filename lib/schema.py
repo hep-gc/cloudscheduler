@@ -307,6 +307,8 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('hostname', String(128)),
   Column('status', String(16)),
   Column('flavor_id', String(128)),
+  Column('task', String(32)),
+  Column('power_status', Integer),
   Column('terminate', Integer),
   Column('terminate_time', Integer),
   Column('last_updated', Integer)
@@ -486,6 +488,7 @@ view_resources_matching_idle_jobs = Table('view_resources_matching_idle_jobs', m
   Column('flavor_scratch', Integer),
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
+  Column('flavor_slots', Integer),
   Column('flavor', String(182))
   )
 
