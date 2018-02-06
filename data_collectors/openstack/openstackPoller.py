@@ -151,8 +151,11 @@ def vm_poller():
                     'vmid': vm.id,
                     'status': vm.status,
                     'flavor_id': vm.flavor["id"],
+                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
+                    'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time())
                 }
+                
                 vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
@@ -285,7 +288,7 @@ def imagePoller():
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
                 db_session.merge(new_image)
-
+            db_session.commit() # commit before cleanup
             # do Image cleanup
             img_to_delete = db_session.query(Image).filter(Image.last_updated<current_cycle, Image.group_name==cloud.group_name, Image.cloud_name==cloud.cloud_name)
             for img in img_to_delete:
