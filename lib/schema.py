@@ -488,8 +488,10 @@ view_resources_matching_idle_jobs = Table('view_resources_matching_idle_jobs', m
   Column('flavor_scratch', Integer),
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
+  Column('flavor', String(182)),
   Column('flavor_slots', Integer),
-  Column('flavor', String(182))
+  Column('VMs_up', Integer),
+  Column('VMs_down', Integer)
   )
 
 view_resources_matching_idle_jobs_raw = Table('view_resources_matching_idle_jobs_raw', metadata,
@@ -515,6 +517,40 @@ view_resources_matching_idle_jobs_raw = Table('view_resources_matching_idle_jobs
   Column('flavor_disk', Integer),
   Column('flavor_scratch', Integer),
   Column('flavor_swap', Integer),
-  Column('flavor_priority', Integer)
+  Column('flavor_priority', Integer),
+  Column('flavor', String(182))
+  )
+
+view_test = Table('view_test', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(20)),
+  Column('authurl', String(128)),
+  Column('project', String(128)),
+  Column('username', String(20)),
+  Column('password', String),
+  Column('keyname', String(20)),
+  Column('cacertificate', String),
+  Column('region', String(20)),
+  Column('userdomainname', String(20)),
+  Column('projectdomainname', String(20)),
+  Column('extrayaml', String),
+  Column('cloud_type', String(64)),
+  Column('cores', Integer),
+  Column('ram', Integer),
+  Column('flavor_name', String(128)),
+  Column('flavor_id', String(128)),
+  Column('flavor_cores', Integer),
+  Column('flavor_ram', Integer),
+  Column('flavor_disk', Integer),
+  Column('flavor_scratch', Integer),
+  Column('flavor_swap', Integer),
+  Column('flavor_priority', Integer),
+  Column('flavour', String(182))
+  )
+
+view_vms_up_down = Table('view_vms_up_down', metadata,
+  Column('flavor', String(386)),
+  Column('VMs_up', Integer),
+  Column('VMs_down', Integer)
   )
 

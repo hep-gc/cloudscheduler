@@ -49,7 +49,12 @@ select
     flavor_disk,
     flavor_scratch,
     flavor_swap
-  ) as flavor_priority
+  ) as flavor_priority,
+
+  /*
+  ** User the concat() DB function to create (a unique ID for the) flavor.
+  */
+  concat(vgr.group_name, ":", vgr.cloud_name, ":", cf.name) as flavor
 
 from view_group_resources as vgr
 join cloud_flavors as cf on

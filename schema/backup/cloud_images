@@ -29,7 +29,7 @@ CREATE TABLE `cloud_images` (
   `container_format` varchar(128) NOT NULL,
   `disk_format` varchar(128) NOT NULL,
   `name` varchar(256) NOT NULL,
-  `size` int(11) NOT NULL,
+  `size` bigint(13) DEFAULT NULL,
   `visibility` varchar(128) NOT NULL,
   `min_disk` int(11) NOT NULL,
   `min_ram` int(11) NOT NULL,
@@ -47,4 +47,4 @@ CREATE TABLE `cloud_images` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-31 13:02:34
+-- Dump completed on 2018-02-07  0:00:03
