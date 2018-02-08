@@ -20,7 +20,6 @@ select
   region,
   userdomainname,
   projectdomainname,
-  extrayaml,
   cloud_type,
 
   /*

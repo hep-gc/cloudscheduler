@@ -16,7 +16,6 @@ cacertificate,
 region,
 userdomainname,
 projectdomainname,
-extrayaml,
 cloud_type,
 
 ifnull(cores_ctl, -1) as cores_ctl,
