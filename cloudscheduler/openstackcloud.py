@@ -14,21 +14,19 @@ import time
 
 
 class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
-    def __init__(self, cloud_name, instances, authurl, username, password, region=None, keyname=None,
-                 cacertificate=None,
-                 userdomainname=None, projectdomainname=None, defaultsecuritygroup=[], defaultimage=None,
-                 defaultflavor=None, defaultnetwork=None, extrayaml=None, tenantname=None):
+    def __init__(self, resource=None, defaultsecuritygroup=[], defaultimage=None,
+                 defaultflavor=None, defaultnetwork=None, extrayaml=None,):
 
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=cloud_name, slots=instances, extrayaml=extrayaml)
-        self.authurl = authurl
-        self.username = username
-        self.password = password
-        self.region = region
-        self.keyname = keyname
-        self.cacertificate = cacertificate
-        self.tenantname = tenantname
-        self.userdomainname = userdomainname
-        self.projectdomainname = projectdomainname
+        cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name, extrayaml=extrayaml)
+        self.authurl = resource.authurl
+        self.username = resource.username
+        self.password = resource.password
+        self.region = resource.region
+        self.keyname = resource.keyname
+        self.cacertificate = resource.cacertificate
+        self.tenantname = resource.tenantname
+        self.userdomainname = resource.userdomainname
+        self.projectdomainname = resource.projectdomainname
         self.session = self._get_auth_version(authurl)
 
         self.default_securitygroup = defaultsecuritygroup
@@ -36,7 +34,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.default_flavor = defaultflavor
         self.default_network = defaultnetwork
 
-    def vm_create(self,group_yaml_list=None,job=None):
+    def vm_create(self,group_yaml_list=None,num=1,job=None):
         nova = self._get_creds_nova()
         # Check For valid security groups
 
@@ -110,7 +108,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         instance = None
         try:
             instance = nova.servers.create(name=hostname, image=imageobj, flavor=flavor, key_name=self.keyname,
-                                           availability_zone=None, nics=netid, userdata=userdata, security_groups=None)
+                                           availability_zone=None, nics=netid, userdata=userdata,
+                                           security_groups=None, max_count=num)
         except novaclient.exceptions.OverLimit as e:
             print(e)
         except Exception as e:
@@ -118,7 +117,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         if instance:
             # new_vm = VM(vmid=instance.id, hostname=hostname)
             # self.vms[instance.id] = new_vm
-            self.slots -= 1
+            # Do I actually want to bother putting in the new VM or let the poller handle it?
             engine = self._get_db_engine()
             Base = automap_base()
             Base.prepare(engine, reflect=True)
@@ -148,11 +147,11 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         except novaclient.exceptions.NotFound as e:
             print("VM %s not found on %s: Removing from CS" % (vm.hostname, self.name))
             del self.vms[vm.vmid]
-            self.slots += 1
         except Exception as e:
             print("Unhandled Exception trying to destroy VM: %s: %s" % (vm.hostname, e))
 
     def vm_update(self):
+        """I don't think this will be needed at all."""
         print('vm update')
         nova = self._get_creds_nova()
         try:
