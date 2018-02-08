@@ -227,9 +227,13 @@ csv2_config = Table('csv2_config', metadata,
   Column('yaml', String)
   )
 
-csv2_configuration = Table('csv2_configuration', metadata,
-  Column('process_name', String(128)),
-  Column('yaml_parameters', String)
+csv2_group_defaults = Table('csv2_group_defaults', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('job_cpus', Integer),
+  Column('job_ram', Integer),
+  Column('job_disk', Integer),
+  Column('job_scratch', Integer),
+  Column('job_swap', Integer)
   )
 
 csv2_group_resource_yaml = Table('csv2_group_resource_yaml', metadata,
@@ -344,21 +348,6 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
-project_job_defaults = Table('project_job_defaults', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('image_name', String),
-  Column('flavor', String),
-  Column('cpu_cores', Integer),
-  Column('memory', Integer),
-  Column('storage', Integer),
-  Column('job_yaml_files', String)
-  )
-
-project_users = Table('project_users', metadata,
-  Column('projectid', Integer),
-  Column('username', String(64))
-  )
-
 view_group_list = Table('view_group_list', metadata,
   Column('group_name', String(128)),
   Column('VMs', Integer),
@@ -425,8 +414,8 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('request_cpus', Integer),
   Column('request_ram', Integer),
   Column('request_disk', Integer),
-  Column('request_swap', Integer),
   Column('request_scratch', Integer),
+  Column('request_swap', Integer),
   Column('requirements', String(512)),
   Column('job_priority', Integer),
   Column('user', String(512)),
@@ -447,8 +436,8 @@ view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
   Column('request_cpus', Integer),
   Column('request_ram', Integer),
   Column('request_disk', Integer),
-  Column('request_swap', Integer),
   Column('request_scratch', Integer),
+  Column('request_swap', Integer),
   Column('requirements', String(512)),
   Column('job_priority', Integer),
   Column('user', String(512)),
@@ -522,30 +511,26 @@ view_resources_matching_idle_jobs_raw = Table('view_resources_matching_idle_jobs
   )
 
 view_test = Table('view_test', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(20)),
-  Column('authurl', String(128)),
-  Column('project', String(128)),
-  Column('username', String(20)),
-  Column('password', String),
-  Column('keyname', String(20)),
-  Column('cacertificate', String),
-  Column('region', String(20)),
-  Column('userdomainname', String(20)),
-  Column('projectdomainname', String(20)),
-  Column('extrayaml', String),
-  Column('cloud_type', String(64)),
-  Column('cores', Integer),
-  Column('ram', Integer),
-  Column('flavor_name', String(128)),
-  Column('flavor_id', String(128)),
-  Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
-  Column('flavor_disk', Integer),
-  Column('flavor_scratch', Integer),
-  Column('flavor_swap', Integer),
+  Column('group_name', String(128)),
+  Column('target_clouds', String),
+  Column('request_cpus', Integer),
+  Column('request_ram', Integer),
+  Column('request_disk', Integer),
+  Column('request_scratch', Integer),
+  Column('request_swap', Integer),
+  Column('requirements', String(512)),
+  Column('job_priority', Integer),
+  Column('user', String(512)),
+  Column('image', String),
+  Column('instance_type', String(512)),
+  Column('network', String(512)),
+  Column('max_price', String(512)),
+  Column('user_data', String(512)),
+  Column('job_per_core', Integer),
+  Column('q_date', Integer),
+  Column('flavor', String(182)),
   Column('flavor_priority', Integer),
-  Column('flavour', String(182))
+  Column('count', Integer)
   )
 
 view_vms_up_down = Table('view_vms_up_down', metadata,

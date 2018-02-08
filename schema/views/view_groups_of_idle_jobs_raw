@@ -8,15 +8,18 @@ create or replace view view_groups_of_idle_jobs_raw as
 
 /*
 ** Retrieve data from condor_jos and view_resources_matching_idle_jobs.
+*/
 select
 
   cj.group_name,
   target_clouds,
-  request_cpus,
-  request_ram,
-  round(request_disk/1024/1024,0) as request_disk,
-  request_swap,
-  request_scratch,
+
+  case when request_cpus is NULL or request_cpus<0 then job_cpus else request_cpus end as request_cpus,
+  case when request_ram is NULL or request_ram<0 then job_ram else request_ram end as request_ram,
+  case when request_disk is NULL or request_disk<0 then job_disk else round(request_disk/1024/1024,0) end as request_disk,
+  case when request_scratch is NULL or request_scratch<0 then job_scratch else request_scratch end as request_scratch,
+  case when request_swap is NULL or request_swap<0 then job_swap else request_swap end as request_swap,
+
   requirements,
   job_priority,
   user,
@@ -38,8 +41,8 @@ select
     request_cpus,
     request_ram,
     request_disk,
-    request_swap,
     request_scratch,
+    request_swap,
     requirements,
     job_priority,
     user,
@@ -64,8 +67,15 @@ select
   count(global_job_id) as count
 
 from condor_jobs as cj
-join view_resources_matching_idle_jobs as vrmij
-on cj.group_name=vrmij.group_name and request_cpus<=cores and request_ram<=ram 
+
+join csv2_group_defaults as cgd on
+  cj.group_name=cgd.group_name
+
+join view_resources_matching_idle_jobs as vrmij on
+  cj.group_name=vrmij.group_name and
+  request_cpus<=cores and
+  request_ram<=ram 
+
 where job_status=1 and flavor_priority=1
 
 /*
@@ -77,8 +87,8 @@ group by
   request_cpus,
   request_ram,
   request_disk,
-  request_swap,
   request_scratch,
+  request_swap,
   requirements,
   job_priority,
   user,
