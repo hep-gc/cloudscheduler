@@ -8,11 +8,6 @@ class CSConfig():
     def __init__(self, **kwargs):
         self.name = kwargs['general'].get('name', 'cloudscheduler')
         self.keyname = kwargs['general'].get('keyname', None)
-        #self.redishost = kwargs['general'].get('redishost', 'localhost')
-        #self.redisport = kwargs['general'].get('redisport', 6379)
-        #self.job_data_keys = kwargs['general'].get('job_data_keys', ['condor-jobs'])
-        #self.collector_data_keys = kwargs['general'].get('collector_data_keys', ['condor-resources'])
-        #self.vm_data_key = kwargs['general'].get('vm_data_keys', ['vm-data'])
 
         self.cloudscheduler_log_file = kwargs['general'].get('cloudscheduler_log_file', '/var/log/cloudscheduler/cloudscheduler.log')
 
