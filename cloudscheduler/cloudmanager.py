@@ -26,6 +26,5 @@ class CloudManager():
             cloud_yaml_list = []
             for yam in cloud_yamls:
                 cloud_yaml_list.append((yam.yaml_name, yam.yaml, yam.mime_type))
-
-            newcloud = cloudscheduler.openstackcloud.OpenStackCloud(extrayaml=cloud_yaml_list, **cloud)
+            newcloud = cloudscheduler.openstackcloud.OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud)
             self.clouds[newcloud.name] = newcloud
