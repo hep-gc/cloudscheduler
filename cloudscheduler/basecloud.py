@@ -1,21 +1,19 @@
 import gzip
 import uuid
-import cloudscheduler.config as csconfig
+#import cloudscheduler.config as csconfig
 import cloudscheduler.cloud_init_util
 #import io.StringIO
 from io import StringIO
 
 class BaseCloud():
-    def __init__(self, name, slots=0, extrayaml=[]):
+    def __init__(self, name, extrayaml=[]):
         self.name = name
         self.enabled = False
         self.vms = {}
-        self.slots = slots
-        self.max_slots = slots
         self.extrayaml = extrayaml
 
     def __repr__(self):
-        return ' : '.join([self.name, self.slots, self.enabled])
+        return ' : '.join([self.name, self.enabled])
 
     def num_vms(self):
         return len(self.vms)
@@ -30,6 +28,7 @@ class BaseCloud():
         assert 0, 'SubClass must implement vm_destroy()'
 
     def vm_update(self, **args):
+        """Probably not needed since the cloud/vm poller will be handling all the status updates in the db"""
         assert 0, 'SubClass must implement vm_update()'
 
     def _generate_next_name(self):
@@ -47,7 +46,7 @@ class BaseCloud():
                 (contents, mimetype) = cloudscheduler.cloud_init_util.read_file_type_pairs(yam)
                 raw_yaml_list.append(('jobyaml', contents, mimetype))
             group_yaml.extend(raw_yaml_list)
-        if self.extrayaml
+        if self.extrayaml:
             group_yaml.extend(self.extrayaml)
         userdata = cloudscheduler.cloud_init_util.build_multi_mime_message(group_yaml)
         if not userdata:
