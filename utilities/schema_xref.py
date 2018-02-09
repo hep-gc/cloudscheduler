@@ -9,6 +9,7 @@
 #
 from subprocess import Popen, PIPE
 from tempfile import mkdtemp
+import getpass
 import os
 import string
 import sys
@@ -59,16 +60,19 @@ def main (args):
   gvar['secrets_file'] = '%s/ansible-systems/heprc/staticvms/roles/csv2/vars/csv2_secrets.yaml' % '/'.join(gvar['path_info'][:gvar['ix']])
   gvar['vp_file'] = '%s/.pw/staticvms' % '/'.join(gvar['path_info'][:3])
 
-  p1 = Popen(['ansible-vault', 'view', gvar['secrets_file'], '--vault-password-file', gvar['vp_file']], stdout=PIPE, stderr=PIPE)
-  p2 = Popen(['awk', '/^mariadb_root:/ {print $2}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
-  stdout, stderr = p2.communicate()
-  if stderr != '':
-    'Failed to retrieve DB password.'
-    exit(1)
+  if os.path.exists(gvar['secrets_file']) and os.path.exists(gvar['vp_file']):
+    p1 = Popen(['ansible-vault', 'view', gvar['secrets_file'], '--vault-password-file', gvar['vp_file']], stdout=PIPE, stderr=PIPE)
+    p2 = Popen(['awk', '/^mariadb_cloudscheduler:/ {print $2}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p2.communicate()
+    if stderr != '':
+      'Failed to retrieve DB password.'
+      exit(1)
 
-  gvar['pw'] = stdout.strip()
+    gvar['pw'] = stdout.strip()
+  else:
+    gvar['pw'] = getpass.getpass('Enter MariaDB password for user csv2:')
 
-  p1 = Popen(['mysql', '-uroot', '-p%s' % gvar['pw'], '-e', 'show full tables;', 'csv2'], stdout=PIPE, stderr=PIPE)
+  p1 = Popen(['mysql', '-ucsv2', '-p%s' % gvar['pw'], '-e', 'show full tables;', 'csv2'], stdout=PIPE, stderr=PIPE)
   p2 = Popen(['awk', '!/Tables_in_csv2/ {print $1 " " $2}'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
   stdout, stderr = p2.communicate()
   if stderr != '':
@@ -87,7 +91,7 @@ def main (args):
 
     gvar['tables'][table] = { 'columns': {}, 'paths': {} }
 
-    p1 = Popen(['mysql', '-uroot', '-p%s' % gvar['pw'], '-e', 'show columns from %s;' % table, 'csv2'], stdout=PIPE, stderr=PIPE)
+    p1 = Popen(['mysql', '-ucsv2', '-p%s' % gvar['pw'], '-e', 'show columns from %s;' % table, 'csv2'], stdout=PIPE, stderr=PIPE)
     p2 = Popen(['awk', '!/^+/'], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
     stdout, stderr = p2.communicate()
     if stderr != '':
@@ -101,8 +105,6 @@ def main (args):
         gvar['tables'][table]['columns'][w[0]] = {}
 
   scan_dir(gvar, gvar['root_dir'])
-# scan_dir(gvar, '%s/web_frontend/cloudscheduler/utils' % gvar['root_dir'])
-# exit(0)
 
   for table in sorted(gvar['tables']):
     print('Table: %s' % table)
