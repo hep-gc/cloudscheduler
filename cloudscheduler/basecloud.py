@@ -1,12 +1,11 @@
 import gzip
 import uuid
-#import cloudscheduler.config as csconfig
+from abc import ABC, abstractmethod
 import cloudscheduler.cloud_init_util
-#import io.StringIO
-from io import StringIO
 
-class BaseCloud():
-    def __init__(self, name, extrayaml=[]):
+
+class BaseCloud(ABC):
+    def __init__(self, name, extrayaml=None):
         self.name = name
         self.enabled = False
         self.vms = {}
@@ -21,17 +20,22 @@ class BaseCloud():
     def get_vm(self, vmid):
         return self.vms[vmid]
 
-    def vm_create(self, **args):
+    @abstractmethod
+    def vm_create(self):
         assert 0, 'SubClass must implement vm_create()'
 
-    def vm_destroy(self, **args):
+    @abstractmethod
+    def vm_destroy(self):
         assert 0, 'SubClass must implement vm_destroy()'
 
-    def vm_update(self, **args):
-        """Probably not needed since the cloud/vm poller will be handling all the status updates in the db"""
+    @abstractmethod
+    def vm_update(self):
+        """Probably not needed since the cloud/vm poller will be
+         handling all the status updates in the db"""
         assert 0, 'SubClass must implement vm_update()'
 
     def _generate_next_name(self):
+        """Generate hostnames and check they're not in use."""
         name = ''.join([self.name.replace('_', '-').lower(), '-', str(uuid.uuid4())])
         for vm in self.vms.values():
             if name == vm.hostname:
@@ -39,7 +43,8 @@ class BaseCloud():
         return name
 
     def prepare_userdata(self, group_yaml, yaml_list):
-        """ yamllist is a list of strings of file:mimetype format"""
+        """ yamllist is a list of strings of file:mimetype format
+            group_yaml is a list of tuples with name, yaml content, mimetype format"""
         if yaml_list:
             raw_yaml_list = []
             for yam in yaml_list:
@@ -51,13 +56,14 @@ class BaseCloud():
         userdata = cloudscheduler.cloud_init_util.build_multi_mime_message(group_yaml)
         if not userdata:
             return ""
-        udbuf = StringIO()
-        udf = gzip.GzipFile(mode='wb', fileobj=udbuf)
+        compressed = ""
         try:
-            udf.write(userdata)
-        finally:
-            udf.close()
-        return udbuf.getvalue()
+            compressed = gzip.compress(str.encode(userdata))
+        except ValueError as ex:
+            print('zip failure bad value: ', ex)
+        except TypeError as ex:
+            print('zip failure bad type: ', ex)
+        return compressed
 
     def _attr_list_to_dict(self, attr_list_str):
         """Convert string in form "key1:value1,key2:value2" into a dictionary"""
@@ -71,6 +77,6 @@ class BaseCloud():
             elif len(keyvalue) == 2:
                 attr_dict[keyvalue[0].strip().lower()] = keyvalue[1].strip()
             else:
-                raise ValueError("Can't split '%s' into suitable host attribute pair" % keyvalue)
+                raise ValueError("Can't split '%s' into suitable host attribute pair: %s"
+                                 % (keyvalue, self.name))
         return attr_dict
-
