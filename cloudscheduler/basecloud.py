@@ -1,11 +1,24 @@
+"""
+cloudscheduler basecloud module.
+Defines the basic interface cloudscheduler expects to use across all types of clouds
+and contains methods common to all clouds.
+"""
+
 import gzip
 import uuid
+import logging
 from abc import ABC, abstractmethod
 import cloudscheduler.cloud_init_util
 
 
 class BaseCloud(ABC):
+
+    """
+    Abstract BaseCloud class, meant to be inherited by any specific cloud class for use
+    by cloudscheduler.
+    """
     def __init__(self, name, extrayaml=None):
+        self.log = logging.getLogger(__name__)
         self.name = name
         self.enabled = False
         self.vms = {}
@@ -15,17 +28,33 @@ class BaseCloud(ABC):
         return ' : '.join([self.name, self.enabled])
 
     def num_vms(self):
+        """Return the number of VMs on the cloud."""
         return len(self.vms)
 
     def get_vm(self, vmid):
+        """
+        Return the VM object of the given VM ID.
+        :param vmid: ID of the VM you want to get
+        :return: VM Object.
+        """
         return self.vms[vmid]
 
     @abstractmethod
-    def vm_create(self):
+    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
+        """
+        Abstract method for creating a VM on a cloud.
+        :param group_yaml_list: The owning group's yaml
+        :param num: Number of VMs to boot
+        :param job: job row from the database
+        :param flavor: the flavor value from database
+        """
         assert 0, 'SubClass must implement vm_create()'
 
     @abstractmethod
     def vm_destroy(self):
+        """
+        Destroy a VM on the cloud.
+        """
         assert 0, 'SubClass must implement vm_destroy()'
 
     @abstractmethod
@@ -60,9 +89,9 @@ class BaseCloud(ABC):
         try:
             compressed = gzip.compress(str.encode(userdata))
         except ValueError as ex:
-            print('zip failure bad value: ', ex)
+            self.log.exception('zip failure bad value: %s', ex)
         except TypeError as ex:
-            print('zip failure bad type: ', ex)
+            self.log.exception('zip failure bad type: %s', ex)
         return compressed
 
     def _attr_list_to_dict(self, attr_list_str):
