@@ -1,16 +1,171 @@
+
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style>
+
         table, th, td {
-            border: 1px solid black;
+            border: none;
             border-collapse: collapse;
             padding: 8px;
         }
         th {
             text-align: right;
         }
+
+        section{
+               float:left;
+      	}
+
+a.button {
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1px 6px;
+
+    font: 13.3333px Arial;
+    text-rendering: auto;
+    text-align: center;
+    text-transform: none;
+    text-decoration: none;
+    text-indent: 0;
+    text-shadow: none;
+    letter-spacing: normal;
+    word-spacing: normal;
+    color: buttontext;
+
+    border: 2px outset buttonface;
+    border-image: initial;
+
+    background-color: buttonface;
+
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    cursor: default;
+}
+
+	a.button:active {border-style: inset;}
+
+
+        .vertical-menu {
+            width: 200px; /* Set a width if you like */
+        }
+
+        .vertical-menu a {
+            background-color: #eee; /* Grey background color */
+            color: black; /* Black text color */
+            display: block; /* Make the links appear below each other */
+            padding: 12px; /* Add some padding */
+            text-decoration: none; /* Remove underline from links */
+        }
+
+        .vertical-menu a:hover {
+            background-color: red; /* Dark grey background on mouse-over */
+        }
+
+        .vertical-menu a.active {
+            background-color: #4CAF50; /* Add a green color to the "active/current" link */
+            color: white;
+        }
+
+        .vertical-menu a.add {
+            background-color: #4CAF50; /* Add a green color to the "active/current" link */
+            color: white;
+        }
+
+
+        li:hover {
+            color: red;
+        }
+        .target > div {
+            display:none;
+        }
+
+        .target > div:target{
+            display:block;
+            background: white;
+        }
+
+        :target {
+          animation: highlight 1s ease;  
+          transform: translateX(0px);     
+        }
+        @keyframes highlight {
+          0% { border-left-color: red; }
+          100% { border-left-color: white; }
+        }
+        .target > div {
+            float: right;
+            border-left: 40px solid white;
+            padding: 0px;
+            transition: all 0.5s ease;     
+            padding-right: 50px;
+            margin-left: -20px;    
+        }
+
+
+        .modalDialog {
+            position: fixed;
+            font-family: Arial, Helvetica, sans-serif;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 99999;
+            opacity:0;
+            -webkit-transition: opacity 400ms ease-in;
+            -moz-transition: opacity 400ms ease-in;
+            transition: opacity 400ms ease-in;
+            pointer-events: none;
+        }
+
+        .modalDialog:target {
+            opacity:1;
+            pointer-events: auto;
+        }
+
+        .modalDialog > div {
+            width: 400px;
+            position: relative;
+            margin: 10% auto;
+            padding: 5px 20px 13px 20px;
+            border-radius: 10px;
+            background: #fff;
+            background: -moz-linear-gradient(#fff, #999);
+            background: -webkit-linear-gradient(#fff, #999);
+            background: -o-linear-gradient(#fff, #999);
+        }
+
+        .close {
+            background: #606061;
+            color: #FFFFFF;
+            line-height: 25px;
+            position: absolute;
+            right: -12px;
+            text-align: center;
+            top: -10px;
+            width: 24px;
+            text-decoration: none;
+            font-weight: bold;
+            -webkit-border-radius: 12px;
+            -moz-border-radius: 12px;
+            border-radius: 12px;
+            -moz-box-shadow: 1px 1px 3px #000;
+            -webkit-box-shadow: 1px 1px 3px #000;
+            box-shadow: 1px 1px 3px #000;
+        }
+
+        .close:hover { background: #00d9ff; }
+
+
+
+
     </style>
 </head>
 
@@ -21,39 +176,48 @@
     <p style="color:green;">{{message}}</p>
 {% endif %}
 
-<table>
-    <tr><th>Cloud name</th></tr>
-    {% for cloud in cloud_list %}
-        <tr>
-            <td>{{cloud.cloud_name}}</td>
-            <td><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{{cloud.cloud_name}}" style="margin-right: 5px"> Edit </button>
-                <div class="collapse" id="{{cloud.cloud_name}}" style="width: 400px">
-                    <form name="{{cloud.cloud_name}}" action="/update_cloud/" method="post">
-                        {% csrf_token %}
-                        <table>
-                            <tr><td><label for="cloud_name">Cloud name</label></td>
-                            <td><input type="text" name="cloud_name" id="" value="{{cloud.cloud_name}}" /></td></tr>
-                            <tr><td><label for="authurl">URL</label></td>
-                            <td><input type="text" name="authurl" id="" value="{{cloud.authurl}}" /></td></tr>
-                            <tr><td><label for="username">Username</label></td>
-                            <td><input type="text" name="username" id="" value="{{cloud.username}}" /></td></tr>
-                            <tr><td><label for="password">Password</label></td>
-                            <td><input type="password" name="password" id="" value="{{cloud.password}}" /></td></tr>
-                            <input type="hidden" name="action" value="modify" />
-                            <tr><td><input type="submit" value="Update Cloud" /></td>
-                            <td><input type="button" onclick="confirmDelete('{{cloud.cloud_name}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
-                        </table>
-                    </form>
-                </div>
-</td>
-        </tr>
-    {% endfor %}
-</table>
+<section class="vertical-menu">
+    <a href="#" class="active">Clouds</a>
+        {% for cloud in cloud_list %}
+        <a href="#{{cloud.cloud_name}}">{{cloud.cloud_name}}</a>
+        {% endfor %}
+    <a href="#add_cloud" class="add_cloud">+</a> 
+</section>
 
-<div style="padding-left: 25px; padding-top: 25px">
-    <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#create_cloud" style="margin-right: 5px"> Add Cloud </button>
-    <div class="collapse" id="create_cloud" style="width: 400px">
-        <form name="create_cloud" action="/update_cloud/" method="post">
+<section class="target">
+    {% for cloud in cloud_list %}
+    <div id="{{cloud.cloud_name}}">
+        <h1>{{cloud.cloud_name}}</h1>
+        <div id="delete_{{cloud.cloud_name}}" class="modalDialog">
+            <div>
+                <a href="#close" title="Close" class="close">X</a>
+                <h2>{{cloud.cloud_name}}</h2>
+                <input type="hidden" name="action" value="delete" />
+                <p><input type="submit" value="Update Cloud" />Yes</td>
+
+            </div>
+        </div>
+        <form name="{{cloud.cloud_name}}" action="/update_cloud/" method="post">
+            {% csrf_token %}
+            <table>
+                <tr><td><label for="cloud_name">Cloud name</label></td>
+                <td><input type="text" name="cloud_name" id="" value="{{cloud.cloud_name}}" /></td></tr>
+                <tr><td><label for="authurl">URL</label></td>
+                <td><input type="text" name="authurl" id="" value="{{cloud.authurl}}" /></td></tr>
+                <tr><td><label for="username">Username</label></td>
+                <td><input type="text" name="username" id="" value="{{cloud.username}}" /></td></tr>
+                <tr><td><label for="password">Password</label></td>
+                <td><input type="password" name="password" id="" value="{{cloud.password}}" /></td></tr>
+                <input type="hidden" name="action" value="modify" />
+                <tr><td><input type="submit" value="Update Cloud" /></td>
+                <td><a href="#delete-{{cloud.cloud_name}}" type="button">Delete</a></td></tr>
+            </table>
+        </form>
+    </div>
+    {% endfor %}
+    <div id="add_cloud">
+        <h1>Add New Cloud</h1>
+        <form name="add_cloud" action="/update_cloud/" method="post">
             {% csrf_token %}
             <table>
                 <tr><td><label for="cloud_name">Cloud name</label></td>
@@ -69,20 +233,19 @@
             </table>
         </form>
     </div>
+</section>
+
+{% for cloud in cloud_list %}
+<div id="delete-{{cloud.cloud_name}}" class="modalDialog">
+    <div>
+        <a href="#{{cloud.cloud_name}}" title="Close" class="close">X</a>
+	<form name="{{cloud.cloud_name}}" action="/update_cloud/" method="post">
+            {% csrf_token %}
+                <input type="hidden" name="cloud_name" id="" value="{{cloud.cloud_name}}" />
+                <input type="hidden" name="password" id="" value="" />
+		<input type="hidden" name="action" value="delete" />
+                <input type="submit" value="Delete {{cloud.cloud_name}}" />
+        </form>
+    </div>
 </div>
-
-
-<script>
-    function confirmDelete(cloud) {
-        if (confirm("Are you sure you want to delete '" + cloud + "'") == true) {;
-            $.post("/update_cloud/", {cloud_name: cloud, csrfmiddlewaretoken: '{{csrf_token}}', authurl: "", username: "", password: "" , action: 'delete'}, function(result){
-                if(result){
-                    window.location.href = "/update_cloud/";
-                }
-                else{
-                    //something happened with delete, maybe give an error msg?
-                }
-            })
-        } 
-    }
-</script>
+{% endfor %}

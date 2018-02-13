@@ -139,7 +139,7 @@ def manage_clouds(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list,
+            'cloud_list': cloud_list
         }
 
     return render(request, 'csv2/manage_clouds.html', context)
