@@ -1,9 +1,16 @@
-import sys
-import urllib3
-import yaml
+"""
+Utilities for dealing with cloud init files and yaml.
+"""
 
+import os
+import sys
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+import yaml
+import requests
+
 
 def build_multi_mime_message(yaml_tuples):
     """yaml_tuples - a list of tuples with name, yaml content, mime type """
@@ -11,7 +18,7 @@ def build_multi_mime_message(yaml_tuples):
         return ""
     combined_message = MIMEMultipart()
     for i in yaml_tuples:
-        if i[1] == None or i[2] == None:
+        if i[1] is None or i[2] is None:
             return None
         sub_message = MIMEText(i[1], i[2], sys.getdefaultencoding())
         sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % (i[0]))
@@ -23,6 +30,7 @@ def read_file_type_pairs(file_type_pair):
     :param file_type_pair: string in filepath:mimetype format - may be http:// based
     :return: tuple with content of the file, and content mime type
     """
+    log = logging.getLogger(__name__)
     content = None
     format_type = None
     if file_type_pair.startswith('http'):
@@ -36,9 +44,13 @@ def read_file_type_pairs(file_type_pair):
                 http_loc = file_type_pair.strip()
                 format_type = "cloud-config"
         try:
-            content = urllib3.urlopen(http_loc).read()
-        except Exception as e:
-            print("Unable to read url: %s" % http_loc)
+            response = requests.get(http_loc)
+            content = response.content
+        except requests.exceptions.HTTPError as ex:
+            log.exception("Unable to read url: %s: %s", http_loc, ex)
+            return (None, None)
+        except requests.exceptions.RequestException as ex:
+            log.exception("Unable to read url: %s: %s", http_loc, ex)
             return (None, None)
     else:
         try:
@@ -49,26 +61,27 @@ def read_file_type_pairs(file_type_pair):
             filename = file_type_pair
             format_type = "cloud-config"
         if not os.path.exists(filename):
-            print("Unable to find file: %s skipping" % filename)
+            log.debug("Unable to find file: %s skipping", filename)
             return (None, None)
-        with open(filename) as fh:
-            content = fh.read()
+        with open(filename) as file_handle:
+            content = file_handle.read()
 
-    if len(content) == 0:
+    if content is None:
         return (None, None)
 
     return (content, format_type)
 
 def validate_yaml(content):
     """ Try to load yaml to see if it passes basic validation."""
+    log = logging.getLogger(__name__)
     try:
-        y = yaml.load(content)
-        if not y.has_key('merge_type'):
+        yam = yaml.load(content)
+        if not yam.has_key('merge_type'):
             print("Yaml submitted without a merge_type.")
             return "Missing merge_type:"
-    except yaml.YAMLError as e:
-        print("Problem validating yaml: %s" % e)
-        return ' '.join(['Line: ', str(e.problem_mark.line), ' Col: ', str(e.problem_mark.column)]) # use e.problem_mark.[name,column,line]
-    except UnboundLocalError as e:
-        print("Caught an exception trying to validate yaml. Is the pyyaml module installed?")
+    except yaml.parser.ParserError as ex:
+        log.exception("Problem validating yaml: %s", ex)
+        return ex
+    except UnboundLocalError as ex:
+        log.exception("Exception validating yaml: %s", ex)
     return None
