@@ -51,7 +51,7 @@ class BaseCloud(ABC):
         assert 0, 'SubClass must implement vm_create()'
 
     @abstractmethod
-    def vm_destroy(self):
+    def vm_destroy(self, vm):
         """
         Destroy a VM on the cloud.
         """

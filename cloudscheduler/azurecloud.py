@@ -30,7 +30,7 @@ class AzureCloud(cloudscheduler.basecloud.BaseCloud):
         """
         print(group_yaml_list, num, job, flavor)
 
-    def vm_destroy(self):
+    def vm_destroy(self, vm):
         """
         Destroy a VM on Microsoft Azure cloud.
         """
