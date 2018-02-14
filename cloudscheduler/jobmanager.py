@@ -26,7 +26,7 @@ class JobManager:
 
 
     # accepts a group of job dictionaries and shuffles them into the existing
-    #  dictionaries based on their GlobalJobIds.
+    #  dictionaries based on their globaljobids.
     def update_jobs(self, jobs):
         """
         update job states.
@@ -35,22 +35,22 @@ class JobManager:
         redis_key_list = []
         for job in jobs:
             j = Job(**job)
-            redis_key_list.append(j.GlobalJobId)
-            if j.GlobalJobId in self.unscheduled_jobs:
+            redis_key_list.append(j.globaljobid)
+            if j.globaljobid in self.unscheduled_jobs:
                 #update unscheduled entry
-                self.unscheduled_jobs[j.GlobalJobId] = j
-                self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+                self.unscheduled_jobs[j.globaljobid] = j
+                self.unscheduled_jobs_by_user[j.user][j.globaljobid] = j
 
-            elif j.GlobalJobId in self.scheduled_jobs:
+            elif j.globaljobid in self.scheduled_jobs:
                 #update scheduled entry
                 j.set_state(1)
-                self.scheduled_jobs[j.GlobalJobId] = j
-                self.scheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+                self.scheduled_jobs[j.globaljobid] = j
+                self.scheduled_jobs_by_user[j.user][j.globaljobid] = j
 
             else:
                 #brand new job, insert into unscheduled dicts
-                self.unscheduled_jobs[j.GlobalJobId] = j
-                self.unscheduled_jobs_by_user[j.User][j.GlobalJobId] = j
+                self.unscheduled_jobs[j.globaljobid] = j
+                self.unscheduled_jobs_by_user[j.user][j.globaljobid] = j
         # Clean up jobs that were not in the redis store
         for key in self.scheduled_jobs:
             if key not in redis_key_list:
@@ -70,9 +70,9 @@ class JobManager:
         self.unscheduled_jobs[jobid].set_state(1)
         job = self.unscheduled_jobs[jobid]
         self.scheduled_jobs[jobid] = job
-        self.scheduled_jobs_by_user[job.User][jobid] = job
+        self.scheduled_jobs_by_user[job.user][jobid] = job
         del self.unscheduled_jobs[jobid]
-        del self.unscheduled_jobs_by_user[job.User][jobid]
+        del self.unscheduled_jobs_by_user[job.user][jobid]
 
 
     def unschedule_job(self, jobid):
@@ -83,9 +83,9 @@ class JobManager:
         self.scheduled_jobs[jobid].set_state(0)
         job = self.scheduled_jobs[jobid]
         self.unscheduled_jobs[jobid] = job
-        self.unscheduled_jobs_by_user[job.User][jobid] = job
+        self.unscheduled_jobs_by_user[job.user][jobid] = job
         del self.scheduled_jobs[jobid]
-        del self.scheduled_jobs_by_user[job.User][jobid]
+        del self.scheduled_jobs_by_user[job.user][jobid]
 
     def get_jobs_user(self, user):
         """
