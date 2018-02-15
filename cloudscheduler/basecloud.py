@@ -88,7 +88,7 @@ class BaseCloud(ABC):
             group_yaml.extend(self.extrayaml)
         for yaml_tuple in group_yaml:
             # relies on name having 'template' in it. Alternative?
-            if yaml_tuple[0].contains('.j2'):
+            if '.j2' in yaml_tuple[0]:
                 template_dict['cs_cloud_name'] = self.name
                 yaml_tuple[1] = jinja2.Environment()\
                     .from_string(yaml_tuple[1]).render(template_dict)
