@@ -8,8 +8,10 @@ import gzip
 import uuid
 import logging
 from abc import ABC, abstractmethod
+
 import cloudscheduler.cloud_init_util
 
+import jinja2
 
 class BaseCloud(ABC):
 
@@ -65,24 +67,33 @@ class BaseCloud(ABC):
 
     def _generate_next_name(self):
         """Generate hostnames and check they're not in use."""
-        name = ''.join([self.name.replace('_', '-').lower(), '-', str(uuid.uuid4())])
+        name = ''.join([self.name.replace('_', '-').lower(), '-',
+                        str(uuid.uuid4())])
         for vm in self.vms.values():
             if name == vm.hostname:
                 name = self._generate_next_name()
         return name
 
-    def prepare_userdata(self, group_yaml, yaml_list):
+    def prepare_userdata(self, group_yaml, yaml_list, template_dict):
         """ yamllist is a list of strings of file:mimetype format
             group_yaml is a list of tuples with name, yaml content, mimetype format"""
         if yaml_list:
             raw_yaml_list = []
             for yam in yaml_list:
-                (contents, mimetype) = cloudscheduler.cloud_init_util.read_file_type_pairs(yam)
+                (contents, mimetype) = cloudscheduler.cloud_init_util\
+                    .read_file_type_pairs(yam)
                 raw_yaml_list.append(('jobyaml', contents, mimetype))
             group_yaml.extend(raw_yaml_list)
         if self.extrayaml:
             group_yaml.extend(self.extrayaml)
-        userdata = cloudscheduler.cloud_init_util.build_multi_mime_message(group_yaml)
+        for yaml_tuple in group_yaml:
+            # relies on name having 'template' in it. Alternative?
+            if yaml_tuple[0].contains('.j2'):
+                template_dict['cs_cloud_name'] = self.name
+                yaml_tuple[1] = jinja2.Environment()\
+                    .from_string(yaml_tuple[1]).render(template_dict)
+        userdata = cloudscheduler.cloud_init_util\
+            .build_multi_mime_message(group_yaml)
         if not userdata:
             return ""
         compressed = ""

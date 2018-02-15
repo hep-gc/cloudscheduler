@@ -54,7 +54,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.default_flavor = defaultflavor
         self.default_network = defaultnetwork
 
-    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
+    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None):
         """
         Try to boot VMs on OpenStack.
         :param group_yaml_list: yaml from the group owning cloud
@@ -76,9 +76,12 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 key_name = ""
 
         # Deal with user data - combine and zip etc.
+        template_dict['cs_cloud_type'] = self.__class__.__name__
+        template_dict['cs_flavor'] = flavor
         user_data_list = job.user_data.split(',') if job.user_data else []
         userdata = self.prepare_userdata(group_yaml=group_yaml_list,
-                                         yaml_list=user_data_list)
+                                         yaml_list=user_data_list,
+                                         template_dict=template_dict)
 
         # Check image from job, else use cloud default, else global default
         imageobj = None

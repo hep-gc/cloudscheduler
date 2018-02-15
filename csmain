@@ -91,8 +91,14 @@ def main():
                         #log.debug(cloud_match.flavor_slots)  # how many of that flavor can be booted
                         # how many VMs should I try to boot? lets just go for max we can for now until we add config for limits
                         num_vms_to_boot = job_count if job_count <= cloud_match.flavor_slots else cloud_match.flavor_slots
+                        template_dict = {'cs_user': idle_job.user,
+                                         'cs_group_name': csgroup.group_name,
+                                         'cs_condor_host': csgroup.condor_central_manager}
                         cm_group.clouds[cloud_match.cloud_name].vm_create(group_yaml_list=cm_group.group_yamls,
-                                                                          num=num_vms_to_boot,flavor=cloud_match.flavor_name,job=idle_job)
+                                                                          num=num_vms_to_boot,
+                                                                          flavor=cloud_match.flavor_name,
+                                                                          job=idle_job,
+                                                                          template_dict=template_dict)
                         job_count -= num_vms_to_boot
                         log.debug('done booting on cloud')
 
