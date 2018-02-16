@@ -39,11 +39,31 @@ def add_cloud_resources(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         action = request.POST.get('action')
+        keyname = request.POST.get('keyname')
+        cacertificate = request.POST.get('cacertificate')
+        region = request.POST.get('region')
+        userdomainname = request.POST.get('userdomainname')
+        projectdomainname = request.POST.get('projectdomainname')
+        cloud_type = request.POST.get('cloud_type')
+        cores = request.POST.get('cores')
+        core_lock = request.POST.get('core_lock')
+        ram = request.POST.get('ram')
+        ram_lock = request.POST.get('ram_lock')
+
+        if core_lock == 'lock':
+            cores_ctl = -1
+        else:
+            cores_ctl = cores
+
+        if ram_lock == 'lock':
+            ram_ctl = -1
+        else:
+            ram_ctl = cores
 
         # Use bcrypt to encrypt password.
         hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
 
-        db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw)
+        db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw, keyname=keyname, cacertificate=cacertificate, region=region, userdomainname= userdomainname, projectdomainname=projectdomainname, cloud_type=cloud_type, cores_ctl=cores_ctl, ram_ctl=ram_ctl)
 
         return manage_clouds(request)
     else:

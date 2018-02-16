@@ -162,7 +162,7 @@ def get_condor_machines(filter=None):
 
 
 # add new group resources
-def put_group_resources(action, group, cloud, url, uname, pword):
+def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacertificate, region, userdomainname, projectdomainname, cloud_type, cores_ctl, ram_ctl):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
 
     metadata = MetaData(bind=engine)
@@ -199,12 +199,14 @@ def put_group_resources(action, group, cloud, url, uname, pword):
             project="default",
             username=uname,
             password=pword,
-            keyname="",
-            cacertificate="",
-            region="",
-            userdomainname="",
-            projectdomainname="",  
-            cloud_type="",
+            keyname=keyname,
+            cacertificate=cacertificate,
+            region=region,
+            userdomainname=userdomainname,
+            projectdomainname=projectdomainname, 
+            cloud_type=cloud_type,
+            cores_ctl=cores_ctl,
+            ram_ctl=ram_ctl
             )
     elif action=="delete":
         ins = table.delete(table.c.cloud_name==cloud)
