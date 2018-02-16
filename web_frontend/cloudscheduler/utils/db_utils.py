@@ -186,8 +186,8 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
             keyname="",
             cacertificate="",
             region="",
-            userdomainname="",
-            projectdomainname="", 
+            user_domain_name="",
+            project_domain_name="", 
             cloud_type="",
             )
 
@@ -202,8 +202,8 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
             keyname=keyname,
             cacertificate=cacertificate,
             region=region,
-            userdomainname=userdomainname,
-            projectdomainname=projectdomainname, 
+            user_domain_name=userdomainname,
+            project_domain_name=projectdomainname, 
             cloud_type=cloud_type,
             cores_ctl=cores_ctl,
             ram_ctl=ram_ctl
