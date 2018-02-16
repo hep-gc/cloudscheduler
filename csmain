@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 import os
-import json
+import logging
 import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
 import cloudscheduler.config as csconfig
+
+from lib.schema import view_groups_of_idle_jobs
+from lib.schema import view_resources_matching_idle_jobs
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -12,32 +15,32 @@ from sqlalchemy.ext.automap import automap_base
 
 CLOUDRESOURCES = {}
 
-def main():
-    jobmanager = cloudscheduler.jobmanager.JobManager()
-    cm = cloudscheduler.cloudmanager.CloudManager(name='mhp', resource_file='/home/mhp/cloudscheduler/cloudresources.yaml')
-    cm.setup()
-    CLOUDRESOURCES[cm.name] = cm
-    print(CLOUDRESOURCES['mhp'])
+logging.basicConfig(level=logging.DEBUG,
+                    format="%(asctime)s:%(levelname)s:%(message)s")
 
+
+def main():
+    """
+    main function.
+    """
+    log = logging.getLogger(__name__)
     while(True):
         # basic scheduling: fifo w/ condor_prioity
-        # Get all the current csv2_groups
+
         Base0 = automap_base()
         engine0 = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                      csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
         Base0.prepare(engine0, reflect=True)
         CSGroups = Base0.classes.csv2_groups
         session0 = Session(engine0)
+        # Get all the current csv2_groups
         csv2groups = session0.query(CSGroups)
-        print(type(csv2groups))
-        print(type(csv2groups[0]),csv2groups[0])
+        #logging.debug(type(csv2groups))
+        #log.debug(type(csv2groups[0]),csv2groups[0])
         for csgroup in csv2groups:
-            print(csgroup.group_name)
-        #for each of the CLOUDRESOURCES
-        #for user in CLOUDRESOURCES:
-            #print(user)
-            # get the idle_jobs for the user of current resources
-            # sort jobs of that user by priority
+            log.debug(csgroup.group_name)
+
+            # Setup the resources for group and sort out their group and cloud specific yamls
             Base = automap_base()
             engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                      csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
@@ -57,33 +60,53 @@ def main():
             # it will still need to be combined with the job yaml - done now in the basecloud prepare_userdata function
 
 
+            # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
+            # Get the idle jobs for the current group
+            idle_jobs_for_group = session.query(view_groups_of_idle_jobs).filter(
+                view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
+                view_groups_of_idle_jobs.c.job_priority)
+            log.debug('got idle jobs')
+            for idle_job in idle_jobs_for_group:
+
+                log.debug(idle_job.flavors) # flavors is generated line based on which flavor is the best fit and which clouds have available resources
+                    # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
+                job_count = idle_job.count # number of jobs with identical request
+                log.debug(job_count)
+                flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
+                log.debug(flavor_list)
+                target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
+                log.debug(target_cloud_list)
+                for tri in flavor_list:
+                    (group, cloud, flavor) = tri.split(':')
+                    log.debug(tri)
+                    log.debug("%s, %s, %s", group, cloud, flavor)
+
+                    clouds_matching = session.query(view_resources_matching_idle_jobs).filter(
+                        view_resources_matching_idle_jobs.c.flavor == tri,
+                        view_resources_matching_idle_jobs.c.cloud_name.in_(target_cloud_list)) # awkward syntax but works.
+                    for cloud_match in clouds_matching:
+                        #log.debug(cloud_match.flavor_id) # id of flavor to avoid naming conflicts (may not need but doesn't hurt)
+                        #log.debug(cloud_match.flavor_name) # alternative to the id
+                        #log.debug(cloud_match.cloud_name) # can use this if i've constructed the resources previously.
+                        #log.debug(cloud_match.flavor_slots)  # how many of that flavor can be booted
+                        # how many VMs should I try to boot? lets just go for max we can for now until we add config for limits
+                        num_vms_to_boot = job_count if job_count <= cloud_match.flavor_slots else cloud_match.flavor_slots
+                        template_dict = {'cs_user': idle_job.user,
+                                         'cs_group_name': csgroup.group_name,
+                                         'cs_condor_host': csgroup.condor_central_manager}
+                        cm_group.clouds[cloud_match.cloud_name].vm_create(group_yaml_list=cm_group.group_yamls,
+                                                                          num=num_vms_to_boot,
+                                                                          flavor=cloud_match.flavor_name,
+                                                                          job=idle_job,
+                                                                          template_dict=template_dict)
+                        job_count -= num_vms_to_boot
+                        log.debug('done booting on cloud')
 
 
-            # Not sure I like the contains since it could get other things, but the DB stores the user as user@hostname
-            # so would either need to build that in or ignore, but with multiple schedd the hostname may not be of interest much? depends on how schedds are related to collectors
-            Job = Base.classes.condor_jobs
-            idle_jobs = session.query(Job).filter(Job.group_name.contains(csgroup.group_name),
-                                                      Job.JobStatus == 1).order_by(Job.JobPrio)
-            print(idle_jobs)
-
-
-
-                ### Older testing code pre-db resources
-            #print(CLOUDRESOURCES[user].clouds.keys())
-            #CLOUDRESOURCES[user].clouds['beaver'].vm_create(idle_jobs[0])
-            #for job in idle_jobs:
-                #print(job)
-                #print(job.__dict__)
-        # based on idle jobs determine if current resource allocation should change/increase/decrease based on the highest priority job
-        # make needed changes: retire machines/terminate retired ones/check on states and remove from system
-        # boot vms if space available
-            #if CLOUDRESOURCES[user].check_for_availability(idle_jobs[0]):
-                #CLOUDRESOURCES[user].create_vm(idle_jobs[0])
-
-        break
+        break # will need to take this out and put in an actual stopping condition.
 
     import time
-    time.sleep(15)
+    time.sleep(10)
 
     # Remove all the VMs for the moment
     for user in CLOUDRESOURCES:
@@ -94,7 +117,13 @@ def main():
 # initially load up the default one
 # when new user detected check for a cloud resource file and load / add to dict key user name
 
+# should re-adapt this to deal with adding group from DB and splitting code into functions instead of all inline
 def add_user_cloud(user, user_resource_file=None):
+    """
+
+    :param user:
+    :param user_resource_file:
+    """
     if not user_resource_file:
         homedir = os.path.expanduser(''.join['~', user])
         user_resource_file = ''.join([homedir, '/.cloudscheduler/cloudresources.yaml'])
@@ -102,5 +131,5 @@ def add_user_cloud(user, user_resource_file=None):
     cmuser.setup()
     CLOUDRESOURCES[cmuser.name] = cmuser
 
-print("csmain")
+
 main()

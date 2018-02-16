@@ -1,20 +1,31 @@
+"""
+Loader for the basic configuration information needed to
+connect to the database and initial setup.
+"""
+
+import logging
 import yaml
 
 
-default_config_file_location = "/etc/cloudscheduler/cloudscheduler.yaml"
+class CSConfig:
 
-
-class CSConfig():
+    """
+    CSConfig - loads basic configuration settings for cloudscheduler.
+    """
     def __init__(self, **kwargs):
+        """
+        Load the configs from a dict and set appropriate defaults.
+        This may get replaced with a different ConfigParse setup later.
+
+        :param kwargs: dictionary of config key:value pairs
+        """
+        self.log = logging.getLogger(__name__)
         self.name = kwargs['general'].get('name', 'cloudscheduler')
         self.keyname = kwargs['general'].get('keyname', None)
-        #self.redishost = kwargs['general'].get('redishost', 'localhost')
-        #self.redisport = kwargs['general'].get('redisport', 6379)
-        #self.job_data_keys = kwargs['general'].get('job_data_keys', ['condor-jobs'])
-        #self.collector_data_keys = kwargs['general'].get('collector_data_keys', ['condor-resources'])
-        #self.vm_data_key = kwargs['general'].get('vm_data_keys', ['vm-data'])
 
-        self.cloudscheduler_log_file = kwargs['general'].get('cloudscheduler_log_file', '/var/log/cloudscheduler/cloudscheduler.log')
+        self.cloudscheduler_log_file = \
+            kwargs['general'].get('cloudscheduler_log_file',
+                                  '/var/log/cloudscheduler/cloudscheduler.log')
 
         self.db_user = kwargs['database'].get('db_user', 'csv2')
         self.db_password = kwargs['database'].get('db_password', None)
@@ -24,22 +35,29 @@ class CSConfig():
 
         self.default_instancetype = kwargs['job'].get('instancetype', 'm1.small')
         self.default_image = kwargs['job'].get('image', 'cernvm3-micro-2.8-6.hdd')
+        self.default_network = kwargs['job'].get('network', 'private')
 
-    @staticmethod
-    def setup(config_file=default_config_file_location):
+    def setup(config_file="/etc/cloudscheduler/cloudscheduler.yaml"):
+        """
+        Reading a yaml and stuffing into dictionary for use in the constructor.
+
+        :param config_file: the file path where the config is stored on disk
+        :return: the config object
+        """
         # Prime the dict with it's sections:
-        config = {'general': {}, 'job': {}}
+        lconfig = {'general': {}, 'job': {}}
         # Load up any changed values from file
         try:
-            with open(config_file) as f:
-                config_file = yaml.load(f.read())
+            with open(config_file) as file_handle:
+                config_file = yaml.load(file_handle.read())
                 # Merge them and update the defaults
-                for k, v in config_file.items():
-                    config[k] = v
-        except Exception as e:
-            print(e)
-        return config
+                for k, val in config_file.items():
+                    lconfig[k] = val
+        except FileNotFoundError as ex:
+            self.log.exception(ex)
+        except yaml.parser.ParserError as ex:
+            self.log.exception(ex)
+        return lconfig
 
 
 config = CSConfig(**CSConfig.setup())
-
