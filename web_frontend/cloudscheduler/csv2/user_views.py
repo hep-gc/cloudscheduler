@@ -42,22 +42,22 @@ def create_user(request):
         user = request.POST.get('username')
         pass1 = request.POST.get('password1')
         pass2 = request.POST.get('password2')
-        cert_dn = request.POST.get('distinguished_name')
+        cert_cn = request.POST.get('common_name')
 
         # Need to perform several checks
-        # 1. Check that the username is valid (ie no username or cert_dn by that name)
-        # 2. Check that the cert_dn is not equal to any username or other cert_dn
+        # 1. Check that the username is valid (ie no username or cert_cn by that name)
+        # 2. Check that the cert_cn is not equal to any username or other cert_cn
         # 3. Check that password isn't empty or less than 4 chars
         # 4. Check that both passwords are the same
 
         csv2_user_list = csv2_user.objects.all()
         for registered_user in csv2_user_list:
             #check #1
-            if user == registered_user.username or user == registered_user.cert_dn:
+            if user == registered_user.username or user == registered_user.cert_cn:
                 #render manage users page with error message
                 return manage_users(request, err_message="Username unavailable")
             #check #2
-            if cert_dn is not None and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
+            if cert_cn is not None and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
                 return manage_users(request, err_message="Username unavailable or conflicts with a registered Distinguished Name")
         #check #3 part 1
         if pass1 is None or pass2 is None:
@@ -72,7 +72,7 @@ def create_user(request):
         hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
         #if all the checks passed and the hashed password has been generated create a new user object and save import
-        new_usr = csv2_user(username=user, password=hashed_pw, cert_dn=cert_dn, is_superuser=False)
+        new_usr = csv2_user(username=user, password=hashed_pw, cert_cn=cert_cn, is_superuser=False)
         new_usr.save()
         return manage_users(request, message="User added")
     else:
@@ -90,7 +90,7 @@ def update_user(request):
         csv2_user_list = csv2_user.objects.all()
         user_to_update = csv2_user.objects.filter(username=request.POST.get('old_usr'))[0]
         new_username = request.POST.get('username')
-        cert_dn = request.POST.get('distinguished_name')
+        cert_cn = request.POST.get('common_name')
         su_status = request.POST.get('is_superuser')
         if not su_status:
             su_status=False
@@ -98,21 +98,21 @@ def update_user(request):
             su_status=True
 
         # Need to perform two checks
-        # 1. Check that the new username is valid (ie no username or cert_dn by that name)
+        # 1. Check that the new username is valid (ie no username or cert_cn by that name)
         #   if the username hasn't changed we can skip this check since it would have been done on creation.
-        # 2. Check that the cert_dn is not equal to any username or other cert_dn
+        # 2. Check that the cert_cn is not equal to any username or other cert_cn
 
         for registered_user in csv2_user_list:
             #check #1
             if not new_username == user_to_update.username:
-                if user == registered_user.username or user == registered_user.cert_dn:
+                if user == registered_user.username or user == registered_user.cert_cn:
                     #render manage users page with error message
                     return manage_users(request, err_message="Unable to update user: new username unavailable")
             #check #2
-            if cert_dn is not None and registered_user.username != user_to_update.username and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
+            if cert_cn is not None and registered_user.username != user_to_update.username and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
                 return manage_users(request, err_message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
         user_to_update.username = new_username
-        user_to_update.cert_dn = cert_dn
+        user_to_update.cert_cn = cert_cn
         user_to_update.is_superuser = su_status
         user_to_update.save()
         return manage_users(request, message="User updated")
@@ -144,26 +144,26 @@ def user_settings(request):
         csv2_user_list = csv2_user.objects.all()
         user_to_update = getcsv2User(request)
         new_username = request.POST.get('username')
-        cert_dn = request.POST.get('distinguished_name')
+        cert_cn = request.POST.get('common_name')
         new_pass1 = request.POST.get('password1')
         new_pass2 = request.POST.get('password2')
         
         # Need to perform three checks
-        # 1. Check that the new username is valid (ie no username or cert_dn by that name)
+        # 1. Check that the new username is valid (ie no username or cert_cn by that name)
         #   if the username hasn't changed we can skip this check since it would have been done on creation.
-        # 2. Check that the cert_dn is not equal to any username or other cert_dn
+        # 2. Check that the cert_cn is not equal to any username or other cert_cn
         # 3. If the passwords aren't 0-3 chars and check if they are the same.
         for registered_user in csv2_user_list:
             #check #1
             if not new_username == user_to_update.username:
-                if new_username == registered_user.username or new_username == registered_user.cert_dn:
+                if new_username == registered_user.username or new_username == registered_user.cert_cn:
                     context = {
                         'user_obj':user_to_update,
                         'err_message': "Unable to update user: new username unavailable"
                     }
                     return render(request, 'csv2/user_settings.html', context)
             #check #2
-            if cert_dn is not None and registered_user.username != user_to_update.username and (cert_dn == registered_user.username or cert_dn == registered_user.cert_dn):
+            if cert_cn is not None and registered_user.username != user_to_update.username and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
                 context = {
                     'user_obj':user_to_update,
                     'err_message': "Unable to update user: Username or DN unavailable or conflicts with a registered Distinguished Name"
@@ -196,7 +196,7 @@ def user_settings(request):
         user_to_update.username=new_username
         if new_pass1:
             user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
-        user_to_update.cert_dn=cert_dn
+        user_to_update.cert_cn=cert_cn
         user_to_update.save()
         context = {
                 'user_obj':user_to_update,

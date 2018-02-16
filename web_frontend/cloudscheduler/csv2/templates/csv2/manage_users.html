@@ -26,11 +26,11 @@
 {% endif %}
 
 <table>
-    <tr><th>Username</th><th>Cert DN</th><th>Superuser</th></tr>
+    <tr><th>Username</th><th>Cert CN</th><th>Superuser</th></tr>
     {% for user in user_list %}
         <tr>
             <td>{{user.username}}</td>
-            <td>{{user.cert_dn}}</td>
+            <td>{{user.cert_cn}}</td>
             {% if user.is_superuser %}
                 <td>&#x2714</td>
             {% else %}
@@ -43,11 +43,11 @@
                         <table>
                             <tr><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" id="" value="{{user.username}}" /></td></tr>
-                            <tr><td><label for="distinguished_name">Distinguished Name</label></td>
-                            {% if user.cert_dn is not None %}
-                                <td><input type="text" name="distinguished_name" id="" value="{{user.cert_dn}}" /></td>
+                            <tr><td><label for="common_name">Common Name</label></td>
+                            {% if user.cert_cn is not None %}
+                                <td><input type="text" name="common_name" id="" value="{{user.cert_cn}}" /></td>
                             {% else %}
-                                <td><input type="text" name="distinguished_name" id="" value="" /></td>
+                                <td><input type="text" name="common_name" id="" value="" /></td>
                             {% endif %}
                             </tr>
                             <tr><td><label for="is_superuser">Superuser</label></td>
@@ -81,8 +81,8 @@
                 <td><input type="password" name="password1" id="" value="" /></td></tr>
                 <tr><td><label for="password2">Confirm Password</label></td>
                 <td><input type="password" name="password2" id="" value="" /></td></tr>
-                <tr><td><label for="distinguished_name">Cert DN</label></td>
-                <td><input type="text" name="distinguished_name" id="" value="" /></td></tr>
+                <tr><td><label for="common_name">Cert CN</label></td>
+                <td><input type="text" name="common_name" id="" value="" /></td></tr>
 
                 <tr><td><input type="submit" value="Create User" /></td></tr>
             </table>
