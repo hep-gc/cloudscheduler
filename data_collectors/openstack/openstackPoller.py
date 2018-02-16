@@ -133,7 +133,7 @@ def vm_poller():
             if version == 2:
                 session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.user_domain_name, project_domain=cloud.project_domain_name)
  
             # setup nova object
             nova = get_nova_client(session)
@@ -193,7 +193,7 @@ def flavorPoller():
             if version == 2:
                 session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.user_domain_name, project_domain=cloud.project_domain_name)
  
             # setup openstack api objects
             nova = get_nova_client(session)
@@ -260,7 +260,7 @@ def imagePoller():
             if version == 2:
                 session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.user_domain_name, project_domain=cloud.project_domain_name)
  
             # setup openstack api object
             nova = get_nova_client(session)
@@ -320,7 +320,7 @@ def limitPoller():
             if version == 2:
                 session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.user_domain_name, project_domain=cloud.project_domain_name)
  
             # setup openstack api objects
             nova = get_nova_client(session)
@@ -370,7 +370,7 @@ def networkPoller():
             if version == 2:
                 session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.user_domain_name, project_domain=cloud.project_domain_name)
  
             # setup openstack api objects
             neutron = get_neutron_client(session)
@@ -449,7 +449,7 @@ def vmCleanUp():
             if version == 2:
                 session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project)
             else:
-                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.userdomainname, project_domain=cloud.projectdomainname)
+                session = get_openstack_session(auth_url=cloud.authurl, username=cloud.username, password=cloud.password, project=cloud.project, user_domain=cloud.user_domain_name, project_domain=cloud.project_domain_name)
             
             # returns true if vm terminated, false if an error occured
             # probably wont need to use this result outside debugging as
