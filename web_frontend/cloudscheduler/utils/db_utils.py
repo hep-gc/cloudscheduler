@@ -162,7 +162,7 @@ def get_condor_machines(filter=None):
 
 
 # add new group resources
-def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacertificate, region, userdomainname, projectdomainname, cloud_type, cores_ctl, ram_ctl):
+def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacertificate, region, user_domain_name, project_domain_name, cloud_type, cores_ctl, ram_ctl):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
 
     metadata = MetaData(bind=engine)
@@ -202,8 +202,8 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
             keyname=keyname,
             cacertificate=cacertificate,
             region=region,
-            user_domain_name=userdomainname,
-            project_domain_name=projectdomainname, 
+            user_domain_name=user_domain_name,
+            project_domain_name=project_domain_name, 
             cloud_type=cloud_type,
             cores_ctl=cores_ctl,
             ram_ctl=ram_ctl
