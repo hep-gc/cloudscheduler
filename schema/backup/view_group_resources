@@ -39,34 +39,23 @@ SET character_set_client = utf8;
   `cores_ctl` tinyint NOT NULL,
   `cores_max` tinyint NOT NULL,
   `cores_used` tinyint NOT NULL,
-  `floating_ips_ctl` tinyint NOT NULL,
-  `floating_ips_max` tinyint NOT NULL,
-  `floating_ips_used` tinyint NOT NULL,
-  `image_meta_ctl` tinyint NOT NULL,
-  `image_meta_max` tinyint NOT NULL,
-  `instances_ctl` tinyint NOT NULL,
-  `instances_max` tinyint NOT NULL,
-  `instances_used` tinyint NOT NULL,
-  `keypairs_ctl` tinyint NOT NULL,
-  `keypairs_max` tinyint NOT NULL,
-  `personality_ctl` tinyint NOT NULL,
-  `personality_max` tinyint NOT NULL,
-  `personality_size_ctl` tinyint NOT NULL,
-  `personality_size_max` tinyint NOT NULL,
   `ram_ctl` tinyint NOT NULL,
   `ram_max` tinyint NOT NULL,
   `ram_used` tinyint NOT NULL,
-  `security_groups_ctl` tinyint NOT NULL,
-  `security_group_rules_ctl` tinyint NOT NULL,
-  `security_group_rules_max` tinyint NOT NULL,
+  `instances_max` tinyint NOT NULL,
+  `instances_used` tinyint NOT NULL,
+  `floating_ips_max` tinyint NOT NULL,
+  `floating_ips_used` tinyint NOT NULL,
   `security_groups_max` tinyint NOT NULL,
   `security_groups_used` tinyint NOT NULL,
-  `server_group_members_ctl` tinyint NOT NULL,
-  `server_group_members_max` tinyint NOT NULL,
-  `server_groups_ctl` tinyint NOT NULL,
   `server_groups_max` tinyint NOT NULL,
   `server_groups_used` tinyint NOT NULL,
-  `server_meta_ctl` tinyint NOT NULL,
+  `image_meta_max` tinyint NOT NULL,
+  `keypairs_max` tinyint NOT NULL,
+  `personality_max` tinyint NOT NULL,
+  `personality_size_max` tinyint NOT NULL,
+  `security_group_rules_max` tinyint NOT NULL,
+  `server_group_members_max` tinyint NOT NULL,
   `server_meta_max` tinyint NOT NULL
 ) ENGINE=MyISAM */;
 SET character_set_client = @saved_cs_client;
@@ -85,7 +74,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `view_group_resources` AS select `cgr`.`group_name` AS `group_name`,`cgr`.`cloud_name` AS `cloud_name`,`cgr`.`authurl` AS `authurl`,`cgr`.`project` AS `project`,`cgr`.`username` AS `username`,`cgr`.`password` AS `password`,`cgr`.`keyname` AS `keyname`,`cgr`.`cacertificate` AS `cacertificate`,`cgr`.`region` AS `region`,`cgr`.`userdomainname` AS `userdomainname`,`cgr`.`projectdomainname` AS `projectdomainname`,`cgr`.`cloud_type` AS `cloud_type`,ifnull(`cgr`.`cores_ctl`,-1) AS `cores_ctl`,ifnull(`cl`.`cores_max`,-1) AS `cores_max`,ifnull(`cl`.`cores_used`,-1) AS `cores_used`,ifnull(`cgr`.`floating_ips_ctl`,-1) AS `floating_ips_ctl`,ifnull(`cl`.`floating_ips_max`,-1) AS `floating_ips_max`,ifnull(`cl`.`floating_ips_used`,-1) AS `floating_ips_used`,ifnull(`cgr`.`image_meta_ctl`,-1) AS `image_meta_ctl`,ifnull(`cl`.`image_meta_max`,-1) AS `image_meta_max`,ifnull(`cgr`.`instances_ctl`,-1) AS `instances_ctl`,ifnull(`cl`.`instances_max`,-1) AS `instances_max`,ifnull(`cl`.`instances_used`,-1) AS `instances_used`,ifnull(`cgr`.`keypairs_ctl`,-1) AS `keypairs_ctl`,ifnull(`cl`.`keypairs_max`,-1) AS `keypairs_max`,ifnull(`cgr`.`personality_ctl`,-1) AS `personality_ctl`,ifnull(`cl`.`personality_max`,-1) AS `personality_max`,ifnull(`cgr`.`personality_size_ctl`,-1) AS `personality_size_ctl`,ifnull(`cl`.`personality_size_max`,-1) AS `personality_size_max`,ifnull(`cgr`.`ram_ctl`,-1) AS `ram_ctl`,ifnull(`cl`.`ram_max`,-1) AS `ram_max`,ifnull(`cl`.`ram_used`,-1) AS `ram_used`,ifnull(`cgr`.`security_groups_ctl`,-1) AS `security_groups_ctl`,ifnull(`cgr`.`security_group_rules_ctl`,-1) AS `security_group_rules_ctl`,ifnull(`cl`.`security_group_rules_max`,-1) AS `security_group_rules_max`,ifnull(`cl`.`security_groups_max`,-1) AS `security_groups_max`,ifnull(`cl`.`security_groups_used`,-1) AS `security_groups_used`,ifnull(`cgr`.`server_group_members_ctl`,-1) AS `server_group_members_ctl`,ifnull(`cl`.`server_group_members_max`,-1) AS `server_group_members_max`,ifnull(`cgr`.`server_groups_ctl`,-1) AS `server_groups_ctl`,ifnull(`cl`.`server_groups_max`,-1) AS `server_groups_max`,ifnull(`cl`.`server_groups_used`,-1) AS `server_groups_used`,ifnull(`cgr`.`server_meta_ctl`,-1) AS `server_meta_ctl`,ifnull(`cl`.`server_meta_max`,-1) AS `server_meta_max` from (`csv2_group_resources` `cgr` left join `cloud_limits` `cl` on(`cgr`.`group_name` = `cl`.`group_name` and `cgr`.`cloud_name` = `cl`.`cloud_name`)) order by `cgr`.`group_name`,`cgr`.`cloud_name` */;
+/*!50001 VIEW `view_group_resources` AS select `cgr`.`group_name` AS `group_name`,`cgr`.`cloud_name` AS `cloud_name`,`cgr`.`authurl` AS `authurl`,`cgr`.`project` AS `project`,`cgr`.`username` AS `username`,`cgr`.`password` AS `password`,`cgr`.`keyname` AS `keyname`,`cgr`.`cacertificate` AS `cacertificate`,`cgr`.`region` AS `region`,`cgr`.`userdomainname` AS `userdomainname`,`cgr`.`projectdomainname` AS `projectdomainname`,`cgr`.`cloud_type` AS `cloud_type`,case when `cgr`.`cores_ctl` = -1 then `cgr`.`cores_ctl` else case when ifnull(`cgr`.`cores_ctl`,0) > ifnull(`cl`.`cores_max`,0) then ifnull(`cl`.`cores_max`,0) else ifnull(`cgr`.`cores_ctl`,0) end end AS `cores_ctl`,ifnull(`cl`.`cores_max`,0) AS `cores_max`,ifnull(`cl`.`cores_used`,0) AS `cores_used`,case when `cgr`.`ram_ctl` = -1 then `cgr`.`ram_ctl` else case when ifnull(`cgr`.`ram_ctl`,0) > ifnull(`cl`.`ram_max`,0) then ifnull(`cl`.`ram_max`,0) else ifnull(`cgr`.`ram_ctl`,0) end end AS `ram_ctl`,ifnull(`cl`.`ram_max`,0) AS `ram_max`,ifnull(`cl`.`ram_used`,0) AS `ram_used`,ifnull(`cl`.`instances_max`,0) AS `instances_max`,ifnull(`cl`.`instances_used`,0) AS `instances_used`,ifnull(`cl`.`floating_ips_max`,0) AS `floating_ips_max`,ifnull(`cl`.`floating_ips_used`,0) AS `floating_ips_used`,ifnull(`cl`.`security_groups_max`,0) AS `security_groups_max`,ifnull(`cl`.`security_groups_used`,0) AS `security_groups_used`,ifnull(`cl`.`server_groups_max`,0) AS `server_groups_max`,ifnull(`cl`.`server_groups_used`,0) AS `server_groups_used`,ifnull(`cl`.`image_meta_max`,0) AS `image_meta_max`,ifnull(`cl`.`keypairs_max`,0) AS `keypairs_max`,ifnull(`cl`.`personality_max`,0) AS `personality_max`,ifnull(`cl`.`personality_size_max`,0) AS `personality_size_max`,ifnull(`cl`.`security_group_rules_max`,0) AS `security_group_rules_max`,ifnull(`cl`.`server_group_members_max`,0) AS `server_group_members_max`,ifnull(`cl`.`server_meta_max`,0) AS `server_meta_max` from (`csv2_group_resources` `cgr` left join `cloud_limits` `cl` on(`cgr`.`group_name` = `cl`.`group_name` and `cgr`.`cloud_name` = `cl`.`cloud_name`)) order by `cgr`.`group_name`,`cgr`.`cloud_name` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -99,4 +88,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-09  0:00:03
+-- Dump completed on 2018-02-15  0:00:04
