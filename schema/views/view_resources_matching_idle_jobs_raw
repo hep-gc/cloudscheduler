@@ -18,8 +18,8 @@ select
   keyname,
   cacertificate,
   region,
-  userdomainname,
-  projectdomainname,
+  user_domain_name,
+  project_domain_name,
   cloud_type,
 
   /*
@@ -30,7 +30,7 @@ select
 
   name as flavor_name,
   id as flavor_id,
-  vcpus as flavor_cores,
+  cores as flavor_cores,
   cf.ram as flavor_ram,
   disk as flavor_disk,
   ephemeral_disk as flavor_scratch,

@@ -54,8 +54,7 @@ group by
   network,
   max_price,
   user_data,
-  job_per_core,
-  q_date
+  job_per_core
 
 order by job_priority,q_date
 
