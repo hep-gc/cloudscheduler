@@ -523,3 +523,4 @@ view_vms_up_down = Table('view_vms_up_down', metadata,
   Column('VMs_down', Integer)
   )
 
+

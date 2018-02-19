@@ -33,8 +33,8 @@ SET character_set_client = utf8;
   `keyname` tinyint NOT NULL,
   `cacertificate` tinyint NOT NULL,
   `region` tinyint NOT NULL,
-  `userdomainname` tinyint NOT NULL,
-  `projectdomainname` tinyint NOT NULL,
+  `user_domain_name` tinyint NOT NULL,
+  `project_domain_name` tinyint NOT NULL,
   `cloud_type` tinyint NOT NULL,
   `cores` tinyint NOT NULL,
   `ram` tinyint NOT NULL,
@@ -67,7 +67,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `view_resources_matching_idle_jobs` AS select `vrmijr`.`group_name` AS `group_name`,`vrmijr`.`cloud_name` AS `cloud_name`,`vrmijr`.`authurl` AS `authurl`,`vrmijr`.`project` AS `project`,`vrmijr`.`username` AS `username`,`vrmijr`.`password` AS `password`,`vrmijr`.`keyname` AS `keyname`,`vrmijr`.`cacertificate` AS `cacertificate`,`vrmijr`.`region` AS `region`,`vrmijr`.`userdomainname` AS `userdomainname`,`vrmijr`.`projectdomainname` AS `projectdomainname`,`vrmijr`.`cloud_type` AS `cloud_type`,`vrmijr`.`cores` AS `cores`,`vrmijr`.`ram` AS `ram`,`vrmijr`.`flavor_name` AS `flavor_name`,`vrmijr`.`flavor_id` AS `flavor_id`,`vrmijr`.`flavor_cores` AS `flavor_cores`,`vrmijr`.`flavor_ram` AS `flavor_ram`,`vrmijr`.`flavor_disk` AS `flavor_disk`,`vrmijr`.`flavor_scratch` AS `flavor_scratch`,`vrmijr`.`flavor_swap` AS `flavor_swap`,`vrmijr`.`flavor_priority` AS `flavor_priority`,`vrmijr`.`flavor` AS `flavor`,cast(least(round(`vrmijr`.`cores` / `vrmijr`.`flavor_cores`,0),round(`vrmijr`.`ram` / `vrmijr`.`flavor_ram`,0)) as signed) AS `flavor_slots`,case when `vvud`.`VMs_up` is not null then `vvud`.`VMs_up` else 0 end AS `VMs_up`,case when `vvud`.`VMs_down` is not null then `vvud`.`VMs_down` else 0 end AS `VMs_down` from (`view_resources_matching_idle_jobs_raw` `vrmijr` left join `view_vms_up_down` `vvud` on(`vrmijr`.`flavor` = `vvud`.`flavor`)) where `vrmijr`.`flavor_cores` <= `vrmijr`.`cores` and `vrmijr`.`flavor_ram` <= `vrmijr`.`ram` order by `vrmijr`.`group_name`,`vrmijr`.`cloud_name`,`vrmijr`.`flavor_priority` */;
+/*!50001 VIEW `view_resources_matching_idle_jobs` AS select `vrmijr`.`group_name` AS `group_name`,`vrmijr`.`cloud_name` AS `cloud_name`,`vrmijr`.`authurl` AS `authurl`,`vrmijr`.`project` AS `project`,`vrmijr`.`username` AS `username`,`vrmijr`.`password` AS `password`,`vrmijr`.`keyname` AS `keyname`,`vrmijr`.`cacertificate` AS `cacertificate`,`vrmijr`.`region` AS `region`,`vrmijr`.`user_domain_name` AS `user_domain_name`,`vrmijr`.`project_domain_name` AS `project_domain_name`,`vrmijr`.`cloud_type` AS `cloud_type`,`vrmijr`.`cores` AS `cores`,`vrmijr`.`ram` AS `ram`,`vrmijr`.`flavor_name` AS `flavor_name`,`vrmijr`.`flavor_id` AS `flavor_id`,`vrmijr`.`flavor_cores` AS `flavor_cores`,`vrmijr`.`flavor_ram` AS `flavor_ram`,`vrmijr`.`flavor_disk` AS `flavor_disk`,`vrmijr`.`flavor_scratch` AS `flavor_scratch`,`vrmijr`.`flavor_swap` AS `flavor_swap`,`vrmijr`.`flavor_priority` AS `flavor_priority`,`vrmijr`.`flavor` AS `flavor`,cast(least(round(`vrmijr`.`cores` / `vrmijr`.`flavor_cores`,0),round(`vrmijr`.`ram` / `vrmijr`.`flavor_ram`,0)) as signed) AS `flavor_slots`,case when `vvud`.`VMs_up` is not null then `vvud`.`VMs_up` else 0 end AS `VMs_up`,case when `vvud`.`VMs_down` is not null then `vvud`.`VMs_down` else 0 end AS `VMs_down` from (`view_resources_matching_idle_jobs_raw` `vrmijr` left join `view_vms_up_down` `vvud` on(`vrmijr`.`flavor` = `vvud`.`flavor`)) where `vrmijr`.`flavor_cores` <= `vrmijr`.`cores` and `vrmijr`.`flavor_ram` <= `vrmijr`.`ram` order by `vrmijr`.`group_name`,`vrmijr`.`cloud_name`,`vrmijr`.`flavor_priority` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -81,4 +81,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-09  0:00:04
+-- Dump completed on 2018-02-17  0:00:03

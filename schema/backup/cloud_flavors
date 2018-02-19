@@ -27,7 +27,7 @@ CREATE TABLE `cloud_flavors` (
   `cloud_name` varchar(128) NOT NULL,
   `id` varchar(128) NOT NULL,
   `ram` int(11) NOT NULL,
-  `vcpus` int(11) NOT NULL,
+  `cores` int(11) NOT NULL,
   `swap` int(11) DEFAULT NULL,
   `disk` int(11) DEFAULT NULL,
   `ephemeral_disk` int(11) DEFAULT NULL,
@@ -47,4 +47,4 @@ CREATE TABLE `cloud_flavors` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-31 13:02:34
+-- Dump completed on 2018-02-17  0:00:03
