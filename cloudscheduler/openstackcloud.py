@@ -45,8 +45,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.keyname = resource.keyname
         self.cacertificate = resource.cacertificate
         self.project = resource.project
-        self.userdomainname = resource.userdomainname
-        self.projectdomainname = resource.projectdomainname
+        self.userdomainname = resource.user_domain_name
+        self.projectdomainname = resource.project_domain_name
         self.session = self._get_auth_version(self.authurl)
 
         self.default_securitygroup = defaultsecuritygroup
@@ -63,6 +63,14 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :param flavor: flavor value from db
         :return: exit code indicating success or error
         """
+
+        # Deal with user data - combine and zip etc.
+        template_dict['cs_cloud_type'] = self.__class__.__name__
+        template_dict['cs_flavor'] = flavor
+        user_data_list = job.user_data.split(',') if job.user_data else []
+        userdata = self.prepare_userdata(group_yaml=group_yaml_list,
+                                         yaml_list=user_data_list,
+                                         template_dict=template_dict)
         nova = self._get_creds_nova()
         # Check For valid security groups
 
@@ -75,13 +83,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             elif not nova.keypairs.findall(name=csconfig.config.keyname):
                 key_name = ""
 
-        # Deal with user data - combine and zip etc.
-        template_dict['cs_cloud_type'] = self.__class__.__name__
-        template_dict['cs_flavor'] = flavor
-        user_data_list = job.user_data.split(',') if job.user_data else []
-        userdata = self.prepare_userdata(group_yaml=group_yaml_list,
-                                         yaml_list=user_data_list,
-                                         template_dict=template_dict)
+
 
         # Check image from job, else use cloud default, else global default
         imageobj = None

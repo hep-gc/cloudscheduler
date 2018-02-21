@@ -19,10 +19,10 @@ class EC2Cloud(cloudscheduler.basecloud):
                                                     extrayaml=extrayaml)
 
     def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
-        pass
+        self.log.debug("vm_create from ec2 cloud.")
 
     def vm_destroy(self, vm):
-        pass
+        self.log.debug("vm_destroy from ec2 cloud.")
 
     def vm_update(self):
-        pass
+        self.log.debug("vm_update from ec2 cloud.")

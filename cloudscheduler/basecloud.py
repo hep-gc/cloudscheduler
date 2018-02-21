@@ -97,6 +97,7 @@ class BaseCloud(ABC):
         if not userdata:
             return ""
         compressed = ""
+        self.log.debug(userdata)
         try:
             compressed = gzip.compress(str.encode(userdata))
         except ValueError as ex:
