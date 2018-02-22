@@ -31,6 +31,7 @@ def verifyUser(request):
 
     return False
 
+
 def getSuperUserStatus(request):
     authorized_user = getAuthUser(request)
     csv2_user_list = csv2_user.objects.all()
@@ -38,3 +39,24 @@ def getSuperUserStatus(request):
         if user.username == authorized_user or user.cert_cn == authorized_user:
             return user.is_superuser
     return False
+
+
+def _render(request, template, context):
+  from django.shortcuts import render
+  from django.http import HttpResponse
+  from django.core import serializers
+  from django.db.models.query import QuerySet
+  import json
+
+  if request.META['HTTP_ACCEPT'] == 'application/json':
+    serialized_context = {}
+    for item in context:
+      if isinstance(context[item], QuerySet):
+        serialized_context[item] = serializers.serialize("json", context[item])
+      else:
+        serialized_context[item] = context[item]
+    response = HttpResponse(json.dumps(serialized_context), content_type='application/json')
+  else:
+    response = render(request, template, context)
+  return response
+
