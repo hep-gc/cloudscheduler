@@ -29,7 +29,8 @@ CREATE TABLE `csv2_user` (
   `is_superuser` tinyint(1) NOT NULL,
   `join_date` date NOT NULL,
   `active_group` varchar(128) DEFAULT NULL,
-  PRIMARY KEY (`username`)
+  PRIMARY KEY (`username`),
+  UNIQUE KEY `csv2_user_username_9ad5aba7_uniq` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -42,4 +43,4 @@ CREATE TABLE `csv2_user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-17  0:00:03
+-- Dump completed on 2018-02-20  0:00:03
