@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Synopsis: utilities/generate_schema.py > lib/schema.py
 
@@ -11,10 +11,9 @@ schema to stdout. To use the schema definitions:
 from subprocess import Popen, PIPE
 from tempfile import mkdtemp
 import os
-import string
 import sys
 
-REMOVE_BRACKETS = string.maketrans('()', '  ')
+REMOVE_BRACKETS = str.maketrans('()', '  ')
 
 def main(args):
     """
@@ -64,11 +63,11 @@ def main(args):
         stderr=PIPE
         )
     stdout, stderr = _p2.communicate()
-    if stderr != '':
+    if _p2.returncode != 0:
         print('Failed to retrieve DB password.')
         exit(1)
 
-    gvar['pw'] = stdout.strip()
+    gvar['pw'] = stdout.strip().decode('ascii')
 
     _p1 = Popen(
         [
@@ -92,7 +91,7 @@ def main(args):
         stderr=PIPE
         )
     stdout, stderr = _p2.communicate()
-    if stderr != '':
+    if _p2.returncode != 0:
         print('Failed to retrieve table list.')
         exit(1)
 
@@ -103,7 +102,7 @@ def main(args):
         )
 
 
-    tables = stdout.split()
+    tables = stdout.decode('ascii').split()
     for table in tables:
         _stdout = ["%s = Table('%s', metadata,\n" % (table, table)]
 
@@ -129,11 +128,11 @@ def main(args):
             stderr=PIPE
             )
         stdout, stderr = _p2.communicate()
-        if stderr != '':
-            print('Failed to retrieve table list.')
+        if _p2.returncode != 0:
+            print('Failed to retrieve table columns.')
             exit(1)
 
-        columns = stdout.split("\n")
+        columns = stdout.decode('ascii').split("\n")
         for _ix in range(1, len(columns)):
             _w = columns[_ix].split()
             if len(_w) > 3:
