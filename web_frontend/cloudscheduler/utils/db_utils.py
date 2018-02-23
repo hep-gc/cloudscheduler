@@ -183,12 +183,14 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
             project="default",
             username=uname,
             password=pword,
-            keyname="",
-            cacertificate="",
-            region="",
-            user_domain_name="",
-            project_domain_name="", 
-            cloud_type="",
+            keyname=keyname,
+            cacertificate=cacertificate,
+            region=region,
+            user_domain_name=user_domain_name,
+            project_domain_name=project_domain_name, 
+            cloud_type=cloud_type,
+            cores_ctl=cores_ctl,
+            ram_ctl=ram_ctl
             )
 
     elif action=="modify":

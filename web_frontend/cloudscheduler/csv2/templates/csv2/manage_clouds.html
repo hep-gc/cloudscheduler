@@ -71,11 +71,11 @@
         }
         .target > div {
             float: right;
-            border-left: 40px solid white;
+            border-left: 10px solid white;
             padding: 0px;
             transition: all 0.5s ease;     
             padding-right: 50px;
-            margin-left: -20px;    
+            margin-left: 0px;    
         }
 
 
@@ -89,9 +89,9 @@
             background: rgba(0,0,0,0.8);
             z-index: 99999;
             opacity:0;
-            -webkit-transition: opacity 400ms ease-in;
-            -moz-transition: opacity 400ms ease-in;
-            transition: opacity 400ms ease-in;
+            -webkit-transition: opacity 100ms ease-in;
+            -moz-transition: opacity 100ms ease-in;
+            transition: opacity 100ms ease-in;
             pointer-events: none;
         }
 
@@ -101,15 +101,12 @@
         }
 
         .modalDialog > div {
-            width: 400px;
+            width: 200px;
             position: relative;
             margin: 10% auto;
-            padding: 5px 20px 13px 20px;
+            padding: 20px 20px 20px 20px;
             border-radius: 10px;
             background: #fff;
-            background: -moz-linear-gradient(#fff, #999);
-            background: -webkit-linear-gradient(#fff, #999);
-            background: -o-linear-gradient(#fff, #999);
         }
 
         .close {
@@ -134,40 +131,38 @@
         .close:hover { background: #00d9ff; }
 
 
-input[type=checkbox] {
-  display: none;
-}
+        input[type=checkbox] {
+          display: none;
+        }
 
 
 
-input[type=checkbox] + label {
-    background: url(https://upload.wikimedia.org/wikipedia/commons/4/43/Unlock_font_awesome.svg);
-    height: 30px;
-    width: 30px;
-    display:inline-block;
-    padding: 0 0 0 0px;
-}
+        input[type=checkbox] + label {
+            background: url(https://upload.wikimedia.org/wikipedia/commons/4/43/Unlock_font_awesome.svg);
+            height: 30px;
+            width: 30px;
+            display:inline-block;
+            padding: 0 0 0 0px;
+        }
 
-input[type=checkbox]:checked + label {
-    background: url(https://upload.wikimedia.org/wikipedia/commons/8/8c/Lock_font_awesome.svg);
-    height: 30px;
-    width: 30px;
-    display:inline-block;
-    padding: 0 0 0 0px;
-}
-
-
+        input[type=checkbox]:checked + label {
+            background: url(https://upload.wikimedia.org/wikipedia/commons/8/8c/Lock_font_awesome.svg);
+            height: 30px;
+            width: 30px;
+            display:inline-block;
+            padding: 0 0 0 0px;
+        }
 
 
 
-.content {
-  display: inline-block;
-}
+        .content {
+          display: inline-block;
+        }
 
-/* Toggled State */
-input[type=checkbox]:checked ~ div {
-   display: none;
-}
+        /* Toggled State */
+        input[type=checkbox]:checked ~ div {
+           display: none;
+        }
 
 
 
@@ -236,22 +231,32 @@ input[type=checkbox]:checked ~ div {
                 {% endif %}
                     <label for="cores_switch_{{cloud.cloud_name}}"></label>
                     <div class="content">
+                    {% if cloud.cores_ctl < 0 %}
+                        <input for="cores" oninput="cores.value=range_cores.value" id="slider" type="range" min="0" max="{{cloud.cores_max}}" value="{{cloud.cores_max}}" name="range_cores"/>
+                        <input oninput="range_cores.value=cores.value" id="box" type="number" min="0"  max="{{cloud.cores_max}}" value="{{cloud.cores_max}}" name="cores" for="range_cores" oninput="range_cores.value=cores.value"/>
+                    {% else %}
                         <input for="cores" oninput="cores.value=range_cores.value" id="slider" type="range" min="0" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="range_cores" />
                         <input oninput="range_cores.value=cores.value" id="box" type="number" min="0"  max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores" for="range_cores" oninput="range_cores.value=cores.value" />
+                    {% endif %}
                     </div>
                 </td></tr>
 
                 <tr><td><label for="ram">RAM</label></td>
                 <td>
                 {% if cloud.ram_ctl < 0 %}
-                    <input type="checkbox" id="ram_switch_{{cloud.cloud_name}}" name="core_lock" value="lock" checked>
+                    <input type="checkbox" id="ram_switch_{{cloud.cloud_name}}" name="ram_lock" value="lock" checked>
                 {% else %}
-                    <input type="checkbox" id="ram_switch_{{cloud.cloud_name}}" name="core_lock" value="lock">
+                    <input type="checkbox" id="ram_switch_{{cloud.cloud_name}}" name="ram_lock" value="lock">
                 {% endif %}
                     <label for="ram_switch_{{cloud.cloud_name}}"></label>
                     <div class="content">
+                    {% if cloud.ram_ctl < 0 %}
+                        <input for="ram" oninput="ram.value=range_ram.value" id="slider" type="range" min="0" max="{{cloud.ram_max}}" value="{{cloud.ram_max}}" name="range_ram" />
+                        <input oninput="range_ram.value=ram.value" id="box" type="number" min="0"  max="{{cloud.ram_max}}" value="{{cloud.ram_max}}" name="ram" for="range_ram" oninput="range_ram.value=ram.value" />
+                    {% else %}
                         <input for="ram" oninput="ram.value=range_ram.value" id="slider" type="range" min="0" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="range_ram" />
                         <input oninput="range_ram.value=ram.value" id="box" type="number" min="0"  max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram" for="range_ram" oninput="range_ram.value=ram.value" />
+                    {% endif %}   
                     </div>
                 </td></tr>
 
@@ -275,6 +280,22 @@ input[type=checkbox]:checked ~ div {
                 <td><input type="text" name="username" id="" value="" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
                 <td><input type="password" name="password" id="" value="" /></td></tr>
+                <tr><td><label for="keyname">Key pair name</label></td>
+                <td><input type="text" name="keyname" id="" value="{{cloud.keyname}}" /></td></tr>
+                <tr><td><label for="cacertificate">CA certificate</label></td>
+                <td><input type="text" name="cacertificate" id="" value="{{cloud.cacertificate}}" /></td></tr>
+                <tr><td><label for="region">Region</label></td>
+                <td><input type="text" name="region" id="" value="{{cloud.region}}" /></td></tr>
+                <tr><td><label for="user_domain_name">User domain name</label></td>
+                <td><input type="text" name="user_domain_name" id="" value="{{cloud.user_domain_name}}" /></td></tr>
+                <tr><td><label for="project_domain_name">Project domain name</label></td>
+                <td><input type="text" name="project_domain_name" id="" value="{{cloud.project_domain_name}}" /></td></tr>
+                <tr><td><label for="cloud_type">Cloud type</label></td>
+                <td><input type="text" name="cloud_type" id="" value="{{cloud.cloud_type}}" /></td></tr>
+                <input type="hidden" name="cores" value="-1" />
+                <input type="hidden" name="core_lock" value="lock" />
+                <input type="hidden" name="ram" value="-1" />
+                <input type="hidden" name="ram_lock" value="lock" />
                 <input type="hidden" name="action" value="add" />
                 <tr><td><input type="submit" value="Add Cloud" /></td></tr>
             </table>
