@@ -21,7 +21,7 @@ def getcsv2User(request):
 
 def verifyUser(request):
     auth_user = getAuthUser(request)
-    
+
     csv2_user_list = csv2_user.objects.all()
     #try to find a user that has "auth_user" as username or cert_cn
     # the uniqueness here will be forced on user creation
@@ -42,21 +42,25 @@ def getSuperUserStatus(request):
 
 
 def _render(request, template, context):
-  from django.shortcuts import render
-  from django.http import HttpResponse
-  from django.core import serializers
-  from django.db.models.query import QuerySet
-  import json
+    """
+    If the "Accept" HTTP header contains "application/json", return a json string. Otherwise,
+    return an HTML string.
+    """
 
-  if request.META['HTTP_ACCEPT'] == 'application/json':
-    serialized_context = {}
-    for item in context:
-      if isinstance(context[item], QuerySet):
-        serialized_context[item] = serializers.serialize("json", context[item])
-      else:
-        serialized_context[item] = context[item]
-    response = HttpResponse(json.dumps(serialized_context), content_type='application/json')
-  else:
-    response = render(request, template, context)
-  return response
+    from django.shortcuts import render
+    from django.http import HttpResponse
+    from django.core import serializers
+    from django.db.models.query import QuerySet
+    import json
 
+    if request.META['HTTP_ACCEPT'] == 'application/json':
+        serialized_context = {}
+        for item in context:
+            if isinstance(context[item], QuerySet):
+                serialized_context[item] = serializers.serialize("json", context[item])
+            else:
+                serialized_context[item] = context[item]
+        response = HttpResponse(json.dumps(serialized_context), content_type='application/json')
+    else:
+        response = render(request, template, context)
+    return response
