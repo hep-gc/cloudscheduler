@@ -58,7 +58,7 @@ def add_cloud_resources(request):
         if ram_lock == 'lock':
             ram_ctl = -1
         else:
-            ram_ctl = cores
+            ram_ctl = ram
 
         # Use bcrypt to encrypt password.
         hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
