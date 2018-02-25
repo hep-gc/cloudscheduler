@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+"""
+This is the command line interface to cloudscheduler version 2.
+"""
+
+from pathlib import Path
+from getpass import getpass
+
+import os
+import sys
+
+import json
+import requests
+import yaml
+
+DEFAULT_SETTINGS = {
+    'url': 'https://localhost',
+    }
+
+GLOBAL_ARGS = (
+        # (mandatory, key_value, short_name, long_name)
+        (False, True, '-c', '--cert'),
+        (False, True, '-g', '--group'),
+        (False, True, '-k', '--key'),
+        (False, True, '-p', '--password'),
+        (False, True, '-s', '--server'),
+        (False, True, '-U', '--url'),
+        (False, True, '-u', '--user'),
+    )
+
+CLI_SET_ARGS = (
+        (False, True, '-U', '--URL'),
+    )
+
+def main(args):
+    """
+    Determine object type and call handler.
+    """
+
+    # Check for minimum arguments; print help messages and exit, if not.
+    if len(args) < 3:
+        print('Synopsis: csv2 <object_type> <action> <arguments>')
+        exit(0)
+
+    # Retrieve arguments.
+    gvar = {
+        'action': args[2],
+        'function_args': None,
+        'home_dir': str(Path.home()),
+        'object_type': args[1],
+        }
+    
+    gvar['global_args'] = _args(gvar, GLOBAL_ARGS, args[3:])
+
+    # Ensure a minimal user settings exists.
+    if not os.path.exists('%s/.csv2/default' % gvar['home_dir']):
+        os.makedirs('%s/.csv2/default' % gvar['home_dir'], mode=0o700)  
+
+    if not os.path.exists('%s/.csv2/default/settings.yaml' % gvar['home_dir']):
+        _fd = open('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 'w')
+        _fd.write(yaml.dump(DEFAULT_SETTINGS))
+        _fd.close()
+        os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
+
+    # Load the user settings.
+    if 'server' in gvar['global_args']:
+        gvar['server'] = gvar['global_args']['server']
+    else:
+        gvar['server'] = 'default'
+
+    try:
+        _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
+        gvar['user_settings'] = yaml.load(_fd)
+        _fd.close()
+    except:
+        gvar['user_settings'] = {}
+
+    # Apply options temporarily.
+    _cli_set_option(gvar, 'url')
+    _cli_set_option(gvar, 'cert')
+    _cli_set_option(gvar, 'key')
+    _cli_set_option(gvar, 'user')
+    _cli_set_option(gvar, 'password')
+    _cli_set_option(gvar, 'group')
+
+    # Prompt for password if requested ("-p .").
+    if gvar['object_type'] != 'cli' and 'password' in gvar['user_settings'] and gvar['user_settings']['password'] == '.':
+        gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s":' % gvar['server'])
+    
+    # Call object_type handler.
+    if gvar['object_type'] == 'user' and gvar['action'] == 'list':
+        _user_list(gvar)
+    elif gvar['object_type'] == 'cli' and gvar['action'] == 'list':
+        _cli_list(gvar)
+    elif gvar['object_type'] == 'cli' and gvar['action'] == 'set':
+        _cli_set(gvar)
+    else:
+        print('?')
+        exit(1)
+
+    exit(0)
+
+def _args(gvar, key_list, arg_list):
+    """
+    Return dictionary of arguments.
+    """
+
+    # Initialize response.
+    response = {
+        '__missing__': [],
+        '__unrecognized__': []
+        }
+
+    for _iy in range(len(key_list)):
+      if key_list[_iy][0]:
+        response['__missing__'].append('%s|%s' % (key_list[_iy][2], key_list[_iy][3]))
+
+    # Scan args.
+    _max_ix = len(arg_list) - 1
+    _skip_next = False
+    for _ix in range(len(arg_list)):
+        if _skip_next:
+            _skip_next = False
+
+        else:
+            _recognized = False
+            for _iy in range(len(key_list)):
+                _key_mnemonic = '%s|%s' % (key_list[_iy][2], key_list[_iy][3])
+                if key_list[_iy][1] and \
+                _ix < _max_ix and \
+                (arg_list[_ix] == key_list[_iy][2] or \
+                arg_list[_ix] == key_list[_iy][3]):
+                    _recognized = True
+                    _skip_next = True
+                    response[key_list[_iy][3][2:]] = arg_list[_ix+1]
+                    _args_not_missing(gvar, response['__missing__'], _key_mnemonic)
+
+                elif not key_list[_iy][1] and \
+                (arg_list[_ix] == key_list[_iy][2] or \
+                arg_list[_ix] == key_list[_iy][3]):
+                    _recognized = True
+                    response[key_list[_iy][0]] = True
+                    _args_not_missing(gvar, response['__missing__'], _key_mnemonic)
+
+        if not _recognized:
+            response['__unrecognized__'].append(arg_list[_ix])
+
+    return response 
+
+def _args_not_missing(gvar, missing_list, mnemonic):
+    """
+    Remove mandatory items from the missing list.
+    """
+
+    try:
+        _ix = missing_list.index(mnemonic)
+        del(missing_list[_ix])
+
+    except ValueError:
+        pass
+
+def _cli_list(gvar):
+    """
+    Process user list.
+    """
+
+def _cli_set(gvar):
+    """
+    Modify user settings.
+    """
+
+    # Global server argument is mandatory.
+    if 'server' not in gvar['global_args']:
+        print('Error: "csv2 cli set" requires the -s|--server parameter.')
+        exit(1)
+
+    _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
+    _fd.write(yaml.dump(gvar['user_settings']))
+    _fd.close()
+    os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
+
+def _cli_set_option(gvar, key):
+    """
+    Modify specific user setting.
+    """
+    
+    if key in gvar['global_args']:
+        if gvar['global_args'][key] == '-':
+            if key in gvar['user_settings']:
+                del(gvar['user_settings'][key])
+        else:
+            gvar['user_settings'][key] = gvar['global_args'][key]
+    
+def _curl(gvar, request):
+    """
+    Make RESTful request and return response.
+    """
+
+    if 'url' not in gvar['user_settings']:
+        print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
+        exit(1)
+
+    if 'cert' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['cert']) and \
+        'key' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['key']):
+        _r = requests.get(
+            '%s%s' % (gvar['user_settings']['url'], request),
+            headers={'Accept': 'application/json'},
+            cert=(gvar['user_settings']['cert'], gvar['user_settings']['key']),
+            verify=False
+            )
+
+    elif 'user' in gvar['user_settings'] and \
+        'password' in gvar['user_settings']:
+        _r = requests.get(
+            '%s%s' % (gvar['user_settings']['url'], request),
+            headers={'Accept': 'application/json'},
+            auth=(gvar['user_settings']['user'], gvar['user_settings']['password']),
+            verify=False
+            )
+
+    else:
+        _r = requests.get(
+            '%s%s' % (gvar['user_settings']['url'], request),
+            headers={'Accept': 'application/json'},
+            verify=False
+            )
+
+    try:
+        response = _r.json()
+    except:
+        response = {'response_code': 1, 'message': 'unable to communicate with server "%s".' % gvar['server']}
+
+    if response['response_code'] != 0:
+        print('Error: %s' % response['message'])
+        exit(1)
+
+    return response
+
+def _show_table(gvar, queryset, columns):
+    """
+    Print a table from a django query set.
+    """
+
+    # Columns.
+    _columns = []
+    _colxref = {}
+    for column in columns:
+        _w = column[0].split('/')
+        _colxref[_w[0]] = len(_columns)
+        if len(_w) > 1:
+            _columns.append([_w[0], _w[1], column[1], len(_w[1])
+        else:
+            _columns.append([_w[0], _w[0], column[1], len(_w[0])
+
+    # Normalize the queryset.
+    if isinstance(queryset, str):
+        _qs = json.loads(queryset)
+    else:
+        _qs = queryset
+
+    # extract columns.
+    _list = []
+    for row in _qs:
+        _row = []
+        for column in _columns:
+            if column[0] in row:
+              _value = row[column[0]]
+            elif column in row['fields']:
+              _value = row['fields'][column[0]]
+            else:
+              _value = '-'
+
+            _row.append(_value)
+            if _column[3] < len(_value):
+                _column[3] = len(_value)
+
+def _user_list(gvar):
+    """
+    Process user list.
+    """
+
+    response = _curl(gvar, '/manage_users/')
+    _show_table(
+        gvar,
+        json.loads(response['user_list']),
+        [
+            ['pk/User', 'l'],
+            ['cert_cn/Common Name', 'l'],
+            ['password/Passsword', 'l'],
+            ['is_superuser/Superuser', 'l'],
+            ['join_date/Created', 'l'],
+            ['active_group/Group', 'l'],
+        ]
+        )
+
+    if response['response_code'] == 0:
+        for user in json.loads(response['user_list']):
+            print('\n\n', user['pk'])
+            for field in user['fields']:
+                print('%s: %s' % (field, user['fields'][field]))
+
+if __name__ == "__main__":
+    main(sys.argv)
