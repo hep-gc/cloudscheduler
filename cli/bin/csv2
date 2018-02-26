@@ -3,8 +3,9 @@
 This is the command line interface to cloudscheduler version 2.
 """
 
-from pathlib import Path
 from getpass import getpass
+from pathlib import Path
+from subprocess import Popen
 
 import os
 import sys
@@ -37,10 +38,9 @@ def main(args):
 
     # Check for minimum arguments; print help messages and exit, if not.
     if len(args) < 3:
-        print('Synopsis: csv2 <object_type> <action> <arguments>')
-        exit(0)
+        _help('csv2')
 
-    # Retrieve arguments.
+    # Initialize global variables.
     gvar = {
         'action': args[2],
         'function_args': None,
@@ -48,6 +48,7 @@ def main(args):
         'object_type': args[1],
         }
     
+    # Retrieve arguments.
     _command_args = _args(gvar, COMMAND_ARGS, args[3:])
 
     # Ensure a minimal user settings exists.
@@ -81,22 +82,27 @@ def main(args):
                     del(gvar['user_settings'][key])
             else:
                 gvar['user_settings'][key] = _command_args[key]
-    
+
     if gvar['object_type'] != 'cli' and 'password' in gvar['user_settings'] and gvar['user_settings']['password'] == '.':
         gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s":' % gvar['server'])
     
     # Call object_type handler.
-    if gvar['object_type'] == 'user' and gvar['action'] == 'list':
-        _user_list(gvar)
-    elif gvar['object_type'] == 'cli' and gvar['action'] == 'list':
-        _cli_list(gvar)
-    elif gvar['object_type'] == 'cli' and gvar['action'] == 'set':
-        _cli_set(gvar)
-    else:
-        print('?')
-        exit(1)
+    if gvar['object_type'] == 'user':
+        if gvar['action'] == 'list':
+            _user_list(gvar)
+        else:
+            _help('csv2_user')
 
-    exit(0)
+    elif gvar['object_type'] == 'cli':
+        if gvar['action'] == 'list':
+            _cli_list(gvar)
+        elif gvar['action'] == 'set':
+            _cli_set(gvar)
+        else:
+            _help('csv2_cli')
+
+    else:
+        _help('csv2')
 
 def _args(gvar, key_list, arg_list):
     """
@@ -151,12 +157,18 @@ def _cli_list(gvar):
     Process user list.
     """
 
+    if gvar['user_settings']['help']:
+        _help('csv2_cli_list')
+
     _queryset = []
 
 def _cli_set(gvar):
     """
     Modify user settings.
     """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_cli_set')
 
     # Global server argument is mandatory.
     if 'server' not in gvar['user_settings']:
@@ -217,6 +229,14 @@ def _curl(gvar, request):
         exit(1)
 
     return response
+
+def _help(manpage):
+    """
+    Open man page and exit.
+    """
+
+    Popen(['man', manpage])
+    exit(0)
 
 def _show_table(gvar, queryset, columns):
     """
@@ -322,6 +342,9 @@ def _user_list(gvar):
     """
     Process user list.
     """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_user_list')
 
     response = _curl(gvar, '/manage_users/')
     _show_table(
