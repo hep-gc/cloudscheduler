@@ -1,0 +1,364 @@
+#!/usr/bin/env python3
+"""
+This is the command line interface to cloudscheduler version 2.
+"""
+
+from getpass import getpass
+from pathlib import Path
+from subprocess import Popen
+
+import os
+import sys
+
+import json
+import requests
+import yaml
+
+DEFAULT_SETTINGS = {
+    'url': 'https://localhost',
+    }
+
+COMMAND_ARGS = (
+        # (mandatory, key_value, short_name, long_name)
+        ('-c', '--cert', True),
+        ('-g', '--group', True),
+        ('-h', '--help', False),
+        ('-k', '--key', True),
+        ('-P', '--pivot', False),
+        ('-p', '--password', True),
+        ('-s', '--server', True),
+        ('-U', '--url', True),
+        ('-u', '--user', True),
+    )
+
+def main(args):
+    """
+    Determine object type and call handler.
+    """
+
+    # Check for minimum arguments; print help messages and exit, if not.
+    if len(args) < 3:
+        _help('csv2')
+
+    # Initialize global variables.
+    gvar = {
+        'action': args[2],
+        'function_args': None,
+        'home_dir': str(Path.home()),
+        'object_type': args[1],
+        }
+    
+    # Retrieve arguments.
+    _command_args = _args(gvar, COMMAND_ARGS, args[3:])
+
+    # Ensure a minimal user settings exists.
+    if not os.path.exists('%s/.csv2/default' % gvar['home_dir']):
+        os.makedirs('%s/.csv2/default' % gvar['home_dir'], mode=0o700)  
+
+    if not os.path.exists('%s/.csv2/default/settings.yaml' % gvar['home_dir']):
+        _fd = open('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 'w')
+        _fd.write(yaml.dump(DEFAULT_SETTINGS))
+        _fd.close()
+        os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
+
+    # Load the user settings.
+    if 'server' in _command_args:
+        gvar['server'] = _command_args['server']
+    else:
+        gvar['server'] = 'default'
+
+    try:
+        _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
+        gvar['user_settings'] = yaml.load(_fd)
+        _fd.close()
+    except:
+        gvar['user_settings'] = {}
+
+    # Apply options temporarily.
+    for key in _command_args:
+        if key in _command_args:
+            if _command_args[key] == '-':
+                if key in gvar['user_settings']:
+                    del(gvar['user_settings'][key])
+            else:
+                gvar['user_settings'][key] = _command_args[key]
+
+    if gvar['object_type'] != 'cli' and 'password' in gvar['user_settings'] and gvar['user_settings']['password'] == '.':
+        gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s":' % gvar['server'])
+    
+    # Call object_type handler.
+    if gvar['object_type'] == 'user':
+        if gvar['action'] == 'list':
+            _user_list(gvar)
+        else:
+            _help('csv2_user')
+
+    elif gvar['object_type'] == 'cli':
+        if gvar['action'] == 'list':
+            _cli_list(gvar)
+        elif gvar['action'] == 'set':
+            _cli_set(gvar)
+        else:
+            _help('csv2_cli')
+
+    else:
+        _help('csv2')
+
+def _args(gvar, key_list, arg_list):
+    """
+    Return dictionary of arguments.
+    """
+
+    # Initialize response.
+    response = {
+        '__unrecognized__': []
+        }
+
+    for _ix in range(len(key_list)):
+        if not key_list[_ix][2]:
+            response[key_list[_ix][1][2:]] = False
+
+    # Scan args.
+    _max_ix = len(arg_list) - 1
+    _skip_next = False
+    for _ix in range(len(arg_list)):
+        if _skip_next:
+            _skip_next = False
+
+        else:
+            _recognized = False
+            for _iy in range(len(key_list)):
+                _key_mnemonic = '%s|%s' % (key_list[_iy][0], key_list[_iy][1])
+                if key_list[_iy][2] and \
+                _ix < _max_ix and \
+                (arg_list[_ix] == key_list[_iy][0] or \
+                arg_list[_ix] == key_list[_iy][1]):
+                    _recognized = True
+                    _skip_next = True
+                    response[key_list[_iy][1][2:]] = arg_list[_ix+1]
+
+                elif not key_list[_iy][2] and \
+                (arg_list[_ix] == key_list[_iy][0] or \
+                arg_list[_ix] == key_list[_iy][1]):
+                    _recognized = True
+                    response[key_list[_iy][1][2:]] = True
+
+        if not _recognized:
+            response['__unrecognized__'].append(arg_list[_ix])
+
+    if response['__unrecognized__']:
+        print('Error: The following command line arguments were unrecognized: %s' % response['__unrecognized__'])
+        exit(1)
+
+    return response 
+
+def _cli_list(gvar):
+    """
+    Process user list.
+    """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_cli_list')
+
+    _queryset = []
+
+def _cli_set(gvar):
+    """
+    Modify user settings.
+    """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_cli_set')
+
+    # Global server argument is mandatory.
+    if 'server' not in gvar['user_settings']:
+        print('Error: "csv2 cli set" requires the -s|--server parameter.')
+        exit(1)
+
+    if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
+        os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']), mode=0o700)  
+
+    _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
+    _fd.write(yaml.dump(gvar['user_settings']))
+    _fd.close()
+    os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
+
+def _curl(gvar, request):
+    """
+    Make RESTful request and return response.
+    """
+
+    if 'url' not in gvar['user_settings']:
+        print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
+        exit(1)
+
+    if 'cert' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['cert']) and \
+        'key' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['key']):
+        _r = requests.get(
+            '%s%s' % (gvar['user_settings']['url'], request),
+            headers={'Accept': 'application/json'},
+            cert=(gvar['user_settings']['cert'], gvar['user_settings']['key']),
+            verify=False
+            )
+
+    elif 'user' in gvar['user_settings'] and \
+        'password' in gvar['user_settings']:
+        _r = requests.get(
+            '%s%s' % (gvar['user_settings']['url'], request),
+            headers={'Accept': 'application/json'},
+            auth=(gvar['user_settings']['user'], gvar['user_settings']['password']),
+            verify=False
+            )
+
+    else:
+        _r = requests.get(
+            '%s%s' % (gvar['user_settings']['url'], request),
+            headers={'Accept': 'application/json'},
+            verify=False
+            )
+
+    try:
+        response = _r.json()
+    except:
+        response = {'response_code': 1, 'message': 'unable to communicate with server "%s".' % gvar['server']}
+
+    if response['response_code'] != 0:
+        print('Error: %s' % response['message'])
+        exit(1)
+
+    return response
+
+def _help(manpage):
+    """
+    Open man page and exit.
+    """
+
+    Popen(['man', manpage])
+    exit(0)
+
+def _show_table(gvar, queryset, columns):
+    """
+    Print a table from a django query set.
+    """
+
+    # Normalize column definitions.
+    _field_names = []
+    _column_names = []
+    
+    if gvar['user_settings']['pivot']:
+        _column_lengths = [3, 5]
+    else:
+        _column_lengths = []
+
+    for column in columns:
+        _w = column.split('/')
+        if len(_w) < 2:
+          w.append(_w[0])
+
+        _field_names.append(_w[0])
+        _column_names.append(_w[1])
+
+        if gvar['user_settings']['pivot']:
+            if _column_lengths[0] < len(_w[1]):
+                _column_lengths[0] = len(_w[1])
+        else:
+            _column_lengths.append(len(_w[1]))
+
+    # Normalize the queryset.
+    if isinstance(queryset, str):
+        _qs = json.loads(queryset)
+    else:
+        _qs = queryset
+
+    # extract columns.
+    _list = []
+    for row in _qs:
+        _row = []
+        for _ix in range(len(_field_names)):
+            if _field_names[_ix] in row:
+              _value = row[_field_names[_ix]]
+            elif _field_names[_ix] in row['fields']:
+              _value = row['fields'][_field_names[_ix]]
+            else:
+              _value = '-'
+
+            if isinstance(_value, bool):
+               _len = 5
+            elif isinstance(_value, int):
+               _len = 11
+            elif isinstance(_value, float):
+               _len = 21
+            elif _value is None:
+               _len = 4
+            else:
+               _len = len(_value)
+
+            if gvar['user_settings']['pivot']:
+                _list.append([_column_names[_ix], _value])
+                if _column_lengths[1] < _len:
+                    _column_lengths[1] = _len
+            else:
+                _row.append(_value)
+                if _column_lengths[_ix] < _len:
+                    _column_lengths[_ix] = _len
+
+        if gvar['user_settings']['pivot']:
+            _list.append(['', ''])
+        else:
+            _list.append(_row)
+
+    _column_underscore = []
+    for _ix in range(len(_column_lengths)):
+        _column_underscore.append('-' * (_column_lengths[_ix] + 2))
+    _ruler = '+%s+' % '+'.join(_column_underscore)
+
+    print(_ruler)
+    if gvar['user_settings']['pivot']:
+        print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, ['Key', 'Value'])))
+    else:
+        print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, _column_names)))
+    print(_ruler)
+
+    for _row in _list:
+        print('| %s |' % ' | '.join(_show_table_pad(_column_lengths, _row)))
+
+    print(_ruler)
+
+def _show_table_pad(lens, cols):
+    """
+    Pad column values with blanks; lens contains the maximum length for each column. 
+    """
+
+    padded_columns = []
+
+    for _ix in range(len(lens)):
+        padded_columns.append('%s%s' % (cols[_ix], ' ' * (lens[_ix] - len(str(cols[_ix])))))
+
+    return padded_columns
+
+def _user_list(gvar):
+    """
+    Process user list.
+    """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_user_list')
+
+    response = _curl(gvar, '/manage_users/')
+    _show_table(
+        gvar,
+        json.loads(response['user_list']),
+        [
+            'pk/User',
+            'cert_cn/Common Name',
+            'password/Passsword',
+            'is_superuser/Superuser',
+            'join_date/Created',
+            'active_group/Group',
+        ],
+        )
+
+if __name__ == "__main__":
+    main(sys.argv)

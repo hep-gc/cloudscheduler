@@ -18,13 +18,6 @@
     </style>
 </head>
 
-{% if err_message is not None %}
-    <p style="color:red;">{{err_message}}</p>
-{% endif %}
-{% if message is not None %}
-    <p style="color:green;">{{message}}</p>
-{% endif %}
-
 <table>
     <tr><th>Username</th><th>Cert CN</th><th>Superuser</th></tr>
     {% for user in user_list %}
@@ -90,6 +83,13 @@
     </div>
 </div>
 
+{% if message is not None %}
+    {% if response_code == 0 %}
+        <p style="color: green; font-weight: bold; font-size: large;">{{message}}</p>
+    {% else %}
+        <p style="color: red; font-weight: bold; font-size: large;">{{message}}</p>
+    {% endif %}
+{% endif %}
 
 <script>
     function confirmDelete(user) {
