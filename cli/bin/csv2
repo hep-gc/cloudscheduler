@@ -14,21 +14,27 @@ import json
 import requests
 import yaml
 
+EXTRACT_CSRF = str.maketrans('=;', '  ')
+
 DEFAULT_SETTINGS = {
     'url': 'https://localhost',
     }
 
 COMMAND_ARGS = (
         # (mandatory, key_value, short_name, long_name)
+        ('-C', '--target-common-name', True),
         ('-c', '--cert', True),
         ('-g', '--group', True),
         ('-h', '--help', False),
         ('-k', '--key', True),
-        ('-P', '--pivot', False),
+        ('-R', '--rotate', False),
+        ('-P', '--target-password', True),
         ('-p', '--password', True),
+        ('-S', '--url', True),
         ('-s', '--server', True),
-        ('-U', '--url', True),
+        ('-U', '--target-user', True),
         ('-u', '--user', True),
+        ('-y', '--yes', False),
     )
 
 def main(args):
@@ -43,6 +49,7 @@ def main(args):
     # Initialize global variables.
     gvar = {
         'action': args[2],
+        'cookies': dict(),
         'function_args': None,
         'home_dir': str(Path.home()),
         'object_type': args[1],
@@ -88,7 +95,11 @@ def main(args):
     
     # Call object_type handler.
     if gvar['object_type'] == 'user':
-        if gvar['action'] == 'list':
+        if gvar['action'] == 'create':
+            _user_create(gvar)
+        elif gvar['action'] == 'delete':
+            _user_delete(gvar)
+        elif gvar['action'] == 'list':
             _user_list(gvar)
         else:
             _help('csv2_user')
@@ -170,20 +181,26 @@ def _cli_set(gvar):
     if gvar['user_settings']['help']:
         _help('csv2_cli_set')
 
-    # Global server argument is mandatory.
+    # Check for mandatory arguments.
+    _missing = []
     if 'server' not in gvar['user_settings']:
-        print('Error: "csv2 cli set" requires the -s|--server parameter.')
+        _missing.append('-s|--server')
+
+    if _missing:
+        print('Error: "csv2 cli set" requires the following parameters: %s' % _missing)
         exit(1)
 
+    # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']), mode=0o700)  
 
+    # Write the settings file.
     _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
     _fd.write(yaml.dump(gvar['user_settings']))
     _fd.close()
     os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
 
-def _curl(gvar, request):
+def _curl(gvar, request, form_data={}):
     """
     Make RESTful request and return response.
     """
@@ -192,30 +209,43 @@ def _curl(gvar, request):
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
+    if form_data:
+        _function = requests.post
+        _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
+    else:
+        _function = requests.get
+        _form_data = {}
+
     if 'cert' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['cert']) and \
         'key' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['key']):
-        _r = requests.get(
+        _r = _function(
             '%s%s' % (gvar['user_settings']['url'], request),
-            headers={'Accept': 'application/json'},
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
             cert=(gvar['user_settings']['cert'], gvar['user_settings']['key']),
+            data=_form_data,
+            cookies=gvar['cookies'],
             verify=False
             )
 
     elif 'user' in gvar['user_settings'] and \
         'password' in gvar['user_settings']:
-        _r = requests.get(
+        _r = _function(
             '%s%s' % (gvar['user_settings']['url'], request),
-            headers={'Accept': 'application/json'},
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
             auth=(gvar['user_settings']['user'], gvar['user_settings']['password']),
+            data=_form_data,
+            cookies=gvar['cookies'],
             verify=False
             )
 
     else:
-        _r = requests.get(
+        _r = _function(
             '%s%s' % (gvar['user_settings']['url'], request),
-            headers={'Accept': 'application/json'},
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
+            data=_form_data,
+            cookies=gvar['cookies'],
             verify=False
             )
 
@@ -227,6 +257,10 @@ def _curl(gvar, request):
     if response['response_code'] != 0:
         print('Error: %s' % response['message'])
         exit(1)
+
+    gvar['cookies'] = _r.cookies
+    if 'Set-Cookie' in _r.headers:
+        gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
 
     return response
 
@@ -247,7 +281,7 @@ def _show_table(gvar, queryset, columns):
     _field_names = []
     _column_names = []
     
-    if gvar['user_settings']['pivot']:
+    if gvar['user_settings']['rotate']:
         _column_lengths = [3, 5]
     else:
         _column_lengths = []
@@ -260,7 +294,7 @@ def _show_table(gvar, queryset, columns):
         _field_names.append(_w[0])
         _column_names.append(_w[1])
 
-        if gvar['user_settings']['pivot']:
+        if gvar['user_settings']['rotate']:
             if _column_lengths[0] < len(_w[1]):
                 _column_lengths[0] = len(_w[1])
         else:
@@ -295,7 +329,7 @@ def _show_table(gvar, queryset, columns):
             else:
                _len = len(_value)
 
-            if gvar['user_settings']['pivot']:
+            if gvar['user_settings']['rotate']:
                 _list.append([_column_names[_ix], _value])
                 if _column_lengths[1] < _len:
                     _column_lengths[1] = _len
@@ -304,7 +338,7 @@ def _show_table(gvar, queryset, columns):
                 if _column_lengths[_ix] < _len:
                     _column_lengths[_ix] = _len
 
-        if gvar['user_settings']['pivot']:
+        if gvar['user_settings']['rotate']:
             _list.append(['', ''])
         else:
             _list.append(_row)
@@ -315,7 +349,7 @@ def _show_table(gvar, queryset, columns):
     _ruler = '+%s+' % '+'.join(_column_underscore)
 
     print(_ruler)
-    if gvar['user_settings']['pivot']:
+    if gvar['user_settings']['rotate']:
         print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, ['Key', 'Value'])))
     else:
         print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, _column_names)))
@@ -338,9 +372,99 @@ def _show_table_pad(lens, cols):
 
     return padded_columns
 
+def _user_create(gvar):
+    """
+    Create a user.
+    """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_user_create')
+
+    # Check for mandatory arguments.
+    _missing = []
+    if 'target-user' not in gvar['user_settings']:
+        _missing.append('-U|--target-user')
+
+    if 'target-password' not in gvar['user_settings']:
+        _missing.append('-P|--target-password')
+
+    if 'target-common-name' not in gvar['user_settings']:
+        _missing.append('-C|--target-common-name')
+
+    if _missing:
+        print('Error: "csv2 user create" requires the following parameters: %s' % _missing)
+        exit(1)
+
+    # Retrieve CSRF.
+    response = _curl(gvar, '/manage_users/')
+
+    # Create the user.
+    response = _curl(
+        gvar,
+        '/create_user/',
+        form_data = {
+            'username': gvar['user_settings']['target-user'],
+            'password1': gvar['user_settings']['target-password'],
+            'password2': gvar['user_settings']['target-password'],
+            'common_name': gvar['user_settings']['target-common-name'],
+            }
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def _user_delete(gvar):
+    """
+    Delete a user.
+    """
+
+    if gvar['user_settings']['help']:
+        _help('csv2_user_delete')
+
+    # Check for mandatory arguments.
+    _missing = []
+    if 'target-user' not in gvar['user_settings']:
+        _missing.append('-U|--target-user')
+
+    if _missing:
+        print('Error: "csv2 user delete" requires the following parameters: %s' % _missing)
+        exit(1)
+
+    # Retrieve Cookie/CSRF and check that the target user exists.
+    response = _curl(gvar, '/manage_users/')
+    _user_found = False
+    for row in json.loads(response['user_list']):
+      if row['pk'] == gvar['user_settings']['target-user']:
+        _user_found = True
+        break
+    
+    if not _user_found:
+        print('Error: "csv2 user delete" cannot delete "%s", user doesn\'t exist.' % gvar['user_settings']['target-user'])
+        exit(1)
+
+    # Confirm user delete.
+    if not gvar['user_settings']['yes']:
+        print('Are you sure you want to delete user "%s"? (yes|..' % gvar['user_settings']['target-user'])
+        _reply = input()
+        if _reply != 'yes':
+          print('csv2 user delete "%s" cancelled.' % gvar['user_settings']['target-user'])
+          exit(0)
+
+    # Delete the user.
+    response = _curl(
+        gvar,
+        '/delete_user/',
+        form_data = {
+            'username': gvar['user_settings']['target-user'],
+            }
+        )
+    
+    if response['message']:
+        print(response['message'])
+
 def _user_list(gvar):
     """
-    Process user list.
+    List users.
     """
 
     if gvar['user_settings']['help']:
