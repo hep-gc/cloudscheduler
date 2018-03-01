@@ -42,21 +42,17 @@ def main(args):
     Determine object type and call handler.
     """
 
-    # Check for minimum arguments; print help messages and exit, if not.
-    if len(args) < 3:
-        _help('csv2')
-
     # Initialize global variables.
     gvar = {
-        'action': args[2],
+        'action': None,
         'cookies': dict(),
         'function_args': None,
         'home_dir': str(Path.home()),
-        'object_type': args[1],
+        'object': None,
         }
     
     # Retrieve arguments.
-    _command_args = _args(gvar, COMMAND_ARGS, args[3:])
+    _command_args = _args(gvar, COMMAND_ARGS, args[1:])
 
     # Ensure a minimal user settings exists.
     if not os.path.exists('%s/.csv2/default' % gvar['home_dir']):
@@ -83,18 +79,27 @@ def main(args):
 
     # Apply options temporarily.
     for key in _command_args:
-        if key in _command_args:
+        if isinstance(_command_args[key], bool):
+            if key not in gvar['user_settings']:
+                gvar['user_settings'][key] = False
+            
+            if _command_args[key]:
+                gvar['user_settings'][key] = not gvar['user_settings'][key]
+        else:
             if _command_args[key] == '-':
                 if key in gvar['user_settings']:
                     del(gvar['user_settings'][key])
             else:
                 gvar['user_settings'][key] = _command_args[key]
 
-    if gvar['object_type'] != 'cli' and 'password' in gvar['user_settings'] and gvar['user_settings']['password'] == '.':
-        gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s":' % gvar['server'])
+    # Check for minimum arguments; print help messages and exit, if not.
+    if gvar['user_settings']['help']:
+        print('Help requested; see the csv2 man page.')
+        exit(0)
+
     
-    # Call object_type handler.
-    if gvar['object_type'] == 'user':
+    # Call object handler.
+    if gvar['object'] == 'user':
         if gvar['action'] == 'create':
             _user_create(gvar)
         elif gvar['action'] == 'delete':
@@ -102,18 +107,20 @@ def main(args):
         elif gvar['action'] == 'list':
             _user_list(gvar)
         else:
-            _help('csv2_user')
+            _invalid_object_action(gvar, 'action')
 
-    elif gvar['object_type'] == 'cli':
-        if gvar['action'] == 'list':
-            _cli_list(gvar)
+    elif gvar['object'] == 'config':
+        if gvar['action'] == 'delete':
+            _config_list(gvar)
+        elif gvar['action'] == 'list':
+            _config_list(gvar)
         elif gvar['action'] == 'set':
-            _cli_set(gvar)
+            _config_set(gvar)
         else:
-            _help('csv2_cli')
+            _invalid_object_action(gvar, 'action')
 
     else:
-        _help('csv2')
+        _invalid_object_action(gvar, 'object')
 
 def _args(gvar, key_list, arg_list):
     """
@@ -121,9 +128,8 @@ def _args(gvar, key_list, arg_list):
     """
 
     # Initialize response.
-    response = {
-        '__unrecognized__': []
-        }
+    response = {}
+    unrecognized = []
 
     for _ix in range(len(key_list)):
         if not key_list[_ix][2]:
@@ -155,31 +161,56 @@ def _args(gvar, key_list, arg_list):
                     response[key_list[_iy][1][2:]] = True
 
         if not _recognized:
-            response['__unrecognized__'].append(arg_list[_ix])
+            if not gvar['object']:
+                gvar['object'] = arg_list[_ix]
+            elif not gvar['action']:
+                gvar['action'] = arg_list[_ix]
+            else:
+                unrecognized.append(arg_list[_ix])
 
-    if response['__unrecognized__']:
-        print('Error: The following command line arguments were unrecognized: %s' % response['__unrecognized__'])
+    if unrecognized:
+        print('Error: The following command line arguments were unrecognized: %s' % unrecognized)
         exit(1)
 
     return response 
 
-def _cli_list(gvar):
+def _config_list(gvar):
     """
     Process user list.
     """
 
-    if gvar['user_settings']['help']:
-        _help('csv2_cli_list')
+    _keys = ['server']
+    for _ix in range(len(COMMAND_ARGS)):
+        key = COMMAND_ARGS[_ix][1][2:]
+        if key not in _keys:
+            _keys.append(key)
+    _keys = [_keys[0]] + sorted(_keys[1:])
+
+    print(_keys)
 
     _queryset = []
+    for server in os.listdir('%s/.csv2' % gvar['home_dir']):
+        server_path = '%s/.csv2//%s' % (gvar['home_dir'], server)
+        if os.path.isdir(server_path):
+            _fd = open('%s/settings.yaml' % server_path)
+            _settings = yaml.load(_fd.read())
+            _fd.close()
 
-def _cli_set(gvar):
+            for key in sorted(_keys):
+                if key not in _settings:
+                    if key == 'server':
+                        _settings[key] = server
+                    else:
+                        _settings[key] = '-'
+            
+            _queryset.append({'fields': _settings})
+
+    _show_table(gvar, _queryset, _keys)
+
+def _config_set(gvar):
     """
     Modify user settings.
     """
-
-    if gvar['user_settings']['help']:
-        _help('csv2_cli_set')
 
     # Check for mandatory arguments.
     _missing = []
@@ -187,7 +218,7 @@ def _cli_set(gvar):
         _missing.append('-s|--server')
 
     if _missing:
-        print('Error: "csv2 cli set" requires the following parameters: %s' % _missing)
+        print('Error: "csv2 config set" requires the following parameters: %s' % _missing)
         exit(1)
 
     # Make the server directory, if necessary.
@@ -229,8 +260,9 @@ def _curl(gvar, request, form_data={}):
             verify=False
             )
 
-    elif 'user' in gvar['user_settings'] and \
-        'password' in gvar['user_settings']:
+    elif 'user' in gvar['user_settings']:
+        if 'password' not in gvar['user_settings'] or gvar['user_settings']['password'] == '-':
+            gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
             '%s%s' % (gvar['user_settings']['url'], request),
             headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
@@ -241,13 +273,8 @@ def _curl(gvar, request, form_data={}):
             )
 
     else:
-        _r = _function(
-            '%s%s' % (gvar['user_settings']['url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
-            data=_form_data,
-            cookies=gvar['cookies'],
-            verify=False
-            )
+        print('Error: csv2 servers require certificates or username/password for authentication.')
+        exit(1)
 
     try:
         response = _r.json()
@@ -264,13 +291,23 @@ def _curl(gvar, request, form_data={}):
 
     return response
 
-def _help(manpage):
+def _invalid_object_action(gvar, option):
     """
-    Open man page and exit.
+    The main function has not been able to recognize the object or action. Issue and error message and exit.
     """
 
-    Popen(['man', manpage])
-    exit(0)
+    if option == 'object':
+        if not gvar['object']:
+            print('Error: No object specified; see the csv2 man page.')
+        else:
+            print('Error: Invalid object "%s" specified; see the csv2 man page.' % gvar['object'])
+    else:
+        if not gvar['action']:
+            print('Error: No action specified for object "%s"; see the csv2 man page.' % gvar['object'])
+        else:
+            print('Error: Invalid action "%s" for object "%s"; see the csv2 man page.' % (gvar['action'], gvar['object']))
+
+    exit(1)
 
 def _show_table(gvar, queryset, columns):
     """
@@ -289,7 +326,7 @@ def _show_table(gvar, queryset, columns):
     for column in columns:
         _w = column.split('/')
         if len(_w) < 2:
-          w.append(_w[0])
+          _w.append(_w[0])
 
         _field_names.append(_w[0])
         _column_names.append(_w[1])
@@ -395,7 +432,11 @@ def _user_create(gvar):
         print('Error: "csv2 user create" requires the following parameters: %s' % _missing)
         exit(1)
 
-    # Retrieve CSRF.
+    # If a target password prompt was requested (-P .), prompt for password.
+    if gvar['user_settings']['target-password'] == '.':
+        gvar['user_settings']['target-password'] = getpass('Enter target password: ')
+
+    # Retrieve Cookie/CSRF.
     response = _curl(gvar, '/manage_users/')
 
     # Create the user.
