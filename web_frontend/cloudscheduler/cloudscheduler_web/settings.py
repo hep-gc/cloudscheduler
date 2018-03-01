@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': "csv2",
         'USER': 'csv2',
-        'PASSWORD': 'REPLACEME',
+        'PASSWORD': 'replaceme',
 #        'HOST': '127.0.0.1',
 #        'PORT': '3306',
     }
@@ -127,4 +127,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+STATICFILES_DIRS = (
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/static/',
+)
+
 STATIC_URL = '/static/'
+STATIC_ROOT = '/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/'

@@ -1,0 +1,155 @@
+table, th, td {
+    border: none;
+    border-collapse: collapse;
+    padding: 8px;
+}
+th {
+    text-align: right;
+}
+
+section{
+       float:left;
+}
+
+
+.vertical-menu {
+    width: 200px; /* Set a width if you like */
+}
+
+.vertical-menu a {
+    background-color: #eee; /* Grey background color */
+    color: black; /* Black text color */
+    display: block; /* Make the links appear below each other */
+    padding: 12px; /* Add some padding */
+    text-decoration: none; /* Remove underline from links */
+}
+
+.vertical-menu a:hover {
+    background-color: red; /* Dark grey background on mouse-over */
+}
+
+.vertical-menu a.active {
+    background-color: #4CAF50; /* Add a green color to the "active/current" link */
+    color: white;
+}
+
+.vertical-menu a.add {
+    background-color: #4CAF50; /* Add a green color to the "active/current" link */
+    color: white;
+}
+
+
+li:hover {
+    color: red;
+}
+.target > div {
+    display:none;
+}
+
+.target > div:target{
+    display:block;
+    background: white;
+}
+
+:target {
+  animation: highlight 1s ease;  
+  transform: translateX(0px);     
+}
+@keyframes highlight {
+  0% { border-left-color: red; }
+  100% { border-left-color: white; }
+}
+.target > div {
+    float: right;
+    border-left: 10px solid white;
+    padding: 0px;
+    transition: all 0.5s ease;     
+    padding-right: 50px;
+    margin-left: 0px;    
+}
+
+
+.modalDialog {
+    position: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 99999;
+    opacity:0;
+    -webkit-transition: opacity 100ms ease-in;
+    -moz-transition: opacity 100ms ease-in;
+    transition: opacity 100ms ease-in;
+    pointer-events: none;
+}
+
+.modalDialog:target {
+    opacity:1;
+    pointer-events: auto;
+}
+
+.modalDialog > div {
+    width: 200px;
+    position: relative;
+    margin: 10% auto;
+    padding: 20px 20px 20px 20px;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.close {
+    background: #606061;
+    color: #FFFFFF;
+    line-height: 25px;
+    position: absolute;
+    right: -12px;
+    text-align: center;
+    top: -10px;
+    width: 24px;
+    text-decoration: none;
+    font-weight: bold;
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    border-radius: 12px;
+    -moz-box-shadow: 1px 1px 3px #000;
+    -webkit-box-shadow: 1px 1px 3px #000;
+    box-shadow: 1px 1px 3px #000;
+}
+
+.close:hover { background: #00d9ff; }
+
+
+input[type=checkbox] {
+  display: none;
+}
+
+
+
+input[type=checkbox] + label {
+    background: url(https://upload.wikimedia.org/wikipedia/commons/4/43/Unlock_font_awesome.svg);
+    height: 30px;
+    width: 30px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+input[type=checkbox]:checked + label {
+    background: url(https://upload.wikimedia.org/wikipedia/commons/8/8c/Lock_font_awesome.svg);
+    height: 30px;
+    width: 30px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+
+
+.content {
+  display: inline-block;
+}
+
+/* Toggled State */
+input[type=checkbox]:checked ~ div {
+   display: none;
+}
