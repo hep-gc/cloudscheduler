@@ -276,10 +276,10 @@ def reset_user_pass(request, username):
 
     else:
         #render reset_user_pass template
-        user_obj=getcsv2User(request)
+        user_to_update = csv2_user.objects.get(username=username)
 
         context = {
-            'user_obj': user_obj,
+            'user_obj': user_to_update,
             'response_code': 0,
             'message': None
         }
