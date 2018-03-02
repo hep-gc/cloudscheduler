@@ -219,4 +219,4 @@ def user_settings(request):
             'response_code': 0,
             'message': None
         }
-        return render(request, 'csv2/user_settings.html', context)
+        return _render(request, 'csv2/user_settings.html', context)
