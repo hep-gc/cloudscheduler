@@ -36,6 +36,10 @@
                         <table>
                             <tr><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" id="" value="{{user.username}}" /></td></tr>
+                            <tr><td><label for="password1">New Password</label></td>
+                            <td><input type="password" name="password1" id="" value="" /></td></tr>
+                            <tr><td><label for="password2">Confirm Password</label></td>
+                            <td><input type="password" name="password2" id="" value="" /></td></tr>
                             <tr><td><label for="common_name">Common Name</label></td>
                             {% if user.cert_cn is not None %}
                                 <td><input type="text" name="common_name" id="" value="{{user.cert_cn}}" /></td>
@@ -54,7 +58,6 @@
 
                             <tr><td><input type="submit" value="Update User" /></td>
                             <td>
-                                <input type="button" onclick="location.href='/reset_user_pass/{{user.username}}'"; value="Reset Password" style="background-color: yellow; color: black; float: left"/>
                                 <input type="button" onclick="confirmDelete('{{user.username}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
                         </table>
                     </form>
