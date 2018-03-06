@@ -117,7 +117,7 @@ def update_user(request):
                 return manage_users(request, response_code=1, message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
 
             #check #3 part 1
-            if new_pass1 is not None and new_pass2 is not None:
+            if new_pass1 not in (None, "") and new_pass2 not in (None, ""):
                 # part 2
                 if len(new_pass1)>3:
                     # part 3
