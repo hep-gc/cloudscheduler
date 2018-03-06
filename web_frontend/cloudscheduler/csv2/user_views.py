@@ -43,6 +43,11 @@ def create_user(request):
         pass1 = request.POST.get('password1')
         pass2 = request.POST.get('password2')
         cert_cn = request.POST.get('common_name')
+        su_status = request.POST.get('is_superuser')
+        if not su_status:
+            su_status=False
+        else:
+            su_status=True
 
         # Need to perform several checks
         # 1. Check that the username is valid (ie no username or cert_cn by that name)
@@ -72,7 +77,7 @@ def create_user(request):
         hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
         #if all the checks passed and the hashed password has been generated create a new user object and save import
-        new_usr = csv2_user(username=user, password=hashed_pw, cert_cn=cert_cn, is_superuser=False)
+        new_usr = csv2_user(username=user, password=hashed_pw, cert_cn=cert_cn, is_superuser=su_status)
         new_usr.save()
         return manage_users(request, response_code=0, message="User added")
     else:
