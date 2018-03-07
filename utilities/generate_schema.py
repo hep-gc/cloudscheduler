@@ -135,7 +135,7 @@ def main(args):
         columns = stdout.decode('ascii').split("\n")
         for _ix in range(1, len(columns)):
             _w = columns[_ix].split()
-            if len(_w) > 3:
+            if len(_w) > 2:
                 _stdout.append("  Column('%s'," % _w[0])
                 if _w[1][:8] == 'varchar(':
                     _w2 = _w[1].translate(REMOVE_BRACKETS).split()
@@ -159,7 +159,7 @@ def main(args):
                     print('Unknown data type for column: %s' % columns[_ix])
                     exit(1)
 
-                if _w[3] == 'PRI':
+                if len(_w) > 3 and _w[3] == 'PRI':
                     _stdout.append(", primary_key=True")
 
                 if _ix < len(columns) - 2:
