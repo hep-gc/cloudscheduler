@@ -90,8 +90,7 @@ def get_group_resources(group_name):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     conn = engine.connect()
     s = select([view_group_resources]).where(view_group_resources.c.group_name == group_name)
-    return query_to_list(conn.execute(s))
-
+    return conn.execute(s)
 
 # may be best to query the view instead of the resources table
 def get_counts(group_name=None):
@@ -99,14 +98,7 @@ def get_counts(group_name=None):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     conn = engine.connect()
     s = select([view_group_list]).where(view_group_list.c.group_name == group_name)
-    return query_to_list(conn.execute(s))
-
-
-def query_to_list(query_object):
-    query_list=[]
-    for row in query_object:
-        query_list.append(row)
-    return query_list
+    return conn.execute(s)
 
 #
 # This function accepts a user name and retrieves & returns all groups associated with the user
