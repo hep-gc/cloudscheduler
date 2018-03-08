@@ -62,8 +62,9 @@ def add_cloud_resources(request):
             ram_ctl = ram
 
         # Use bcrypt to encrypt password.
-        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
-
+        #hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
+        hashed_pw = password
+        
         db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw, keyname=keyname, cacertificate=cacertificate, region=region, user_domain_name= user_domain_name, project_domain_name=project_domain_name, cloud_type=cloud_type, cores_ctl=cores_ctl, ram_ctl=ram_ctl)
 
         return manage_clouds(request)
@@ -172,7 +173,9 @@ def manage_clouds(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list
+            'cloud_list': cloud_list,
+            'response_code': 0,
+            'message': None
         }
 
     return _render(request, 'csv2/manage_clouds.html', context)
