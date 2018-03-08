@@ -80,7 +80,7 @@ class BaseCloud(ABC):
         if yaml_list:
             raw_yaml_list = []
             for yam in yaml_list:
-                (contents, mimetype) = cloudscheduler.cloud_init_util\
+                [contents, mimetype] = cloudscheduler.cloud_init_util\
                     .read_file_type_pairs(yam)
                 raw_yaml_list.append(('jobyaml', contents, mimetype))
             group_yaml.extend(raw_yaml_list)
@@ -97,7 +97,6 @@ class BaseCloud(ABC):
         if not userdata:
             return ""
         compressed = ""
-        self.log.debug(userdata)
         try:
             compressed = gzip.compress(str.encode(userdata))
         except ValueError as ex:

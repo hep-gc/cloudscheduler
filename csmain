@@ -53,7 +53,7 @@ def main():
             group_yamls = session.query(Group_Yaml).filter(Group_Yaml.group_name == csgroup.group_name)
             group_yaml_list = []
             for yam in group_yamls:
-                group_yaml_list.append((yam.yaml_name, yam.yaml, yam.mime_type))
+                group_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])
             cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources, group_yamls=group_yaml_list)
             cm_group.setup()
             # At this point I should have a valid set of all the group and cloud specific yaml to use
@@ -100,9 +100,18 @@ def main():
                                                                           job=idle_job,
                                                                           template_dict=template_dict)
                         job_count -= num_vms_to_boot
-                        log.debug('done booting on cloud')
+                        log.debug('done booting on cloud %s', cloud_match.cloud_name)
+            # Done Trying to schedule idle jobs on free resources.
+            # Other tasks the scheduling loop needs to handle for a group?
+            # Will need to see about freeing space for higher priority jobs that are not running.
+            # Check the idle and unclaimed machines with idle time greater than configured value
+                # for those machines set the flag to retire them
+            # check for VMs not registered or no longer registered with condor
+                # shutdown those VMs (although this may be designated to the VMPoller thingy instead
 
 
+
+            # Repeat for next group
         break # will need to take this out and put in an actual stopping condition.
 
     import time

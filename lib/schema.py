@@ -348,12 +348,14 @@ django_session = Table('django_session', metadata,
 
 view_group_list = Table('view_group_list', metadata,
   Column('group_name', String(128)),
+  Column('cloud_name', String),
   Column('VMs', Integer),
   Column('Jobs', Integer)
   )
 
 view_group_list_raw = Table('view_group_list_raw', metadata,
   Column('group_name', String(128)),
+  Column('cloud_name', String),
   Column('VMs', Integer),
   Column('Jobs', Integer)
   )
@@ -522,5 +524,4 @@ view_vms_up_down = Table('view_vms_up_down', metadata,
   Column('VMs_up', Integer),
   Column('VMs_down', Integer)
   )
-
 

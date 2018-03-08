@@ -43,6 +43,11 @@ def create_user(request):
         pass1 = request.POST.get('password1')
         pass2 = request.POST.get('password2')
         cert_cn = request.POST.get('common_name')
+        su_status = request.POST.get('is_superuser')
+        if not su_status:
+            su_status=False
+        else:
+            su_status=True
 
         # Need to perform several checks
         # 1. Check that the username is valid (ie no username or cert_cn by that name)
@@ -72,7 +77,7 @@ def create_user(request):
         hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
         #if all the checks passed and the hashed password has been generated create a new user object and save import
-        new_usr = csv2_user(username=user, password=hashed_pw, cert_cn=cert_cn, is_superuser=False)
+        new_usr = csv2_user(username=user, password=hashed_pw, cert_cn=cert_cn, is_superuser=su_status)
         new_usr.save()
         return manage_users(request, response_code=0, message="User added")
     else:
@@ -92,15 +97,19 @@ def update_user(request):
         new_username = request.POST.get('username')
         cert_cn = request.POST.get('common_name')
         su_status = request.POST.get('is_superuser')
+        new_pass1 = request.POST.get('password1')
+        new_pass2 = request.POST.get('password2')
+
         if not su_status:
             su_status=False
         else:
             su_status=True
 
-        # Need to perform two checks
+        # Need to perform three checks
         # 1. Check that the new username is valid (ie no username or cert_cn by that name)
         #   if the username hasn't changed we can skip this check since it would have been done on creation.
         # 2. Check that the cert_cn is not equal to any username or other cert_cn
+        # 3. Check that the password is not empty and in that case that it is also a valid password
 
         for registered_user in csv2_user_list:
             #check #1
@@ -111,6 +120,21 @@ def update_user(request):
             #check #2
             if cert_cn is not None and registered_user.username != user_to_update.username and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
                 return manage_users(request, response_code=1, message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
+
+            #check #3 part 1
+            if new_pass1 not in (None, "") and new_pass2 not in (None, ""):
+                # part 2
+                if len(new_pass1)>3:
+                    # part 3
+                    if new_pass1 == new_pass2:
+                        #update pass
+                        user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+                    else:
+                        # passwords don't match
+                        return manage_users(request, response_code=1, message="Passwords don't match, please try again or leave password empty to update other fields.")
+                else:
+                    # passwords too short
+                    return manage_users(request, response_code=1, message="Passwords are too short, please try again or leave password empty to update other fields.")
         user_to_update.username = new_username
         user_to_update.cert_cn = cert_cn
         user_to_update.is_superuser = su_status
@@ -219,4 +243,5 @@ def user_settings(request):
             'response_code': 0,
             'message': None
         }
-        return render(request, 'csv2/user_settings.html', context)
+        return _render(request, 'csv2/user_settings.html', context)
+
