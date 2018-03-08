@@ -4,159 +4,98 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
-<style>
-/* drop down style */
- /* Dropdown Button */
-.dropbtn {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
+<head>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+</head>
 
+{% if err_message is not None %}
+    <p style="color:red;">{{err_message}}</p>
+{% endif %}
+{% if message is not None %}
+    <p style="color:green;">{{message}}</p>
+{% endif %}
 
-/* The container <div> - needed to position the dropdown content */
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-/* Dropdown Content (Hidden by Default) */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 230px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-/* Links inside the dropdown */
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-/* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #f1f1f1}
-
-/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
-.show {display:block;}
-
-
-ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #333;
-}
-
-li {
-    float: left;
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
-
-li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
-
-li a:hover {
-    background-color: #111;
-    cursor: pointer; cursor: hand;
-}
-
-td {
-    text-align: center;
-}
-</style>
-
-<ul>
-    <li><h4>Group:</h4></li>
-    <li><div class="dropdown"><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{active_group}}</a>
-        <div id="myDropdown" class="dropdown-content">
-            {% for grp in user_groups %}
-                {% ifequal grp active_group %}
-                    {{pass}}
-                {% else %}
-                    <a href='/system_status/{{grp}}/'>{{grp}}</a>
-                {% endifequal %}
-            {% endfor %}
-        </div>
-    </div>
-    </li>
-</ul>
-
-<h2>Registered Clouds</h2>
 <table>
     <tr>
         <th>Cloud Name</th>
-        <th>Project</th>
-        <th>Region</th>
-        <th>Cloud Type</th>
         <th>VMs</th>
+
         <th>Jobs</th>
+
+        <th>Unexpanded</th>
+        <th>Idle</th>
+        <th>Running</th>
+        <th>Removed</th>
+        <th>Completed</th>
+        <th>Held</th>
+        <th>Sub. Err.</th>
+
     </tr>
     {% if cloud_list is not None %}
         {% for cloud in cloud_list %}
             <tr>
                 <td>{{cloud.cloud_name}}</td>
-                <td>{{cloud.project}}</td>
-                <td>{{cloud.region}}</td>
-                <td>{{cloud.cloud_type}}</td>
                 {% for count in count_list %}
+
                     {% ifequal count.cloud_name cloud.cloud_name %}
-                        <td>{{count.VMs}}</td>
-                        <td>{{count.Jobs}}</td>
+                        {% if count.VMs %}
+                            <td>{{count.VMs}}</td>
+                        {% else %}
+                            <td>0</td>
+                        {% endif %}
+                        {% if count.Jobs %}
+                            <td>{{count.Jobs}}</td>
+                        {% else %}
+                            <td>0</td>
+                        {% endif %}
                     {% endifequal %}
                 {% endfor %}
-                {% for limit in cloud_limits %}
-                    {% ifequal limit.cloud_name cloud.cloud_name %}
-                        <td><button onclick="toggleLimit('{{cloud.cloud_name}}')">Show Limits</button><table id="{{cloud.cloud_name}}" hidden="true">
-                            <tr>
-                                <th>Cores</th>
-                                <th>Instances</th>
-                                <th>RAM</th>
-                                <th>Volumes</th>
-                                <th>GB per Volume</th>
-                                <th>Total GB</th>
-                            </tr>
-                            <tr>
-                                <td>{{limit.cores}}</td>
-                                <td>{{limit.instances}}</td>
-                                <td>{{limit.ram}}</td>
-                                <td>{{limit.volumes}}</td>
-                                <td>{{limit.per_volume_gigabytes}}</td>
-                                <td>{{limit.gigabytes}}</td>
-                            </tr>
-                        </table></td>
+
+                {% for key, value in job_count.items %}
+                    {% ifequal key cloud.cloud_name %}
+                        {% for code, value2 in value.items  %}
+                            {% if code == 0 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                            {% if code == 1 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                            {% if code == 2 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                            {% if code == 3 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                            {% if code == 4 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                            {% if code == 5 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                            {% if code == 6 %}
+                                <td>{{value2}}</td>
+                            {% else %}
+                                <td>0</td>
+                            {% endif %}
+                        {% endfor %}
                     {% endifequal %}
                 {% endfor %}
+
+
             </tr>
         {% endfor %}
     {% endif %}
 </table>
-
-<script>
-/* When the user clicks on the button,
-toggle between hiding and showing the dropdown content */
-function doDropdown() {
-    document.getElementById("myDropdown").classList.toggle("show");
-}
-
-function toggleLimit(id){
-    $('#'+id).toggle();
-}
-
-</script>
