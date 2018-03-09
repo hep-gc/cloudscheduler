@@ -31,9 +31,13 @@ from attribute_mapper.attribute_mapper import map_attributes
 ## UTILITY FUNCTIONS
 #
 
-def get_openstack_session(auth_url, username, password, project, user_domain="Default", project_domain="Default"):
+def get_openstack_session(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
     authsplit = auth_url.split('/')
-    version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad openstack URL, could not determine version, aborting session")
+        return False
     if version == 2:
         try:
             auth = v2.Password(
@@ -44,6 +48,7 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session: %s", exc)
+            return False
         return sess
     elif version == 3:
         #connect using keystone v3
@@ -54,10 +59,11 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
                 password=password,
                 project_name=project,
                 user_domain_name=user_domain,
-                project_domain=project_domain)
+                project_domain_name=project_domain_name)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session: %s", exc)
+            return False
         return sess
 
 def get_nova_client(session):
@@ -75,7 +81,12 @@ def get_cinder_client(session):
 
 
 def get_flavor_data(nova):
-    return  nova.flavors.list()
+    try:
+        return  nova.flavors.list()
+    except Exception as exc:
+        logging.error("Unable to retireve Flavor data")
+        logging.error(exc)
+        return False
 
 # Returns a tuple of quotas (novaquotas, cinderquotas)
 def get_quota_data(nova, cinder, project):
@@ -90,21 +101,42 @@ def get_quota_data(nova, cinder, project):
 
 # Returns the limits of the openstack project associated with the passed in nova object
 def get_limit_data(nova):
-    limits = {}
-    limit_generator = nova.limits.get().absolute
-    for limit in limit_generator:
-        limits[limit.name] = [limit.value]
-    return limits
+    try:
+        limits = {}
+        limit_generator = nova.limits.get().absolute
+        for limit in limit_generator:
+            limits[limit.name] = [limit.value]
+        return limits
+    except Exception as exc:
+        logging.error("Unable to retrieve Limit data")
+        logging.error(exc)
+        return False
 
 
 def get_image_data(nova):
-    return nova.glance.list()
+    try:
+        return nova.glance.list()
+    except Exception as exc:
+        logging.error("Unable to retrieve Image data")
+        logging.error(exc)
+        return False
+
 
 def get_network_data(neutron):
-    return neutron.list_networks()['networks']
+    try:
+        return neutron.list_networks()['networks']
+    except Exception as exc:
+        logging.error("Unable to retrieve Network data")
+        logging.error(exc)
+        return False
 
 def get_vm_list(nova):
-    return nova.servers.list()
+    try:
+        return nova.servers.list()
+    except Exception as exc:
+        logging.error("Unable to retrieve VM list")
+        logging.error(exc)
+        return False
 
 def terminate_vm(session, vm):
     nova = get_nova_client(session)
@@ -139,7 +171,11 @@ def vm_poller():
         # Itterate over cloud list
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -153,14 +189,18 @@ def vm_poller():
                     password=cloud.password,
                     project=cloud.project,
                     user_domain=cloud.user_domain_name,
-                    project_domain=cloud.project_domain_name)
+                    project_domain_name=cloud.project_domain_name)
 
+            if session is False:
+                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                continue
             # setup nova object
             nova = get_nova_client(session)
 
             # get server list
             vm_list = get_vm_list(nova)
-
+            if vm_list is False:
+                continue
             for vm in vm_list:
                 vm_dict = {
                     'group_name': cloud.group_name,
@@ -208,7 +248,11 @@ def flavorPoller():
         current_cycle = int(time.time())
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -222,12 +266,17 @@ def flavorPoller():
                     password=cloud.password,
                     project=cloud.project,
                     user_domain=cloud.user_domain_name,
-                    project_domain=cloud.project_domain_name)
+                    project_domain_name=cloud.project_domain_name)
 
+            if session is False:
+                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                continue
             # setup openstack api objects
             nova = get_nova_client(session)
 
             flav_list = get_flavor_data(nova)
+            if flav_list is False:
+                continue
             for flavor in flav_list:
                 if flavor.swap == "":
                     swap = 0
@@ -289,7 +338,11 @@ def imagePoller():
         current_cycle = int(time.time())
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -303,12 +356,17 @@ def imagePoller():
                     password=cloud.password,
                     project=cloud.project,
                     user_domain=cloud.user_domain_name,
-                    project_domain=cloud.project_domain_name)
+                    project_domain_name=cloud.project_domain_name)
+            if session is False:
+                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                continue
 
             # setup openstack api object
             nova = get_nova_client(session)
 
             image_list = get_image_data(nova)
+            if image_list is False:
+                continue
             for image in image_list:
                 if image.size == "":
                     size = 0
@@ -363,7 +421,10 @@ def limitPoller():
         current_cycle = int(time.time())
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -377,13 +438,18 @@ def limitPoller():
                     password=cloud.password,
                     project=cloud.project,
                     user_domain=cloud.user_domain_name,
-                    project_domain=cloud.project_domain_name)
+                    project_domain_name=cloud.project_domain_name)
 
+            if session is False:
+                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                continue
             # setup openstack api objects
             nova = get_nova_client(session)
 
             logging.debug("Polling limits")
             limits_dict = get_limit_data(nova)
+            if limits_dict is False:
+                continue
             limits_dict['group_name'] = cloud.group_name
             limits_dict['cloud_name'] = cloud.cloud_name
             limits_dict['last_updated'] = int(time.time())
@@ -426,7 +492,11 @@ def networkPoller():
         current_cycle = int(time.time())
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -440,11 +510,16 @@ def networkPoller():
                     password=cloud.password,
                     project=cloud.project,
                     user_domain=cloud.user_domain_name,
-                    project_domain=cloud.project_domain_name)
+                    project_domain_name=cloud.project_domain_name)
 
+            if session is False:
+                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                continue
             # setup openstack api objects
             neutron = get_neutron_client(session)
             net_list = get_network_data(neutron)
+            if net_list is False:
+                continue
             for network in net_list:
                 network_dict = {
                     'group_name': cloud.group_name,
@@ -526,7 +601,11 @@ def vmCleanUp():
                 Cloud.group_name == vm.group_name,
                 Cloud.cloud_name == vm.cloud_name)
             authsplit = cloud.authurl.split('/')
-            version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -540,8 +619,9 @@ def vmCleanUp():
                     password=cloud.password,
                     project=cloud.project,
                     user_domain=cloud.user_domain_name,
-                    project_domain=cloud.project_domain_name)
-
+                    project_domain_name=cloud.project_domain_name)
+            if session is False:
+                logging.error("Unable to setup session, unable to terminate %s", vm)
             # returns true if vm terminated, false if an error occured
             # probably wont need to use this result outside debugging as
             # deleted VMs should be removed on the next cycle
