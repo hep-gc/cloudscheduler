@@ -22,7 +22,7 @@ class BaseCloud(ABC):
     def __init__(self, name, extrayaml=None):
         self.log = logging.getLogger(__name__)
         self.name = name
-        self.enabled = False
+        self.enabled = True
         self.vms = {}
         self.extrayaml = extrayaml
 
