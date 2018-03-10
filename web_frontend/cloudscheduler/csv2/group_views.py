@@ -7,6 +7,7 @@ from .models import user as csv2_user
 
 from .view_utils import getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, _render
 from utils import db_utils
+from collections import defaultdict
 import bcrypt
 # 
 # This function should recieve a post request with a payload of yaml to add to a given group
@@ -61,8 +62,9 @@ def add_cloud_resources(request):
             ram_ctl = ram
 
         # Use bcrypt to encrypt password.
-        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
-
+        #hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
+        hashed_pw = password
+        
         db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw, keyname=keyname, cacertificate=cacertificate, region=region, user_domain_name= user_domain_name, project_domain_name=project_domain_name, cloud_type=cloud_type, cores_ctl=cores_ctl, ram_ctl=ram_ctl)
 
         return manage_clouds(request)
@@ -111,6 +113,17 @@ def system_status(request, group_name=None):
     #get jobs
     job_list = db_utils.get_condor_jobs(group_name=active_user.active_group)
 
+    job_count = defaultdict(lambda: defaultdict(int))
+
+    for job in job_list:
+        job_count[job.target_clouds][job.job_status] += 1
+
+
+    for key, value in job_count.items():
+        job_count[key]=dict(value)
+
+    job_count=dict(job_count)
+
     #get condor machines
     # machine list does not yet have a group_name attribute, some discussion
     # is required to develop a strategy to deal with this
@@ -124,11 +137,12 @@ def system_status(request, group_name=None):
             'count_list': count_list,
             'cloud_limits': cloud_limits,
             'job_list': job_list,
+            'job_count': job_count,
             #'machine_list': machine_list, #Not yet implemented
 
         }
 
-    return render(request, 'csv2/system_status.html', context)
+    return _render(request, 'csv2/system_status.html', context)
 
 
 def manage_clouds(request, group_name=None):
@@ -159,7 +173,9 @@ def manage_clouds(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list
+            'cloud_list': cloud_list,
+            'response_code': 0,
+            'message': None
         }
 
-    return render(request, 'csv2/manage_clouds.html', context)
+    return _render(request, 'csv2/manage_clouds.html', context)

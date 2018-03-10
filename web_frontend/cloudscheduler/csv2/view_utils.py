@@ -51,15 +51,20 @@ def _render(request, template, context):
     from django.http import HttpResponse
     from django.core import serializers
     from django.db.models.query import QuerySet
+    from sqlalchemy.engine import result as sql_result
     import json
 
     if request.META['HTTP_ACCEPT'] == 'application/json':
         serialized_context = {}
         for item in context:
-            if isinstance(context[item], QuerySet):
-                serialized_context[item] = serializers.serialize("json", context[item])
-            else:
+            if isinstance(context[item], int):
                 serialized_context[item] = context[item]
+            elif isinstance(context[item], QuerySet):
+                serialized_context[item] = serializers.serialize("json", context[item])
+            elif isinstance(context[item], sql_result.ResultProxy):
+                serialized_context[item] = json.dumps([dict(r) for r in context[item]])
+            else:
+                serialized_context[item] = str(context[item])
         response = HttpResponse(json.dumps(serialized_context), content_type='application/json')
     else:
         response = render(request, template, context)

@@ -8,6 +8,7 @@ from novaclient import client as nvclient
 from keystoneauth1 import session
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
+from keystoneauth1.exceptions.connection import ConnectFailure
 from neutronclient.v2_0 import client as neuclient
 from sqlalchemy import create_engine
 # from sqlalchemy.orm import Session
@@ -48,6 +49,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.userdomainname = resource.user_domain_name
         self.projectdomainname = resource.project_domain_name
         self.session = self._get_auth_version(self.authurl)
+        if not self.session:
+            raise Exception
 
         self.default_securitygroup = defaultsecuritygroup
         self.default_image = defaultimage
@@ -78,10 +81,14 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         # Ensure keyname is valid
         if self.keyname:
             key_name = self.keyname if self.keyname else ""
-            if not nova.keypairs.findall(name=self.keyname):
-                key_name = ""
-            elif not nova.keypairs.findall(name=csconfig.config.keyname):
-                key_name = ""
+            try:
+                if not nova.keypairs.findall(name=self.keyname):
+                    key_name = ""
+                elif not nova.keypairs.findall(name=csconfig.config.keyname):
+                    key_name = ""
+            except ConnectFailure as ex:
+                self.log.exception("Failed to connect to openstack cloud: %s", ex)
+                raise Exception
 
 
 
@@ -283,6 +290,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 keystone_session = self._get_keystone_session_v3()
         except ValueError as ex:
             self.log.exception("Error determining keystone version from auth url: %s", ex)
+            keystone_session = None
         return keystone_session
 
     def _get_db_engine(self):
