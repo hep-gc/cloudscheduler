@@ -456,7 +456,7 @@ def limitPoller():
             limits_dict['last_updated'] = int(time.time())
             limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
             for key in limits_dict:
-                if limits_dict[key] == -1:
+                if "-1" in str(limits_dict[key]):
                     limits_dict[key] = config.no_limit_default
 
             new_limits = Limit(**limits_dict)
