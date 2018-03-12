@@ -17,7 +17,6 @@ from cinderclient import client as cinclient
 
 from attribute_mapper.attribute_mapper import map_attributes
 
-MASSIVE_INT = 999999999
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
@@ -458,7 +457,7 @@ def limitPoller():
             limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
             for key in limits_dict:
                 if limits_dict[key] == -1:
-                    limits_dict[key] = MASSIVE_INT
+                    limits_dict[key] = config.no_limit_default
 
             new_limits = Limit(**limits_dict)
             db_session.merge(new_limits)

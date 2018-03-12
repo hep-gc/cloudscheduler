@@ -15,6 +15,7 @@ image_sleep_interval = 300
 image_cleanup_interval = 3600
 limit_sleep_interval = 300
 limit_cleanup_interval = 3600
+no_limit_default = 999999999
 flavor_sleep_interval = 300
 flavor_cleanup_interval = 3600
 cacert = "/etc/ssl/certs/CABundle.crt"
@@ -145,6 +146,8 @@ try:
         if "openstack_limits" in cfg:
             if "sleep_interval" in cfg["openstack_limits"]:
                 limit_sleep_interval = cfg["openstack_limits"]["sleep_interval"]
+            if "no_limit_default" in cfg["openstack_limits"]:
+                no_limit_default = cfg["openstack_limits"]["no_limit_default"]
 
     except yaml.YAMLError:
         print >> sys.stderr, "Unable to load os limit config from yaml blob in database" \
