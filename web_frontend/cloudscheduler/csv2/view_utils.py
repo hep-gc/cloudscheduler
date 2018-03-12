@@ -63,6 +63,8 @@ def _render(request, template, context):
                 serialized_context[item] = serializers.serialize("json", context[item])
             elif isinstance(context[item], sql_result.ResultProxy):
                 serialized_context[item] = json.dumps([dict(r) for r in context[item]])
+            elif isinstance(context[item], dict) and 'ResultProxy' in context[item]:
+                serialized_context[item] = json.dumps(context[item]['ResultProxy'])
             else:
                 serialized_context[item] = str(context[item])
         response = HttpResponse(json.dumps(serialized_context), content_type='application/json')

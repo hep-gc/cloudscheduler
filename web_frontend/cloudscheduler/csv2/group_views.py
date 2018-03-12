@@ -101,6 +101,9 @@ def system_status(request, group_name=None):
     #get cloud info
     cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
 
+    #get cloud info
+    cloud_list2 = db_utils.get_group_resources(group_name=active_user.active_group)
+
     #get vms
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
     
@@ -113,16 +116,16 @@ def system_status(request, group_name=None):
     #get jobs
     job_list = db_utils.get_condor_jobs(group_name=active_user.active_group)
 
-    job_count = defaultdict(lambda: defaultdict(int))
+
+    status_dict = {'0':0, '1':0, '2':0, '3':0, '4':0, '5':0, '6':0}
+    job_count = {}
+    
+    for cloud in cloud_list:
+        job_count[cloud.cloud_name] = status_dict
 
     for job in job_list:
-        job_count[job.target_clouds][job.job_status] += 1
+        job_count[job.target_clouds][str(job.job_status)] += 1
 
-
-    for key, value in job_count.items():
-        job_count[key]=dict(value)
-
-    job_count=dict(job_count)
 
     #get condor machines
     # machine list does not yet have a group_name attribute, some discussion
@@ -133,7 +136,7 @@ def system_status(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list,
+            'cloud_list': cloud_list2,
             'count_list': count_list,
             'cloud_limits': cloud_limits,
             'job_list': job_list,
@@ -167,7 +170,9 @@ def manage_clouds(request, group_name=None):
         active_user.save()
 
     #get cloud info
-    cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
+#   cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
+#   cloud_list = [dict(r) for r in db_utils.get_group_resources(group_name=active_user.active_group)]
+    cloud_list = {'ResultProxy': [dict(r) for r in db_utils.get_group_resources(group_name=active_user.active_group)]}
 
     context = {
             'active_user': active_user,
