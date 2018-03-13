@@ -113,21 +113,9 @@ def status(request, group_name=None):
     #get jobs
     job_list = db_utils.get_condor_jobs(group_name=active_user.active_group)
 
-
-    #status_dict = {'0':0, '1':0, '2':0, '3':0, '4':0, '5':0, '6':0}
-    job_count = {}
-    
-    #for cloud in cloud_list:
-    #    job_count[cloud.cloud_name] = status_dict
-
-    #for job in job_list:
-    #    job_count[job.target_clouds][str(job.job_status)] += 1
+    status_list = db_utils.get_cloud_status(group_name=active_user.active_group)
 
 
-    #get condor machines
-    # machine list does not yet have a group_name attribute, some discussion
-    # is required to develop a strategy to deal with this
-    #machine_list = db_utils.get_condor_machines(group_name=active_user.active_group)
 
     context = {
             'active_user': active_user,
@@ -137,12 +125,12 @@ def status(request, group_name=None):
             'count_list': count_list,
             'cloud_limits': cloud_limits,
             'job_list': job_list,
-            'job_count': job_count,
+            'status_list': status_list,
             #'machine_list': machine_list, #Not yet implemented
 
         }
 
-    return _render(request, 'csv2/system_status.html', context)
+    return _render(request, 'csv2/status.html', context)
 
 
 def list(request, group_name=None):

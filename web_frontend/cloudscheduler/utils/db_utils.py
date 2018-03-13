@@ -84,7 +84,7 @@ def get_groups(filter=None):
     group_list = db_session.query(Groups)
     return group_list
 
-# may be best to query the view instead of the resources table
+
 def get_group_resources(group_name):
     metadata = MetaData()    
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
@@ -92,12 +92,20 @@ def get_group_resources(group_name):
     s = select([view_group_resources]).where(view_group_resources.c.group_name == group_name)
     return conn.execute(s)
 
-# may be best to query the view instead of the resources table
+
 def get_counts(group_name=None):
     metadata = MetaData()    
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     conn = engine.connect()
     s = select([view_group_list]).where(view_group_list.c.group_name == group_name)
+    return conn.execute(s)
+
+
+def get_cloud_status(group_name):
+    metadata = MetaData()    
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    conn = engine.connect()
+    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group_name)
     return conn.execute(s)
 
 #
