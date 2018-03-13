@@ -11,17 +11,14 @@
                 <ul>
                     <li><a>Groups:</a></li>
                     {% for grp in user_groups %}
-                        {% ifequal grp active_group %}
-                            {{pass}}
-                        {% else %}
-                            <li><a href='/system_status/{{grp}}/'>{{grp}}</a></li>
-                        {% endifequal %}
+                        <li><a href='/status/{{grp}}/'>{{grp}}</a></li>
                     {% endfor %}
                 </ul>        
             </li>
-            <li><a href="/system_status/">System Status</a></li>
-            <li><a href="/manage_clouds/">Manage Clouds</a></li>
-            <li><a href="/manage_users/">Manage Users</a></li>
+            <li><a href="/status/">Status</a></li>
+            <li><a href="/clouds/">Clouds</a></li>
+            <li><a href="/groups/">Groups</a></li>
+            <li><a href="/users/">Users</a></li>
         </ul>
     </nav>
 </div>
