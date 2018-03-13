@@ -77,7 +77,7 @@ def add_cloud_resources(request):
 # This function generates a the status of a given groups operations
 # VM status, job status, and machine status should all be available for a given group on this page
 #
-def system_status(request, group_name=None):
+def status(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -148,7 +148,7 @@ def system_status(request, group_name=None):
     return _render(request, 'csv2/system_status.html', context)
 
 
-def manage_clouds(request, group_name=None):
+def list(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
 
