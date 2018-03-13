@@ -103,7 +103,7 @@
         if (confirm("Are you sure you want to delete '" + user + "'") == true) {;
             $.post("/delete_user/", {username: user, csrfmiddlewaretoken: '{{csrf_token}}'}, function(result){
                 if(result){
-                    window.location.href = "/manage_users/";
+                    window.location.href = "/users/";
                 }
                 else{
                     //something happened with delete, maybe give an error msg?

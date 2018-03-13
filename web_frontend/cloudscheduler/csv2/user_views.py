@@ -15,7 +15,7 @@ USER RELATED WEB REQUEST VIEWS
 '''
 
 
-def manage_users(request, response_code=0, message=None):
+def manage(request, response_code=0, message=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -29,10 +29,10 @@ def manage_users(request, response_code=0, message=None):
             'message': message
     }
 
-    return _render(request, 'csv2/manage_users.html', context)
+    return _render(request, 'csv2/users.html', context)
 
 
-def create_user(request):
+def create(request):
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
@@ -84,7 +84,7 @@ def create_user(request):
         #not a post, return to manage users page
         return manage_users(request)
 
-def update_user(request):
+def update(request):
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
@@ -145,7 +145,7 @@ def update_user(request):
         #not a post, return to manage users page
         return manage_users(request)
 
-def delete_user(request):
+def delete(request):
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
@@ -158,7 +158,7 @@ def delete_user(request):
         return manage_users(request, response_code=0, message="User deleted")
     return False
 
-def user_settings(request):
+def settings(request):
     if not verifyUser(request):
         raise PermissionDenied
 
