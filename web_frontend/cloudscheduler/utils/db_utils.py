@@ -169,7 +169,7 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
 
         else:
             ins = table.insert().values(
-            group_name="Testing",
+            group_name=group,
             cloud_name=cloud,
             authurl=url,
             project="default",
@@ -186,9 +186,7 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
             )
 
     elif action=="modify":
-        ins = table.update().where(table.c.cloud_name==cloud).values(
-            group_name="Testing",
-            cloud_name=cloud,
+        ins = table.update().where(table.c.cloud_name==cloud and table.c.group_name==group).values(
             authurl=url,
             project="default",
             username=uname,

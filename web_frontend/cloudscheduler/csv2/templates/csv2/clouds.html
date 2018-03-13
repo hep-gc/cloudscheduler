@@ -17,14 +17,14 @@
 
 <section class="vertical-menu">
     <a href="#" class="active">Clouds</a>
-        {% for cloud in cloud_list %}
+        {% for cloud in cloud_list.ResultProxy %}
         <a href="#{{cloud.cloud_name}}">{{cloud.cloud_name}}</a>
         {% endfor %}
     <a href="#add_cloud" class="add_cloud">+</a> 
 </section>
 
 <section class="target">
-    {% for cloud in cloud_list %}
+    {% for cloud in cloud_list.ResultProxy %}
     <div id="{{cloud.cloud_name}}">
         <h1>{{cloud.cloud_name}}</h1>
         <div id="delete_{{cloud.cloud_name}}" class="modalDialog">
@@ -141,7 +141,7 @@
     </div>
 </section>
 
-{% for cloud in cloud_list %}
+{% for cloud in cloud_list.ResultProxy %}
 <div id="delete-{{cloud.cloud_name}}" class="modalDialog">
     <div>
         <a href="#{{cloud.cloud_name}}" title="Close" class="close">X</a>
