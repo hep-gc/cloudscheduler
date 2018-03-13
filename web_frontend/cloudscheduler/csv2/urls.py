@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from . import views, user_views, group_views
+from . import views, user_views, cloud_views
 
 urlpatterns = [
     url(r'^status/', views.index, name='index'),
