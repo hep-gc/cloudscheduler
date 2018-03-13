@@ -3,7 +3,7 @@ from django.conf.urls import url
 from . import views, user_views, cloud_views
 
 urlpatterns = [
-    url(r'^status/', views.index, name='index'),
+    url(r'^$', views.index, name='index'),
     url(r'^users/', user_views.manage, name='manage'),
     url(r'^users/create', user_views.create, name='create'),
     url(r'^users/update', user_views.update, name='update'),

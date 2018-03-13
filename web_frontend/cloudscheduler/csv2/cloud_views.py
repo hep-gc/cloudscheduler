@@ -115,7 +115,7 @@ def status(request, group_name=None):
 
 
     #status_dict = {'0':0, '1':0, '2':0, '3':0, '4':0, '5':0, '6':0}
-    #job_count = {}
+    job_count = {}
     
     #for cloud in cloud_list:
     #    job_count[cloud.cloud_name] = status_dict
@@ -178,4 +178,4 @@ def list(request, group_name=None):
             'message': None
         }
 
-    return _render(request, 'csv2/manage_clouds.html', context)
+    return _render(request, 'csv2/clouds.html', context)
