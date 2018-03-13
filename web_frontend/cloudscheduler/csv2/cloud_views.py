@@ -20,14 +20,14 @@ def add_group_yaml(request):
 # This function should recieve a post request with a payload of yaml to add to a given cloud
 # (group_resources_yaml)
 #
-def add_cloud_yaml(request):
+def add_yaml(request):
     return None
 
 # 
 # This function should recieve a post request with a payload of cloud configuration
 # to add to a given group's pool of resources (group_resources)
 #
-def add_cloud_resources(request):
+def add_resources(request):
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
@@ -101,9 +101,6 @@ def status(request, group_name=None):
     #get cloud info
     cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
 
-    #get cloud info
-    cloud_list2 = db_utils.get_group_resources(group_name=active_user.active_group)
-
     #get vms
     vm_list = db_utils.get_vms(group_name=active_user.active_group)
     
@@ -117,14 +114,14 @@ def status(request, group_name=None):
     job_list = db_utils.get_condor_jobs(group_name=active_user.active_group)
 
 
-    status_dict = {'0':0, '1':0, '2':0, '3':0, '4':0, '5':0, '6':0}
-    job_count = {}
+    #status_dict = {'0':0, '1':0, '2':0, '3':0, '4':0, '5':0, '6':0}
+    #job_count = {}
     
-    for cloud in cloud_list:
-        job_count[cloud.cloud_name] = status_dict
+    #for cloud in cloud_list:
+    #    job_count[cloud.cloud_name] = status_dict
 
-    for job in job_list:
-        job_count[job.target_clouds][str(job.job_status)] += 1
+    #for job in job_list:
+    #    job_count[job.target_clouds][str(job.job_status)] += 1
 
 
     #get condor machines
@@ -136,7 +133,7 @@ def status(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list2,
+            'cloud_list': cloud_list,
             'count_list': count_list,
             'cloud_limits': cloud_limits,
             'job_list': job_list,
@@ -170,8 +167,6 @@ def list(request, group_name=None):
         active_user.save()
 
     #get cloud info
-#   cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
-#   cloud_list = [dict(r) for r in db_utils.get_group_resources(group_name=active_user.active_group)]
     cloud_list = {'ResultProxy': [dict(r) for r in db_utils.get_group_resources(group_name=active_user.active_group)]}
 
     context = {
