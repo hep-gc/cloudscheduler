@@ -33,6 +33,7 @@ def resources_producer():
 
     sleep_interval = config.collection_interval
     last_poll_time = 0
+    condor_host = socket.gethostname()
     while True:
         try:
             # Initialize condor and database objects
@@ -65,6 +66,7 @@ def resources_producer():
                     r_dict["Start"] = str(r_dict["Start"])
                 r_dict = trim_keys(r_dict, resource_attributes)
                 r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                r_dict["condor_host"] = condor_host
                 new_resource = Resource(**r_dict)
                 logging.info("Adding new or updating resource: %s", r_dict["name"])
                 session.merge(new_resource)
@@ -94,6 +96,7 @@ def resources_producer():
 def collector_command_consumer():
     multiprocessing.current_process().name = "Cmd Consumer"
     sleep_interval = config.command_sleep_interval
+    condor_host = socket.gethostname()
 
     while True:
         try:
@@ -127,7 +130,7 @@ def collector_command_consumer():
 
             #query for condor_off commands
             #   get classads
-            for resource in session.query(Resource).filter(Resource.condor_off == 1):
+            for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_off == 1):
                 condor_ad = condor_c.query(
                     ad_type=startd_type,
                     constraint="Name==%s" % resource.name)
@@ -154,7 +157,7 @@ def collector_command_consumer():
 
             #query for condor_advertise commands
             ad_list = []
-            for resource in session.query(Resource).filter(Resource.condor_advertise == 1):
+            for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_advertise == 1):
                 # get relevent classad objects from htcondor and compile a list for condor_advertise
                 logging.info("Ad found in database flagged for condor_advertise: %s", resource.name)
                 ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.name)
@@ -179,6 +182,7 @@ def collector_command_consumer():
 
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
+    condor_host = socket.gethostname()
     while True:
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its better to
@@ -196,9 +200,8 @@ def cleanUp():
 
         # Clean up machine/resource ads
         condor_machine_list = condor_c.query()
-        #this quert asks for only resources containing the local hostname
-        db_machine_list = session.query(Resource).filter(
-            Resource.name.like("%" + local_hostname+ "%"))
+        #this quert asks for only resources containing reported by this collector (host)
+        db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
 
 
         # if a machine is found in the db but not condor we need to check if it was flagged
