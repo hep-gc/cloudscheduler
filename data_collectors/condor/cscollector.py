@@ -56,7 +56,7 @@ def resources_producer():
             else:
                 condor_resources = condor_c.query(
                     ad_type=ad_type,
-                    constraint='EnteredCurrentStatus>=%d || JobStart>=%d' % (last_poll_time, last_poll_time),
+                    constraint='EnteredCurrentState>=%d || JobStart>=%d' % (last_poll_time, last_poll_time),
                     projection=resource_attributes)
 
             for resource in condor_resources:
