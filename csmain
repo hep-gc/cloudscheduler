@@ -98,14 +98,14 @@ def main():
                                          'cs_condor_host': csgroup.condor_central_manager}
                         log.debug(template_dict)
                         try:
-                            if cm_group.clouds[cloud_match.cloud_name].enabled:
+                            """if cm_group.clouds[cloud_match.cloud_name].enabled:
                                 cm_group.clouds[cloud_match.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
                                                num=num_vms_to_boot,
                                                flavor=cloud_match.flavor_name,
                                                job=idle_job,
                                                template_dict=template_dict)
-                            job_count -= num_vms_to_boot
+                            job_count -= num_vms_to_boot"""
                             log.debug('done booting on cloud %s', cloud_match.cloud_name)
                         except Exception as ex:
                             # lets try to disable or dump this cloud for now
@@ -122,9 +122,10 @@ def main():
 
             # Will want to see if VMs exist that are Idle / Unclaimed and have been so for extended time
                 # For the ones that are set the Retire flag
+            check_idle_machines()
             # Will want to see which ones are not registered with condor (how?)
                 # For ones not registered after a time or ones that had the retire flag set set the kill flag
-                    
+
 
 
             # Repeat for next group
@@ -141,6 +142,44 @@ def main():
 # maintain a dict of cloudmanager objects
 # initially load up the default one
 # when new user detected check for a cloud resource file and load / add to dict key user name
+
+
+def check_idle_machines():
+    """
+    Query the condor machines and ones that are idle with no jobs requiring them
+    or that have been idle an extended period of time and set the Retire flag in db for them.
+    :return:
+    """
+    log = logging.getLogger(__name__)
+    log.debug("Check Idle Machines")
+    Base = automap_base()
+    engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    machines = Base.classes.condor_machines
+    unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed", machines.activity == "Idle")
+    for machine in unclaimed_idle_machines:
+        if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # make configurable setting for now ~30minutes
+            log.debug("Setting condor off flag for machine: %s", machine.name)
+            machine.condor_off = 1
+
+    session.commit()
+
+def check_unregistered_machines():
+    """Query the condor machines and cloud VMs to sort out which ones have failed to register correctly.
+    and take steps to shut those down. There could be problems with shutting down machines cs isn't controlling
+    so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
+    log = logging.getLogger(__name__)
+    log.debug("Check Unregistered Machines")
+    Base = automap_base()
+    engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    machines = Base.classes.condor_machines
+    vms = Base.classes.csv2_vms
+    
 
 # should re-adapt this to deal with adding group from DB and splitting code into functions instead of all inline
 def add_user_cloud(user, user_resource_file=None):
