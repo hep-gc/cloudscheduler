@@ -4,14 +4,14 @@ merge_type: 'list(append)+dict(recurse_array)+str()'
 write_files:
 -   content: |
         {{cs_cloud_type}}
-        owner: root:root
-        permissions: 0644
-        path: /var/lib/cloud_type
+    owner: root:root
+    permissions: 0644
+    path: /var/lib/cloud_type
 -   content: |
         {{cs_cloud_name}}
-        owner: root:root
-        permissions: 0644
-        path: /var/lib/cloud_name
+    owner: root:root
+    permissions: 0644
+    path: /var/lib/cloud_name
 -   content: |
         # Local config for Cloud Scheduler
 
