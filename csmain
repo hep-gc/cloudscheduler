@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import copy
 import logging
 import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
@@ -38,7 +39,7 @@ def main():
         #logging.debug(type(csv2groups))
         #log.debug(type(csv2groups[0]),csv2groups[0])
         for csgroup in csv2groups:
-            log.debug(csgroup.group_name)
+            log.debug("Dealing with current group: %s", csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
             Base = automap_base()
@@ -65,35 +66,41 @@ def main():
             idle_jobs_for_group = session.query(view_groups_of_idle_jobs).filter(
                 view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
                 view_groups_of_idle_jobs.c.job_priority)
-            log.debug('got idle jobs')
+            log.debug('---------------got idle jobs--------------')
             for idle_job in idle_jobs_for_group:
-
-                log.debug(idle_job.flavors) # flavors is generated line based on which flavor is the best fit and which clouds have available resources
-                    # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
+                log.debug("Info for current job: Group: %s, Target: %s, User: %s, Flavors: %s",idle_job.group_name, idle_job.target_clouds,
+                          idle_job.user, idle_job.flavors)
+                # flavors is generated line based on which flavor is the best fit and which clouds have available resources
+                # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
                 job_count = idle_job.count # number of jobs with identical request
-                log.debug(job_count)
                 flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
-                log.debug(flavor_list)
+
                 target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
-                log.debug(target_cloud_list)
                 for tri in flavor_list:
                     (group, cloud, flavor) = tri.split(':')
-                    log.debug(tri)
-                    log.debug("%s, %s, %s", group, cloud, flavor)
 
                     clouds_matching = session.query(view_resources_matching_idle_jobs).filter(
                         view_resources_matching_idle_jobs.c.flavor == tri,
                         view_resources_matching_idle_jobs.c.cloud_name.in_(target_cloud_list)) # awkward syntax but works.
                     for cloud_match in clouds_matching:
+                        log.debug("-------------- %s -------------", cloud_match.cloud_name)
+                        if cloud_match.cloud_name not in target_cloud_list:
+                            log.debug("Not a target cloud skipping.")
+                            continue
                         # how many VMs should I try to boot? lets just go for max we can for now until we add config for limits
                         num_vms_to_boot = job_count if job_count <= cloud_match.flavor_slots else cloud_match.flavor_slots
-                        template_dict = {'cs_user': idle_job.user,
+                        try:
+                            usertmp = idle_job.user.split('@')[0]
+                        except:
+                            usertmp = idle_job.user
+                        template_dict = {'cs_user': usertmp,
                                          'cs_group_name': csgroup.group_name,
                                          'cs_condor_host': csgroup.condor_central_manager}
+                        log.debug(template_dict)
                         try:
                             if cm_group.clouds[cloud_match.cloud_name].enabled:
                                 cm_group.clouds[cloud_match.cloud_name]\
-                                    .vm_create(group_yaml_list=cm_group.group_yamls,
+                                    .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
                                                num=num_vms_to_boot,
                                                flavor=cloud_match.flavor_name,
                                                job=idle_job,
@@ -113,6 +120,11 @@ def main():
             # check for VMs not registered or no longer registered with condor
                 # shutdown those VMs (although this may be designated to the VMPoller thingy instead
 
+            # Will want to see if VMs exist that are Idle / Unclaimed and have been so for extended time
+                # For the ones that are set the Retire flag
+            # Will want to see which ones are not registered with condor (how?)
+                # For ones not registered after a time or ones that had the retire flag set set the kill flag
+                    
 
 
             # Repeat for next group

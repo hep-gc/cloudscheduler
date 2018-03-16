@@ -9,6 +9,7 @@ from keystoneauth1 import session
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
 from keystoneauth1.exceptions.connection import ConnectFailure
+from keystoneauth1.exceptions.catalog import EmptyCatalog
 from neutronclient.v2_0 import client as neuclient
 from sqlalchemy import create_engine
 # from sqlalchemy.orm import Session
@@ -70,27 +71,32 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         # Deal with user data - combine and zip etc.
         template_dict['cs_cloud_type'] = self.__class__.__name__
         template_dict['cs_flavor'] = flavor
+        self.log.debug(template_dict)
         user_data_list = job.user_data.split(',') if job.user_data else []
         userdata = self.prepare_userdata(group_yaml=group_yaml_list,
                                          yaml_list=user_data_list,
                                          template_dict=template_dict)
+
         nova = self._get_creds_nova()
         # Check For valid security groups
 
 
         # Ensure keyname is valid
         if self.keyname:
-            key_name = self.keyname if self.keyname else ""
+            key_name = ""
             try:
-                if not nova.keypairs.findall(name=self.keyname):
-                    key_name = ""
-                elif not nova.keypairs.findall(name=csconfig.config.keyname):
-                    key_name = ""
+                if nova.keypairs.findall(name=self.keyname):
+                    key_name = self.keyname
+                elif nova.keypairs.findall(name=csconfig.config.keyname):
+                    key_name = csconfig.config.keyname
             except ConnectFailure as ex:
                 self.log.exception("Failed to connect to openstack cloud: %s", ex)
                 raise Exception
-
-
+            except EmptyCatalog as ex:
+                self.log.exception("Unable to find key %s ?", self.keyname)
+                raise Exception
+        else:
+            key_name = ""
 
         # Check image from job, else use cloud default, else global default
         imageobj = None
@@ -112,19 +118,20 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             return -1
 
         # check flavor from job, else cloud default, else global default
-        flavor = flavor
+        #flavor = flavor
+        instancetype_dict = self._attr_list_to_dict(job.instance_type)
         try:
-            flavor = nova.flavors.find(name=flavor)
-
-        #    instancetype_dict = self._attr_list_to_dict(job.VMInstanceType)
-       #     if instancetype_dict and self.name in instancetype_dict.keys():
-      #          flavor = nova.flavors.find(name=instancetype_dict[self.name])
-     #       elif 'default' in instancetype_dict.keys():
-    #            flavor = nova.flavors.find(name=instancetype_dict['default'])
-   #         elif self.default_flavor:
-  #              flavor = nova.flavors.find(name=self.default_flavor)
- #           else:
-#                flavor = nova.flavors.find(name=csconfig.config.default_flavor)
+            #flavor = nova.flavors.find(name=flavor)
+            if instancetype_dict and self.name in instancetype_dict.keys():
+                flavorl = nova.flavors.find(name=instancetype_dict[self.name])
+            elif 'default' in instancetype_dict.keys():
+                flavorl = nova.flavors.find(name=instancetype_dict['default'])
+            elif flavor:
+                flavorl = nova.flavors.find(name=flavor)
+            elif self.default_flavor:
+                flavorl = nova.flavors.find(name=self.default_flavor)
+            else:
+                flavorl = nova.flavors.find(name=csconfig.config.default_flavor)
         except novaclient.exceptions.NotFound as ex:
             self.log.exception(ex)
         # Deal with network if needed
@@ -152,10 +159,11 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         instance = None
         try:
             instance = nova.servers.create(name=hostname, image=imageobj,
-                                           flavor=flavor, key_name=key_name,
+                                           flavor=flavorl, key_name=key_name,
                                            availability_zone=None, nics=netid,
                                            userdata=userdata,
                                            security_groups=None, max_count=num)
+            pass
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
         except Exception as ex:
@@ -238,7 +246,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :return: keystone session object.
         """
         auth = v3.Password(auth_url=self.authurl, username=self.username,
-                           password=self.password, project_name="",
+                           password=self.password, project_name=self.project,
                            project_domain_name=self.projectdomainname,
                            user_domain_name=self.userdomainname, )
         sess = session.Session(auth=auth, verify=self.cacertificate)

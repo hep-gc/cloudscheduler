@@ -86,14 +86,17 @@ class BaseCloud(ABC):
             group_yaml.extend(raw_yaml_list)
         if self.extrayaml:
             group_yaml.extend(self.extrayaml)
+        self.log.debug(template_dict)
         for yaml_tuple in group_yaml:
-            # relies on name having 'template' in it. Alternative?
             if '.j2' in yaml_tuple[0]:
                 template_dict['cs_cloud_name'] = self.name
+                self.log.debug(yaml_tuple[1])
                 yaml_tuple[1] = jinja2.Environment()\
                     .from_string(yaml_tuple[1]).render(template_dict)
+        #self.log.debug(group_yaml)
         userdata = cloudscheduler.cloud_init_util\
             .build_multi_mime_message(group_yaml)
+        self.log.debug(userdata)
         if not userdata:
             return ""
         compressed = ""

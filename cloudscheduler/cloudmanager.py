@@ -55,9 +55,12 @@ class CloudManager():
             for yam in cloud_yamls:
                 cloud_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])
             try:
-                newcloud = cloudscheduler.openstackcloud.\
+                newcloud = None
+                if cloud.cloud_type == 'openstack':
+                    newcloud = cloudscheduler.openstackcloud.\
                     OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud)
-                self.clouds[newcloud.name] = newcloud
+                if newcloud:
+                    self.clouds[newcloud.name] = newcloud
             except Exception as ex:
                 self.log.exception("Error creating cloud: %s\n%s", cloud.cloud_name, ex)
         self.log.debug("Added all clouds for group: %s: %s", self.name, self.clouds.keys())
