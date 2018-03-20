@@ -4,20 +4,6 @@
 
 <head>
 <style>
-table {
-    border-collapse: collapse;
-}
-
-th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-tr:hover { 
-    background-color: red;
-    color: white;
-}
 
 
 th {
@@ -26,8 +12,42 @@ th {
 }
 
 
+table {
+  overflow: hidden;
+  border-collapse: collapse;
+}
+td:hover {
+  background-color: red;
+  color: white;
+}
+
+tr:hover {
+  background-color: yellow;
+}
+
+td, th {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+td:hover::after,
+th:hover::after {
+  content: "";
+  position: absolute;
+  background-color: yellow;
+  left: 0;
+  top: -5000px;
+  height: 10000px;
+  width: 100%;
+  z-index: -1;
+}
+
+
+
 .grey {
-  background-color: rgba(128,128,128,.25);
+  background-color: #eee;
+  color: white;
 }
 .red {
   background-color: rgba(255,0,0,.25);
@@ -35,13 +55,11 @@ th {
 .blue {
   background-color: rgba(0,0,255,.25);
 }
-.white {
-  background-color: white;
-}
+.clear {}
 
 
 </style>
-
+<meta http-equiv="refresh" content="30">
 </head>
 
 <body>
@@ -59,9 +77,9 @@ th {
   <colgroup>
     <col class="grey" />
     <col class="red" span="1" />
-    <col class="white" span="4" />
+    <col class="clear" span="4" />
     <col class="red" span="1" />
-    <col class="white" span="7"/>
+    <col class="clear" span="7"/>
   </colgroup>
   <thead>
     <tr>

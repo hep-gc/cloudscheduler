@@ -6,19 +6,27 @@
 <div id="container">
     <nav>
         <ul>
-            <li><a href="#">{{active_group}}</a>
-                <!-- First Tier Drop Down -->
-                <ul>
-                    <li><a>Groups:</a></li>
-                    {% for grp in user_groups %}
-                        <li><a href='/status/{{grp}}/'>{{grp}}</a></li>
-                    {% endfor %}
-                </ul>        
+            <li class="left"><a href="/status/">Status</a></li>
+            <li class="left"><a href="/clouds/">Clouds</a></li>
+            <li class="left"><a href="/groups/">Groups</a></li>
+            <li class="left"><a href="/user/list/">Users</a></li>
+            <li class="right"><a>{{ active_user }}</a></li>
+            <li class="right">
+                <form name="group_selector" action="" method="POST">
+                    {% csrf_token %}
+                    <div align="center">
+                        <select name="group_select" id="group_select" onchange="this.form.submit()">
+                        {% for grp in user_groups %}
+                            {% if grp == active_group %}
+                                <option value="{{grp}}" selected>{{grp}}</option>
+                            {% else %}
+                                <option value="{{grp}}">{{grp}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    </div>
+                </form>
             </li>
-            <li><a href="/status/">Status</a></li>
-            <li><a href="/clouds/">Clouds</a></li>
-            <li><a href="/groups/">Groups</a></li>
-            <li><a href="/users/">Users</a></li>
         </ul>
     </nav>
 </div>

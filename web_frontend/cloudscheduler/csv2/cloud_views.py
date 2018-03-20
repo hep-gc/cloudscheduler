@@ -67,10 +67,15 @@ def add_resources(request):
         
         db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw, keyname=keyname, cacertificate=cacertificate, region=region, user_domain_name= user_domain_name, project_domain_name=project_domain_name, cloud_type=cloud_type, cores_ctl=cores_ctl, ram_ctl=ram_ctl)
 
-        return manage_clouds(request)
-    else:
-        #not a post, return to manage users page
-        return manage_clouds(request)
+
+    context = {
+            'response_code': 0,
+            'message': "Cloud updated"
+    }
+
+    return _render(request, 'csv2/clouds.html', context)
+
+
 
 
 #
@@ -83,11 +88,14 @@ def status(request, group_name=None):
 
     active_user = getcsv2User(request)
     user_groups = db_utils.get_user_groups(active_user)
+
     #check to see if specified group is a valid one for this user, if it is set it as active
-    if group_name is not None:
-        if group_name in user_groups:
-            active_user.active_group = group_name
-            active_user.save()
+    if request.method == 'POST':
+        group_name = request.POST.get('group_select')
+        if group_name is not None:
+            if group_name in user_groups:
+                active_user.active_group = group_name
+                active_user.save()
 
     if len(user_groups)==0:
         # active user isn't registered to any groups, display blank page with msg
@@ -137,13 +145,17 @@ def list(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
 
+
     active_user = getcsv2User(request)
     user_groups = db_utils.get_user_groups(active_user)
+
     #check to see if specified group is a valid one for this user, if it is set it as active
-    if group_name is not None:
-        if group_name in user_groups:
-            active_user.active_group = group_name
-            active_user.save()
+    if request.method == 'POST':
+        group_name = request.POST.get('group_select')
+        if group_name is not None:
+            if group_name in user_groups:
+                active_user.active_group = group_name
+                active_user.save()
 
     if len(user_groups)==0:
         # active user isn't registered to any groups, display blank page with msg
