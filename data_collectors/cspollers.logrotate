@@ -1,4 +1,5 @@
 /var/log/cloudscheduler/csjobs.log {
+  su cloudscheduler cloudscheduler
   notifempty
   missingok
   compress
@@ -7,6 +8,7 @@
 }
 
 /var/log/cloudscheduler/cscollector.log {
+  su cloudscheduler cloudscheduler
   notifempty
   missingok
   compress
@@ -15,6 +17,7 @@
 }
 
 /var/log/cloudscheduler/openstackpoller.log {
+  su cloudscheduler cloudscheduler
   notifempty
   missingok
   compress
