@@ -28,9 +28,11 @@ CREATE TABLE `archived_condor_jobs` (
   `target_clouds` text DEFAULT NULL,
   `cloud_name` text DEFAULT NULL,
   `job_status` int(11) DEFAULT NULL,
-  `request_memory` int(11) DEFAULT NULL,
+  `request_cpus` int(11) NOT NULL,
+  `request_ram` int(11) DEFAULT NULL,
   `request_disk` int(11) DEFAULT NULL,
   `request_swap` int(11) DEFAULT NULL,
+  `request_scratch` int(11) DEFAULT NULL,
   `requirements` varchar(512) DEFAULT NULL,
   `job_priority` int(11) DEFAULT NULL,
   `cluster_id` int(11) DEFAULT NULL,
@@ -59,4 +61,4 @@ CREATE TABLE `archived_condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-31 13:02:34
+-- Dump completed on 2018-03-16  0:00:03

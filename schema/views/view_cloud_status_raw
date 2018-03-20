@@ -29,7 +29,7 @@ from csv2_group_resources
 /*
 ** Retrieve job count for each group.
 */
-union select
+union all select
 
 group_name,
 ifnull(cloud_name,'(queued or held)') as cloud_name,
@@ -52,7 +52,7 @@ from condor_jobs
 /*
 ** Retrieve VM count for each group.
 */
-union select
+union all select
 
 group_name,
 cloud_name,
