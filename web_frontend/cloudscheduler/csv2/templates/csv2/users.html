@@ -17,7 +17,7 @@
         }
     </style>
 </head>
-
+<body>
 <table>
     <tr><th>Username</th><th>Cert CN</th><th>Superuser</th></tr>
     {% for user in user_list %}
@@ -31,7 +31,7 @@
             {% endif %}
             <td><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{{user.username}}" style="margin-right: 5px"> Edit </button>
                 <div class="collapse" id="{{user.username}}" style="width: 400px">
-                    <form name="{{user.username}}" action="/update_user/" method="post">
+                    <form name="{{user.username}}" action="/user/update/" method="post">
                         {% csrf_token %}
                         <table>
                             <tr><td><label for="username">Username</label></td>
@@ -70,7 +70,7 @@
 <div style="padding-left: 25px; padding-top: 25px">
     <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#create_user" style="margin-right: 5px"> Create User </button>
     <div class="collapse" id="create_user" style="width: 400px">
-        <form name="create_user" action="/create_user/" method="post">
+        <form name="create_user" action="/user/create/" method="post">
             {% csrf_token %}
             <table>
                 <tr><td><label for="username">Username</label></td>
@@ -97,6 +97,7 @@
         <p style="color: red; font-weight: bold; font-size: large;">{{message}}</p>
     {% endif %}
 {% endif %}
+</body>
 
 <script>
     function confirmDelete(user) {
