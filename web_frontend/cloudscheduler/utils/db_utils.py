@@ -76,26 +76,18 @@ def get_networks(filter=None):
     network_list = db_session.query(Networks)
     return network_list
 
+
 def get_groups(filter=None):
-    Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
-    Groups = Base.classes.csv2_groups
-    group_list = db_session.query(Groups)
-    return group_list
+    conn = engine.connect()
+    s = select([view_group_with_yaml])
+    return conn.execute(s)
 
 
 def get_group_resources(group_name):
-    print("1 >>>>>>>>>>>>>>>>>>", time.time())
-#   metadata = MetaData()    
-    print("2 >>>>>>>>>>>>>>>>>>", time.time())
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    print("3 >>>>>>>>>>>>>>>>>>", time.time())
     conn = engine.connect()
-    print("4 >>>>>>>>>>>>>>>>>>", time.time())
     s = select([view_group_resources]).where(view_group_resources.c.group_name == group_name)
-    print("5 >>>>>>>>>>>>>>>>>>", time.time())
     return conn.execute(s)
 
 
@@ -193,7 +185,8 @@ def put_group_resources(query_dict):
             ins = table.insert().values(query_filtered)
 
     elif action =="modify":
-        ins = table.update().where(table.c.cloud_name==query_dict['cloud_name_orig'] and table.c.group_name==query_dict['group_name']).values(query_filtered)
+        #ins = table.update().where(table.c.cloud_name==query_dict['cloud_name_orig'] and table.c.group_name==query_dict['group_name']).values(query_filtered)
+        ins = table.update().where(table.c.cloud_name==query_dict['cloud_name'] and table.c.group_name==query_dict['group_name']).values(query_filtered)
 
     elif action =="delete":
         ins = table.delete(table.c.cloud_name==query_dict['cloud_name'] and table.c.group_name==query_dict['group_name'])

@@ -17,7 +17,7 @@
 
 <section class="vertical-menu">
     <a href="#" class="active">Groups</a>
-        {% for group in group_list %}
+        {% for group in group_list.ResultProxy %}
         <a href="#{{group.group_name}}">{{group.group_name}}</a>
         {% endfor %}
     <a href="#add_group" class="add_group">+</a> 
@@ -27,21 +27,31 @@
     {% for group in group_list.ResultProxy %}
     <div id="{{group.group_name}}">
         <h1>{{group.group_name}}</h1>
+
         <div id="delete_{{group.group_name}}" class="modalDialog">
             <div>
                 <a href="#close" title="Close" class="close">X</a>
                 <h2>{{group.group_name}}</h2>
-                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="action" value="delete"/>
                 <p><input type="submit" value="Update Group" />Yes</td>
 
             </div>
         </div>
+        
         <form name="{{group.group_name}}" action="/group/update/" method="post">
             {% csrf_token %}
             <table>
-                <tr><td><label for="group_name">Group name</label></td>
-                <td><input type="text" name="group_name" id="" value="{{group.group_name}}" /></td></tr>
-                </td></tr>
+                <input type="hidden" name="group_name" value="{{group.group_name}}" />
+
+                <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
+                <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
+
+                <tr><td><label for="yaml_name">YAML filename</label></td>
+                <td><input type="text" name="yaml_name" id="" value="{{group.yaml_name}}" /></td></tr>
+
+
+                <tr><td><label for="group_yaml">Group yaml</label></td>
+                <td><textarea name="group_yaml" rows="25" cols="80">{{group.yaml}}</textarea></td></tr>
 
                 <input type="hidden" name="action" value="modify" />
                 <tr><td><input type="submit" value="Update Group" /></td>
@@ -57,6 +67,13 @@
             <table>
                 <tr><td><label for="group_name">Group name</label></td>
                 <td><input type="text" name="group_name" id="" value="" /></td></tr>
+
+                <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
+                <td><input type="text" name="condor_central_manager" id="" value="" /></td></tr>
+
+                <tr><td><label for="group_yaml">Group yaml</label></td>
+                <td><textarea name="group_yaml" rows="10" cols="30">Enter yaml here</textarea></td></tr>
+
                 <input type="hidden" name="action" value="add" />
                 <tr><td><input type="submit" value="Add Group" /></td></tr>
             </table>
