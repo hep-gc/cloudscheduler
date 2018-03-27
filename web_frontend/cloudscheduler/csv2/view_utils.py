@@ -67,6 +67,8 @@ def _render(request, template, context):
                 serialized_context[item] = json.dumps(context[item]['ResultProxy'])
             else:
                 serialized_context[item] = str(context[item])
+                if serialized_context[item] == 'None':
+                  serialized_context[item] = None
         response = HttpResponse(json.dumps(serialized_context), content_type='application/json')
     else:
         response = render(request, template, context)

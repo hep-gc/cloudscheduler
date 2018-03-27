@@ -1,5 +1,6 @@
 <head>
     {% load static %}
+    <link rel="icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/navigation.css" %}">
 </head>
 
@@ -15,7 +16,7 @@
                 <form name="group_selector" action="" method="POST">
                     {% csrf_token %}
                     <div align="center">
-                        <select name="group_select" id="group_select" onchange="this.form.submit()">
+                        <select name="group" id="group" onchange="this.form.submit()">
                         {% for grp in user_groups %}
                             {% if grp == active_group %}
                                 <option value="{{grp}}" selected>{{grp}}</option>

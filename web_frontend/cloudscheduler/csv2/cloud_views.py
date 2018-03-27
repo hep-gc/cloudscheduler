@@ -135,46 +135,46 @@ def update(request):
     active_user = getcsv2User(request)
 
     if request.method == 'POST':
-        group_name = active_user.active_group
-        cloud_name = request.POST.get('cloud_name')
-        authurl = request.POST.get('authurl')
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        if 'cloud_name' not in request.POST:
+            return list(request, response_code=1, message="Missing cloud_name")
+
+        values = {'group_name': active_user.active_group}
+
+        for key in request.POST:
+
+            if key == 'core_lock':
+                if request.POST[key] == 'lock':
+                    cores_ctl = -1
+                else:
+                    cores_ctl = cores
+
+                values['cores_ctl'] = cores_ctl
+
+            elif key == 'ram_lock':
+                if request.POST[key] == 'lock':
+                    ram_ctl = -1
+                else:
+                    ram_ctl = ram
+
+                values['ram_ctl'] = ram_ctl
+ 
+            else:
+                values[key] = request.POST[key]
+
+        db_utils.put_group_resources(values)
+
+
         action = request.POST.get('action')
-        keyname = request.POST.get('keyname')
-        cacertificate = request.POST.get('cacertificate')
-        region = request.POST.get('region')
-        user_domain_name = request.POST.get('user_domain_name')
-        project_domain_name = request.POST.get('project_domain_name')
-        cloud_type = request.POST.get('cloud_type')
-        cores = request.POST.get('cores')
-        core_lock = request.POST.get('core_lock')
-        ram = request.POST.get('ram')
-        ram_lock = request.POST.get('ram_lock')
+        cloud_name = request.POST.get('cloud_name')
 
-        if core_lock == 'lock':
-            cores_ctl = -1
+        if action == 'add':
+            message = 'Cloud "%s" added.' % cloud_name
+        elif action == 'delete':
+            message = 'Cloud "%s" deleted.' % cloud_name
         else:
-            cores_ctl = cores
+            message = 'Cloud "%s" updated.' % cloud_name
 
-        if ram_lock == 'lock':
-            ram_ctl = -1
-        else:
-            ram_ctl = ram
-
-        # Use bcrypt to encrypt password.
-        #hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt(prefix=b"2a"))
-        hashed_pw = password
-        
-        db_utils.put_group_resources(action=action, group=group_name, cloud=cloud_name, url=authurl, uname=username, pword=hashed_pw, keyname=keyname, cacertificate=cacertificate, region=region, user_domain_name= user_domain_name, project_domain_name=project_domain_name, cloud_type=cloud_type, cores_ctl=cores_ctl, ram_ctl=ram_ctl)
-
-
-    if action == 'add':
-        message = 'Cloud "%s" added.' % cloud_name
-    elif action == 'delete':
-        message = 'Cloud "%s" deleted.' % cloud_name
     else:
-        message = 'Cloud "%s" updated.' % cloud_name
+        message = 'No data recieved.'
 
-    list(request, message=message)
-
+    return list(request, message=message)

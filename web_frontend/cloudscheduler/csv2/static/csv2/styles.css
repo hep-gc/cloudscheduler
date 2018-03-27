@@ -38,6 +38,10 @@ section{
     color: white;
 }
 
+#beaver-small:vertical-menu ~ ul [href='#beaver-small'],
+#chameleon:vertican-menu ~ ul [href='#chameleon'] {
+    background: blue;
+}
 
 li:hover {
     color: red;
