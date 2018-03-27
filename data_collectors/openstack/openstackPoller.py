@@ -4,6 +4,7 @@ import time
 import logging
 import config
 import datetime
+from dateutil import tz, parser
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -219,7 +220,7 @@ def vm_poller():
                 }
 
                 vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
-                vm_dict['status_changed_time'] =  datetime.datetime.strptime(vm.updated, "%Y-%m-%dT%H:%M:%SZ").strftime('%s')
+                vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
