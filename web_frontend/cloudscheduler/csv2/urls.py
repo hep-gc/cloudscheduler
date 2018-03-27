@@ -16,4 +16,5 @@ urlpatterns = [
 
     url(r'^groups/', group_views.list, name='list'),
     url(r'^group/update', group_views.update, name='update'),
+
 ]

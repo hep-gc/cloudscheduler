@@ -8,6 +8,7 @@ from sqlalchemy.sql import select
 from csv2 import config
 from lib.schema import *
 
+import time
 
 '''
 dev code
@@ -86,10 +87,15 @@ def get_groups(filter=None):
 
 
 def get_group_resources(group_name):
-    metadata = MetaData()    
+    print("1 >>>>>>>>>>>>>>>>>>", time.time())
+#   metadata = MetaData()    
+    print("2 >>>>>>>>>>>>>>>>>>", time.time())
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    print("3 >>>>>>>>>>>>>>>>>>", time.time())
     conn = engine.connect()
+    print("4 >>>>>>>>>>>>>>>>>>", time.time())
     s = select([view_group_resources]).where(view_group_resources.c.group_name == group_name)
+    print("5 >>>>>>>>>>>>>>>>>>", time.time())
     return conn.execute(s)
 
 
@@ -162,7 +168,7 @@ def get_condor_machines(filter=None):
 
 
 # add new group resources
-def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacertificate, region, user_domain_name, project_domain_name, cloud_type, cores_ctl, ram_ctl):
+def put_group_resources(query_dict):
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
 
     metadata = MetaData(bind=engine)
@@ -170,46 +176,28 @@ def put_group_resources(action, group, cloud, url, uname, pword, keyname, cacert
     table = Table('csv2_group_resources', metadata, autoload=True)
     db_session = Session(engine)
 
-    if action=="add":
+    columns = table.c
 
-        if(db_session.query(exists().where(table.c.cloud_name==cloud)).scalar()):
+    action = query_dict['action']
+
+    # Only accept data if column exisits in the table.
+    query_filtered = {}
+    for key in query_dict:
+       if key in columns:
+            query_filtered.update({key:query_dict[key]})
+
+    if action =="add":
+        if(db_session.query(exists().where(table.c.cloud_name==query_dict['cloud_name'] and table.c.group_name==query_dict['group_name'])).scalar()):
             return 0
-
         else:
-            ins = table.insert().values(
-            group_name=group,
-            cloud_name=cloud,
-            authurl=url,
-            project="default",
-            username=uname,
-            password=pword,
-            keyname=keyname,
-            cacertificate=cacertificate,
-            region=region,
-            user_domain_name=user_domain_name,
-            project_domain_name=project_domain_name, 
-            cloud_type=cloud_type,
-            cores_ctl=cores_ctl,
-            ram_ctl=ram_ctl
-            )
+            ins = table.insert().values(query_filtered)
 
-    elif action=="modify":
-        ins = table.update().where(table.c.cloud_name==cloud and table.c.group_name==group).values(
-            authurl=url,
-            project="default",
-            username=uname,
-            password=pword,
-            keyname=keyname,
-            cacertificate=cacertificate,
-            region=region,
-            user_domain_name=user_domain_name,
-            project_domain_name=project_domain_name, 
-            cloud_type=cloud_type,
-            cores_ctl=cores_ctl,
-            ram_ctl=ram_ctl
-            )
-    elif action=="delete":
-        ins = table.delete(table.c.cloud_name==cloud)
+    elif action =="modify":
+        ins = table.update().where(table.c.cloud_name==query_dict['cloud_name_orig'] and table.c.group_name==query_dict['group_name']).values(query_filtered)
+
+    elif action =="delete":
+        ins = table.delete(table.c.cloud_name==query_dict['cloud_name'] and table.c.group_name==query_dict['group_name'])
+
     else:
         return 0
 

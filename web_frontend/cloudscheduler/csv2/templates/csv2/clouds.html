@@ -7,13 +7,7 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
 </head>
-
-{% if err_message is not None %}
-    <p style="color:red;">{{err_message}}</p>
-{% endif %}
-{% if message is not None %}
-    <p style="color:green;">{{message}}</p>
-{% endif %}
+<body>
 
 <section class="vertical-menu">
     <a href="#" class="active">Clouds</a>
@@ -41,8 +35,11 @@
             <table>
                 <tr><td><label for="cloud_name">Cloud name</label></td>
                 <td><input type="text" name="cloud_name" id="" value="{{cloud.cloud_name}}" /></td></tr>
+                <input type="hidden" name="cloud_name_orig" value="{{cloud.cloud_name}}" />
                 <tr><td><label for="authurl">URL</label></td>
                 <td><input type="text" name="authurl" id="" value="{{cloud.authurl}}" /></td></tr>
+                <tr><td><label for="project">Project</label></td>
+                <td><input type="text" name="project" id="" value="{{cloud.project}}" /></td></tr>
                 <tr><td><label for="username">Username</label></td>
                 <td><input type="text" name="username" id="" value="{{cloud.username}}" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
@@ -63,9 +60,9 @@
                 <tr><td><label for="cores">Cores</label></td>
                 <td>
                 {% if cloud.cores_ctl < 0 %}
-                    <input type="checkbox" id="cores_switch_{{cloud.cloud_name}}" name="core_lock" value="lock" checked>
+                    <input type="checkbox" id="cores_switch_{{cloud.cloud_name}}" name="cores_lock" value="lock" checked>
                 {% else %}
-                    <input type="checkbox" id="cores_switch_{{cloud.cloud_name}}" name="core_lock" value="lock">
+                    <input type="checkbox" id="cores_switch_{{cloud.cloud_name}}" name="cores_lock" value="lock">
                 {% endif %}
                     <label for="cores_switch_{{cloud.cloud_name}}"></label>
                     <div class="content">
@@ -114,6 +111,8 @@
                 <td><input type="text" name="cloud_name" id="" value="" /></td></tr>
                 <tr><td><label for="authurl">URL</label></td>
                 <td><input type="text" name="authurl" id="" value="" /></td></tr>
+                <tr><td><label for="project">Project</label></td>
+                <td><input type="text" name="project" id="" value="{{cloud.project}}" /></td></tr>
                 <tr><td><label for="username">Username</label></td>
                 <td><input type="text" name="username" id="" value="" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
@@ -131,7 +130,7 @@
                 <tr><td><label for="cloud_type">Cloud type</label></td>
                 <td><input type="text" name="cloud_type" id="" value="{{cloud.cloud_type}}" /></td></tr>
                 <input type="hidden" name="cores" value="-1" />
-                <input type="hidden" name="core_lock" value="lock" />
+                <input type="hidden" name="cores_lock" value="lock" />
                 <input type="hidden" name="ram" value="-1" />
                 <input type="hidden" name="ram_lock" value="lock" />
                 <input type="hidden" name="action" value="add" />
@@ -155,3 +154,13 @@
     </div>
 </div>
 {% endfor %}
+
+{% if err_message is not None %}
+    <p style="color:red;">{{err_message}}</p>
+{% endif %}
+{% if message is not None %}
+    <p style="color:green;">{{message}}</p>
+{% endif %}
+
+</body>
+
