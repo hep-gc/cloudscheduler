@@ -16,6 +16,7 @@ USER RELATED WEB REQUEST VIEWS
 
 
 def manage(request, response_code=0, message=None):
+    print("+++ manage +++", response_code, message)
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -33,21 +34,23 @@ def manage(request, response_code=0, message=None):
 
 
 def create(request):
+    print("+++ create +++")
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
         raise PermissionDenied
 
     if request.method == 'POST':
+        print(">>>>>>>>>>>>>>>>>>>>>>", request.POST.get('is_superuser'))
         user = request.POST.get('username')
         pass1 = request.POST.get('password1')
         pass2 = request.POST.get('password2')
         cert_cn = request.POST.get('common_name')
         su_status = request.POST.get('is_superuser')
-        if not su_status:
-            su_status=False
-        else:
-            su_status=True
+#       if not su_status:
+#           su_status=False
+#       else:
+#           su_status=True
 
         # Need to perform several checks
         # 1. Check that the username is valid (ie no username or cert_cn by that name)
@@ -60,18 +63,18 @@ def create(request):
             #check #1
             if user == registered_user.username or user == registered_user.cert_cn:
                 #render manage users page with error message
-                return manage_users(request, response_code=1, message="Username unavailable")
+                return manage(request, response_code=1, message="Username unavailable")
             #check #2
             if cert_cn is not None and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
-                return manage_users(request, response_code=1, message="Username unavailable or conflicts with a registered Distinguished Name")
+                return manage(request, response_code=1, message="Username unavailable or conflicts with a registered Distinguished Name")
         #check #3 part 1
         if pass1 is None or pass2 is None:
-            return manage_users(request, response_code=1, message="Password is empty")
+            return manage(request, response_code=1, message="Password is empty")
         if len(pass1)<4:
-            return manage_users(request, response_code=1, message="Password must be at least 4 characters")
+            return manage(request, response_code=1, message="Password must be at least 4 characters")
         #check #4
         if pass1 != pass2:
-            return manage_users(request, response_code=1, message="Passwords do not match")
+            return manage(request, response_code=1, message="Passwords do not match")
 
         # After checks are made use bcrypt to encrypt password.
         hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
@@ -79,12 +82,13 @@ def create(request):
         #if all the checks passed and the hashed password has been generated create a new user object and save import
         new_usr = csv2_user(username=user, password=hashed_pw, cert_cn=cert_cn, is_superuser=su_status)
         new_usr.save()
-        return manage_users(request, response_code=0, message="User added")
+        return manage(request, response_code=0, message="User added")
     else:
         #not a post, return to manage users page
-        return manage_users(request)
+        return manage(request)
 
 def update(request):
+    print("+++ update +++")
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
@@ -116,10 +120,10 @@ def update(request):
             if not new_username == user_to_update.username:
                 if user == registered_user.username or user == registered_user.cert_cn:
                     #render manage users page with error message
-                    return manage_users(request, response_code=1, message="Unable to update user: new username unavailable")
+                    return manage(request, response_code=1, message="Unable to update user: new username unavailable")
             #check #2
             if cert_cn is not None and registered_user.username != user_to_update.username and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
-                return manage_users(request, response_code=1, message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
+                return manage(request, response_code=1, message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
 
             #check #3 part 1
             if new_pass1 not in (None, "") and new_pass2 not in (None, ""):
@@ -131,34 +135,40 @@ def update(request):
                         user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
                     else:
                         # passwords don't match
-                        return manage_users(request, response_code=1, message="Passwords don't match, please try again or leave password empty to update other fields.")
+                        return manage(request, response_code=1, message="Passwords don't match, please try again or leave password empty to update other fields.")
                 else:
                     # passwords too short
-                    return manage_users(request, response_code=1, message="Passwords are too short, please try again or leave password empty to update other fields.")
+                    return manage(request, response_code=1, message="Passwords are too short, please try again or leave password empty to update other fields.")
         user_to_update.username = new_username
         user_to_update.cert_cn = cert_cn
         user_to_update.is_superuser = su_status
         user_to_update.save()
-        return manage_users(request, response_code=0, message="User updated")
+        return manage(request, response_code=0, message="User updated")
 
     else:
         #not a post, return to manage users page
-        return manage_users(request)
+        return manage(request)
 
 def delete(request):
+    print("+++ delete +++")
     if not verifyUser(request):
         raise PermissionDenied
+    print(">>>>>>>>>>>>>>>>>>>>>>>> 0")
     if not getSuperUserStatus(request):
         raise PermissionDenied
 
+    print(">>>>>>>>>>>>>>>>>>>>>>>> 1")
     if request.method == 'POST':
         user = request.POST.get('username')
         user_obj = csv2_user.objects.filter(username=user)
         user_obj.delete()
-        return manage_users(request, response_code=0, message="User deleted")
-    return False
+        print(">>>>>>>>>>>>>>>>>>>>>>>> 2")
+        return manage(request, response_code=0, message="User deleted")
+
+    return manage(request, response_code=1, message="User NOT deleted")
 
 def settings(request):
+    print("+++ settings +++")
     if not verifyUser(request):
         raise PermissionDenied
 
