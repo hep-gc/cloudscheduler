@@ -8,9 +8,11 @@ archived_condor_jobs = Table('archived_condor_jobs', metadata,
   Column('target_clouds', String),
   Column('cloud_name', String),
   Column('job_status', Integer),
-  Column('request_memory', Integer),
+  Column('request_cpus', Integer),
+  Column('request_ram', Integer),
   Column('request_disk', Integer),
   Column('request_swap', Integer),
+  Column('request_scratch', Integer),
   Column('requirements', String(512)),
   Column('job_priority', Integer),
   Column('cluster_id', Integer),
@@ -31,6 +33,7 @@ archived_condor_jobs = Table('archived_condor_jobs', metadata,
 archived_condor_machines = Table('archived_condor_machines', metadata,
   Column('name', String(128), primary_key=True),
   Column('machine', String(256)),
+  Column('condor_host', String(64)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
   Column('address', String(512)),
@@ -196,6 +199,7 @@ condor_jobs = Table('condor_jobs', metadata,
 condor_machines = Table('condor_machines', metadata,
   Column('name', String(128), primary_key=True),
   Column('machine', String(256)),
+  Column('condor_host', String(64)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
   Column('address', String(512)),
@@ -220,6 +224,10 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('os_networks', String(64)),
   Column('os_vms', String(64)),
   Column('condor', String(64))
+  )
+
+csv2_cloud_types = Table('csv2_cloud_types', metadata,
+  Column('cloud_type', String(50), primary_key=True)
   )
 
 csv2_config = Table('csv2_config', metadata,
@@ -313,6 +321,7 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('power_status', Integer),
   Column('terminate', Integer),
   Column('terminate_time', Integer),
+  Column('status_changed_time', Integer),
   Column('last_updated', Integer)
   )
 
@@ -485,6 +494,15 @@ view_group_resources = Table('view_group_resources', metadata,
   Column('security_group_rules_max', Integer),
   Column('server_group_members_max', Integer),
   Column('server_meta_max', Integer)
+  )
+
+view_group_with_yaml = Table('view_group_with_yaml', metadata,
+  Column('group_name', String(128)),
+  Column('condor_central_manager', String),
+  Column('yaml_name', String(128)),
+  Column('enabled', Integer),
+  Column('yaml', String),
+  Column('mime_type', String(128))
   )
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
