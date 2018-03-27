@@ -8,9 +8,20 @@ def _cloud_list(gvar):
     """
 
     # Check for mandatory arguments.
-    _required_settings(gvar, ['--group'])
+    if 'group' in gvar['command_args']:
+#       response = _requests(gvar, '/clouds/')
+        response = _requests(gvar, '/cloud/prepare/')
 
-    response = _requests(gvar, '/manage_clouds/')
+        response = _requests(gvar,
+            '/clouds/',
+            form_data = {
+                'group': gvar['user_settings']['group'],
+                }
+          )
+
+    else:
+        response = _requests(gvar, '/clouds/')
+
     print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
     _show_table(
         gvar,
