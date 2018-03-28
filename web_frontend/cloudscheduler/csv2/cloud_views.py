@@ -174,7 +174,9 @@ def update(request):
         else:
             message = 'Cloud "%s" updated.' % cloud_name
 
+        response_code = 0
     else:
         message = 'No data recieved.'
+        response_code = 1
 
-    return list(request, message=message)
+    return list(request, response_code=response_code, message=message)
