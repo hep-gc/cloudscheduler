@@ -52,7 +52,15 @@ def _render(request, template, context):
     from django.core import serializers
     from django.db.models.query import QuerySet
     from sqlalchemy.engine import result as sql_result
+    import decimal
     import json
+
+    class csv2Encoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, decimal.Decimal):
+                return str(obj)
+
+            return json.JSONEncoder.default(self, obj)
 
     if request.META['HTTP_ACCEPT'] == 'application/json':
         serialized_context = {}
@@ -62,14 +70,14 @@ def _render(request, template, context):
             elif isinstance(context[item], QuerySet):
                 serialized_context[item] = serializers.serialize("json", context[item])
             elif isinstance(context[item], sql_result.ResultProxy):
-                serialized_context[item] = json.dumps([dict(r) for r in context[item]])
+                serialized_context[item] = json.dumps([dict(r) for r in context[item]], cls=csv2Encoder)
             elif isinstance(context[item], dict) and 'ResultProxy' in context[item]:
-                serialized_context[item] = json.dumps(context[item]['ResultProxy'])
+                serialized_context[item] = json.dumps(context[item]['ResultProxy'], cls=csv2Encoder)
             else:
                 serialized_context[item] = str(context[item])
                 if serialized_context[item] == 'None':
                   serialized_context[item] = None
-        response = HttpResponse(json.dumps(serialized_context), content_type='application/json')
+        response = HttpResponse(json.dumps(serialized_context, cls=csv2Encoder), content_type='application/json')
     else:
         response = render(request, template, context)
     return response
