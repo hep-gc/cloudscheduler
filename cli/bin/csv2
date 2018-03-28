@@ -15,8 +15,8 @@ import json
 
 from csv2_common import _required_settings, _show_table
 
-import csv2_actions_cloud as csv2_cloud
-import csv2_actions_user as csv2_user
+import csv2_cloud
+import csv2_user
 
 DEFAULT_SETTINGS = {
     'url': 'https://localhost',
@@ -105,6 +105,8 @@ def main(args):
     if gvar['object'] == 'cloud':
         if gvar['action'] == 'list':
             csv2_cloud._cloud_list(gvar)
+        elif gvar['action'] == 'status':
+            csv2_cloud._cloud_status(gvar)
         else:
             _invalid_object_action(gvar, 'action')
 
