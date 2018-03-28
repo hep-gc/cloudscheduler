@@ -28,7 +28,7 @@ def trim_keys(dict_to_trim, key_list):
 def resources_producer():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
-                           "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", \
+                           "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots"]
 
     sleep_interval = config.collection_interval
@@ -47,18 +47,11 @@ def resources_producer():
             condor_c = htcondor.Collector()
             ad_type = htcondor.AdTypes.Startd
             new_poll_time = time.time()
-            # This conditional shouldn't be needed but is here anyways
-            # incase there are any null "EnteredCurrentStatus" fields
-            if last_poll_time == 0:
-                condor_resources = condor_c.query(
-                    ad_type=ad_type,
-                    constraint=True,
-                    projection=resource_attributes)
-            else:
-                condor_resources = condor_c.query(
-                    ad_type=ad_type,
-                    constraint='EnteredCurrentState>=%d || JobStart>=%d' % (last_poll_time, last_poll_time),
-                    projection=resource_attributes)
+
+            condor_resources = condor_c.query(
+                ad_type=ad_type,
+                constraint=True,
+                projection=resource_attributes)
 
             for resource in condor_resources:
                 try:
