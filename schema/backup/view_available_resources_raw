@@ -1,0 +1,81 @@
+-- MySQL dump 10.16  Distrib 10.2.12-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.2.12-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `view_available_resources_raw`
+--
+
+DROP TABLE IF EXISTS `view_available_resources_raw`;
+/*!50001 DROP VIEW IF EXISTS `view_available_resources_raw`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `view_available_resources_raw` (
+  `group_name` tinyint NOT NULL,
+  `cloud_name` tinyint NOT NULL,
+  `authurl` tinyint NOT NULL,
+  `project` tinyint NOT NULL,
+  `username` tinyint NOT NULL,
+  `password` tinyint NOT NULL,
+  `keyname` tinyint NOT NULL,
+  `cacertificate` tinyint NOT NULL,
+  `region` tinyint NOT NULL,
+  `user_domain_name` tinyint NOT NULL,
+  `project_domain_name` tinyint NOT NULL,
+  `cloud_type` tinyint NOT NULL,
+  `cores` tinyint NOT NULL,
+  `ram` tinyint NOT NULL,
+  `flavor_name` tinyint NOT NULL,
+  `flavor_id` tinyint NOT NULL,
+  `flavor_cores` tinyint NOT NULL,
+  `flavor_ram` tinyint NOT NULL,
+  `flavor_disk` tinyint NOT NULL,
+  `flavor_scratch` tinyint NOT NULL,
+  `flavor_swap` tinyint NOT NULL,
+  `flavor_priority` tinyint NOT NULL,
+  `flavor` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `view_available_resources_raw`
+--
+
+/*!50001 DROP TABLE IF EXISTS `view_available_resources_raw`*/;
+/*!50001 DROP VIEW IF EXISTS `view_available_resources_raw`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `view_available_resources_raw` AS select `vgr`.`group_name` AS `group_name`,`vgr`.`cloud_name` AS `cloud_name`,`vgr`.`authurl` AS `authurl`,`vgr`.`project` AS `project`,`vgr`.`username` AS `username`,`vgr`.`password` AS `password`,`vgr`.`keyname` AS `keyname`,`vgr`.`cacertificate` AS `cacertificate`,`vgr`.`region` AS `region`,`vgr`.`user_domain_name` AS `user_domain_name`,`vgr`.`project_domain_name` AS `project_domain_name`,`vgr`.`cloud_type` AS `cloud_type`,case when (`vgr`.`cores_ctl` = -1 or `vgr`.`cores_ctl` > `vgr`.`cores_max`) then `vgr`.`cores_max` - `vgr`.`cores_used` else `vgr`.`cores_ctl` - `vgr`.`cores_used` end AS `cores`,case when (`vgr`.`ram_ctl` = -1 or `vgr`.`ram_ctl` > `vgr`.`ram_max`) then `vgr`.`ram_max` - `vgr`.`ram_used` else `vgr`.`ram_ctl` - `vgr`.`ram_used` end AS `ram`,`cf`.`name` AS `flavor_name`,`cf`.`id` AS `flavor_id`,`cf`.`cores` AS `flavor_cores`,`cf`.`ram` AS `flavor_ram`,`cf`.`disk` AS `flavor_disk`,`cf`.`ephemeral_disk` AS `flavor_scratch`,`cf`.`swap` AS `flavor_swap`,row_number() over ( partition by `vgr`.`group_name`,`vgr`.`cloud_name` order by `cf`.`cores`,`cf`.`ram`,`cf`.`disk`,`cf`.`ephemeral_disk`,`cf`.`swap`) AS `flavor_priority`,concat(`vgr`.`group_name`,':',`vgr`.`cloud_name`,':',`cf`.`name`) AS `flavor` from (`view_group_resources` `vgr` join `cloud_flavors` `cf` on(`vgr`.`group_name` = `cf`.`group_name` and `vgr`.`cloud_name` = `cf`.`cloud_name`)) order by `vgr`.`group_name`,`vgr`.`cloud_name`,row_number() over ( partition by `vgr`.`group_name`,`vgr`.`cloud_name` order by `cf`.`cores`,`cf`.`ram`,`cf`.`disk`,`cf`.`ephemeral_disk`,`cf`.`swap`) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-03-14  0:00:04
