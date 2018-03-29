@@ -24,6 +24,7 @@ def _requests(gvar, request, form_data={}):
     Make RESTful request and return response.
     """
     
+    import os
     import requests
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')

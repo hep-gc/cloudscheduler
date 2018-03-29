@@ -95,7 +95,7 @@ def _user_list(gvar):
     List csv2 users.
     """
 
-    response = _requests(gvar, '/manage_users/')
+    response = _requests(gvar, '/user/list/')
     _show_table(
         gvar,
         json.loads(response['user_list']),

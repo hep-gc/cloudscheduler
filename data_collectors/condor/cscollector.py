@@ -28,7 +28,7 @@ def trim_keys(dict_to_trim, key_list):
 def resources_producer():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
-                           "Activity", "VMType", "MycurrentTime", "EnteredCurrentState", \
+                           "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots"]
 
     sleep_interval = config.collection_interval
@@ -47,29 +47,28 @@ def resources_producer():
             condor_c = htcondor.Collector()
             ad_type = htcondor.AdTypes.Startd
             new_poll_time = time.time()
-            # This conditional shouldn't be needed but is here anyways
-            # incase there are any null "EnteredCurrentStatus" fields
-            if last_poll_time == 0:
-                condor_resources = condor_c.query(
-                    ad_type=ad_type,
-                    constraint=True,
-                    projection=resource_attributes)
-            else:
-                condor_resources = condor_c.query(
-                    ad_type=ad_type,
-                    constraint='EnteredCurrentState>=%d || JobStart>=%d' % (last_poll_time, last_poll_time),
-                    projection=resource_attributes)
+
+            condor_resources = condor_c.query(
+                ad_type=ad_type,
+                constraint=True,
+                projection=resource_attributes)
 
             for resource in condor_resources:
-                r_dict = dict(resource)
-                if "Start" in r_dict:
-                    r_dict["Start"] = str(r_dict["Start"])
-                r_dict = trim_keys(r_dict, resource_attributes)
-                r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
-                r_dict["condor_host"] = condor_host
-                new_resource = Resource(**r_dict)
-                logging.info("Adding new or updating resource: %s", r_dict["name"])
-                session.merge(new_resource)
+                try:
+                    r_dict = dict(resource)
+                    if "Start" in r_dict:
+                        r_dict["Start"] = str(r_dict["Start"])
+                    r_dict = trim_keys(r_dict, resource_attributes)
+                    r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    r_dict["condor_host"] = condor_host
+                    new_resource = Resource(**r_dict)
+                    logging.info("Adding new or updating resource: %s", r_dict["name"])
+                    session.merge(new_resource)
+                except Exception as exc:
+                    logging.error("Error constructing machine dictionary for %s continuing with next resource." % resource)
+                    logging.error(type(exc).__name__ + "type error occured")
+                    logging.error(exc)
+
             logging.info("Commiting database session")
             session.commit()
 
@@ -79,8 +78,9 @@ def resources_producer():
             time.sleep(sleep_interval)
 
         except Exception as exc:
+            logging.error(type(exc).__name__ + "type error occured on:")
             logging.error(exc)
-            logging.error("Error connecting to condor or database...")
+            logging.error("Error connecting to condor or database commencing sleep interval")
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
@@ -130,24 +130,24 @@ def collector_command_consumer():
 
             #query for condor_off commands
             #   get classads
+            logging.info("Querying database for condor commands")
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_off == 1):
-                condor_ad = condor_c.query(
-                    ad_type=startd_type,
-                    constraint="Name==%s" % resource.name)
-                logging.info("Found entry: %s flagged for condor_off.", resource.name)
-                startd_result = htcondor.send_command(
-                    ad=condor_ad,
-                    dc=htcondor.DaemonCommands.DaemonsOffPeaceful,
-                    target="-daemon Startd")
-                logging.info("Startd daemon condor_off status: %s", startd_result)
+                logging.info("Command received: Querying condor for relevent job (%s)" % resource.name)
+                #condor_ad = condor_c.query(ad_type=startd_type, constraint='Name=="%s"' % resource.name)[0]
+                
+                # May not be Needed, master should shut them all down
+                #startd_result = htcondor.send_command(
+                #    condor_ad,
+                #    htcondor.DaemonCommands.DaemonsOffPeaceful)
+                #logging.info("Startd daemon condor_off status: %s", startd_result)
                 # Now turn off master daemon
                 condor_ad = condor_c.query(
-                    ad_type=master_type,
-                    constraint="Name==%s" % resource.name)
+                    master_type,
+                    'Name=="%s"' % resource.name.split("@")[1])[0]
+                logging.info("Found entry: %s flagged for condor_off.", resource.name)
                 master_result = htcondor.send_command(
-                    ad=condor_ad,
-                    dc=htcondor.DaemonCommands.DaemonsOffPeaceful,
-                    target="-daemon Master")
+                    condor_ad,
+                    htcondor.DaemonCommands.DaemonsOffPeaceful)
                 #update database entry for condor off if the previous command was a success
                 logging.info("Master daemon condor_off status: %s", master_result)
                 #flag should be removed and cleanup can be left to another thread?
@@ -156,29 +156,41 @@ def collector_command_consumer():
 
 
             #query for condor_advertise commands
-            ad_list = []
+            master_list = []
+            startd_list = []
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_advertise == 1):
                 # get relevent classad objects from htcondor and compile a list for condor_advertise
                 logging.info("Ad found in database flagged for condor_advertise: %s", resource.name)
-                ad = condor_c.query(ad_type=master_type, constraint="Name==%s" % resource.name)
-                ad_list.append(ad)
+                ad = condor_c.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
+                master_list.append(ad)
+
+                ad = condor_c.query(startd_type, 'Name=="%s"' % resource.name)[0]
+                startd_list.append(ad)
+                # This is actually a little premature as we haven't executed the advertise yet
+                # There should be some logic to make sure the advertise runs before we remove the flag
                 updated_resource = Resource(name=resource.name, condor_advertise=0)
                 session.merge(updated_resource)
 
             #execute condor_advertise on retrieved classads
-            advertise_result = condor_c.advertise(ad_list, command="INVALIDATE_MASTER_ADS")
-            logging.info("condor_advertise result: %s", advertise_result)
+            if startd_list or master_list:
+                startd_advertise_result = condor_c.advertise(startd_list, "INVALIDATE_STARTD_ADS")
+                master_advertise_result = condor_c.advertise(master_list, "INVALIDATE_MASTER_ADS")
+                logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
+                logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
             session.commit() #commit all updates
 
         except Exception as exc:
             logging.error("Failure connecting to database or executing condor command...")
+            logging.error(type(exc).__name__)
             logging.error(exc)
             time.sleep(sleep_interval)
 
         except(SystemExit, KeyboardInterrupt):
             return False
 
+        logging.info("Command cycle finished... sleeping")
+        time.sleep(sleep_interval)
 
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
@@ -249,8 +261,8 @@ if __name__ == '__main__':
     p_resource_producer = Process(target=resources_producer)
     processes.append(p_resource_producer)
     # Command executer proccess
-    #p_command_consumer = Process(target=collector_command_consumer)
-    #processes.append(p_command_consumer)
+    p_command_consumer = Process(target=collector_command_consumer)
+    processes.append(p_command_consumer)
     # Database cleanup proccess
     p_cleanup = Process(target=cleanUp)
     processes.append(p_cleanup)

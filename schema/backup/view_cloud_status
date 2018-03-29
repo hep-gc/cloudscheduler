@@ -1,0 +1,73 @@
+-- MySQL dump 10.16  Distrib 10.2.12-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.2.12-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `view_cloud_status`
+--
+
+DROP TABLE IF EXISTS `view_cloud_status`;
+/*!50001 DROP VIEW IF EXISTS `view_cloud_status`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `view_cloud_status` (
+  `group_name` tinyint NOT NULL,
+  `cloud_name` tinyint NOT NULL,
+  `VMs` tinyint NOT NULL,
+  `VMs_starting` tinyint NOT NULL,
+  `VMs_running` tinyint NOT NULL,
+  `VMs_retiring` tinyint NOT NULL,
+  `VMs_other` tinyint NOT NULL,
+  `Jobs` tinyint NOT NULL,
+  `Jobs_s0` tinyint NOT NULL,
+  `Jobs_s1` tinyint NOT NULL,
+  `Jobs_s2` tinyint NOT NULL,
+  `Jobs_s3` tinyint NOT NULL,
+  `Jobs_s4` tinyint NOT NULL,
+  `Jobs_s5` tinyint NOT NULL,
+  `Jobs_s6` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `view_cloud_status`
+--
+
+/*!50001 DROP TABLE IF EXISTS `view_cloud_status`*/;
+/*!50001 DROP VIEW IF EXISTS `view_cloud_status`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `view_cloud_status` AS select `view_cloud_status_raw`.`group_name` AS `group_name`,`view_cloud_status_raw`.`cloud_name` AS `cloud_name`,sum(`view_cloud_status_raw`.`VMs`) AS `VMs`,sum(`view_cloud_status_raw`.`VMs_starting`) AS `VMs_starting`,sum(`view_cloud_status_raw`.`VMs_running`) AS `VMs_running`,sum(`view_cloud_status_raw`.`VMs_retiring`) AS `VMs_retiring`,sum(`view_cloud_status_raw`.`VMs_other`) AS `VMs_other`,sum(`view_cloud_status_raw`.`Jobs`) AS `Jobs`,sum(`view_cloud_status_raw`.`Jobs_s0`) AS `Jobs_s0`,sum(`view_cloud_status_raw`.`Jobs_s1`) AS `Jobs_s1`,sum(`view_cloud_status_raw`.`Jobs_s2`) AS `Jobs_s2`,sum(`view_cloud_status_raw`.`Jobs_s3`) AS `Jobs_s3`,sum(`view_cloud_status_raw`.`Jobs_s4`) AS `Jobs_s4`,sum(`view_cloud_status_raw`.`Jobs_s5`) AS `Jobs_s5`,sum(`view_cloud_status_raw`.`Jobs_s6`) AS `Jobs_s6` from `view_cloud_status_raw` group by `view_cloud_status_raw`.`group_name`,`view_cloud_status_raw`.`cloud_name` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-03-14  0:00:04

@@ -3,6 +3,7 @@ from django.conf.urls import url
 from . import views, user_views, cloud_views, group_views
 
 urlpatterns = [
+
     url(r'^$',             cloud_views.status,  name='status'),
 
     url(r'^cloud/list',    cloud_views.list,    name='list'),

@@ -16,29 +16,16 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_vms`
+-- Table structure for table `csv2_cloud_types`
 --
 
-DROP TABLE IF EXISTS `csv2_vms`;
+DROP TABLE IF EXISTS `csv2_cloud_types`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_vms` (
-  `group_name` varchar(128) NOT NULL,
-  `cloud_name` varchar(128) NOT NULL,
-  `vmid` varchar(128) NOT NULL,
-  `auth_url` varchar(128) NOT NULL,
-  `project` varchar(128) NOT NULL,
-  `hostname` varchar(128) NOT NULL,
-  `status` varchar(16) NOT NULL,
-  `flavor_id` varchar(128) DEFAULT NULL,
-  `task` varchar(32) DEFAULT NULL,
-  `power_status` int(11) DEFAULT NULL,
-  `terminate` int(2) DEFAULT NULL,
-  `terminate_time` int(11) DEFAULT NULL,
-  `status_changed_time` int(11) DEFAULT NULL,
-  `last_updated` int(11) NOT NULL,
-  PRIMARY KEY (`group_name`,`cloud_name`,`vmid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `csv2_cloud_types` (
+  `cloud_type` varchar(50) NOT NULL,
+  PRIMARY KEY (`cloud_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Supported Cloud Types for CSv2';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -50,4 +37,4 @@ CREATE TABLE `csv2_vms` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-28  0:00:03
+-- Dump completed on 2018-03-22  0:00:03

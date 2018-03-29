@@ -3,6 +3,8 @@ from multiprocessing import Process
 import time
 import logging
 import config
+import datetime
+from dateutil import tz, parser
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -218,6 +220,7 @@ def vm_poller():
                 }
 
                 vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                 new_vm = Vm(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
@@ -530,7 +533,7 @@ def networkPoller():
                     'group_name': cloud.group_name,
                     'cloud_name': cloud.cloud_name,
                     'name': network['name'],
-                    'subnets': network['subnets'],
+                    'subnets': ''.join(network['subnets']),
                     'tenant_id': network['tenant_id'],
                     'router:external': network['router:external'],
                     'shared': network['shared'],
@@ -595,22 +598,27 @@ def vmCleanUp():
             logging.info("Cleaning up VM: %s", vm)
             db_session.delete(vm)
 
+        # need to commit the session here to remove vms that are gone before we look at which to terminate
+        db_session.commit()
+        db_session = Session(engine)
+
         # check for vms that have been marked for termination
         vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1)
         for vm in vm_to_destroy:
             logging.info("VM marked for termination... terminating: %s", vm.hostname)
             # terminate vm
             # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
+            logging.info("Getting cloud connection info from group resources..")
             cloud = db_session.query(Cloud).filter(
-                Cloud.cloud_type == "openstack",
                 Cloud.group_name == vm.group_name,
-                Cloud.cloud_name == vm.cloud_name)
+                Cloud.cloud_name == vm.cloud_name).first()
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
                 continue
+            logging.info("Creating openstack session...")
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -630,6 +638,7 @@ def vmCleanUp():
             # returns true if vm terminated, false if an error occured
             # probably wont need to use this result outside debugging as
             # deleted VMs should be removed on the next cycle
+            logging.info("Terminating...")
             result = terminate_vm(session, vm)
 
         db_session.commit()
