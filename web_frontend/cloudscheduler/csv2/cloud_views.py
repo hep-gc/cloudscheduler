@@ -38,6 +38,7 @@ def list(request, group_name=None, response_code=0, message=None):
 
     #get cloud info
     cloud_list = {'ResultProxy': [dict(r) for r in db_utils.get_group_resources(group_name=active_user.active_group)]}
+#   cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
 
     context = {
             'active_user': active_user,
@@ -89,34 +90,29 @@ def status(request, group_name=None):
         active_user.active_group = user_groups[0]
         active_user.save()
 
-    #get cloud info
-    cloud_list = db_utils.get_group_resources(group_name=active_user.active_group)
 
-    #get vms
-    vm_list = db_utils.get_vms(group_name=active_user.active_group)
-    
-    #vm count per cloud
-    count_list = db_utils.get_counts(group_name=active_user.active_group)
+    # get vm and job counts per cloud
+    status_list = db_utils.get_cloud_status(group_name=active_user.active_group)
 
-    #get default limits
+    # get default limits
     cloud_limits = db_utils.get_limits(group_name=active_user.active_group)
 
-    #get jobs
+    # get VM list
+    vm_list = db_utils.get_vms(group_name=active_user.active_group)
+    
+    # get jobs list
     job_list = db_utils.get_condor_jobs(group_name=active_user.active_group)
-
-    status_list = db_utils.get_cloud_status(group_name=active_user.active_group)
 
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list,
-            'count_list': count_list,
-            'cloud_limits': cloud_limits,
-            'job_list': job_list,
             'status_list': status_list,
-            #'machine_list': machine_list, #Not yet implemented
-
+            'cloud_limits': cloud_limits,
+            'vm_list': vm_list,
+            'job_list': job_list,
+            'response_code': 0,
+            'message': None,
         }
 
     return _render(request, 'csv2/status.html', context)
@@ -126,7 +122,7 @@ def status(request, group_name=None):
 # This function should recieve a post request with a payload of cloud configuration
 # to add to a given group's pool of resources (group_resources)
 #
-def update(request):
+def modify(request):
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
@@ -174,7 +170,9 @@ def update(request):
         else:
             message = 'Cloud "%s" updated.' % cloud_name
 
+        response_code = 0
     else:
         message = 'No data recieved.'
+        response_code = 1
 
-    return list(request, message=message)
+    return list(request, response_code=response_code, message=message)

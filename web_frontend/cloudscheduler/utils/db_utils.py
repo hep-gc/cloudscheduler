@@ -198,3 +198,46 @@ def put_group_resources(query_dict):
     conn.execute(ins)
 
     return 1
+
+
+# add new groups
+def put_groups(query_dict):
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+
+    metadata = MetaData(bind=engine)
+
+    table = Table('csv2_groups', metadata, autoload=True)
+    db_session = Session(engine)
+
+    columns = table.c
+
+    action = query_dict['action']
+
+    # Only accept data if column exisits in the table.
+    query_filtered = {}
+    for key in query_dict:
+       if key in columns:
+            query_filtered.update({key:query_dict[key]})
+
+    if action =="add":
+        if(db_session.query(exists().where(table.c.group_name==query_dict['group_name'])).scalar()):
+            return 0
+        else:
+            #if group_name in user_groups:
+
+            ins = table.insert().values(query_filtered)
+
+    elif action =="modify":
+        #ins = table.update().where(table.c.cloud_name==query_dict['cloud_name_orig'] and table.c.group_name==query_dict['group_name']).values(query_filtered)
+        ins = table.update().where(table.c.group_name==query_dict['group_name']).values(query_filtered)
+
+    elif action =="delete":
+        ins = table.delete(table.c.group_name==query_dict['group_name'])
+
+    else:
+        return 0
+
+    conn = engine.connect()
+    conn.execute(ins)
+
+    return 1
