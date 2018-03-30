@@ -1,4 +1,4 @@
-from csv2_common import _required_settings, _requests, _show_table
+from csv2_common import _requests, _show_table
 
 import json
 
@@ -27,17 +27,18 @@ def _user_create(gvar):
         gvar['user_settings']['target-password'] = getpass('Enter target password: ')
 
     # Retrieve Cookie/CSRF.
-    response = _requests(gvar, '/manage_users/')
+    response = _requests(gvar, '/user/prepare/')
 
     # Create the user.
     response = _requests(
         gvar,
-        '/create_user/',
+        '/user/create/',
         form_data = {
             'username': gvar['user_settings']['target-user'],
             'password1': gvar['user_settings']['target-password'],
             'password2': gvar['user_settings']['target-password'],
             'common_name': gvar['user_settings']['target-common-name'],
+            'is_superuser': gvar['user_settings']['super-user'],
             }
         )
     
@@ -59,7 +60,7 @@ def _user_delete(gvar):
         exit(1)
 
     # Retrieve Cookie/CSRF and check that the target user exists.
-    response = _requests(gvar, '/manage_users/')
+    response = _requests(gvar, '/user/list/')
     _user_found = False
     for row in json.loads(response['user_list']):
       if row['pk'] == gvar['user_settings']['target-user']:
@@ -81,7 +82,7 @@ def _user_delete(gvar):
     # Delete the user.
     response = _requests(
         gvar,
-        '/delete_user/',
+        '/user/delete/',
         form_data = {
             'username': gvar['user_settings']['target-user'],
             }

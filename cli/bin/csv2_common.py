@@ -1,22 +1,52 @@
-def _required_settings(gvar, arg_list, mandatory_arguments=False):
+def _check_keys(gvar, obj_act, mp, op):
     """
     Modify user settings.
     """
-    if mandatory_arguments:
-      option = 'command_args'
-      modifier = 'command arguments'
-    else:
-      option = 'user_settings'
-      modifier = 'user settings'
 
-    # Check for mandatory arguments.
-    _missing = []
-    for _arg in arg_list:
-      if _arg[2:] not in gvar[option]:
-          _missing.append(_arg)
+    # Summarize the mandatory and optional parameters for the current command.
+    mandatory = []
+    options = []
+    for key in gvar['command_keys']:
+        # 0.short_name, 1.long_name, 2.key_value(bool), 3.used_by(list), 4.mandatory_used_by(list)
+        if key[0] in mp:
+            mandatory.append(['%-3s | %s' % (key[0], key[1]), key[1][2:]])
+        if key[0] in op or (op == ['*'] and key[0] not in mp):
+            options.append('%-3s | %s' % (key[0], key[1]))
 
-    if _missing:
-        print('Error: "csv2 config set" requires the following %s: %s' % (modifier, _missing))
+    # If help requested, display the help for the current command and exit.
+    if gvar['user_settings']['help']:
+        if mandatory:
+            print('Help requested for "csv2 %s". The following parameters are required:' % obj_act)
+            for key in mandatory:
+                print('  %s' % key[0])
+
+        if options:
+            if mandatory:
+                print('The following optional parameters may be specified:')
+            else:
+                print('Help requested for "csv2 %s". The following optional parameters may be specified:' % obj_act)
+  
+            for key in options:
+                print('  %s' % key)
+
+        if not mandatory and not options:
+            print('Help requested for "csv2 %s". There are no parameters for this command.' % obj_act)
+
+        print('For more information, see the csv2 main page.')
+        exit(0)
+
+
+    # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
+    missing = []
+    for key in mandatory:
+        if key[1] not in gvar['command_args']:
+            missing.append(key[0])
+
+    if missing:
+        print('Error: "csv2 %s" requires the following parameters:' % obj_act)
+        for key in missing:
+            print('  %s' % key)
+        print('For more information, see the csv2 main page.')
         exit(1)
 
 def _requests(gvar, request, form_data={}):
@@ -29,7 +59,7 @@ def _requests(gvar, request, form_data={}):
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
-    if 'url' not in gvar['user_settings']:
+    if 'csv2-server-url' not in gvar['user_settings']:
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
@@ -45,8 +75,8 @@ def _requests(gvar, request, form_data={}):
         'key' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['key']):
         _r = _function(
-            '%s%s' % (gvar['user_settings']['url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
+            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
             cert=(gvar['user_settings']['cert'], gvar['user_settings']['key']),
             data=_form_data,
             cookies=gvar['cookies']
@@ -56,8 +86,8 @@ def _requests(gvar, request, form_data={}):
         if 'password' not in gvar['user_settings'] or gvar['user_settings']['password'] == '-':
             gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
-            '%s%s' % (gvar['user_settings']['url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['url']},
+            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
             auth=(gvar['user_settings']['user'], gvar['user_settings']['password']),
             data=_form_data,
             cookies=gvar['cookies'] 
@@ -82,7 +112,7 @@ def _requests(gvar, request, form_data={}):
 
     return response
 
-def _show_table(gvar, queryset, columns):
+def _show_table(gvar, queryset, columns, allow_null=True):
     """
     Print a table from a django query set.
     """
@@ -166,6 +196,9 @@ def _show_table(gvar, queryset, columns):
     print(_ruler)
 
     for _row in _list:
+        if gvar['user_settings']['rotate'] and not allow_null and _row[1] == '-':
+            continue
+
         print('| %s |' % ' | '.join(_show_table_pad(_column_lengths, _row)))
 
     print(_ruler)

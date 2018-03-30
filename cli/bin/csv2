@@ -13,31 +13,15 @@ import sys
 import yaml
 import json
 
-from csv2_common import _required_settings, _show_table
+from csv2_common import _show_table
 
 import csv2_cloud
+import csv2_settings
 import csv2_user
 
 DEFAULT_SETTINGS = {
-    'url': 'https://localhost',
+    'csv2-server-url': 'https://localhost',
     }
-
-COMMAND_ARGS = (
-        # (mandatory, key_value, short_name, long_name)
-        ('-C', '--target-common-name', True),
-        ('-c', '--cert', True),
-        ('-g', '--group', True),
-        ('-h', '--help', False),
-        ('-k', '--key', True),
-        ('-R', '--rotate', False),
-        ('-P', '--target-password', True),
-        ('-p', '--password', True),
-        ('-S', '--url', True),
-        ('-s', '--server', True),
-        ('-U', '--target-user', True),
-        ('-u', '--user', True),
-        ('-y', '--yes', False),
-    )
 
 def main(args):
     """
@@ -48,6 +32,34 @@ def main(args):
     # Initialize global variables.
     gvar = {
         'action': None,
+        'command_keys': (
+            # short_name, long_name, key_value(bool), used_by(list), mandatory_used_by(list)
+            ('-cn',  '--cloud-name', True),
+            ('-ca',  '--cloud-url', True),
+            ('-ck',  '--cloud-password', True),
+            ('-cP',  '--cloud-project-domain', True),
+            ('-cp',  '--cloud-project', True),
+            ('-cr',  '--cloud-region', True),
+            ('-ct',  '--cloud-type', True),
+            ('-cU',  '--cloud-user-domain', True),
+            ('-cu',  '--cloud-user', True),
+            ('-g',   '--group', True),
+            ('-gc',  '--grid-cert', True),
+            ('-gk',  '--grid-key', True),
+            ('-gn',  '--grid-common-name', True),
+            ('-h',   '--help', False),
+            ('-ok',  '--only-keys', False),
+            ('-p',   '--password', True),
+            ('-r',   '--rotate', False),
+            ('-s',   '--csv2-server', True),
+            ('-U',   '--csv2-server-url', True),
+            ('-u',   '--user', True),
+            ('-y',   '--yes', False),
+            ('-su',  '--super-user', False),
+            ('-vc',  '--virtual-cores', True),
+            ('-vk',  '--keypair', True),
+            ('-vr',  '--virtual-ram', True),
+            ),
         'cookies': dict(),
         'function_args': None,
         'home_dir': str(Path.home()),
@@ -55,7 +67,7 @@ def main(args):
         }
     
     # Retrieve arguments.
-    gvar['command_args'] = _args(gvar, COMMAND_ARGS, args[1:])
+    gvar['command_args'] = _args(gvar, args[1:])
 
     # Ensure a minimal user settings exists.
     if not os.path.exists('%s/.csv2/default' % gvar['home_dir']):
@@ -68,8 +80,8 @@ def main(args):
         os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
 
     # Load the user settings.
-    if 'server' in gvar['command_args']:
-        gvar['server'] = gvar['command_args']['server']
+    if 'csv2-server' in gvar['command_args']:
+        gvar['server'] = gvar['command_args']['csv2-server']
     else:
         gvar['server'] = 'default'
 
@@ -95,45 +107,39 @@ def main(args):
             else:
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
-    # Check for minimum arguments; print help messages and exit, if not.
-    if gvar['user_settings']['help']:
-        print('Help requested; see the csv2 man page.')
-        exit(0)
-
-    
     # Call object handler.
     if gvar['object'] == 'cloud':
         if gvar['action'] == 'list':
-            csv2_cloud._cloud_list(gvar)
+            csv2_cloud._list(gvar)
         elif gvar['action'] == 'status':
-            csv2_cloud._cloud_status(gvar)
+            csv2_cloud._status(gvar)
         else:
             _invalid_object_action(gvar, 'action')
 
     elif gvar['object'] == 'user':
         if gvar['action'] == 'create':
-            csv2_user._user_create(gvar)
+            csv2_user._create(gvar)
         elif gvar['action'] == 'delete':
-            csv2_user._user_delete(gvar)
+            csv2_user._delete(gvar)
         elif gvar['action'] == 'list':
-            csv2_user._user_list(gvar)
+            csv2_user._list(gvar)
         else:
             _invalid_object_action(gvar, 'action')
 
-    elif gvar['object'] == 'config':
+    elif gvar['object'] == 'settings':
         if gvar['action'] == 'delete':
-            _config_list(gvar)
+            csv2_settings._delete(gvar)
         elif gvar['action'] == 'list':
-            _config_list(gvar)
+            csv2_settings._list(gvar)
         elif gvar['action'] == 'set':
-            _config_set(gvar)
+            csv2_settings._set(gvar)
         else:
             _invalid_object_action(gvar, 'action')
 
     else:
         _invalid_object_action(gvar, 'object')
 
-def _args(gvar, key_list, arg_list):
+def _args(gvar, arg_list):
     """
     Return dictionary of arguments.
     """
@@ -142,9 +148,9 @@ def _args(gvar, key_list, arg_list):
     response = {}
     unrecognized = []
 
-    for _ix in range(len(key_list)):
-        if not key_list[_ix][2]:
-            response[key_list[_ix][1][2:]] = False
+    for _ix in range(len(gvar['command_keys'])):
+        if not gvar['command_keys'][_ix][2]:
+            response[gvar['command_keys'][_ix][1][2:]] = False
 
     # Scan args.
     _max_ix = len(arg_list) - 1
@@ -155,21 +161,21 @@ def _args(gvar, key_list, arg_list):
 
         else:
             _recognized = False
-            for _iy in range(len(key_list)):
-                _key_mnemonic = '%s|%s' % (key_list[_iy][0], key_list[_iy][1])
-                if key_list[_iy][2] and \
+            for _iy in range(len(gvar['command_keys'])):
+                _key_mnemonic = '%s|%s' % (gvar['command_keys'][_iy][0], gvar['command_keys'][_iy][1])
+                if gvar['command_keys'][_iy][2] and \
                 _ix < _max_ix and \
-                (arg_list[_ix] == key_list[_iy][0] or \
-                arg_list[_ix] == key_list[_iy][1]):
+                (arg_list[_ix] == gvar['command_keys'][_iy][0] or \
+                arg_list[_ix] == gvar['command_keys'][_iy][1]):
                     _recognized = True
                     _skip_next = True
-                    response[key_list[_iy][1][2:]] = arg_list[_ix+1]
+                    response[gvar['command_keys'][_iy][1][2:]] = arg_list[_ix+1]
 
-                elif not key_list[_iy][2] and \
-                (arg_list[_ix] == key_list[_iy][0] or \
-                arg_list[_ix] == key_list[_iy][1]):
+                elif not gvar['command_keys'][_iy][2] and \
+                (arg_list[_ix] == gvar['command_keys'][_iy][0] or \
+                arg_list[_ix] == gvar['command_keys'][_iy][1]):
                     _recognized = True
-                    response[key_list[_iy][1][2:]] = True
+                    response[gvar['command_keys'][_iy][1][2:]] = True
 
         if not _recognized:
             if not gvar['object']:
@@ -184,58 +190,6 @@ def _args(gvar, key_list, arg_list):
         exit(1)
 
     return response 
-
-def _config_list(gvar):
-    """
-    Process user list.
-    """
-
-    # Retrive all possible option names ordered by 'server' and then alphabetically.
-    _keys = ['server']
-    for _ix in range(len(COMMAND_ARGS)):
-        key = COMMAND_ARGS[_ix][1][2:]
-        if key not in _keys:
-            _keys.append(key)
-    _keys = [_keys[0]] + sorted(_keys[1:])
-
-    # Build a queryset of settings for all servers.
-    _queryset = []
-    for server in os.listdir('%s/.csv2' % gvar['home_dir']):
-        server_path = '%s/.csv2//%s' % (gvar['home_dir'], server)
-        if os.path.isdir(server_path):
-            _fd = open('%s/settings.yaml' % server_path)
-            _settings = yaml.load(_fd.read())
-            _fd.close()
-
-            for key in sorted(_keys):
-                if key not in _settings:
-                    if key == 'server':
-                        _settings[key] = server
-                    else:
-                        _settings[key] = '-'
-            
-            _queryset.append({'fields': _settings})
-
-    # Display results.
-    _show_table(gvar, _queryset, _keys)
-
-def _config_set(gvar):
-    """
-    Modify user settings.
-    """
-
-    # Check for mandatory arguments.
-    _required_settings(gvar, ['--server'], mandatory_arguments=True)
-
-    # Make the server directory, if necessary.
-    if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
-        os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']), mode=0o700)  
-
-    # Write the settings file.
-    _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
-    _fd.write(yaml.dump(gvar['user_settings']))
-    _fd.close()
-    os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
 
 def _invalid_object_action(gvar, option):
     """
