@@ -29,7 +29,7 @@ def resources_producer():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "GroupName"]
 
     sleep_interval = config.collection_interval
     last_poll_time = 0
@@ -132,28 +132,31 @@ def collector_command_consumer():
             #   get classads
             logging.info("Querying database for condor commands")
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_off == 1):
-                logging.info("Command received: Querying condor for relevent job (%s)" % resource.name)
-                #condor_ad = condor_c.query(ad_type=startd_type, constraint='Name=="%s"' % resource.name)[0]
-                
-                # May not be Needed, master should shut them all down
-                #startd_result = htcondor.send_command(
-                #    condor_ad,
-                #    htcondor.DaemonCommands.DaemonsOffPeaceful)
-                #logging.info("Startd daemon condor_off status: %s", startd_result)
-                # Now turn off master daemon
-                condor_ad = condor_c.query(
-                    master_type,
-                    'Name=="%s"' % resource.name.split("@")[1])[0]
-                logging.info("Found entry: %s flagged for condor_off.", resource.name)
-                master_result = htcondor.send_command(
-                    condor_ad,
-                    htcondor.DaemonCommands.DaemonsOffPeaceful)
-                #update database entry for condor off if the previous command was a success
-                logging.info("Master daemon condor_off status: %s", master_result)
-                #flag should be removed and cleanup can be left to another thread?
-                updated_resource = Resource(name=resource.name, condor_off=0)
-                session.merge(updated_resource)
-
+                try:
+                    logging.info("Command received: Querying condor for relevent job (%s)" % resource.name)
+                    #condor_ad = condor_c.query(ad_type=startd_type, constraint='Name=="%s"' % resource.name)[0]
+                    
+                    # May not be Needed, master should shut them all down
+                    #startd_result = htcondor.send_command(
+                    #    condor_ad,
+                    #    htcondor.DaemonCommands.DaemonsOffPeaceful)
+                    #logging.info("Startd daemon condor_off status: %s", startd_result)
+                    # Now turn off master daemon
+                    condor_ad = condor_c.query(
+                        master_type,
+                        'Name=="%s"' % resource.name.split("@")[1])[0]
+                    logging.info("Found entry: %s flagged for condor_off.", resource.name)
+                    master_result = htcondor.send_command(
+                        condor_ad,
+                        htcondor.DaemonCommands.DaemonsOffPeaceful)
+                    #update database entry for condor off if the previous command was a success
+                    logging.info("Master daemon condor_off status: %s", master_result)
+                    #flag should be removed and cleanup can be left to another thread?
+                    updated_resource = Resource(name=resource.name, condor_off=2)
+                    session.merge(updated_resource)
+                except Exception as exc:
+                    logging.error("Problem proccessing %s... skipping", resource.name)
+                    continue
 
             #query for condor_advertise commands
             master_list = []
@@ -168,7 +171,7 @@ def collector_command_consumer():
                 startd_list.append(ad)
                 # This is actually a little premature as we haven't executed the advertise yet
                 # There should be some logic to make sure the advertise runs before we remove the flag
-                updated_resource = Resource(name=resource.name, condor_advertise=0)
+                updated_resource = Resource(name=resource.name, condor_advertise=2)
                 session.merge(updated_resource)
 
             #execute condor_advertise on retrieved classads
@@ -196,6 +199,7 @@ def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
     condor_host = socket.gethostname()
     while True:
+        logging.info("Commencing cleanup cycle...")
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its better to
         # re-mirror the database each time for the sake on consistency.
@@ -227,25 +231,28 @@ def cleanUp():
             ad_dict = dict(ad)
             condor_name_list.append(ad_dict['Name'])
         for machine in db_machine_list:
-            if machine.name not in condor_name_list:
-                #machine is missing from condor, clean it up
-                logging.info("Found machine missing from condor: %s, cleaning up.", machine.name)
-                # if the classad was marked for retirement update the vm entry
-                if machine.condor_off >= 1:
-                    #mark relavent VM entry for termination
-                    # can use group_name and Name?
-                    pass #TODO#
+            try:
+                if machine.name not in condor_name_list:
+                    #machine is missing from condor, clean it up
+                    logging.info("Found machine missing from condor: %s, cleaning up.", machine.name)
+                    # if the classad was marked for retirement update the vm entry
+                    if machine.condor_off >= 1:
+                        #mark relavent VM entry for termination
+                        # can use group_name and Name?
+                        pass #TODO#
 
 
-                machine_dict = machine.__dict__
-                logging.info(machine_dict)
-                session.delete(machine)
-                del machine_dict['_sa_instance_state']
-                new_arch_machine = archResource(**machine_dict)
-                session.merge(new_arch_machine)
-
+                    machine_dict = machine.__dict__
+                    logging.info(machine_dict)
+                    session.delete(machine)
+                    del machine_dict['_sa_instance_state']
+                    new_arch_machine = archResource(**machine_dict)
+                    session.merge(new_arch_machine)
+            except Exception as exc:
+                logging.error("Error attempting to delete %s... skipping", machine.name)
 
         session.commit()
+        logging.info("Cleanup cycle finished sleeping...")
         time.sleep(config.cleanup_sleep_interval)
 
 
