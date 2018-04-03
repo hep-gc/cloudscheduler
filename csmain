@@ -62,6 +62,12 @@ def main():
             # At this point I should have a valid set of all the group and cloud specific yaml to use
             # it will still need to be combined with the job yaml - done now in the basecloud prepare_userdata function
 
+            # Clean up the idle machines and unregistered VMs.
+            # Should return or build up some meta data about what's booting/running
+            # To use that info when scheduling idle jobs
+            # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
+            check_idle_machines(csgroup.group_name)
+            check_unregistered_machines(csgroup.group_name)
 
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
@@ -91,6 +97,7 @@ def main():
                             continue
                         # how many VMs should I try to boot? lets just go for max we can for now until we add config for limits
                         num_vms_to_boot = job_count if job_count <= cloud_match.flavor_slots else cloud_match.flavor_slots
+
                         try:
                             usertmp = idle_job.user.split('@')[0]
                         except:
@@ -100,14 +107,14 @@ def main():
                                          'cs_condor_host': csgroup.condor_central_manager}
                         log.debug(template_dict)
                         try:
-                            if cm_group.clouds[cloud_match.cloud_name].enabled:
+                            """if cm_group.clouds[cloud_match.cloud_name].enabled:
                                 cm_group.clouds[cloud_match.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
                                                num=num_vms_to_boot,
                                                flavor=cloud_match.flavor_name,
                                                job=idle_job,
                                                template_dict=template_dict)
-                            job_count -= num_vms_to_boot
+                            job_count -= num_vms_to_boot"""
                             log.debug('done booting on cloud %s', cloud_match.cloud_name)
                         except Exception as ex:
                             # lets try to disable or dump this cloud for now
@@ -117,33 +124,18 @@ def main():
             # Done Trying to schedule idle jobs on free resources.
             # Other tasks the scheduling loop needs to handle for a group?
             # Will need to see about freeing space for higher priority jobs that are not running.
-            # Check the idle and unclaimed machines with idle time greater than configured value
-                # for those machines set the flag to retire them
-            # check for VMs not registered or no longer registered with condor
-                # shutdown those VMs (although this may be designated to the VMPoller thingy instead
 
-            # Will want to see if VMs exist that are Idle / Unclaimed and have been so for extended time
-                # For the ones that are set the Retire flag
-            check_idle_machines(csgroup.group_name)
-            # Will want to see which ones are not registered with condor (how?)
-                # For ones not registered after a time or ones that had the retire flag set set the kill flag
-            check_unregistered_machines(csgroup.group_name)
+
+
+
 
 
             # Repeat for next group
-        break # will need to take this out and put in an actual stopping condition.
+        #break # will need to take this out and put in an actual stopping condition.
+        time.sleep(5)
 
-    import time
+
     time.sleep(10)
-
-    # Remove all the VMs for the moment
-    for user in CLOUDRESOURCES:
-        for cloud in CLOUDRESOURCES[user].clouds:
-            for vm in list(CLOUDRESOURCES[user].clouds[cloud].vms.keys()):
-                CLOUDRESOURCES[user].clouds[cloud].vm_destroy(CLOUDRESOURCES[user].clouds[cloud].vms[vm])
-# maintain a dict of cloudmanager objects
-# initially load up the default one
-# when new user detected check for a cloud resource file and load / add to dict key user name
 
 
 def check_idle_machines(group):
@@ -161,6 +153,7 @@ def check_idle_machines(group):
     session = Session(engine)
     machines = Base.classes.condor_machines
     unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed", machines.activity == "Idle")
+    machines_dict = {}
     for machine in unclaimed_idle_machines:
         if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # make configurable setting for now ~30minutes
             log.debug("Setting condor off flag for machine: %s", machine.name)
@@ -189,6 +182,7 @@ def check_unregistered_machines(group):
     for cloud in group_clouds:
         cloud_names.append(cloud.cloud_name)
     non_cs_vm = []
+    new_vms = []
     log.debug("VMs that are unregistered with condor collector:")
     for vm in unregistered_vms:
         try:
@@ -201,6 +195,7 @@ def check_unregistered_machines(group):
                 # also need to check the timing info and whatnot so it's not flagged before it has a chance to register.
                 else:
                     log.debug("%s only been gone for: %s time.", vm.hostname, str(int(time.time()) - vm.status_changed_time))
+                    new_vms.append(vm.hostname)
             else:
                 non_cs_vm.append(vm.hostname)
         except Exception as ex:
