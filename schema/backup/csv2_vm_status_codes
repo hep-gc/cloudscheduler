@@ -16,32 +16,16 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `condor_machines`
+-- Table structure for table `csv2_vm_status_codes`
 --
 
-DROP TABLE IF EXISTS `condor_machines`;
+DROP TABLE IF EXISTS `csv2_vm_status_codes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `condor_machines` (
-  `name` varchar(128) NOT NULL,
-  `machine` varchar(256) DEFAULT NULL,
-  `group_name` varchar(128) DEFAULT NULL,
-  `condor_host` varchar(64) DEFAULT NULL,
-  `job_id` varchar(128) DEFAULT NULL,
-  `global_job_id` varchar(128) DEFAULT NULL,
-  `address` varchar(512) DEFAULT NULL,
-  `state` varchar(128) DEFAULT NULL,
-  `activity` varchar(128) DEFAULT NULL,
-  `vm_type` varchar(128) DEFAULT NULL,
-  `my_current_time` int(11) DEFAULT NULL,
-  `entered_current_state` int(11) DEFAULT NULL,
-  `start` varchar(128) DEFAULT NULL,
-  `remote_owner` varchar(128) DEFAULT NULL,
-  `slot_type` varchar(128) DEFAULT NULL,
-  `total_slots` int(11) DEFAULT NULL,
-  `condor_off` int(2) DEFAULT NULL,
-  `condor_advertise` int(2) DEFAULT NULL,
-  PRIMARY KEY (`name`)
+CREATE TABLE `csv2_vm_status_codes` (
+  `status_from_poller` varchar(64) NOT NULL,
+  `status` varchar(8) NOT NULL,
+  PRIMARY KEY (`status_from_poller`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
