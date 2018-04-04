@@ -11,10 +11,11 @@ select
 group_name,
 cloud_name,
 0 as VMs,
-0 as VMs_starting,
 0 as VMs_running,
 0 as VMs_retiring,
+0 as VMs_in_error,
 0 as VMs_other,
+0 as Foreign_VMs,
 0 as Jobs,
 0 as Jobs_s0,
 0 as Jobs_s1,
@@ -34,10 +35,11 @@ union all select
 group_name,
 ifnull(cloud_name,'(queued or held)') as cloud_name,
 0 as VMs,
-0 as VMs_starting,
 0 as VMs_running,
 0 as VMs_retiring,
+0 as VMs_in_error,
 0 as VMs_other,
+0 as Foreign_VMs,
 1 as Jobs,
 case when job_status=0 then 1 else 0 end as Jobs_s0,
 case when job_status=1 then 1 else 0 end as Jobs_s1,
@@ -56,11 +58,12 @@ union all select
 
 group_name,
 cloud_name,
-1 as VMs,
-0 as VMs_starting,
-0 as VMs_running,
-0 as VMs_retiring,
-0 as VMs_other,
+case when foreign_vm=0 then 1 else 0 end as VMs,
+case when poller_status="running" then 1 else 0 end as VMs_running,
+case when poller_status="retiring" then 1 else 0 end as VMs_retiring,
+case when poller_status="error" then 1 else 0 end as VMs_in_error,
+case when foreign_vm=0 and (isnull(poller_status) or (poller_status!="running" and poller_status!="retiring" and poller_status!="error")) then 1 else 0 end as VMs_other,
+case when foreign_vm=0 then 0 else 1 end as Foreign_VMs,
 0 as Jobs,
 0 as Jobs_s0,
 0 as Jobs_s1,
@@ -70,6 +73,6 @@ cloud_name,
 0 as Jobs_s5,
 0 as Jobs_s6
 
-from csv2_vms
+from view_vms
 
 ;
