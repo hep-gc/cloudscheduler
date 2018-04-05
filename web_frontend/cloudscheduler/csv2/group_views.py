@@ -51,6 +51,15 @@ def list(request, group_name=None):
     return _render(request, 'csv2/groups.html', context)
 
 
+def prepare(request):
+
+    context = {
+            'response_code': 0,
+            'message': None
+    }
+    
+    return _render(request, 'csv2/groups.html', context)
+
 
 def modify(request):
     if not verifyUser(request):

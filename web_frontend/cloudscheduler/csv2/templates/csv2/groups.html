@@ -6,6 +6,7 @@
 <head>
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
 </head>
 <body>
 {% if err_message is not None %}
@@ -45,6 +46,17 @@
 
                 <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
                 <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
+
+
+                <tr>><td>Enable YAML<div class="switch">
+                  <input type="checkbox" checked>
+                  <label>
+                    <span class="fontawesome-ok"></span>
+                    <span class="fontawesome-remove"></span>
+                    <div></div>
+                  </label>
+                </div></td></tr>
+
 
                 <tr><td><label for="yaml_name">YAML filename</label></td>
                 <td><input type="text" name="yaml_name" id="" value="{{group.yaml_name}}" /></td></tr>

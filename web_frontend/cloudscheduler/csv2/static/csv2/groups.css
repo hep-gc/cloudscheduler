@@ -1,0 +1,103 @@
+/* 
+Design by echojanz: 
+http://dribbble.com/shots/1039179-Slide-Button?list=users
+*/
+
+/*
+Technical inspiration from tutorial by Hugo Giraudel:
+https://tympanus.net/codrops/2012/09/13/button-switches-with-checkboxes-and-css3-fanciness/
+*/
+
+/* Font Awesome */
+
+/*---Switch styles---*/
+
+/* Checkbox hack */
+.switch input {
+    cursor: pointer;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    z-index: 100;
+}
+
+/* Container */
+.switch {
+    height: 57px;
+    margin: 23px auto;
+    position: relative;
+    width: 127px;
+}
+
+/* Background unchecked */
+.switch label {
+    background: #e9513a;
+  color: #c72f18;
+    border-radius: 2px;
+    display: block;
+    height: 100%;
+    position: relative;
+    transition: all .15s ease;
+  width: 100%;
+}
+
+/* Slider unchecked */
+.switch label div {
+    background: #fff;
+    border-radius: 2px;
+    display: block;
+    height: 45px;
+    left: 6px;
+    position: absolute;
+    top: 6px;
+    transition: all .15s ease;
+  width: 53px;
+    z-index: 3; 
+}
+
+/* Vertical lines on slider */
+.switch label div:before {
+    background: #d3d3d3;
+  bottom: 0;
+  box-shadow: -6px 0 0 0 #d3d3d3,
+                6px 0 0 0 #d3d3d3; 
+  content: '';
+    display: block;
+  height: 15px;
+    left: 0;
+    margin: auto;
+  position: absolute;
+  right: 0;
+    top: 0;
+  transition: all .15s ease;
+  width: 3px;
+}
+
+/* Icon styles */
+.switch .fontawesome-ok {
+  font-size: 28px;
+    left: 20px;
+    position: relative;
+  top: 13px;
+    z-index: 2;
+}
+
+
+.switch .fontawesome-remove {
+  font-size: 29px;
+    left: 51px;
+  position: relative;
+    top: 12px;
+    z-index: 2;
+}
+
+/* Checked States */
+.switch input:checked~label {
+    background: #2fca6c;
+  color: #13ad4f;
+}
+
+.switch input:checked~label div {
+    left: 67px;
+}
