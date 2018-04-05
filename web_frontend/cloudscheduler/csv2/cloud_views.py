@@ -138,7 +138,11 @@ def modify(request):
 
         for key in request.POST:
 
-            if key == 'core_lock':
+            if key == 'password':
+                if request.POST[key]:
+                    values[key] = request.POST[key]
+
+            elif key == 'core_lock':
                 if request.POST[key] == 'lock':
                     cores_ctl = -1
                 else:

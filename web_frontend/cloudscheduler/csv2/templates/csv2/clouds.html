@@ -6,6 +6,7 @@
 <head>
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
 </head>
 <body>
 
@@ -33,30 +34,28 @@
         <form name="{{cloud.cloud_name}}" action="/cloud/modify/" method="post">
             {% csrf_token %}
             <table>
-                <!--<tr><td><label for="cloud_name">Cloud name</label></td>
-                <td><input type="text" name="cloud_name" id="" value="{{cloud.cloud_name}}" /></td></tr>
-                <input type="hidden" name="cloud_name_orig" value="{{cloud.cloud_name}}" /> -->
+
                 <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
                 <tr><td><label for="authurl">URL</label></td>
-                <td><input type="text" name="authurl" id="" value="{{cloud.authurl}}" /></td></tr>
+                <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
                 <tr><td><label for="project">Project</label></td>
-                <td><input type="text" name="project" id="" value="{{cloud.project}}" /></td></tr>
+                <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
                 <tr><td><label for="username">Username</label></td>
-                <td><input type="text" name="username" id="" value="{{cloud.username}}" /></td></tr>
+                <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
-                <td><input type="password" name="password" id="" value="{{cloud.password}}" /></td></tr>
+                <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
                 <tr><td><label for="keyname">Key pair name</label></td>
-                <td><input type="text" name="keyname" id="" value="{{cloud.keyname}}" /></td></tr>
+                <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
                 <tr><td><label for="cacertificate">CA certificate</label></td>
-                <td><input type="text" name="cacertificate" id="" value="{{cloud.cacertificate}}" /></td></tr>
+                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
                 <tr><td><label for="region">Region</label></td>
-                <td><input type="text" name="region" id="" value="{{cloud.region}}" /></td></tr>
+                <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
                 <tr><td><label for="user_domain_name">User domain name</label></td>
-                <td><input type="text" name="user_domain_name" id="" value="{{cloud.user_domain_name}}" /></td></tr>
+                <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
                 <tr><td><label for="project_domain_name">Project domain name</label></td>
-                <td><input type="text" name="project_domain_name" id="" value="{{cloud.project_domain_name}}" /></td></tr>
+                <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
                 <tr><td><label for="cloud_type">Cloud type</label></td>
-                <td><input type="text" name="cloud_type" id="" value="{{cloud.cloud_type}}" /></td></tr>
+                <td><input type="text" name="cloud_type" value="{{cloud.cloud_type}}" /></td></tr>
 
                 <tr><td><label for="cores">Cores</label></td>
                 <td>
@@ -109,27 +108,27 @@
             {% csrf_token %}
             <table>
                 <tr><td><label for="cloud_name">Cloud name</label></td>
-                <td><input type="text" name="cloud_name" id="" value="" /></td></tr>
+                <td><input type="text" name="cloud_name" value="" /></td></tr>
                 <tr><td><label for="authurl">URL</label></td>
-                <td><input type="text" name="authurl" id="" value="" /></td></tr>
+                <td><input type="text" name="authurl" value="" /></td></tr>
                 <tr><td><label for="project">Project</label></td>
-                <td><input type="text" name="project" id="" value="{{cloud.project}}" /></td></tr>
+                <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
                 <tr><td><label for="username">Username</label></td>
-                <td><input type="text" name="username" id="" value="" /></td></tr>
+                <td><input type="text" name="username" value="" /></td></tr>
                 <tr><td><label for="password">Password</label></td>
-                <td><input type="password" name="password" id="" value="" /></td></tr>
+                <td><input type="password" name="password" value="" /></td></tr>
                 <tr><td><label for="keyname">Key pair name</label></td>
-                <td><input type="text" name="keyname" id="" value="{{cloud.keyname}}" /></td></tr>
+                <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
                 <tr><td><label for="cacertificate">CA certificate</label></td>
-                <td><input type="text" name="cacertificate" id="" value="{{cloud.cacertificate}}" /></td></tr>
+                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
                 <tr><td><label for="region">Region</label></td>
-                <td><input type="text" name="region" id="" value="{{cloud.region}}" /></td></tr>
+                <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
                 <tr><td><label for="user_domain_name">User domain name</label></td>
-                <td><input type="text" name="user_domain_name" id="" value="{{cloud.user_domain_name}}" /></td></tr>
+                <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
                 <tr><td><label for="project_domain_name">Project domain name</label></td>
-                <td><input type="text" name="project_domain_name" id="" value="{{cloud.project_domain_name}}" /></td></tr>
+                <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
                 <tr><td><label for="cloud_type">Cloud type</label></td>
-                <td><input type="text" name="cloud_type" id="" value="{{cloud.cloud_type}}" /></td></tr>
+                <td><input type="text" name="cloud_type" value="{{cloud.cloud_type}}" /></td></tr>
                 <input type="hidden" name="cores" value="-1" />
                 <input type="hidden" name="cores_lock" value="lock" />
                 <input type="hidden" name="ram" value="-1" />
@@ -147,8 +146,8 @@
         <a href="#{{cloud.cloud_name}}" title="Close" class="close">X</a>
 	<form name="{{cloud.cloud_name}}" action="/cloud/modify/" method="post">
             {% csrf_token %}
-                <input type="hidden" name="cloud_name" id="" value="{{cloud.cloud_name}}" />
-                <input type="hidden" name="password" id="" value="" />
+                <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+                <input type="hidden" name="password" value="" />
 		<input type="hidden" name="action" value="delete" />
                 <input type="submit" value="Delete {{cloud.cloud_name}}" />
         </form>
