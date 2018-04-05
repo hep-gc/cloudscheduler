@@ -1,0 +1,33 @@
+
+input[type=checkbox] {
+  display: none;
+}
+
+
+
+input[type=checkbox] + label {
+    background: url(https://upload.wikimedia.org/wikipedia/commons/4/43/Unlock_font_awesome.svg);
+    height: 30px;
+    width: 30px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+input[type=checkbox]:checked + label {
+    background: url(https://upload.wikimedia.org/wikipedia/commons/8/8c/Lock_font_awesome.svg);
+    height: 30px;
+    width: 30px;
+    display:inline-block;
+    padding: 0 0 0 0px;
+}
+
+
+
+.content {
+  display: inline-block;
+}
+
+/* Toggled State */
+input[type=checkbox]:checked ~ div {
+   display: none;
+}

@@ -3,62 +3,10 @@
 {% endblock %}
 
 <head>
-<style>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}">
 
-
-th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-
-table {
-  overflow: hidden;
-  border-collapse: collapse;
-}
-td:hover {
-  background-color: red;
-  color: white;
-}
-
-tr:hover {
-  background-color: yellow;
-}
-
-td, th {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-  position: relative;
-}
-td:hover::after,
-th:hover::after {
-  content: "";
-  position: absolute;
-  background-color: yellow;
-  left: 0;
-  top: -5000px;
-  height: 10000px;
-  width: 100%;
-  z-index: -1;
-}
-
-
-
-.grey {
-  background-color: #eee;
-  color: white;
-}
-.red {
-  background-color: rgba(255,0,0,.25);
-}
-.blue {
-  background-color: rgba(0,0,255,.25);
-}
-.clear {}
-
-
-</style>
 <meta http-equiv="refresh" content="30">
 </head>
 
@@ -78,6 +26,7 @@ th:hover::after {
     <col class="grey" />
     <col class="red" span="1" />
     <col class="clear" span="4" />
+    <col class="blue" span="1" />
     <col class="red" span="1" />
     <col class="clear" span="7"/>
   </colgroup>
@@ -85,10 +34,12 @@ th:hover::after {
     <tr>
         <th>Clouds</th>
         <th>VMs</th>
-        <th>Starting</th>
         <th>Running</th>
         <th>Retiring</th>
+        <th>In Error</th>
         <th>Other</th>
+
+        <th>Foreign VMs</th>
 
         <th>Jobs</th>
 
@@ -105,10 +56,11 @@ th:hover::after {
         <tr>
             <td>{{cloud.cloud_name}}</td>
             <td>{{cloud.VMs}}</td>
-            <td>{{cloud.VMs_starting}}</td>
             <td>{{cloud.VMs_running}}</td>
             <td>{{cloud.VMs_retiring}}</td>
+            <td>{{cloud.VMs_in_error}}</td>           
             <td>{{cloud.VMs_other}}</td>
+            <td>{{cloud.Foreign_VMs}}</td>
             <td>{{cloud.Jobs}}</td>
             <td>{{cloud.Jobs_s0}}</td>
             <td>{{cloud.Jobs_s1}}</td>
