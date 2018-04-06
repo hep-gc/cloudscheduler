@@ -18,6 +18,33 @@ db_session.commit()
 '''
 
 
+def db_open():
+    """
+    Provide a database connection and optionally mapping.
+    """
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+    from sqlalchemy.ext.automap import automap_base
+
+    db_engine = create_engine(
+        "mysql://%s:%s@%s:%s/%s" % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+
+    db_session = Session(db_engine)
+    db_connection = db_engine.connect()
+    db_map = automap_base()
+    db_map.prepare(db_engine, reflect=True)
+
+    return db_engine,db_session,db_connection,db_map
+
+
 def get_limits(group_name=None):
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
@@ -99,12 +126,17 @@ def get_counts(group_name=None):
     return conn.execute(s)
 
 
+#def get_cloud_status(group_name):
+#    metadata = MetaData()    
+#    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+#    conn = engine.connect()
+#    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group_name)
+#    return conn.execute(s)
+
 def get_cloud_status(group_name):
-    metadata = MetaData()    
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    conn = engine.connect()
+    db_engine,db_session,db_connection,db_map = db_open()
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group_name)
-    return conn.execute(s)
+    return db_connection.execute(s)
 
 #
 # This function accepts a user name and retrieves & returns all groups associated with the user
@@ -175,14 +207,20 @@ def put_group_resources(query_dict):
     # Only accept data if column exisits in the table.
     query_filtered = {}
     for key in query_dict:
+       if key == 'action' or key == 'csrfmiddlewaretoken':
+            continue
+
        if key in columns:
             query_filtered.update({key:query_dict[key]})
+       else:
+            return [1, 'cloud modify: request to update bad key "%s".' % key]
 
     if action =="add":
         if(db_session.query(exists().where(table.c.cloud_name==query_dict['cloud_name'] and table.c.group_name==query_dict['group_name'])).scalar()):
-            return 0
+            return [1, 'cloud modify: request to add existing cloud']
         else:
             ins = table.insert().values(query_filtered)
+            print(">>>>>>>>>>>>>>>>>>", ins)
 
     elif action =="modify":
         #ins = table.update().where(table.c.cloud_name==query_dict['cloud_name_orig'] and table.c.group_name==query_dict['group_name']).values(query_filtered)
