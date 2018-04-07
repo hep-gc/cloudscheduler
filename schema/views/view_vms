@@ -10,12 +10,16 @@ create or replace view view_vms as
 select
 
 cv.*,
+cf.name,
 case when isnull(total_slots) then 0 else total_slots end as condor_slots,
 case when isnull(condor_off) then 0 else condor_off end as condor_off,
 case when concat(lower(cv.group_name),"-",lower(cv.cloud_name))=substring_index(hostname, '-', 2) then False else True end as foreign_vm,
 cvsc.status as "poller_status"
 
 from csv2_vms as cv
+
+left outer join cloud_flavors as cf
+on cv.flavor_id=cf.id
 
 left outer join condor_machines as cm
 on cv.hostname=substring_index(machine, '.', 1)
