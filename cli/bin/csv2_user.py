@@ -2,9 +2,9 @@ from csv2_common import _requests, _show_table
 
 import json
 
-def _user_create(gvar):
+def _user_add(gvar):
     """
-    Create a csv2 user.
+    Add a csv2 user.
     """
 
     # Check for mandatory arguments.
@@ -19,7 +19,7 @@ def _user_create(gvar):
         _missing.append('-C|--target-common-name')
 
     if _missing:
-        print('Error: "csv2 user create" requires the following parameters: %s' % _missing)
+        print('Error: "csv2 user add" requires the following parameters: %s' % _missing)
         exit(1)
 
     # If a target password prompt was requested (-P .), prompt for password.

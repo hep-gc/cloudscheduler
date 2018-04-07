@@ -51,15 +51,15 @@ def __request(gvar, request):
     else:
         return _requests(gvar, request)
 
-def _create(gvar):
+def _add(gvar):
     """
-    Create a cloud in the active group.
+    Add a cloud to the active group.
     """
 
     # Check for missing arguments or help required.
     form_data = _check_keys(
         gvar,
-        'cloud create',
+        'cloud add',
         ['-ca', '-ck', '-cn', '-cp', '-cr', '-ct', '-cu'],
         ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)

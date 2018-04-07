@@ -112,7 +112,7 @@ def main(args):
     # Call object handler.
     if gvar['object'] == 'cloud':
         if gvar['action'] == 'add':
-            csv2_cloud._create(gvar)
+            csv2_cloud._add(gvar)
         elif gvar['action'] == 'delete':
             csv2_cloud._delete(gvar)
         elif gvar['action'] == 'list':
@@ -126,7 +126,7 @@ def main(args):
 
     elif gvar['object'] == 'user':
         if gvar['action'] == 'add':
-            csv2_user._create(gvar)
+            csv2_user._add(gvar)
         elif gvar['action'] == 'delete':
             csv2_user._delete(gvar)
         elif gvar['action'] == 'list':
