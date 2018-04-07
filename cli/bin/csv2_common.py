@@ -1,4 +1,4 @@
-def _check_keys(gvar, obj_act, mp, op):
+def _check_keys(gvar, obj_act, mp, op, key_map=None):
     """
     Modify user settings.
     """
@@ -7,18 +7,18 @@ def _check_keys(gvar, obj_act, mp, op):
     mandatory = []
     options = []
     for key in gvar['command_keys']:
-        # 0.short_name, 1.long_name, 2.key_value(bool), 3.used_by(list), 4.mandatory_used_by(list)
+        # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
-            mandatory.append(['%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            mandatory.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in op or (op == ['*'] and key[0] not in mp):
-            options.append('%-3s | %s' % (key[0], key[1]))
+            options.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
 
     # If help requested, display the help for the current command and exit.
     if gvar['user_settings']['help']:
         if mandatory:
             print('Help requested for "csv2 %s". The following parameters are required:' % obj_act)
             for key in mandatory:
-                print('  %s' % key[0])
+                print('  %s' % key[1])
 
         if options:
             if mandatory:
@@ -27,7 +27,7 @@ def _check_keys(gvar, obj_act, mp, op):
                 print('Help requested for "csv2 %s". The following optional parameters may be specified:' % obj_act)
   
             for key in options:
-                print('  %s' % key)
+                print('  %s' % key[1])
 
         if not mandatory and not options:
             print('Help requested for "csv2 %s". There are no parameters for this command.' % obj_act)
@@ -37,10 +37,14 @@ def _check_keys(gvar, obj_act, mp, op):
 
 
     # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
+    form_data = {}
     missing = []
     for key in mandatory:
-        if key[1] not in gvar['command_args']:
-            missing.append(key[0])
+        if key[2] in gvar['command_args']:
+            if key_map and key[0] in key_map:
+                form_data[key_map[key[0]]] = gvar['command_args'][key[2]]
+        else:
+            missing.append(key[1])
 
     if missing:
         print('Error: "csv2 %s" requires the following parameters:' % obj_act)
@@ -48,6 +52,13 @@ def _check_keys(gvar, obj_act, mp, op):
             print('  %s' % key)
         print('For more information, see the csv2 main page.')
         exit(1)
+
+    if key_map:
+        for key in options:
+            if key[0] in key_map and key[2] in gvar['user_settings']:
+                form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
+
+    return form_data
 
 def _requests(gvar, request, form_data={}):
     """
@@ -100,7 +111,46 @@ def _requests(gvar, request, form_data={}):
     try:
         response = _r.json()
     except:
-        response = {'response_code': 1, 'message': 'unable to communicate with server "%s".' % gvar['server']}
+        response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+
+    if gvar['user_settings']['expose-API']:
+        print("Expose API requested:\n" \
+            "  requests.%s(\n" \
+            "    %s%s,\n" \
+            "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
+                _function.__name__,
+                gvar['user_settings']['csv2-server-url'],
+                request,
+                gvar['user_settings']['csv2-server-url'],
+                )
+            )
+
+        if 'cert' in gvar['user_settings'] and \
+            os.path.exists(gvar['user_settings']['cert']) and \
+            'key' in gvar['user_settings'] and \
+            os.path.exists(gvar['user_settings']['key']):
+            print("    cert=('%s', '%s')," % (gvar['user_settings']['cert'], gvar['user_settings']['key']))
+        else:
+            print("    auth=('%s', <password>)," % gvar['user_settings']['user'])
+
+        print("    data=%s,\n" \
+            "    cookies='%s'\n" \
+            "    )\n\n" \
+            "  Response: {" % (
+                _form_data,
+                gvar['cookies']
+                )
+            )
+
+        for key in response:
+            if key == 'fields':
+                print("    %s: {" % key)
+                for subkey in response(key):
+                    print("        %s: %s" % (subkey, response[key][subkey]))
+                print("        }")
+            else:
+                print("    %s: %s" % (key, response[key]))
+        print("    }\n")
 
     if response['response_code'] != 0:
         print('Error: %s' % response['message'])
@@ -153,7 +203,7 @@ def _show_table(gvar, queryset, columns, allow_null=True):
         for _ix in range(len(_field_names)):
             if _field_names[_ix] in row:
               _value = row[_field_names[_ix]]
-            elif _field_names[_ix] in row['fields']:
+            elif 'fields' in row and _field_names[_ix] in row['fields']:
               _value = row['fields'][_field_names[_ix]]
             else:
               _value = '-'

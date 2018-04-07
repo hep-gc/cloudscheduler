@@ -2,6 +2,22 @@ from csv2_common import _check_keys, _requests, _show_table
 
 import json
 
+KEY_MAP = {
+    '-ca': 'authurl',
+    '-ck': 'password',
+    '-cn': 'cloud_name',
+    '-cp': 'project',
+    '-cr': 'region',
+    '-ct': 'cloud_type',
+    '-cu': 'username',
+    '-cP': 'project_domain_name',
+    '-cU': 'user_domain_name',
+    '-ga': 'cacertificate',
+    '-vc': 'cores',
+    '-vk': 'keyname',
+    '-vr': 'ram',
+    }
+
 def __filter_by_cloud_name(gvar, qs):
     """
     Internal function to filter a query set by the specified group name.
@@ -20,7 +36,7 @@ def __request(gvar, request):
     line, the server's active group will be changed before the query is made.
     """
 
-    # Check for mandatory arguments.
+    # Perform group change and then list clouds.
     if 'group' in gvar['command_args']:
         response = _requests(gvar, '/cloud/prepare/')
 
@@ -31,8 +47,78 @@ def __request(gvar, request):
                 }
           )
 
+    # List clouds for the currently active group..
     else:
         return _requests(gvar, request)
+
+def _create(gvar):
+    """
+    Create a cloud in the active group.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = _check_keys(
+        gvar,
+        'cloud create',
+        ['-ca', '-ck', '-cn', '-cp', '-cr', '-ct', '-cu'],
+        ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
+        key_map=KEY_MAP)
+
+    form_data['action'] = 'add'
+
+    # Retrieve Cookie/CSRF.
+    response = _requests(gvar, '/cloud/prepare/')
+
+    # Create the cloud.
+    response = _requests(
+        gvar,
+        '/cloud/modify/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def _delete(gvar):
+    """
+    Delete a cloud from the active group.
+    """
+
+    # Check for missing arguments or help required.
+    _check_keys(gvar, 'cloud delete', ['-cn'], ['-g', '-xA'])
+
+    # Retrieve Cookie/CSRF and check that the target user exists.
+    response = __request(gvar, '/cloud/list/')
+    _found = False
+    for row in json.loads(response['cloud_list']):
+      if row['cloud_name'] == gvar['user_settings']['cloud-name']:
+        _found = True
+        break
+   
+    if not _found:
+        print('Error: "csv2 cloud delete" cannot delete "%s", cloud doesn\'t exist in group "%s".' % (gvar['user_settings']['cloud-name'], response['active_group']))
+        exit(1)
+
+    # Confirm cloud delete.
+    if not gvar['user_settings']['yes']:
+        print('Are you sure you want to delete cloud "%s" in group "%s"? (yes|..)' % (gvar['user_settings']['cloud-name'], response['active_group']))
+        _reply = input()
+        if _reply != 'yes':
+          print('csv2 cloud delete "%s" cancelled.' % gvar['user_settings']['cloud-name'])
+          exit(0)
+
+    # Delete the cloud.
+    response = _requests(
+        gvar,
+        '/cloud/modify/',
+        form_data = {
+            'action': 'delete',
+            'cloud_name': gvar['user_settings']['cloud-name']
+            }
+        )
+    
+    if response['message']:
+        print(response['message'])
 
 def _list(gvar):
     """
@@ -40,7 +126,7 @@ def _list(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'cloud list', [], ['-cn', '-g', '-ok'])
+    _check_keys(gvar, 'cloud list', [], ['-cn', '-g', '-ok', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/list/')
@@ -100,13 +186,18 @@ def _list(gvar):
             ],
             )
 
+def _modify(gvar):
+    """
+    Modify a cloud in the active group.
+    """
+
 def _status(gvar):
     """
     List cloud status for the active group.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'cloud status', [], ['-cn', '-g', '-ok'])
+    _check_keys(gvar, 'cloud status', [], ['-cn', '-g', '-ok', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/status/')
@@ -133,10 +224,11 @@ def _status(gvar):
                 'group_name/Group',
                 'cloud_name/Cloud',
                 'VMs',
-                'VMs_starting/VMs Starting',
                 'VMs_running/VMs_running',
                 'VMs_retiring/VMs_retiring',
+                'VMs_in_error/VMs in Error',
                 'VMs_other/VMs_other',
+                'Foreign_VMs/Foreign VMs',
                 'Jobs',
                 'Jobs_s0/Jobstat 0',
                 'Jobs_s1/Jobstat 1',
