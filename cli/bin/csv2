@@ -44,6 +44,7 @@ def main(args):
             ('-cU',  '--cloud-user-domain', True),
             ('-cu',  '--cloud-user', True),
             ('-g',   '--group', True),
+            ('-ga',  '--grid-cert-authority', True),
             ('-gc',  '--grid-cert', True),
             ('-gk',  '--grid-key', True),
             ('-gn',  '--grid-common-name', True),
@@ -59,6 +60,7 @@ def main(args):
             ('-vc',  '--virtual-cores', True),
             ('-vk',  '--keypair', True),
             ('-vr',  '--virtual-ram', True),
+            ('-xA',  '--expose-API', False),
             ),
         'cookies': dict(),
         'function_args': None,
@@ -109,15 +111,21 @@ def main(args):
 
     # Call object handler.
     if gvar['object'] == 'cloud':
-        if gvar['action'] == 'list':
+        if gvar['action'] == 'add':
+            csv2_cloud._create(gvar)
+        elif gvar['action'] == 'delete':
+            csv2_cloud._delete(gvar)
+        elif gvar['action'] == 'list':
             csv2_cloud._list(gvar)
+        elif gvar['action'] == 'modify':
+            csv2_cloud._modify(gvar)
         elif gvar['action'] == 'status':
             csv2_cloud._status(gvar)
         else:
             _invalid_object_action(gvar, 'action')
 
     elif gvar['object'] == 'user':
-        if gvar['action'] == 'create':
+        if gvar['action'] == 'add':
             csv2_user._create(gvar)
         elif gvar['action'] == 'delete':
             csv2_user._delete(gvar)
