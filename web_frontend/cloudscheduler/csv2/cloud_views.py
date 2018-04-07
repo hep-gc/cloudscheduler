@@ -70,6 +70,8 @@ def list(request, group_name=None, response_code=0, message=None):
     s = select([view_group_resources]).where(view_group_resources.c.group_name == active_user.active_group)
     cloud_list = {'ResultProxy': [dict(r) for r in db_connection.execute(s)]}
 
+    db_connection.close()
+
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
@@ -124,7 +126,7 @@ def modify(request):
                     values[key] = request.POST[key]
             else:
                 if key != 'action' and key != 'csrfmiddlewaretoken':
-                    return list(request, response_code=1, message='cloud modify - request to update bad key "%s".' % key)
+                    return list(request, response_code=1, message='bad parameter "%s" to modify cloud request.' % key)
 
         if 'group_name' not in values:
             values['group_name'] = getcsv2User(request).active_group
@@ -132,39 +134,43 @@ def modify(request):
 
         if request.POST['action'] == 'add':
             if(db_session.query(exists().where(table.c.cloud_name==values['cloud_name'] and table.c.group_name==values['group_name'])).scalar()):
-                return list(request, response_code=1, message='cloud modify - request to add existing cloud "%s/%s".' % (values['group_name'], values['cloud_name']))
+                db_connection.close()
+                return list(request, response_code=1, message='request to add existing cloud "%s/%s".' % (values['group_name'], values['cloud_name']))
             else:
                 success,message = _db_execute(db_connection, table.insert().values(values))
+                db_connection.close()
                 if success:
-                    return list(request, response_code=0, message='cloud modify - cloud "%s/%s" successfully added.' % (values['group_name'], values['cloud_name']))
+                    return list(request, response_code=0, message='cloud "%s/%s" successfully added.' % (values['group_name'], values['cloud_name']))
                 else:
-                    return list(request, response_code=1, message='cloud modify - cloud "%s/%s" add failed - %s.' % (values['group_name'], values['cloud_name'], message))
+                    return list(request, response_code=1, message='cloud "%s/%s" add failed - %s.' % (values['group_name'], values['cloud_name'], message))
 
         elif request.POST['action'] == 'delete':
             success,message = _db_execute(db_connection, table.delete(table.c.cloud_name==values['cloud_name'] and table.c.group_name==values['group_name']))
+            db_connection.close()
             if success:
-                return list(request, response_code=0, message='cloud modify - cloud "%s/%s" successfully deleted.' % (values['group_name'], values['cloud_name']))
+                return list(request, response_code=0, message='cloud "%s/%s" successfully deleted.' % (values['group_name'], values['cloud_name']))
             else:
-                return list(request, response_code=1, message='cloud modify - cloud "%s/%s" delete failed - %s.' % (values['group_name'], values['cloud_name'], message))
+                return list(request, response_code=1, message='cloud "%s/%s" delete failed - %s.' % (values['group_name'], values['cloud_name'], message))
 
         elif request.POST['action'] == 'modify':
             success,message = _db_execute(db_connection, table.update().where(table.c.cloud_name==values['cloud_name'] and table.c.group_name==values['group_name']).values(values))
+            db_connection.close()
             if success:
-                return list(request, response_code=0, message='cloud modify - cloud "%s/%s" successfully updated.' % (values['group_name'], values['cloud_name']))
+                return list(request, response_code=0, message='cloud "%s/%s" successfully modified.' % (values['group_name'], values['cloud_name']))
             else:
-                return list(request, response_code=1, message='cloud modify - cloud "%s/%s" update failed - %s.' % (values['group_name'], values['cloud_name'], message))
+                return list(request, response_code=1, message='cloud "%s/%s" modify failed - %s.' % (values['group_name'], values['cloud_name'], message))
 
         else:
-            return list(request, response_code=1, message='cloud modify - invalid action "%s" specified.' % request.POST['action'])
+            return list(request, response_code=1, message='invalid action "%s" specified.' % request.POST['action'])
     else:
         if request.method == 'POST':
-            return list(request, response_code=1, message='cloud modify - invalid method "%s" specified.' % request.method)
+            return list(request, response_code=1, message='invalid method "%s" specified.' % request.method)
         elif 'action' not in request.POST:
-            return list(request, response_code=1, message='cloud modify - no action specified.')
+            return list(request, response_code=1, message='no action specified.')
         else:
-            return list(request, response_code=1, message='cloud modify - no cloud name specified.')
+            return list(request, response_code=1, message='no cloud name specified.')
 
-    return list(request, response_code=1, message='cloud modify - internal server error.')
+    return list(request, response_code=1, message='internal server error.')
 
 
 def prepare(request):
@@ -227,6 +233,8 @@ def status(request, group_name=None):
     # get jobs list
     Jobs = db_map.classes.condor_jobs
     job_list = db_session.query(Jobs).filter(Jobs.group_name==active_user.active_group)
+
+    db_connection.close()
 
     context = {
             'active_user': active_user,
