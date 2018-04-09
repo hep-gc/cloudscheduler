@@ -5,8 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from .view_utils import getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, _render
-from utils.db_utils import db_open
+from .view_utils import db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, _render
 from collections import defaultdict
 import bcrypt
 
@@ -103,62 +102,84 @@ def modify(request):
         metadata = MetaData(bind=db_engine)
         table = Table('csv2_group_resources', metadata, autoload=True)
 
-        values = {}
+        values = [{}, {}]
         for key in request.POST:
             if key in table.c:
-                if key == 'core_lock':
-                    if request.POST[key] == 'lock':
-                        cores_ctl = -1
-                    else:
-                        cores_ctl = cores
-
-                    values['cores_ctl'] = cores_ctl
-
-                elif key == 'ram_lock':
-                    if request.POST[key] == 'lock':
-                        ram_ctl = -1
-                    else:
-                        ram_ctl = ram
-
-                    values['ram_ctl'] = ram_ctl
-     
+                if key == 'group_name' or key == 'cloud_name':
+                    values[0][key] = request.POST[key]
                 else:
-                    values[key] = request.POST[key]
+                    if key != 'password' or request.POST[key]:
+                        values[1][key] = request.POST[key]
             else:
                 if key != 'action' and key != 'csrfmiddlewaretoken':
-                    return list(request, response_code=1, message='bad parameter "%s" to modify cloud request.' % key)
+                    return list(request, response_code=1, message='cloud modify request contained bad parameter "%s".' % key)
 
-        if 'group_name' not in values:
-            values['group_name'] = getcsv2User(request).active_group
-
+        if 'group_name' not in values[0]:
+            values[0]['group_name'] = getcsv2User(request).active_group
 
         if request.POST['action'] == 'add':
-            if(db_session.query(exists().where(table.c.cloud_name==values['cloud_name'] and table.c.group_name==values['group_name'])).scalar()):
+            if(db_session.query(exists().where( \
+                table.c.group_name==values[0]['group_name'] and \
+                table.c.cloud_name==values[0]['cloud_name'] \
+                )).scalar()):
+
                 db_connection.close()
-                return list(request, response_code=1, message='request to add existing cloud "%s/%s".' % (values['group_name'], values['cloud_name']))
+
+                return list(
+                request,
+                response_code=1,
+                message='request to add existing cloud "%s/%s".' % (values[0]['group_name'], values[0]['cloud_name'])
+                )
             else:
-                success,message = _db_execute(db_connection, table.insert().values(values))
+                success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
                 db_connection.close()
                 if success:
-                    return list(request, response_code=0, message='cloud "%s/%s" successfully added.' % (values['group_name'], values['cloud_name']))
+                    return list(
+                        request,
+                        response_code=0,
+                        message='cloud "%s/%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name'])
+                        )
                 else:
-                    return list(request, response_code=1, message='cloud "%s/%s" add failed - %s.' % (values['group_name'], values['cloud_name'], message))
+                    return list(
+                        request,
+                        response_code=1,
+                        message='cloud "%s/%s" add failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message)
+                        )
 
         elif request.POST['action'] == 'delete':
-            success,message = _db_execute(db_connection, table.delete(table.c.cloud_name==values['cloud_name'] and table.c.group_name==values['group_name']))
+            success,message = _db_execute(
+                db_connection,
+                table.delete(table.c.group_name==values[0]['group_name'] and table.c.cloud_name==values[0]['cloud_name'])
+                )
             db_connection.close()
             if success:
-                return list(request, response_code=0, message='cloud "%s/%s" successfully deleted.' % (values['group_name'], values['cloud_name']))
+                return list(
+                    request,
+                    response_code=0,
+                    message='cloud "%s/%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name'])
+                    )
             else:
-                return list(request, response_code=1, message='cloud "%s/%s" delete failed - %s.' % (values['group_name'], values['cloud_name'], message))
+                return list(
+                    request,
+                    response_code=1,
+                    message='cloud "%s/%s" delete failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message)
+                    )
 
         elif request.POST['action'] == 'modify':
-            success,message = _db_execute(db_connection, table.update().where(table.c.cloud_name==values['cloud_name'] and table.c.group_name==values['group_name']).values(values))
+            success,message = _db_execute(db_connection, table.update().where(table.c.group_name==values[0]['group_name'] and table.c.cloud_name==values[0]['cloud_name']).values(values[1]))
             db_connection.close()
             if success:
-                return list(request, response_code=0, message='cloud "%s/%s" successfully modified.' % (values['group_name'], values['cloud_name']))
+                return list(
+                    request,
+                    response_code=0,
+                    message='cloud "%s/%s" successfully modified.' % (values[0]['group_name'], values[0]['cloud_name'])
+                    )
             else:
-                return list(request, response_code=1, message='cloud "%s/%s" modify failed - %s.' % (values['group_name'], values['cloud_name'], message))
+                return list(
+                    request,
+                    response_code=1,
+                    message='cloud "%s/%s" modify failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message)
+                    )
 
         else:
             return list(request, response_code=1, message='invalid action "%s" specified.' % request.POST['action'])
