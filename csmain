@@ -3,10 +3,13 @@ import os
 import copy
 import time
 import logging
+from collections import defaultdict
+
 import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
 import cloudscheduler.config as csconfig
 
+from lib.schema import view_vms
 from lib.schema import view_groups_of_idle_jobs
 from lib.schema import view_resources_matching_idle_jobs
 
@@ -67,7 +70,9 @@ def main():
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
             check_idle_machines(csgroup.group_name)
-            check_unregistered_machines(csgroup.group_name)
+            new_vms = check_unregistered_machines(csgroup.group_name)
+
+
 
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
@@ -107,14 +112,14 @@ def main():
                                          'cs_condor_host': csgroup.condor_central_manager}
                         log.debug(template_dict)
                         try:
-                            """if cm_group.clouds[cloud_match.cloud_name].enabled:
+                            if cm_group.clouds[cloud_match.cloud_name].enabled:
                                 cm_group.clouds[cloud_match.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
                                                num=num_vms_to_boot,
                                                flavor=cloud_match.flavor_name,
                                                job=idle_job,
                                                template_dict=template_dict)
-                            job_count -= num_vms_to_boot"""
+                            job_count -= num_vms_to_boot
                             log.debug('done booting on cloud %s', cloud_match.cloud_name)
                         except Exception as ex:
                             # lets try to disable or dump this cloud for now
@@ -132,7 +137,7 @@ def main():
 
             # Repeat for next group
         #break # will need to take this out and put in an actual stopping condition.
-        time.sleep(5)
+        time.sleep(15)
 
 
     time.sleep(10)
@@ -152,7 +157,9 @@ def check_idle_machines(group):
     Base.prepare(engine, reflect=True)
     session = Session(engine)
     machines = Base.classes.condor_machines
-    unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed", machines.activity == "Idle")
+    unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed",
+                                                             machines.activity == "Idle",
+                                                             machines.group_name == group)
     machines_dict = {}
     for machine in unclaimed_idle_machines:
         if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # make configurable setting for now ~30minutes
@@ -177,7 +184,7 @@ def check_unregistered_machines(group):
     vms = Base.classes.csv2_vms
     clouds = Base.classes.csv2_group_resources
     group_clouds = session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = session.query(vms).filter(vms.group_name == group).filter(~exists().where(machines.machine.contains(vms.hostname)))
+    unregistered_vms = session.query(view_vms).filter(view_vms.group_name == group).filter(~exists().where(machines.machine.contains(view_vms.hostname)))
     cloud_names = []
     for cloud in group_clouds:
         cloud_names.append(cloud.cloud_name)
@@ -185,25 +192,28 @@ def check_unregistered_machines(group):
     new_vms = []
     log.debug("VMs that are unregistered with condor collector:")
     for vm in unregistered_vms:
+        log.debug(vm.hostname)
         try:
-            cname = vm.hostname.split('-')[0]
+            hostname_split = vm.hostname.split('-')
+            #gname = hostname_split[0]
+            cname = hostname_split[1]
             if cname in cloud_names: # name prefix matches a valid cloud name
                 if int(time.time()) - vm.status_changed_time > 3000: # not registered after 1 hour
-                    log.debug(vm.hostname) # This machine should go away
                     vm.terminate = 1
                     log.debug("Set terminate flag on vm:%s", vm.hostname)
                 # also need to check the timing info and whatnot so it's not flagged before it has a chance to register.
                 else:
-                    log.debug("%s only been gone for: %s time.", vm.hostname, str(int(time.time()) - vm.status_changed_time))
-                    new_vms.append(vm.hostname)
+                    log.debug("%s only been unregistered for: %s time.", vm.hostname, str(int(time.time()) - vm.status_changed_time))
+                    new_vms.append((vm.cloud_name,vm.hostname,vm.flavor_name))
             else:
                 non_cs_vm.append(vm.hostname)
         except Exception as ex:
             log.exception("Problem splitting?: %s", ex)
-    log.debug("----- Non CS VMs ------")
-    log.debug(non_cs_vm)
+    #log.debug("----- Non CS VMs ------")
+    #log.debug(non_cs_vm)
     log.debug("Done checking unregistered VMs.")
     session.commit()
+    return new_vms
 
 
 # should re-adapt this to deal with adding group from DB and splitting code into functions instead of all inline

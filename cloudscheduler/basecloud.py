@@ -9,6 +9,7 @@ import uuid
 import logging
 from abc import ABC, abstractmethod
 
+import cloudscheduler.vm
 import cloudscheduler.cloud_init_util
 
 import jinja2
@@ -19,11 +20,12 @@ class BaseCloud(ABC):
     Abstract BaseCloud class, meant to be inherited by any specific cloud class for use
     by cloudscheduler.
     """
-    def __init__(self, name, extrayaml=None):
+    def __init__(self, group, name, vms=None, extrayaml=None):
         self.log = logging.getLogger(__name__)
         self.name = name
+        self.group = group
         self.enabled = True
-        self.vms = {}
+        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms}
         self.extrayaml = extrayaml
 
     def __repr__(self):
@@ -67,8 +69,9 @@ class BaseCloud(ABC):
 
     def _generate_next_name(self):
         """Generate hostnames and check they're not in use."""
-        name = ''.join([self.name.replace('_', '-').lower(), '-',
-                        str(uuid.uuid4())])
+        name = ''.join([self.group.replace('_', '-').lower(), '-',
+                        self.name.replace('_', '-').lower(), '-',
+                        str(uuid.uuid4().node)])
         for vm in self.vms.values():
             if name == vm.hostname:
                 name = self._generate_next_name()
@@ -96,7 +99,7 @@ class BaseCloud(ABC):
         #self.log.debug(group_yaml)
         userdata = cloudscheduler.cloud_init_util\
             .build_multi_mime_message(group_yaml)
-        self.log.debug(userdata)
+        #self.log.debug(userdata)
         if not userdata:
             return ""
         compressed = ""
