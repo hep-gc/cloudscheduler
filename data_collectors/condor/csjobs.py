@@ -40,7 +40,7 @@ def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.collection_interval
-    job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
+    job_attributes = ["group_name", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
@@ -95,10 +95,12 @@ def job_producer():
                 #
                 logging.info("Checking group name...")
                 job_user = job_dict["User"].split("@")[0]
-                if job_dict.get("GroupName") is not None and user_group_dict.get(job_user) is not None:
+                if job_dict.get("group_name") is not None and user_group_dict.get(job_user) is not None:
                     # if there is a grp name check that it is a valid one.
                     # This looks confusing but it's just saying if the job group
                     # name is not in any of the user's groups
+                    # GroupName has been changed to group_name in condor for jobs/machines related to csv2
+                    # The check still be neccesary to assign none to non-csv2 jobs
                     if not any(str(job_dict["GroupName"]) in grp for grp in user_group_dict.get(job_user)):
                         logging.info("Job ad: %s has invalid group_name, ignoring...",
                                      job_dict["GlobalJobId"])
