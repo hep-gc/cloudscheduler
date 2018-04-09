@@ -102,7 +102,21 @@ def main():
                             continue
                         # how many VMs should I try to boot? lets just go for max we can for now until we add config for limits
                         num_vms_to_boot = job_count if job_count <= cloud_match.flavor_slots else cloud_match.flavor_slots
-
+                        booting = 0
+                        for new_vm in new_vms[cloud_match.cloud_name]:
+                            instance_type_split = idle_job.instance_type.split(',')
+                            for pair in instance_type_split:
+                                if pair.split(':')[0] == cloud_match.cloud_name:
+                                    if new_vm[2] == pair.split(':')[1]:
+                                        booting +=1
+                            if new_vm[2] == cloud_match.flavor_name:
+                                booting += 1
+                        log.debug("Would like to boot %s, but %s already booting of %s on %s.",
+                                  num_vms_to_boot, booting, cloud_match.flavor_name, cloud_match.cloud_name)
+                        num_vms_to_boot -= booting
+                        if num_vms_to_boot < 0:
+                            # We don't want to boot anything until the current ones register
+                            continue
                         try:
                             usertmp = idle_job.user.split('@')[0]
                         except:
@@ -165,7 +179,9 @@ def check_idle_machines(group):
         if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # make configurable setting for now ~30minutes
             log.debug("Setting condor off flag for machine: %s", machine.name)
             machine.condor_off = 1
-
+        else:
+            log.debug("Ignoring classad for: %s, inactive for only %s", machine.name,
+                      str(machine.my_current_time - machine.entered_current_state))
     session.commit()
 
 
@@ -184,12 +200,12 @@ def check_unregistered_machines(group):
     vms = Base.classes.csv2_vms
     clouds = Base.classes.csv2_group_resources
     group_clouds = session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = session.query(view_vms).filter(view_vms.group_name == group).filter(~exists().where(machines.machine.contains(view_vms.hostname)))
+    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group).filter(~exists().where(machines.machine.contains(view_vms.c.hostname)))
     cloud_names = []
     for cloud in group_clouds:
         cloud_names.append(cloud.cloud_name)
     non_cs_vm = []
-    new_vms = []
+    new_vms = defaultdict(list)
     log.debug("VMs that are unregistered with condor collector:")
     for vm in unregistered_vms:
         log.debug(vm.hostname)
@@ -204,7 +220,7 @@ def check_unregistered_machines(group):
                 # also need to check the timing info and whatnot so it's not flagged before it has a chance to register.
                 else:
                     log.debug("%s only been unregistered for: %s time.", vm.hostname, str(int(time.time()) - vm.status_changed_time))
-                    new_vms.append((vm.cloud_name,vm.hostname,vm.flavor_name))
+                    new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_name))
             else:
                 non_cs_vm.append(vm.hostname)
         except Exception as ex:

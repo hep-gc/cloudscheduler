@@ -93,7 +93,7 @@ class BaseCloud(ABC):
         for yaml_tuple in group_yaml:
             if '.j2' in yaml_tuple[0]:
                 template_dict['cs_cloud_name'] = self.name
-                self.log.debug(yaml_tuple[1])
+                #self.log.debug(yaml_tuple[1])
                 yaml_tuple[1] = jinja2.Environment()\
                     .from_string(yaml_tuple[1]).render(template_dict)
         #self.log.debug(group_yaml)
