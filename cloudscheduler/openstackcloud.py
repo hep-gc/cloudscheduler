@@ -2,6 +2,7 @@
 OpenStack module - connector classes for OpenStack Clouds
 inherits from BaseCloud
 """
+import time
 import logging
 import novaclient.exceptions
 from novaclient import client as nvclient
@@ -12,8 +13,8 @@ from keystoneauth1.exceptions.connection import ConnectFailure
 from keystoneauth1.exceptions.catalog import EmptyCatalog
 from neutronclient.v2_0 import client as neuclient
 from sqlalchemy import create_engine
-# from sqlalchemy.orm import Session
-# from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
 
 import cloudscheduler.basecloud
 import cloudscheduler.config as csconfig
@@ -23,7 +24,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
     """
     OpenStack Connector class for cloudscheduler
     """
-    def __init__(self, resource=None, defaultsecuritygroup=None,
+    def __init__(self, resource=None, vms=None, defaultsecuritygroup=None,
                  defaultimage=None, defaultflavor=None,
                  defaultnetwork=None, extrayaml=None,):
 
@@ -37,8 +38,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
-                                                    extrayaml=extrayaml)
+        cloudscheduler.basecloud.BaseCloud.__init__(self, group=resource.group_name, name=resource.cloud_name,
+                                                    extrayaml=extrayaml, vms=vms)
         self.log = logging.getLogger(__name__)
         self.authurl = resource.authurl
         self.username = resource.username
@@ -169,27 +170,32 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         except Exception as ex:
             self.log.exception(ex)
         if instance:
-            self.log.debug("New Image request successful.")
-            # new_vm = VM(vmid=instance.id, hostname=hostname)
-            # self.vms[instance.id] = new_vm
-            # Do I actually want to bother putting in the new VM or
-            # let the poller handle it?
-            #engine = self._get_db_engine()
-            #Base = automap_base()
-            #Base.prepare(engine, reflect=True)
-            #db_session = Session(engine)
-            #VM = Base.classes.csv2_vms
-            #vm_dict = {
-            #    'auth_url': self.authurl,
-            #    'project': self.project,
-            #    'vmid': instance.id,
-            #    'hostname': hostname,
-            #    'status': 'New',
-            #    'last_updated': int(time.time()),
-            #}
-            #new_vm = VM(**vm_dict)
-            #db_session.merge(new_vm)
-            #db_session.commit()
+            self.log.debug("Try to fetch with filter of hostname used")
+            engine = self._get_db_engine()
+            Base = automap_base()
+            Base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            VM = Base.classes.csv2_vms
+            list_vms = nova.servers.list(search_opts={'name':hostname})
+            for vm in list_vms:
+                self.log.debug(vm)
+
+                vm_dict = {
+                    'group_name': self.group,
+                    'cloud_name': self.name,
+                    'auth_url': self.authurl,
+                    'project': self.project,
+                    'hostname': vm.name,
+                    'vmid': vm.id,
+                    'status': vm.status,
+                    'flavor_id': vm.flavor["id"],
+                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
+                    'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                    'last_updated': int(time.time()),
+            }
+                new_vm = VM(**vm_dict)
+                db_session.merge(new_vm)
+            db_session.commit()
 
         self.log.debug('vm create')
 

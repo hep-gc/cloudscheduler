@@ -85,7 +85,7 @@ def _delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'cloud delete', ['-cn'], ['-g', '-xA'])
+    _check_keys(gvar, 'cloud delete', ['-cn'], ['-g'])
 
     # Retrieve Cookie/CSRF and check that the target user exists.
     response = __request(gvar, '/cloud/list/')
@@ -126,7 +126,7 @@ def _list(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'cloud list', [], ['-cn', '-g', '-ok', '-xA'])
+    _check_keys(gvar, 'cloud list', [], ['-cn', '-g', '-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/list/')
@@ -191,13 +191,40 @@ def _modify(gvar):
     Modify a cloud in the active group.
     """
 
+    # Check for missing arguments or help required.
+    form_data = _check_keys(
+        gvar,
+        'cloud modify',
+        ['-cn'],
+        ['-ca', '-ck', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
+        key_map=KEY_MAP)
+
+    if len(form_data) < 2:
+        print('Error: "csv2 cloud modify" requires at least one option to modify.')
+        exit(1)
+
+    form_data['action'] = 'modify'
+
+    # Retrieve Cookie/CSRF.
+    response = _requests(gvar, '/cloud/prepare/')
+
+    # Create the cloud.
+    response = _requests(
+        gvar,
+        '/cloud/modify/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
 def _status(gvar):
     """
     List cloud status for the active group.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'cloud status', [], ['-cn', '-g', '-ok', '-xA'])
+    _check_keys(gvar, 'cloud status', [], ['-cn', '-g', '-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/status/')
