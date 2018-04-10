@@ -128,7 +128,9 @@ def job_producer():
                     ## since we now parse the group_name from requirements there is no need to assign a group
                     ###
                     continue
-
+                    ''' # This block is for assigning a group name when there isn't one in the classad
+                        # Since we are removing group_name from the classad this logic needs to be
+                        # revamped or removed.
                     job_user = job_dict["User"].split("@")[0]
                     if not user_group_dict.get(job_user):
                         # User not registered to any groups
@@ -150,7 +152,7 @@ def job_producer():
                         logging.info("Could not automatically resolve group_name for: %s,"
                                      " ignoring... ", job_dict["GlobalJobId"])
                         continue
-
+                    '''
                 job_dict = trim_keys(job_dict, job_attributes)
                 job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
 
