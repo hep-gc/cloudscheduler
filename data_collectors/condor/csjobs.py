@@ -3,6 +3,7 @@ from multiprocessing import Process
 import time
 import logging
 import socket
+import re
 
 import job_config as config
 from attribute_mapper.attribute_mapper import map_attributes
@@ -19,6 +20,7 @@ from sqlalchemy.ext.automap import automap_base
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
+    key_list.append("group_name")
     keys_to_trim = []
     for key in dict_to_trim:
         if key not in key_list:
@@ -40,7 +42,7 @@ def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.collection_interval
-    job_attributes = ["group_name", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
+    job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
@@ -88,6 +90,16 @@ def job_producer():
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
+                    # Parse group_name out of requirements
+                    try:
+                        pattern = '(group_name is ")(.*?)(")'
+                        grp_name = re.search(pattern, job_dict['Requirements'])
+                        job_dict['group_name'] = grp_name.group(2)
+                    except Exception as exc:
+                        logging.error("No group name found in requirements expression... setting None")
+                        job_dict['group_name'] = None
+
+
                 #
                 # check if there is a group_name
                 # if not, try and assign one, if default is ambiguos ignore ad
@@ -101,7 +113,7 @@ def job_producer():
                     # name is not in any of the user's groups
                     # GroupName has been changed to group_name in condor for jobs/machines related to csv2
                     # The check still be neccesary to assign none to non-csv2 jobs
-                    if not any(str(job_dict["GroupName"]) in grp for grp in user_group_dict.get(job_user)):
+                    if not any(str(job_dict["group_name"]) in grp for grp in user_group_dict.get(job_user)):
                         logging.info("Job ad: %s has invalid group_name, ignoring...",
                                      job_dict["GlobalJobId"])
                         # Invalid group name
@@ -111,6 +123,12 @@ def job_producer():
                 else:
                     # else if there is no group name try to assign one
                     # can also get here if the user_group list is empty
+                    
+                    ###
+                    ## since we now parse the group_name from requirements there is no need to assign a group
+                    ###
+                    continue
+
                     job_user = job_dict["User"].split("@")[0]
                     if not user_group_dict.get(job_user):
                         # User not registered to any groups
@@ -121,7 +139,7 @@ def job_producer():
                                  job_dict["GlobalJobId"])
 
                     if len(user_group_dict[job_user]) == 1:
-                        job_dict["GroupName"] = user_group_dict[job_user][0]
+                        job_dict["group_name"] = user_group_dict[job_user][0]
                         #UPDATE CLASSAD
                         cluster = job_dict["ClusterId"]
                         proc = job_dict["ProcId"]
