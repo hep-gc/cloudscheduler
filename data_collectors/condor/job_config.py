@@ -12,6 +12,8 @@ cleanup_sleep_interval = 120
 log_file = "/var/log/cloudscheduler/csjobs.log"
 log_level = 20 #INFO
 
+default_job_group = None
+
 db_host = "localhost"
 db_port = 3306
 db_user = "csv2"
@@ -77,7 +79,10 @@ try:
                 log_file = cfg["condor_jobs"]["log_file"]
 
             if "log_level" in cfg["condor_jobs"]:
-                log_level = cfg["condor_jobs"]["log_level"]       
+                log_level = cfg["condor_jobs"]["log_level"]
+
+            if "default_job_group" in cfg["condor_jobs"]:
+                default_job_group = cfg["condor_jobs"]["default_job_group"]
 
     except yaml.YAMLError:
         print >> sys.stderr, "Unable to load condor jobs config from yaml blob in database" \
