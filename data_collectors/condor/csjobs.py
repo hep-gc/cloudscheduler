@@ -273,7 +273,6 @@ def cleanUp():
                 #job is missing from condor, clean it up
                 logging.info("Found Job missing from condor: %s, cleaning up.", job.global_job_id)
                 job_dict = job.__dict__
-                logging.info(job_dict)
                 session.delete(job)
                 # metadata not relevent to the job ad, must trim to init with kwargs
                 job_dict.pop('_sa_instance_state', None)
