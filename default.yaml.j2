@@ -16,7 +16,7 @@ write_files:
         # Local config for Cloud Scheduler
 
         ## Set this to the group_name using this VM
-        GROUP_NAME = "{{cs_group_name}}"
+        group_name = "{{cs_group_name}}"
         FLAVOR = "{{cs_flavor}}"
 
         ## Hostname of the central manager.
@@ -90,7 +90,7 @@ write_files:
         PREEMPT = False
         KILL = False
 
-        STARTD_ATTRS = COLLECTOR_HOST_STRING GROUP_NAME FLAVOR
+        STARTD_ATTRS = COLLECTOR_HOST_STRING group_name FLAVOR
 
         HIGHPORT = 50000
         LOWPORT = 40000
