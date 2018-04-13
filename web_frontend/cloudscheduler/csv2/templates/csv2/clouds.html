@@ -7,8 +7,17 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
+
+<script type="text/javascript">
+    function show_cloud(cloud_name){
+        if (cloud_name.length > 0) {
+            document.location.hash = cloud_name;
+        }
+    }
+</script>
+
 </head>
-<body>
+<body onpageshow="show_cloud('{{current_cloud}}')">
 
 <section class="vertical-menu">
     <a href="#" class="active">Clouds</a>
@@ -31,7 +40,7 @@
 
             </div>
         </div>
-        <form name="{{cloud.cloud_name}}" action="/cloud/modify/" method="post">
+        <form name="{{cloud.cloud_name}}" action="/cloud/modify/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
             {% csrf_token %}
             <table>
 
@@ -57,48 +66,37 @@
                 <tr><td><label for="cloud_type">Cloud type</label></td>
                 <td><input type="text" name="cloud_type" value="{{cloud.cloud_type}}" /></td></tr>
 
-                <tr><td><label for="cores">Cores</label></td>
+                <tr><td><label for="cores_ctl">Cores</label></td>
                 <td>
-                {% if cloud.cores_ctl < 0 %}
-                    <input type="checkbox" id="cores_switch_{{cloud.cloud_name}}" name="cores_lock" value="lock" checked>
-                {% else %}
-                    <input type="checkbox" id="cores_switch_{{cloud.cloud_name}}" name="cores_lock" value="lock">
-                {% endif %}
-                    <label for="cores_switch_{{cloud.cloud_name}}"></label>
-                    <div class="content">
-                    {% if cloud.cores_ctl < 0 %}
-                        <input for="cores" oninput="cores.value=range_cores.value" id="slider" type="range" min="0" max="{{cloud.cores_max}}" value="{{cloud.cores_max}}" name="range_cores"/>
-                        <input oninput="range_cores.value=cores.value" id="box" type="number" min="0"  max="{{cloud.cores_max}}" value="{{cloud.cores_max}}" name="cores" for="range_cores" oninput="range_cores.value=cores.value"/>
-                    {% else %}
-                        <input for="cores" oninput="cores.value=range_cores.value" id="slider" type="range" min="0" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="range_cores" />
-                        <input oninput="range_cores.value=cores.value" id="box" type="number" min="0"  max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores" for="range_cores" oninput="range_cores.value=cores.value" />
+                    <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" onchange="cores_ctl.value=cores_slider.value" />
+                    <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" onchange="cores_slider.value=cores_ctl.value" />
+                    / {{cloud.cores_max}}
+                    {% if cloud.cores_ctl == -1 %}
+                    Use Quota
                     {% endif %}
-                    </div>
                 </td></tr>
 
-                <tr><td><label for="ram">RAM</label></td>
+                <tr><td><label for="ram_ctl">RAM</label></td>
                 <td>
-                {% if cloud.ram_ctl < 0 %}
-                    <input type="checkbox" id="ram_switch_{{cloud.cloud_name}}" name="ram_lock" value="lock" checked>
-                {% else %}
-                    <input type="checkbox" id="ram_switch_{{cloud.cloud_name}}" name="ram_lock" value="lock">
-                {% endif %}
-                    <label for="ram_switch_{{cloud.cloud_name}}"></label>
-                    <div class="content">
-                    {% if cloud.ram_ctl < 0 %}
-                        <input for="ram" oninput="ram.value=range_ram.value" id="slider" type="range" min="0" max="{{cloud.ram_max}}" value="{{cloud.ram_max}}" name="range_ram" />
-                        <input oninput="range_ram.value=ram.value" id="box" type="number" min="0"  max="{{cloud.ram_max}}" value="{{cloud.ram_max}}" name="ram" for="range_ram" oninput="range_ram.value=ram.value" />
-                    {% else %}
-                        <input for="ram" oninput="ram.value=range_ram.value" id="slider" type="range" min="0" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="range_ram" />
-                        <input oninput="range_ram.value=ram.value" id="box" type="number" min="0"  max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram" for="range_ram" oninput="range_ram.value=ram.value" />
-                    {% endif %}   
-                    </div>
+                    <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" onchange="ram_ctl.value=ram_slider.value" />
+                    <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" onchange="ram_slider.value=ram_ctl.value" />
+                    / {{cloud.ram_max}}
                 </td></tr>
 
                 <input type="hidden" name="action" value="modify" />
                 <tr><td><input type="submit" value="Update Cloud" /></td>
                 <td><a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a></td></tr>
             </table>
+
+            {% if response_code == 1 %}
+                <div id="msg_tbl"><table>
+                    <tr><td colspan=2; style="color:red";><div id="message"><b>Error: {{ message }}</b></div></td></tr>
+                </table></div>
+            {% elif message is not None %}
+                <div id="msg_tbl"><table>
+                    <tr><td colspan=2; style="color:green";><div id="message">{{ message }}</div></td></tr>
+                </table></div>
+            {% endif %}
         </form>
     </div>
     {% endfor %}
@@ -129,12 +127,14 @@
                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
                 <tr><td><label for="cloud_type">Cloud type</label></td>
                 <td><input type="text" name="cloud_type" value="{{cloud.cloud_type}}" /></td></tr>
-                <input type="hidden" name="cores" value="-1" />
-                <input type="hidden" name="cores_lock" value="lock" />
-                <input type="hidden" name="ram" value="-1" />
-                <input type="hidden" name="ram_lock" value="lock" />
                 <input type="hidden" name="action" value="add" />
                 <tr><td><input type="submit" value="Add Cloud" /></td></tr>
+
+                {% if response_code == 1 %}
+                    <tr><td colspan=2; style="color:red";><b>Error: {{ message }}</b></td></tr>
+                {% elif message is not None %}
+                    <tr><td colspan=2; style="color:green";>{{ message }}</td></tr>
+                {% endif %}
             </table>
         </form>
     </div>
@@ -147,20 +147,28 @@
 	<form name="{{cloud.cloud_name}}" action="/cloud/modify/" method="post">
             {% csrf_token %}
                 <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
-                <input type="hidden" name="password" value="" />
-		<input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="action" value="delete" />
                 <input type="submit" value="Delete {{cloud.cloud_name}}" />
         </form>
     </div>
 </div>
 {% endfor %}
 
-{% if err_message is not None %}
-    <p style="color:red;">{{err_message}}</p>
-{% endif %}
-{% if message is not None %}
-    <p style="color:green;">{{message}}</p>
-{% endif %}
-
 </body>
 
+<script type="text/javascript">
+
+function updateTotal(){
+
+    {% for cloud in cloud_list.ResultProxy %}
+    var {{cloud.cloud_name}} = document.getElementById('cores_switch_{{cloud.cloud_name}}');
+
+    {% endfor %}
+    var amount = 0;
+    {% for cloud in cloud_list.ResultProxy %}
+        amount += {{cloud.cloud_name}}.checked ? parseFloat(.getAttribute('data-price')) : -1;
+
+    {% endfor %}
+}​
+
+</script>
