@@ -69,7 +69,7 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            check_idle_machines(csgroup.group_name)
+            idle_machines = check_idle_machines(csgroup.group_name)
             new_vms = check_unregistered_machines(csgroup.group_name)
 
 
@@ -114,6 +114,9 @@ def main():
                         log.debug("Would like to boot %s, but %s already booting of %s on %s.",
                                   num_vms_to_boot, booting, cloud_match.flavor_name, cloud_match.cloud_name)
                         num_vms_to_boot -= booting
+                        if cloud_match.cloud_name in idle_machines.keys():
+                            log.debug("Idle slots detected for these jobs: %s", idle_machines[cloud_match.cloud_name])
+                            num_vms_to_boot -= idle_machines[cloud_match.cloud_name]
                         if num_vms_to_boot < 0:
                             # We don't want to boot anything until the current ones register
                             continue
@@ -174,7 +177,7 @@ def check_idle_machines(group):
     unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed",
                                                              machines.activity == "Idle",
                                                              machines.group_name == group)
-    machines_dict = {}
+    machines_dict = defaultdict(int)
     for machine in unclaimed_idle_machines:
         if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # make configurable setting for now ~30minutes
             log.debug("Setting condor off flag for machine: %s", machine.name)
@@ -182,7 +185,13 @@ def check_idle_machines(group):
         else:
             log.debug("Ignoring classad for: %s, inactive for only %s", machine.name,
                       str(machine.my_current_time - machine.entered_current_state))
+            name_parts = machine.machine.split('-')
+            if len(name_parts) >= 2:
+                machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
+
     session.commit()
+    # Return dict of cloud names with number of idle machine classads
+    return machines_dict
 
 
 def check_unregistered_machines(group):
@@ -200,22 +209,29 @@ def check_unregistered_machines(group):
     vms = Base.classes.csv2_vms
     clouds = Base.classes.csv2_group_resources
     group_clouds = session.query(clouds).filter(clouds.group_name == group)
+    # TODO Cannot set attributes on Views, have to use the original table - so will need to do the join for the flavor name myself.
+    # Or I could just do another query for the VMs i want to terminate on the table and avoid the join.
+    # might also be able to do an update on just those rows as well.
     unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group).filter(~exists().where(machines.machine.contains(view_vms.c.hostname)))
+
     cloud_names = []
     for cloud in group_clouds:
         cloud_names.append(cloud.cloud_name)
     non_cs_vm = []
     new_vms = defaultdict(list)
+    to_terminate = []
     log.debug("VMs that are unregistered with condor collector:")
     for vm in unregistered_vms:
-        log.debug(vm.hostname)
+        # log.debug(vm.hostname)
         try:
             hostname_split = vm.hostname.split('-')
             #gname = hostname_split[0]
+            if len(hostname_split) == 1:
+                continue
             cname = hostname_split[1]
             if cname in cloud_names: # name prefix matches a valid cloud name
-                if int(time.time()) - vm.status_changed_time > 3000: # not registered after 1 hour
-                    vm.terminate = 1
+                if int(time.time()) - vm.status_changed_time > 2400: # not registered after some period of time - TODO make configurable.
+                    to_terminate.append(vm.vmid)
                     log.debug("Set terminate flag on vm:%s", vm.hostname)
                 # also need to check the timing info and whatnot so it's not flagged before it has a chance to register.
                 else:
@@ -224,9 +240,11 @@ def check_unregistered_machines(group):
             else:
                 non_cs_vm.append(vm.hostname)
         except Exception as ex:
-            log.exception("Problem splitting?: %s", ex)
+            log.exception("Problem going through unregistered VMs: %s", ex)
     #log.debug("----- Non CS VMs ------")
     #log.debug(non_cs_vm)
+    if to_terminate:
+        update_result = session.query(vms).filter(vms.vmid == to_terminate).update({'terminate': 1})
     log.debug("Done checking unregistered VMs.")
     session.commit()
     return new_vms
