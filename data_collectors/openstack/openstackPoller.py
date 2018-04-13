@@ -222,7 +222,11 @@ def vm_poller():
                 vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                 vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                 new_vm = Vm(**vm_dict)
-                db_session.merge(new_vm)
+                try:
+                    db_session.merge(new_vm)
+                except Exception as exc:
+                    logging.error("unable to merge sessions, database incosistency or other error:")
+                    logging.error(exc)
             db_session.commit()
         logging.debug("Poll cycle complete, sleeping...")
         # This cycle should be reasonably fast such that the scheduler will always have the most
