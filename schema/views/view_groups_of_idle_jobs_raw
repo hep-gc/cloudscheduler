@@ -7,7 +7,7 @@
 create or replace view view_groups_of_idle_jobs_raw as
 
 /*
-** Retrieve data from condor_jos and view_resources_matching_idle_jobs.
+** Retrieve data from condor_jos and view_available_resources.
 */
 select
 
@@ -21,6 +21,7 @@ select
   case when request_swap is NULL or request_swap<0 then job_swap else request_swap end as request_swap,
 
   requirements,
+  job_status,
   job_priority,
   user,
   image,
@@ -31,12 +32,18 @@ select
   job_per_core,
   min(q_date) as q_date,
   flavor,
+  case when instr(instance_type, flavor_instance_type) > 0 then 0 else 1 end as flavor_mismatch,
+  flavor_cores,
+  flavor_ram,
+  flavor_disk,
+  flavor_scratch,
+  flavor_swap,
 
   /*
   ** Use row_number() DB window function to create the flavor_priority.
   */
   row_number() over (partition by 
-    cj.group_name,
+    group_name,
     target_clouds,
     request_cpus,
     request_ram,
@@ -54,13 +61,15 @@ select
     job_per_core,
     q_date
   order by
+    instance_type,
+    flavor_mismatch,
     flavor_cores,
     flavor_ram,
     flavor_disk,
     flavor_scratch,
     flavor_swap
   ) as flavor_priority,
-  
+
   /*
   ** Count the items in each group.
   */
@@ -71,12 +80,12 @@ from condor_jobs as cj
 join csv2_group_defaults as cgd on
   cj.group_name=cgd.group_name
 
-join view_resources_matching_idle_jobs as vrmij on
-  cj.group_name=vrmij.group_name and
+join view_available_resources as var on
+  cj.group_name=var.group_name and
   request_cpus<=cores and
   request_ram<=ram 
 
-where job_status=1 and flavor_priority=1
+where job_status=1
 
 /*
 ** Define the grouping.
@@ -101,6 +110,13 @@ group by
   q_date,
   flavor
 
-order by job_priority,q_date
+order by 
+  instance_type,
+  flavor_mismatch,
+  flavor_cores,
+  flavor_ram,
+  flavor_disk,
+  flavor_scratch,
+  flavor_swap 
 
 ;

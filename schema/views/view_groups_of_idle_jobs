@@ -34,6 +34,7 @@ select
   count
 
 from view_groups_of_idle_jobs_raw
+where job_status=1 and flavor_priority=1
 
 /*
 ** Define the grouping.

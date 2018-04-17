@@ -30,6 +30,7 @@ select
 
   name as flavor_name,
   id as flavor_id,
+  concat(vgr.cloud_name, ":", name) as flavor_instance_type,
   cores as flavor_cores,
   cf.ram as flavor_ram,
   disk as flavor_disk,
