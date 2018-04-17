@@ -310,7 +310,12 @@ def flavorPoller():
                 }
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
-                db_session.merge(new_flav)
+                try:
+                    db_session.merge(new_flav)
+                except Exception as Exc:
+                    logging.error("Database inconsistency, unable to merge vm flavor entry..")
+                    logging.error(Exc)
+
 
             #now remove any that were not updated
             flav_to_delete = db_session.query(Flavor).filter(
@@ -396,7 +401,11 @@ def imagePoller():
                 }
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
-                db_session.merge(new_image)
+                try:
+                    db_session.merge(new_image)
+                except Exception as exc:
+                    logging.error("Database inconsistency, unable to merge image entry")
+                    logging.error(exc)
             db_session.commit() # commit before cleanup
             # do Image cleanup
             img_to_delete = db_session.query(Image).filter(
@@ -467,7 +476,11 @@ def limitPoller():
                     limits_dict[key] = config.no_limit_default
 
             new_limits = Limit(**limits_dict)
-            db_session.merge(new_limits)
+            try:
+                db_session.merge(new_limits)
+            except Exception as exc:
+                logging.error("Database inconsistency, unable to merge limit entry")
+                logging.error(exc)
 
             #now remove any that were not updated
             limit_to_delete = db_session.query(Limit).filter(
@@ -549,7 +562,10 @@ def networkPoller():
                     dest="csv2",
                     attr_dict=network_dict)
                 new_network = Network(**network_dict)
-                db_session.merge(new_network)
+                try:
+                    db_session.merge(new_network)
+                except Exception as exc:
+                    logging.error("Database inconsistency, unable to merge network entry")
 
             #now remove any that were not updated
             net_to_delete = db_session.query(Network).filter(
