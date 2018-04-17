@@ -546,6 +546,43 @@ view_group_resources_with_yaml = Table('view_group_resources_with_yaml', metadat
   Column('yaml', String)
   )
 
+view_group_resources_with_yaml_names = Table('view_group_resources_with_yaml_names', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(20)),
+  Column('authurl', String(128)),
+  Column('project', String(128)),
+  Column('username', String(20)),
+  Column('password', String),
+  Column('keyname', String(20)),
+  Column('cacertificate', String),
+  Column('region', String(20)),
+  Column('user_domain_name', String(20)),
+  Column('project_domain_name', String(20)),
+  Column('cloud_type', String(64)),
+  Column('cores_ctl', Integer),
+  Column('cores_max', Integer),
+  Column('cores_used', Integer),
+  Column('ram_ctl', Integer),
+  Column('ram_max', Integer),
+  Column('ram_used', Integer),
+  Column('instances_max', Integer),
+  Column('instances_used', Integer),
+  Column('floating_ips_max', Integer),
+  Column('floating_ips_used', Integer),
+  Column('security_groups_max', Integer),
+  Column('security_groups_used', Integer),
+  Column('server_groups_max', Integer),
+  Column('server_groups_used', Integer),
+  Column('image_meta_max', Integer),
+  Column('keypairs_max', Integer),
+  Column('personality_max', Integer),
+  Column('personality_size_max', Integer),
+  Column('security_group_rules_max', Integer),
+  Column('server_group_members_max', Integer),
+  Column('server_meta_max', Integer),
+  Column('yaml_names', String(128))
+  )
+
 view_group_with_yaml = Table('view_group_with_yaml', metadata,
   Column('group_name', String(128)),
   Column('condor_central_manager', String),
@@ -605,6 +642,12 @@ view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
   Column('count', Integer)
+  )
+
+view_groups_with_yaml_names = Table('view_groups_with_yaml_names', metadata,
+  Column('group_name', String(128)),
+  Column('condor_central_manager', String),
+  Column('yaml_names', String(128))
   )
 
 view_vms = Table('view_vms', metadata,
