@@ -40,6 +40,7 @@ SET character_set_client = utf8;
   `ram` tinyint NOT NULL,
   `flavor_name` tinyint NOT NULL,
   `flavor_id` tinyint NOT NULL,
+  `flavor_instance_type` tinyint NOT NULL,
   `flavor_cores` tinyint NOT NULL,
   `flavor_ram` tinyint NOT NULL,
   `flavor_disk` tinyint NOT NULL,
@@ -67,7 +68,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `view_available_resources` AS select `varr`.`group_name` AS `group_name`,`varr`.`cloud_name` AS `cloud_name`,`varr`.`authurl` AS `authurl`,`varr`.`project` AS `project`,`varr`.`username` AS `username`,`varr`.`password` AS `password`,`varr`.`keyname` AS `keyname`,`varr`.`cacertificate` AS `cacertificate`,`varr`.`region` AS `region`,`varr`.`user_domain_name` AS `user_domain_name`,`varr`.`project_domain_name` AS `project_domain_name`,`varr`.`cloud_type` AS `cloud_type`,`varr`.`cores` AS `cores`,`varr`.`ram` AS `ram`,`varr`.`flavor_name` AS `flavor_name`,`varr`.`flavor_id` AS `flavor_id`,`varr`.`flavor_cores` AS `flavor_cores`,`varr`.`flavor_ram` AS `flavor_ram`,`varr`.`flavor_disk` AS `flavor_disk`,`varr`.`flavor_scratch` AS `flavor_scratch`,`varr`.`flavor_swap` AS `flavor_swap`,`varr`.`flavor_priority` AS `flavor_priority`,`varr`.`flavor` AS `flavor`,cast(least(round(`varr`.`cores` / `varr`.`flavor_cores`,0),round(`varr`.`ram` / `varr`.`flavor_ram`,0)) as signed) AS `flavor_slots`,case when `vvud`.`VMs_up` is not null then `vvud`.`VMs_up` else 0 end AS `VMs_up`,case when `vvud`.`VMs_down` is not null then `vvud`.`VMs_down` else 0 end AS `VMs_down` from (`view_available_resources_raw` `varr` left join `view_vms_up_down` `vvud` on(`varr`.`flavor` = `vvud`.`flavor`)) where `varr`.`flavor_cores` <= `varr`.`cores` and `varr`.`flavor_ram` <= `varr`.`ram` order by `varr`.`group_name`,`varr`.`cloud_name`,`varr`.`flavor_priority` */;
+/*!50001 VIEW `view_available_resources` AS select `varr`.`group_name` AS `group_name`,`varr`.`cloud_name` AS `cloud_name`,`varr`.`authurl` AS `authurl`,`varr`.`project` AS `project`,`varr`.`username` AS `username`,`varr`.`password` AS `password`,`varr`.`keyname` AS `keyname`,`varr`.`cacertificate` AS `cacertificate`,`varr`.`region` AS `region`,`varr`.`user_domain_name` AS `user_domain_name`,`varr`.`project_domain_name` AS `project_domain_name`,`varr`.`cloud_type` AS `cloud_type`,`varr`.`cores` AS `cores`,`varr`.`ram` AS `ram`,`varr`.`flavor_name` AS `flavor_name`,`varr`.`flavor_id` AS `flavor_id`,`varr`.`flavor_instance_type` AS `flavor_instance_type`,`varr`.`flavor_cores` AS `flavor_cores`,`varr`.`flavor_ram` AS `flavor_ram`,`varr`.`flavor_disk` AS `flavor_disk`,`varr`.`flavor_scratch` AS `flavor_scratch`,`varr`.`flavor_swap` AS `flavor_swap`,`varr`.`flavor_priority` AS `flavor_priority`,`varr`.`flavor` AS `flavor`,cast(least(round(`varr`.`cores` / `varr`.`flavor_cores`,0),round(`varr`.`ram` / `varr`.`flavor_ram`,0)) as signed) AS `flavor_slots`,case when `vvud`.`VMs_up` is not null then `vvud`.`VMs_up` else 0 end AS `VMs_up`,case when `vvud`.`VMs_down` is not null then `vvud`.`VMs_down` else 0 end AS `VMs_down` from (`view_available_resources_raw` `varr` left join `view_vms_up_down` `vvud` on(`varr`.`flavor` = `vvud`.`flavor`)) where `varr`.`flavor_cores` <= `varr`.`cores` and `varr`.`flavor_ram` <= `varr`.`ram` order by `varr`.`group_name`,`varr`.`cloud_name`,`varr`.`flavor_priority` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -81,4 +82,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-14  0:00:04
+-- Dump completed on 2018-04-12  0:00:04
