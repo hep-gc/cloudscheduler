@@ -1,0 +1,61 @@
+/*
+** Combine the resource information from csv2_group_resources and cloud_limits, setting defaults for missing values.
+*/
+create or replace view view_group_resources_with_yaml as
+
+select
+
+cgr.group_name,
+cgr.cloud_name,
+authurl,
+project,
+username,
+password,
+keyname,
+cacertificate,
+region,
+user_domain_name,
+project_domain_name,
+cloud_type,
+
+case when cores_ctl=-1 then cores_ctl else case when ifnull(cores_ctl,0)>ifnull(cores_max,0) then ifnull(cores_max,0) else ifnull(cores_ctl,0) end end as cores_ctl,
+ifnull(cores_max, 0) as cores_max,
+ifnull(cores_used, 0) as cores_used,
+
+case when ram_ctl=-1 then ram_ctl else case when ifnull(ram_ctl,0)>ifnull(ram_max,0) then ifnull(ram_max,0) else ifnull(ram_ctl,0) end end as ram_ctl,
+ifnull(ram_max, 0) as ram_max,
+ifnull(ram_used, 0) as ram_used,
+
+ifnull(instances_max, 0) as instances_max,
+ifnull(instances_used, 0) as instances_used,
+
+ifnull(floating_ips_max, 0) as floating_ips_max,
+ifnull(floating_ips_used, 0) as floating_ips_used,
+
+ifnull(security_groups_max, 0) as security_groups_max,
+ifnull(security_groups_used, 0) as security_groups_used,
+
+ifnull(server_groups_max, 0) as server_groups_max,
+ifnull(server_groups_used, 0) as server_groups_used,
+
+ifnull(image_meta_max, 0) as image_meta_max,
+ifnull(keypairs_max, 0) as keypairs_max,
+ifnull(personality_max, 0) as personality_max,
+ifnull(personality_size_max, 0) as personality_size_max,
+ifnull(security_group_rules_max, 0) as security_group_rules_max,
+ifnull(server_group_members_max, 0) as server_group_members_max,
+ifnull(server_meta_max, 0) as server_meta_max,
+
+yaml_name,
+enabled as yaml_enabled,
+mime_type as yaml_mime_type,
+yaml
+
+
+from csv2_group_resources as cgr
+left outer join cloud_limits as cl on cgr.group_name=cl.group_name and cgr.cloud_name=cl.cloud_name
+left outer join csv2_group_resource_yaml as cgry on cgr.group_name=cgry.group_name and cgr.cloud_name=cgry.cloud_name
+
+order by cgr.group_name,cgr.cloud_name
+
+;
