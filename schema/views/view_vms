@@ -18,8 +18,10 @@ cvsc.status as "poller_status"
 
 from csv2_vms as cv
 
-left outer join cloud_flavors as cf
-on cv.flavor_id=cf.id
+left outer join cloud_flavors as cf on
+  cv.group_name=cf.group_name and
+  cv.cloud_name=cf.cloud_name and
+  cv.flavor_id=cf.id
 
 left outer join condor_machines as cm
 on cv.hostname=substring_index(machine, '.', 1)
