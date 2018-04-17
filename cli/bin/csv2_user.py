@@ -2,7 +2,7 @@ from csv2_common import _requests, _show_table
 
 import json
 
-def _user_add(gvar):
+def _add(gvar):
     """
     Add a csv2 user.
     """
@@ -45,7 +45,7 @@ def _user_add(gvar):
     if response['message']:
         print(response['message'])
 
-def _user_delete(gvar):
+def _delete(gvar):
     """
     Delete a csv2 user.
     """
@@ -91,7 +91,7 @@ def _user_delete(gvar):
     if response['message']:
         print(response['message'])
 
-def _user_list(gvar):
+def _list(gvar):
     """
     List csv2 users.
     """

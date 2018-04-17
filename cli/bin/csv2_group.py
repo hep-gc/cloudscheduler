@@ -129,63 +129,32 @@ def _list(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], ['-cn', '-g', '-ok'])
+    _check_keys(gvar, [], ['-ok'])
 
     # Retrieve data (possibly after changing the group).
-    response = __request(gvar, '/cloud/list/')
+    response = __request(gvar, '/group/list/')
 
     # Filter response as requested (or not).
-    cloud_list = __filter_by_cloud_name(gvar, json.loads(response['cloud_list']))
+    group_list = __filter_by_cloud_name(gvar, json.loads(response['group_list']))
 
     # Print report
     print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
     if gvar['command_args']['only-keys']:
         _show_table(
             gvar,
-            cloud_list,
+            group_list,
             [
                 'group_name/Group',
-                'cloud_name/Cloud',
             ],
             )
     else:
         _show_table(
             gvar,
-            cloud_list,
+            group_list,
             [
                 'group_name/Group',
-                'cloud_name/Cloud',
-                'authurl/URL',
-                'project/Project',
-                'username/User',
-                'password/Password',
-                'keyname/Keyname',
-                'cacertificate/CA Certificate',
-                'region/Region',
-                'user_domain_name/User Domain',
-                'project_domain_name/Project Domain',
-                'cloud_type/Cloud Type',
-                'cores_ctl/Cores (Control)',
-                'cores_max/Core (Max)',
-                'cores_used/Core (Used)',
-                'ram_ctl/RAM (Control)',
-                'ram_max/RAM (Max)',
-                'ram_used/RAM (Used)',
-                'instances_max/Instances (Max)',
-                'instances_used/Instances (Used)',
-                'floating_ips_max/Floating IPs (Max)',
-                'floating_ips_used/Floating IPs (Used)',
-                'security_groups_max/Security Groups (Max)',
-                'security_groups_used/Security Groups (Used)',
-                'server_groups_max/Server Groups (Max)',
-                'server_groups_used/Server Groups (Used)',
-                'image_meta_max/Image Metadata (Max)',
-                'keypairs_max/Keypairs (Max)',
-                'personality_max/Personality (Max)',
-                'personality_size_max/Personality Size (Max)',
-                'security_group_rules_max/Security Group Rules (Max)',
-                'server_group_members_max/Security Group Members (Max)',
-                'server_meta_max/Server Metadata (Max)',
+                'condor_central_manager/Central Manager',
+                'yaml_name/YAML Name',
             ],
             )
 

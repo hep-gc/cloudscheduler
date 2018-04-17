@@ -16,6 +16,8 @@ import json
 from csv2_common import _show_table
 
 import csv2_cloud
+import csv2_group
+import csv2_help
 import csv2_settings
 import csv2_user
 
@@ -32,8 +34,31 @@ def main(args):
     # Initialize global variables.
     gvar = {
         'action': None,
+        'actions': {
+            'cloud': {
+                'add':    csv2_cloud._add,
+                'delete': csv2_cloud._delete,
+                'list':   csv2_cloud._list,
+                'modify': csv2_cloud._modify,
+                'status': csv2_cloud._status,
+                },
+            'group': {
+                'list':   csv2_group._list,
+                },
+            'settings': {
+                'delete': csv2_settings._delete,
+                'list':   csv2_settings._list,
+                'set':    csv2_settings._set,
+                },
+            'user': {
+                'add':    csv2_user._add,
+                'delete': csv2_user._delete,
+                'list':   csv2_user._list,
+#               'modify': csv2_user._modify,
+                },
+            },
         'command_keys': (
-            # short_name, long_name, key_value(bool), used_by(list), mandatory_used_by(list)
+            # short_name, long_name, key_value(T)/boolean(F)
             ('-cn',  '--cloud-name', True),
             ('-ca',  '--cloud-url', True),
             ('-ck',  '--cloud-password', True),
@@ -48,6 +73,7 @@ def main(args):
             ('-gc',  '--grid-cert', True),
             ('-gk',  '--grid-key', True),
             ('-gn',  '--grid-common-name', True),
+            ('-H',   '--long-help', False),
             ('-h',   '--help', False),
             ('-ok',  '--only-keys', False),
             ('-p',   '--password', True),
@@ -110,43 +136,24 @@ def main(args):
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
     # Call object handler.
-    if gvar['object'] == 'cloud':
-        if gvar['action'] == 'add':
-            csv2_cloud._add(gvar)
-        elif gvar['action'] == 'delete':
-            csv2_cloud._delete(gvar)
-        elif gvar['action'] == 'list':
-            csv2_cloud._list(gvar)
-        elif gvar['action'] == 'modify':
-            csv2_cloud._modify(gvar)
-        elif gvar['action'] == 'status':
-            csv2_cloud._status(gvar)
+    if gvar['object'] in gvar['actions']:
+        if gvar['action'] in gvar['actions'][gvar['object']]:
+            gvar['actions'][gvar['object']][gvar['action']](gvar)
         else:
-            _invalid_object_action(gvar, 'action')
-
-    elif gvar['object'] == 'user':
-        if gvar['action'] == 'add':
-            csv2_user._add(gvar)
-        elif gvar['action'] == 'delete':
-            csv2_user._delete(gvar)
-        elif gvar['action'] == 'list':
-            csv2_user._list(gvar)
-        else:
-            _invalid_object_action(gvar, 'action')
-
-    elif gvar['object'] == 'settings':
-        if gvar['action'] == 'delete':
-            csv2_settings._delete(gvar)
-        elif gvar['action'] == 'list':
-            csv2_settings._list(gvar)
-        elif gvar['action'] == 'set':
-            csv2_settings._set(gvar)
-        else:
-            _invalid_object_action(gvar, 'action')
-
+            csv2_help._help(gvar)
+            if not gvar['action']:
+                print('Error: No action specified for object "%s"; use -h or -H for help.' % gvar['object'])
+            else:
+                print('Error: Invalid action "%s" for object "%s"; use -h or -H for help.' % (gvar['action'], gvar['object']))
+            exit(1)
     else:
-        _invalid_object_action(gvar, 'object')
-
+        csv2_help._help(gvar)
+        if not gvar['object']:
+            print('Error: No object specified; use -h or -H for help.')
+        else:
+            print('Error: Invalid object "%s" specified; use -h or -H for help.' % gvar['object'])
+        exit(1)
+             
 def _args(gvar, arg_list):
     """
     Return dictionary of arguments.
@@ -198,24 +205,6 @@ def _args(gvar, arg_list):
         exit(1)
 
     return response 
-
-def _invalid_object_action(gvar, option):
-    """
-    The main function has not been able to recognize the object or action. Issue and error message and exit.
-    """
-
-    if option == 'object':
-        if not gvar['object']:
-            print('Error: No object specified; see the csv2 man page.')
-        else:
-            print('Error: Invalid object "%s" specified; see the csv2 man page.' % gvar['object'])
-    else:
-        if not gvar['action']:
-            print('Error: No action specified for object "%s"; see the csv2 man page.' % gvar['object'])
-        else:
-            print('Error: Invalid action "%s" for object "%s"; see the csv2 man page.' % (gvar['action'], gvar['object']))
-
-    exit(1)
 
 if __name__ == "__main__":
     main(sys.argv)

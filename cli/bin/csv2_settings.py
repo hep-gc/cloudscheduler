@@ -11,7 +11,7 @@ def _delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'settings delete', ['-s'], ['-y'])
+    _check_keys(gvar, ['-s'], ['-y'])
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']))
@@ -25,7 +25,7 @@ def _list(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'settings list', [], ['-s'])
+    _check_keys(gvar, [], ['-s'])
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
     _keys = ['csv2-server']
@@ -61,7 +61,7 @@ def _set(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, 'settings set', ['-s'], ['*'])
+    _check_keys(gvar, ['-s'], ['*'])
 
     # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):

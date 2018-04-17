@@ -1,7 +1,9 @@
-def _check_keys(gvar, obj_act, mp, op, key_map=None):
+def _check_keys(gvar, mp, op, key_map=None):
     """
     Modify user settings.
     """
+
+    import csv2_help
 
     # Summarize the mandatory and optional parameters for the current command.
     mandatory = []
@@ -13,28 +15,8 @@ def _check_keys(gvar, obj_act, mp, op, key_map=None):
         if key[0] in op or (op == ['*'] and key[0] not in mp):
             options.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
 
-    # If help requested, display the help for the current command and exit.
-    if gvar['user_settings']['help']:
-        if mandatory:
-            print('Help requested for "csv2 %s". The following parameters are required:' % obj_act)
-            for key in mandatory:
-                print('  %s' % key[1])
-
-        if options:
-            if mandatory:
-                print('The following optional parameters may be specified:')
-            else:
-                print('Help requested for "csv2 %s". The following optional parameters may be specified:' % obj_act)
-  
-            for key in options:
-                print('  %s' % key[1])
-
-        if not mandatory and not options:
-            print('Help requested for "csv2 %s". There are no parameters for this command.' % obj_act)
-
-        print('For more information, see the csv2 main page.')
-        exit(0)
-
+    # Check if help requested.
+    csv2_help._help(gvar, mandatory=mandatory, options=options)
 
     # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
     form_data = {}
@@ -47,7 +29,7 @@ def _check_keys(gvar, obj_act, mp, op, key_map=None):
             missing.append(key[1])
 
     if missing:
-        print('Error: "csv2 %s" requires the following parameters:' % obj_act)
+        print('Error: "csv2 %s %s" requires the following parameters:' % (gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
         print('For more information, see the csv2 main page.')
