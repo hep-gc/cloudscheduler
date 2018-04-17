@@ -47,12 +47,17 @@
                 <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
                 <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
 
+                <tr><td>Enable YAML</td><td><div class="switch">
 
-                <tr>><td>Enable YAML<div class="switch">
-                  <input type="checkbox" checked>
+                {% if group.enabled == 1 %}
+                    <input type="checkbox" id="yaml_switch_{{group.group_name}}" name="yaml_switch" checked>
+                {% else %}
+                    <input type="checkbox" id="yaml_switch_{{group.group_name}}" name="yaml_switch">
+                {% endif %}
+
                   <label>
-                    <span class="fontawesome-ok"></span>
-                    <span class="fontawesome-remove"></span>
+                    <span class="ok"></span>
+                    <span class="remove"></span>
                     <div></div>
                   </label>
                 </div></td></tr>
