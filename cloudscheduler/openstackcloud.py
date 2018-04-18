@@ -38,7 +38,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        cloudscheduler.basecloud.BaseCloud.__init__(self, group=resource.group_name, name=resource.cloud_name,
+        cloudscheduler.basecloud.BaseCloud.__init__(self, group=resource.group_name,
+                                                    name=resource.cloud_name,
                                                     extrayaml=extrayaml, vms=vms)
         self.log = logging.getLogger(__name__)
         self.authurl = resource.authurl
@@ -132,7 +133,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             elif self.default_flavor:
                 flavorl = nova.flavors.find(name=self.default_flavor)
             else:
-                flavorl = nova.flavors.find(name=csconfig.config.default_flavor)
+                flavorl = nova.flavors.find(name=csconfig.config.default_instancetype)
         except novaclient.exceptions.NotFound as ex:
             self.log.exception(ex)
         # Deal with network if needed
@@ -172,10 +173,10 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
             engine = self._get_db_engine()
-            Base = automap_base()
-            Base.prepare(engine, reflect=True)
+            base = automap_base()
+            base.prepare(engine, reflect=True)
             db_session = Session(engine)
-            VM = Base.classes.csv2_vms
+            Vms = base.classes.csv2_vms
             list_vms = nova.servers.list(search_opts={'name':hostname})
             for vm in list_vms:
                 self.log.debug(vm)
@@ -193,8 +194,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                     'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time()),
                     'status_changed_time': int(time.time()),
-            }
-                new_vm = VM(**vm_dict)
+                }
+                new_vm = Vms(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
 
@@ -264,7 +265,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         Get a novaclient client object.
         :return: novaclient client.
         """
-        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10, )
+        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10,)
         return client
 
     def _get_creds_neutron(self):

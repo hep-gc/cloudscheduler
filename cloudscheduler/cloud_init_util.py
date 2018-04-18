@@ -3,7 +3,6 @@ Utilities for dealing with cloud init files and yaml.
 """
 
 import os
-import sys
 import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
