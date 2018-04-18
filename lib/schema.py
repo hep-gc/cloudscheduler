@@ -580,16 +580,7 @@ view_group_resources_with_yaml_names = Table('view_group_resources_with_yaml_nam
   Column('security_group_rules_max', Integer),
   Column('server_group_members_max', Integer),
   Column('server_meta_max', Integer),
-  Column('yaml_names', String(128))
-  )
-
-view_group_with_yaml = Table('view_group_with_yaml', metadata,
-  Column('group_name', String(128)),
-  Column('condor_central_manager', String),
-  Column('yaml_name', String(128)),
-  Column('enabled', Integer),
-  Column('yaml', String),
-  Column('mime_type', String(128))
+  Column('yaml_names', String)
   )
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
@@ -642,6 +633,15 @@ view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
   Column('count', Integer)
+  )
+
+view_groups_with_yaml = Table('view_groups_with_yaml', metadata,
+  Column('group_name', String(128)),
+  Column('condor_central_manager', String),
+  Column('yaml_name', String(128)),
+  Column('enabled', Integer),
+  Column('yaml', String),
+  Column('mime_type', String(128))
   )
 
 view_groups_with_yaml_names = Table('view_groups_with_yaml_names', metadata,
