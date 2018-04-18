@@ -37,7 +37,7 @@ class CSConfig:
         self.default_image = kwargs['job'].get('image', 'cernvm3-micro-2.8-6.hdd')
         self.default_network = kwargs['job'].get('network', 'private')
 
-    def setup(config_file="/etc/cloudscheduler/cloudscheduler.yaml"):
+    def setup(self, config_file="/etc/cloudscheduler/cloudscheduler.yaml"):
         """
         Reading a yaml and stuffing into dictionary for use in the constructor.
 

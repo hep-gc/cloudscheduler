@@ -61,7 +61,7 @@ class CloudManager():
                 newcloud = None
                 if cloud.cloud_type == 'openstack':
                     newcloud = cloudscheduler.openstackcloud.\
-                    OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms)
+                        OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms)
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
                     self.log.debug(newcloud.num_vms())

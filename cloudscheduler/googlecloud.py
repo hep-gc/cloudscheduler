@@ -1,12 +1,12 @@
 """
 Google Compute Engine Connector Module.
 """
-import googleapiclient.discovery
 import time
+import googleapiclient.discovery
 
 import cloudscheduler.basecloud
 
-class GoogleCloud(cloudscheduler.basecloud):
+class GoogleCloud(cloudscheduler.basecloud.BaseCloud):
     """
     Cloud Connector class for Google Compute Engine.
     """
@@ -22,7 +22,7 @@ class GoogleCloud(cloudscheduler.basecloud):
         self.zone = resource.zone
         # looks like we'll need the following to talk to GCE.
         # a project_id
-        # a bucket name - storage bucket - will this have to be created before or should CS take care of it?
+        # a bucket name - storage bucket - will this created before or CS take care of it?
         # a zone value - ie region equiv
         # a hostname - this will auto generate from the base cloud function.
 
@@ -50,7 +50,7 @@ class GoogleCloud(cloudscheduler.basecloud):
         image_dict = self._attr_list_to_dict(job.image)
         try:
             if job.image and self.name in image_dict.keys():
-                source_image = 1 # figure out how to get the image url from service or from a line in db
+                source_image = 1 # TODO how to get the image url from service or line in db
         except ValueError:
             pass
         machine_type = "zones/{}/machineTypes/{}".format(self.zone, flavor)
@@ -87,12 +87,14 @@ class GoogleCloud(cloudscheduler.basecloud):
                 }]
             }
         }
-        operation = self.compute.instances().insert(project = self.project, zone=self.zone, body = config).execute()
+        operation = self.compute.instances().insert(project=self.project,
+                                                    zone=self.zone,
+                                                    body=config).execute()
         self.log.debug(operation)
 
 
     def vm_destroy(self, vm):
-        self.log.debug("vm_destroy from gce.")
+        self.log.debug("vm_destroy from gce: %s", vm)
 
     def vm_update(self):
         self.log.debug("vm_update from gce.")
@@ -103,7 +105,9 @@ class GoogleCloud(cloudscheduler.basecloud):
         self.log.debug("Waiting for gce operation to complete.")
         max_wait = 5
         while max_wait:
-            result = compute.zoneOperations().get(project=project, zone=zone, operation=operation).execute()
+            result = compute.zoneOperations().get(project=project,
+                                                  zone=zone,
+                                                  operation=operation).execute()
             if result['status'] == 'DONE':
                 self.log.debug("Operation Done.")
                 if 'error' in result:
