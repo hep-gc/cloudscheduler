@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from .view_utils import db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, _render
+from .view_utils import db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, _qt, _render
 from collections import defaultdict
 import bcrypt
 
@@ -60,8 +60,16 @@ def _set_user_groups(request, db_session, db_map):
 
     return 0,None,active_user,user_groups
 
+def list(
+    request,
+    selector=None,
+    group_name=None,
+    response_code=0,
+    message=None,
+    active_user=None,
+    user_groups=None
+    ):
 
-def list(request, cloud=None, group_name=None, response_code=0, message=None, active_user=None, user_groups=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -75,24 +83,51 @@ def list(request, cloud=None, group_name=None, response_code=0, message=None, ac
             db_connection.close()
             return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': message})
 
-    #get cloud info
-    s = select([view_group_resources]).where(view_group_resources.c.group_name == active_user.active_group)
-    cloud_list = {'ResultProxy': [dict(r) for r in db_connection.execute(s)]}
+    # Retrieve cloud information.
+    if request.META['HTTP_ACCEPT'] == 'application/json':
+        s = select([view_group_resources_with_yaml_names]).where(view_group_resources_with_yaml_names.c.group_name == active_user.active_group)
+        cloud_list = _qt(db_connection.execute(s), prune=['password'])
+        yaml_dict = {}
+    else:
+        # cloud_list = {'ResultProxy': [dict(r) for r in db_connection.execute(s)]}
+        s = select([view_group_resources_with_yaml]).where(view_group_resources_with_yaml.c.group_name == active_user.active_group)
+        cloud_list, yaml_dict = _qt(
+            db_connection.execute(s),
+            keys = {
+                'primary': [
+                    'group_name',
+                    'cloud_name'
+                    ],
+                'secondary': [
+                    'yaml_name',
+                    'yaml_enabled',
+                    'yaml_mime_type',
+                    'yaml',
+                    ]
+                },
+            prune=['password']    
+            )
+
+    for row in cloud_list:
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>", row)
+
+    for group in yaml_dict:
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>", yaml_dict[group])
 
     db_connection.close()
 
     # Position the page.
     obj_act_id = request.path.split('/')
-    if cloud:
-        if cloud == '-':
+    if selector:
+        if selector == '-':
             current_cloud = ''
         else:
-            current_cloud = cloud
-    elif len(obj_act_id) > 2 and len(obj_act_id[3]) > 0:
+            current_cloud = selector
+    elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
         current_cloud = str(obj_act_id[3])
     else:
-        if len(cloud_list['ResultProxy']) > 0:
-            current_cloud = str(cloud_list['ResultProxy'][0]['cloud_name'])
+        if len(cloud_list) > 0:
+            current_cloud = str(cloud_list[0]['cloud_name'])
         else:
             current_cloud = ''
 
@@ -101,7 +136,8 @@ def list(request, cloud=None, group_name=None, response_code=0, message=None, ac
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list,
+            'cloud_list': {'ResultProxy': cloud_list},
+            'yaml_dict': yaml_dict,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message
@@ -249,3 +285,36 @@ def status(request, group_name=None):
         }
 
     return _render(request, 'csv2/status.html', context)
+
+def yaml_fetch(request, selector=None):
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    db_engine,db_session,db_connection,db_map = db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    if not active_user:
+        response_code,message,active_user,user_groups = _set_user_groups(request, db_session, db_map)
+        if response_code != 0:
+            db_connection.close()
+            return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': message})
+
+    obj_act_id = request.path.split('/')
+    if len(ob_act_id) > 3:
+        ids = obj_act_id[3].split('-')
+        if ids[1]:
+            group_resource_yaml_obj = csv2_group_resource_yaml.objects.filter((group_name==active_user.active_group) & (cloud_name==ids[0]) & (yaml_name==ids[1]))
+            if group_resource_yaml_obj:
+                context = {
+                        'yaml': group_resource_yaml_obj.yaml,
+                        'yaml_enabled': group_resource_yaml_obj.enabled,
+                        'yaml_mime_type': group_resource_yaml_obj.mime_type,
+                        'yaml_name': group_resource_yaml_obj.yaml_name,
+                        'response_code': 0,
+                        'message': None
+                }
+                
+                return _render(request, 'csv2/clouds.html', context)
+             
+    return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch received an invalid key "%s".' % obg_act_id})
