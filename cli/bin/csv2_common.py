@@ -266,3 +266,14 @@ def _show_table_pad(lens, cols):
 
     return padded_columns
 
+def _yaml_load_and_verify(yaml_string):
+    import yaml
+
+    try:
+        _yaml = yaml.load(yaml_string)
+        return [1, _yaml]
+    except yaml.scanner.ScannerError as ex:
+        return [0, 'scanner error', ex]
+    except yaml.parser.ParserError as ex:
+        return [0, 'parser error', ex]
+

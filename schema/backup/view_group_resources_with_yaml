@@ -1,0 +1,95 @@
+-- MySQL dump 10.16  Distrib 10.2.12-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: csv2
+-- ------------------------------------------------------
+-- Server version	10.2.12-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Temporary table structure for view `view_group_resources_with_yaml`
+--
+
+DROP TABLE IF EXISTS `view_group_resources_with_yaml`;
+/*!50001 DROP VIEW IF EXISTS `view_group_resources_with_yaml`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE TABLE `view_group_resources_with_yaml` (
+  `group_name` tinyint NOT NULL,
+  `cloud_name` tinyint NOT NULL,
+  `authurl` tinyint NOT NULL,
+  `project` tinyint NOT NULL,
+  `username` tinyint NOT NULL,
+  `password` tinyint NOT NULL,
+  `keyname` tinyint NOT NULL,
+  `cacertificate` tinyint NOT NULL,
+  `region` tinyint NOT NULL,
+  `user_domain_name` tinyint NOT NULL,
+  `project_domain_name` tinyint NOT NULL,
+  `cloud_type` tinyint NOT NULL,
+  `cores_ctl` tinyint NOT NULL,
+  `cores_max` tinyint NOT NULL,
+  `cores_used` tinyint NOT NULL,
+  `ram_ctl` tinyint NOT NULL,
+  `ram_max` tinyint NOT NULL,
+  `ram_used` tinyint NOT NULL,
+  `instances_max` tinyint NOT NULL,
+  `instances_used` tinyint NOT NULL,
+  `floating_ips_max` tinyint NOT NULL,
+  `floating_ips_used` tinyint NOT NULL,
+  `security_groups_max` tinyint NOT NULL,
+  `security_groups_used` tinyint NOT NULL,
+  `server_groups_max` tinyint NOT NULL,
+  `server_groups_used` tinyint NOT NULL,
+  `image_meta_max` tinyint NOT NULL,
+  `keypairs_max` tinyint NOT NULL,
+  `personality_max` tinyint NOT NULL,
+  `personality_size_max` tinyint NOT NULL,
+  `security_group_rules_max` tinyint NOT NULL,
+  `server_group_members_max` tinyint NOT NULL,
+  `server_meta_max` tinyint NOT NULL,
+  `yaml_name` tinyint NOT NULL,
+  `yaml_enabled` tinyint NOT NULL,
+  `yaml_mime_type` tinyint NOT NULL,
+  `yaml` tinyint NOT NULL
+) ENGINE=MyISAM */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `view_group_resources_with_yaml`
+--
+
+/*!50001 DROP TABLE IF EXISTS `view_group_resources_with_yaml`*/;
+/*!50001 DROP VIEW IF EXISTS `view_group_resources_with_yaml`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8 */;
+/*!50001 SET character_set_results     = utf8 */;
+/*!50001 SET collation_connection      = utf8_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `view_group_resources_with_yaml` AS select `cgr`.`group_name` AS `group_name`,`cgr`.`cloud_name` AS `cloud_name`,`cgr`.`authurl` AS `authurl`,`cgr`.`project` AS `project`,`cgr`.`username` AS `username`,`cgr`.`password` AS `password`,`cgr`.`keyname` AS `keyname`,`cgr`.`cacertificate` AS `cacertificate`,`cgr`.`region` AS `region`,`cgr`.`user_domain_name` AS `user_domain_name`,`cgr`.`project_domain_name` AS `project_domain_name`,`cgr`.`cloud_type` AS `cloud_type`,case when `cgr`.`cores_ctl` = -1 then `cgr`.`cores_ctl` else case when ifnull(`cgr`.`cores_ctl`,0) > ifnull(`cl`.`cores_max`,0) then ifnull(`cl`.`cores_max`,0) else ifnull(`cgr`.`cores_ctl`,0) end end AS `cores_ctl`,ifnull(`cl`.`cores_max`,0) AS `cores_max`,ifnull(`cl`.`cores_used`,0) AS `cores_used`,case when `cgr`.`ram_ctl` = -1 then `cgr`.`ram_ctl` else case when ifnull(`cgr`.`ram_ctl`,0) > ifnull(`cl`.`ram_max`,0) then ifnull(`cl`.`ram_max`,0) else ifnull(`cgr`.`ram_ctl`,0) end end AS `ram_ctl`,ifnull(`cl`.`ram_max`,0) AS `ram_max`,ifnull(`cl`.`ram_used`,0) AS `ram_used`,ifnull(`cl`.`instances_max`,0) AS `instances_max`,ifnull(`cl`.`instances_used`,0) AS `instances_used`,ifnull(`cl`.`floating_ips_max`,0) AS `floating_ips_max`,ifnull(`cl`.`floating_ips_used`,0) AS `floating_ips_used`,ifnull(`cl`.`security_groups_max`,0) AS `security_groups_max`,ifnull(`cl`.`security_groups_used`,0) AS `security_groups_used`,ifnull(`cl`.`server_groups_max`,0) AS `server_groups_max`,ifnull(`cl`.`server_groups_used`,0) AS `server_groups_used`,ifnull(`cl`.`image_meta_max`,0) AS `image_meta_max`,ifnull(`cl`.`keypairs_max`,0) AS `keypairs_max`,ifnull(`cl`.`personality_max`,0) AS `personality_max`,ifnull(`cl`.`personality_size_max`,0) AS `personality_size_max`,ifnull(`cl`.`security_group_rules_max`,0) AS `security_group_rules_max`,ifnull(`cl`.`server_group_members_max`,0) AS `server_group_members_max`,ifnull(`cl`.`server_meta_max`,0) AS `server_meta_max`,`cgry`.`yaml_name` AS `yaml_name`,`cgry`.`enabled` AS `yaml_enabled`,`cgry`.`mime_type` AS `yaml_mime_type`,`cgry`.`yaml` AS `yaml` from ((`csv2_group_resources` `cgr` left join `cloud_limits` `cl` on(`cgr`.`group_name` = `cl`.`group_name` and `cgr`.`cloud_name` = `cl`.`cloud_name`)) left join `csv2_group_resource_yaml` `cgry` on(`cgr`.`group_name` = `cgry`.`group_name` and `cgr`.`cloud_name` = `cgry`.`cloud_name`)) order by `cgr`.`group_name`,`cgr`.`cloud_name` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2018-04-18  0:00:04
