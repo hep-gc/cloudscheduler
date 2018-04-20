@@ -1,22 +1,25 @@
-def _check_keys(gvar, mp, op, key_map=None):
+def _check_keys(gvar, mp, rp, op, key_map=None):
     """
     Modify user settings.
     """
 
     import csv2_help
 
-    # Summarize the mandatory and optional parameters for the current command.
+    # Summarize the mandatory, required, and optional parameters for the current command.
     mandatory = []
+    required = []
     options = []
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
             mandatory.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
-        if key[0] in op or (op == ['*'] and key[0] not in mp):
+        if key[0] in rp:
+            required.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+        if key[0] in op or (op == ['*'] and key[0] not in mp + rp):
             options.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
 
     # Check if help requested.
-    csv2_help._help(gvar, mandatory=mandatory, options=options)
+    csv2_help._help(gvar, mandatory=mandatory, required=required,  options=options)
 
     # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
     form_data = {}
@@ -29,10 +32,25 @@ def _check_keys(gvar, mp, op, key_map=None):
             missing.append(key[1])
 
     if missing:
-        print('Error: "csv2 %s %s" requires the following parameters:' % (gvar['object'], gvar['action']))
+        print('Error: "csv2 %s %s" - the following mandatory parameters must be specfied on the command line:' % (gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
-        print('For more information, see the csv2 main page.')
+        print('For more information, use -H.')
+        exit(1)
+
+    missing = []
+    for key in required:
+        if key[2] in gvar['user_settings']:
+            if key_map and key[0] in key_map:
+                form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
+        else:
+            missing.append(key[1])
+
+    if missing:
+        print('Error: "csv2 %s %s" - no value, neither default nor command line, for the following required parameters:' % (gvar['object'], gvar['action']))
+        for key in missing:
+            print('  %s' % key)
+        print('For more information, use -h or -H.')
         exit(1)
 
     if key_map:
@@ -47,6 +65,7 @@ def _requests(gvar, request, form_data={}):
     Make RESTful request and return response.
     """
     
+    from getpass import getpass
     import os
     import requests
 

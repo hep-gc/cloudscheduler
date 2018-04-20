@@ -1,6 +1,9 @@
 from csv2_common import _check_keys, _requests, _show_table
+from subprocess import Popen, PIPE
 
+import filecmp
 import json
+import os
 
 KEY_MAP = {
     '-ca': 'authurl',
@@ -61,6 +64,7 @@ def _add(gvar):
     form_data = _check_keys(
         gvar,
         ['-ca', '-ck', '-cn', '-cp', '-cr', '-ct', '-cu'],
+        [],
         ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)
 
@@ -85,7 +89,7 @@ def _delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-cn'], ['-g'])
+    _check_keys(gvar, ['-cn'], [], ['-g'])
 
     # Check that the target cloud exists.
     response = __request(gvar, '/cloud/list/')
@@ -129,7 +133,7 @@ def _list(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], ['-cn', '-g', '-ok'])
+    _check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/list/')
@@ -165,6 +169,7 @@ def _list(gvar):
                 'user_domain_name/User Domain',
                 'project_domain_name/Project Domain',
                 'cloud_type/Cloud Type',
+                'yaml_names/YAML Filenames',
                 'cores_ctl/Cores (Control)',
                 'cores_max/Core (Max)',
                 'cores_used/Core (Used)',
@@ -198,6 +203,7 @@ def _modify(gvar):
     form_data = _check_keys(
         gvar,
         ['-cn'],
+        [],
         ['-ca', '-ck', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)
 
@@ -226,7 +232,7 @@ def _status(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], ['-cn', '-g', '-ok'])
+    _check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/status/')
@@ -269,3 +275,47 @@ def _status(gvar):
             ],
             )
 
+def _yaml_edit(gvar):
+    """
+    Fetch from the active group, the specified cloud/YAML file. If the -g option is specified,
+    the active group is changed before the file is fetched.
+    """
+
+    # Check for missing arguments or help required.
+    _check_keys(gvar, ['-cn', '-yn'], ['-te'], ['-g'])
+
+    # Retrieve data (possibly after changing the group).
+    response = __request(gvar, '/cloud/yaml_fetch/%s.%s' % (gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+
+    # Ensure the fetch directory structure exists.
+    fetch_dir = '%s/.csv2/%s/files/%s/%s/yaml' % (
+        gvar['home_dir'],
+        gvar['server'],
+        response['group_name'],
+        response['cloud_name'] 
+        )
+
+    if not os.path.exists(fetch_dir):
+        os.makedirs(fetch_dir, mode=0o700)  
+
+    # Write the reference copy.
+    fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
+    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.close()
+
+    # Write the edit copy.
+    fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
+    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.close()
+
+    p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
+    p.communicate()
+
+    if filecmp.cmp(
+        '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
+        '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
+        ):
+        print('no changes')
+
+    else:
+        print('changes')

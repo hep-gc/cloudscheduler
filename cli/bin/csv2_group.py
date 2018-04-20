@@ -61,6 +61,7 @@ def _add(gvar):
     form_data = _check_keys(
         gvar,
         ['-ca', '-ck', '-cn', '-cp', '-cr', '-ct', '-cu'],
+        [],
         ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)
 
@@ -85,7 +86,7 @@ def _delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-cn'], ['-g'])
+    _check_keys(gvar, ['-cn'], [], ['-g'])
 
     # Check that the target cloud exists.
     response = __request(gvar, '/cloud/list/')
@@ -129,7 +130,7 @@ def _list(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], ['-ok'])
+    _check_keys(gvar, [], [], ['-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/group/list/')
@@ -167,6 +168,7 @@ def _modify(gvar):
     form_data = _check_keys(
         gvar,
         ['-cn'],
+        [],
         ['-ca', '-ck', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)
 
@@ -195,7 +197,7 @@ def _status(gvar):
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], ['-cn', '-g', '-ok'])
+    _check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = __request(gvar, '/cloud/status/')
