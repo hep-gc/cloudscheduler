@@ -179,21 +179,25 @@ def vm_poller():
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
-
+            try:
+                if version == 2:
+                    session = get_openstack_session(
+                        auth_url=cloud.authurl,
+                        username=cloud.username,
+                        password=cloud.password,
+                        project=cloud.project)
+                else:
+                    session = get_openstack_session(
+                        auth_url=cloud.authurl,
+                        username=cloud.username,
+                        password=cloud.password,
+                        project=cloud.project,
+                        user_domain=cloud.user_domain_name,
+                        project_domain_name=cloud.project_domain_name)
+            except Exception as exc:
+                logging.error("Unable to establish connection with valid openstack url, potential service outtage for %s", cloud.authurl)
+                logging.error("Skipping %s...", cloud.authurl)
+                continue
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
                 continue
