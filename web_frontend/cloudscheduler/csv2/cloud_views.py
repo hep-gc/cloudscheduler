@@ -21,6 +21,10 @@ MODIFY_IGNORE_KEYS = (
     'ram_slider',
     )
 
+YAML_MODIFY_IGNORE_KEYS = (
+    'action',
+    )
+
 def _db_execute(db_connection, request):
     try:
         db_connection.execute(request)
@@ -108,12 +112,6 @@ def list(
             prune=['password']    
             )
 
-    for row in cloud_list:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>", row)
-
-    for group in yaml_dict:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>", yaml_dict[group])
-
     db_connection.close()
 
     # Position the page.
@@ -154,8 +152,6 @@ def modify(request):
 
     if not verifyUser(request):
         raise PermissionDenied
-    if not getSuperUserStatus(request):
-        raise PermissionDenied
 
     if request.method == 'POST' and 'action' in request.POST and 'cloud_name' in request.POST:
         # open the database.
@@ -164,7 +160,7 @@ def modify(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         response_code,message,active_user,user_groups = _set_user_groups(request, db_session, db_map)
         if response_code != 0:
-            return list(request, cloud='-', response_code=1, message=message, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message=message, active_user=active_user, user_groups=user_groups)
 
         # map the field list.
         metadata = MetaData(bind=db_engine)
@@ -180,21 +176,23 @@ def modify(request):
                         values[1][key] = request.POST[key]
             else:
                 if key not in MODIFY_IGNORE_KEYS:
-                    return list(request, cloud='-', response_code=1, message='cloud modify request contained bad parameter "%s".' % key, active_user=active_user, user_groups=user_groups)
+                    return list(request, selector='-', response_code=1, message='cloud modify request contained bad parameter "%s".' % key, active_user=active_user, user_groups=user_groups)
 
         if 'group_name' not in values[0]:
             values[0]['group_name'] = getcsv2User(request).active_group
 
 #       print(">>>>> object=cloud, action=%s, values=%s" % (request.POST['action'], values))
 
+        ### Add.
         if request.POST['action'] == 'add':
             success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
             db_connection.close()
             if success:
-                return list(request, cloud=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
             else:
-                return list(request, cloud=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" add failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" add failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
 
+        ### Delete.
         elif request.POST['action'] == 'delete':
             success,message = _db_execute(
                 db_connection,
@@ -202,22 +200,25 @@ def modify(request):
                 )
             db_connection.close()
             if success:
-                return list(request, cloud=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
             else:
-                return list(request, cloud=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" delete failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" delete failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
 
+        ### modify.
         elif request.POST['action'] == 'modify':
             success,message = _db_execute(db_connection, table.update().where((table.c.group_name==values[0]['group_name']) & (table.c.cloud_name==values[0]['cloud_name'])).values(values[1]))
             db_connection.close()
             if success:
-                return list(request, cloud=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully modified.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully modified.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
             else:
-                return list(request, cloud=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" modify failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" modify failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
 
         else:
-            return list(request, cloud=values[0]['cloud_name'], response_code=1, message='invalid action "%s" specified.' % request.POST['action'], active_user=active_user, user_groups=user_groups)
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='invalid action "%s" specified.' % request.POST['action'], active_user=active_user, user_groups=user_groups)
+
+    ### Bad request.
     else:
-        if request.method == 'POST':
+        if request.method != 'POST':
             return list(request, response_code=1, message='invalid method "%s" specified.' % request.method)
         elif 'action' not in request.POST:
             return list(request, response_code=1, message='no action specified.')
@@ -294,27 +295,125 @@ def yaml_fetch(request, selector=None):
     db_engine,db_session,db_connection,db_map = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    if not active_user:
-        response_code,message,active_user,user_groups = _set_user_groups(request, db_session, db_map)
-        if response_code != 0:
-            db_connection.close()
-            return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': message})
+    response_code,message,active_user,user_groups = _set_user_groups(request, db_session, db_map)
+    if response_code != 0:
+        return _render(request, 'csv2/status.html', {'response_code': 1, 'message': message})
 
+    id = ''
     obj_act_id = request.path.split('/')
-    if len(ob_act_id) > 3:
-        ids = obj_act_id[3].split('-')
-        if ids[1]:
-            group_resource_yaml_obj = csv2_group_resource_yaml.objects.filter((group_name==active_user.active_group) & (cloud_name==ids[0]) & (yaml_name==ids[1]))
-            if group_resource_yaml_obj:
-                context = {
-                        'yaml': group_resource_yaml_obj.yaml,
-                        'yaml_enabled': group_resource_yaml_obj.enabled,
-                        'yaml_mime_type': group_resource_yaml_obj.mime_type,
-                        'yaml_name': group_resource_yaml_obj.yaml_name,
+    if len(obj_act_id) > 3:
+        id = obj_act_id[3]
+        ids = id.split('.')
+        if len(ids) > 1:
+            YAML = db_map.classes.csv2_group_resource_yaml
+            YAMLobj = db_session.query(YAML).filter((YAML.group_name==active_user.active_group) & (YAML.cloud_name==ids[0]) & (YAML.yaml_name==ids[1]))
+            if YAMLobj:
+                for row in YAMLobj:
+                    context = {
+                        'group_name': row.group_name,
+                        'cloud_name': row.cloud_name,
+                        'yaml': row.yaml,
+                        'yaml_enabled': row.enabled,
+                        'yaml_mime_type': row.mime_type,
+                        'yaml_name': row.yaml_name,
                         'response_code': 0,
                         'message': None
-                }
+                        }
                 
-                return _render(request, 'csv2/clouds.html', context)
+                    return _render(request, 'csv2/clouds.html', context)
              
-    return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch received an invalid key "%s".' % obg_act_id})
+    return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch received an invalid key "%s".' % id})
+
+def yaml_modify(request):
+    """
+    This function should recieve a post request with a payload of yaml configuration
+    to add to a given group/cloud.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if request.method == 'POST' and \
+        'action' in request.POST and \
+        'cloud_name' in request.POST and \
+        'yaml_name' in request.POST:
+
+        # open the database.
+        db_engine,db_session,db_connection,db_map = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        response_code,message,active_user,user_groups = _set_user_groups(request, db_session, db_map)
+        if response_code != 0:
+            return list(request, selector='-', response_code=1, message=message, active_user=active_user, user_groups=user_groups)
+
+        # map the field list.
+        metadata = MetaData(bind=db_engine)
+        table = Table('csv2_group_resource_yaml', metadata, autoload=True)
+
+        values = [{}, {}]
+        for key in request.POST:
+            if key in table.c:
+                if key == 'group_name' or key == 'cloud_name' or key == 'yaml_name':
+                    values[0][key] = request.POST[key]
+                else:
+                    if key != 'password' or request.POST[key]:
+                        values[1][key] = request.POST[key]
+            else:
+                if key not in YAML_MODIFY_IGNORE_KEYS:
+                    return list(request, selector='-', response_code=1, message='cloud modify request contained bad parameter "%s".' % key, active_user=active_user, user_groups=user_groups)
+
+        if 'group_name' not in values[0]:
+            values[0]['group_name'] = getcsv2User(request).active_group
+
+#       print(">>>>> object=cloud, action=%s, values=%s" % (request.POST['action'], values))
+
+        ### Add.
+        if request.POST['action'] == 'add':
+            success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+            db_connection.close()
+            if success:
+                return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
+            else:
+                return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" add failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
+
+        ### Delete.
+        elif request.POST['action'] == 'delete':
+            success,message = _db_execute(
+                db_connection,
+                table.delete( \
+                    (table.c.group_name==values[0]['group_name']) & \
+                    (table.c.cloud_name==values[0]['cloud_name']) & \
+                    (table.c.yaml_name==values[0]['yaml_name']) \
+                    )
+                )
+            db_connection.close()
+            if success:
+                return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
+            else:
+                return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" delete failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
+
+        ### Modify.
+        elif request.POST['action'] == 'modify':
+            success,message = _db_execute(db_connection, table.update().where( \
+                (table.c.group_name==values[0]['group_name']) & \
+                (table.c.cloud_name==values[0]['cloud_name']) & \
+                (table.c.yaml_name==values[0]['yaml_name']) \
+                ).values(values[1]))
+            db_connection.close()
+            if success:
+                return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s/%s" successfully modified.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups)
+            else:
+                return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud "%s/%s" modify failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups)
+
+        else:
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='invalid action "%s" specified.' % request.POST['action'], active_user=active_user, user_groups=user_groups)
+
+    ### Bad request.
+    else:
+        if request.method != 'POST':
+            return list(request, response_code=1, message='invalid method "%s" specified.' % request.method)
+        elif 'action' not in request.POST:
+            return list(request, response_code=1, message='no action specified.')
+        else:
+            return list(request, response_code=1, message='no cloud name specified.')
+
