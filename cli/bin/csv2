@@ -3,7 +3,6 @@
 This is the command line interface to cloudscheduler version 2.
 """
 
-from getpass import getpass
 from pathlib import Path
 from subprocess import Popen
 
@@ -36,25 +35,34 @@ def main(args):
         'action': None,
         'actions': {
             'cloud': {
-                'add':    csv2_cloud._add,
-                'delete': csv2_cloud._delete,
-                'list':   csv2_cloud._list,
-                'modify': csv2_cloud._modify,
-                'status': csv2_cloud._status,
+                'add':          csv2_cloud._add,
+                'delete':       csv2_cloud._delete,
+                'list':         csv2_cloud._list,
+                'modify':       csv2_cloud._modify,
+                'status':       csv2_cloud._status,
+#               'yaml-add':     csv2_cloud._yaml_add,
+#               'yaml-delete':  csv2_cloud._yaml_delete,
+                'yaml-edit':    csv2_cloud._yaml_edit,
                 },
             'group': {
-                'list':   csv2_group._list,
+#               'add':          csv2_group._add,
+#               'delete':       csv2_group._delete,
+                'list':         csv2_group._list,
+#               'modify':       csv2_group._modify,
+#               'yaml-add':     csv2_group._yaml_add,
+#               'yaml-delete':  csv2_group._yaml_delete,
+#               'yaml-edit':    csv2_group._yaml_edit,
                 },
             'settings': {
-                'delete': csv2_settings._delete,
-                'list':   csv2_settings._list,
-                'set':    csv2_settings._set,
+                'delete':       csv2_settings._delete,
+                'list':         csv2_settings._list,
+                'set':          csv2_settings._set,
                 },
             'user': {
-                'add':    csv2_user._add,
-                'delete': csv2_user._delete,
-                'list':   csv2_user._list,
-#               'modify': csv2_user._modify,
+                'add':          csv2_user._add,
+                'delete':       csv2_user._delete,
+                'list':         csv2_user._list,
+#               'modify':       csv2_user._modify,
                 },
             },
         'command_keys': (
@@ -79,9 +87,11 @@ def main(args):
             ('-p',   '--password', True),
             ('-r',   '--rotate', False),
             ('-s',   '--csv2-server', True),
+            ('-te',  '--text-editor', True),
             ('-U',   '--csv2-server-url', True),
             ('-u',   '--user', True),
             ('-y',   '--yes', False),
+            ('-yn',  '--yaml-name', True),
             ('-su',  '--super-user', False),
             ('-vc',  '--virtual-cores', True),
             ('-vk',  '--keypair', True),

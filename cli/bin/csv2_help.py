@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE
 import os
 
-def _help(gvar, mandatory=None, options=None):
+def _help(gvar, mandatory=None, required=None, options=None):
     """
     Print long and short help messages.
     """
@@ -31,12 +31,20 @@ def _help(gvar, mandatory=None, options=None):
 
         else:
             if mandatory:
-                print('Help requested for "csv2 %s %s". The following parameters are required:' % (gvar['object'], gvar['action']))
+                print('Help requested for "csv2 %s %s". The following parameters are mandatory and must be specified on the command line:' % (gvar['object'], gvar['action']))
                 for key in mandatory:
                     print('  %s' % key[1])
 
-            if options:
+            if required:
                 if mandatory:
+                    print('A command line or a default value is required for the following parameters:')
+                else:
+                    print('Help requested for "csv2 %s %s". A command line or a default value is required for the following parameters:' % (gvar['object'], gvar['action']))
+                for key in required:
+                    print('  %s' % key[1])
+
+            if options:
+                if mandatory or required:
                     print('The following optional parameters may be specified:')
                 else:
                     print('Help requested for "csv2 %s %s". The following optional parameters may be specified:' % (gvar['object'], gvar['action']))
@@ -44,7 +52,7 @@ def _help(gvar, mandatory=None, options=None):
                 for key in options:
                     print('  %s' % key[1])
 
-            if not mandatory and not options:
+            if not mandatory and not required and not options:
                 print('Help requested for "csv2 %s %s". There are no parameters for this command.' % (gvar['object'], gvar['action']))
 
         print('For more information, use -H.')
