@@ -73,8 +73,10 @@
                     <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" onchange="cores_ctl.value=cores_slider.value" />
                     <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" onchange="cores_slider.value=cores_ctl.value" />
                     / {{cloud.cores_max}}
+                </td>
+                <td>
                     {% if cloud.cores_ctl == -1 %}
-                    Use Quota
+                    Using Quota
                     {% endif %}
                 </td></tr>
 
@@ -83,6 +85,11 @@
                     <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" onchange="ram_ctl.value=ram_slider.value" />
                     <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" onchange="ram_slider.value=ram_ctl.value" />
                     / {{cloud.ram_max}}
+                </td>
+                <td>
+                    {% if cloud.ram_ctl == -1 %}
+                    Using Quota
+                    {% endif %}
                 </td></tr>
 
                 <input type="hidden" name="action" value="modify" />
