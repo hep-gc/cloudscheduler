@@ -4,15 +4,18 @@
     <link rel="stylesheet" type="text/css" href="{% static "csv2/navigation.css" %}">
 </head>
 
-<div id="container">
-    <nav>
-        <ul>
-            <li class="left"><a href="/cloud/status/">Status</a></li>
-            <li class="left"><a href="/cloud/list/">Clouds</a></li>
-            <li class="left"><a href="/group/list/">Groups</a></li>
-            <li class="left"><a href="/user/list/">Users</a></li>
-            <li class="right"><a>{{ active_user }}</a></li>
-            <li class="right">
+
+<nav class="top-nav">
+    <ul>
+        <div class="float-left">
+            <li><a href="/cloud/status/">Status</a></li>
+            <li><a href="/cloud/list/">Clouds</a></li>
+            <li><a href="/group/list/">Groups</a></li>
+            <li><a href="/user/list/">Users</a></li>
+        </div>
+        <div class="float-right">
+            <li><a>{{ active_user }}</a></li>
+            <li>
                 <form name="group_selector" action="" method="POST">
                     {% csrf_token %}
                     <div align="center">
@@ -28,6 +31,7 @@
                     </div>
                 </form>
             </li>
-        </ul>
-    </nav>
-</div>
+        </div>
+    </ul>
+</nav>
+

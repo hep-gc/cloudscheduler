@@ -32,7 +32,7 @@ https://tympanus.net/codrops/2012/09/13/button-switches-with-checkboxes-and-css3
 
 /* Background unchecked */
 .switch label {
-    background: #e9513a;
+    background: gray;
   color: #c72f18;
     border-radius: 2px;
     display: block;
@@ -56,26 +56,9 @@ https://tympanus.net/codrops/2012/09/13/button-switches-with-checkboxes-and-css3
     z-index: 3; 
 }
 
-/* Vertical lines on slider */
-.switch label div:before {
-    background: #d3d3d3;
-  bottom: 0;
-  box-shadow: -6px 0 0 0 #d3d3d3,
-                6px 0 0 0 #d3d3d3; 
-  content: '';
-    display: block;
-  height: 15px;
-    left: 0;
-    margin: auto;
-  position: absolute;
-  right: 0;
-    top: 0;
-  transition: all .15s ease;
-  width: 3px;
-}
 
 /* Icon styles */
-.switch .fontawesome-ok {
+.switch .ok {
   font-size: 28px;
     left: 20px;
     position: relative;
@@ -84,7 +67,7 @@ https://tympanus.net/codrops/2012/09/13/button-switches-with-checkboxes-and-css3
 }
 
 
-.switch .fontawesome-remove {
+.switch .remove {
   font-size: 29px;
     left: 51px;
   position: relative;

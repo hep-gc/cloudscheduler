@@ -1,32 +1,32 @@
 
 
-th {
+.status th {
     background-color: #4CAF50;
     color: white;
 }
 
 
-table {
+.status table {
   overflow: hidden;
   border-collapse: collapse;
 }
-td:hover {
+.status td:hover {
   background-color: red;
   color: white;
 }
 
-tr:hover {
+.status tr:hover {
   background-color: yellow;
 }
 
-td, th {
+.status td, th {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
   position: relative;
 }
-td:hover::after,
-th:hover::after {
+.status td:hover::after,
+.status th:hover::after {
   content: "";
   position: absolute;
   background-color: yellow;

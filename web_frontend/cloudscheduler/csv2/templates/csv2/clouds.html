@@ -19,6 +19,8 @@
 </head>
 <body onpageshow="show_cloud('{{current_cloud}}')">
 
+<div class="main-div">
+
 <section class="vertical-menu">
     <a href="#" class="active">Clouds</a>
         {% for cloud in cloud_list.ResultProxy %}
@@ -154,21 +156,6 @@
 </div>
 {% endfor %}
 
+</div>
+
 </body>
-
-<script type="text/javascript">
-
-function updateTotal(){
-
-    {% for cloud in cloud_list.ResultProxy %}
-    var {{cloud.cloud_name}} = document.getElementById('cores_switch_{{cloud.cloud_name}}');
-
-    {% endfor %}
-    var amount = 0;
-    {% for cloud in cloud_list.ResultProxy %}
-        amount += {{cloud.cloud_name}}.checked ? parseFloat(.getAttribute('data-price')) : -1;
-
-    {% endfor %}
-}​
-
-</script>

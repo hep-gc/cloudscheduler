@@ -20,59 +20,62 @@
     <p style="color:green;">{{message}}</p>
 {% endif %}
 
+<div class="main-div">
+    <div class="status">
+        <table>
+          <colgroup>
+            <col class="grey" />
+            <col class="red" span="1" />
+            <col class="clear" span="4" />
+            <col class="blue" span="1" />
+            <col class="red" span="1" />
+            <col class="clear" span="7"/>
+          </colgroup>
+          <thead>
+            <tr>
+                <th>Clouds</th>
+                <th>VMs</th>
+                <th>Running</th>
+                <th>Retiring</th>
+                <th>In Error</th>
+                <th>Other</th>
 
-<table>
-  <colgroup>
-    <col class="grey" />
-    <col class="red" span="1" />
-    <col class="clear" span="4" />
-    <col class="blue" span="1" />
-    <col class="red" span="1" />
-    <col class="clear" span="7"/>
-  </colgroup>
-  <thead>
-    <tr>
-        <th>Clouds</th>
-        <th>VMs</th>
-        <th>Running</th>
-        <th>Retiring</th>
-        <th>In Error</th>
-        <th>Other</th>
+                <th>Foreign VMs</th>
 
-        <th>Foreign VMs</th>
+                <th>Jobs</th>
 
-        <th>Jobs</th>
+                <th>Unexpanded</th>
+                <th>Idle</th>
+                <th>Running</th>
+                <th>Removed</th>
+                <th>Completed</th>
+                <th>Held</th>
+                <th>Sub. Err.</th>
 
-        <th>Unexpanded</th>
-        <th>Idle</th>
-        <th>Running</th>
-        <th>Removed</th>
-        <th>Completed</th>
-        <th>Held</th>
-        <th>Sub. Err.</th>
-
-    </tr>
-    {% for cloud in status_list %}
-        <tr>
-            <td>{{cloud.cloud_name}}</td>
-            <td>{{cloud.VMs}}</td>
-            <td>{{cloud.VMs_running}}</td>
-            <td>{{cloud.VMs_retiring}}</td>
-            <td>{{cloud.VMs_in_error}}</td>           
-            <td>{{cloud.VMs_other}}</td>
-            <td>{{cloud.Foreign_VMs}}</td>
-            <td>{{cloud.Jobs}}</td>
-            <td>{{cloud.Jobs_s0}}</td>
-            <td>{{cloud.Jobs_s1}}</td>
-            <td>{{cloud.Jobs_s2}}</td>
-            <td>{{cloud.Jobs_s3}}</td>
-            <td>{{cloud.Jobs_s4}}</td>
-            <td>{{cloud.Jobs_s5}}</td>
-            <td>{{cloud.Jobs_s6}}</td>
-        </tr>
-    {% endfor %}
-    </tbody> 
-</table>
+            </tr>
+            {% for cloud in status_list %}
+                <tr>
+                    <td>{{cloud.cloud_name}}</td>
+                    <td>{{cloud.VMs}}</td>
+                    <td>{{cloud.VMs_running}}</td>
+                    <td>{{cloud.VMs_retiring}}</td>
+                    <td>{{cloud.VMs_in_error}}</td>           
+                    <td>{{cloud.VMs_other}}</td>
+                    <td>{{cloud.Foreign_VMs}}</td>
+                    <td>{{cloud.Jobs}}</td>
+                    <td>{{cloud.Jobs_s0}}</td>
+                    <td>{{cloud.Jobs_s1}}</td>
+                    <td>{{cloud.Jobs_s2}}</td>
+                    <td>{{cloud.Jobs_s3}}</td>
+                    <td>{{cloud.Jobs_s4}}</td>
+                    <td>{{cloud.Jobs_s5}}</td>
+                    <td>{{cloud.Jobs_s6}}</td>
+                </tr>
+            {% endfor %}
+            </tbody> 
+        </table>
+    </div>
+</div>
 
 </body>
 </html>

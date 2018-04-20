@@ -1,18 +1,27 @@
-table, th, td {
+.main-div {
+  position: relative;
+  left:0;
+  top: 60px;
+  margin: 0px 0;
+}
+
+
+.main-div table, th, td {
     border: none;
     border-collapse: collapse;
     padding: 8px;
 }
-th {
+.main-div th {
     text-align: right;
 }
 
-section{
+.main-div section{
        float:left;
 }
 
 
 .vertical-menu {
+    top: 50px;
     width: 200px; /* Set a width if you like */
 }
 
