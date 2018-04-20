@@ -64,7 +64,16 @@ def _set_user_groups(request, db_session, db_map):
 
 #-------------------------------------------------------------------------------
 
-def list(request, group=None, group_name=None, response_code=0, message=None, active_user=None, user_groups=None):
+def list(
+    request, 
+    group=None, 
+    group_name=None, 
+    response_code=0, 
+    message=None, 
+    active_user=None, 
+    user_groups=None
+    ):
+
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -79,7 +88,7 @@ def list(request, group=None, group_name=None, response_code=0, message=None, ac
             return _render(request, 'csv2/groups.html', {'response_code': 1, 'message': message})
 
     #get group info
-    s = select([view_group_with_yaml])
+    s = select([view_groups_with_yaml])
     group_list = {'ResultProxy': [dict(r) for r in db_connection.execute(s)]}
 
     db_connection.close()
@@ -151,7 +160,9 @@ def modify(request):
 
         if request.POST['action'] == 'add':
             if values[0] and values[1]:
-                success1,message1 = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+                success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+
+
 
             db_connection.close()
             if success:
@@ -174,7 +185,7 @@ def modify(request):
             table_users = Table('csv2_user_groups', metadata, autoload=True)
             table_defaults = Table('csv2_group_defaults', metadata, autoload=True)
             table_resources = Table('csv2_group_resources', metadata, autoload=True)
-            table_resources_yaml = Table('csv2_group_resources_yaml', metadata, autoload=True)
+            table_resources_yaml = Table('csv2_group_resource_yaml', metadata, autoload=True)
             table_yaml = Table('csv2_group_yaml', metadata, autoload=True)
             table_user_groups = Table('csv2_user_groups', metadata, autoload=True)
 
@@ -197,7 +208,7 @@ def modify(request):
 
             success6,message6 = _db_execute(db_connection,
                 table_yaml.delete(table_yaml.c.group_name==values[0]['group_name']))
-            
+
             success7,message7 = _db_execute(db_connection,
                 table_user_groups.delete(table_user_groups.c.group_name==values[0]['group_name']))
 
