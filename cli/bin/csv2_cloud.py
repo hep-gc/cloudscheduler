@@ -1,4 +1,4 @@
-from csv2_common import _check_keys, _requests, _show_table
+from csv2_common import _check_keys, _requests, _show_table, _yaml_load_and_verify
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -21,6 +21,8 @@ KEY_MAP = {
     '-vk': 'keyname',
     '-vr': 'ram_ctl',
     }
+
+COMMAS_TO_NL = str.maketrans(',','\n')
 
 def __filter_by_cloud_name(gvar, qs):
     """
@@ -108,8 +110,8 @@ def _delete(gvar):
         print('Are you sure you want to delete cloud "%s" in group "%s"? (yes|..)' % (gvar['user_settings']['cloud-name'], response['active_group']))
         _reply = input()
         if _reply != 'yes':
-          print('csv2 cloud delete "%s" cancelled.' % gvar['user_settings']['cloud-name'])
-          exit(0)
+            print('csv2 cloud delete "%s" cancelled.' % gvar['user_settings']['cloud-name'])
+            exit(0)
 
     # Retrieve Cookie/CSRF.
     response = _requests(gvar, '/cloud/prepare/')
@@ -315,7 +317,47 @@ def _yaml_edit(gvar):
         '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
         '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
         ):
-        print('no changes')
+        print('csv2 cloud yaml-edit "%s.%s" completed, no changes.' % (gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        exit(0)
 
+    # The file has changed, read the updated file and check validity.
+    fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']))
+    file_string = fd.read()
+    fd.close()
+
+    # Verify attribute line.
+    attribute, yaml = file_string.split('\n',1)
+    if len(attribute) > 1 and attribute[0] == '#':
+        attributes = '\n'.join(' '.join(attribute[1:].split()).split(', '))
+        result = _yaml_load_and_verify(attributes)
     else:
-        print('changes')
+        print('Error: No attribute line.')
+        exit(0)
+
+    if not result[0]:
+        print('Error: Invalid attribute line "%s": %s' % (result[1], result[2]))
+        exit(0)
+
+    if 'yaml_enabled' in result[1]:
+        if result[1]['yaml_enabled'] == True:
+            yaml_enabled = True
+        else:
+            yaml_enabled = False
+    else:
+        print('Error: yaml_enabled missing from attribute line.')
+        exit(0)
+
+    if 'yaml_mime_type' in result[1]:
+        yaml_mime_type = result[1]['yaml_mime_type']
+    else:
+        print('Error: yaml_mime_type missing from attribute line.')
+        exit(0)
+
+    # Verify the yaml file.
+    result = _yaml_load_and_verify(yaml)
+    if not result[0]:
+        print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
+        exit(0)
+
+    # Perform replace.
+
