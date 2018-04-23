@@ -25,7 +25,7 @@ SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["csv2.heprc.uvic.ca"]
+ALLOWED_HOSTS = ["csv2-dev.heprc.uvic.ca"]
 
 
 # Application definition
@@ -113,7 +113,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': "csv2",
         'USER': 'csv2',
-        'PASSWORD': 'UriLY6gn77MrGhbu',
+        'PASSWORD': 'ZZvw2gDtGN5LL9Kv',
 #        'HOST': '127.0.0.1',
 #        'PORT': '3306',
     }
