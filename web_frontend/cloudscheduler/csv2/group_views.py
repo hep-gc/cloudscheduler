@@ -173,26 +173,35 @@ def modify(request):
         elif request.POST['action'] == 'delete':
 
             # Before deleting make sure there are no VMs running accociated with the group.
-            table_vms = Table('csv2_vms', metadata, autoload=True)
 
-            if(db_session.query(exists().where(table_vms.c.group_name==values[0]['group_name'])).scalar()):
+            view_status = Table('view_cloud_status', metadata, autoload=True)
+
+            if(db_session.query(exists().where((view_status.c.group_name==values[0]['group_name']) & (view_status.c.VMs==0))).scalar()):
                 return list(request, group=values[0]['group_name'], response_code=1, message='group "%s" delete failed. VMs exist on accociated clouds.' % (values[0]['group_name']), active_user=active_user, user_groups=user_groups)
 
 
             # Delete the group and accociated enteries in other tables:
 
             # Load the tables:
+            table_vms = Table('csv2_vms', metadata, autoload=True)
             table_users = Table('csv2_user_groups', metadata, autoload=True)
             table_defaults = Table('csv2_group_defaults', metadata, autoload=True)
             table_resources = Table('csv2_group_resources', metadata, autoload=True)
             table_resources_yaml = Table('csv2_group_resource_yaml', metadata, autoload=True)
             table_yaml = Table('csv2_group_yaml', metadata, autoload=True)
             table_user_groups = Table('csv2_user_groups', metadata, autoload=True)
+            table_networks = Table('cloud_networks', metadata, autoload=True)
+            table_limits = Table('cloud_limits', metadata, autoload=True)
+            table_images = Table('cloud_images', metadata, autoload=True)
+            table_flavors = Table('cloud_flavors', metadata, autoload=True)
 
 
             # Delete all rows accociated with target group:
             success,message = _db_execute(db_connection,
                 table.delete(table.c.group_name==values[0]['group_name']))
+
+            success1,message1 = _db_execute(db_connection,
+                table_users.delete(table_vms.c.group_name==values[0]['group_name']))
 
             success2,message2 = _db_execute(db_connection,
                 table_users.delete(table_users.c.group_name==values[0]['group_name']))
@@ -211,6 +220,18 @@ def modify(request):
 
             success7,message7 = _db_execute(db_connection,
                 table_user_groups.delete(table_user_groups.c.group_name==values[0]['group_name']))
+
+            success8,message8 = _db_execute(db_connection,
+                table_users.delete(table_networks.c.group_name==values[0]['group_name']))
+
+            success9,message9 = _db_execute(db_connection,
+                table_users.delete(table_limits.c.group_name==values[0]['group_name']))
+
+            success10,message10 = _db_execute(db_connection,
+                table_users.delete(table_images.c.group_name==values[0]['group_name']))
+
+            success11,message11 = _db_execute(db_connection,
+                table_users.delete(table_flavors.c.group_name==values[0]['group_name']))
 
             db_connection.close()
 
