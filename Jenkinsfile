@@ -16,7 +16,6 @@ node {
             def condor_machines = readFile "test-data/condor_machines"
             def os_general = readFile "test-data/os_general"
             def yaml = readFile "default.yaml.j2"
-            def date = Date()
             sh """
                mysql -uroot -ppass-test -hdb -D csv2 -e "INSERT INTO csv2_config (config_name, yaml) VALUES ('condor_jobs', '${condor_jobs}')";
                mysql -uroot -ppass-test -hdb -D csv2 -e "INSERT INTO csv2_config (config_name, yaml) VALUES ('condor_machines', '${condor_machines}')";
