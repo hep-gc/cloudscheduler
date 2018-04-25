@@ -5,9 +5,9 @@ import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
 import cloudscheduler.config as csconfig
 
-#from lib.schema import view_groups_of_idle_jobs
 from lib.schema import condor_jobs
-from lib.schema import view_resources_matching_idle_jobs
+from lib.schema import view_available_resources
+from lib.schema import view_groups_of_idle_jobs
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session

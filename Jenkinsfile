@@ -71,12 +71,9 @@ node {
                    cp /var/log/cloudscheduler/cscollector.log .
                    cp /var/log/cloudscheduler/localhostpoller.log .
                    '''
-                def jobs = readFile "csjobs.log"
-                def collector = readFile "cscollector.log"
-                def poller = readFile "localhostpoller.log"
-                echo jobs
-                echo collector
-                echo poller
+                archiveArtifacts artifacts: "cscollector.log"
+                archiveArtifacts artifacts: "localhostpoller.log"
+                error("Starting pollers failed...")
             }
             
             condor_nojob = sh(script: 'condor_q | grep jobs', returnStdout: true).trim()
@@ -90,8 +87,8 @@ node {
                    '''
                 sleep 15
                 sh '''
-                   python3 csmain-local
                    condor_q
+                   python3 csmain-local
                    '''
             }
             catch(exc){
