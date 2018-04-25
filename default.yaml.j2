@@ -4,19 +4,19 @@ merge_type: 'list(append)+dict(recurse_array)+str()'
 write_files:
 -   content: |
         {{cs_cloud_type}}
-    owner: root:root
-    permissions: 0644
-    path: /var/lib/cloud_type
+        owner: root:root
+        permissions: 0644
+        path: /var/lib/cloud_type
 -   content: |
         {{cs_cloud_name}}
-    owner: root:root
-    permissions: 0644
-    path: /var/lib/cloud_name
+        owner: root:root
+        permissions: 0644
+        path: /var/lib/cloud_name
 -   content: |
         # Local config for Cloud Scheduler
 
         ## Set this to the group_name using this VM
-        group_name = "{{cs_group_name}}"
+        GROUP_NAME = "{{cs_group_name}}"
         FLAVOR = "{{cs_flavor}}"
 
         ## Hostname of the central manager.
@@ -50,7 +50,7 @@ write_files:
         #UID_DOMAIN=$(CONDOR_HOST)
         #FILESYSTEM_DOMAIN=$(CONDOR_HOST)
 
-        START = (Owner == {{cs_user}})
+        START = (Owner == i"{{cs_user}}")
 
         DAEMON_LIST = MASTER, STARTD
 
@@ -90,7 +90,7 @@ write_files:
         PREEMPT = False
         KILL = False
 
-        STARTD_ATTRS = COLLECTOR_HOST_STRING group_name FLAVOR
+        STARTD_ATTRS = COLLECTOR_HOST_STRING GROUP_NAME FLAVOR
 
         HIGHPORT = 50000
         LOWPORT = 40000
@@ -630,4 +630,4 @@ users:
     shell: /sbin/nologin
 
 runcmd:
- - [ service, condor, start ]
+ - [ systemctl, start, condor ]

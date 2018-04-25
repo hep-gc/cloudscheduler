@@ -179,25 +179,21 @@ def vm_poller():
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
-            try:
-                if version == 2:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project)
-                else:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project,
-                        user_domain=cloud.user_domain_name,
-                        project_domain_name=cloud.project_domain_name)
-            except Exception as exc:
-                logging.error("Unable to establish connection with valid openstack url, potential service outtage for %s", cloud.authurl)
-                logging.error("Skipping %s...", cloud.authurl)
-                continue
+            if version == 2:
+                session = get_openstack_session(
+                    auth_url=cloud.authurl,
+                    username=cloud.username,
+                    password=cloud.password,
+                    project=cloud.project)
+            else:
+                session = get_openstack_session(
+                    auth_url=cloud.authurl,
+                    username=cloud.username,
+                    password=cloud.password,
+                    project=cloud.project,
+                    user_domain=cloud.user_domain_name,
+                    project_domain_name=cloud.project_domain_name)
+
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
                 continue
@@ -226,11 +222,7 @@ def vm_poller():
                 vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                 vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                 new_vm = Vm(**vm_dict)
-                try:
-                    db_session.merge(new_vm)
-                except Exception as exc:
-                    logging.error("unable to merge sessions, database incosistency or other error:")
-                    logging.error(exc)
+                db_session.merge(new_vm)
             db_session.commit()
         logging.debug("Poll cycle complete, sleeping...")
         # This cycle should be reasonably fast such that the scheduler will always have the most
@@ -314,12 +306,7 @@ def flavorPoller():
                 }
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
-                try:
-                    db_session.merge(new_flav)
-                except Exception as Exc:
-                    logging.error("Database inconsistency, unable to merge vm flavor entry..")
-                    logging.error(Exc)
-
+                db_session.merge(new_flav)
 
             #now remove any that were not updated
             flav_to_delete = db_session.query(Flavor).filter(
@@ -405,11 +392,7 @@ def imagePoller():
                 }
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
-                try:
-                    db_session.merge(new_image)
-                except Exception as exc:
-                    logging.error("Database inconsistency, unable to merge image entry")
-                    logging.error(exc)
+                db_session.merge(new_image)
             db_session.commit() # commit before cleanup
             # do Image cleanup
             img_to_delete = db_session.query(Image).filter(
@@ -480,11 +463,7 @@ def limitPoller():
                     limits_dict[key] = config.no_limit_default
 
             new_limits = Limit(**limits_dict)
-            try:
-                db_session.merge(new_limits)
-            except Exception as exc:
-                logging.error("Database inconsistency, unable to merge limit entry")
-                logging.error(exc)
+            db_session.merge(new_limits)
 
             #now remove any that were not updated
             limit_to_delete = db_session.query(Limit).filter(
@@ -566,10 +545,7 @@ def networkPoller():
                     dest="csv2",
                     attr_dict=network_dict)
                 new_network = Network(**network_dict)
-                try:
-                    db_session.merge(new_network)
-                except Exception as exc:
-                    logging.error("Database inconsistency, unable to merge network entry")
+                db_session.merge(new_network)
 
             #now remove any that were not updated
             net_to_delete = db_session.query(Network).filter(
