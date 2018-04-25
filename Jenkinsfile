@@ -71,6 +71,7 @@ node {
                    cp /var/log/cloudscheduler/cscollector.log .
                    cp /var/log/cloudscheduler/localhostpoller.log .
                    '''
+                archiveArtifacts artifacts: "csjobs.log"
                 archiveArtifacts artifacts: "cscollector.log"
                 archiveArtifacts artifacts: "localhostpoller.log"
                 error("Starting pollers failed...")
