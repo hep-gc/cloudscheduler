@@ -47,3 +47,9 @@ view_groups_of_idle_jobs_raw
 view_groups_of_idle_jobs
 view_group_with_yaml
 view_test
+view_group_resources_with_yaml
+view_group_resources_with_yaml_names
+view_groups_with_yaml
+view_groups_with_yaml_names
+view_group_with_yaml
+view_vms_with_poller_status
