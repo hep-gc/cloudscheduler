@@ -18,6 +18,6 @@ setup(name = "cloudscheduler",
       author = "Michael Paterson, Colson Driemel",
       author_email = "mhp@uvic.ca",
       url = "http://github.com/hep-gc/cloudscheduler",
-      packages = [ 'cloudscheduler' ],
-      scripts = [ "cloudscheduler", "cloudstatus", "cloudadmin" ]
+      packages = [ 'cloudscheduler', 'attribute_mapper' ],
+      scripts = [ "csmain", "csstatus", "csadmin" ]
 )
