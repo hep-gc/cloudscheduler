@@ -29,7 +29,7 @@ def resources_producer():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "GroupName"]
 
     sleep_interval = config.collection_interval
     last_poll_time = 0
@@ -38,7 +38,7 @@ def resources_producer():
         try:
             # Initialize condor and database objects
             Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
                 "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
             Resource = Base.classes.condor_machines
@@ -102,7 +102,7 @@ def collector_command_consumer():
         try:
             # database setup
             Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
                 "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
             Resource = Base.classes.condor_machines
@@ -206,7 +206,7 @@ def cleanUp():
         condor_c = htcondor.Collector()
         Base = automap_base()
         local_hostname = socket.gethostname()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
             "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         session = Session(engine)

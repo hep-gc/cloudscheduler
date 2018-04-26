@@ -53,7 +53,7 @@ if "database" in cfg:
 
 try:
     Base = automap_base()
-    engine = create_engine("mysql://" + db_user + ":" + db_password + "@" + db_host + ":" + str(db_port) + "/" + db_name)
+    engine = create_engine("mysql+pymysql://" + db_user + ":" + db_password + "@" + db_host + ":" + str(db_port) + "/" + db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     Conf = Base.classes.csv2_config
