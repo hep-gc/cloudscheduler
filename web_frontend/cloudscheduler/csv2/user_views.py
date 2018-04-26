@@ -131,7 +131,8 @@ def update(request):
                     # part 3
                     if new_pass1 == new_pass2:
                         #update pass
-                        user_to_update.password = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+                        hashed_pw = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
+                        user_to_update.password = hashed_pw.decode("utf-8")
                     else:
                         # passwords don't match
                         return manage(request, response_code=1, message="Passwords don't match, please try again or leave password empty to update other fields.")
