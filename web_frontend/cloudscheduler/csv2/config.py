@@ -10,8 +10,8 @@ db_password = ""
 
 
 
-if os.path.isfile("/etc/cloudscheduler.yaml"):
-    path = "/etc/cloudscheduler.yaml"
+if os.path.isfile("/etc/cloudscheduler/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler/cloudscheduler.yaml"
 
 elif os.path.isfile("/opt/cloudscheduler/cloudscheduler.yaml"):
     path = "/opt/cloudscheduler/cloudscheduler.yaml"
