@@ -10,11 +10,11 @@ db_password = ""
 
 
 
-if os.path.isfile("/etc/csv2_web.yaml"):
-    path = "/etc/csv2_web.yaml"
+if os.path.isfile("/etc/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler.yaml"
 
-elif os.path.isfile("/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/csv2_web.yaml"):
-    path = "/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/csv2_web.yaml"
+elif os.path.isfile("/opt/cloudscheduler/cloudscheduler.yaml"):
+    path = "/opt/cloudscheduler/cloudscheduler.yaml"
 
 
 try:
