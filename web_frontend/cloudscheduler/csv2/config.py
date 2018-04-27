@@ -24,7 +24,7 @@ try:
 except Exception as e:
     print("Configuration file problem: There was a " \
           "problem reading %s. Check that it is readable," \
-          "and that it exists. " % path, file=sys.stderr
+          "and that it exists. " % path, file=sys.stderr)
 
 
 
