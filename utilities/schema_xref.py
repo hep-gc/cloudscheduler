@@ -58,6 +58,7 @@ def main(args):
     gvar = {
         'backup_data': [
             'csv2_attribute_mapping',
+            'csv2_config',
             ],
         'cmd_path': os.path.abspath(args[0]),
         }
