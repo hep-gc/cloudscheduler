@@ -10,23 +10,16 @@ import gzip
 import time
 
 from sqlalchemy import create_engine
-<<<<<<< HEAD
-from sqlalchemy.orm import Session
-=======
+
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from email import message_from_file
->>>>>>> cc5dc79900eb52e0c29c6048d2dc13bc28eabc96
 
 import libvirt
 import yaml
 
 import cloudscheduler.basecloud
 import cloudscheduler.config as csconfig
-<<<<<<< HEAD
-=======
-from cloudscheduler.vm import VM
->>>>>>> cc5dc79900eb52e0c29c6048d2dc13bc28eabc96
 
 class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
 
@@ -165,10 +158,7 @@ class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
         #Setup metadata and userdata
         metapath = self._generate_meta(hostname)
 
-<<<<<<< HEAD
-=======
         #config_tmp = tempfile.mkdtemp(suffix='-'+hostname, dir='/home/tahyaw/instances')
->>>>>>> cc5dc79900eb52e0c29c6048d2dc13bc28eabc96
         config_tmp = tempfile.mkdtemp(suffix='-'+hostname)
         self.log.debug(config_tmp)
 
@@ -189,32 +179,19 @@ class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
             self.log.error("Could not create configuration drive for metadata: %s", error)
             return -1
 
-<<<<<<< HEAD
         #Check that host can run requested vm
-=======
->>>>>>> cc5dc79900eb52e0c29c6048d2dc13bc28eabc96
         instance = None
         host_cap = self._check_host_capabilities(conn)
         self.log.debug(host_cap)
         if job.request_cpus > (host_cap['vcpus'] - host_cap['activeCpus']):
-<<<<<<< HEAD
             self.log.error("Host doesn't have available vcpus to boot VM")
             return -1
         if job.request_ram > host_cap['freeMemory']:
             self.log.error("Host doesn't have available ram to boot VM")
             return -1
         mem = job.request_ram + 1000
-
         #create domain def and launch domain
-=======
-            self.log.error.log("Host doesn't have available vcpus to boot VM")
-            return -1
-        if job.request_ram > host_cap['freeMemory']:
-            self.log.error.log("Host doesn't have available ram to boot VM")
-            return -1
-        mem = job.request_ram + 1000
 
->>>>>>> cc5dc79900eb52e0c29c6048d2dc13bc28eabc96
         virt_call = "virt-install --name "+hostname+" --network="+network.name()+ \
                     " --print-xml --dry-run -r "+str(mem)+" --disk path="+path+ \
                     ",sparse=true --disk path="+config_tmp+\
@@ -232,10 +209,6 @@ class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
         else:
             self.log.debug("New Image request successful.")
 
-<<<<<<< HEAD
-=======
-        #Need poller for localhost
->>>>>>> cc5dc79900eb52e0c29c6048d2dc13bc28eabc96
         """
         if instance:
             new_vm = VM(vmid=instance.ID(), hostname=hostname)
