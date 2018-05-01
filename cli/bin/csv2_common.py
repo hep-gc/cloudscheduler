@@ -71,7 +71,7 @@ def _requests(gvar, request, form_data={}):
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
-    if 'csv2-server-url' not in gvar['user_settings']:
+    if 'cloud-url' not in gvar['user_settings']:
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
@@ -87,8 +87,8 @@ def _requests(gvar, request, form_data={}):
         'key' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['key']):
         _r = _function(
-            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
+            '%s%s' % (gvar['user_settings']['cloud-url'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['cloud-url']},
             cert=(gvar['user_settings']['cert'], gvar['user_settings']['key']),
             data=_form_data,
             cookies=gvar['cookies']
@@ -98,8 +98,8 @@ def _requests(gvar, request, form_data={}):
         if 'password' not in gvar['user_settings'] or gvar['user_settings']['password'] == '-':
             gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
-            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
+            '%s%s' % (gvar['user_settings']['cloud-url'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['cloud-url']},
             auth=(gvar['user_settings']['user'], gvar['user_settings']['password']),
             data=_form_data,
             cookies=gvar['cookies'] 
@@ -120,9 +120,9 @@ def _requests(gvar, request, form_data={}):
             "    %s%s,\n" \
             "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
                 _function.__name__,
-                gvar['user_settings']['csv2-server-url'],
+                gvar['user_settings']['cloud-url'],
                 request,
-                gvar['user_settings']['csv2-server-url'],
+                gvar['user_settings']['cloud-url'],
                 )
             )
 
