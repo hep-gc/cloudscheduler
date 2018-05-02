@@ -4,6 +4,20 @@ from .models import user as csv2_user
 '''
 UTILITY FUNCTIONS
 '''
+#-------------------------------------------------------------------------------
+
+def _db_execute(db_connection, request):
+    import sqlalchemy.exc
+
+    try:
+        db_connection.execute(request)
+        return True,None
+    except sqlalchemy.exc.IntegrityError as ex:
+        return False, ex.orig
+    except Exception as ex:
+        return False, ex
+
+#-------------------------------------------------------------------------------
 
 def db_open():
     """
@@ -32,9 +46,13 @@ def db_open():
 
     return db_engine,db_session,db_connection,db_map
 
+#-------------------------------------------------------------------------------
+
 # Returns the current authorized user from metadata
 def getAuthUser(request):
     return request.META.get('REMOTE_USER')
+
+#-------------------------------------------------------------------------------
 
 # returns the csv2 user object matching the authorized user from header metadata
 def getcsv2User(request):
@@ -45,6 +63,7 @@ def getcsv2User(request):
             return user
     raise PermissionDenied
 
+#-------------------------------------------------------------------------------
 
 def verifyUser(request):
     auth_user = getAuthUser(request)
@@ -58,6 +77,7 @@ def verifyUser(request):
 
     return False
 
+#-------------------------------------------------------------------------------
 
 def getSuperUserStatus(request):
     authorized_user = getAuthUser(request)
@@ -66,6 +86,40 @@ def getSuperUserStatus(request):
         if user.username == authorized_user or user.cert_cn == authorized_user:
             return user.is_superuser
     return False
+
+#-------------------------------------------------------------------------------
+
+def map_parameter_to_field_values(request, db_engine, query, table_keys, active_user):
+    """
+    This internal function retrieves and classifies cloud update fields.
+    """
+
+    import lib.schema
+
+    metadata = lib.schema.MetaData(bind=db_engine)
+    table = lib.schema.Table(query, metadata, autoload=True)
+
+    values = [{}, {}, []]
+    for key in request.POST:
+        if key in table.c:
+            if key in table_keys[0]:
+                values[0][key] = request.POST[key]
+            else:
+                if key != 'password' or request.POST[key]:
+                    values[1][key] = request.POST[key]
+        else:
+            if key not in table_keys[1]:
+                return 1, table, key
+
+    if 'group_name' not in values[0]:
+        values[0]['group_name'] = active_user.active_group
+
+    for key in table.c:
+        values[2].append(key.name)
+
+    return 0, table, values
+
+#-------------------------------------------------------------------------------
 
 def _qt(query, keys=None, prune=[]):
     """
@@ -154,6 +208,8 @@ def _qt(query, keys=None, prune=[]):
     else:
         return primary_list
 
+#-------------------------------------------------------------------------------
+
 def _qtx(add_row, secondary_dict_ptr, cols, key):
     """
     This sub-function is called by view_utils._qt to add keys to the secondary_dict and
@@ -169,6 +225,7 @@ def _qtx(add_row, secondary_dict_ptr, cols, key):
     else:
         return add_row, secondary_dict_ptr
 
+#-------------------------------------------------------------------------------
 
 def _render(request, template, context):
     """
@@ -176,37 +233,85 @@ def _render(request, template, context):
     return an HTML string.
     """
 
+    from django.contrib.auth.models import User
     from django.shortcuts import render
     from django.http import HttpResponse
     from django.core import serializers
     from django.db.models.query import QuerySet
+    from .models import user as csv2_user
     from sqlalchemy.engine import result as sql_result
+    import datetime
     import decimal
     import json
 
     class csv2Encoder(json.JSONEncoder):
         def default(self, obj):
+#           print(">>>>>>>>>>>>>>>>", type(obj), obj)
+
+            if isinstance(obj, csv2_user):
+                return str(obj)
+
+            if isinstance(obj, datetime.date):
+                return str(obj)
+
             if isinstance(obj, decimal.Decimal):
                 return str(obj)
+
+            if isinstance(obj, dict) and 'ResultProxy' in obj:
+                return json.dumps(obj['ResultProxy'])
 
             return json.JSONEncoder.default(self, obj)
 
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        serialized_context = {}
-        for item in context:
-            if isinstance(context[item], int):
-                serialized_context[item] = context[item]
-            elif isinstance(context[item], QuerySet):
-                serialized_context[item] = serializers.serialize("json", context[item])
-            elif isinstance(context[item], sql_result.ResultProxy):
-                serialized_context[item] = json.dumps([dict(r) for r in context[item]], cls=csv2Encoder)
-            elif isinstance(context[item], dict) and 'ResultProxy' in context[item]:
-                serialized_context[item] = json.dumps(context[item]['ResultProxy'], cls=csv2Encoder)
-            else:
-                serialized_context[item] = str(context[item])
-                if serialized_context[item] == 'None':
-                  serialized_context[item] = None
-        response = HttpResponse(json.dumps(serialized_context, cls=csv2Encoder), content_type='application/json')
+        response = HttpResponse(json.dumps(context, cls=csv2Encoder), content_type='application/json')
     else:
         response = render(request, template, context)
     return response
+
+#       serialized_context = {}
+#       for item in context:
+#           if isinstance(context[item], int):
+#               serialized_context[item] = context[item]
+#           elif isinstance(context[item], QuerySet):
+#               serialized_context[item] = serializers.serialize("json", context[item])
+#           elif isinstance(context[item], sql_result.ResultProxy):
+#               serialized_context[item] = json.dumps([dict(r) for r in context[item]], cls=csv2Encoder)
+#           elif isinstance(context[item], dict) and 'ResultProxy' in context[item]:
+#               serialized_context[item] = json.dumps(context[item]['ResultProxy'], cls=csv2Encoder)
+#           else:
+#               serialized_context[item] = str(context[item])
+#               if serialized_context[item] == 'None':
+#                 serialized_context[item] = None
+
+#-------------------------------------------------------------------------------
+
+def _set_user_groups(request, db_session, db_map):
+    active_user = getcsv2User(request)
+    user_groups = db_map.classes.csv2_user_groups
+    user_group_rows = db_session.query(user_groups).filter(user_groups.username==active_user)
+    user_groups = []
+    if user_group_rows is not None:
+        for row in user_group_rows:
+            user_groups.append(row.group_name)
+
+    if not user_groups:
+        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_groups
+
+    # if the POST request specified a group, validate and set the specified group as the active group.
+    if request.method == 'POST':
+        group_name = request.POST.get('group')
+        if group_name is not None:
+            if group_name in user_groups:
+                active_user.active_group = group_name
+                active_user.save()
+            else:
+                return 1,'cannnot switch to invalid group "%s".' % group_name,active_user,user_groups
+
+    # if no active group, set first group as default.
+    if active_user.active_group is None:
+        active_user.active_group = user_groups[0]
+        active_user.save()
+
+    return 0,None,active_user,user_groups
+
+
