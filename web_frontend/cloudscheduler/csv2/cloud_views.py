@@ -345,7 +345,6 @@ def update(request):
             return list(request, selector='-', response_code=1, message='cloud update, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
 
         # Update the cloud.
-        print("<<<<<<<<<<<<<<<<<<", values)
         success, message = _db_execute(db_connection, table.update().where((table.c.group_name==values[0]['group_name']) & (table.c.cloud_name==values[0]['cloud_name'])).values(values[1]))
         db_connection.close()
         if success:
