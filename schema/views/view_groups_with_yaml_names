@@ -7,7 +7,7 @@ select
 
 cg.group_name,
 condor_central_manager,
-group_concat(yaml_name)
+group_concat(yaml_name) as yaml_names
 
 from csv2_groups as cg
 left outer join csv2_group_yaml as cgy on cg.group_name=cgy.group_name
