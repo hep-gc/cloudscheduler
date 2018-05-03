@@ -34,6 +34,7 @@ def resources_producer():
     sleep_interval = config.collection_interval
     last_poll_time = 0
     condor_host = socket.gethostname()
+    fail_count = 0
     while True:
         try:
             # Initialize condor and database objects
@@ -44,7 +45,18 @@ def resources_producer():
             Resource = Base.classes.condor_machines
             session = Session(engine)
 
-            condor_c = htcondor.Collector()
+            try:
+                condor_c = htcondor.Collector()
+            except Exception as exc:
+                fail_count++
+                logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+                logging.error(exc)
+                logging.error("Sleeping until next cycle...")
+                time.sleep(config.sleep_interval)
+                continue
+
+            fail_count = 0
+
             ad_type = htcondor.AdTypes.Startd
             new_poll_time = time.time()
 
@@ -70,10 +82,15 @@ def resources_producer():
                     logging.error(exc)
 
             logging.info("Commiting database session")
-            session.commit()
 
+            try:        
+                session.commit()
+                last_poll_time = new_poll_time
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
 
-            last_poll_time = new_poll_time
             logging.info("Last poll time: %10s, commencing sleep interval", last_poll_time)
             time.sleep(sleep_interval)
 
@@ -164,15 +181,22 @@ def collector_command_consumer():
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_advertise == 1):
                 # get relevent classad objects from htcondor and compile a list for condor_advertise
                 logging.info("Ad found in database flagged for condor_advertise: %s", resource.name)
-                ad = condor_c.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
-                master_list.append(ad)
-
-                ad = condor_c.query(startd_type, 'Name=="%s"' % resource.name)[0]
-                startd_list.append(ad)
                 # This is actually a little premature as we haven't executed the advertise yet
                 # There should be some logic to make sure the advertise runs before we remove the flag
                 updated_resource = Resource(name=resource.name, condor_advertise=2)
-                session.merge(updated_resource)
+                try:
+                    session.merge(updated_resource)
+                    ad = condor_c.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
+                    master_list.append(ad)
+
+                    ad = condor_c.query(startd_type, 'Name=="%s"' % resource.name)[0]
+                    startd_list.append(ad)
+                except Exception as exc:
+                    logging.error("Unable to merge database session")
+                    logging.error(exc)
+                    logging.error("Aborting cycle...")
+                    master_list, startd_list = None
+                    break
 
             #execute condor_advertise on retrieved classads
             if startd_list or master_list:
@@ -181,7 +205,12 @@ def collector_command_consumer():
                 logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
                 logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
-            session.commit() #commit all updates
+            try:        
+                session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
 
         except Exception as exc:
             logging.error("Failure connecting to database or executing condor command...")
@@ -198,12 +227,24 @@ def collector_command_consumer():
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
     condor_host = socket.gethostname()
+    fail_count = 0
     while True:
         logging.info("Commencing cleanup cycle...")
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its better to
         # re-mirror the database each time for the sake on consistency.
-        condor_c = htcondor.Collector()
+        try:
+            condor_c = htcondor.Collector()
+        except Exception as exc:
+            fail_count++
+            logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+            logging.error(exc)
+            logging.error("Sleeping until next cycle...")
+            time.sleep(config.sleep_interval)
+            continue
+
+        fail_count = 0
+
         Base = automap_base()
         local_hostname = socket.gethostname()
         engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
@@ -251,7 +292,12 @@ def cleanUp():
             except Exception as exc:
                 logging.error("Error attempting to delete %s... skipping", machine.name)
 
-        session.commit()
+         try:        
+            session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.info("Cleanup cycle finished sleeping...")
         time.sleep(config.cleanup_sleep_interval)
 
