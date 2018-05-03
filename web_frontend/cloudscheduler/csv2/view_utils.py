@@ -6,7 +6,11 @@ UTILITY FUNCTIONS
 '''
 #-------------------------------------------------------------------------------
 
-def _db_execute(db_connection, request):
+def db_execute(db_connection, request):
+    """
+    Execute a DB request and return the response. Also, trap and return errors.
+    """
+
     import sqlalchemy.exc
 
     try:
@@ -21,7 +25,7 @@ def _db_execute(db_connection, request):
 
 def db_open():
     """
-    Provide a database connection and optionally mapping.
+    Provide a database connection and mapping.
     """
 
     from csv2 import config
@@ -65,20 +69,6 @@ def getcsv2User(request):
 
 #-------------------------------------------------------------------------------
 
-def verifyUser(request):
-    auth_user = getAuthUser(request)
-
-    csv2_user_list = csv2_user.objects.all()
-    #try to find a user that has "auth_user" as username or cert_cn
-    # the uniqueness here will be forced on user creation
-    for user in csv2_user_list:
-        if user.username == auth_user or user.cert_cn == auth_user:
-            return True
-
-    return False
-
-#-------------------------------------------------------------------------------
-
 def getSuperUserStatus(request):
     authorized_user = getAuthUser(request)
     csv2_user_list = csv2_user.objects.all()
@@ -101,6 +91,17 @@ def map_parameter_to_field_values(request, db_engine, query, table_keys, active_
 
     values = [{}, {}, []]
     for key in request.POST:
+        if len(table_keys) > 2 and key in table_keys[2]:
+            if table_keys[2][key] == 'l':
+                edit_option = 'lower case'
+                edit_value = request.POST[key].lower()
+            elif table_keys[2][key] == 'u':
+                edit_option = 'upper case'
+                edit_value = request.POST[key].upper()
+            
+            if request.POST[key] != edit_value:
+                return 1, None, 'value specified for "%s" must be all %s.' % (key, edit_option)
+
         if key in table.c:
             if key in table_keys[0]:
                 values[0][key] = request.POST[key]
@@ -109,7 +110,7 @@ def map_parameter_to_field_values(request, db_engine, query, table_keys, active_
                     values[1][key] = request.POST[key]
         else:
             if key not in table_keys[1]:
-                return 1, table, key
+                return 1, None, 'request contained a bad parameter "%s".' % key
 
     if 'group_name' not in values[0]:
         values[0]['group_name'] = active_user.active_group
@@ -121,7 +122,7 @@ def map_parameter_to_field_values(request, db_engine, query, table_keys, active_
 
 #-------------------------------------------------------------------------------
 
-def _qt(query, keys=None, prune=[]):
+def qt(query, keys=None, prune=[]):
     """
     Query Transform takes a list of dictionaries (eg. the result of an SqlAlchemy query)
     and transforms it into a standard python list (repeatably iterable). In the process,
@@ -160,7 +161,7 @@ def _qt(query, keys=None, prune=[]):
     If the "keys" argument is given, the function returns both the primary_list and the
     secondary_dict. Otherwise, only the primary_list is returned.
     """
-    from .view_utils import _qtx
+    from .view_utils import _qt
 
     primary_list = []
     secondary_dict = {}
@@ -172,10 +173,10 @@ def _qt(query, keys=None, prune=[]):
             add_row = False
             secondary_dict_ptr = secondary_dict
             for key in keys['primary']:
-                add_row, secondary_dict_ptr = _qtx(add_row, secondary_dict_ptr, cols, key)
+                add_row, secondary_dict_ptr = _qt(add_row, secondary_dict_ptr, cols, key)
              
             if keys['secondary']:
-                ignore, secondary_dict_ptr = _qtx(add_row, secondary_dict_ptr, cols, keys['secondary'][0])
+                ignore, secondary_dict_ptr = _qt(add_row, secondary_dict_ptr, cols, keys['secondary'][0])
             
             for col in cols:
                 if col in keys['secondary'] and cols[col]:
@@ -210,9 +211,9 @@ def _qt(query, keys=None, prune=[]):
 
 #-------------------------------------------------------------------------------
 
-def _qtx(add_row, secondary_dict_ptr, cols, key):
+def _qt(add_row, secondary_dict_ptr, cols, key):
     """
-    This sub-function is called by view_utils._qt to add keys to the secondary_dict and
+    This sub-function is called by view_utils.qt to add keys to the secondary_dict and
     is NOT meant to be called directly.
     """
 
@@ -227,14 +228,14 @@ def _qtx(add_row, secondary_dict_ptr, cols, key):
 
 #-------------------------------------------------------------------------------
 
-def _render(request, template, context):
+def render(request, template, context):
     """
     If the "Accept" HTTP header contains "application/json", return a json string. Otherwise,
     return an HTML string.
     """
 
     from django.contrib.auth.models import User
-    from django.shortcuts import render
+    from django.shortcuts import render as django_render
     from django.http import HttpResponse
     from django.core import serializers
     from django.db.models.query import QuerySet
@@ -265,27 +266,13 @@ def _render(request, template, context):
     if request.META['HTTP_ACCEPT'] == 'application/json':
         response = HttpResponse(json.dumps(context, cls=csv2Encoder), content_type='application/json')
     else:
-        response = render(request, template, context)
-    return response
+        response = django_render(request, template, context)
 
-#       serialized_context = {}
-#       for item in context:
-#           if isinstance(context[item], int):
-#               serialized_context[item] = context[item]
-#           elif isinstance(context[item], QuerySet):
-#               serialized_context[item] = serializers.serialize("json", context[item])
-#           elif isinstance(context[item], sql_result.ResultProxy):
-#               serialized_context[item] = json.dumps([dict(r) for r in context[item]], cls=csv2Encoder)
-#           elif isinstance(context[item], dict) and 'ResultProxy' in context[item]:
-#               serialized_context[item] = json.dumps(context[item]['ResultProxy'], cls=csv2Encoder)
-#           else:
-#               serialized_context[item] = str(context[item])
-#               if serialized_context[item] == 'None':
-#                 serialized_context[item] = None
+    return response
 
 #-------------------------------------------------------------------------------
 
-def _set_user_groups(request, db_session, db_map):
+def set_user_groups(request, db_session, db_map):
     active_user = getcsv2User(request)
     user_groups = db_map.classes.csv2_user_groups
     user_group_rows = db_session.query(user_groups).filter(user_groups.username==active_user)
@@ -298,20 +285,33 @@ def _set_user_groups(request, db_session, db_map):
         return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_groups
 
     # if the POST request specified a group, validate and set the specified group as the active group.
-    if request.method == 'POST':
+    if request.method == 'POST' and 'group' in request.POST:
         group_name = request.POST.get('group')
-        if group_name is not None:
+        if group_name and active_user.active_group != group_name:
             if group_name in user_groups:
                 active_user.active_group = group_name
                 active_user.save()
             else:
-                return 1,'cannnot switch to invalid group "%s".' % group_name,active_user,user_groups
+                return 1,'cannnot switch to invalid group "%s".' % group_name, active_user, user_groups
 
     # if no active group, set first group as default.
     if active_user.active_group is None:
         active_user.active_group = user_groups[0]
         active_user.save()
 
-    return 0,None,active_user,user_groups
+    return 0, None, active_user, user_groups
 
+#-------------------------------------------------------------------------------
+
+def verifyUser(request):
+    auth_user = getAuthUser(request)
+
+    csv2_user_list = csv2_user.objects.all()
+    #try to find a user that has "auth_user" as username or cert_cn
+    # the uniqueness here will be forced on user creation
+    for user in csv2_user_list:
+        if user.username == auth_user or user.cert_cn == auth_user:
+            return True
+
+    return False
 
