@@ -292,7 +292,7 @@ def cleanUp():
             except Exception as exc:
                 logging.error("Error attempting to delete %s... skipping", machine.name)
 
-         try:        
+        try:        
             session.commit()
         except Exception as exc:
             logging.error("Unable to commit database session")
