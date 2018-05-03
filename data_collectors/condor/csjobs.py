@@ -59,7 +59,7 @@ def job_producer():
             try:
                 condor_s = htcondor.Schedd()
             except Exception as exc:
-                fail_count++
+                fail_count = fail_count + 1
                 logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
                 logging.error(exc)
                 logging.error("Sleeping until next cycle...")
@@ -241,7 +241,7 @@ def cleanUp():
         try:
             condor_s = htcondor.Schedd()
         except Exception as exc:
-            fail_count++
+            fail_count = fail_count + 1
             logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
             logging.error(exc)
             logging.error("Sleeping until next cycle...")
