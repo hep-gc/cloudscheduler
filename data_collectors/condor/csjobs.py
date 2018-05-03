@@ -127,7 +127,7 @@ def job_producer():
                 except Exception as exc:
                     logging.error("Unable to merge job:")
                     logging.error(exc)
-                    logging.("Skipping for this cycle...")
+                    logging.error("Skipping for this cycle...")
             try:        
                 session.commit()
             except Exception as exc:
