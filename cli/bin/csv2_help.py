@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE
 import os
 
-def _help(gvar, mandatory=None, required=None, options=None):
+def help(gvar, mandatory=None, required=None, options=None):
     """
     Print long and short help messages.
     """
@@ -12,21 +12,23 @@ def _help(gvar, mandatory=None, required=None, options=None):
         if not gvar['object']:
             print('Help requested for "csv2". One of the following objects must be specified:')
             for obj in sorted(gvar['actions']):
-                print('  %s' % obj)
+                if gvar['super_user'] or not gvar['actions'][obj][0]:
+                    print('  %s' % obj)
 
         elif gvar['object'] not in gvar['actions']:
             print('Help requested for "csv2 %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
             for obj in sorted(gvar['actions']):
-                print('  %s' % obj)
+                if gvar['super_user'] or not gvar['actions'][obj][0]:
+                    print('  %s' % obj)
 
         elif not gvar['action']:
             print('Help requested for "csv2 %s". One of the following actions must be specified:' % gvar['object'])
-            for action in sorted(gvar['actions'][gvar['object']]):
+            for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
-        elif gvar['action'] not in gvar['actions'][gvar['object']]:
+        elif gvar['action'] not in gvar['actions'][gvar['object']][1]:
             print('Help requested for "csv2 %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
-            for action in sorted(gvar['actions'][gvar['object']]):
+            for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
         else:
@@ -61,7 +63,7 @@ def _help(gvar, mandatory=None, required=None, options=None):
     elif gvar['user_settings']['long-help']:
         # Determine man page and call display routine.
         if not gvar['object']:
-            __long_help(gvar, 'csv2', 'csv2.1')
+            _long_help(gvar, 'csv2', 'csv2.1')
 
         elif gvar['object'] not in gvar['actions']:
             print('Long help requested for "csv2 %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
@@ -69,15 +71,15 @@ def _help(gvar, mandatory=None, required=None, options=None):
                 print('  %s' % obj)
 
         elif not gvar['action']:
-            __long_help(gvar, 'csv2 %s' % gvar['object'], 'csv2_%s.1' % gvar['object'])
+            _long_help(gvar, 'csv2 %s' % gvar['object'], 'csv2_%s.1' % gvar['object'])
 
-        elif gvar['action'] not in gvar['actions'][gvar['object']]:
+        elif gvar['action'] not in gvar['actions'][gvar['object']][1]:
             print('Long help requested for "csv2 %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
-            for action in sorted(gvar['actions'][gvar['object']]):
+            for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
         else:
-            __long_help(gvar, 'csv2 %s %s' % (gvar['object'], gvar['action']), 'csv2_%s_%s.1' % (gvar['object'], gvar['action']))
+            _long_help(gvar, 'csv2 %s %s' % (gvar['object'], gvar['action']), 'csv2_%s_%s.1' % (gvar['object'], gvar['action']))
 
     # No help requested, return to caller.
     else:
@@ -86,7 +88,7 @@ def _help(gvar, mandatory=None, required=None, options=None):
     # Help requests just exit.
     exit(0)
 
-def __long_help(gvar, man_id, man_page):
+def _long_help(gvar, man_id, man_page):
     """
     Internal function to print long help messages.
     """

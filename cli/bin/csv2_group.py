@@ -1,147 +1,107 @@
-from csv2_common import _check_keys, _requests, _show_table
+from csv2_common import check_keys, requests, show_table, verify_yaml_file
+from subprocess import Popen, PIPE
 
-import json
+import filecmp
+import os
 
 KEY_MAP = {
-    '-ca': 'authurl',
-    '-ck': 'password',
-    '-cn': 'cloud_name',
-    '-cp': 'project',
-    '-cr': 'region',
-    '-ct': 'cloud_type',
-    '-cu': 'username',
-    '-cP': 'project_domain_name',
-    '-cU': 'user_domain_name',
-    '-g':  'group',
-    '-ga': 'cacertificate',
-    '-vc': 'cores_ctl',
-    '-vk': 'keyname',
-    '-vr': 'ram_ctl',
+    '-gn':  'group_name',
+    '-gM': 'condor_central_manager',
     }
 
-def __filter_by_cloud_name(gvar, qs):
+def _filter_by_group(gvar, qs):
     """
     Internal function to filter a query set by the specified group name.
     """
 
-    if 'cloud-name' in gvar['command_args']:
+    if 'group-name' in gvar['command_args']:
         for _ix in range(len(qs)-1, -1, -1):
-            if qs[_ix]['cloud_name'] != gvar['command_args']['cloud-name']:
+            if qs[_ix]['group_name'] != gvar['command_args']['group-name']:
                 del(qs[_ix])
 
     return qs
 
-def __request(gvar, request):
+def add(gvar):
     """
-    Internal function to make a server request. If the user specified a group on the command
-    line, the server's active group will be changed before the query is made.
-    """
-
-    # Perform group change and then list clouds.
-    if 'group' in gvar['command_args']:
-        response = _requests(gvar, '/cloud/prepare/')
-
-        return _requests(gvar,
-            request,
-            form_data = {
-                'group': gvar['user_settings']['group'],
-                }
-          )
-
-    # List clouds for the currently active group..
-    else:
-        return _requests(gvar, request)
-
-def _add(gvar):
-    """
-    Add a cloud to the active group.
+    Add a group to the active group.
     """
 
     # Check for missing arguments or help required.
-    form_data = _check_keys(
+    form_data = check_keys(
         gvar,
-        ['-ca', '-ck', '-cn', '-cp', '-cr', '-ct', '-cu'],
+        ['-gM', '-gn'],
         [],
-        ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
+        [],
         key_map=KEY_MAP)
 
-    form_data['action'] = 'add'
-
-    # Retrieve Cookie/CSRF.
-    response = _requests(gvar, '/cloud/prepare/')
-
-    # Create the cloud.
-    response = _requests(
+    # Create the group.
+    response = requests(
         gvar,
-        '/cloud/modify/',
+        '/group/add/',
         form_data
         )
     
     if response['message']:
         print(response['message'])
 
-def _delete(gvar):
+def delete(gvar):
     """
-    Delete a cloud from the active group.
+    Delete a group from the active group.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-cn'], [], ['-g'])
+    check_keys(gvar, ['-gn'], [], [])
 
-    # Check that the target cloud exists.
-    response = __request(gvar, '/cloud/list/')
+    # Check that the target group exists.
+    response = requests(gvar, '/group/list/')
     _found = False
-    for row in json.loads(response['cloud_list']):
-      if row['cloud_name'] == gvar['user_settings']['cloud-name']:
+    for row in response['group_list']:
+      if row['group_name'] == gvar['user_settings']['group-name']:
         _found = True
         break
    
     if not _found:
-        print('Error: "csv2 cloud delete" cannot delete "%s", cloud doesn\'t exist in group "%s".' % (gvar['user_settings']['cloud-name'], response['active_group']))
+        print('Error: "csv2 group delete" cannot delete "%s", group doesn\'t exist.' % gvar['user_settings']['group-name'])
         exit(1)
 
-    # Confirm cloud delete.
+    # Confirm group delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete cloud "%s" in group "%s"? (yes|..)' % (gvar['user_settings']['cloud-name'], response['active_group']))
+        print('Are you sure you want to delete group "%s"? (yes|..)' % gvar['user_settings']['group-name'])
         _reply = input()
         if _reply != 'yes':
-          print('csv2 cloud delete "%s" cancelled.' % gvar['user_settings']['cloud-name'])
+          print('csv2 group delete "%s" cancelled.' % gvar['user_settings']['group-name'])
           exit(0)
 
-    # Retrieve Cookie/CSRF.
-    response = _requests(gvar, '/cloud/prepare/')
-
-    # Delete the cloud.
-    response = _requests(
+    # Delete the group.
+    response = requests(
         gvar,
-        '/cloud/modify/',
+        '/group/delete/',
         form_data = {
-            'action': 'delete',
-            'cloud_name': gvar['user_settings']['cloud-name']
+            'group_name': gvar['user_settings']['group-name']
             }
         )
     
     if response['message']:
         print(response['message'])
 
-def _list(gvar):
+def list(gvar):
     """
-    List clouds for the active group.
+    List groups.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], [], ['-ok'])
+    check_keys(gvar, [], [], ['-gn', '-ok'])
 
     # Retrieve data (possibly after changing the group).
-    response = __request(gvar, '/group/list/')
+    response = requests(gvar, '/group/list/')
 
     # Filter response as requested (or not).
-    group_list = __filter_by_cloud_name(gvar, json.loads(response['group_list']))
+    group_list = _filter_by_group(gvar, response['group_list'])
 
     # Print report
     print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
     if gvar['command_args']['only-keys']:
-        _show_table(
+        show_table(
             gvar,
             group_list,
             [
@@ -149,94 +109,173 @@ def _list(gvar):
             ],
             )
     else:
-        _show_table(
+        show_table(
             gvar,
             group_list,
             [
                 'group_name/Group',
                 'condor_central_manager/Central Manager',
-                'yaml_name/YAML Name',
+                'yaml_names/YAML Filenames',
             ],
             )
 
-def _modify(gvar):
+def update(gvar):
     """
-    Modify a cloud in the active group.
+    Modify the specified group.
     """
 
     # Check for missing arguments or help required.
-    form_data = _check_keys(
+    form_data = check_keys(
         gvar,
-        ['-cn'],
+        ['-gn'],
         [],
-        ['-ca', '-ck', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
+        ['-gM'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "csv2 cloud modify" requires at least one option to modify.')
+        print('Error: "csv2 group update" requires at least one option to update.')
         exit(1)
 
-    form_data['action'] = 'modify'
-
-    # Retrieve Cookie/CSRF.
-    response = _requests(gvar, '/cloud/prepare/')
-
-    # Create the cloud.
-    response = _requests(
+    # Create the group.
+    response = requests(
         gvar,
-        '/cloud/modify/',
+        '/group/update/',
         form_data
         )
     
     if response['message']:
         print(response['message'])
 
-def _status(gvar):
+def yaml_delete(gvar):
     """
-    List cloud status for the active group.
+    Delete a group/YAML file.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
+    check_keys(gvar, ['-gn', '-yn'], [], [])
+
+    # Check that the target groupYAML file exists.
+    response = requests(gvar, '/group/list/')
+    _found = False
+    for row in response['group_list']:
+        if row['group_name'] == gvar['user_settings']['group-name']:
+            yaml_names = row['yaml_names'].split(',')
+            for yaml_name in yaml_names:
+                if row['group_name'] == gvar['user_settings']['group-name']:
+                    _found = True
+                    break
+   
+    if not _found:
+        print('Error: "csv2 group yaml-delete" cannot delete "%s-%s-%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        exit(1)
+
+    # Confirm group/YAML file delete.
+    if not gvar['user_settings']['yes']:
+        print('Are you sure you want to delete the YAML file "%s-%s-%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        _reply = input()
+        if _reply != 'yes':
+            print('csv2 group yaml-delete "%s-&s-%s" cancelled.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+            exit(0)
+
+    # Delete the group/YAML file.
+    response = requests(
+        gvar,
+        '/group/yaml_delete/',
+        form_data = {
+            'group_name': gvar['user_settings']['group-name'],
+            'yaml_name': gvar['user_settings']['yaml-name'],
+            }
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def yaml_edit(gvar):
+    """
+    Edit the specified group/YAML file.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, ['-gn', '-yn'], ['-te'], [])
 
     # Retrieve data (possibly after changing the group).
-    response = __request(gvar, '/cloud/status/')
+    response = requests(gvar, '/group/yaml_fetch/%s.%s' % (gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
 
-    # Filter response as requested (or not).
-    status_list = __filter_by_cloud_name(gvar, json.loads(response['status_list']))
+    # Ensure the fetch directory structure exists.
+    fetch_dir = '%s/.csv2/%s/files/%s/yaml' % (
+        gvar['home_dir'],
+        gvar['server'],
+        response['group_name'],
+        )
 
-    # Print report
-    print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
-    if gvar['command_args']['only-keys']:
-        _show_table(
-            gvar,
-            status_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-            ],
-            )
-    else:
-        _show_table(
-            gvar,
-            status_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'VMs',
-                'VMs_running/VMs_running',
-                'VMs_retiring/VMs_retiring',
-                'VMs_in_error/VMs in Error',
-                'VMs_other/VMs_other',
-                'Foreign_VMs/Foreign VMs',
-                'Jobs',
-                'Jobs_s0/Jobstat 0',
-                'Jobs_s1/Jobstat 1',
-                'Jobs_s2/Jobstat 2',
-                'Jobs_s3/Jobstat 3',
-                'Jobs_s4/Jobstat 4',
-                'Jobs_s5/Jobstat 5',
-                'Jobs_s6/Jobstat 6',
-            ],
-            )
+    if not os.path.exists(fetch_dir):
+        os.makedirs(fetch_dir, mode=0o700)  
+
+    # Write the reference copy.
+    fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
+    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.close()
+
+    # Write the edit copy.
+    fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
+    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.close()
+
+    p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
+    p.communicate()
+
+    if filecmp.cmp(
+        '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
+        '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
+        ):
+        print('csv2 group yaml-edit "%s-%s" completed, no changes.' % (response['group_name'],  response['yaml_name']))
+        exit(0)
+
+    # Verify the changed YAML file.
+    form_data = {
+        **verify_yaml_file('%s/%s.yaml' % (fetch_dir, response['yaml_name'])),
+        'group_name': response['group_name'],
+        'yaml_name': response['yaml_name'],
+        }
+
+    # Replace the YAML file.
+    response = requests(
+        gvar,
+        '/group/yaml_update/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+
+def yaml_load(gvar):
+    """
+    Load a new group/YAML file.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, ['-gn', '-f', '-yn'], [], [])
+
+    if not os.path.exists(gvar['user_settings']['file-path']):
+        print('Error: The specified YAML file "%s" does not exist.' % gvar['user_settings']['file-path'])
+        exit(1)
+
+    # Verify the changed YAML file and build input form data.
+    form_data = {
+        **verify_yaml_file(gvar['user_settings']['file-path']),
+        'group_name': gvar['active_group'],
+        'group_name': gvar['user_settings']['group-name'],
+        'yaml_name': gvar['user_settings']['yaml-name'],
+        }
+
+    # Replace the YAML file.
+    response = requests(
+        gvar,
+        '/group/yaml_add/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
 

@@ -1,17 +1,17 @@
-from csv2_common import _check_keys, _show_table
+from csv2_common import check_keys, show_table
 
 import json
 import os
 import shutil
 import yaml
 
-def _delete(gvar):
+def delete(gvar):
     """
     Delete settings.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-s'], [], ['-y'])
+    check_keys(gvar, ['-s'], [], ['-y'])
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']))
@@ -19,13 +19,13 @@ def _delete(gvar):
         print('Error: Settings for server "%s" do not exist.' % gvar['server'])
         exit(1)
 
-def _list(gvar):
+def list(gvar):
     """
     List settings.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], [], ['-s'])
+    check_keys(gvar, [], [], ['-s'])
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
     _keys = ['csv2-server']
@@ -53,15 +53,15 @@ def _list(gvar):
                 _queryset.append({'fields': _settings})
 
     # Display results.
-    _show_table(gvar, _queryset, _keys, allow_null=False)
+    show_table(gvar, _queryset, _keys, allow_null=False)
 
-def _set(gvar):
+def set(gvar):
     """
     Modify settings.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-s'], [], ['*'])
+    check_keys(gvar, ['-s'], [], ['*'])
 
     # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):

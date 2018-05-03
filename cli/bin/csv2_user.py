@@ -1,8 +1,8 @@
-from csv2_common import _requests, _show_table
+from csv2_common import requests, show_table
 
 import json
 
-def _add(gvar):
+def add(gvar):
     """
     Add a csv2 user.
     """
@@ -26,11 +26,8 @@ def _add(gvar):
     if gvar['user_settings']['target-password'] == '.':
         gvar['user_settings']['target-password'] = getpass('Enter target password: ')
 
-    # Retrieve Cookie/CSRF.
-    response = _requests(gvar, '/user/prepare/')
-
     # Create the user.
-    response = _requests(
+    response = requests(
         gvar,
         '/user/create/',
         form_data = {
@@ -45,7 +42,7 @@ def _add(gvar):
     if response['message']:
         print(response['message'])
 
-def _delete(gvar):
+def delete(gvar):
     """
     Delete a csv2 user.
     """
@@ -60,9 +57,9 @@ def _delete(gvar):
         exit(1)
 
     # Retrieve Cookie/CSRF and check that the target user exists.
-    response = _requests(gvar, '/user/list/')
+    response = requests(gvar, '/user/list/')
     _user_found = False
-    for row in json.loads(response['user_list']):
+    for row in response['user_list']:
       if row['pk'] == gvar['user_settings']['target-user']:
         _user_found = True
         break
@@ -80,7 +77,7 @@ def _delete(gvar):
           exit(0)
 
     # Delete the user.
-    response = _requests(
+    response = requests(
         gvar,
         '/user/delete/',
         form_data = {
@@ -91,15 +88,15 @@ def _delete(gvar):
     if response['message']:
         print(response['message'])
 
-def _list(gvar):
+def list(gvar):
     """
     List csv2 users.
     """
 
-    response = _requests(gvar, '/user/list/')
-    _show_table(
+    response = requests(gvar, '/user/list/')
+    show_table(
         gvar,
-        json.loads(response['user_list']),
+        response['user_list'],
         [
             'pk/User',
             'cert_cn/Common Name',
