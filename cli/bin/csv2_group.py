@@ -152,16 +152,16 @@ def yaml_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-gn', '-yn'], [], [])
+    check_keys(gvar, ['-yn'], [], ['-g'])
 
     # Check that the target groupYAML file exists.
     response = requests(gvar, '/group/list/')
     _found = False
     for row in response['group_list']:
-        if row['group_name'] == gvar['user_settings']['group-name']:
+        if row['group_name'] == gvar['active_group']:
             yaml_names = row['yaml_names'].split(',')
             for yaml_name in yaml_names:
-                if row['group_name'] == gvar['user_settings']['group-name']:
+                if row['group_name'] == gvar['active_group']:
                     _found = True
                     break
    
@@ -182,7 +182,6 @@ def yaml_delete(gvar):
         gvar,
         '/group/yaml_delete/',
         form_data = {
-            'group_name': gvar['user_settings']['group-name'],
             'yaml_name': gvar['user_settings']['yaml-name'],
             }
         )
@@ -196,10 +195,10 @@ def yaml_edit(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-gn', '-yn'], ['-te'], [])
+    check_keys(gvar, ['-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/group/yaml_fetch/%s.%s' % (gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/group/yaml_fetch/%s.%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/yaml' % (
@@ -234,7 +233,6 @@ def yaml_edit(gvar):
     # Verify the changed YAML file.
     form_data = {
         **verify_yaml_file('%s/%s.yaml' % (fetch_dir, response['yaml_name'])),
-        'group_name': response['group_name'],
         'yaml_name': response['yaml_name'],
         }
 
@@ -255,7 +253,7 @@ def yaml_load(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-gn', '-f', '-yn'], [], [])
+    check_keys(gvar, ['-f', '-yn'], [], ['-g'])
 
     if not os.path.exists(gvar['user_settings']['file-path']):
         print('Error: The specified YAML file "%s" does not exist.' % gvar['user_settings']['file-path'])
@@ -264,8 +262,6 @@ def yaml_load(gvar):
     # Verify the changed YAML file and build input form data.
     form_data = {
         **verify_yaml_file(gvar['user_settings']['file-path']),
-        'group_name': gvar['active_group'],
-        'group_name': gvar['user_settings']['group-name'],
         'yaml_name': gvar['user_settings']['yaml-name'],
         }
 
