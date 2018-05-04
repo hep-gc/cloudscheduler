@@ -1,6 +1,7 @@
 import multiprocessing
 from multiprocessing import Process
 import time
+import socket
 import logging
 import config
 import datetime
@@ -169,9 +170,11 @@ def vm_poller():
         db_session = Session(engine)
         Vm = Base.classes.csv2_vms
         Cloud = Base.classes.csv2_group_resources
+        Poll_Times = Base.classes.csv2_poll_times
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         # Itterate over cloud list
+        poll_time =  int(time.time())
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
             try:
@@ -234,6 +237,13 @@ def vm_poller():
                 logging.error(exc)
                 logging.error("Aborting cycle...")
         logging.debug("Poll cycle complete, sleeping...")
+        try:
+            new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn), last_poll=poll_time)
+            db_session.merge(new_pt)
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to update vm poll time")
+            logging.error(exc)
         # This cycle should be reasonably fast such that the scheduler will always have the most
         # up to date data during a given execution cycle.
         time.sleep(config.vm_sleep_interval)
@@ -406,10 +416,6 @@ def imagePoller():
                 }
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
-<<<<<<< HEAD
-                db_session.merge(new_image)
-            db_session.commit() # commit before cleanup
-=======
                 try:
                     db_session.merge(new_image)
                 except Exception as exc:
@@ -422,7 +428,6 @@ def imagePoller():
                 logging.error(exc)
                 logging.error("Aborting poll cycle...")
                 break
->>>>>>> e63a8cfd270588e59514f81741dae6d700b66922
             # do Image cleanup
             img_to_delete = db_session.query(Image).filter(
                 Image.last_updated < current_cycle,
@@ -463,6 +468,7 @@ def limitPoller():
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -616,6 +622,7 @@ def networkPoller():
 def vmCleanUp():
     multiprocessing.current_process().name = "VM Cleanup"
     last_cycle = 0
+    vm_poller_id = "vm_poller_" + str(socket.getfqdn)
     while True:
         current_cycle_time = time.time()
         #set up database objects
@@ -626,13 +633,19 @@ def vmCleanUp():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Vm = Base.classes.csv2_vms
+        Poll_Times = Base.classes.csv2_poll_times
         Cloud = Base.classes.csv2_group_resources
 
-
+        last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.proccess_id == vm_poller_id)
         if last_cycle == 0:
             logging.info("First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
+            time.sleep(config.vm_cleanup_interval)
+            continue
+        elif last_cycle >= last_vm_poll.last_poll:
+            logging.error("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller proccess")
+            logging.error("Skipping cycle...")
             time.sleep(config.vm_cleanup_interval)
             continue
 
