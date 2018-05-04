@@ -274,6 +274,8 @@ def update(request):
         return manage(request)
 
 def delete(request):
+
+
     print("+++ delete +++")
     if not verifyUser(request):
         raise PermissionDenied
