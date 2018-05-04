@@ -187,6 +187,9 @@ def list(
             db_connection.close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
+    s = select([csv2_cloud_types])
+    type_list = qt(db_connection.execute(s))
+
     # Retrieve cloud information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_group_resources_with_yaml_names]).where(view_group_resources_with_yaml_names.c.group_name == active_user.active_group)
@@ -235,6 +238,7 @@ def list(
             'attributes': attributes,
             'user_groups': user_groups,
             'cloud_list': cloud_list,
+            'type_list': type_list,
             'yaml_dict': yaml_dict,
             'current_cloud': current_cloud,
             'response_code': response_code,
