@@ -14,6 +14,14 @@ def delete(gvar):
     check_keys(gvar, ['-s'], [], ['-y'])
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
+        # Confirm settings delete.
+        if not gvar['user_settings']['yes']:
+            print('Are you sure you want to delete the settings for server "%s"? (yes|..)' % gvar['server'])
+            _reply = input()
+            if _reply != 'yes':
+                print('csv2 settings delete "%" cancelled.' % gvar['server'])
+                exit(0)
+
         shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']))
     else:
         print('Error: Settings for server "%s" do not exist.' % gvar['server'])

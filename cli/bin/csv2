@@ -162,7 +162,12 @@ def main(args):
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
     # Set active_group and super_user.
-    response = requests(gvar, '/settings/prepare/')
+    if gvar['object'] == 'settings':
+        gvar['active_group'] = '-'
+        gvar['super_user'] = False
+    else:
+        response = requests(gvar, '/settings/prepare/')
+
 
 #   print(">>>>>", gvar['active_group'], gvar['super_user'])
 #   gvar['super_user'] = False
