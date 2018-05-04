@@ -296,9 +296,9 @@ def yaml_add(request):
         success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['group_name'], response_code=0, message='group YAML file "%s.%s" successfully added.' % (values[0]['group_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s.%s" successfully added.' % (active_user.active_group, values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['group_name'], response_code=1, message='group yaml-add "%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=1, message='group yaml-add "%s.%s" failed - %s.' % (active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -338,15 +338,15 @@ def yaml_delete(request):
         success,message = db_execute(
             db_connection,
             table.delete( \
-                (table.c.group_name==values[0]['group_name']) & \
+                (table.c.group_name==active_user.active_group) & \
                 (table.c.yaml_name==values[0]['yaml_name']) \
                 )
             )
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['group_name'], response_code=0, message='group YAML file "%s.%s" successfully deleted.' % (values[0]['group_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s.%s" successfully deleted.' % (active_user.active_group, values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['group_name'], response_code=1, message='group yaml-delete "%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=1, message='group yaml-delete "%s.%s" failed - %s.' % (active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -392,6 +392,8 @@ def yaml_fetch(request, selector=None):
                 
                     return render(request, 'csv2/groups.html', context)
              
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group yaml_fetch, file "%s" does not exist.' % id})
+
     return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group yaml_fetch, received an invalid key "%s".' % id})
 
 #-------------------------------------------------------------------------------
@@ -424,14 +426,14 @@ def yaml_update(request):
 
         # Update the group yaml file.
         success,message = db_execute(db_connection, table.update().where( \
-            (table.c.group_name==values[0]['group_name']) & \
+            (table.c.group_name==active_user.active_group) & \
             (table.c.yaml_name==values[0]['yaml_name']) \
             ).values(values[1]))
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['group_name'], response_code=0, message='group YAML file "%s.%s" successfully  updated.' % (values[0]['group_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s.%s" successfully  updated.' % (active_user.active_group, values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['group_name'], response_code=1, message='group yaml-update "%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=1, message='group yaml-update "%s.%s" failed - %s.' % (active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
