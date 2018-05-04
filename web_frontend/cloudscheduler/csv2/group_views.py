@@ -56,6 +56,9 @@ def add(request):
     if not verifyUser(request):
         raise PermissionDenied
 
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
     if request.method == 'POST':
         # open the database.
         db_engine,db_session,db_connection,db_map = db_open()
@@ -93,6 +96,9 @@ def delete(request):
     """
 
     if not verifyUser(request):
+        raise PermissionDenied
+
+    if not getSuperUserStatus(request):
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -159,6 +165,9 @@ def list(
     ):
 
     if not verifyUser(request):
+        raise PermissionDenied
+
+    if not getSuperUserStatus(request):
         raise PermissionDenied
 
     # open the database.
@@ -235,6 +244,9 @@ def update(request):
     """
 
     if not verifyUser(request):
+        raise PermissionDenied
+
+    if not getSuperUserStatus(request):
         raise PermissionDenied
 
     if request.method == 'POST':
