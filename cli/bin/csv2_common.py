@@ -96,7 +96,7 @@ def _requests(gvar, request, form_data={}):
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
-    if 'csv2-server-url' not in gvar['user_settings']:
+    if 'server-address' not in gvar['user_settings']:
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
@@ -107,25 +107,25 @@ def _requests(gvar, request, form_data={}):
         _function = py_requests.get
         _form_data = {}
 
-    if 'csv2-server-grid-cert' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['csv2-server-grid-cert']) and \
-        'csv2-server-grid-key' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['csv2-server-grid-key']):
+    if 'server-grid-cert' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['server-grid-cert']) and \
+        'server-grid-key' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['server-grid-key']):
         _r = _function(
-            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
-            cert=(gvar['user_settings']['csv2-server-grid-cert'], gvar['user_settings']['csv2-server-grid-key']),
+            '%s%s' % (gvar['user_settings']['server-address'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
             cookies=gvar['cookies']
             )
 
-    elif 'csv2-server-user' in gvar['user_settings']:
-        if 'csv2-server-password' not in gvar['user_settings'] or gvar['user_settings']['csv2-server-password'] == '-':
-            gvar['user_settings']['csv2-server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
+    elif 'server-user' in gvar['user_settings']:
+        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
+            gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
-            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
-            auth=(gvar['user_settings']['csv2-server-user'], gvar['user_settings']['csv2-server-password']),
+            '%s%s' % (gvar['user_settings']['server-address'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
             cookies=gvar['cookies'] 
             )
@@ -145,19 +145,19 @@ def _requests(gvar, request, form_data={}):
             "    %s%s,\n" \
             "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
                 _function.__name__,
-                gvar['user_settings']['csv2-server-url'],
+                gvar['user_settings']['server-address'],
                 request,
-                gvar['user_settings']['csv2-server-url'],
+                gvar['user_settings']['server-address'],
                 )
             )
 
-        if 'csv2-server-grid-cert' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['csv2-server-grid-cert']) and \
-            'csv2-server-grid-key' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['csv2-server-grid-key']):
-            print("    cert=('%s', '%s')," % (gvar['user_settings']['csv2-server-grid-cert'], gvar['user_settings']['csv2-server-grid-key']))
+        if 'server-grid-cert' in gvar['user_settings'] and \
+            os.path.exists(gvar['user_settings']['server-grid-cert']) and \
+            'server-grid-key' in gvar['user_settings'] and \
+            os.path.exists(gvar['user_settings']['server-grid-key']):
+            print("    cert=('%s', '%s')," % (gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']))
         else:
-            print("    auth=('%s', <password>)," % gvar['user_settings']['csv2-server-user'])
+            print("    auth=('%s', <password>)," % gvar['user_settings']['server-user'])
 
         print("    data=%s,\n" \
             "    cookies='%s'\n" \

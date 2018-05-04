@@ -20,7 +20,7 @@ import csv2_settings
 import csv2_user
 
 DEFAULT_SETTINGS = {
-    'csv2-server-url': 'https://localhost',
+    'server-address': 'https://localhost',
     }
 
 def main(args):
@@ -80,8 +80,8 @@ def main(args):
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
             ('-cn',  '--cloud-name', True),
-            ('-ca',  '--cloud-url', True),
-            ('-ck',  '--cloud-password', True),
+            ('-ca',  '--cloud-address', True),
+            ('-cpw', '--cloud-password', True),
             ('-cP',  '--cloud-project-domain', True),
             ('-cp',  '--cloud-project', True),
             ('-cr',  '--cloud-region', True),
@@ -96,21 +96,21 @@ def main(args):
             ('-h',   '--help', False),
             ('-ok',  '--only-keys', False),
             ('-r',   '--rotate', False),
-            ('-s',   '--csv2-server', True),
-            ('-sa',  '--csv2-server-url', True),
-            ('-sC',  '--csv2-server-grid-cert', True),
-            ('-sK',  '--csv2-server-grid-key', True),
-            ('-sk',  '--csv2-server-password', True),
-            ('-su',  '--csv2-server-user', True),
+            ('-s',   '--server', True),
+            ('-sa',  '--server-address', True),
+            ('-sC',  '--server-grid-cert', True),
+            ('-sK',  '--server-grid-key', True),
+            ('-spw', '--server-password', True),
+            ('-SU',  '--super-user', False),
+            ('-su',  '--server-user', True),
             ('-te',  '--text-editor', True),
-            ('-y',   '--yes', False),
+            ('-Y',   '--yes', False),
             ('-ye',  '--yaml-enabled', True),
             ('-ym',  '--yaml-mime-type', True),
             ('-yn',  '--yaml-name', True),
-            ('-su',  '--super-user', False),
-            ('-vc',  '--virtual-cores', True),
-            ('-vk',  '--keypair', True),
-            ('-vr',  '--virtual-ram', True),
+            ('-vc',  '--vm-cores', True),
+            ('-vk',  '--vm-keypair', True),
+            ('-vr',  '--vm-ram', True),
             ('-xA',  '--expose-API', False),
             ),
         'cookies': dict(),
@@ -134,8 +134,8 @@ def main(args):
         os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
 
     # Load the user settings.
-    if 'csv2-server' in gvar['command_args']:
-        gvar['server'] = gvar['command_args']['csv2-server']
+    if 'server' in gvar['command_args']:
+        gvar['server'] = gvar['command_args']['server']
     else:
         gvar['server'] = 'default'
 
