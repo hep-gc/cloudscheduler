@@ -48,12 +48,24 @@ def job_producer():
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
     last_poll_time = 0
+    fail_count = 0
     while True:
         try:
             #
             # Setup - initialize condor and database objects and build user-group list
             #
-            condor_s = htcondor.Schedd()
+            try:
+                condor_s = htcondor.Schedd()
+            except Exception as exc:
+                fail_count = fail_count + 1
+                logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+                logging.error(exc)
+                logging.error("Sleeping until next cycle...")
+                time.sleep(config.sleep_interval)
+                continue
+
+            fail_count = 0
+
             Base = automap_base()
             engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
                 "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
@@ -136,8 +148,20 @@ def job_producer():
 
                 logging.info("Adding job %s", job_dict["global_job_id"])
                 new_job = Job(**job_dict)
-                session.merge(new_job)
-            session.commit()
+                try:
+                    session.merge(new_job)
+                except Exception as exc:
+                    logging.error("Unable to merge job:")
+                    logging.error(exc)
+                    logging.error("Skipping for this cycle...")
+            try:        
+                session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
+                time.sleep(sleep_interval)
+                continue
 
 
             session = Session(engine)
@@ -158,10 +182,20 @@ def job_producer():
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
                     new_job = Job(**job_dict)
-                    session.merge(new_job)
-                session.commit()
-
-            last_poll_time = new_poll_time
+                    try:
+                        session.merge(new_job)
+                    except Exception as exc:
+                        logging.error("Unable to merge updated job ads:")
+                        logging.error(exc)
+                        logging.error("setting new_poll_time to last_poll_time to repeat cycle")
+                        new_poll_time = last_poll_time
+                try:        
+                    session.commit()
+                    last_poll_time = new_poll_time
+                except Exception as exc:
+                    logging.error("Unable to commit database session")
+                    logging.error(exc)
+                    logging.error("Aborting cycle...")
 
             time.sleep(sleep_interval)
 
@@ -204,7 +238,12 @@ def job_command_consumer():
                     logging.error("Failed to hold job %s", job.global_job_id)
                     continue
             #commit updates enteries
-            session.commit()
+            try:        
+                session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
 
             logging.debug("No more jobs to hold, begining sleep interval...")
             time.sleep(sleep_interval)
@@ -220,11 +259,21 @@ def job_command_consumer():
 
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
+    fail_count = 0 
     while True:
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its
         # better to re-mirror the database each time for the sake on consistency.
-        condor_s = htcondor.Schedd()
+        try:
+            condor_s = htcondor.Schedd()
+        except Exception as exc:
+            fail_count = fail_count + 1
+            logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+            logging.error(exc)
+            logging.error("Sleeping until next cycle...")
+            time.sleep(config.cleanup_sleep_interval)
+            continue
+        fail_count = 0
         Base = automap_base()
         local_hostname = socket.gethostname()
         engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
@@ -256,9 +305,17 @@ def cleanUp():
                 # metadata not relevent to the job ad, must trim to init with kwargs
                 job_dict.pop('_sa_instance_state', None)
                 new_arch_job = archJob(**job_dict)
-                session.merge(new_arch_job)
+                try:
+                    session.merge(new_arch_job)
+                except Exception as exc:
+                    logging.error("Unable to merge deleted job add, skipping for this cycle")
 
-        session.commit()
+        try:        
+            session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         time.sleep(config.cleanup_sleep_interval)
 
 if __name__ == '__main__':

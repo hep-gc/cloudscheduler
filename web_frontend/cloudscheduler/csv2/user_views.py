@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from .view_utils import _db_execute, db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, map_parameter_to_field_values, _qt, _render, _set_user_groups
+from .view_utils import db_execute, db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, map_parameter_to_field_values, qt, render, set_user_groups
 from collections import defaultdict
 import bcrypt
 
@@ -58,17 +58,17 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        response_code,message,active_user,user_groups = _set_user_groups(request, db_session, db_map)
+        response_code,message,active_user,user_groups = set_user_groups(request, db_session, db_map)
         if response_code != 0:
             db_connection.close()
-            return _render(request, 'csv2/users.html', {'response_code': 1, 'message': message})
+            return render(request, 'csv2/users.html', {'response_code': 1, 'message': message})
 
     #get user info
     s = select([csv2_user])
-    user_list = _qt(db_connection.execute(s))
+    user_list = qt(db_connection.execute(s))
 
     s = select([csv2_groups])
-    group_list = _qt(db_connection.execute(s))
+    group_list = qt(db_connection.execute(s))
 
     #user_list = {'ResultProxy': [dict(r) for r in db_connection.execute(s)]}
 
@@ -101,7 +101,7 @@ def list(
             'message': None
         }
 
-    return _render(request, 'csv2/users.html', context)
+    return render(request, 'csv2/users.html', context)
 
 def manage(request, response_code=0, message=None):
     print("+++ manage +++", response_code, message)
@@ -118,7 +118,7 @@ def manage(request, response_code=0, message=None):
             'message': message
     }
 
-    return _render(request, 'csv2/users.html', context)
+    return render(request, 'csv2/users.html', context)
 
 
 def add(request):
@@ -144,7 +144,7 @@ def add(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         
         if rc != 0:
             db_connection.close()
@@ -155,7 +155,7 @@ def add(request):
 
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='user add request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='user add %s' % values, active_user=active_user, user_groups=user_groups)
 
 
 
@@ -166,7 +166,7 @@ def add(request):
         # 4. Check that both passwords are the same
 
         s = select([csv2_user])
-        csv2_user_list = _qt(db_connection.execute(s), prune=['password'])
+        csv2_user_list = qt(db_connection.execute(s), prune=['password'])
 
         #csv2_user_list = csv2_user.objects.all()
         for registered_user in csv2_user_list:
@@ -197,7 +197,7 @@ def add(request):
         values[1]['join_date'] = datetime.datetime.today().strftime('%Y-%m-%d')
         
         # Add the user.
-        success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+        success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
         db_connection.close()
 
         if success:
@@ -320,7 +320,7 @@ def settings(request):
                         'response_code': 1,
                         'message': "Unable to update user: new username unavailable"
                     }
-                    return _render(request, 'csv2/user_settings.html', context)
+                    return render(request, 'csv2/user_settings.html', context)
             #check #2
             if cert_cn is not None and registered_user.username != user_to_update.username and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
                 context = {
@@ -328,7 +328,7 @@ def settings(request):
                     'response_code': 1,
                     'message': "Unable to update user: Username or DN unavailable or conflicts with a registered Distinguished Name"
                 }
-                return _render(request, 'csv2/user_settings.html', context)
+                return render(request, 'csv2/user_settings.html', context)
 
         #check #3 part 1
         if new_pass1 is None or new_pass2 is None:
@@ -337,7 +337,7 @@ def settings(request):
                 'response_code': 1,
                 'message': "Password is empty"
             }
-            return _render(request, 'csv2/user_settings.html', context)
+            return render(request, 'csv2/user_settings.html', context)
         #check #3 part 2
         if len(new_pass1)<4:
             context = {
@@ -345,7 +345,7 @@ def settings(request):
                 'response_code': 1,
                 'message': "Password must be at least 4 characters"
             }
-            return _render(request, 'csv2/user_settings.html', context)
+            return render(request, 'csv2/user_settings.html', context)
         #check #3 part 3
         if new_pass1 != new_pass2:
             context = {
@@ -353,7 +353,7 @@ def settings(request):
                 'response_code': 1,
                 'message': "Passwords do not match"
             }
-            return _render(request, 'csv2/user_settings.html', context)
+            return render(request, 'csv2/user_settings.html', context)
 
         #if we get here all the checks have passed and we can safely update the user data
         user_to_update.username=new_username
@@ -366,7 +366,7 @@ def settings(request):
                 'response_code': 0,
                 'message': "Update Successful"
             }
-        return _render(request, 'csv2/user_settings.html', context)
+        return render(request, 'csv2/user_settings.html', context)
 
     else:
         #render user_settings template
@@ -377,5 +377,5 @@ def settings(request):
             'response_code': 0,
             'message': None
         }
-        return _render(request, 'csv2/user_settings.html', context)
+        return render(request, 'csv2/user_settings.html', context)
 

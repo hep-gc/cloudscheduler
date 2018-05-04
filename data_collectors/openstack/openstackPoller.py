@@ -222,8 +222,17 @@ def vm_poller():
                 vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                 vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                 new_vm = Vm(**vm_dict)
-                db_session.merge(new_vm)
-            db_session.commit()
+                try:
+                    db_session.merge(new_vm)
+                except Exception as exc:
+                    logging.error("unable to merge sessions, database incosistency or other error:")
+                    logging.error(exc)
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
         logging.debug("Poll cycle complete, sleeping...")
         # This cycle should be reasonably fast such that the scheduler will always have the most
         # up to date data during a given execution cycle.
@@ -316,7 +325,12 @@ def flavorPoller():
             for flav in flav_to_delete:
                 logging.info("Cleaning up flavor: %s", flav)
                 db_session.delete(flav)
-        db_session.commit()
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.flavor_sleep_interval)
 
@@ -392,8 +406,23 @@ def imagePoller():
                 }
                 img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                 new_image = Image(**img_dict)
+<<<<<<< HEAD
                 db_session.merge(new_image)
             db_session.commit() # commit before cleanup
+=======
+                try:
+                    db_session.merge(new_image)
+                except Exception as exc:
+                    logging.error("Database inconsistency, unable to merge image entry")
+                    logging.error(exc)
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting poll cycle...")
+                break
+>>>>>>> e63a8cfd270588e59514f81741dae6d700b66922
             # do Image cleanup
             img_to_delete = db_session.query(Image).filter(
                 Image.last_updated < current_cycle,
@@ -403,7 +432,12 @@ def imagePoller():
                 logging.info("Cleaning up image: %s", img)
                 db_session.delete(img)
 
-        db_session.commit()
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to perform final commit of database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.image_sleep_interval)
 
@@ -474,7 +508,12 @@ def limitPoller():
                 logging.info("Cleaning up limit %s", limit)
                 db_session.delete(limit)
 
-        db_session.commit()
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.limit_sleep_interval)
 
@@ -556,8 +595,13 @@ def networkPoller():
                 logging.info("Cleaning up network: %s", net)
                 db_session.delete(net)
 
-        db_session.commit()
-        last_cycle = current_cycle
+        try:        
+            db_session.commit()
+            last_cycle = current_cycle
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.network_sleep_interval)
 
@@ -599,7 +643,16 @@ def vmCleanUp():
             db_session.delete(vm)
 
         # need to commit the session here to remove vms that are gone before we look at which to terminate
-        db_session.commit()
+
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
+            logging.info("Sleeping...")
+            time.sleep(config.vm_cleanup_interval)
+            continue
         db_session = Session(engine)
 
         # check for vms that have been marked for termination
@@ -641,9 +694,14 @@ def vmCleanUp():
             logging.info("Terminating...")
             result = terminate_vm(session, vm)
 
-        db_session.commit()
+        try:        
+            db_session.commit()
+            last_cycle = current_cycle_time
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
 
-        last_cycle = current_cycle_time
         time.sleep(config.vm_cleanup_interval)
     return None
 

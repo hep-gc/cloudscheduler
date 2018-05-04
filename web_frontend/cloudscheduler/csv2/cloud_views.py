@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from .view_utils import _db_execute, db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, map_parameter_to_field_values, _qt, _render, _set_user_groups
+from .view_utils import db_execute, db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, map_parameter_to_field_values, qt, render, set_user_groups
 from collections import defaultdict
 import bcrypt
 
@@ -30,6 +30,10 @@ CLOUD_KEYS = (
         'group',
         'ram_slider',
         ),
+    {
+        'group_name': 'l',
+        'cloud_name': 'l',
+        },
     )
 
 YAML_KEYS = (
@@ -48,6 +52,7 @@ YAML_KEYS = (
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def add(request):
     """
     This function should recieve a post request with a payload of cloud configuration
@@ -62,7 +67,7 @@ def add(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
             return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -71,15 +76,15 @@ def add(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resources', CLOUD_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud add request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud add %s' % values, active_user=active_user, user_groups=user_groups)
 
         # Add the cloud.
-        success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+        success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s-%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s.%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud add "%s-%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud add "%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -90,6 +95,7 @@ def add(request):
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def delete(request):
     """
     This function should recieve a post request with a payload of cloud name
@@ -104,7 +110,7 @@ def delete(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
             return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -113,19 +119,19 @@ def delete(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resource_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud delete, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud delete %s.' % values, active_user=active_user, user_groups=user_groups)
 
         # Delete any cloud/YAML files for the cloud.
         s = select([view_group_resources_with_yaml_names]).where(
           (view_group_resources_with_yaml_names.c.group_name == values[0]['group_name']) & (view_group_resources_with_yaml_names.c.cloud_name == values[0]['cloud_name'])
           )
-        cloud_list = _qt(db_connection.execute(s))
+        cloud_list = qt(db_connection.execute(s))
         for row in cloud_list:
             if row['group_name'] == values[0]['group_name'] and row['cloud_name'] == values[0]['cloud_name'] and row['yaml_names']:
                 yaml_names = row['yaml_names'].split(',')
                 for yaml_name in yaml_names:
                     # Delete the cloudYAML file.
-                    success,message = _db_execute(
+                    success,message = db_execute(
                         db_connection,
                         table.delete((table.c.group_name==values[0]['group_name']) & (table.c.cloud_name==values[0]['cloud_name']) & (table.c.yaml_name==yaml_name))
                         )
@@ -134,18 +140,18 @@ def delete(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resources', CLOUD_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud delete, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud delete %s' % values, active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud.
-        success,message = _db_execute(
+        success,message = db_execute(
             db_connection,
             table.delete((table.c.group_name==values[0]['group_name']) & (table.c.cloud_name==values[0]['cloud_name']))
             )
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s-%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s.%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud delete "%s-%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud delete "%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -156,6 +162,7 @@ def delete(request):
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def list(
     request,
     selector=None,
@@ -175,19 +182,19 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Retrieve cloud information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_group_resources_with_yaml_names]).where(view_group_resources_with_yaml_names.c.group_name == active_user.active_group)
-        cloud_list = _qt(db_connection.execute(s), prune=['password'])
+        cloud_list = qt(db_connection.execute(s), prune=['password'])
         yaml_dict = {}
     else:
         s = select([view_group_resources_with_yaml]).where(view_group_resources_with_yaml.c.group_name == active_user.active_group)
-        cloud_list, yaml_dict = _qt(
+        cloud_list, yaml_dict = qt(
             db_connection.execute(s),
             keys = {
                 'primary': [
@@ -234,39 +241,11 @@ def list(
             'message': message
         }
 
-    return _render(request, 'csv2/clouds.html', context)
+    return render(request, 'csv2/clouds.html', context)
 
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def prepare(request):
-    """
-    This function returns a minimal response plus a CSRF.
-    """
-
-    # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
-
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
-    if rc != 0:
-        db_connection.close()
-        return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
-
-    db_connection.close()
-
-    context = {
-            'active_user': active_user,
-            'active_group': active_user.active_group,
-            'user_groups': user_groups,
-            'response_code': 0,
-            'message': None
-    }
-    
-    return _render(request, 'csv2/clouds.html', context)
-
-#-------------------------------------------------------------------------------
-
 def status(request, group_name=None):
     """
     This function generates a the status of a given groups operations
@@ -280,7 +259,7 @@ def status(request, group_name=None):
     db_engine,db_session,db_connection,db_map = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
     if rc != 0:
         db_connection.close()
         return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -315,10 +294,11 @@ def status(request, group_name=None):
             'message': None,
         }
 
-    return _render(request, 'csv2/status.html', context)
+    return render(request, 'csv2/status.html', context)
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def update(request):
     """
     This function should recieve a post request with a payload of cloud configuration
@@ -333,7 +313,7 @@ def update(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
             return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -342,15 +322,15 @@ def update(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resources', CLOUD_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud update, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud update %s.' % values, active_user=active_user, user_groups=user_groups)
 
         # Update the cloud.
-        success, message = _db_execute(db_connection, table.update().where((table.c.group_name==values[0]['group_name']) & (table.c.cloud_name==values[0]['cloud_name'])).values(values[1]))
+        success, message = db_execute(db_connection, table.update().where((table.c.group_name==values[0]['group_name']) & (table.c.cloud_name==values[0]['cloud_name'])).values(values[1]))
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s-%s" successfully updated.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud "%s.%s" successfully updated.' % (values[0]['group_name'], values[0]['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud update "%s-%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud update "%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -361,6 +341,7 @@ def update(request):
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def yaml_add(request):
     """
     This function should recieve a post request with a payload of yaml configuration
@@ -378,7 +359,7 @@ def yaml_add(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
             return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -387,15 +368,15 @@ def yaml_add(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resource_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud yaml-add, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud yaml-add %s' % values, active_user=active_user, user_groups=user_groups)
 
         # Add the cloud yaml file.
-        success,message = _db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+        success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud YAML file "%s-%s-%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud YAML file "%s.%s.%s" successfully added.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud yaml-add "%s-%s-%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud yaml-add "%s.%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -406,6 +387,7 @@ def yaml_add(request):
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def yaml_delete(request):
     """
     This function should recieve a post request with a payload of yaml configuration
@@ -423,7 +405,7 @@ def yaml_delete(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
             return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -432,10 +414,10 @@ def yaml_delete(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resource_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud yaml-delete, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud yaml-delete %s' % values, active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud yaml file.
-        success,message = _db_execute(
+        success,message = db_execute(
             db_connection,
             table.delete( \
                 (table.c.group_name==values[0]['group_name']) & \
@@ -445,9 +427,9 @@ def yaml_delete(request):
             )
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud YAML file "%s-%s-%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud YAML file "%s.%s.%s" successfully deleted.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud yaml-delete "%s-%s-%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud yaml-delete "%s.%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
@@ -458,7 +440,8 @@ def yaml_delete(request):
 
 #-------------------------------------------------------------------------------
 
-def yaml_fetch(request):
+@requires_csrf_token
+def yaml_fetch(request, selector=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -466,21 +449,24 @@ def yaml_fetch(request):
     db_engine,db_session,db_connection,db_map = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
     if rc != 0:
         db_connection.close()
         return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
 
     # Retrieve YAML file.
-    obj_act_id = request.path.split('/')
+    obj_act_id = request.path.split('/') # /cloud/yaml_fetch/<group>.<cloud>.<yaml>
     if len(obj_act_id) > 3:
         id = obj_act_id[3]
         ids = id.split('.')
-        if len(ids) > 1:
+        print(">>>>>>>>>>", ids)
+        if len(ids) == 3:
             YAML = db_map.classes.csv2_group_resource_yaml
-            YAMLobj = db_session.query(YAML).filter((YAML.group_name==active_user.active_group) & (YAML.cloud_name==ids[0]) & (YAML.yaml_name==ids[1]))
+            YAMLobj = db_session.query(YAML).filter((YAML.group_name==ids[0]) & (YAML.cloud_name==ids[1]) & (YAML.yaml_name==ids[2]))
+            print(">>>>>>>>>>", type(YAMLobj))
             if YAMLobj:
                 for row in YAMLobj:
+                    print(">>>>>>>>>>", row)
                     context = {
                         'group_name': row.group_name,
                         'cloud_name': row.cloud_name,
@@ -492,12 +478,16 @@ def yaml_fetch(request):
                         'message': None
                         }
                 
-                    return _render(request, 'csv2/clouds.html', context)
+                    return render(request, 'csv2/clouds.html', context)
              
-    return _render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received an invalid key "%s".' % id})
+    if id:
+      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received an invalid YAML file id "%s".' % id})
+    else:
+      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received no YAML file id.'})
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
 def yaml_update(request):
     """
     This function should recieve a post request with a payload of yaml configuration
@@ -515,7 +505,7 @@ def yaml_update(request):
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = _set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
             return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
@@ -524,19 +514,19 @@ def yaml_update(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_resource_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='cloud yaml-update, request contained bad parameter "%s".' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='cloud yaml-update %s' % values, active_user=active_user, user_groups=user_groups)
 
         # Update the cloud yaml file.
-        success,message = _db_execute(db_connection, table.update().where( \
+        success,message = db_execute(db_connection, table.update().where( \
             (table.c.group_name==values[0]['group_name']) & \
             (table.c.cloud_name==values[0]['cloud_name']) & \
             (table.c.yaml_name==values[0]['yaml_name']) \
             ).values(values[1]))
         db_connection.close()
         if success:
-            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud YAML file "%s-%s-%s" successfully  updated.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=0, message='cloud YAML file "%s.%s.%s" successfully  updated.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud yaml-update "%s-%s-%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['cloud_name'], response_code=1, message='cloud yaml-update "%s.%s.%s" failed - %s.' % (values[0]['group_name'], values[0]['cloud_name'], values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
