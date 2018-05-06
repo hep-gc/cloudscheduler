@@ -1,0 +1,20 @@
+/*
+** List user's available groups.
+*/
+create or replace view view_user_groups_available as
+
+select
+
+cucg.username,
+cucg.group_name,
+cug.username as available
+
+from (select username,group_name from csv2_user,csv2_groups) as cucg
+
+left outer join csv2_user_groups as cug
+on cucg.username=cug.username and
+cucg.group_name=cug.group_name
+
+where cug.username is NULL
+
+;
