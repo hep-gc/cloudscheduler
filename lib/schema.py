@@ -236,6 +236,11 @@ csv2_config = Table('csv2_config', metadata,
   Column('yaml', String)
   )
 
+csv2_configuration = Table('csv2_configuration', metadata,
+  Column('process_name', String(128)),
+  Column('yaml_parameters', String)
+  )
+
 csv2_group_defaults = Table('csv2_group_defaults', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('job_cpus', Integer),
@@ -293,6 +298,11 @@ csv2_group_yaml = Table('csv2_group_yaml', metadata,
 csv2_groups = Table('csv2_groups', metadata,
   Column('group_name', String(128), primary_key=True),
   Column('condor_central_manager', String)
+  )
+
+csv2_poll_times = Table('csv2_poll_times', metadata,
+  Column('proccess_id', String(64), primary_key=True),
+  Column('last_poll', Integer)
   )
 
 csv2_user = Table('csv2_user', metadata,
@@ -359,6 +369,21 @@ django_session = Table('django_session', metadata,
   Column('session_key', String(40), primary_key=True),
   Column('session_data', String),
   Column('expire_date', Integer)
+  )
+
+project_job_defaults = Table('project_job_defaults', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('image_name', String),
+  Column('flavor', String),
+  Column('cpu_cores', Integer),
+  Column('memory', Integer),
+  Column('storage', Integer),
+  Column('job_yaml_files', String)
+  )
+
+project_users = Table('project_users', metadata,
+  Column('projectid', Integer),
+  Column('username', String(64))
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -454,6 +479,34 @@ view_cloud_status_raw = Table('view_cloud_status_raw', metadata,
   Column('Jobs_s4', Integer),
   Column('Jobs_s5', Integer),
   Column('Jobs_s6', Integer)
+  )
+
+view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
+  Column('global_job_id', String(128)),
+  Column('group_name', String(128)),
+  Column('target_clouds', String),
+  Column('cloud_name', String),
+  Column('job_status', Integer),
+  Column('request_cpus', Integer),
+  Column('request_ram', Integer),
+  Column('request_disk', Integer),
+  Column('request_swap', Integer),
+  Column('request_scratch', Integer),
+  Column('requirements', String(512)),
+  Column('job_priority', Integer),
+  Column('cluster_id', Integer),
+  Column('proc_id', Integer),
+  Column('user', String(512)),
+  Column('image', String),
+  Column('instance_type', String(512)),
+  Column('network', String(512)),
+  Column('keep_alive', String(512)),
+  Column('max_price', String(512)),
+  Column('user_data', String(512)),
+  Column('job_per_core', Integer),
+  Column('entered_current_status', Integer),
+  Column('q_date', Integer),
+  Column('hold_job', Integer)
   )
 
 view_group_list = Table('view_group_list', metadata,
@@ -600,7 +653,7 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('max_price', String(512)),
   Column('user_data', String(512)),
   Column('job_per_core', Integer),
-  Column('q_date', Integer),
+  Column('queue_date', Integer),
   Column('flavors', String),
   Column('count', Integer)
   )
@@ -623,7 +676,7 @@ view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
   Column('max_price', String(512)),
   Column('user_data', String(512)),
   Column('job_per_core', Integer),
-  Column('q_date', Integer),
+  Column('queue_date', Integer),
   Column('flavor', String(182)),
   Column('flavor_mismatch', Integer),
   Column('flavor_cores', Integer),
@@ -647,7 +700,34 @@ view_groups_with_yaml = Table('view_groups_with_yaml', metadata,
 view_groups_with_yaml_names = Table('view_groups_with_yaml_names', metadata,
   Column('group_name', String(128)),
   Column('condor_central_manager', String),
-  Column('yaml_names', String(128))
+  Column('yaml_names', String)
+  )
+
+view_user_groups = Table('view_user_groups', metadata,
+  Column('username', String(32)),
+  Column('cert_cn', String(128)),
+  Column('password', String(128)),
+  Column('is_superuser', Integer),
+  Column('join_date', Integer),
+  Column('active_group', String(128)),
+  Column('user_groups', String)
+  )
+
+view_user_groups_and_available_groups = Table('view_user_groups_and_available_groups', metadata,
+  Column('username', String(32)),
+  Column('cert_cn', String(128)),
+  Column('password', String(128)),
+  Column('is_superuser', Integer),
+  Column('join_date', Integer),
+  Column('active_group', String(128)),
+  Column('user_groups', String),
+  Column('available_groups', String)
+  )
+
+view_user_groups_available = Table('view_user_groups_available', metadata,
+  Column('username', String(32)),
+  Column('group_name', String(128)),
+  Column('available', String(128))
   )
 
 view_vms = Table('view_vms', metadata,
