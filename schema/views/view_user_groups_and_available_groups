@@ -1,0 +1,18 @@
+/*
+** List user's available groups.
+*/
+create or replace view view_user_groups_and_available_groups as
+
+select
+
+vug.*,
+group_concat(group_name) as available_groups
+
+from view_user_groups as vug
+
+left outer join view_user_groups_available as vuga
+on vug.username=vuga.username
+
+group by vug.username
+
+;
