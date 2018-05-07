@@ -5,20 +5,20 @@ import filecmp
 import os
 
 KEY_MAP = {
-    '-ca': 'authurl',
-    '-ck': 'password',
-    '-cn': 'cloud_name',
-    '-cp': 'project',
-    '-cr': 'region',
-    '-ct': 'cloud_type',
-    '-cu': 'username',
-    '-cP': 'project_domain_name',
-    '-cU': 'user_domain_name',
-    '-g':  'group',
-    '-ga': 'cacertificate',
-    '-vc': 'cores_ctl',
-    '-vk': 'keyname',
-    '-vr': 'ram_ctl',
+    '-ca':  'authurl',
+    '-cpw': 'password',
+    '-cn':  'cloud_name',
+    '-cp':  'project',
+    '-cr':  'region',
+    '-ct':  'cloud_type',
+    '-cu':  'username',
+    '-cP':  'project_domain_name',
+    '-cU':  'user_domain_name',
+    '-g':   'group',
+    '-ga':  'cacertificate',
+    '-vc':  'cores_ctl',
+    '-vk':  'keyname',
+    '-vr':  'ram_ctl',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -43,7 +43,7 @@ def add(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-ca', '-ck', '-cn', '-cp', '-cr', '-ct', '-cu'],
+        ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
         [],
         ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)
@@ -224,7 +224,7 @@ def update(gvar):
         gvar,
         ['-cn'],
         [],
-        ['-ca', '-ck', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
+        ['-ca', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
