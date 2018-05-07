@@ -1,0 +1,119 @@
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<style>
+	/* for image upload cloud picker widget */
+	SELECT, INPUT[type="text"] {
+	    width: 160px;
+	    box-sizing: border-box;
+	}
+	SECTION {
+	    padding: 8px;
+	    background-color: #f0f0f0;
+	    overflow: auto;
+	}
+	SECTION > DIV {
+	    float: left;
+	    padding: 4px;
+	}
+	SECTION > DIV + DIV {
+	    width: 40px;
+	    text-align: center;
+	}
+
+</style>
+
+<div class="image upload">
+	{% if message is not None%}
+		<p style="color:red; font-weight:bold">{{message}}</p>
+	{% endif%}
+	<form method="post" action="/ui/upload_image/{{account_name}}/" enctype="multipart/form-data">
+	{% csrf_token %}
+	<table style="width: 30%;">
+		<tr id="imagefromfile">
+			<td><label for="myfile">Image File:</label></td>
+			<td><input type="file" name="myfile">
+			<button onclick="toggleFileField()" type="button">From URL</button></td>
+		</tr>
+		<tr hidden="true" id="imagefromurl">
+			<td><label for="myfileurl">Image URL:</label></td>
+			<td><input type="text" name="myfileurl">
+			<button onclick="toggleFileField()" type="button">From File</button></td>
+		</tr>
+		<tr>
+			<td><label for="disk_format">Disk Format:</label></td>
+			<td><select type="text" name="disk_format"/>
+				<option value="aki">AKI - Amazon Kernel Image</option>
+				<option value="ami">AMI - Amazon Machine Image</option>
+				<option value="ari">ARI - Amazon Ramdisk Image</option>
+				<option value="docker">Docker</option>
+				<option value="iso">ISO - Optical Disk Image</option>
+				<option value="ova">OVA - Open Virtual Appliance</option>
+				<option value="qcow2">QCOW2 - QEMU Emulator</option>
+				<option value="raw">Raw</option>
+				<option value="vdi">VDI - Virtual Disk Image</option>
+				<option value="vhd">VHD - Virtual Hard Disk</option>
+				<option value="vmdk">VMDK - Virtual Machine Disk</option>
+			</select></td>
+		</tr>
+		<tr>
+			<td><label for="clouds">Upload to:</label></td>
+			<td>
+				<section class="container">
+					<div>
+						<select id="leftValues" name="clouds" size="{{max_repos}}" multiple></select>
+					</div>
+					<div>
+						<input type="button" id="btnLeft" value="&lt;&lt;" />
+						<input type="button" id="btnRight" value="&gt;&gt;" />
+					</div>
+					<div>
+						<select id="rightValues" size="{{max_repos}}" multiple>
+							{% for repo in image_dict %}
+								<option>{{repo}}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</section>
+			</td>
+		</tr>
+		
+		<tr><td/><td><a href="/ui/"><input type="button" value="Cancel"/></a><button style="float:right" type="submit">Upload</button></td></tr>
+	</table>
+	</form>
+
+</div>
+
+
+<script>
+
+function toggleFileField() {
+	//if browse active, show url field
+	//if url field active, show file browser
+	if($("#imagefromfile").is(":visible")){
+		$("#imagefromfile").hide();
+		$("#imagefromurl").show();
+	}
+	else{
+		$("#imagefromfile").show();
+		$("#imagefromurl").hide();
+	}
+
+}
+
+/* for image upload cloud picker widget */
+$("#btnLeft").click(function () {
+    var selectedItem = $("#rightValues option:selected");
+    $("#leftValues").append(selectedItem);
+});
+
+$("#btnRight").click(function () {
+    var selectedItem = $("#leftValues option:selected");
+    $("#rightValues").append(selectedItem);
+});
+
+$("#rightValues").change(function () {
+    var selectedItem = $("#rightValues option:selected");
+    $("#txtRight").val(selectedItem.text());
+});
+
+</script>

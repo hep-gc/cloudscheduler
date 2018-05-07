@@ -1,0 +1,31 @@
+# Name of nodes to start
+# here we have a single node
+#CELERYD_NODES="w1"
+# or we could have three nodes:
+CELERYD_NODES="w1 w2 w3 w4"
+
+# We only want each worker to claim 1 job at a time, especially the worker dedicated to img collection
+CELERYD_PREFETCH_MULTIPLIER=1
+
+# Absolute path to "manage.py"
+CELERY_BIN="/opt/Glintv2/manage.py"
+
+# Where to chdir at start. This could be the root of a virtualenv.
+CELERYD_CHDIR="/opt/Glintv2"
+
+# App instance to use
+# comment out this line if you don't use an app
+#CELERY_APP="celery_app"
+# or fully qualified:
+#CELERY_APP="glintv2.celery_app:app"
+
+
+# How to call manage.py
+CELERYD_MULTI="celery multi"
+
+# Extra command-line arguments to the worker
+CELERYD_OPTS="-Q:w1 image_collection -Q:w2,w3,w4 celery -A glintv2 --concurrency=1 -Ofair"
+
+# %N will be replaced with the first part of the nodename.
+CELERYD_LOG_FILE="/var/log/celery/%N.log"
+CELERYD_PID_FILE="/var/run/celery/%N.pid"
