@@ -1,0 +1,158 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_header_footer.css">
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_matrix.css">
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_button.css">
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_dropdown_button.css">
+
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+        th {
+            text-align: center;
+        }
+    </style>
+</head>
+{% load template_utils %}
+<ul>
+    <li style="padding 0px"><a style="padding: 0px" href="/ui/"><img href="/ui/" style="height: 60px;" src="/static/glintwebui/img/glintv2whitetext.png"></a></li>
+    {% if is_superuser %}
+       <li> <div>
+                <a onclick="doAdminDropdown()" class="dropbtn">Admin Tools</a>
+                <div id="myAdminDropdown" class="dropdown-content">
+                    <a href='/ui/manage_users/'>User Management</a>
+                    <a href='/ui/manage_groups/'>Group Management</a>
+                </div>
+            </div>
+       </li>
+    {% endif %}
+    <li><a href="/ui/user_settings/">User Settings</a></li>
+</ul>
+<br/>
+<div class="wrapper">
+<h1>Group Management</h1>
+{% if message is not None %}
+    <div><p style="color:green">{{message}}</p></div>
+{% endif %}
+<div>
+    <table class="image_matrix">
+        <tr><th>Group</th><th>User List</th><th/></tr>
+        {% for group in group_list %}
+            <tr>
+                <td><b>{{group.group_name}}</b></td>
+                <td>
+                    {% for grp in group_user_dict %}
+                        {% if group == grp %}
+                            {% for user in group_user_dict|get_item:grp %}
+                                <p>{{user}} <input type="button" onclick="confirmUserDelete('{{user}}', '{{group.group_name}}')" value="x" style="background-color: red; color: black; float: right"/></p>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                    <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{{group.group_name|strip}}_add" style="margin-right: 5px"> + </button>
+                        <div class="collapse" id="{{group.group_name|strip}}_add">
+                        <form name="{{group.group_name|strip}}_add" action="/ui/add_user_group/" method="post">
+                            {% csrf_token %}
+                            <table>
+                                <td><select name="user" id="" value="" />
+                                    {% for user in user_list%}
+                                        <option value="{{user}}">{{user}}</option>
+                                    {% endfor%}
+                                </select></td>
+                    
+                                <input type="hidden" name="group" value="{{group.group_name}}" />
+
+                                <td><input type="submit" value="Add User" /></td>
+                                </tr>
+                            </table>
+                        </form>
+                    </div>
+                </td>
+                <td><button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{{group.group_name|strip}}" style="margin-right: 5px"> Edit </button>
+                <div class="collapse" id="{{group.group_name|strip}}" style="width: 400px">
+                    <form name="{{group.group_name|strip}}" action="/ui/update_group/" method="post">
+                        {% csrf_token %}
+                        <table>
+                            <tr><td><label for="group">Group</label></td>
+                            <td><input type="text" name="group" id="" value="{{group.group_name}}" /></td></tr>
+                
+                            <input type="hidden" name="old_group" value="{{group.group_name}}" />
+
+                            <tr><td></td>
+                            <td><input type="submit" value="Update Group" style="background-color: green; color: black; float: left" /><input type="button" onclick="confirmDelete('{{group.group_name}}')" value="Delete" style="background-color: red; color: black; float: right"/></td></tr>
+                        </table>
+                    </form>
+                </div>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+<div style="padding-left: 25px; padding-top: 25px">
+    <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#new_group" style="margin-right: 5px"> Add Group </button>
+    <div class="collapse" id="new_group" style="width: 400px">
+        <form name="new_group" action="/ui/add_group/" method="post">
+            {% csrf_token %}
+            <table>
+                <tr><td><label for="group">Group</label></td>
+                <td><input type="text" name="group" id="" value="" /></td></tr>
+
+                <tr><td><input type="submit" value="Add Group" /></td></tr>
+            </table>
+        </form>
+    </div>
+</div>
+<br/><br/><br/>
+<a href="/ui/"><input class="button greenbutton" type="button" value="Back to Matrix"/></a>
+</div>
+<div class="push"></div>
+<div class="footer">
+    <footer id="footer" style="text-align:center">
+        <div>
+            &copy; University of Victoria  ||  <a href="https://github.com/hep-gc/Glintv2">Visit GitHub Project <i class="icon-hand-up"></i></a>
+        </div>
+        <div>
+            <small class='muted'>Glint-Server v{{version}}</small>
+        </div>
+    </footer>
+</div>
+
+<script>
+    function confirmDelete(group) {
+        if (confirm("Are you sure you want to delete '" + group + "'") == true) {;
+            $.post("/ui/delete_group/", {group: group, csrfmiddlewaretoken: '{{csrf_token}}'}, function(result){
+                if(result){
+                    window.location.href = "/ui/manage_groups";
+                }
+                else{
+                    //something happened with delete, maybe give an error msg?
+                }
+
+
+            })
+
+        } 
+    }
+    function confirmUserDelete(user, group) {
+        if (confirm("Are you sure you want to delete '" + user + "' from " + group + ".") == true) {;
+            $.post("/ui/delete_user_group/", {group: group, user: user, csrfmiddlewaretoken: '{{csrf_token}}'}, function(result){
+                if(result){
+                    window.location.href = "/ui/manage_groups";
+                }
+                else{
+                    //something happened with delete, maybe give an error msg?
+                }
+
+
+            })
+
+        }
+    }
+        function doAdminDropdown() {
+            document.getElementById("myAdminDropdown").classList.toggle("show");
+        }
+</script>
