@@ -22,7 +22,7 @@ logger = get_task_logger(__name__)
 # Indicate Celery to use the default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cloudscheduler_web.settings')
 
-django.setup()
+#django.setup()
 
 app = Celery('glintwebui', broker=config.celery_url, backend=config.celery_backend)
 app.config_from_object('django.conf:settings')

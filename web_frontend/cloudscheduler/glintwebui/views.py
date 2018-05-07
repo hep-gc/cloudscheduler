@@ -2,7 +2,7 @@ import time
 import os
 import json
 import logging
-import urllib2
+import urllib3
 import redis
 import bcrypt
 
@@ -986,7 +986,7 @@ def upload_image(request, group_name):
         # In reality the user should be smart enough to only put in an image file and
         # in the case where they aren't openstack will still except the garbage file
         # as a raw image.
-        image_data = urllib2.urlopen(img_url)
+        image_data = urllib3.urlopen(img_url)
 
         with open(file_path, "wb") as image_file:
             image_file.write(image_data.read())

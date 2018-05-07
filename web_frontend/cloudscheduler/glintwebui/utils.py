@@ -735,9 +735,9 @@ def check_collection_task():
     state = red.get("collection_started")
     if state is None:
         return False
-    if "True" in state:
+    elif state:
         return True
-    if "False" in state:
+    else:
         return False
 
 def set_collection_task(state):
