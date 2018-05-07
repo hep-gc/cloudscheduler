@@ -24,7 +24,7 @@ select
   max_price,
   user_data,
   job_per_core,
-  q_date,
+  queue_date,
 
   /*
   ** Use group_concat() DB function to create (a list of) flavors.
@@ -57,6 +57,6 @@ group by
   user_data,
   job_per_core
 
-order by job_priority,q_date
+order by job_priority,queue_date
 
 ;

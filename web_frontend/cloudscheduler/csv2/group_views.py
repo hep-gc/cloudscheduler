@@ -6,7 +6,18 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from .view_utils import db_execute, db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, map_parameter_to_field_values, qt, render, set_user_groups
+from .view_utils import \
+    db_execute, \
+    db_open, \
+    getAuthUser, \
+    getcsv2User, \
+    getSuperUserStatus, \
+    lno,  \
+    map_parameter_to_field_values, \
+    qt, \
+    render, \
+    set_user_groups, \
+    verifyUser
 from collections import defaultdict
 import bcrypt
 
@@ -17,33 +28,37 @@ import sqlalchemy.exc
 
 #-------------------------------------------------------------------------------
 
-GROUP_KEYS = (
-    # The following fields are the key fields for the table:
-    (
+GROUP_KEYS = {
+    # Should the active_group be automatically inserted into the primary keys.
+    'auto_active_group': False,
+    # The following fields are primary key fields for the table:
+    'primary': (
         'group_name',
         ),
     # The following fields maybe in the input form but should be ignored.
-    (    
+    'ignore_bad': (    
         'csrfmiddlewaretoken',
         'group',
         ),
-    {
+    # Named argument formats (anything else is a string).
+    'format': {
         'group_name': 'l',
         },
-    )
+    }
 
-YAML_KEYS = (
-    # The following fields are the key fields for the table:
-    (
-        'group_name',
+YAML_KEYS = {
+    # Should the active_group be automatically inserted into the primary keys.
+    'auto_active_group': True,
+    # The following fields are primary key fields for the table:
+    'primary': (
         'yaml_name',
         ),
     # The following fields maybe in the input form but should be ignored.
-    (    
+    'ignore_bad': (    
         'csrfmiddlewaretoken',
         'group',
         ),
-    )
+    }
 
 #-------------------------------------------------------------------------------
 
@@ -67,13 +82,13 @@ def add(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Map the field list.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_groups', GROUP_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group add %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), values), active_user=active_user, user_groups=user_groups)
 
         # Add the group.
         success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
@@ -81,11 +96,11 @@ def add(request):
         if success:
             return list(request, selector=values[0]['group_name'], response_code=0, message='group "%s" successfully added.' % (values[0]['group_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['group_name'], response_code=1, message='group add "%s" failed - %s.' % (values[0]['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), values[0]['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='group add, invalid method "%s" specified.' % request.method)
+        return list(request, response_code=1, message='%s group add, invalid method "%s" specified.' % (lno('GV03'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -109,13 +124,13 @@ def delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV04'), msg), active_user=active_user, user_groups=user_groups)
 
         # Map the field list for group/YAML files.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group delete %s.' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group delete %s.' % (lno('GV05'), values), active_user=active_user, user_groups=user_groups)
 
         # Delete any group/YAML files for the group.
         s = select([view_groups_with_yaml_names]).where((view_groups_with_yaml_names.c.group_name == values[0]['group_name']))
@@ -134,7 +149,7 @@ def delete(request):
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_groups', GROUP_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group delete %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('GV06'), values), active_user=active_user, user_groups=user_groups)
 
         # Delete the group.
         success,message = db_execute(
@@ -145,11 +160,11 @@ def delete(request):
         if success:
             return list(request, selector=values[0]['group_name'], response_code=0, message='group "%s" successfully deleted.' % (values[0]['group_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['group_name'], response_code=1, message='group delete "%s" failed - %s.' % (values[0]['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['group_name'], response_code=1, message='%s group delete "%s" failed - %s.' % (lno('GV07'), values[0]['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='group delete, invalid method "%s" specified.' % request.method)
+        return list(request, response_code=1, message='%s group delete, invalid method "%s" specified.' % (lno('GV08'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -257,13 +272,13 @@ def update(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
 
         # Map the field list.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_groups', GROUP_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group update %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV10'), values), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
         success, message = db_execute(db_connection, table.update().where(table.c.group_name==values[0]['group_name']).values(values[1]))
@@ -271,11 +286,11 @@ def update(request):
         if success:
             return list(request, selector=values[0]['group_name'], response_code=0, message='group "%s" successfully updated.' % (values[0]['group_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=values[0]['group_name'], response_code=1, message='group update "%s" failed - %s.' % (values[0]['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV11'), values[0]['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='group update, invalid method "%s" specified.' % request.method)
+        return list(request, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno('GV12'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -296,13 +311,13 @@ def yaml_add(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # Map the field list.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group yaml-add %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group yaml-add %s' % (lno('GV14'), values), active_user=active_user, user_groups=user_groups)
 
         # Add the group yaml file.
         success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
@@ -310,14 +325,14 @@ def yaml_add(request):
         if success:
             return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s.%s" successfully added.' % (active_user.active_group, values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=active_user.active_group, response_code=1, message='group yaml-add "%s.%s" failed - %s.' % (active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-add "%s.%s" failed - %s.' % (lno('GV15'), active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='group yaml_add, invalid method "%s" specified.' % request.method)
+            return list(request, response_code=1, message='%s group yaml_add, invalid method "%s" specified.' % (lno('GV16'), request.method))
         else:
-            return list(request, response_code=1, message='group yaml_add, no group name specified.')
+            return list(request, response_code=1, message='%s group yaml_add, no group name specified.' % lno('GV17'))
 
 #-------------------------------------------------------------------------------
 
@@ -338,13 +353,13 @@ def yaml_delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (ln('GV18'), msg), active_user=active_user, user_groups=user_groupslno('GV19'), )
 
         # Map the field list.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group yaml-delete %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group yaml-delete %s' % (lno('GV20'), values), active_user=active_user, user_groups=user_groups)
 
         # Delete the group yaml file.
         success,message = db_execute(
@@ -358,14 +373,14 @@ def yaml_delete(request):
         if success:
             return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s.%s" successfully deleted.' % (active_user.active_group, values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=active_user.active_group, response_code=1, message='group yaml-delete "%s.%s" failed - %s.' % (active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-delete "%s.%s" failed - %s.' % (lno('GV21'), active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='group yaml_delete, invalid method "%s" specified.' % request.method)
+            return list(request, response_code=1, message='%s group yaml_delete, invalid method "%s" specified.' % (lno('GV22'), request.method))
         else:
-            return list(request, response_code=1, message='group yaml_delete, no group name specified.')
+            return list(request, response_code=1, message='%s group yaml_delete, no group name specified.' % lno('GV23'))
 
 #-------------------------------------------------------------------------------
 
@@ -380,7 +395,7 @@ def yaml_fetch(request, selector=None):
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
     if rc != 0:
         db_connection.close()
-        return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV24'), msg), active_user=active_user, user_groups=user_groups)
 
     # Retrieve YAML file.
     obj_act_id = request.path.split('/') # /cloud/yaml_fetch/<group>.<yaml>
@@ -428,13 +443,13 @@ def yaml_update(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV25'), msg), active_user=active_user, user_groups=user_groups)
 
         # Map the field list.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_group_yaml', YAML_KEYS,  active_user)
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='group yaml-update %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group yaml-update %s' % (lno('GV26'), values), active_user=active_user, user_groups=user_groups)
 
         # Update the group yaml file.
         success,message = db_execute(db_connection, table.update().where( \
@@ -445,12 +460,12 @@ def yaml_update(request):
         if success:
             return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s.%s" successfully  updated.' % (active_user.active_group, values[0]['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=values[2])
         else:
-            return list(request, selector=active_user.active_group, response_code=1, message='group yaml-update "%s.%s" failed - %s.' % (active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-update "%s.%s" failed - %s.' % (lno('GV27'), active_user.active_group, values[0]['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='group yaml_update, invalid method "%s" specified.' % request.method)
+            return list(request, response_code=1, message='%s group yaml_update, invalid method "%s" specified.' % (lno('GV28'), request.method))
         else:
-            return list(request, response_code=1, message='group yaml_update, no group name specified.')
+            return list(request, response_code=1, message='%s group yaml_update, no group name specified.' % lno('GV29'))
 
