@@ -6,7 +6,7 @@ import os
 
 KEY_MAP = {
     '-gn':  'group_name',
-    '-gM': 'condor_central_manager',
+    '-gm': 'condor_central_manager',
     }
 
 def _filter_by_group(gvar, qs):
@@ -29,7 +29,7 @@ def add(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-gM', '-gn'],
+        ['-gm', '-gn'],
         [],
         [],
         key_map=KEY_MAP)
@@ -129,7 +129,7 @@ def update(gvar):
         gvar,
         ['-gn'],
         [],
-        ['-gM'],
+        ['-gm'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
