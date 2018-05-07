@@ -238,7 +238,7 @@ def vm_poller():
                 logging.error("Aborting cycle...")
         logging.debug("Poll cycle complete, sleeping...")
         try:
-            new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn), last_poll=poll_time)
+            new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=poll_time)
             db_session.merge(new_pt)
             db_session.commit()
         except Exception as exc:
@@ -622,7 +622,7 @@ def networkPoller():
 def vmCleanUp():
     multiprocessing.current_process().name = "VM Cleanup"
     last_cycle = 0
-    vm_poller_id = "vm_poller_" + str(socket.getfqdn)
+    vm_poller_id = "vm_poller_" + str(socket.getfqdn())
     while True:
         current_cycle_time = time.time()
         #set up database objects
