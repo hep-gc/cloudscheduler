@@ -6,7 +6,12 @@ import os
 
 KEY_MAP = {
     '-gn':  'group_name',
-    '-gm': 'condor_central_manager',
+    '-gm':  'condor_central_manager',
+    '-jc':  'job_cpus',
+    '-jd':  'job_disk',
+    '-jed': 'job_scratch',
+    '-jr':  'job_ram',
+    '-js':  'job_swap',
     }
 
 def _filter_by_group(gvar, qs):
@@ -43,6 +48,45 @@ def add(gvar):
     
     if response['message']:
         print(response['message'])
+
+def defaults(gvar):
+    """
+    Modify the specified group defaults.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        [],
+        [],
+        ['-g', '-jc', '-jd', '-jed', '-jr', '-js'],
+        key_map=KEY_MAP)
+
+    # List the current defaults. If the form_data contains any optional fields,
+    # those values will be updated before the list is retrieved.
+    response = requests(
+        gvar,
+        '/group/defaults/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+    # Print report
+    print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
+    show_table(
+        gvar,
+        response['defaults_list'],
+        [
+            'group_name/Group',
+            'job_cpus/Job Cores',
+            'job_disk/Job Disk (GBs)',
+            'job_scratch/Job Ephemeral Disk (GBs)',
+            'job_ram/Job RAM (MBs)',
+            'job_swap/Job Swap (GBs)',
+            ],
+        )
 
 def delete(gvar):
     """
@@ -94,6 +138,9 @@ def list(gvar):
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/list/')
+    
+    if response['message']:
+        print(response['message'])
 
     # Filter response as requested (or not).
     group_list = _filter_by_group(gvar, response['group_list'])
@@ -116,7 +163,7 @@ def list(gvar):
                 'group_name/Group',
                 'condor_central_manager/Central Manager',
                 'yaml_names/YAML Filenames',
-            ],
+                ],
             )
 
 def update(gvar):
