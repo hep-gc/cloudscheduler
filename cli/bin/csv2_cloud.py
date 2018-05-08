@@ -108,6 +108,9 @@ def list(gvar):
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/list/')
+    
+    if response['message']:
+        print(response['message'])
 
     # Filter response as requested (or not).
     cloud_list = _filter_by_cloud_name(gvar, response['cloud_list'])
