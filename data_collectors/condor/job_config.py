@@ -31,9 +31,9 @@ try:
         cfg = yaml.load(ymlfile)
 
 except Exception as e:
-    print >> sys.stderr, "Configuration file problem: There was a " \
-                         "problem reading %s. Check that it is readable," \
-                         "and that it exists. " % path
+    print("Configuration file problem: There was a " \
+          "problem reading %s. Check that it is readable," \
+          "and that it exists. " % path, file=sys.stderr)
 
 if "database" in cfg:
     if "db_host" in cfg["database"]:
@@ -86,7 +86,7 @@ try:
 
 
 except Exception as e:
-    print >> sys.stderr, "Unable to connect to the database and extract relevent config," \
-                     " please ensure the database parameters are correct and restart csjobs"
-    print >> sys.stderr, e
+    print("Unable to connect to the database and extract relevent config," \
+          " please ensure the database parameters are correct and restart csjobs", file=sys.stderr)
+    print(e, file=sys.stderr)
     sys.exit(1)
