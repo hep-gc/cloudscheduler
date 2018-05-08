@@ -1,0 +1,29 @@
+
+{% load template_utils %}
+<h1> Image name conflict detected, please modify an image name</h1>
+<form action="/ui/resolve_conflict/{{account_name}}/{{repo}}/" method="post">
+	{% csrf_token %}
+
+	
+	{% for image in duplicate_dict %}
+		<table style=”float:left; margin-right:10px;”>
+			<tr><td><label for="{{image}}">Image Name:</label></td>
+			<td><input type="text" name="{{image}}" id="image" value="{{duplicate_dict|get_item:image|get_item:'name'}}" /></td></tr>
+			<tr><td>Image ID:</td>
+			<td>{{image}}</td></tr>
+			<tr><td>Repo:</td>
+			<td>{{duplicate_dict|get_item:image|get_item:'repo'}}</td></tr>
+			<tr><td>Disk Format:</td>
+			<td>{{duplicate_dict|get_item:image|get_item:'disk_format'}}</td></tr>
+			<tr><td>Container Format:</td>
+			<td>{{duplicate_dict|get_item:image|get_item:'container_format'}}</td></tr> 
+		</table>
+			
+	{% endfor %}
+		
+	
+	<input type="submit" value="Save Changes" />
+</form>
+
+{{ form.errors }}
+{{ form.non_field_errors }}

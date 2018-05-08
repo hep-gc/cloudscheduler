@@ -79,46 +79,141 @@ def getSuperUserStatus(request):
 
 #-------------------------------------------------------------------------------
 
+def lno(id):
+    """
+    This function returns the source file line number of the caller.
+    """
+
+    from inspect import currentframe
+
+    cf = currentframe()
+    return '%s-%s' % (id, cf.f_back.f_lineno)
+
+#-------------------------------------------------------------------------------
+
 def map_parameter_to_field_values(request, db_engine, query, table_keys, active_user):
     """
-    This internal function retrieves and classifies cloud update fields.
+    This function maps form fields/command arguments to table columns.
     """
 
-    import lib.schema
+    # Set up to handle table_keys, mandatory: auto_active_group (bolean), primary(list), 
+    # optional: secondary_filter(list), ignore_bad(list), and format(dict).
 
-    metadata = lib.schema.MetaData(bind=db_engine)
-    table = lib.schema.Table(query, metadata, autoload=True)
+    auto_active_group = table_keys['auto_active_group']
+    primary_keys = table_keys['primary']
+
+    if 'secondary_filter' in table_keys:
+        secondary_filter = table_keys['secondary_filter']
+    else:
+        secondary_filter = None
+
+    if 'ignore_bad' in table_keys:
+        ignore_bad = table_keys['ignore_bad']
+    else:
+        ignore_bad = None
+
+    if 'format' in table_keys:
+        format = table_keys['format']
+    else:
+        format = None
+
+    from sqlalchemy import Table, MetaData
+    from .view_utils import _map_parameter_to_field_values_pw_check
+
+    metadata = MetaData(bind=db_engine)
+    table = Table(query, metadata, autoload=True)
 
     values = [{}, {}, []]
     for key in request.POST:
-        if len(table_keys) > 2 and key in table_keys[2]:
-            if table_keys[2][key] == 'l':
-                edit_option = 'lower case'
-                edit_value = request.POST[key].lower()
-            elif table_keys[2][key] == 'u':
-                edit_option = 'upper case'
-                edit_value = request.POST[key].upper()
-            
-            if request.POST[key] != edit_value:
-                return 1, None, 'value specified for "%s" must be all %s.' % (key, edit_option)
+        rekey = key
+        value = request.POST[key]
 
-        if key in table.c:
-            if key in table_keys[0]:
-                values[0][key] = request.POST[key]
+        if format and key in format:
+            if format[key] == 'l':
+                value = request.POST[key].lower()
+                if request.POST[key] != value:
+                    return 1, None, 'value specified for "%s" must be all lower case.' % key
+
+            elif format[key] == 'p':
+                rc, value = _map_parameter_to_field_values_pw_check(request.POST[key])
+                if rc != 0:
+                    return 1, None, value
+
+            elif format[key] == 'p1':
+                rekey = '%s2' % key[:-1]
+                pw2 = request.POST.get(rekey)
+                if not pw2:
+                    return 1, 'password update received a password but no verify password; both are required.'
+
+                rc, value = _map_parameter_to_field_values_pw_check(request.POST[key],pw2=pw2)
+                if rc != 0:
+                    return 1, None, value
+                rekey = key[:-1]
+
+            elif format[key] == 'p2':
+                rekey = '%s1' % key[:-1]
+                if not request.POST.get(rekey):
+                    return 1, None, 'password update received a verify password but no password; both are required.'
+                rekey = None
+
+            elif format[key] == 'u':
+                value = request.POST[key].upper()
+                if request.POST[key] != value:
+                    return 1, None, 'value specified for "%s" must be all upper case.' % key
+
+        if rekey and rekey in table.c:
+            if key in primary_keys:
+                values[0][rekey] = value
             else:
-                if key != 'password' or request.POST[key]:
-                    values[1][key] = request.POST[key]
+                if not secondary_filter or key in secondary_filter:
+                    if value or not (key in format and format[key][0] == 'p'):
+                        values[1][rekey] = value
         else:
-            if key not in table_keys[1]:
+            if rekey and key not in ignore_bad:
                 return 1, None, 'request contained a bad parameter "%s".' % key
 
-    if 'group_name' not in values[0]:
+    if auto_active_group and 'group_name' not in values[0]:
         values[0]['group_name'] = active_user.active_group
+
+    if format:
+        for key in format:
+            if format[key] == 'b':
+                if request.POST.get(key):
+                    boolean_value = True
+                else:
+                    boolean_value = False
+
+                if key in primary_keys:
+                    values[0][key] = boolean_value
+                else:
+                    values[1][key] = boolean_value
 
     for key in table.c:
         values[2].append(key.name)
 
     return 0, table, values
+
+#-------------------------------------------------------------------------------
+
+def _map_parameter_to_field_values_pw_check(pw1, pw2=None):
+    """
+    Ensure passwords conform to certain standards.
+    """
+    import bcrypt
+
+    if len(pw1) < 6:
+      return 1, 'value specified for a password is less than 6 characters.'
+
+    if len(pw1) < 16:
+      rc =   any(pwx.islower() for pwx in pw1) and any(pwx.isupper() for pwx in pw1) and any(pwx.isnumeric() for pwx in pw1)
+      if not rc:
+        return 1, 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.'
+
+    if pw2 and pw2 != pw1:
+        return 1, 'values specified for passwords do not match.'
+
+
+    return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
 #-------------------------------------------------------------------------------
 
@@ -161,7 +256,7 @@ def qt(query, keys=None, prune=[]):
     If the "keys" argument is given, the function returns both the primary_list and the
     secondary_dict. Otherwise, only the primary_list is returned.
     """
-    from .view_utils import _qt
+    from .view_utils import _qt, _qt_list
 
     primary_list = []
     secondary_dict = {}
@@ -205,7 +300,29 @@ def qt(query, keys=None, prune=[]):
             primary_list.append(new_row)
 
     if keys:
-        return primary_list, secondary_dict
+        if 'match_list' in keys:
+            matched_dict = {}
+
+            for row in keys['match_list']:
+                matched_dict_ptr = matched_dict
+                for key in keys['primary'][:-1]:
+                    add_row, matched_dict_ptr = _qt(add_row, matched_dict_ptr, row, key)
+
+                matched_dict_ptr[row[key]] = []
+
+            secondary_dict_ptr = secondary_dict
+            matched_dict_ptr = matched_dict
+
+            for secondary_key1 in secondary_dict_ptr:
+                if secondary_key1 not in matched_dict_ptr:
+                    matched_dict_ptr[secondary_key1] = []
+
+                for secondary_key2 in secondary_dict_ptr[secondary_key1]:
+                    matched_dict_ptr[secondary_key1].append(secondary_key2)
+
+            return primary_list, secondary_dict, matched_dict
+        else:
+            return primary_list, secondary_dict
     else:
         return primary_list
 
@@ -228,6 +345,22 @@ def _qt(add_row, secondary_dict_ptr, cols, key):
 
 #-------------------------------------------------------------------------------
 
+def _qt_list(secondary_dict_ptr, secondary_key_list_ptr, cols, key):
+    """
+    This sub-function is called by view_utils.qt to add keys to the secondary_key_list and
+    is NOT meant to be called directly.
+    """
+
+    if cols[key]:
+        if cols[key] not in secondary_key_list_ptr:
+            secondary_key_list_ptr[cols[key]] = {}
+
+        return secondary_dict_ptr[cols[key]], secondary_key_list_ptr[cols[key]]
+    else:
+      return secondary_dict_ptr, secondary_key_list_ptr
+
+#-------------------------------------------------------------------------------
+
 def render(request, template, context):
     """
     If the "Accept" HTTP header contains "application/json", return a json string. Otherwise,
@@ -247,7 +380,6 @@ def render(request, template, context):
 
     class csv2Encoder(json.JSONEncoder):
         def default(self, obj):
-#           print(">>>>>>>>>>>>>>>>", type(obj), obj)
 
             if isinstance(obj, csv2_user):
                 return str(obj)

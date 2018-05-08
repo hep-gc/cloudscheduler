@@ -38,7 +38,6 @@
             <div>
                 <a href="#close" title="Close" class="close">X</a>
                 <h2>{{user.username}}</h2>
-                <input type="hidden" name="action" value="delete"/>
                 <p><input type="submit" value="Update user" />Yes</td>
 
             </div>
@@ -62,15 +61,6 @@
                     <td><input type="text" name="cert_cn" id="" value="" /></td>
                 {% endif %}
                 </tr>
-                <tr><td><label for="active_group">Active Group</label></td>
-                <td><select name="active_group" id=""/>
-                {% for group in group_list %}
-                    {% if user.active_group == group.group_name %}
-                        <option value="{{ group.group_name }}" selected>{{ group.group_name }}</option>
-                    {% else %}
-                        <option value="{{ group.group_name }}">{{ group.group_name }}</option>
-                    {% endif %}
-                {% endfor %}
                 </select></td></tr>
                 <tr><td><label for="is_superuser">Superuser</label></td>
                 {% if user.is_superuser %}
@@ -99,14 +89,32 @@
                 <td><input type="password" name="password2" id="" value="" /></td></tr>
                 <tr><td><label for="cert_cn">Cert CN</label></td>
                 <td><input type="text" name="cert_cn" id="" value="" /></td></tr>
-                <tr><td><label for="active_group">Active Group</label></td>
-                <td><select name="active_group" id=""/>
-                {% for group in group_list %}
-                    <option value="{{ group.group_name }}">{{ group.group_name }}</option>
-                {% endfor %}
                 </select></td></tr>
                 <tr><td><label for="is_superuser">Superuser</label></td>
                 <td><input name="is_superuser" type="checkbox" value="1"></td></tr>
+
+                <tr><td></td><td>Available</td><td>Member</td>
+                <tr><td><label for="is_superuser">Groups</label></td>
+
+                   <td>
+                    <table>
+                        <tbody id="tst1" >
+                        {% for group in group_list %}
+                            <tr><td><input type="button" name="" value="+" onclick="Move(this,1);" /> {{ group.group_name }}</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    </td>
+                    <td>
+                        <table>
+                         <tbody id="tst2" >
+                        <tr>
+                        </tr>
+                         </tbody>
+                        </table>
+                    </td>
+
+                </tr>
 
                 <tr><td><input type="submit" value="Add user" /></td></tr>
             </table>
@@ -128,6 +136,71 @@
 {% endfor %}
 
 
+
+
+
+<script type="text/javascript">
+/*<![CDATA[*/
+
+function Move(tr,cell)
+{
+    while (tr.parentNode&&tr.nodeName.toUpperCase()!='TR')
+    {
+        tr=tr.parentNode;
+    }
+    var table1=document.getElementById('tst1');
+    if (!this.rows)
+    {
+        var rows=table1.getElementsByTagName('TR');
+        this.rows=[];
+        for (var z0=0;z0<rows.length;z0++)
+        {
+            this.rows[z0]=rows[z0];
+        }
+    }
+    var table2=document.getElementById('tst2');
+    if (tr.parentNode!=table2)
+    {
+        table2.appendChild(tr);
+
+
+    for(var j=5; j>0; j--)
+    {
+        if(j!=cell)
+        {
+            tr.deleteCell(j);
+        }
+    }
+}
+else 
+{      
+    /*i=1
+    var newcell=tr.insertCell(i);
+    newcell.innerHTML='<input type="button" name="" value="Move' + i + '" onclick="Move(this,' + i + ');" />';
+*/
+    /*for(var i=1; i<6; i++)
+    {
+        if(i != cell)
+        {
+            var newcell=tr.insertCell(i);
+            newcell.innerHTML='<input type="button" name="" value="Move' + i + '" onclick="Move(this,' + i + ');" />';
+        }
+    }*/
+
+    table1.appendChild(tr);
+
+    for (var z0=0;z0<this.rows.length;z0++)
+    {
+        if (this.rows[z0].parentNode==table1)
+        {
+            table1.appendChild(this.rows[z0]);
+        }
+    }
+}
+}
+
+/*]]>*/
+</script>
 </div>
 </body>
 

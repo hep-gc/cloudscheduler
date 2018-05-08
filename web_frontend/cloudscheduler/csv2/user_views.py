@@ -6,7 +6,18 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from .view_utils import db_execute, db_open, getAuthUser, getcsv2User, verifyUser, getSuperUserStatus, map_parameter_to_field_values, qt, render, set_user_groups
+from .view_utils import \
+    db_execute, \
+    db_open, \
+    getAuthUser, \
+    getcsv2User, \
+    getSuperUserStatus, \
+    lno, \
+    map_parameter_to_field_values, \
+    qt, \
+    render, \
+    set_user_groups, \
+    verifyUser
 from collections import defaultdict
 import bcrypt
 
@@ -22,19 +33,321 @@ USER RELATED WEB REQUEST VIEWS
 
 #-------------------------------------------------------------------------------
 
+GROUP_KEYS = {
+    # Should the active_group be automatically inserted into the primary keys.
+    'auto_active_group': False,
+    # The following fields are primary key fields for the table:
+    'primary': (
+        'group_name',
+        ),
+    # The following fields maybe in the input form but should be ignored.
+    'ignore_bad': (    
+        'csrfmiddlewaretoken',
+        'username',
+        ),
+    }
 
-USER_KEYS = (
-    # The following fields are the key fields for the table:
-    (
+USER_KEYS = {
+    # Should the active_group be automatically inserted into the primary keys.
+    'auto_active_group': False,
+    # The following fields are primary key fields for the table:
+    'primary': (
         'username',
         ),
     # The following fields maybe in the input form but should be ignored.
-    (    
+    'ignore_bad': (    
         'csrfmiddlewaretoken',
+        'group_name',
+        ),
+    # Named argument formats (anything else is a string).
+    'format': {
+        'is_superuser': 'b',
+        'password': 'p',
+        'password1': 'p1',
+        'password2': 'p2',
+        },
+    }
+
+USER_GROUP_KEYS = {
+    # Should the active_group be automatically inserted into the primary keys.
+    'auto_active_group': False,
+    # The following fields are primary key fields for the table:
+    'primary': (
+        'username',
+        'group_name',
+        ),
+    # The following fields maybe in the input form but should be ignored.
+    'ignore_bad': (    
+        'csrfmiddlewaretoken',
+        ),
+    }
+
+UNPRIVILEGED_USER_KEYS = {
+    # Should the active_group be automatically inserted into the primary keys.
+    'auto_active_group': False,
+    # The following fields are primary key fields for the table:
+    'primary': (
+        'username',
+        ),
+    # Only select the following arguments for unprivileged users (others considered bad):
+    'secondary_filter': (
+        'password',
         'password1',
         'password2',
         ),
-    )
+    # The following fields maybe in the input form but should be ignored.
+    'ignore_bad': (    
+        'csrfmiddlewaretoken',
+        ),
+    # Named argument formats (anything else is a string).
+    'format': {
+        'password': 'p',
+        'password1': 'p1',
+        'password2': 'p2',
+        },
+    }
+
+#-------------------------------------------------------------------------------
+
+def add(request):
+    """
+    Add a new user.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        # open the database.
+        db_engine,db_session,db_connection,db_map = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        if rc != 0:
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Map the field list.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user', USER_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user add %s' % (lno('UV01'), values), active_user=active_user, user_groups=user_groups)
+
+        # Need to perform several checks
+        # 1. Check that the username is valid (ie no username or cert_cn by that name)
+        # 2. Check that the cert_cn is not equal to any username or other cert_cn
+        # Note: password checks are now done in map_parameter_to_field_values.
+
+        s = select([csv2_user])
+        csv2_user_list = qt(db_connection.execute(s), prune=['password'])
+
+        #csv2_user_list = csv2_user.objects.all()
+        for registered_user in csv2_user_list:
+            #check #1
+            if values[0]['username'] == registered_user["username"] or values[0]['username'] == registered_user["cert_cn"]:
+                return list(request, selector=values[0]['username'], response_code=1, message='%s username "%s" unavailable.' % (lno('UV02'), values[0]['username']), active_user=active_user, user_groups=user_groups)
+
+            #check #2
+            if values[1]['cert_cn'] is not None and (values[1]['cert_cn'] == registered_user["username"] or values[1]['cert_cn'] == registered_user["cert_cn"]):
+                return list(request, selector=values[0]['username'], response_code=1, message='%s username "%s" conflicts with a registered common name.' % (lno('UV03'), values[0]['username']), active_user=active_user, user_groups=user_groups)
+
+        values[1]['join_date'] = datetime.datetime.today().strftime('%Y-%m-%d')
+        
+        # Add the user.
+        success, message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+        db_connection.close()
+
+        if success:
+            return list(request, selector=values[0]['username'], response_code=0, message='user "%s" successfully added.' % (values[0]['username']), active_user=active_user, user_groups=user_groups)
+        else:
+            return list(request, selector=values[0]['username'], response_code=1, message='%s user add "%s" failed - %s.' % (lno('UV04'), values[0]['username'], message), active_user=active_user, user_groups=user_groups)
+
+    ### Bad request.
+    else:
+        return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV05'), request.method))
+
+#-------------------------------------------------------------------------------
+
+def delete(request):
+    """
+    Delete a user.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        # open the database.
+        db_engine,db_session,db_connection,db_map = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        if rc != 0:
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV06'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Map the field list for user/groups.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user_groups', USER_GROUP_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user delete %s.' % (lno('UV07'), values), active_user=active_user, user_groups=user_groups)
+
+        # Delete any user/group for the user.
+        s = select([csv2_user_groups]).where((csv2_user_groups.c.username == values[0]['username']))
+        user_group_list = qt(db_connection.execute(s))
+        for row in user_group_list:
+            if row['username'] == values[0]['username']:
+                # Delete the user/group.
+                success, message = db_execute(
+                    db_connection,
+                    table.delete((table.c.username==values[0]['username']) & (table.c.group_name==group_name))
+                    )
+
+        # Map the field list for users.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user', USER_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user delete %s' % (lno('UV08'), values), active_user=active_user, user_groups=user_groups)
+
+        # Delete the user.
+        success, message = db_execute(
+            db_connection,
+            table.delete(table.c.username==values[0]['username'])
+            )
+        db_connection.close()
+        if success:
+            return list(request, selector=values[0]['username'], response_code=0, message='user "%s" successfully deleted.' % (values[0]['username']), active_user=active_user, user_groups=user_groups)
+        else:
+            return list(request, selector=values[0]['username'], response_code=1, message='%s user delete "%s" failed - %s.' % (lno('UV09'), values[0]['username'], message), active_user=active_user, user_groups=user_groups)
+
+    ### Bad request.
+    else:
+        return list(request, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno('UV10'), request.method))
+
+#-------------------------------------------------------------------------------
+
+def group_add(request):
+    """
+    Add a group to a user.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        # open the database.
+        db_engine,db_session,db_connection,db_map = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        if rc != 0:
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV11'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Make sure the requested user exists.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user', USER_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user group-add %s' % (lno('UV12'), values), active_user=active_user, user_groups=user_groups)
+
+        #temp fix
+        save_value_user = values[0]['username']
+
+        table = Table('csv2_user', metadata, autoload=True)
+        found = False
+        s = select([csv2_user]).where(table.c.username==values[0]['username'])
+        csv2_user_list = db_connection.execute(s)
+        for registered_user in csv2_user_list:
+            if registered_user['username'] == values[0]['username']:
+                found = True
+
+        if not found:
+            return list(request, selector=values[0]['username'], response_code=1, message='%s user group-add specified an invalid username "%s".' % (lno('UV13'), values[0]['username']), active_user=active_user, user_groups=user_groups)
+
+        # Make sure the requested group exists.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_groups', GROUP_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user group-add %s' % (lno('UV14'), values), active_user=active_user, user_groups=user_groups)
+
+        table = Table('csv2_groups', metadata, autoload=True)
+        found = False
+        s = select([csv2_groups]).where(table.c.group_name==values[0]['group_name'])
+        csv2_groups_list = db_connection.execute(s)
+        for registered_group in csv2_groups_list:
+            if registered_group['group_name'] == values[0]['group_name']:
+                found = True
+
+        if not found:
+            return list(request, selector=save_value_user, response_code=1, message='%s user group-add specified an invalid group_name "%s".' % (lno('UV15'), values[0]['group_name']), active_user=active_user, user_groups=user_groups)
+
+        # Add the user/group.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user_groups', USER_GROUP_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user group-add %s' % (lno('UV00'), values), active_user=active_user, user_groups=user_groups)
+
+        table = Table('csv2_user_groups', metadata, autoload=True)
+        success, message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+        db_connection.close()
+
+        if success:
+            return list(request, selector=values[0]['username'], response_code=0, message='user/group "%s.%s" successfully added.' % (values[0]['username'], values[0]['group_name']), active_user=active_user, user_groups=user_groups)
+        else:
+            return list(request, selector=values[0]['username'], response_code=1, message='%s user/group add "%s.%s" failed - %s.' % (lno('UV00'), values[0]['username'], values[0]['group_name'], message), active_user=active_user, user_groups=user_groups)
+
+    ### Bad request.
+    else:
+        return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV00'), request.method))
+
+#-------------------------------------------------------------------------------
+
+def group_delete(request):
+    """
+    Delete a group from a user.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        # open the database.
+        db_engine,db_session,db_connection,db_map = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        if rc != 0:
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Map the field list for user/groups.
+        response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user_groups', USER_GROUP_KEYS,  active_user)
+        if response_code != 0:        
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s user group-delete %s.' % (lno('UV00'), values), active_user=active_user, user_groups=user_groups)
+
+        # Delete the user/group.
+        success, message = db_execute(
+            db_connection,
+            table.delete((table.c.username==values[0]['username']) & (table.c.group_name==values[0]['group_name']))
+            )
+        db_connection.close()
+        if success:
+            return list(request, selector=values[0]['username'], response_code=0, message='user/group "%s.%s" successfully deleted.' % (values[0]['username'], values[0]['group_name']), active_user=active_user, user_groups=user_groups)
+        else:
+            return list(request, selector=values[0]['username'], response_code=1, message='%s user/group delete "%s.%s" failed - %s.' % (lno('UV00'), values[0]['username'], values[0]['group_name'], message), active_user=active_user, user_groups=user_groups)
+
+    ### Bad request.
+    else:
+        return list(request, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno('UV00'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -47,10 +360,15 @@ def list(
     message=None, 
     active_user=None, 
     user_groups=None,
-    attributes=None
     ):
+    """
+    List users.
+    """
+
 
     if not verifyUser(request):
+        raise PermissionDenied
+    if not getSuperUserStatus(request):
         raise PermissionDenied
 
     # open the database.
@@ -58,19 +376,49 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        response_code,message,active_user,user_groups = set_user_groups(request, db_session, db_map)
+        response_code, message, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if response_code != 0:
             db_connection.close()
             return render(request, 'csv2/users.html', {'response_code': 1, 'message': message})
 
-    #get user info
-    s = select([csv2_user])
-    user_list = qt(db_connection.execute(s))
+    # Retrieve the user list but loose the passwords.
+    s = select([view_user_groups_and_available_groups])
+    user_list = qt(db_connection.execute(s), prune=['password'])
+
+    # Retrieve user/groups list (dictionary containing list for each user).
+    s = select([csv2_user_groups])
+    ignore1, ignore2, user_groups = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'username',
+                ],
+            'secondary': [
+                'group_name',
+                ],
+            'match_list': user_list,
+            }
+        )
+
+    # Retrieve  available groups list (dictionary containing list for each user).
+    s = select([view_user_groups_available])
+    ignore1, ignore2, available_groups = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'username',
+                ],
+            'secondary': [
+                'group_name',
+                'available',
+                ],
+            'match_list': user_list,
+            }
+        )
 
     s = select([csv2_groups])
     group_list = qt(db_connection.execute(s))
 
-    #user_list = {'ResultProxy': [dict(r) for r in db_connection.execute(s)]}
 
     db_connection.close()
 
@@ -96,202 +444,57 @@ def list(
             'user_groups': user_groups,
             'user_list': user_list,
             'group_list': group_list,
+            'user_groups': user_groups,
+            'available_groups': available_groups,
             'current_user': current_user,
-            'response_code': 0,
-            'message': None
+            'response_code': response_code,
+            'message': message
         }
 
     return render(request, 'csv2/users.html', context)
 
-def manage(request, response_code=0, message=None):
-    print("+++ manage +++", response_code, message)
-    if not verifyUser(request):
-        raise PermissionDenied
+#-------------------------------------------------------------------------------
 
-    if not getSuperUserStatus(request):
-        raise PermissionDenied
+def update(request):
+    """
+    Update a user.
+    """
 
-    user_list = csv2_user.objects.all()
-    context = {
-            'user_list': user_list,
-            'response_code': response_code,
-            'message': message
-    }
-
-    return render(request, 'csv2/users.html', context)
-
-
-def add(request):
-    print("+++ create +++")
     if not verifyUser(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
         raise PermissionDenied
 
     if request.method == 'POST':
-
-        user = request.POST.get('username')
-        pass1 = request.POST.get('password1')
-        pass2 = request.POST.get('password2')
-        cert_cn = request.POST.get('cert_cn')
-        su_status = request.POST.get('is_superuser')
-        if not su_status:
-            su_status=False
-        else:
-            su_status=True
-
         # open the database.
         db_engine,db_session,db_connection,db_map = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
-        
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message=msg, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Map the field list.
         response_code, table, values = map_parameter_to_field_values(request, db_engine, 'csv2_user', USER_KEYS,  active_user)
-
         if response_code != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='user add %s' % values, active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s user update %s' % (lno('UV00'), values), active_user=active_user, user_groups=user_groups)
 
-
-
-        # Need to perform several checks
-        # 1. Check that the username is valid (ie no username or cert_cn by that name)
-        # 2. Check that the cert_cn is not equal to any username or other cert_cn
-        # 3. Check that password isn't empty or less than 4 chars
-        # 4. Check that both passwords are the same
-
-        s = select([csv2_user])
-        csv2_user_list = qt(db_connection.execute(s), prune=['password'])
-
-        #csv2_user_list = csv2_user.objects.all()
-        for registered_user in csv2_user_list:
-            #check #1
-            if user == registered_user["username"] or user == registered_user["cert_cn"]:
-                #render manage users page with error message
-                return manage(request, response_code=1, message="Username unavailable")
-            #check #2
-            if cert_cn is not None and (cert_cn == registered_user["username"] or cert_cn == registered_user["cert_cn"]):
-                return manage(request, response_code=1, message="Username unavailable or conflicts with a registered Distinguished Name")
-        #check #3 part 1
-        if pass1 is None or pass2 is None:
-            return manage(request, response_code=1, message="Password is empty")
-        if len(pass1)<4:
-            return manage(request, response_code=1, message="Password must be at least 4 characters")
-        #check #4
-        if pass1 != pass2:
-            return manage(request, response_code=1, message="Passwords do not match")
-
-        # After checks are made use bcrypt to encrypt password.
-        hashed_pw = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
-
-        #if all the checks passed and the hashed password has been generated create a new user object and save import
-
-        del values[0]['group_name']
-
-        values[1]['password'] = hashed_pw
-        values[1]['join_date'] = datetime.datetime.today().strftime('%Y-%m-%d')
-        
-        # Add the user.
-        success,message = db_execute(db_connection, table.insert().values({**values[0], **values[1]}))
+        # Update the user.
+        success, message = db_execute(db_connection, table.update().where(table.c.username==values[0]['username']).values(values[1]))
         db_connection.close()
 
         if success:
-            return list(request, selector=values[0]['username'], response_code=0, message='user "%s" successfully added.' % (values[0]['username']), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['username'], response_code=0, message='user "%s" successfully updated.' % (values[0]['username']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=values[0]['username'], response_code=1, message='user add "%s" failed - %s.' % (values[0]['username'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=values[0]['username'], response_code=1, message='%s user update "%s" failed - %s.' % (lno('UV00'), values[0]['username'], message), active_user=active_user, user_groups=user_groups)
 
-        return manage(request, response_code=0, message="User added")
+    ### Bad request.
     else:
-        #not a post, return to manage users page
-        return manage(request)
+        return list(request, response_code=1, message='%s user update, invalid method "%s" specified.' % (lno('UV00'), request.method))
 
-def update(request):
-    print("+++ update +++")
-    if not verifyUser(request):
-        raise PermissionDenied
-    if not getSuperUserStatus(request):
-        raise PermissionDenied
-
-
-    if request.method == 'POST':
-        csv2_user_list = csv2_user.objects.all()
-        user_to_update = csv2_user.objects.filter(username=request.POST.get('old_usr'))[0]
-        new_username = request.POST.get('username')
-        cert_cn = request.POST.get('common_name')
-        su_status = request.POST.get('is_superuser')
-        new_pass1 = request.POST.get('password1')
-        new_pass2 = request.POST.get('password2')
-
-        if not su_status:
-            su_status=False
-        else:
-            su_status=True
-
-        # Need to perform three checks
-        # 1. Check that the new username is valid (ie no username or cert_cn by that name)
-        #   if the username hasn't changed we can skip this check since it would have been done on creation.
-        # 2. Check that the cert_cn is not equal to any username or other cert_cn
-        # 3. Check that the password is not empty and in that case that it is also a valid password
-
-        for registered_user in csv2_user_list:
-            #check #1
-            if not new_username == user_to_update.username:
-                if user == registered_user.username or user == registered_user.cert_cn:
-                    #render manage users page with error message
-                    return manage(request, response_code=1, message="Unable to update user: new username unavailable")
-            #check #2
-            if cert_cn is not None and registered_user.username != user_to_update.username and (cert_cn == registered_user.username or cert_cn == registered_user.cert_cn):
-                return manage(request, response_code=1, message="Unable to update user: Username unavailable or conflicts with a registered Distinguished Name")
-
-            #check #3 part 1
-            if new_pass1 not in (None, "") and new_pass2 not in (None, ""):
-                # part 2
-                if len(new_pass1)>3:
-                    # part 3
-                    if new_pass1 == new_pass2:
-                        #update pass
-                        hashed_pw = bcrypt.hashpw(new_pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
-                        user_to_update.password = hashed_pw.decode("utf-8")
-                    else:
-                        # passwords don't match
-                        return manage(request, response_code=1, message="Passwords don't match, please try again or leave password empty to update other fields.")
-                else:
-                    # passwords too short
-                    return manage(request, response_code=1, message="Passwords are too short, please try again or leave password empty to update other fields.")
-        user_to_update.username = new_username
-        user_to_update.cert_cn = cert_cn
-        user_to_update.is_superuser = su_status
-        user_to_update.save()
-        return manage(request, response_code=0, message="User updated")
-
-    else:
-        #not a post, return to manage users page
-        return manage(request)
-
-def delete(request):
-
-
-    print("+++ delete +++")
-    if not verifyUser(request):
-        raise PermissionDenied
-    print(">>>>>>>>>>>>>>>>>>>>>>>> 0")
-    if not getSuperUserStatus(request):
-        raise PermissionDenied
-
-    print(">>>>>>>>>>>>>>>>>>>>>>>> 1")
-    if request.method == 'POST':
-        user = request.POST.get('username')
-        user_obj = csv2_user.objects.filter(username=user)
-        user_obj.delete()
-        print(">>>>>>>>>>>>>>>>>>>>>>>> 2")
-        return manage(request, response_code=0, message="User deleted")
-
-    return manage(request, response_code=1, message="User NOT deleted")
+#-------------------------------------------------------------------------------
 
 def settings(request):
     print("+++ settings +++")
