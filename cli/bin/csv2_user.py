@@ -1,42 +1,46 @@
-from csv2_common import requests, show_table
+from csv2_common import check_keys, requests, show_table, verify_yaml_file
+from subprocess import Popen, PIPE
 
-import json
+import filecmp
+import os
+
+KEY_MAP = {
+    '-gn':   'group_name',
+    '-ucn':  'cert_cn',
+    '-un':   'username',
+    '-upw':  'password',
+    }
+
+def _filter_by_user(gvar, qs):
+    """
+    Internal function to filter a query set by the specified user name.
+    """
+
+    if 'username' in gvar['command_args']:
+        for _ix in range(len(qs)-1, -1, -1):
+            if qs[_ix]['username'] != gvar['command_args']['username']:
+                del(qs[_ix])
+
+    return qs
 
 def add(gvar):
     """
-    Add a csv2 user.
+    Add a user.
     """
 
-    # Check for mandatory arguments.
-    _missing = []
-    if 'target-user' not in gvar['user_settings']:
-        _missing.append('-U|--target-user')
-
-    if 'target-password' not in gvar['user_settings']:
-        _missing.append('-P|--target-password')
-
-    if 'target-common-name' not in gvar['user_settings']:
-        _missing.append('-C|--target-common-name')
-
-    if _missing:
-        print('Error: "csv2 user add" requires the following parameters: %s' % _missing)
-        exit(1)
-
-    # If a target password prompt was requested (-P .), prompt for password.
-    if gvar['user_settings']['target-password'] == '.':
-        gvar['user_settings']['target-password'] = getpass('Enter target password: ')
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-ucn', '-un', '-upw'],
+        [],
+        [],
+        key_map=KEY_MAP)
 
     # Create the user.
     response = requests(
         gvar,
-        '/user/create/',
-        form_data = {
-            'username': gvar['user_settings']['target-user'],
-            'password1': gvar['user_settings']['target-password'],
-            'password2': gvar['user_settings']['target-password'],
-            'common_name': gvar['user_settings']['target-common-name'],
-            'is_superuser': gvar['user_settings']['super-user'],
-            }
+        '/user/add/',
+        form_data
         )
     
     if response['message']:
@@ -44,36 +48,30 @@ def add(gvar):
 
 def delete(gvar):
     """
-    Delete a csv2 user.
+    Delete a user.
     """
 
-    # Check for mandatory arguments.
-    _missing = []
-    if 'target-user' not in gvar['user_settings']:
-        _missing.append('-U|--target-user')
+    # Check for missing arguments or help required.
+    check_keys(gvar, ['-un'], [], [])
 
-    if _missing:
-        print('Error: "csv2 user delete" requires the following parameters: %s' % _missing)
-        exit(1)
-
-    # Retrieve Cookie/CSRF and check that the target user exists.
+    # Check that the target user exists.
     response = requests(gvar, '/user/list/')
-    _user_found = False
+    _found = False
     for row in response['user_list']:
-      if row['pk'] == gvar['user_settings']['target-user']:
-        _user_found = True
+      if row['username'] == gvar['user_settings']['username']:
+        _found = True
         break
-    
-    if not _user_found:
-        print('Error: "csv2 user delete" cannot delete "%s", user doesn\'t exist.' % gvar['user_settings']['target-user'])
+   
+    if not _found:
+        print('Error: "csv2 user delete" cannot delete "%s", user doesn\'t exist.' % gvar['user_settings']['username'])
         exit(1)
 
     # Confirm user delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete user "%s"? (yes|..)' % gvar['user_settings']['target-user'])
+        print('Are you sure you want to delete user "%s"? (yes|..)' % gvar['user_settings']['username'])
         _reply = input()
         if _reply != 'yes':
-          print('csv2 user delete "%s" cancelled.' % gvar['user_settings']['target-user'])
+          print('csv2 user delete "%s" cancelled.' % gvar['user_settings']['username'])
           exit(0)
 
     # Delete the user.
@@ -81,8 +79,74 @@ def delete(gvar):
         gvar,
         '/user/delete/',
         form_data = {
-            'username': gvar['user_settings']['target-user'],
+            'username': gvar['user_settings']['username']
             }
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def group_add(gvar):
+    """
+    Add a group to the specified user.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-gn', '-un'],
+        [],
+        [],
+        key_map=KEY_MAP)
+
+    # Create the user.
+    response = requests(
+        gvar,
+        '/user/group_add/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def group_delete(gvar):
+    """
+    Delete a group from the specified user.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-gn', '-un'],
+        [],
+        [],
+        key_map=KEY_MAP)
+
+    # Check that the target user exists.
+    response = requests(gvar, '/user/list/')
+    _found = False
+    for row in response['user_list']:
+      if row['username'] == gvar['user_settings']['username']:
+        _found = True
+        break
+   
+    if not _found:
+        print('Error: "csv2 user delete" cannot delete "%s", user doesn\'t exist.' % gvar['user_settings']['username'])
+        exit(1)
+
+    # Confirm user delete.
+    if not gvar['user_settings']['yes']:
+        print('Are you sure you want to delete user "%s"? (yes|..)' % gvar['user_settings']['username'])
+        _reply = input()
+        if _reply != 'yes':
+          print('csv2 user delete "%s" cancelled.' % gvar['user_settings']['username'])
+          exit(0)
+
+    # Delete the user/group.
+    response = requests(
+        gvar,
+        '/user/group_delete/',
+        form_data
         )
     
     if response['message']:
@@ -90,22 +154,70 @@ def delete(gvar):
 
 def list(gvar):
     """
-    List csv2 users.
+    List users.
     """
 
-    response = requests(gvar, '/user/list/')
-    show_table(
-        gvar,
-        response['user_list'],
-        [
-            'pk/User',
-            'cert_cn/Common Name',
-            'password/Passsword',
-            'is_superuser/Superuser',
-            'join_date/Created',
-            'active_group/Group',
-        ],
-        )
+    # Check for missing arguments or help required.
+    check_keys(gvar, [], [], ['-un', '-ok'])
 
-if __name__ == "__main__":
-    main(sys.argv)
+    # Retrieve data (possibly after changing the user).
+    response = requests(gvar, '/user/list/')
+    
+    if response['message']:
+        print(response['message'])
+
+    # Filter response as requested (or not).
+    user_list = _filter_by_user(gvar, response['user_list'])
+
+    # Print report
+    print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
+    if gvar['command_args']['only-keys']:
+        show_table(
+            gvar,
+            user_list,
+            [
+                'username/Username',
+            ],
+            )
+    else:
+        show_table(
+            gvar,
+            user_list,
+            [
+                'username/Username',
+                'cert_cn/Common Name',
+                'active_group/Active Group',
+                'user_groups/User Groups',
+                'available_groups/Available Groups',
+                'is_superuser/Super User',
+                'join_date/Joined',
+            ],
+            )
+
+def update(gvar):
+    """
+    Modify the specified user.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-un'],
+        [],
+        ['-ucn', '-upw'],
+        key_map=KEY_MAP)
+
+    if len(form_data) < 2:
+        print('Error: "csv2 user update" requires at least one option to update.')
+        exit(1)
+
+    # Create the user.
+    response = requests(
+        gvar,
+        '/user/update/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
