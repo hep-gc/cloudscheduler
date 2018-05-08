@@ -51,6 +51,7 @@ def main(args):
                 True, # super_user?
                 {
                     'add':          csv2_group.add,
+                    'defaults':     csv2_group.defaults,
                     'delete':       csv2_group.delete,
                     'list':         csv2_group.list,
                     'update':       csv2_group.update,
@@ -72,8 +73,10 @@ def main(args):
                 {
                     'add':          csv2_user.add,
                     'delete':       csv2_user.delete,
+                    'group-add':    csv2_user.group_add,
+                    'group-delete': csv2_user.group_delete,
                     'list':         csv2_user.list,
-#                   'update':       csv2_user.update,
+                    'update':       csv2_user.update,
                     }
                 ]
             },
@@ -90,10 +93,15 @@ def main(args):
             ('-cu',  '--cloud-user', True),
             ('-f',   '--file-path', True),
             ('-g',   '--group', True),
-            ('-gM',  '--group-manager', True),
+            ('-gm',  '--group-manager', True),
             ('-gn',  '--group-name', True),
             ('-H',   '--long-help', False),
             ('-h',   '--help', False),
+            ('-jc',  '--job-cores', True),
+            ('-jd',  '--job-disk', True),
+            ('-jed', '--job-ephemeral-disk', True),
+            ('-jr',  '--job-ram', True),
+            ('-js',  '--job-swap', True),
             ('-ok',  '--only-keys', False),
             ('-r',   '--rotate', False),
             ('-s',   '--server', True),
@@ -104,6 +112,9 @@ def main(args):
             ('-SU',  '--super-user', False),
             ('-su',  '--server-user', True),
             ('-te',  '--text-editor', True),
+            ('-ucn', '--user-common-name', True),
+            ('-un',  '--username', True),
+            ('-upw', '--user-password', True),
             ('-Y',   '--yes', False),
             ('-ye',  '--yaml-enabled', True),
             ('-ym',  '--yaml-mime-type', True),
