@@ -34,7 +34,7 @@ ALLOWED_HOSTS = ["csv2-dev.heprc.uvic.ca",
 
 INSTALLED_APPS = [
     'csv2.apps.Csv2Config',
-    'glintwebui.apps.GlintwebuiConfig',
+#    'glintwebui.apps.GlintwebuiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -166,6 +166,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/'
 
+'''
 # Celery variables
 # not sure if it should be json for sure or not yet.
 CELERY_ACCEPT_CONTENT = ['json']
@@ -182,3 +183,4 @@ CELERY_QUEUES = {
 CELERY_ROUTES = {
     'Glintv2.glintv2.tasks.image_collection': {'queue': 'image_collection'},
 }
+'''
