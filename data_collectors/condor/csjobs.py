@@ -3,7 +3,6 @@ from multiprocessing import Process
 import time
 import logging
 import socket
-import re
 
 import job_config as config
 from attribute_mapper.attribute_mapper import map_attributes
@@ -20,7 +19,6 @@ from sqlalchemy.ext.automap import automap_base
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
-    key_list.append("group_name")
     keys_to_trim = []
     for key in dict_to_trim:
         if key not in key_list:
@@ -42,7 +40,7 @@ def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.collection_interval
-    job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
+    job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
@@ -50,14 +48,26 @@ def job_producer():
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
     last_poll_time = 0
+    fail_count = 0
     while True:
         try:
             #
             # Setup - initialize condor and database objects and build user-group list
             #
-            condor_s = htcondor.Schedd()
+            try:
+                condor_s = htcondor.Schedd()
+            except Exception as exc:
+                fail_count = fail_count + 1
+                logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+                logging.error(exc)
+                logging.error("Sleeping until next cycle...")
+                time.sleep(config.sleep_interval)
+                continue
+
+            fail_count = 0
+
             Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
                 "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
             Job = Base.classes.condor_jobs
@@ -90,28 +100,68 @@ def job_producer():
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
-                    # Parse group_name out of requirements
-                    try:
-                        pattern = '(group_name is ")(.*?)(")'
-                        grp_name = re.search(pattern, job_dict['Requirements'])
-                        job_dict['group_name'] = grp_name.group(2)
-                    except Exception as exc:
-                        logging.error("No group name found in requirements expression... setting default.")
-                        job_dict['group_name'] = config.default_job_group
+                #
+                # check if there is a group_name
+                # if not, try and assign one, if default is ambiguos ignore ad
+                # if a group is found update job ad in condor before adding to database
+                #
+                logging.info("Checking group name...")
+                job_user = job_dict["User"].split("@")[0]
+                if job_dict.get("GroupName") is not None and user_group_dict.get(job_user) is not None:
+                    # if there is a grp name check that it is a valid one.
+                    # This looks confusing but it's just saying if the job group
+                    # name is not in any of the user's groups
+                    if not any(str(job_dict["GroupName"]) in grp for grp in user_group_dict.get(job_user)):
+                        logging.info("Job ad: %s has invalid group_name, ignoring...",
+                                     job_dict["GlobalJobId"])
+                        # Invalid group name
+                        # IGNORE
+                        continue
 
-                # Else there is no requirements and is likely not a job submitted for csv2
-                # Set the default job group and continue
                 else:
-                    logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
-                    job_dict['group_name'] = config.default_job_group
-                
+                    # else if there is no group name try to assign one
+                    # can also get here if the user_group list is empty
+                    job_user = job_dict["User"].split("@")[0]
+                    if not user_group_dict.get(job_user):
+                        # User not registered to any groups
+                        logging.info("User: %s not registered to any groups or unable "
+                                     "to retrieve user groups, ignoring...", job_user)
+                        continue
+                    logging.info("Job ad: %s has no group_name, attemping to resolve...",
+                                 job_dict["GlobalJobId"])
+
+                    if len(user_group_dict[job_user]) == 1:
+                        job_dict["GroupName"] = user_group_dict[job_user][0]
+                        #UPDATE CLASSAD
+                        cluster = job_dict["ClusterId"]
+                        proc = job_dict["ProcId"]
+                        expr = str(cluster) + "." + str(proc)
+                        condor_s.edit([expr], "GroupName", str(user_group_dict[job_user][0]))
+                    else:
+                        #AMBIGUOUS GROUP NAME, IGNORE
+                        logging.info("Could not automatically resolve group_name for: %s,"
+                                     " ignoring... ", job_dict["GlobalJobId"])
+                        continue
+
                 job_dict = trim_keys(job_dict, job_attributes)
                 job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
 
                 logging.info("Adding job %s", job_dict["global_job_id"])
                 new_job = Job(**job_dict)
-                session.merge(new_job)
-            session.commit()
+                try:
+                    session.merge(new_job)
+                except Exception as exc:
+                    logging.error("Unable to merge job:")
+                    logging.error(exc)
+                    logging.error("Skipping for this cycle...")
+            try:        
+                session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
+                time.sleep(sleep_interval)
+                continue
 
 
             session = Session(engine)
@@ -132,10 +182,20 @@ def job_producer():
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
                     new_job = Job(**job_dict)
-                    session.merge(new_job)
-                session.commit()
-
-            last_poll_time = new_poll_time
+                    try:
+                        session.merge(new_job)
+                    except Exception as exc:
+                        logging.error("Unable to merge updated job ads:")
+                        logging.error(exc)
+                        logging.error("setting new_poll_time to last_poll_time to repeat cycle")
+                        new_poll_time = last_poll_time
+                try:        
+                    session.commit()
+                    last_poll_time = new_poll_time
+                except Exception as exc:
+                    logging.error("Unable to commit database session")
+                    logging.error(exc)
+                    logging.error("Aborting cycle...")
 
             time.sleep(sleep_interval)
 
@@ -156,7 +216,7 @@ def job_command_consumer():
         try:
             #Make database engine
             Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
                 "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
             Base.prepare(engine, reflect=True)
             Job = Base.classes.condor_jobs
@@ -178,7 +238,12 @@ def job_command_consumer():
                     logging.error("Failed to hold job %s", job.global_job_id)
                     continue
             #commit updates enteries
-            session.commit()
+            try:        
+                session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
 
             logging.debug("No more jobs to hold, begining sleep interval...")
             time.sleep(sleep_interval)
@@ -194,14 +259,24 @@ def job_command_consumer():
 
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
+    fail_count = 0 
     while True:
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its
         # better to re-mirror the database each time for the sake on consistency.
-        condor_s = htcondor.Schedd()
+        try:
+            condor_s = htcondor.Schedd()
+        except Exception as exc:
+            fail_count = fail_count + 1
+            logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+            logging.error(exc)
+            logging.error("Sleeping until next cycle...")
+            time.sleep(config.cleanup_sleep_interval)
+            continue
+        fail_count = 0
         Base = automap_base()
         local_hostname = socket.gethostname()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
             "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         session = Session(engine)
@@ -225,13 +300,22 @@ def cleanUp():
                 #job is missing from condor, clean it up
                 logging.info("Found Job missing from condor: %s, cleaning up.", job.global_job_id)
                 job_dict = job.__dict__
+                logging.info(job_dict)
                 session.delete(job)
                 # metadata not relevent to the job ad, must trim to init with kwargs
                 job_dict.pop('_sa_instance_state', None)
                 new_arch_job = archJob(**job_dict)
-                session.merge(new_arch_job)
+                try:
+                    session.merge(new_arch_job)
+                except Exception as exc:
+                    logging.error("Unable to merge deleted job add, skipping for this cycle")
 
-        session.commit()
+        try:        
+            session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         time.sleep(config.cleanup_sleep_interval)
 
 if __name__ == '__main__':

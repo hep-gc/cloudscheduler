@@ -2,9 +2,9 @@ general:
     clouscheduler_log_file: "/var/log/cloudscheduler/cloudscheduler.log"
 
 database:
-    db_user: "csv2"
-    db_password: ""
-    db_host: "csv2.heprc.uvic.ca"
+    db_user: "root"
+    db_password: "pass-test"
+    db_host: "db"
     db_port: 3306
     db_name: "csv2"
 

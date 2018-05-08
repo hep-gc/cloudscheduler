@@ -1,0 +1,65 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_header_footer.css">
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_matrix.css">
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_button.css">
+    <link rel="stylesheet" href="/static/glintwebui/css/glint_dropdown_button.css">
+
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+        th {
+            text-align: center;
+        }
+    </style>
+</head>
+{% load template_utils %}
+<ul>
+    <li style="padding 0px"><a style="padding: 0px" href="/ui/"><img href="/ui/" style="height: 60px;" src="/static/glintwebui/img/glintv2whitetext.png"></a></li>
+    {% if is_superuser %}
+       <li> <div>
+                <a onclick="doAdminDropdown()" class="dropbtn">Admin Tools</a>
+                <div id="myAdminDropdown" class="dropdown-content">
+                    <a href='/ui/manage_users/'>User Management</a>
+                    <a href='/ui/manage_groups/'>Group Management</a>
+                </div>
+            </div>
+       </li>
+    {% endif %}
+</ul>
+<br/>
+<div class="wrapper">
+<h1>User Settings</h1>
+{% if message is not None %}
+    <div><p style="color:red">{{message}}</p></div>
+{% endif %}
+
+<div><p style="color:green">Leave password blank unless you want to change passwords.</p></div>
+
+<div class="" id="self_update_user" style="width: 40%">
+    <form name="self_update_user" action="/ui/self_update_user/" method="post">
+        {% csrf_token %}
+        <table>
+            <tr><td><label for="pass1">New Password</label></td>
+            <td><input type="password" name="pass1" id="" value="" /></td></tr>
+            <tr><td><label for="pass2">Repeat Password</label></td>
+            <td><input type="password" name="pass2" id="" value="" /></td></tr>
+            <tr><td><label for="cert_cn">Common Name</label></td>
+            <td><input type="text" name="cert_cn" id="" value="{{user_obj.cert_cn}}" /></td></tr>
+            <input type="hidden" name="old_usr" value="{{user_obj.username}}" />
+
+            <tr><td><input type="submit" value="Save" /></td></tr>
+        </table>
+    </form>
+</div>
+</div>
+<script>        
+    function doAdminDropdown() {
+        document.getElementById("myAdminDropdown").classList.toggle("show");
+    }
+</script>

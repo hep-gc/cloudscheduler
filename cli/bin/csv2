@@ -5,14 +5,13 @@ This is the command line interface to cloudscheduler version 2.
 
 from pathlib import Path
 from subprocess import Popen
+from csv2_common import requests
 
 import os
 import sys
 
 import yaml
 import json
-
-from csv2_common import _show_table
 
 import csv2_cloud
 import csv2_group
@@ -21,7 +20,7 @@ import csv2_settings
 import csv2_user
 
 DEFAULT_SETTINGS = {
-    'csv2-server-url': 'https://localhost',
+    'server-address': 'https://localhost',
     }
 
 def main(args):
@@ -30,75 +29,103 @@ def main(args):
     """
 
 #       'ca_cert': '%s/lets-encrypt-x3-cross-signed.pem.txt' % os.path.dirname(os.path.abspath(args[0])),
+
     # Initialize global variables.
     gvar = {
         'action': None,
         'actions': {
-            'cloud': {
-                'add':          csv2_cloud._add,
-                'delete':       csv2_cloud._delete,
-                'list':         csv2_cloud._list,
-                'modify':       csv2_cloud._modify,
-                'status':       csv2_cloud._status,
-#               'yaml-add':     csv2_cloud._yaml_add,
-#               'yaml-delete':  csv2_cloud._yaml_delete,
-                'yaml-edit':    csv2_cloud._yaml_edit,
-                },
-            'group': {
-#               'add':          csv2_group._add,
-#               'delete':       csv2_group._delete,
-                'list':         csv2_group._list,
-#               'modify':       csv2_group._modify,
-#               'yaml-add':     csv2_group._yaml_add,
-#               'yaml-delete':  csv2_group._yaml_delete,
-#               'yaml-edit':    csv2_group._yaml_edit,
-                },
-            'settings': {
-                'delete':       csv2_settings._delete,
-                'list':         csv2_settings._list,
-                'set':          csv2_settings._set,
-                },
-            'user': {
-                'add':          csv2_user._add,
-                'delete':       csv2_user._delete,
-                'list':         csv2_user._list,
-#               'modify':       csv2_user._modify,
-                },
+            'cloud': [
+                False, # super_user?
+                {
+                    'add':          csv2_cloud.add,
+                    'delete':       csv2_cloud.delete,
+                    'list':         csv2_cloud.list,
+                    'status':       csv2_cloud.status,
+                    'update':       csv2_cloud.update,
+                    'yaml-delete':  csv2_cloud.yaml_delete,
+                    'yaml-edit':    csv2_cloud.yaml_edit,
+                    'yaml-load':    csv2_cloud.yaml_load,
+                    }
+                ],
+            'group': [
+                True, # super_user?
+                {
+                    'add':          csv2_group.add,
+                    'defaults':     csv2_group.defaults,
+                    'delete':       csv2_group.delete,
+                    'list':         csv2_group.list,
+                    'update':       csv2_group.update,
+                    'yaml-delete':  csv2_group.yaml_delete,
+                    'yaml-edit':    csv2_group.yaml_edit,
+                    'yaml-load':    csv2_group.yaml_load,
+                    }
+                ],
+            'settings': [
+                False, # super_user?
+                {
+                    'delete':       csv2_settings.delete,
+                    'list':         csv2_settings.list,
+                    'set':          csv2_settings.set,
+                    }
+                ],
+            'user': [
+                True, # super_user?
+                {
+                    'add':          csv2_user.add,
+                    'delete':       csv2_user.delete,
+                    'group-add':    csv2_user.group_add,
+                    'group-delete': csv2_user.group_delete,
+                    'list':         csv2_user.list,
+                    'update':       csv2_user.update,
+                    }
+                ]
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
             ('-cn',  '--cloud-name', True),
-            ('-ca',  '--cloud-url', True),
-            ('-ck',  '--cloud-password', True),
+            ('-ca',  '--cloud-address', True),
+            ('-cpw', '--cloud-password', True),
             ('-cP',  '--cloud-project-domain', True),
             ('-cp',  '--cloud-project', True),
             ('-cr',  '--cloud-region', True),
             ('-ct',  '--cloud-type', True),
             ('-cU',  '--cloud-user-domain', True),
             ('-cu',  '--cloud-user', True),
+            ('-f',   '--file-path', True),
             ('-g',   '--group', True),
-            ('-ga',  '--grid-cert-authority', True),
-            ('-gc',  '--grid-cert', True),
-            ('-gk',  '--grid-key', True),
-            ('-gn',  '--grid-common-name', True),
+            ('-gm',  '--group-manager', True),
+            ('-gn',  '--group-name', True),
             ('-H',   '--long-help', False),
             ('-h',   '--help', False),
+            ('-jc',  '--job-cores', True),
+            ('-jd',  '--job-disk', True),
+            ('-jed', '--job-ephemeral-disk', True),
+            ('-jr',  '--job-ram', True),
+            ('-js',  '--job-swap', True),
             ('-ok',  '--only-keys', False),
-            ('-p',   '--password', True),
             ('-r',   '--rotate', False),
-            ('-s',   '--csv2-server', True),
+            ('-s',   '--server', True),
+            ('-sa',  '--server-address', True),
+            ('-sC',  '--server-grid-cert', True),
+            ('-sK',  '--server-grid-key', True),
+            ('-spw', '--server-password', True),
+            ('-SU',  '--super-user', False),
+            ('-su',  '--server-user', True),
             ('-te',  '--text-editor', True),
-            ('-U',   '--csv2-server-url', True),
-            ('-u',   '--user', True),
-            ('-y',   '--yes', False),
+            ('-ucn', '--user-common-name', True),
+            ('-un',  '--username', True),
+            ('-upw', '--user-password', True),
+            ('-Y',   '--yes', False),
+            ('-ye',  '--yaml-enabled', True),
+            ('-ym',  '--yaml-mime-type', True),
             ('-yn',  '--yaml-name', True),
-            ('-su',  '--super-user', False),
-            ('-vc',  '--virtual-cores', True),
-            ('-vk',  '--keypair', True),
-            ('-vr',  '--virtual-ram', True),
+            ('-vc',  '--vm-cores', True),
+            ('-vk',  '--vm-keypair', True),
+            ('-vr',  '--vm-ram', True),
             ('-xA',  '--expose-API', False),
             ),
         'cookies': dict(),
+        'csrf': None,
         'function_args': None,
         'home_dir': str(Path.home()),
         'object': None,
@@ -118,8 +145,8 @@ def main(args):
         os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
 
     # Load the user settings.
-    if 'csv2-server' in gvar['command_args']:
-        gvar['server'] = gvar['command_args']['csv2-server']
+    if 'server' in gvar['command_args']:
+        gvar['server'] = gvar['command_args']['server']
     else:
         gvar['server'] = 'default'
 
@@ -145,19 +172,34 @@ def main(args):
             else:
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
+    # Set active_group and super_user.
+    if gvar['object'] == 'settings':
+        gvar['active_group'] = '-'
+        gvar['super_user'] = False
+    else:
+        response = requests(gvar, '/settings/prepare/')
+
+
+#   print(">>>>>", gvar['active_group'], gvar['super_user'])
+#   gvar['super_user'] = False
+
     # Call object handler.
     if gvar['object'] in gvar['actions']:
-        if gvar['action'] in gvar['actions'][gvar['object']]:
-            gvar['actions'][gvar['object']][gvar['action']](gvar)
+        if not gvar['super_user'] and gvar['actions'][gvar['object']][0]:
+            print('Error: You are not authorized to access object "%s"; use "csv2 -h" or "csv2 -H" for help.' % gvar['object'])
+            exit(1)
+
+        if gvar['action'] in gvar['actions'][gvar['object']][1]:
+            gvar['actions'][gvar['object']][1][gvar['action']](gvar)
         else:
-            csv2_help._help(gvar)
+            csv2_help.help(gvar)
             if not gvar['action']:
                 print('Error: No action specified for object "%s"; use -h or -H for help.' % gvar['object'])
             else:
                 print('Error: Invalid action "%s" for object "%s"; use -h or -H for help.' % (gvar['action'], gvar['object']))
             exit(1)
     else:
-        csv2_help._help(gvar)
+        csv2_help.help(gvar)
         if not gvar['object']:
             print('Error: No object specified; use -h or -H for help.')
         else:

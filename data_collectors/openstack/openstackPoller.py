@@ -1,6 +1,7 @@
 import multiprocessing
 from multiprocessing import Process
 import time
+import socket
 import logging
 import config
 import datetime
@@ -169,9 +170,11 @@ def vm_poller():
         db_session = Session(engine)
         Vm = Base.classes.csv2_vms
         Cloud = Base.classes.csv2_group_resources
+        Poll_Times = Base.classes.csv2_poll_times
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         # Itterate over cloud list
+        poll_time =  int(time.time())
         for cloud in cloud_list:
             authsplit = cloud.authurl.split('/')
             try:
@@ -179,25 +182,21 @@ def vm_poller():
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
-            try:
-                if version == 2:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project)
-                else:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project,
-                        user_domain=cloud.user_domain_name,
-                        project_domain_name=cloud.project_domain_name)
-            except Exception as exc:
-                logging.error("Unable to establish connection with valid openstack url, potential service outtage for %s", cloud.authurl)
-                logging.error("Skipping %s...", cloud.authurl)
-                continue
+            if version == 2:
+                session = get_openstack_session(
+                    auth_url=cloud.authurl,
+                    username=cloud.username,
+                    password=cloud.password,
+                    project=cloud.project)
+            else:
+                session = get_openstack_session(
+                    auth_url=cloud.authurl,
+                    username=cloud.username,
+                    password=cloud.password,
+                    project=cloud.project,
+                    user_domain=cloud.user_domain_name,
+                    project_domain_name=cloud.project_domain_name)
+
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
                 continue
@@ -231,8 +230,20 @@ def vm_poller():
                 except Exception as exc:
                     logging.error("unable to merge sessions, database incosistency or other error:")
                     logging.error(exc)
-            db_session.commit()
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
         logging.debug("Poll cycle complete, sleeping...")
+        try:
+            new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=poll_time)
+            db_session.merge(new_pt)
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to update vm poll time")
+            logging.error(exc)
         # This cycle should be reasonably fast such that the scheduler will always have the most
         # up to date data during a given execution cycle.
         time.sleep(config.vm_sleep_interval)
@@ -314,12 +325,7 @@ def flavorPoller():
                 }
                 flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                 new_flav = Flavor(**flav_dict)
-                try:
-                    db_session.merge(new_flav)
-                except Exception as Exc:
-                    logging.error("Database inconsistency, unable to merge vm flavor entry..")
-                    logging.error(Exc)
-
+                db_session.merge(new_flav)
 
             #now remove any that were not updated
             flav_to_delete = db_session.query(Flavor).filter(
@@ -329,7 +335,12 @@ def flavorPoller():
             for flav in flav_to_delete:
                 logging.info("Cleaning up flavor: %s", flav)
                 db_session.delete(flav)
-        db_session.commit()
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.flavor_sleep_interval)
 
@@ -410,7 +421,13 @@ def imagePoller():
                 except Exception as exc:
                     logging.error("Database inconsistency, unable to merge image entry")
                     logging.error(exc)
-            db_session.commit() # commit before cleanup
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting poll cycle...")
+                break
             # do Image cleanup
             img_to_delete = db_session.query(Image).filter(
                 Image.last_updated < current_cycle,
@@ -420,7 +437,12 @@ def imagePoller():
                 logging.info("Cleaning up image: %s", img)
                 db_session.delete(img)
 
-        db_session.commit()
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to perform final commit of database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.image_sleep_interval)
 
@@ -446,6 +468,7 @@ def limitPoller():
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -480,11 +503,7 @@ def limitPoller():
                     limits_dict[key] = config.no_limit_default
 
             new_limits = Limit(**limits_dict)
-            try:
-                db_session.merge(new_limits)
-            except Exception as exc:
-                logging.error("Database inconsistency, unable to merge limit entry")
-                logging.error(exc)
+            db_session.merge(new_limits)
 
             #now remove any that were not updated
             limit_to_delete = db_session.query(Limit).filter(
@@ -495,7 +514,12 @@ def limitPoller():
                 logging.info("Cleaning up limit %s", limit)
                 db_session.delete(limit)
 
-        db_session.commit()
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.limit_sleep_interval)
 
@@ -566,10 +590,7 @@ def networkPoller():
                     dest="csv2",
                     attr_dict=network_dict)
                 new_network = Network(**network_dict)
-                try:
-                    db_session.merge(new_network)
-                except Exception as exc:
-                    logging.error("Database inconsistency, unable to merge network entry")
+                db_session.merge(new_network)
 
             #now remove any that were not updated
             net_to_delete = db_session.query(Network).filter(
@@ -580,8 +601,13 @@ def networkPoller():
                 logging.info("Cleaning up network: %s", net)
                 db_session.delete(net)
 
-        db_session.commit()
-        last_cycle = current_cycle
+        try:        
+            db_session.commit()
+            last_cycle = current_cycle
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.network_sleep_interval)
 
@@ -596,6 +622,7 @@ def networkPoller():
 def vmCleanUp():
     multiprocessing.current_process().name = "VM Cleanup"
     last_cycle = 0
+    vm_poller_id = "vm_poller_" + str(socket.getfqdn())
     while True:
         current_cycle_time = time.time()
         #set up database objects
@@ -606,13 +633,19 @@ def vmCleanUp():
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
         Vm = Base.classes.csv2_vms
+        Poll_Times = Base.classes.csv2_poll_times
         Cloud = Base.classes.csv2_group_resources
 
-
+        last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.proccess_id == vm_poller_id)
         if last_cycle == 0:
             logging.info("First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
             last_cycle = current_cycle_time
+            time.sleep(config.vm_cleanup_interval)
+            continue
+        elif last_cycle >= last_vm_poll.last_poll:
+            logging.error("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller proccess")
+            logging.error("Skipping cycle...")
             time.sleep(config.vm_cleanup_interval)
             continue
 
@@ -623,7 +656,16 @@ def vmCleanUp():
             db_session.delete(vm)
 
         # need to commit the session here to remove vms that are gone before we look at which to terminate
-        db_session.commit()
+
+        try:        
+            db_session.commit()
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
+            logging.info("Sleeping...")
+            time.sleep(config.vm_cleanup_interval)
+            continue
         db_session = Session(engine)
 
         # check for vms that have been marked for termination
@@ -665,9 +707,14 @@ def vmCleanUp():
             logging.info("Terminating...")
             result = terminate_vm(session, vm)
 
-        db_session.commit()
+        try:        
+            db_session.commit()
+            last_cycle = current_cycle_time
+        except Exception as exc:
+            logging.error("Unable to commit database session")
+            logging.error(exc)
+            logging.error("Aborting cycle...")
 
-        last_cycle = current_cycle_time
         time.sleep(config.vm_cleanup_interval)
     return None
 

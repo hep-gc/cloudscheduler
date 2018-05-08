@@ -1,0 +1,48 @@
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 8px;
+}
+th {
+    text-align: right;
+}
+
+#account_table{
+    border: none;
+}
+
+.image_matrix tr:nth-child(even){background-color:#f2f2f2;}
+
+.image_matrix th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: black;
+}
+
+.image_matrix tr:hover {background-color: #ddd;}
+
+.public {
+    background-color: #FFFF63;
+}
+
+.private{
+    background-color: #97E739;
+}
+
+#no_filter{
+    border: 3px solid black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#private_filter{
+    cursor: pointer;
+}
+
+#public_filter{
+    cursor: pointer;
+    background-color: #808080;
+}
+

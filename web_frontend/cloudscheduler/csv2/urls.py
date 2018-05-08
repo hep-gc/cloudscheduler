@@ -1,35 +1,47 @@
 from django.conf.urls import url
 
-from . import views, user_views, cloud_views, group_views
-#from . import views, cloud_views, user_views
+from . import views, cloud_views, group_views, settings_views, user_views
 
 urlpatterns = [
 
-    url(r'^$',                                 cloud_views.status,          name='status'),
+    url(r'^$',                                 cloud_views.status,          name='cloud-status'),
 
 
-    url(r'^cloud/list/(?P<selector>)',         cloud_views.list,            name='list'),
-    url(r'^cloud/modify',                      cloud_views.modify,          name='modify'),
-    url(r'^cloud/prepare',                     cloud_views.prepare,         name='prepare'),
-    url(r'^cloud/status',                      cloud_views.status,          name='status'),
-    url(r'^cloud/yaml_fetch/(?P<selector>)',   cloud_views.yaml_fetch,      name='yaml-fetch'),
-#   url(r'^cloud/yaml_modify',                 cloud_views.yaml_modify,     name='yaml-modify'),
+    url(r'^cloud/add',                         cloud_views.add,             name='cloud-add'),
+    url(r'^cloud/delete',                      cloud_views.delete,          name='cloud-delete'),
+    url(r'^cloud/list/(?P<selector>)',         cloud_views.list,            name='cloud-list'),
+    url(r'^cloud/status',                      cloud_views.status,          name='cloud-status'),
+    url(r'^cloud/update',                      cloud_views.update,          name='cloud-update'),
+    url(r'^cloud/yaml_add',                    cloud_views.yaml_add,        name='cloud-yaml-add'),
+    url(r'^cloud/yaml_delete',                 cloud_views.yaml_delete,     name='cloud-yaml-delete'),
+    url(r'^cloud/yaml_fetch/(?P<selector>)',   cloud_views.yaml_fetch,      name='cloud-yaml-fetch'),
+    url(r'^cloud/yaml_update',                 cloud_views.yaml_update,     name='cloud-yaml-update'),
 
-    url(r'^group/list',                        group_views.list,            name='list'),
-    url(r'^group/modify',                      group_views.modify,          name='modify'),
-    url(r'^group/prepare',                     group_views.prepare,         name='prepare'),
-#   url(r'^group/yaml_fetch',                  group_views.yaml_fetch,      name='list'),
-#   url(r'^group/yaml_modify',                 group_views.yaml_modify,     name='modify'),
+    url(r'^group/add',                         group_views.add,             name='group-add'),
+    url(r'^group/defaults',                    group_views.defaults,        name='group-defaults'),
+    url(r'^group/delete',                      group_views.delete,          name='group-delete'),
+    url(r'^group/list/(?P<selector>)',         group_views.list,            name='group-list'),
+    url(r'^group/update',                      group_views.update,          name='group-update'),
+    url(r'^group/yaml_add',                    group_views.yaml_add,        name='group-yaml-add'),
+    url(r'^group/yaml_delete',                 group_views.yaml_delete,     name='group-yaml-delete'),
+    url(r'^group/yaml_fetch/(?P<selector>)',   group_views.yaml_fetch,      name='group-yaml-fetch'),
+    url(r'^group/yaml_update',                 group_views.yaml_update,     name='group-yaml-update'),
 
-#   url(r'^job/list',                          job_views.list,              name='list'),
-#   url(r'^job/modify',                        job_views.modify,            name='list'),
+#   url(r'^job/list',                          job_views.list,              name='job-list'),
+#   url(r'^job/modify',                        job_views.modify,            name='job-list'),
 
-    url(r'^user/create',                       user_views.create,           name='create'),
-    url(r'^user/delete',                       user_views.delete,           name='delete'),
-    url(r'^user/list',                         user_views.manage,           name='manage'),
-    url(r'^user/update',                       user_views.update,           name='update'),
+#    url(r'^settings/preferences',              settings_views.preferences,  name='settings-preferences'),
+     url(r'^settings/prepare',                  settings_views.prepare,      name='settings-prepare'),
+#    url(r'^settings/log_out',                  settings_views.log_out,      name='settings-log_out'),
 
-#   url(r'^vm/list',                           vm_views.list,               name='list'),
-#   url(r'^vm/modify',                         vm_views.modify,             name='list'),
+    url(r'^user/add',                          user_views.add,              name='user-add'),
+    url(r'^user/delete',                       user_views.delete,           name='user-delete'),
+    url(r'^user/group_add',                    user_views.group_add,        name='user-group-add'),
+    url(r'^user/group_delete',                 user_views.group_delete,     name='user-group-delete'),
+    url(r'^user/list',                         user_views.list,             name='user-list'),
+    url(r'^user/update',                       user_views.update,           name='user-update'),
+
+#   url(r'^vm/list',                           vm_views.list,               name='vm-list'),
+#   url(r'^vm/modify',                         vm_views.modify,             name='vm-list'),
 
 ]

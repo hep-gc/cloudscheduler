@@ -25,13 +25,16 @@ SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["csv2.heprc.uvic.ca"]
+ALLOWED_HOSTS = ["csv2-dev.heprc.uvic.ca",
+                 "csv2-dev2.heprc.uvic.ca",
+                ]
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'csv2.apps.Csv2Config',
+#    'glintwebui.apps.GlintwebuiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -113,7 +116,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': "csv2",
         'USER': 'csv2',
-        'PASSWORD': 'UriLY6gn77MrGhbu',
+        'PASSWORD': 'ZZvw2gDtGN5LL9Kv',
 #        'HOST': '127.0.0.1',
 #        'PORT': '3306',
     }
@@ -162,3 +165,22 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/'
+
+'''
+# Celery variables
+# not sure if it should be json for sure or not yet.
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Canada/Pacific'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_DEFAULT_QUEUE = 'celery'
+CELERY_DEFAULT_EXCHANGE = "celery"
+CELERY_QUEUES = {
+    "celery": {"exchange": "celery"},
+    "image_collection": {"exchange": "image_collection"},
+}
+CELERY_ROUTES = {
+    'Glintv2.glintv2.tasks.image_collection': {'queue': 'image_collection'},
+}
+'''

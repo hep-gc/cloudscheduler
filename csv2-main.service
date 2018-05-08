@@ -1,0 +1,15 @@
+[Unit]
+Description= Boots Virtual Machines on the Cloud in response to condor jobs.
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/csmain
+Restart=on-abort
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=csv2
+
+[Install]
+WantedBy=multi-user.target

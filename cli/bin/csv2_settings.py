@@ -1,34 +1,42 @@
-from csv2_common import _check_keys, _show_table
+from csv2_common import check_keys, show_table
 
 import json
 import os
 import shutil
 import yaml
 
-def _delete(gvar):
+def delete(gvar):
     """
     Delete settings.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-s'], [], ['-y'])
+    check_keys(gvar, ['-s'], [], ['-y'])
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
+        # Confirm settings delete.
+        if not gvar['user_settings']['yes']:
+            print('Are you sure you want to delete the settings for server "%s"? (yes|..)' % gvar['server'])
+            _reply = input()
+            if _reply != 'yes':
+                print('csv2 settings delete "%" cancelled.' % gvar['server'])
+                exit(0)
+
         shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']))
     else:
         print('Error: Settings for server "%s" do not exist.' % gvar['server'])
         exit(1)
 
-def _list(gvar):
+def list(gvar):
     """
     List settings.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, [], [], ['-s'])
+    check_keys(gvar, [], [], ['-s'])
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
-    _keys = ['csv2-server']
+    _keys = ['server']
     for _ix in range(len(gvar['command_keys'])):
         key = gvar['command_keys'][_ix][1][2:]
         if key not in _keys:
@@ -40,28 +48,28 @@ def _list(gvar):
     for server in os.listdir('%s/.csv2' % gvar['home_dir']):
         server_path = '%s/.csv2//%s' % (gvar['home_dir'], server)
         if os.path.isdir(server_path):
-            if 'csv2-server' not in gvar['command_args'] or server == gvar['command_args']['csv2-server']:
+            if 'server' not in gvar['command_args'] or server == gvar['command_args']['server']:
                 _fd = open('%s/settings.yaml' % server_path)
                 _settings = yaml.load(_fd.read())
                 _fd.close()
 
                 for key in sorted(_keys):
                     if key not in _settings:
-                        if key == 'csv2-server':
+                        if key == 'server':
                             _settings[key] = server
                 
                 _queryset.append({'fields': _settings})
 
     # Display results.
-    _show_table(gvar, _queryset, _keys, allow_null=False)
+    show_table(gvar, _queryset, _keys, allow_null=False)
 
-def _set(gvar):
+def set(gvar):
     """
     Modify settings.
     """
 
     # Check for missing arguments or help required.
-    _check_keys(gvar, ['-s'], [], ['*'])
+    check_keys(gvar, ['-s'], [], ['*'])
 
     # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):

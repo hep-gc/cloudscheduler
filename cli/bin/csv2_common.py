@@ -1,4 +1,4 @@
-def _check_keys(gvar, mp, rp, op, key_map=None):
+def check_keys(gvar, mp, rp, op, key_map=None):
     """
     Modify user settings.
     """
@@ -19,7 +19,7 @@ def _check_keys(gvar, mp, rp, op, key_map=None):
             options.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
 
     # Check if help requested.
-    csv2_help._help(gvar, mandatory=mandatory, required=required,  options=options)
+    csv2_help.help(gvar, mandatory=mandatory, required=required,  options=options)
 
     # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
     form_data = {}
@@ -60,6 +60,31 @@ def _check_keys(gvar, mp, rp, op, key_map=None):
 
     return form_data
 
+def requests(gvar, request, form_data={}):
+    """
+    Make RESTful requests via the _requests function and return the response. This function will
+    obtain a CSRF (for POST requests) prior to making the atual request.
+    """
+    
+    # Obtain a CSRF as required.
+    if form_data and not gvar['csrf']:
+        response = _requests(gvar, '/settings/prepare/')
+    
+    # Group change requested but the request is not a POST.
+    elif not form_data and 'group' in gvar['command_args']:
+        if not gvar['csrf']:
+            response = _requests(gvar, '/settings/prepare/')
+    
+        response = _requests(gvar,
+                '/settings/prepare',
+                form_data = {
+                    'group': gvar['user_settings']['group'],
+                    }       
+            ) 
+        
+    # Perform the callers request.
+    return _requests(gvar, request, form_data=form_data)
+
 def _requests(gvar, request, form_data={}):
     """
     Make RESTful request and return response.
@@ -67,40 +92,40 @@ def _requests(gvar, request, form_data={}):
     
     from getpass import getpass
     import os
-    import requests
+    import requests as py_requests
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
-    if 'csv2-server-url' not in gvar['user_settings']:
+    if 'server-address' not in gvar['user_settings']:
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
     if form_data:
-        _function = requests.post
+        _function = py_requests.post
         _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
     else:
-        _function = requests.get
+        _function = py_requests.get
         _form_data = {}
 
-    if 'cert' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['cert']) and \
-        'key' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['key']):
+    if 'server-grid-cert' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['server-grid-cert']) and \
+        'server-grid-key' in gvar['user_settings'] and \
+        os.path.exists(gvar['user_settings']['server-grid-key']):
         _r = _function(
-            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
-            cert=(gvar['user_settings']['cert'], gvar['user_settings']['key']),
+            '%s%s' % (gvar['user_settings']['server-address'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
             cookies=gvar['cookies']
             )
 
-    elif 'user' in gvar['user_settings']:
-        if 'password' not in gvar['user_settings'] or gvar['user_settings']['password'] == '-':
-            gvar['user_settings']['password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
+    elif 'server-user' in gvar['user_settings']:
+        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
+            gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
-            '%s%s' % (gvar['user_settings']['csv2-server-url'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['csv2-server-url']},
-            auth=(gvar['user_settings']['user'], gvar['user_settings']['password']),
+            '%s%s' % (gvar['user_settings']['server-address'], request),
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
             cookies=gvar['cookies'] 
             )
@@ -116,23 +141,23 @@ def _requests(gvar, request, form_data={}):
 
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
-            "  requests.%s(\n" \
+            "  py_requests.%s(\n" \
             "    %s%s,\n" \
             "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
                 _function.__name__,
-                gvar['user_settings']['csv2-server-url'],
+                gvar['user_settings']['server-address'],
                 request,
-                gvar['user_settings']['csv2-server-url'],
+                gvar['user_settings']['server-address'],
                 )
             )
 
-        if 'cert' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['cert']) and \
-            'key' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['key']):
-            print("    cert=('%s', '%s')," % (gvar['user_settings']['cert'], gvar['user_settings']['key']))
+        if 'server-grid-cert' in gvar['user_settings'] and \
+            os.path.exists(gvar['user_settings']['server-grid-cert']) and \
+            'server-grid-key' in gvar['user_settings'] and \
+            os.path.exists(gvar['user_settings']['server-grid-key']):
+            print("    cert=('%s', '%s')," % (gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']))
         else:
-            print("    auth=('%s', <password>)," % gvar['user_settings']['user'])
+            print("    auth=('%s', <password>)," % gvar['user_settings']['server-user'])
 
         print("    data=%s,\n" \
             "    cookies='%s'\n" \
@@ -157,13 +182,23 @@ def _requests(gvar, request, form_data={}):
         print('Error: %s' % response['message'])
         exit(1)
 
-    gvar['cookies'] = _r.cookies
     if 'Set-Cookie' in _r.headers:
-        gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+        new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+        if new_csrf[1]:
+            gvar['cookies'] = _r.cookies
+            gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+
+#   print("++++++++++++++++++++++++", request, ":", gvar['cookies'], gvar['csrf'])
+
+    if 'active_group' in response:
+        gvar['active_group'] = response['active_group']
+
+    if 'super_user' in response:
+        gvar['super_user'] = response['super_user']
 
     return response
 
-def _show_table(gvar, queryset, columns, allow_null=True):
+def show_table(gvar, queryset, columns, allow_null=True):
     """
     Print a table from a django query set.
     """
@@ -265,6 +300,52 @@ def _show_table_pad(lens, cols):
         padded_columns.append('%s%s' % (cols[_ix], ' ' * (lens[_ix] - len(str(cols[_ix])))))
 
     return padded_columns
+
+def verify_yaml_file(file_path):
+    # Read the entire file.
+    fd = open(file_path)
+    file_string = fd.read()
+    fd.close()
+
+    # Verify attribute line.
+    attribute, yaml = file_string.split('\n',1)
+    if len(attribute) > 1 and attribute[0] == '#':
+        attributes = '\n'.join(' '.join(attribute[1:].split()).split(', '))
+        result = _yaml_load_and_verify(attributes)
+    else:
+        print('Error: No attribute line, format: # yaml_enabled: <True | False>, yaml_mime_type = <cloud-config | ...>')
+        exit(1)
+
+    if not result[0]:
+        print('Error: Invalid attribute line "%s": %s' % (result[1], result[2]))
+        exit(1)
+
+    if 'yaml_enabled' in result[1]:
+        if result[1]['yaml_enabled'] == True:
+            yaml_enabled = 1
+        else:
+            yaml_enabled = 0
+    else:
+        print('Error: yaml_enabled missing from attribute line.')
+        exit(1)
+
+    if 'yaml_mime_type' in result[1]:
+        yaml_mime_type = result[1]['yaml_mime_type']
+    else:
+        print('Error: yaml_mime_type missing from attribute line.')
+        exit(1)
+
+    # Verify the remaining yaml.
+    result = _yaml_load_and_verify(yaml)
+    if not result[0]:
+        print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
+        exit(1)
+
+    return {
+        'yaml': yaml,
+        'enabled': yaml_enabled, 
+        'mime_type': yaml_mime_type, 
+        }
 
 def _yaml_load_and_verify(yaml_string):
     import yaml

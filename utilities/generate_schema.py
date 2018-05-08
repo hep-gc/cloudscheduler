@@ -31,6 +31,7 @@ def main(args):
     gvar = {
         'backup_data': [
             'csv2_attribute_mapping',
+            'csv2_config',
             ],
         'cmd_path': os.path.abspath(args[0]),
         }
@@ -38,7 +39,7 @@ def main(args):
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
     gvar['temp_dir'] = mkdtemp()
-    gvar['secrets_file'] = '%s/ansible-systems/heprc/staticvms/roles/csv2/vars/csv2_secrets.yaml' \
+    gvar['secrets_file'] = '%s/ansible-systems/heprc/staticvms/vars/csv2-dev-secrets.yaml' \
         % '/'.join(gvar['path_info'][:gvar['ix']])
     gvar['vp_file'] = '%s/.pw/staticvms' % '/'.join(gvar['path_info'][:3])
 

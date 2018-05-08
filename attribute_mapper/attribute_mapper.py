@@ -1,5 +1,6 @@
-import attribute_mapper.config as config
+#import attribute_mapper.config as config
 
+from . import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -24,7 +25,7 @@ def build_mapping_dictionaries():
     global attr_list_dict
 
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     Mappings = Base.classes.csv2_attribute_mapping
@@ -94,8 +95,8 @@ def dump_dicts():
     global attr_list_dict
     global rowid_dict
 
-    print attr_list_dict
-    print rowid_dict
+    print(attr_list_dict)
+    print(rowid_dict)
 
 if __name__ == "__main__":
     #build_mapping_dictionaries()

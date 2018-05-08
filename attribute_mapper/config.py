@@ -12,11 +12,11 @@ db_password = ""
 
 
 
-if os.path.isfile("/etc/attribute_mapper.yaml"):
-    path = "/etc/attribute_mapper.yaml"
+if os.path.isfile("/etc/cloudscheduler/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler/cloudscheduler.yaml"
 
-elif os.path.isfile("/opt/cloudscheduler/attribute_mapper/attribute_mapper.yaml"):
-    path = "/opt/cloudscheduler/attribute_mapper/attribute_mapper.yaml"
+elif os.path.isfile("/opt/cloudscheduler/cloudscheduler.yaml"):
+    path = "/opt/cloudscheduler/cloudscheduler.yaml"
 
 else:
     path = os.path.dirname(os.path.realpath(__file__)) + "/attribute_mapper.yaml"

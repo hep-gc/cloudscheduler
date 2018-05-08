@@ -12,8 +12,6 @@ cleanup_sleep_interval = 120
 log_file = "/var/log/cloudscheduler/csjobs.log"
 log_level = 20 #INFO
 
-default_job_group = None
-
 db_host = "localhost"
 db_port = 3306
 db_user = "csv2"
@@ -33,9 +31,9 @@ try:
         cfg = yaml.load(ymlfile)
 
 except Exception as e:
-    print >> sys.stderr, "Configuration file problem: There was a " \
-                         "problem reading %s. Check that it is readable," \
-                         "and that it exists. " % path
+    print("Configuration file problem: There was a " \
+          "problem reading %s. Check that it is readable," \
+          "and that it exists. " % path, file=sys.stderr)
 
 if "database" in cfg:
     if "db_host" in cfg["database"]:
@@ -55,7 +53,7 @@ if "database" in cfg:
 
 try:
     Base = automap_base()
-    engine = create_engine("mysql://" + db_user + ":" + db_password + "@" + db_host + ":" + str(db_port) + "/" + db_name)
+    engine = create_engine("mysql+pymysql://" + db_user + ":" + db_password + "@" + db_host + ":" + str(db_port) + "/" + db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
     Conf = Base.classes.csv2_config
@@ -79,10 +77,7 @@ try:
                 log_file = cfg["condor_jobs"]["log_file"]
 
             if "log_level" in cfg["condor_jobs"]:
-                log_level = cfg["condor_jobs"]["log_level"]
-
-            if "default_job_group" in cfg["condor_jobs"]:
-                default_job_group = cfg["condor_jobs"]["default_job_group"]
+                log_level = cfg["condor_jobs"]["log_level"]       
 
     except yaml.YAMLError:
         print >> sys.stderr, "Unable to load condor jobs config from yaml blob in database" \
@@ -91,7 +86,7 @@ try:
 
 
 except Exception as e:
-    print >> sys.stderr, "Unable to connect to the database and extract relevent config," \
-                     " please ensure the database parameters are correct and restart csjobs"
-    print >> sys.stderr, e
+    print("Unable to connect to the database and extract relevent config," \
+          " please ensure the database parameters are correct and restart csjobs", file=sys.stderr)
+    print(e, file=sys.stderr)
     sys.exit(1)

@@ -1,0 +1,23 @@
+
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/users.css" %}">
+
+<script type="text/javascript">
+    function show_user(username){
+        if (username.length > 0) {
+            document.location.hash = username;
+        }
+    }
+</script>
+
+</head>
+<body>
+
+</body>
+

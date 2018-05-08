@@ -2,8 +2,8 @@
 EC2 API Cloud Connector Module.
 """
 
-#import boto3
-#import botocore
+import boto3
+import botocore
 
 import cloudscheduler.basecloud
 

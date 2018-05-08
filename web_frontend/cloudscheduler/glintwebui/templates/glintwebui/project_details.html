@@ -1,0 +1,392 @@
+<head>
+<meta http-equiv="refresh" content="6">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<link rel="stylesheet" href="/static/glintwebui/css/glint_button.css">
+<link rel="stylesheet" href="/static/glintwebui/css/glint_header_footer.css">
+<link rel="stylesheet" href="/static/glintwebui/css/glint_matrix.css">
+<link rel="stylesheet" href="/static/glintwebui/css/glint_dropdown_button.css">
+
+<style>
+
+{% load template_utils %}
+
+</style>
+</head>
+<ul>
+    <li style="padding 0px"><a style="padding: 0px" href="/ui/"><img href="/ui/" style="height: 60px;" src="/static/glintwebui/img/glintv2whitetext.png"></a></li>
+    <li><h4>Group:</h4></li>
+    <li><div><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{group_name}}</a>
+        <div id="myDropdown" class="dropdown-content">
+            {% for group in group_list %}
+                <a href='/ui/project_details/{{group}}/'>{{group}}</a>
+            {% endfor %}
+        </div>
+        </div>
+    </li>
+    {% if group_name not in "No groups available" %}
+        <li><a href="/ui/manage_repos/{{group_name}}">Manage '{{group_name}}' repos</a></li>
+    {% endif %}
+    {% if is_superuser %}
+       <li> <div>
+                <a onclick="doAdminDropdown()" class="dropbtn">Admin Tools</a>
+                <div id="myAdminDropdown" class="dropdown-content">
+                    <a href='/ui/manage_users/'>User Management</a>
+                    <a href='/ui/manage_groups/'>Group Management</a>
+                </div>
+            </div>
+       </li>
+    {% endif %}
+    <li><a href="/ui/user_settings/">User Settings</a></li>
+</ul>
+<br/>
+<div class="wrapper">
+<table class="image_matrix" style="border:none">
+<tr>
+    <td class='public' id='public_filter'> Hidden Images </td><td class='private' id='private_filter'>Glint Images</td>
+    <td style="background-color: #fffeea; border:none"><b>Image Filter:</b></td>
+    <td style="background-color: #fffeea; border:none"> <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Image Name"> </td>
+    <td id="glint_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton" style="height:44px;" type="button" value="Upload Image" onclick="window.location.href='/ui/upload_image/{{group_name}}'">
+    <input class="button greenbutton" style="height:44px;" type="submit" onclick="submitImageMatrix()" value="Submit Changes" />
+    </td>
+    <td id="hidden_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton"style="height:44px" type="submit" onclick="submitHiddenImageMatrix()" value="Hide/Show Images" /></td>
+</tr>
+</table>
+{% if message is not None%}
+	<p style="color:green; font-weight:bold">{{message}}</p>
+{% endif%}
+
+<div class="image_matrix" id="glint_matrix"><form id="glint_images_form" name="glint_images_form" action="/ui/save_images/{{group_name}}/" method="post">
+	{% csrf_token %}
+      <table>
+		<tr>
+			<th>GLINT IMAGES</th>
+		{% for repo in image_dict %}
+			<th>{{repo}}</th>
+		{% endfor %}
+		</tr>
+		{% comment %}
+			For each image print the image name to begin the row then check the image is
+			in each repo dictionary. If it is display it as checked, otherwise display it
+			as unchecked. Additionally if it is in the dict as a pending transaction 
+			display a note accordingly.
+		{% endcomment %}
+		{% if image_set is not None %}
+			{% for image in image_set %}
+				<tr class="image_row"><td><b> {{image}} </b> <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/></td>
+				{% for repo_key, repo_value in image_dict.items %}
+					{% with image_id=image_lookup|get_item:repo_key|get_item:image %}
+					{% if repo_value|get_item:image_id is not None %}
+						{% if repo_value|get_item:image_id|get_item:"state" == "Pending Delete" %}
+							<td>Pending Delete<input hidden name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
+						{% elif repo_value|get_item:image_id|get_item:"state" == "Pending Transfer" %}
+							<td>Pending Transfer<input hidden name="{{repo_key}}" type="checkbox" value="{{image}}" checked></td>
+						{% else %}
+							<td class='{{repo_value|get_item:image_id|get_item:"visibility"}}'><input name="{{repo_key}}" type="checkbox" value="{{image}}" checked></td>
+						{% endif %}
+					{% else %}
+						<td class=""><input name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
+					{% endif %}
+					{% endwith %}
+				{% endfor %}
+				</tr>
+			{% endfor %}
+		{% endif %}
+	</table>
+</form></div>
+
+
+<div class="image_matrix" id="hidden_matrix" hidden="True"><form id="hidden_images_form" action="/ui/save_hidden_images/{{group_name}}/" method="post">
+	{% csrf_token %}
+	<table>
+		<tr>
+			<th>HIDDEN IMAGES</th>
+		{% for repo in image_dict %}
+			<th>{{repo}}</th>
+		{% endfor %}
+		</tr>
+		{% comment %}
+			For each image print the image name to begin the row then check the image is
+			in each repo dictionary. If it is display it as checked, otherwise display it
+			as unchecked. Additionally if it is in the dict as a pending transaction 
+			display a note accordingly.
+		{% endcomment %}
+		{% if hidden_image_set is not None %}
+			{% for image in hidden_image_set %}
+				<tr class="image_row"><td> <b>{{image}}</b>  <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/></td>
+				{% for repo_key, repo_value in image_dict.items %}
+					{% with image_id=image_lookup|get_item:repo_key|get_item:image %}
+					{% if repo_value|get_item:image_id is not None %}
+						{% if repo_value|get_item:image_id|get_item:"state" == "Pending Delete" %}
+							<td>Pending Delete<input hidden name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
+						{% elif repo_value|get_item:image_id|get_item:"state" == "Pending Transfer" %}
+							<td>Pending Transfer<input hidden name="{{repo_key}}" type="checkbox" value="{{image}}" checked></td>
+						{% elif repo_value|get_item:image_id|get_item:"hidden" %}
+							<td class='{{repo_value|get_item:image_id|get_item:"visibility"}}'><input name="{{repo_key}}" type="checkbox" value="{{image}}" checked></td>
+						{% else %}
+							<td class='{{repo_value|get_item:image_id|get_item:"visibility"}}'><input name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
+						{% endif %}
+					{% else %}
+						<td class=""><input name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
+					{% endif %}
+					{% endwith %}
+				{% endfor %}
+				</tr>
+			{% endfor %}
+		{% endif %}
+	</table>
+</form></div>
+
+{% if conflict_dict is not none %}
+    <div class="conflictButton"><p style="color:red; font-weight:bold; height:52px">Image conflicts detected, some images may be missing below:<input style="font-size: 16px;margin: 4px 2px;" class="button redbutton" type="button" onclick="showConflicts();" value="View Image Conflicts"/></p></div>
+    <div class="matrixButton" hidden="True"><input class="button greenbutton" type="button" onclick="showImageMatrix();" value="View Image Matrix"/></div>
+{% endif %}
+
+{% if conflict_dict is not none %}
+    <table class="conflict_table" hidden="true"> 
+    {% for conflict_repo in conflict_dict %}
+        <tr><td style="text-align:left">{{conflict_repo}}</td></tr>
+        <tr>
+            <th style="text-align:center">Conflict Type</th>
+            <th style="text-align:center">Image 1</th>
+            <th style="text-align:center">Image 1 ID</th>
+            <th style="text-align:center">Image 1 Visibility</th>
+            <th style="text-align:center">Image 2</th>
+            <th style="text-align:center">Image 2 ID</th>
+            <th style="text-align:center">Image 2 Visibility</th>
+        </tr>
+        {% for conflict in conflict_dict|get_item:conflict_repo %}
+            <tr><td style="text-align:center">{{conflict|get_item:"type"}} <img 
+            {% if conflict|get_item:"type" == 3 %}
+                title="Type 3 - Image1 and image 2 have different names but are the same image."
+            {% elif conflict|get_item:"type" == 2 %}
+                title = "Type 2 - Image1 and Image2 have the same name and are the same image."
+            {% else %}
+                title = "Type 1 - Image1 and Image2 have the same name but are different images."
+            {% endif %}
+             src="/static/glintwebui/img/red_info_icon.png" style="width:15px;height:15px; float:right;"/>
+            </td>
+            <td>{{conflict|get_item:"image_one_name"}}</td>
+            <td>{{conflict|get_item:"image_one"}}</td>
+            <td>{{conflict|get_item:"image_one_visibility"}}</td>
+            <td>{{conflict|get_item:"image_two_name"}}</td>
+            <td>{{conflict|get_item:"image_two"}}</td>
+            <td>{{conflict|get_item:"image_two_visibility"}}</td>
+            </tr> 
+        {% endfor %}
+    {% endfor %}
+    </table>
+{% endif %}
+
+<div class="push"></div>
+<div class="footer">
+	<footer id="footer" style="text-align:center">
+		<div>
+			&copy; University of Victoria  ||  <a href="https://github.com/hep-gc/Glintv2">Visit GitHub Project <i class="icon-hand-up"></i></a>
+		</div>
+		<div>
+			<small class='muted'>Glint-Server v{{version}}</small>
+		</div>
+	</footer>
+</div>
+</div>
+
+
+<script>
+$( "#public_filter" ).click(function() {
+
+	$("#no_filter").css("font-weight","normal");
+	$("#no_filter").css("border","1px solid black");
+	$("#private_filter").css("font-weight","normal");
+	$("#private_filter").css("border","1px solid black");
+	$("#public_filter").css("font-weight","Bold");
+	$("#public_filter").css("border","3px solid black");
+	var filter = "public";
+	localStorage.setItem("filter", filter);
+    $("#glint_matrix").hide()
+    $("#glint_matrix_btn").hide()
+    $("#hidden_matrix").show()
+    $("#hidden_matrix_btn").show()
+
+});
+
+$( "#private_filter" ).click(function() {
+
+	$("#no_filter").css("font-weight","normal");
+	$("#no_filter").css("border","1px solid black");
+	$("#private_filter").css("font-weight","Bold");
+	$("#private_filter").css("border","3px solid black");
+	$("#public_filter").css("font-weight","normal");
+	$("#public_filter").css("border","1px solid black");
+	var filter = "private";
+	localStorage.setItem("filter", filter);
+
+    $("#hidden_matrix").hide()
+    $("#hidden_matrix_btn").hide()
+    $("#glint_matrix").show()
+    $("#glint_matrix_btn").show()
+
+});
+
+$( "#no_filter" ).click(function() {
+
+	$("#no_filter").css("font-weight","Bold");
+	$("#no_filter").css("border","3px solid black");
+	$("#private_filter").css("font-weight","normal");
+	$("#private_filter").css("border","1px solid black");
+	$("#public_filter").css("font-weight","normal");
+	$("#public_filter").css("border","1px solid black");
+	var filter = "none";
+	localStorage.setItem("filter", filter);
+
+});
+
+function showConflicts(){
+	$(".image_matrix").hide()
+	$("#hidden_matrix").hide()
+	$("#hidden_matrix_btn").hide()
+	$(".conflictButton").hide()
+	$(".conflict_table").show()
+	$(".matrixButton").show()
+	localStorage.setItem("displayed_table", "conflicts");
+}
+
+function showImageMatrix(){
+	$(".conflict_table").hide()
+	$(".matrixButton").hide()
+	$(".image_matrix").show()
+	$(".conflictButton").show()
+	var filter = localStorage.getItem("filter");
+    if (filter == "public"){
+    	$("#glint_matrix").hide()
+    	$("#glint_matrix_btn").hide()
+        $("#hidden_matrix").show()
+        $("#hidden_matrix_btn").show()
+    }
+    else{
+    	$("#hidden_matrix").hide()
+    	$("#hidden_matrix_btn").hide()
+    	$("#glint_matrix").show()
+    	$("#glint_matrix_btn").show()
+    }
+
+	localStorage.setItem("displayed_table", "image_matrix");
+}
+
+/* When the user clicks on the button,
+toggle between hiding and showing the dropdown content */
+function doDropdown() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
+
+function doAdminDropdown() {
+    document.getElementById("myAdminDropdown").classList.toggle("show");
+}
+
+function downloadImage(image) {
+	if (confirm("Are you sure you want to download: " + image) == true) {;
+		//could put a "preparing download screen here, as it will take quite some time for the large images"
+		window.location.href = "/ui/download_image/{{group_name}}/" + image;
+	}
+}
+
+
+// Close the dropdown menu if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+
+
+ document.addEventListener('DOMContentLoaded', function() { 
+    var filter = localStorage.getItem("filter");
+    if (filter == "public"){
+
+		$("#no_filter").css("font-weight","normal");
+		$("#no_filter").css("border","1px solid black");
+		$("#private_filter").css("font-weight","normal");
+		$("#private_filter").css("border","1px solid black");
+		$("#public_filter").css("font-weight","Bold");
+		$("#public_filter").css("border","3px solid black");
+
+	    $("#glint_matrix").hide()
+	    $("#glint_matrix_btn").hide()
+        $("#hidden_matrix").show()
+        $("#hidden_matrix_btn").show()
+    }
+    else if (filter == "private"){
+
+		$("#no_filter").css("font-weight","normal");
+		$("#no_filter").css("border","1px solid black");
+		$("#private_filter").css("font-weight","Bold");
+		$("#private_filter").css("border","3px solid black");
+		$("#public_filter").css("font-weight","normal");
+		$("#public_filter").css("border","1px solid black");
+
+		$("#hidden_matrix").hide()
+		$("#hidden_matrix_btn").hide()
+    	$("#glint_matrix").show()
+    	$("#glint_matrix_btn").show()
+    }
+    else{
+		$("#no_filter").css("font-weight","Bold");
+		$("#no_filter").css("border","3px solid black");
+		$("#private_filter").css("font-weight","normal");
+		$("#private_filter").css("border","1px solid black");
+		$("#public_filter").css("font-weight","normal");
+		$("#public_filter").css("border","1px solid black");
+    }
+    var $rows = $('.image_row');
+    var val = $.trim($('#image_search').val()).replace(/ +/g, ' ').toLowerCase();
+    $rows.filter(function() {
+        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+        return !~text.indexOf(val);
+    }).hide();
+
+    var displayed_table = localStorage.getItem("displayed_table");
+    if(displayed_table == "image_matrix"){
+    	showImageMatrix();
+    }
+    else{
+    	showConflicts();
+    }
+    {% if conflict_dict is none %}
+    	showImageMatrix();
+    {% endif %}
+}, false);
+
+
+
+$('#image_search').keyup(function() {
+	var filter = localStorage.getItem("filter");
+	var $rows = $('.image_row');
+	var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+
+	$rows.show().filter(function() {
+	    var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+	    return !~text.indexOf(val);
+	}).hide();
+
+});
+
+function submitImageMatrix(){
+    document.getElementById("glint_images_form").submit();
+}
+
+function submitHiddenImageMatrix(){
+    document.getElementById("hidden_images_form").submit();
+}
+
+</script>
+
+
+
+	

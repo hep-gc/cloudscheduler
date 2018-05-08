@@ -10,11 +10,11 @@ db_password = ""
 
 
 
-if os.path.isfile("/etc/csv2_web.yaml"):
-    path = "/etc/csv2_web.yaml"
+if os.path.isfile("/etc/cloudscheduler/cloudscheduler.yaml"):
+    path = "/etc/cloudscheduler/cloudscheduler.yaml"
 
-elif os.path.isfile("/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/csv2_web.yaml"):
-    path = "/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/csv2_web.yaml"
+elif os.path.isfile("/opt/cloudscheduler/web_frontend/cloudscheduler/conf/cloudscheduler.yaml"):
+    path = "/opt/cloudscheduler/web_frontend/cloudscheduler/conf/cloudscheduler.yaml"
 
 
 try:
@@ -22,9 +22,9 @@ try:
         cfg = yaml.load(ymlfile)
 
 except Exception as e:
-    print >> sys.stderr, "Configuration file problem: There was a " \
-                         "problem reading %s. Check that it is readable," \
-                         "and that it exists. " % path
+    print(" Configuration file problem: There was a " \
+          "problem reading %s. Check that it is readable," \
+          "and that it exists. " % path, file=sys.stderr)
 
 
 

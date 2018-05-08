@@ -1,0 +1,44 @@
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+
+li {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: #111;
+    cursor: pointer; cursor: hand;
+}
+
+html, body {
+    height: 100%;
+    background-color: #fffeea;
+    margin: 0;
+}
+
+}
+.footer, .push {
+    height: 0px; /* .push must be the same height as .footer */
+}
+.wrapper {
+    margin: 25;
+}

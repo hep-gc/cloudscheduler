@@ -9,7 +9,6 @@ import uuid
 import logging
 from abc import ABC, abstractmethod
 
-import cloudscheduler.vm
 import cloudscheduler.cloud_init_util
 
 import jinja2
@@ -20,12 +19,11 @@ class BaseCloud(ABC):
     Abstract BaseCloud class, meant to be inherited by any specific cloud class for use
     by cloudscheduler.
     """
-    def __init__(self, group, name, vms=None, extrayaml=None):
+    def __init__(self, name, extrayaml=None):
         self.log = logging.getLogger(__name__)
         self.name = name
-        self.group = group
-        self.enabled = True
-        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms}
+        self.enabled = False
+        self.vms = {}
         self.extrayaml = extrayaml
 
     def __repr__(self):
@@ -69,9 +67,8 @@ class BaseCloud(ABC):
 
     def _generate_next_name(self):
         """Generate hostnames and check they're not in use."""
-        name = ''.join([self.group.replace('_', '-').lower(), '-',
-                        self.name.replace('_', '-').lower(), '-',
-                        str(uuid.uuid4().node)])
+        name = ''.join([self.name.replace('_', '-').lower(), '-',
+                        str(uuid.uuid4())])
         for vm in self.vms.values():
             if name == vm.hostname:
                 name = self._generate_next_name()
@@ -89,17 +86,14 @@ class BaseCloud(ABC):
             group_yaml.extend(raw_yaml_list)
         if self.extrayaml:
             group_yaml.extend(self.extrayaml)
-        self.log.debug(template_dict)
         for yaml_tuple in group_yaml:
+            # relies on name having 'template' in it. Alternative?
             if '.j2' in yaml_tuple[0]:
                 template_dict['cs_cloud_name'] = self.name
-                #self.log.debug(yaml_tuple[1])
                 yaml_tuple[1] = jinja2.Environment()\
                     .from_string(yaml_tuple[1]).render(template_dict)
-        #self.log.debug(group_yaml)
         userdata = cloudscheduler.cloud_init_util\
             .build_multi_mime_message(group_yaml)
-        #self.log.debug(userdata)
         if not userdata:
             return ""
         compressed = ""
