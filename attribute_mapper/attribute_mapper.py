@@ -1,6 +1,6 @@
 #import attribute_mapper.config as config
 
-import config
+from . import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -95,8 +95,8 @@ def dump_dicts():
     global attr_list_dict
     global rowid_dict
 
-    print attr_list_dict
-    print rowid_dict
+    print(attr_list_dict)
+    print(rowid_dict)
 
 if __name__ == "__main__":
     #build_mapping_dictionaries()
