@@ -1,7 +1,6 @@
 from django.conf.urls import url
 
-#from . import views, cloud_views, group_views, settings_views, user_views
-from . import views, cloud_views, user_views, group_views
+from . import views, cloud_views, group_views, settings_views, user_views
 
 urlpatterns = [
 
@@ -19,6 +18,7 @@ urlpatterns = [
     url(r'^cloud/yaml_update',                 cloud_views.yaml_update,     name='cloud-yaml-update'),
 
     url(r'^group/add',                         group_views.add,             name='group-add'),
+    url(r'^group/defaults',                    group_views.defaults,        name='group-defaults'),
     url(r'^group/delete',                      group_views.delete,          name='group-delete'),
     url(r'^group/list/(?P<selector>)',         group_views.list,            name='group-list'),
     url(r'^group/update',                      group_views.update,          name='group-update'),
@@ -31,7 +31,7 @@ urlpatterns = [
 #   url(r'^job/modify',                        job_views.modify,            name='job-list'),
 
 #    url(r'^settings/preferences',              settings_views.preferences,  name='settings-preferences'),
-#    url(r'^settings/prepare',                  settings_views.prepare,      name='settings-prepare'),
+     url(r'^settings/prepare',                  settings_views.prepare,      name='settings-prepare'),
 #    url(r'^settings/log_out',                  settings_views.log_out,      name='settings-log_out'),
 
     url(r'^user/add',                          user_views.add,              name='user-add'),
