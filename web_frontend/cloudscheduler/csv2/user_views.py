@@ -416,6 +416,10 @@ def list(
             }
         )
 
+    s = select([csv2_groups])
+    group_list = qt(db_connection.execute(s))
+
+
     db_connection.close()
 
     # Position the page.
@@ -439,6 +443,7 @@ def list(
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'user_list': user_list,
+            'group_list': group_list,
             'user_groups': user_groups,
             'available_groups': available_groups,
             'current_user': current_user,
