@@ -636,7 +636,7 @@ def vmCleanUp():
         Poll_Times = Base.classes.csv2_poll_times
         Cloud = Base.classes.csv2_group_resources
 
-        last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.proccess_id == vm_poller_id)
+        last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
         if last_cycle == 0:
             logging.info("First cycle, sleeping for now...")
             #first cycle- just sleep for the first while waiting for db updates.
@@ -644,7 +644,7 @@ def vmCleanUp():
             time.sleep(config.vm_cleanup_interval)
             continue
         elif last_cycle >= last_vm_poll.last_poll:
-            logging.error("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller proccess")
+            logging.error("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller process")
             logging.error("Skipping cycle...")
             time.sleep(config.vm_cleanup_interval)
             continue
