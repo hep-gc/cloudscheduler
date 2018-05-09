@@ -198,9 +198,16 @@ def _requests(gvar, request, form_data={}):
 
     return response
 
+def show_header(gvar, response):
+    """
+    Print the server response header.
+    """
+
+    print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
+
 def show_table(gvar, queryset, columns, allow_null=True):
     """
-    Print a table from a django query set.
+    Print a table from a SQLAlchemy query set.
     """
 
     # Normalize column definitions.

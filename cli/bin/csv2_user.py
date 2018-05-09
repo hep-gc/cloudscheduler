@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -170,7 +170,8 @@ def list(gvar):
     user_list = _filter_by_user(gvar, response['user_list'])
 
     # Print report
-    print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
+    show_header(gvar, response)
+
     if gvar['command_args']['only-keys']:
         show_table(
             gvar,

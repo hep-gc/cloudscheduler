@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -74,7 +74,8 @@ def defaults(gvar):
         print(response['message'])
 
     # Print report
-    print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
+    show_header(gvar, response)
+
     show_table(
         gvar,
         response['defaults_list'],
@@ -146,7 +147,8 @@ def list(gvar):
     group_list = _filter_by_group(gvar, response['group_list'])
 
     # Print report
-    print('Active User: %s, Active Group: %s, User\'s Groups: %s' % (response['active_user'], response['active_group'], response['user_groups']))
+    show_header(gvar, response)
+
     if gvar['command_args']['only-keys']:
         show_table(
             gvar,
