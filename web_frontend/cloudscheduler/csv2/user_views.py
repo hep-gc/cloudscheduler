@@ -387,7 +387,7 @@ def list(
 
     # Retrieve user/groups list (dictionary containing list for each user).
     s = select([csv2_user_groups])
-    ignore1, ignore2, user_groups = qt(
+    ignore1, ignore2, groups_per_user = qt(
         db_connection.execute(s),
         keys = {
             'primary': [
@@ -402,7 +402,7 @@ def list(
 
     # Retrieve  available groups list (dictionary containing list for each user).
     s = select([view_user_groups_available])
-    ignore1, ignore2, available_groups = qt(
+    ignore1, ignore2, available_groups_per_user = qt(
         db_connection.execute(s),
         keys = {
             'primary': [
@@ -444,8 +444,8 @@ def list(
             'user_groups': user_groups,
             'user_list': user_list,
             'group_list': group_list,
-            'user_groups': user_groups,
-            'available_groups': available_groups,
+            'groups_per_user': groups_per_user,
+            'available_groups_per_user': available_groups_per_user,
             'current_user': current_user,
             'response_code': response_code,
             'message': message
