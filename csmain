@@ -87,9 +87,15 @@ def main():
                 # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
                 job_count = idle_job.count # number of jobs with identical request
                 enough_booting = False
-                flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
+                if idle_job.flavors:
+                    flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
+                else:
+                    continue
+                if idle_job.target_clouds:
+                    target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
+                else
+                    target_cloud_list = []
 
-                target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
                 for tri in flavor_list:
                     if enough_booting:
                         break
