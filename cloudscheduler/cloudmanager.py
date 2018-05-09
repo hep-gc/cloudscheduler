@@ -47,6 +47,7 @@ class CloudManager():
         base.prepare(engine, reflect=True)
         session = Session(engine)
         cloud_yaml = base.classes.csv2_group_resource_yaml
+        cloud_vm = base.classes.csv2_vms
 
         for cloud in self.group_resources:
             cloud_yamls = session.query(cloud_yaml).\
@@ -55,10 +56,15 @@ class CloudManager():
             cloud_yaml_list = []
             for yam in cloud_yamls:
                 cloud_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])
-            if cloud.cloud_type == 'localhost':
-                newcloud = cloudscheduler.localhostcloud.LocalHostCloud(extrayaml=cloud_yaml_list, resource=cloud)
-            else:
-                newcloud = cloudscheduler.openstackcloud.\
-                    OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud)
-            self.clouds[newcloud.name] = newcloud
+            cloud_vms = session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
+                                                       cloud_vm.cloud_name == cloud.cloud_name)
+            try:
+                if cloud.cloud_type == 'localhost':
+                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(extrayaml=cloud_yaml_list, resource=cloud)
+                else:
+                    newcloud = cloudscheduler.openstackcloud.\
+                        OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms)
+                self.clouds[newcloud.name] = newcloud
+            except Exception as ex:
+                self.log.exception(ex)
         self.log.debug("Added all clouds for group: %s", self.name)

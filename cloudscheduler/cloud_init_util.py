@@ -20,7 +20,8 @@ def build_multi_mime_message(yaml_tuples):
     for i in yaml_tuples:
         if i[1] is None or i[2] is None:
             return None
-        sub_message = MIMEText(i[1], i[2], sys.getdefaultencoding())
+        #sub_message = MIMEText(i[1], i[2], sys.getdefaultencoding())
+        sub_message = MIMEText(i[1], i[2], 'ascii')
         sub_message.add_header('Content-Disposition', 'attachment; filename="%s"' % (i[0]))
         combined_message.attach(sub_message)
     return str(combined_message)
