@@ -21,6 +21,7 @@ from sqlalchemy.ext.automap import automap_base
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
     keys_to_trim = []
+    key_list.append("group_name")
     for key in dict_to_trim:
         if key not in key_list:
             keys_to_trim.append(key)
