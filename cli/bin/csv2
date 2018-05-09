@@ -147,8 +147,16 @@ def main(args):
     # Load the user settings.
     if 'server' in gvar['command_args']:
         gvar['server'] = gvar['command_args']['server']
+        _fd = open('/tmp/.csv2_%s' % os.getppid(), 'w')
+        _fd.write(gvar['server'])
+        _fd.close()
     else:
-        gvar['server'] = 'default'
+        if os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
+            _fd = open('/tmp/.csv2_%s' % os.getppid())
+            gvar['server'] = _fd.read()
+            _fd.close()
+        else:
+            gvar['server'] = 'default'
 
     try:
         _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
