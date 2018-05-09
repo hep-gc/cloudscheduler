@@ -2,16 +2,19 @@
 OpenStack module - connector classes for OpenStack Clouds
 inherits from BaseCloud
 """
+import time
 import logging
 import novaclient.exceptions
 from novaclient import client as nvclient
 from keystoneauth1 import session
 from keystoneauth1.identity import v2
 from keystoneauth1.identity import v3
+from keystoneauth1.exceptions.connection import ConnectFailure
+from keystoneauth1.exceptions.catalog import EmptyCatalog
 from neutronclient.v2_0 import client as neuclient
 from sqlalchemy import create_engine
-# from sqlalchemy.orm import Session
-# from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
 
 import cloudscheduler.basecloud
 import cloudscheduler.config as csconfig
@@ -21,7 +24,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
     """
     OpenStack Connector class for cloudscheduler
     """
-    def __init__(self, resource=None, defaultsecuritygroup=None,
+    def __init__(self, resource=None, vms=None, defaultsecuritygroup=None,
                  defaultimage=None, defaultflavor=None,
                  defaultnetwork=None, extrayaml=None,):
 
@@ -35,8 +38,9 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
-                                                    extrayaml=extrayaml)
+        cloudscheduler.basecloud.BaseCloud.__init__(self, group=resource.group_name,
+                                                    name=resource.cloud_name,
+                                                    extrayaml=extrayaml, vms=vms)
         self.log = logging.getLogger(__name__)
         self.authurl = resource.authurl
         self.username = resource.username
@@ -48,6 +52,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.userdomainname = resource.user_domain_name
         self.projectdomainname = resource.project_domain_name
         self.session = self._get_auth_version(self.authurl)
+        if not self.session:
+            raise Exception
 
         self.default_securitygroup = defaultsecuritygroup
         self.default_image = defaultimage
@@ -67,16 +73,32 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         # Deal with user data - combine and zip etc.
         template_dict['cs_cloud_type'] = self.__class__.__name__
         template_dict['cs_flavor'] = flavor
+        self.log.debug(template_dict)
         user_data_list = job.user_data.split(',') if job.user_data else []
         userdata = self.prepare_userdata(group_yaml=group_yaml_list,
                                          yaml_list=user_data_list,
                                          template_dict=template_dict)
+
         nova = self._get_creds_nova()
         # Check For valid security groups
 
 
         # Ensure keyname is valid
-
+        if self.keyname:
+            key_name = ""
+            try:
+                if nova.keypairs.findall(name=self.keyname):
+                    key_name = self.keyname
+                elif nova.keypairs.findall(name=csconfig.config.keyname):
+                    key_name = csconfig.config.keyname
+            except ConnectFailure as ex:
+                self.log.exception("Failed to connect to openstack cloud: %s", ex)
+                raise Exception
+            except EmptyCatalog as ex:
+                self.log.exception("Unable to find key %s ?", self.keyname)
+                raise Exception
+        else:
+            key_name = ""
 
         # Check image from job, else use cloud default, else global default
         imageobj = None
@@ -98,19 +120,20 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             return -1
 
         # check flavor from job, else cloud default, else global default
-        flavor = flavor
+        #flavor = flavor
+        instancetype_dict = self._attr_list_to_dict(job.instance_type)
         try:
-            flavor = nova.flavors.find(name=flavor)
-
-        #    instancetype_dict = self._attr_list_to_dict(job.VMInstanceType)
-       #     if instancetype_dict and self.name in instancetype_dict.keys():
-      #          flavor = nova.flavors.find(name=instancetype_dict[self.name])
-     #       elif 'default' in instancetype_dict.keys():
-    #            flavor = nova.flavors.find(name=instancetype_dict['default'])
-   #         elif self.default_flavor:
-  #              flavor = nova.flavors.find(name=self.default_flavor)
- #           else:
-#                flavor = nova.flavors.find(name=csconfig.config.default_flavor)
+            #flavor = nova.flavors.find(name=flavor)
+            if instancetype_dict and self.name in instancetype_dict.keys():
+                flavorl = nova.flavors.find(name=instancetype_dict[self.name])
+            elif 'default' in instancetype_dict.keys():
+                flavorl = nova.flavors.find(name=instancetype_dict['default'])
+            elif flavor:
+                flavorl = nova.flavors.find(name=flavor)
+            elif self.default_flavor:
+                flavorl = nova.flavors.find(name=self.default_flavor)
+            else:
+                flavorl = nova.flavors.find(name=csconfig.config.default_instancetype)
         except novaclient.exceptions.NotFound as ex:
             self.log.exception(ex)
         # Deal with network if needed
@@ -138,36 +161,43 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         instance = None
         try:
             instance = nova.servers.create(name=hostname, image=imageobj,
-                                           flavor=flavor, key_name=key_name,
+                                           flavor=flavorl, key_name=key_name,
                                            availability_zone=None, nics=netid,
                                            userdata=userdata,
                                            security_groups=None, max_count=num)
+            pass
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
         except Exception as ex:
             self.log.exception(ex)
         if instance:
-            self.log.debug("New Image request successful.")
-            # new_vm = VM(vmid=instance.id, hostname=hostname)
-            # self.vms[instance.id] = new_vm
-            # Do I actually want to bother putting in the new VM or
-            # let the poller handle it?
-            #engine = self._get_db_engine()
-            #Base = automap_base()
-            #Base.prepare(engine, reflect=True)
-            #db_session = Session(engine)
-            #VM = Base.classes.csv2_vms
-            #vm_dict = {
-            #    'auth_url': self.authurl,
-            #    'project': self.project,
-            #    'vmid': instance.id,
-            #    'hostname': hostname,
-            #    'status': 'New',
-            #    'last_updated': int(time.time()),
-            #}
-            #new_vm = VM(**vm_dict)
-            #db_session.merge(new_vm)
-            #db_session.commit()
+            self.log.debug("Try to fetch with filter of hostname used")
+            engine = self._get_db_engine()
+            base = automap_base()
+            base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            Vms = base.classes.csv2_vms
+            list_vms = nova.servers.list(search_opts={'name':hostname})
+            for vm in list_vms:
+                self.log.debug(vm)
+
+                vm_dict = {
+                    'group_name': self.group,
+                    'cloud_name': self.name,
+                    'auth_url': self.authurl,
+                    'project': self.project,
+                    'hostname': vm.name,
+                    'vmid': vm.id,
+                    'status': vm.status,
+                    'flavor_id': vm.flavor["id"],
+                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
+                    'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                    'last_updated': int(time.time()),
+                    'status_changed_time': int(time.time()),
+                }
+                new_vm = Vms(**vm_dict)
+                db_session.merge(new_vm)
+            db_session.commit()
 
         self.log.debug('vm create')
 
@@ -224,7 +254,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :return: keystone session object.
         """
         auth = v3.Password(auth_url=self.authurl, username=self.username,
-                           password=self.password, project_name="",
+                           password=self.password, project_name=self.project,
                            project_domain_name=self.projectdomainname,
                            user_domain_name=self.userdomainname, )
         sess = session.Session(auth=auth, verify=self.cacertificate)
@@ -235,7 +265,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         Get a novaclient client object.
         :return: novaclient client.
         """
-        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10, )
+        client = nvclient.Client("2.0", session=self.session, region_name=self.region, timeout=10,)
         return client
 
     def _get_creds_neutron(self):
@@ -276,6 +306,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 keystone_session = self._get_keystone_session_v3()
         except ValueError as ex:
             self.log.exception("Error determining keystone version from auth url: %s", ex)
+            keystone_session = None
         return keystone_session
 
     def _get_db_engine(self):
