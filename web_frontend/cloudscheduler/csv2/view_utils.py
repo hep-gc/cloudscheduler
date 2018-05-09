@@ -224,39 +224,76 @@ def qt(query, keys=None, prune=[]):
     it can make the following transformations:
 
         o It can delete columns from the rows (prune=[col1, col2,..]).
-        o It can remove columns from the primary list and create a related
-          sub-dictionary. For example:
+        o It can split the query into a list and corresponding dictionaries (
+          (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
 
-          keys={
-              'primary': ['group_name', 'cloud_name'],
-              'secondary': ['yaml_name', 'yaml_enabled', 'yaml_mime_type', 'yaml']
-              }
-        
-          from an input list containing those columns, would return:
+    Splitting a query into a list and corresponding dictionaries:
 
-          primary_list = [
-              {'group_name': <val>, 'cloud_name': <val, <other_non_secodary_columns>},
-              {'group_name': <val>, 'cloud_name': <val, <other_non_secodary_columns>},
-                  .
-                  .
-              ],
-          secondary_dict = {  
-              '<group_name_val>': {
-                  '<cloud_name_val>': {
-                      'yaml_name_val': {
-                          'yaml_name': <val>,
-                          'yaml_enabled': <val>,
-                          'yaml_mime_type': <val>,
-                          'yaml': <val>
-                          }
-                      }
-                  }
-              }
+    If the keys parameter is specified, it must contain both a 'primary' and
+    'secondary' list of keys, and optionally, a 'match_lst'.  For each row in
+    the input query, which must contain all primary/secondary keys, qt uses
+    the two key lists as follows:
 
-    If the "keys" argument is given, the function returns both the primary_list and the
-    secondary_dict. Otherwise, only the primary_list is returned.
+    o For all keys in the primary list and any other key in the query not 
+      mentioned in the secondary list, qt copies the values from the query
+      into the primary output list.
+
+    o For all keys in the primary list, plus the first key in the secondary
+      list, qt creates a multi-level, nested output dictionary and copies
+      the values for all secondary keys from the query into the lowest level
+      dictionary.
+
+    The 'match_list' is both a switch (requesting additional processing) and
+    complimantary input. It causes qt to generate and return a multi-level
+    nested dictionary/list of all secondary key values per compound primary
+    key. The match list must contain all the primary keys and is used to
+    build an empty structure with all possible compound privary key values.
+    Subsequently, qt scans the secondary dictionary extracting the secondary
+    keys to be listed.
+    
+    An practical example of list splitting can be found in user_views.py, which
+    doese the following:
+    
+    # Retrieve the user list but loose the passwords.
+    s = select([view_user_groups_and_available_groups])
+    user_list = qt(db_connection.execute(s), prune=['password'])
+
+    # Retrieve user/groups list (dictionary containing list for each user).
+    s = select([csv2_user_groups])
+    ignore1, ignore2, groups_per_user = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'username',
+                ],
+            'secondary': [
+                'group_name',
+                ],
+            'match_list': user_list,
+            }
+        )
+
+    # Retrieve  available groups list (dictionary containing list for each user).
+    s = select([view_user_groups_available])
+    ignore1, ignore2, available_groups_per_user = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'username',
+                ],
+            'secondary': [
+                'group_name',
+                'available',
+                ],
+            'match_list': user_list,
+            }
+        )
     """
+
     from .view_utils import _qt, _qt_list
+
+    if keys and ('primary' not in keys or 'secondary' not in keys):
+        raise Exception('view_utils.qt: "keys" dictionary requires both "primary" and "secondary" entries')
 
     primary_list = []
     secondary_dict = {}
