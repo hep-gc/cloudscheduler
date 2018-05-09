@@ -3,6 +3,7 @@ from multiprocessing import Process
 import time
 import logging
 import socket
+import re
 
 import job_config as config
 from attribute_mapper.attribute_mapper import map_attributes
@@ -40,7 +41,7 @@ def job_producer():
     multiprocessing.current_process().name = "Poller"
 
     sleep_interval = config.collection_interval
-    job_attributes = ["GroupName", "TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
+    job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
@@ -100,48 +101,20 @@ def job_producer():
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
                     job_dict['Requirements'] = str(job_dict['Requirements'])
-                #
-                # check if there is a group_name
-                # if not, try and assign one, if default is ambiguos ignore ad
-                # if a group is found update job ad in condor before adding to database
-                #
-                logging.info("Checking group name...")
-                job_user = job_dict["User"].split("@")[0]
-                if job_dict.get("GroupName") is not None and user_group_dict.get(job_user) is not None:
-                    # if there is a grp name check that it is a valid one.
-                    # This looks confusing but it's just saying if the job group
-                    # name is not in any of the user's groups
-                    if not any(str(job_dict["GroupName"]) in grp for grp in user_group_dict.get(job_user)):
-                        logging.info("Job ad: %s has invalid group_name, ignoring...",
-                                     job_dict["GlobalJobId"])
-                        # Invalid group name
-                        # IGNORE
-                        continue
+                    # Parse group_name out of requirements
+                    try:
+                        pattern = '(group_name is ")(.*?)(")'
+                        grp_name = re.search(pattern, job_dict['Requirements'])
+                        job_dict['group_name'] = grp_name.group(2)
+                    except Exception as exc:
+                        logging.error("No group name found in requirements expression... setting default.")
+                        job_dict['group_name'] = config.default_job_group
 
+                # Else there is no requirements and is likely not a job submitted for csv2
+                # Set the default job group and continue
                 else:
-                    # else if there is no group name try to assign one
-                    # can also get here if the user_group list is empty
-                    job_user = job_dict["User"].split("@")[0]
-                    if not user_group_dict.get(job_user):
-                        # User not registered to any groups
-                        logging.info("User: %s not registered to any groups or unable "
-                                     "to retrieve user groups, ignoring...", job_user)
-                        continue
-                    logging.info("Job ad: %s has no group_name, attemping to resolve...",
-                                 job_dict["GlobalJobId"])
-
-                    if len(user_group_dict[job_user]) == 1:
-                        job_dict["GroupName"] = user_group_dict[job_user][0]
-                        #UPDATE CLASSAD
-                        cluster = job_dict["ClusterId"]
-                        proc = job_dict["ProcId"]
-                        expr = str(cluster) + "." + str(proc)
-                        condor_s.edit([expr], "GroupName", str(user_group_dict[job_user][0]))
-                    else:
-                        #AMBIGUOUS GROUP NAME, IGNORE
-                        logging.info("Could not automatically resolve group_name for: %s,"
-                                     " ignoring... ", job_dict["GlobalJobId"])
-                        continue
+                    logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
+                    job_dict['group_name'] = config.default_job_group
 
                 job_dict = trim_keys(job_dict, job_attributes)
                 job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
