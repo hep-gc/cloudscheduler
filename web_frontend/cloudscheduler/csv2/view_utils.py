@@ -143,7 +143,7 @@ def map_parameter_to_field_values(request, db_engine, query, table_keys, active_
                 rekey = '%s2' % key[:-1]
                 pw2 = request.POST.get(rekey)
                 if not pw2:
-                    return 1, 'password update received a password but no verify password; both are required.'
+                    return 1, None, 'password update received a password but no verify password; both are required.'
 
                 rc, value = _map_parameter_to_field_values_pw_check(request.POST[key],pw2=pw2)
                 if rc != 0:
@@ -290,10 +290,10 @@ def qt(query, keys=None, prune=[]):
         )
     """
 
-    from .view_utils import _qt, _qt_list
-
     if keys and ('primary' not in keys or 'secondary' not in keys):
         raise Exception('view_utils.qt: "keys" dictionary requires both "primary" and "secondary" entries')
+
+    from .view_utils import _qt, _qt_list
 
     primary_list = []
     secondary_dict = {}
@@ -469,6 +469,220 @@ def set_user_groups(request, db_session, db_map):
         active_user.save()
 
     return 0, None, active_user, user_groups
+
+#-------------------------------------------------------------------------------
+
+def table_fields(Fields, Table, Columns, selection):
+    """
+    This function returns input fields for the specified table.
+
+    Arguments:
+
+    Table    - Is a table object as returned by validate_fields.
+
+    Columns  - Are the primary and secondary column lists for tables
+               as returned by validate_fields.
+
+    Fields   - Is a dictionary of input fields as returned by
+               validate_fields.
+    """
+
+    output_fields = {}
+
+    if selection == 'insert':
+        for field in Columns[Table.name][0]:
+            if field in Fields:
+                output_fields[field] = Fields[field]
+
+    if selection == 'insert' or selection == 'update':
+        for field in Columns[Table.name][1]:
+            if field in Fields:
+                output_fields[field] = Fields[field]
+
+    return output_fields
+
+#-------------------------------------------------------------------------------
+
+def validate_fields(request, fields, db_engine, tables, active_user, other_formats=None):
+    """
+    This function validates/normalizes form fields/command arguments.
+
+    Arguments:
+
+    requests  - is a web request containing POST data.
+    db_engine - An open database connection object.
+    tables    - is a list of table names.
+    fields    - is a structure in the following format:
+
+               CLOUD_FIELDS = {
+                   'auto_active_group': active_user.active_group, # or None.
+                   'format': {
+                       'cloud_name': 'lowercase',
+                       'groupname': 'lowercase',
+
+                       'cores_slider': 'ignore',
+                       'csrfmiddlewaretoken': 'ignore',
+                       'group': 'ignore',
+                       'ram_slider': 'ignore',
+                       },
+                   }
+
+
+    Possible format strings are:
+
+    array      - Multiple numbered input fields to be returned as a list eg: group_name.1,
+                 group_name.2, etc. returned as { 'group_name': [ 'val1', 'val2', etc. ]}
+    boolean    - A value of True or False will be inserted into the out put fields.
+    ignore     - The input field is not defined in the tables but can be ignored.
+    lowercase  - Make sure the input value is all lowercase (or error).
+    password   - A password value to be checked and hashed
+    password1  - A password value to be verified against password2, checked and hashed.
+    password2  - A password value to be verified against password1, checked and hashed.
+    uppercase  - Make sure the input value is all uppercase (or error).
+    """
+
+    if fields and ('auto_active_group' not in fields or 'format' not in fields):
+        raise Exception('view_utils.validate_fields: "fields" dictionary requires "auto_active_group" and "format" entries')
+
+    from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
+    from sqlalchemy import Table, MetaData
+
+    # Retrieve relevant (re: tables) schema.
+    all_columns = []
+    primary_key_columns = []
+    Tables = {}
+    Columns = {}
+    for table in tables:
+        try:
+            Tables[table] = Table(table, MetaData(bind=db_engine), autoload=True)
+        except:
+            raise Exception('view_utils.validate_fields: "tables" parameter contains an invalid table name "%s".' % table)
+            
+        Columns[table] = [[], []]
+        for column in Tables[table].c:
+            if column not in all_columns:
+                all_columns.append(column.name)
+
+            if column.primary_key:
+                Columns[table][0].append(column.name)
+                if column not in primary_key_columns:
+                    primary_key_columns.append(column.name)
+            else:
+                Columns[table][1].append(column.name)
+
+    # Process format specifications.
+    if other_formats:
+        Formats = {}
+
+        for field in fields['format']:
+            Formats[field] = fields['format'][field]
+
+        for field in other_formats:
+            Formats[field] = other_formats[field]
+    else:
+        Formats = fields['format']
+
+    # Process input fields.
+    Fields = {}
+    for field in request.POST:
+        field_alias = field
+        value = request.POST[field]
+
+        if field in Formats:
+            if Formats[field] == 'lowercase':
+                value = request.POST[field].lower()
+                if request.POST[field] != value:
+                    return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+            elif Formats[field] == 'password':
+                rc, value = _validate_fields_pw_check(request.POST[field])
+                if rc != 0:
+                    return 1, value, None, None, None
+
+            elif Formats[field] == 'password1':
+                field_alias = '%s2' % field[:-1]
+                pw2 = request.POST.get(field_alias)
+                if not pw2:
+                    return 1, 'password update received a password but no verify password; both are required.', None, None, None
+
+                rc, value = _validate_fields_pw_check(request.POST[field],pw2=pw2)
+                if rc != 0:
+                    return 1, value, None, None, None
+                field_alias = field[:-1]
+
+            elif Formats[field] == 'password2':
+                field_alias = '%s1' % field[:-1]
+                if not request.POST.get(field_alias):
+                    return 1, 'password update received a verify password but no password; both are required.', None, None, None
+                field_alias = None
+
+            elif Formats[field] == 'uppercase':
+                value = request.POST[field].upper()
+                if request.POST[field] != value:
+                    return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
+
+        if field_alias in all_columns:
+            if value or not (field in Formats and Formats[field][0] == 'p'):
+                Fields[field_alias] = value
+        else: 
+            array_field = field.split('.')
+            if array_field in all_columns:
+                if array_field not in Fields:
+                    Fields[array_field] = []
+                Fields[array_field].append(value)
+            else:
+                if not _validate_fields_ignore_field_error(Formats, field):
+                    return 1, 'request contained a bad parameter "%s".' % field, None, None, None
+
+    if fields['auto_active_group'] and 'group_name' not in Fields:
+        Fields['group_name'] = active_user.active_group
+
+    for field in primary_key_columns:
+        if field not in Fields and not _validate_fields_ignore_field_error(Formats, field):
+            return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
+
+    for field in Formats:
+        if Formats[field] == 'boolean':
+            if request.POST.get(field):
+                Fields[field] = True
+            else:
+                Fields[field] = False
+
+    return 0, None, Fields, Tables, Columns
+
+#-------------------------------------------------------------------------------
+
+def _validate_fields_ignore_field_error(Formats, field):
+    """
+    Check if a field error should be ignore.
+    """
+
+    if field in Formats and Formats[field] == 'ignore':
+        return True
+
+    return False
+#-------------------------------------------------------------------------------
+
+def _validate_fields_pw_check(pw1, pw2=None):
+    """
+    Ensure passwords conform to certain standards.
+    """
+
+    import bcrypt
+
+    if len(pw1) < 6:
+      return 1, 'value specified for a password is less than 6 characters.'
+
+    if len(pw1) < 16:
+      rc =   any(pwx.islower() for pwx in pw1) and any(pwx.isupper() for pwx in pw1) and any(pwx.isnumeric() for pwx in pw1)
+      if not rc:
+        return 1, 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.'
+
+    if pw2 and pw2 != pw1:
+        return 1, 'values specified for passwords do not match.'
+
+
+    return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
 #-------------------------------------------------------------------------------
 
