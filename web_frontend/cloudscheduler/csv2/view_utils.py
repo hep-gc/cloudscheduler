@@ -569,7 +569,10 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     # Process fields parameter:
     Formats = {}
-    Options = {'auto_active_group': False}
+    Options = {
+        'auto_active_group': False,
+        'unnamed_fields_are_bad': False,
+        }
 
     for option_set in fields:
         for option in option_set:
@@ -582,6 +585,9 @@ def validate_fields(request, fields, db_engine, tables, active_user):
     # Process input fields.
     Fields = {}
     for field in request.POST:
+        if Options['unnamed_fields_are_bad'] and field not in Formats:
+            return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
+
         field_alias = field
         value = request.POST[field]
 
