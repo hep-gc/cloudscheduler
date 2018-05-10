@@ -21,99 +21,100 @@
 
 <div class="main-div">
 
-<section class="vertical-menu">
-    <a href="#" class="active">Groups</a>
+    <section class="vertical-menu">
+        <a href="#" class="active">Groups</a>
+            {% for group in group_list %}
+            <a href="#{{group.group_name}}">{{group.group_name}}</a>
+            {% endfor %}
+        <a href="#add_group" class="add_group">+</a> 
+    </section>
+
+    <section class="target">
         {% for group in group_list %}
-        <a href="#{{group.group_name}}">{{group.group_name}}</a>
-        {% endfor %}
-    <a href="#add_group" class="add_group">+</a> 
-</section>
+        <div id="{{group.group_name}}">
+            <h1>{{group.group_name}}</h1>
+            
+            <form name="{{group.group_name}}" action="/group/update/" method="post">
+                {% csrf_token %}
+                <table>
+                    <input type="hidden" name="group_name" value="{{group.group_name}}" />
 
-<section class="target">
-    {% for group in group_list %}
-    <div id="{{group.group_name}}">
-        <h1>{{group.group_name}}</h1>
+                    <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
+                    <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
 
-        <div id="delete_{{group.group_name}}" class="modalDialog">
-            <div>
-                <a href="#close" title="Close" class="close">X</a>
-                <h2>{{group.group_name}}</h2>
-                <p><input type="submit" value="Update Group" />Yes</td>
+                    <!--
+                    <tr><td>Enable YAML</td><td><div class="switch">
 
-            </div>
+                    {% if group.enabled == 1 %}
+                        <input type="checkbox" id="yaml_switch_{{group.group_name}}" name="yaml_switch" checked>
+                    {% else %}
+                        <input type="checkbox" id="yaml_switch_{{group.group_name}}" name="yaml_switch">
+                    {% endif %}
+
+                      <label>
+                        <span class="ok"></span>
+                        <span class="remove"></span>
+                        <div></div>
+                      </label>
+                    </div></td></tr>
+
+                    <tr><td><label for="yaml_name">YAML filename</label></td>
+                    <td><input type="text" name="yaml_name" id="" value="{{group.yaml_name}}" /></td></tr>
+
+                    <tr><td><label for="group_yaml">Group yaml</label></td>
+                    <td><textarea name="group_yaml" rows="25" cols="80">{{group.yaml}}</textarea></td></tr>
+                    -->
+                    <tr><td><input type="submit" value="Update Group" /></td>
+                    <td><a href="#delete-{{group.group_name}}"><button type="button">Delete</button></a></td></tr>
+                </table>
+       
+            </form>
         </div>
-        
-        <form name="{{group.group_name}}" action="/group/update/" method="post">
-            {% csrf_token %}
-            <table>
-                <input type="hidden" name="group_name" value="{{group.group_name}}" />
+        {% endfor %}
+        <div id="add_group">
+            <h1>Add New Group</h1>
+            <form name="add_group" action="/group/add/" method="post">
+                {% csrf_token %}
+                <table>
+                    <tr><td><label for="group_name">Group name</label></td>
+                    <td><input type="text" name="group_name" id="" value="" /></td></tr>
 
-                <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
-                <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
+                    <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
+                    <td><input type="text" name="condor_central_manager" id="" value="" /></td></tr>
 
-                <!--
-                <tr><td>Enable YAML</td><td><div class="switch">
+                    <!--
+                    <tr><td><label for="group_yaml">Group yaml</label></td>
+                    <td><textarea name="group_yaml" rows="10" cols="30">Enter yaml here</textarea></td></tr>
+                    -->
 
-                {% if group.enabled == 1 %}
-                    <input type="checkbox" id="yaml_switch_{{group.group_name}}" name="yaml_switch" checked>
-                {% else %}
-                    <input type="checkbox" id="yaml_switch_{{group.group_name}}" name="yaml_switch">
-                {% endif %}
+                    <tr><td><input type="submit" value="Add Group" /></td></tr>
 
-                  <label>
-                    <span class="ok"></span>
-                    <span class="remove"></span>
-                    <div></div>
-                  </label>
-                </div></td></tr>
+                </table>
+            </form>
+        </div>
+    </section>
 
-                <tr><td><label for="yaml_name">YAML filename</label></td>
-                <td><input type="text" name="yaml_name" id="" value="{{group.yaml_name}}" /></td></tr>
-
-                <tr><td><label for="group_yaml">Group yaml</label></td>
-                <td><textarea name="group_yaml" rows="25" cols="80">{{group.yaml}}</textarea></td></tr>
-                -->
-                <tr><td><input type="submit" value="Update Group" /></td>
-                <td><a href="#delete-{{group.group_name}}"><button type="button">Delete</button></a></td></tr>
-            </table>
-        </form>
-    </div>
-    {% endfor %}
-    <div id="add_group">
-        <h1>Add New Group</h1>
-        <form name="add_group" action="/group/add/" method="post">
-            {% csrf_token %}
-            <table>
-                <tr><td><label for="group_name">Group name</label></td>
-                <td><input type="text" name="group_name" id="" value="" /></td></tr>
-
-                <tr><td><label for="condor_central_manager">Condor Central Manager</label></td>
-                <td><input type="text" name="condor_central_manager" id="" value="" /></td></tr>
-
-                <!--
-                <tr><td><label for="group_yaml">Group yaml</label></td>
-                <td><textarea name="group_yaml" rows="10" cols="30">Enter yaml here</textarea></td></tr>
-                -->
-
-                <tr><td><input type="submit" value="Add Group" /></td></tr>
-            </table>
-        </form>
-    </div>
-</section>
-
-{% for group in group_list %}
-<div id="delete-{{group.group_name}}" class="modalDialog">
-    <div>
-        <a href="#{{group.group_name}}" title="Close" class="close">X</a>
-	<form name="{{group.group_name}}" action="/group/delete/" method="post">
-            {% csrf_token %}
+    {% for group in group_list %}
+    <div id="delete-{{group.group_name}}" class="modalDialog">
+        <div>
+            <a href="#{{group.group_name}}" title="Close" class="close">X</a>
+            <form name="{{group.group_name}}" action="/group/delete/" method="post">
+                {% csrf_token %}
                 <input type="hidden" name="group_name" id="" value="{{group.group_name}}" />
                 <input type="submit" value="Delete {{group.group_name}}" />
-        </form>
+            </form>
+        </div>
     </div>
-</div>
-{% endfor %}
+    {% endfor %}
 
+</div>
+
+<div class="footer"
+    {% if response_code == 1 %}
+        <tr><td><b>Error: {{ message }}</b></td></tr>
+    {% elif message is not None %}
+        <tr><td>{{ message }}</td></tr>
+    {% endif %}
 </div>
 
 </body>

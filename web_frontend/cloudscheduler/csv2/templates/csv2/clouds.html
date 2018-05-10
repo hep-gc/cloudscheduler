@@ -33,14 +33,7 @@
     {% for cloud in cloud_list %}
     <div id="{{cloud.cloud_name}}">
         <h1>{{cloud.cloud_name}}</h1>
-        <div id="delete_{{cloud.cloud_name}}" class="modalDialog">
-            <div>
-                <a href="#close" title="Close" class="close">X</a>
-                <h2>{{cloud.cloud_name}}</h2>
-                <p><input type="submit" value="Update Cloud" />Yes</td>
 
-            </div>
-        </div>
         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
             {% csrf_token %}
             <table>
@@ -64,9 +57,7 @@
                 <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
                 <tr><td><label for="project_domain_name">Project domain name</label></td>
                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
-                <!--<tr><td><label for="cloud_type">Cloud type</label></td>
-                <td><input type="text" name="cloud_type" value="{{cloud.cloud_type}}" /></td></tr>
-                -->
+
                 <tr><td><label for="cloud_type">Cloud type</label></td>
                 <td><select name="cloud_type" id=""/>
                 {% for type in type_list %}
@@ -76,7 +67,6 @@
                         <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
                     {% endif %}
                 {% endfor %}
-
 
                 <tr><td><label for="cores_ctl">Cores</label></td>
                 <td>
@@ -105,16 +95,6 @@
                 <tr><td><input type="submit" value="Update Cloud" /></td>
                 <td><a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a></td></tr>
             </table>
-
-            {% if response_code == 1 %}
-                <div id="msg_tbl"><table>
-                    <tr><td colspan=2; style="color:red";><div id="message"><b>Error: {{ message }}</b></div></td></tr>
-                </table></div>
-            {% elif message is not None %}
-                <div id="msg_tbl"><table>
-                    <tr><td colspan=2; style="color:green";><div id="message">{{ message }}</div></td></tr>
-                </table></div>
-            {% endif %}
         </form>
     </div>
     {% endfor %}
@@ -143,9 +123,7 @@
                 <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
                 <tr><td><label for="project_domain_name">Project domain name</label></td>
                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
-                <!--<tr><td><label for="cloud_type">Cloud type</label></td>
-                <td><input type="text" name="cloud_type" value="{{cloud.cloud_type}}" /></td></tr>
-                -->
+
                 <tr><td><label for="cloud_type">Cloud type</label></td>
                 <td><select name="cloud_type" id=""/>
                 {% for type in type_list %}
@@ -153,12 +131,6 @@
                 {% endfor %}
 
                 <tr><td><input type="submit" value="Add Cloud" /></td></tr>
-
-                {% if response_code == 1 %}
-                    <tr><td colspan=2; style="color:red";><b>Error: {{ message }}</b></td></tr>
-                {% elif message is not None %}
-                    <tr><td colspan=2; style="color:green";>{{ message }}</td></tr>
-                {% endif %}
             </table>
         </form>
     </div>
@@ -168,15 +140,23 @@
 <div id="delete-{{cloud.cloud_name}}" class="modalDialog">
     <div>
         <a href="#{{cloud.cloud_name}}" title="Close" class="close">X</a>
-	<form name="{{cloud.cloud_name}}" action="/cloud/delete/" method="post">
+        <form name="{{cloud.cloud_name}}" action="/cloud/delete/" method="post">
             {% csrf_token %}
-                <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
-                <input type="submit" value="Delete {{cloud.cloud_name}}" />
+            <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+            <input type="submit" value="Delete {{cloud.cloud_name}}" />
         </form>
     </div>
 </div>
 {% endfor %}
 
+</div>
+
+<div class="footer"
+    {% if response_code == 1 %}
+        <tr><td><b>Error: {{ message }}</b></td></tr>
+    {% elif message is not None %}
+        <tr><td>{{ message }}</td></tr>
+    {% endif %}
 </div>
 
 </body>
