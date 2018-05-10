@@ -4,6 +4,7 @@
 {% endblock %}
 
 <head>
+{% load template_utils %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/users.css" %}">
@@ -64,11 +65,21 @@
                 </select></td></tr>
                 <tr><td><label for="is_superuser">Superuser</label></td>
                 {% if user.is_superuser %}
-                    <td><input name="is_superuser" type="checkbox" value="{{user.username}}" checked></td>
+                    <td><input name="is_superuser" type="checkbox" value="{{user.username}}" checked/></td>
                 {% else %}
-                    <td><input name="is_superuser" type="checkbox" value="{{user.username}}"></td>
+                    <td><input name="is_superuser" type="checkbox" value="{{user.username}}"/></td>
                 {% endif %}
                 </tr>
+                <tr class="highlight"><td><label for="users_groups">Groups</label></td><td></td></tr>
+
+                {% for group in group_list %}
+                    {% if group.group_name in groups_per_user|keyvalue:user.username %}
+
+                        <tr><td></td><td class="highlight"><input type="checkbox" name="group_name.{{ forloop.counter }}" value="{{ group.group_name }}" checked/> {{ group.group_name }}</td></tr>
+                    {% else %}
+                        <tr><td></td><td class="highlight"><input type="checkbox" name="group_name.{{ forloop.counter }}" value="{{ group.group_name }}" /> {{ group.group_name }}</td></tr>
+                    {% endif %}
+                {% endfor %}
 
                 <tr><td><input type="submit" value="Update user" /></td>
                 <td><a href="#delete-{{user.username}}"><button type="button">Delete</button></a></td></tr>
@@ -78,7 +89,7 @@
     {% endfor %}
     <div id="add_user">
         <h1>Add New user</h1>
-        <form name="add_user" action="/user/add/" method="post">
+        <form name="add_user" action="/user/add-with-groups/" method="post">
             {% csrf_token %}
             <table>
                 <tr><td><label for="username">Username</label></td>
@@ -93,9 +104,14 @@
                 <tr><td><label for="is_superuser">Superuser</label></td>
                 <td><input name="is_superuser" type="checkbox" value="1"></td></tr>
 
-                <tr><td></td><td>Available</td><td>Member</td>
-                <tr><td><label for="is_superuser">Groups</label></td>
+                <tr class="highlight"><td><label for="users_groups">Groups</label></td><td></td></tr>
 
+                {% for group in group_list %}
+                    <tr><td></td><td class="highlight"><input type="checkbox" name="group_name.{{ forloop.counter }}" value="{{ group.group_name }}" /> {{ group.group_name }}</td></tr>
+                {% endfor %}
+
+
+                <!--
                    <td>
                     <table>
                         <tbody id="tst1" >
@@ -115,7 +131,7 @@
                     </td>
 
                 </tr>
-
+                -->
                 <tr><td><input type="submit" value="Add user" /></td></tr>
             </table>
         </form>
