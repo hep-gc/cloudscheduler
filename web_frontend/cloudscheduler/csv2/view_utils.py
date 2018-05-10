@@ -503,7 +503,7 @@ def table_fields(Fields, Table, Columns, selection):
 
 #-------------------------------------------------------------------------------
 
-def validate_fields(request, fields, db_engine, tables, active_user, other_formats=None):
+def validate_fields(request, fields, db_engine, tables, active_user):
     """
     This function validates/normalizes form fields/command arguments.
 
@@ -512,7 +512,7 @@ def validate_fields(request, fields, db_engine, tables, active_user, other_forma
     requests  - is a web request containing POST data.
     db_engine - An open database connection object.
     tables    - is a list of table names.
-    fields    - is a structure in the following format:
+    fields    - is a  list of structures in the following format:
 
                CLOUD_FIELDS = {
                    'auto_active_group': active_user.active_group, # or None.
@@ -541,9 +541,6 @@ def validate_fields(request, fields, db_engine, tables, active_user, other_forma
     uppercase  - Make sure the input value is all uppercase (or error).
     """
 
-    if fields and ('auto_active_group' not in fields or 'format' not in fields):
-        raise Exception('view_utils.validate_fields: "fields" dictionary requires "auto_active_group" and "format" entries')
-
     from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
     from sqlalchemy import Table, MetaData
 
@@ -570,17 +567,17 @@ def validate_fields(request, fields, db_engine, tables, active_user, other_forma
             else:
                 Columns[table][1].append(column.name)
 
-    # Process format specifications.
-    if other_formats:
-        Formats = {}
+    # Process fields parameter:
+    Formats = {}
+    Options = {'auto_active_group': False}
 
-        for field in fields['format']:
-            Formats[field] = fields['format'][field]
-
-        for field in other_formats:
-            Formats[field] = other_formats[field]
-    else:
-        Formats = fields['format']
+    for option_set in fields:
+        for option in option_set:
+            if option == 'format':
+                for field in option_set[option]:
+                    Formats[field] = option_set[option][field]
+            else:
+                Options[option] = option_set[option]
 
     # Process input fields.
     Fields = {}
@@ -634,7 +631,7 @@ def validate_fields(request, fields, db_engine, tables, active_user, other_forma
                 if not _validate_fields_ignore_field_error(Formats, field):
                     return 1, 'request contained a bad parameter "%s".' % field, None, None, None
 
-    if fields['auto_active_group'] and 'group_name' not in Fields:
+    if Options['auto_active_group'] and 'group_name' not in Fields:
         Fields['group_name'] = active_user.active_group
 
     for field in primary_key_columns:

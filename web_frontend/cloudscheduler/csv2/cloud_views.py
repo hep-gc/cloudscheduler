@@ -7,18 +7,18 @@ from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
 from .view_utils import \
-  db_execute, \
-  db_open, \
-  getAuthUser, \
-  getcsv2User, \
-  getSuperUserStatus, \
-  lno, \
-  qt, \
-  render, \
-  set_user_groups, \
-  table_fields, \
-  validate_fields, \
-  verifyUser
+    db_execute, \
+    db_open, \
+    getAuthUser, \
+    getcsv2User, \
+    getSuperUserStatus, \
+    lno, \
+    qt, \
+    render, \
+    set_user_groups, \
+    table_fields, \
+    validate_fields, \
+    verifyUser
 from collections import defaultdict
 import bcrypt
 
@@ -54,6 +54,13 @@ YAML_KEYS = {
         },
     }
 
+IGNORE_YAML_NAME = {
+    'format': {
+        'yaml_name':           'ignore',
+        },
+    }
+
+
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
@@ -77,7 +84,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, CLOUD_KEYS, db_engine, ['csv2_group_resources'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -121,7 +128,7 @@ def delete(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, CLOUD_KEYS, db_engine, ['csv2_group_resources', 'csv2_group_resource_yaml'], active_user, other_formats={'yaml_name': 'ignore'})
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_YAML_NAME], db_engine, ['csv2_group_resources', 'csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg), active_user=active_user, user_groups=user_groups)
@@ -324,7 +331,7 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, CLOUD_KEYS, db_engine, ['csv2_group_resources'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
@@ -371,7 +378,7 @@ def yaml_add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV16'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, YAML_KEYS, db_engine, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
@@ -418,7 +425,7 @@ def yaml_delete(request):
             return list(request, selector='-', response_code=1, message='%s %S' % (lno('CV21'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, YAML_KEYS, db_engine, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
@@ -516,7 +523,7 @@ def yaml_update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV27'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, YAML_KEYS, db_engine, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
