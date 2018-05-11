@@ -4,6 +4,7 @@
 {% endblock %}
 
 <head>
+{% load template_utils %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
@@ -64,6 +65,23 @@
                     <tr><td><label for="group_yaml">Group yaml</label></td>
                     <td><textarea name="group_yaml" rows="25" cols="80">{{group.yaml}}</textarea></td></tr>
                     -->
+
+                    <tr class="highlight"><td><label for="user_groups">Users</label></td><td></td></tr>
+
+                    {% for user in groups_per_user %}
+                        {{ user.group_name }}
+                        {% if group.group_name in user.user_groups %}
+
+                            <tr><td></td><td class="highlight"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/> {{ user.username }}</td></tr>
+                        {% else %}
+                            <tr><td></td><td class="highlight"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" /> {{ user.username }}</td></tr>
+                        {% endif %}
+                    {% endfor %}
+
+
+
+
+
                     <tr><td><input type="submit" value="Update Group" /></td>
                     <td><a href="#delete-{{group.group_name}}"><button type="button">Delete</button></a></td></tr>
                 </table>

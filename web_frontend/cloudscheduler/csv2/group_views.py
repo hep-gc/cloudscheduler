@@ -417,6 +417,13 @@ def list(
             prune=['password']    
             )
 
+    # Retrieve user/groups list (dictionary containing list for each user).
+    s = select([view_user_groups])
+    groups_per_user = qt(
+        db_connection.execute(s),
+            prune=['password']    
+            )
+
     db_connection.close()
 
     # Position the page.
@@ -441,6 +448,7 @@ def list(
             'attributes': attributes,
             'user_groups': user_groups,
             'group_list': group_list,
+            'groups_per_user': groups_per_user,
             'yaml_dict': yaml_dict,
             'current_group': current_group,
             'response_code': response_code,
