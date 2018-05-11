@@ -86,7 +86,7 @@ def add(request):
         rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud.
         table = tables['csv2_group_resources']
@@ -133,20 +133,10 @@ def delete(request):
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any cloud/YAML files for the cloud.
-        s = select([view_group_resources_with_yaml_names]).where(
-          (view_group_resources_with_yaml_names.c.group_name == fields['group_name']) & (view_group_resources_with_yaml_names.c.cloud_name == fields['cloud_name'])
-          )
-        cloud_list = qt(db_connection.execute(s))
-        for row in cloud_list:
-            if row['group_name'] == fields['group_name'] and row['cloud_name'] == fields['cloud_name'] and row['yaml_names']:
-                yaml_names = row['yaml_names'].split(',')
-                for yaml_name in yaml_names:
-                    # Delete the cloudYAML file.
-                    table = tables['csv2_group_resource_yaml']
-                    success,message = db_execute(
-                        db_connection,
-                        table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name']) & (table.c.yaml_name==yaml_name))
-                        )
+        table = tables['csv2_group_resource_yaml']
+        success,message = db_execute(db_connection, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])))
+        if not success:
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-delete "%s.%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud.
         table = tables['csv2_group_resources']
@@ -158,7 +148,7 @@ def delete(request):
         if success:
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s.%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud delete "%s.%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=values[2])
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud delete "%s.%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -333,7 +323,7 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
 
         # update the cloud.
         table = tables['csv2_group_resources']
@@ -380,7 +370,7 @@ def yaml_add(request):
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud yaml-add %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud yaml file.
         table = tables['csv2_group_resource_yaml']
@@ -427,7 +417,7 @@ def yaml_delete(request):
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud yaml-delete %s' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud yaml file.
         table = tables['csv2_group_resource_yaml']
@@ -525,7 +515,7 @@ def yaml_update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud yaml-update %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the cloud yaml file.
         table = tables['csv2_group_resource_yaml']
