@@ -215,15 +215,15 @@ def yaml_delete(gvar):
                     break
    
     if not _found:
-        print('Error: "csv2 group yaml-delete" cannot delete "%s-%s-%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        print('Error: "csv2 group yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
         exit(1)
 
     # Confirm group/YAML file delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete the YAML file "%s-%s-%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        print('Are you sure you want to delete the YAML file "%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 group yaml-delete "%s-&s-%s" cancelled.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+            print('csv2 group yaml-delete "%s::%s::%s" cancelled.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the group/YAML file.
@@ -247,7 +247,7 @@ def yaml_edit(gvar):
     check_keys(gvar, ['-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/group/yaml_fetch/%s.%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/group/yaml_fetch/%s::%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/yaml' % (
@@ -261,14 +261,20 @@ def yaml_edit(gvar):
 
     # Write the reference copy.
     fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.write(response['yaml'])
     fd.close()
 
     # Write the edit copy.
     fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.write(response['yaml'])
     fd.close()
 
+    # Print status header.
+    print('### yaml_enabled: %s, yaml_mime_type: %s' % (response['yaml_enabled'], response['yaml_mime_type']))
+
+    # Edit the YAML file.
     p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
     p.communicate()
 
@@ -276,7 +282,7 @@ def yaml_edit(gvar):
         '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
         '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
         ):
-        print('csv2 group yaml-edit "%s-%s" completed, no changes.' % (response['group_name'],  response['yaml_name']))
+        print('csv2 group yaml-edit "%s::%s" completed, no changes.' % (response['group_name'],  response['yaml_name']))
         exit(0)
 
     # Verify the changed YAML file.
