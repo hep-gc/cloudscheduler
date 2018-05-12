@@ -60,7 +60,7 @@ def main(args):
                     'yaml-load':    csv2_group.yaml_load,
                     }
                 ],
-            'settings': [
+            'my-defaults': [
                 False, # super_user?
                 {
                     'delete':       csv2_settings.delete,
