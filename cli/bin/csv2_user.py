@@ -6,6 +6,7 @@ import os
 
 KEY_MAP = {
     '-gn':   'group_name',
+    '-SU':   'is_superuser',
     '-ucn':  'cert_cn',
     '-un':   'username',
     '-upw':  'password',
@@ -33,7 +34,7 @@ def add(gvar):
         gvar,
         ['-ucn', '-un', '-upw'],
         [],
-        [],
+        ['-gn'],
         key_map=KEY_MAP)
 
     # Create the user.
@@ -136,10 +137,10 @@ def group_delete(gvar):
 
     # Confirm user delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete user "%s"? (yes|..)' % gvar['user_settings']['username'])
+        print('Are you sure you want to delete user::group "%s::%s"? (yes|..)' % (gvar['user_settings']['username'], gvar['user_settings']['group-name']))
         _reply = input()
         if _reply != 'yes':
-          print('csv2 user delete "%s" cancelled.' % gvar['user_settings']['username'])
+          print('csv2 user::group delete "%s::%s" cancelled.' % (gvar['user_settings']['username'], gvar['user_settings']['group-name']))
           exit(0)
 
     # Delete the user/group.
@@ -189,7 +190,7 @@ def list(gvar):
                 'cert_cn/Common Name',
                 'active_group/Active Group',
                 'user_groups/User Groups',
-                'available_groups/Available Groups',
+                'available_groups/Not In Groups',
                 'is_superuser/Super User',
                 'join_date/Joined',
             ],
@@ -205,7 +206,7 @@ def update(gvar):
         gvar,
         ['-un'],
         [],
-        ['-ucn', '-upw'],
+        ['-SU', '-ucn', '-upw'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
