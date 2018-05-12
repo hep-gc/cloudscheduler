@@ -80,10 +80,10 @@ def delete(gvar):
 
     # Confirm cloud delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete cloud "%s.%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name']))
+        print('Are you sure you want to delete cloud "%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 cloud delete "%s.%s" cancelled.' % (response['active_group'], gvar['user_settings']['cloud-name']))
+            print('csv2 cloud delete "%s::%s" cancelled.' % (response['active_group'], gvar['user_settings']['cloud-name']))
             exit(0)
 
     # Delete the cloud.
@@ -266,15 +266,15 @@ def yaml_delete(gvar):
                     break
    
     if not _found:
-        print('Error: "csv2 cloud yaml-delete" cannot delete "%s.%s.%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('Error: "csv2 cloud yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         exit(1)
 
     # Confirm cloud/YAML file delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete the YAML file "%s.%s.%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('Are you sure you want to delete the YAML file "%s::%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 cloud yaml-delete "%s-&s-%s" cancelled.' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+            print('csv2 cloud yaml-delete "%::%::%s" cancelled.' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the cloud/YAML file.
@@ -299,7 +299,7 @@ def yaml_edit(gvar):
     check_keys(gvar, ['-cn', '-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/cloud/yaml_fetch/%s.%s.%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/cloud/yaml_fetch/%s::%s::%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/%s/yaml' % (
@@ -314,13 +314,18 @@ def yaml_edit(gvar):
 
     # Write the reference copy.
     fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.write(response['yaml'])
     fd.close()
 
     # Write the edit copy.
     fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.write(response['yaml'])
     fd.close()
+
+    # Print status header.
+    print('### yaml_enabled: %s, yaml_mime_type: %s' % (response['yaml_enabled'], response['yaml_mime_type']))
 
     p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
     p.communicate()
@@ -329,7 +334,7 @@ def yaml_edit(gvar):
         '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
         '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
         ):
-        print('csv2 cloud yaml-edit "%s.%s.%s" completed, no changes.' % (response['group_name'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('csv2 cloud yaml-edit "%s::%s::%s" completed, no changes.' % (response['group_name'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         exit(0)
 
     # Verify the changed YAML file.
