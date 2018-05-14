@@ -35,7 +35,7 @@ ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
 
 INSTALLED_APPS = [
     'csv2.apps.Csv2Config',
-#    'glintwebui.apps.GlintwebuiConfig',
+    'glintwebui.apps.GlintwebuiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -117,7 +117,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': "csv2",
         'USER': 'csv2',
-        'PASSWORD': 'UriLY6gn77MrGhbu',
+        'PASSWORD': 'ZZvw2gDtGN5LL9Kv',
 #        'HOST': '127.0.0.1',
 #        'PORT': '3306',
     }

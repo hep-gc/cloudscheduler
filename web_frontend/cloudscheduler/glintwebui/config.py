@@ -1,91 +1,78 @@
-from os.path import exists, abspath
+from os.path import join, expanduser, exists, abspath
 import sys
-import configparser
+import yaml
 
-# set default values
 static_files_root = "/var/www/glintv2/static/"
 cert_auth_bundle_path = "/etc/glintv2/CABundle.crt"
 log_file_path = "/var/log/glintv2/glintv2.log"
-database_path = "/etc/glintv2/"
-database_name = "db.sqlite3"
 celery_url = "redis://localhost:6379/0"
 celery_backend = "redis://localhost:6379/"
 redis_host = "localhost"
 redis_port = 6379
 redis_db = 0
-image_collection_interval = 12
+image_collection_interval = 30
 cache_expire_time = 604800 #default 7 days (in seconds)
 
+db_host = "localhost"
+db_port = 3306
+db_user = "csv2"
+db_password = ""
 
-# find config file by first checking the /etc/glintv2 location
-# if its not there look for the default one in the glintv2 install location
 
-if exists("/etc/cloudscheduler/glintv2.conf"):
-    path = "/etc/cloudscheduler/glintv2.conf"
-elif  exists(abspath(sys.path[0]+"/../config/glintv2.conf")):
-    path = abspath(sys.path[0]+"/../config/glintv2.conf")
-else:
-    print("Configuration file problem: There doesn't " \
-          "seem to be a configuration file. " \
-          "You can specify one in /etc/glintv2/glintv2.conf", file=sys.stderr)
-    sys.exit(1)
 
-config_file = configparser.ConfigParser()
+if exists("/etc/cloudscheduler/glintv2.yaml"):
+    path = "/etc/cloudscheduler/glintv2.yaml"
+
+elif exists("/opt/cloudscheduler/web_frontend/cloudscheduler/glintv2.yaml"):
+    path = "/opt/cloudscheduler/web_frontend/cloudscheduler/glintv2.yaml"
+
+
 try:
-    config_file.read(path)
-except IOError:
+    with open(path, 'r') as ymlfile:
+        cfg = yaml.load(ymlfile)
+
+except Exception as e:
     print("Configuration file problem: There was a " \
           "problem reading %s. Check that it is readable," \
           "and that it exists. " % path, file=sys.stderr)
-    raise
-except ConfigParser.ParsingError:
-    print("Configuration file problem: Couldn't " \
-          "parse your file. Check for spaces before or after variables.", file=sys.stderr)
-    raise
-except:
-    print("Configuration file problem: There is something wrong with " \
-          "your config file.", file=sys.stderr)
-    raise
 
-# sets defaults to the options in the config_file
-if config_file.has_option("general", "static_files_root"):
-    static_files_root = config_file.get("general", "static_files_root")
+if "database" in cfg:
+    if "db_host" in cfg["database"]:
+        db_host = cfg["database"]["db_host"]
 
-if config_file.has_option("general", "cert_auth_bundle_path"):
-    cert_auth_bundle_path = config_file.get("general", "cert_auth_bundle_path")
+    if "db_port" in cfg["database"]:
+        db_port = cfg["database"]["db_port"]
 
-if config_file.has_option("general", "log_file_path"):
-    log_file_path = config_file.get("general", "log_file_path")
+    if "db_name" in cfg["database"]:
+        db_name = cfg["database"]["db_name"]
 
-if config_file.has_option("general", "database_path"):
-    database_path = config_file.get("general", "database_path")
+    if "db_user" in cfg["database"]:
+        db_user = cfg["database"]["db_user"]
 
-if config_file.has_option("general", "database_name"):
-    database_name = config_file.get("general", "database_name")
+    if "db_password" in cfg["database"]:
+        db_password = cfg["database"]["db_password"]
 
-if config_file.has_option("general", "image_collection_interval"):
-    image_collection_interval = int(config_file.get("general", "image_collection_interval"))
+if "redis" in cfg:
+    if "redis_host" in cfg["redis"]:
+        redis_host = cfg["redis"]["redis_host"]
 
-if config_file.has_option("general", "cache_expire_time"):
-    cache_expire_time = int(config_file.get("general", "cache_expire_time"))
+    if "redis_port" in cfg["redis"]:
+        redis_port = cfg["redis"]["redis_port"]
 
+    if "redis_db" in cfg["redis"]:
+        redis_db = cfg["redis"]["redis_db"]
 
+if "general" in cfg:
+    if "image_collection_interval" in cfg["general"]:
+        image_collection_interval = cfg["general"]["image_collection_interval"]
 
+    if "cache_expire_time" in cfg["general"]:
+        cache_expire_time = cfg["general"]["cache_expire_time"]
 
-if config_file.has_option("celery", "celery_url"):
-    celery_url = config_file.get("celery", "celery_url")
+if "celery" in cfg:
+    if "celery_url" in cfg["celery"]:
+        celery_url = cfg["celery"]["celery_url"]
 
-if config_file.has_option("celery", "celery_backend"):
-    celery_backend = config_file.get("celery", "celery_backend")
+    if "celery_backend" in cfg["celery"]:
+        celery_backend = cfg["celery"]["celery_backend"]
 
-
-
-if config_file.has_option("redis", "redis_host"):
-    redis_host = config_file.get("redis", "redis_host")
-
-if config_file.has_option("redis", "redis_port"):
-    redis_port = config_file.get("redis", "redis_port")
-
-if config_file.has_option("redis", "redis_db"):
-    redis_db = config_file.get("redis", "redis_db")
-    
