@@ -19,11 +19,14 @@ KEY_MAP = {
     '-vc':  'cores_ctl',
     '-vk':  'keyname',
     '-vr':  'ram_ctl',
+    '-yn':  'yaml_name',
+    '-ye':  'enabled',
+    '-ymt': 'mime_type',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
 
-def _filter_by_cloud_name(gvar, qs):
+def _filter_by_cloud_name_and_or_yaml_name(gvar, qs):
     """
     Internal function to filter a query set by the specified group name.
     """
@@ -31,6 +34,11 @@ def _filter_by_cloud_name(gvar, qs):
     if 'cloud-name' in gvar['command_args']:
         for _ix in range(len(qs)-1, -1, -1):
             if qs[_ix]['cloud_name'] != gvar['command_args']['cloud-name']:
+                del(qs[_ix])
+
+    if 'yaml-name' in gvar['command_args']:
+        for _ix in range(len(qs)-1, -1, -1):
+            if qs[_ix]['yaml_name'] != gvar['command_args']['yaml-name']:
                 del(qs[_ix])
 
     return qs
@@ -113,7 +121,7 @@ def list(gvar):
         print(response['message'])
 
     # Filter response as requested (or not).
-    cloud_list = _filter_by_cloud_name(gvar, response['cloud_list'])
+    cloud_list = _filter_by_cloud_name_and_or_yaml_name(gvar, response['cloud_list'])
 
     # Print report.
     show_header(gvar, response)
@@ -181,7 +189,7 @@ def status(gvar):
     response = requests(gvar, '/cloud/status/')
 
     # Filter response as requested (or not).
-    status_list = _filter_by_cloud_name(gvar, response['status_list'])
+    status_list = _filter_by_cloud_name_and_or_yaml_name(gvar, response['status_list'])
 
     # Print report
     show_header(gvar, response)
@@ -326,9 +334,6 @@ def yaml_edit(gvar):
     fd.write(response['yaml'])
     fd.close()
 
-    # Print status header.
-    print('### yaml_enabled: %s, yaml_mime_type: %s' % (response['yaml_enabled'], response['yaml_mime_type']))
-
     p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
     p.communicate()
 
@@ -357,6 +362,48 @@ def yaml_edit(gvar):
     if response['message']:
         print(response['message'])
 
+def yaml_list(gvar):
+    """
+    List clouds for the active group.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-yn'])
+
+    # Retrieve data (possibly after changing the group).
+    response = requests(gvar, '/cloud/yaml-list/')
+    
+    if response['message']:
+        print(response['message'])
+
+    # Filter response as requested (or not).
+    cloud_yaml_list = _filter_by_cloud_name_and_or_yaml_name(gvar, response['cloud_yaml_list'])
+
+    # Print report.
+    show_header(gvar, response)
+
+    if gvar['command_args']['only-keys']:
+        show_table(
+            gvar,
+            cloud_yaml_list,
+            [
+                'group_name/Group',
+                'cloud_name/Cloud',
+                'yaml_name/YAML Filename',
+            ],
+            )
+    else:
+        show_table(
+            gvar,
+            cloud_yaml_list,
+            [
+                'group_name/Group',
+                'cloud_name/Cloud',
+                'yaml_name/YAML Filename',
+                'enabled/Enabled',
+                'mime_type/MIME Type',
+            ],
+            )
 
 def yaml_load(gvar):
     """
@@ -382,6 +429,33 @@ def yaml_load(gvar):
     response = requests(
         gvar,
         '/cloud/yaml-add/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def yaml_update(gvar):
+    """
+    Modify a cloud in the active group.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-cn', '-yn'],
+        [],
+        ['-ye', '-ymt'],
+        key_map=KEY_MAP)
+
+    if len(form_data) < 2:
+        print('Error: "csv2 cloud yaml-update" requires at least one option to modify.')
+        exit(1)
+
+    # Create the cloud.
+    response = requests(
+        gvar,
+        '/cloud/yaml-update/',
         form_data
         )
     

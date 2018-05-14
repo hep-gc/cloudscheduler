@@ -12,9 +12,12 @@ KEY_MAP = {
     '-jed': 'job_scratch',
     '-jr':  'job_ram',
     '-js':  'job_swap',
+    '-yn':  'yaml_name',
+    '-ye':  'enabled',
+    '-ymt': 'mime_type',
     }
 
-def _filter_by_group(gvar, qs):
+def _filter_by_group_name_and_or_yaml_name(gvar, qs):
     """
     Internal function to filter a query set by the specified group name.
     """
@@ -22,6 +25,11 @@ def _filter_by_group(gvar, qs):
     if 'group-name' in gvar['command_args']:
         for _ix in range(len(qs)-1, -1, -1):
             if qs[_ix]['group_name'] != gvar['command_args']['group-name']:
+                del(qs[_ix])
+
+    if 'yaml-name' in gvar['command_args']:
+        for _ix in range(len(qs)-1, -1, -1):
+            if qs[_ix]['yaml_name'] != gvar['command_args']['yaml-name']:
                 del(qs[_ix])
 
     return qs
@@ -144,7 +152,7 @@ def list(gvar):
         print(response['message'])
 
     # Filter response as requested (or not).
-    group_list = _filter_by_group(gvar, response['group_list'])
+    group_list = _filter_by_group_name_and_or_yaml_name(gvar, response['group_list'])
 
     # Print report
     show_header(gvar, response)
@@ -271,9 +279,6 @@ def yaml_edit(gvar):
     fd.write(response['yaml'])
     fd.close()
 
-    # Print status header.
-    print('### yaml_enabled: %s, yaml_mime_type: %s' % (response['yaml_enabled'], response['yaml_mime_type']))
-
     # Edit the YAML file.
     p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
     p.communicate()
@@ -301,6 +306,46 @@ def yaml_edit(gvar):
     if response['message']:
         print(response['message'])
 
+def yaml_list(gvar):
+    """
+    List clouds for the active group.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-yn'])
+
+    # Retrieve data (possibly after changing the group).
+    response = requests(gvar, '/group/yaml-list/')
+    
+    if response['message']:
+        print(response['message'])
+
+    # Filter response as requested (or not).
+    group_yaml_list = _filter_by_group_name_and_or_yaml_name(gvar, response['group_yaml_list'])
+
+    # Print report.
+    show_header(gvar, response)
+
+    if gvar['command_args']['only-keys']:
+        show_table(
+            gvar,
+            group_yaml_list,
+            [
+                'group_name/Group',
+                'yaml_name/YAML Filename',
+            ],
+            )
+    else:
+        show_table(
+            gvar,
+            group_yaml_list,
+            [
+                'group_name/Group',
+                'yaml_name/YAML Filename',
+                'enabled/Enabled',
+                'mime_type/MIME Type',
+            ],
+            )
 
 def yaml_load(gvar):
     """
@@ -324,6 +369,33 @@ def yaml_load(gvar):
     response = requests(
         gvar,
         '/group/yaml-add/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def yaml_update(gvar):
+    """
+    Update YAML fiel information.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-yn'],
+        [],
+        ['-ye', '-ymt'],
+        key_map=KEY_MAP)
+
+    if len(form_data) < 2:
+        print('Error: "csv2 group yaml-update" requires at least one option to modify.')
+        exit(1)
+
+    # Create the cloud.
+    response = requests(
+        gvar,
+        '/group/yaml-update/',
         form_data
         )
     
