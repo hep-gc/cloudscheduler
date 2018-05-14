@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^cloud/yaml-add',                    cloud_views.yaml_add,        name='cloud-yaml-add'),
     url(r'^cloud/yaml-delete',                 cloud_views.yaml_delete,     name='cloud-yaml-delete'),
     url(r'^cloud/yaml-fetch/(?P<selector>)',   cloud_views.yaml_fetch,      name='cloud-yaml-fetch'),
+    url(r'^cloud/yaml-list',                   cloud_views.yaml_list,       name='cloud-yaml-list'),
     url(r'^cloud/yaml-update',                 cloud_views.yaml_update,     name='cloud-yaml-update'),
 
     url(r'^group/add',                         group_views.add,             name='group-add'),
@@ -25,6 +26,7 @@ urlpatterns = [
     url(r'^group/yaml-add',                    group_views.yaml_add,        name='group-yaml-add'),
     url(r'^group/yaml-delete',                 group_views.yaml_delete,     name='group-yaml-delete'),
     url(r'^group/yaml-fetch/(?P<selector>)',   group_views.yaml_fetch,      name='group-yaml-fetch'),
+    url(r'^group/yaml-list',                   group_views.yaml_list,       name='group-yaml-list'),
     url(r'^group/yaml-update',                 group_views.yaml_update,     name='group-yaml-update'),
 
 #   url(r'^job/list',                          job_views.list,              name='job-list'),
