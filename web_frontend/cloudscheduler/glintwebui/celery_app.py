@@ -8,6 +8,7 @@ from django.conf import settings
 from celery import Celery
 from celery.utils.log import get_task_logger
 import glintwebui.config as config
+from .db_util import get_db_base_and_session
 
 from glintwebui.glint_api import repo_connector
 from .utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
@@ -24,7 +25,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cloudscheduler_web.settings')
 
 #django.setup()
 
-app = Celery('glintwebui', broker=config.celery_url, backend=config.celery_backend)
+app = Celery('glintv2', broker=config.celery_url, backend=config.celery_backend)
 app.config_from_object('django.conf:settings')
 
 
@@ -36,8 +37,6 @@ def debug_task(self):
 @app.task(bind=True)
 def image_collection(self):
 
-    from glintwebui.models import Group_Resources, Group
-
     wait_period = 0
     term_signal = False
     num_tx = get_num_transactions()
@@ -45,6 +44,11 @@ def image_collection(self):
 
     # perminant for loop to monitor image states and to queue up tasks
     while True:
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
+        Group = Base.classes.csv2_groups
+
         # First check for term signal
         logger.debug("Term signal: %s", term_signal)
         if term_signal is True:
@@ -53,14 +57,14 @@ def image_collection(self):
             set_collection_task(False)
             return
         logger.info("Start Image collection")
-        group_list = Group.objects.all()
+        group_list = session.query(Group)
 
         #if there are no active transactions clean up the cache folders
         if num_tx == 0:
             do_cache_cleanup()
 
         for group in group_list:
-            repo_list = Group_Resources.objects.filter(group_name=group.group_name)
+            repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             image_list = ()
             for repo in repo_list:
                 try:
