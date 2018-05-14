@@ -234,6 +234,8 @@ def show_table(gvar, queryset, columns, allow_null=True):
     Print a table from a SQLAlchemy query set.
     """
 
+    import json
+
     # Normalize column definitions.
     _field_names = []
     _column_names = []
