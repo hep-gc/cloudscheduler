@@ -635,6 +635,40 @@ def yaml_fetch(request, selector=None):
 
 #-------------------------------------------------------------------------------
 
+@requires_csrf_token
+def yaml_list(request):
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    db_engine,db_session,db_connection,db_map = db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    if rc != 0:
+        db_connection.close()
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Retrieve cloud/yaml information.
+    s = select([csv2_group_yaml]).where(csv2_group_yaml.c.group_name == active_user.active_group)
+    group_yaml_list = qt(db_connection.execute(s))
+    db_connection.close()
+
+    # Render the page.
+    context = {
+            'active_user': active_user,
+            'active_group': active_user.active_group,
+            'user_groups': user_groups,
+            'group_yaml_list': group_yaml_list,
+            'response_code': 0,
+            'message': None
+        }
+
+    return render(request, 'csv2/cloud_yaml_list.html', context)
+
+#-------------------------------------------------------------------------------
+
 def yaml_update(request):
     """
     This function should recieve a post request with a payload of a YAML file

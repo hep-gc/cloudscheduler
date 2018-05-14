@@ -267,19 +267,8 @@ def status(request, group_name=None):
 
     # get vm and job counts per cloud
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    status_list = db_connection.execute(s)
-
-    # get default limits
-    Limit = db_map.classes.cloud_limits
-    cloud_limits = db_session.query(Limit).filter(Limit.group_name==active_user.active_group)
-
-    # get VM list
-    VM = db_map.classes.csv2_vms
-    vm_list = db_session.query(VM).filter(VM.group_name==active_user.active_group)
-    
-    # get jobs list
-    Jobs = db_map.classes.condor_jobs
-    job_list = db_session.query(Jobs).filter(Jobs.group_name==active_user.active_group)
+    status_list = qt(db_connection.execute(s))
+    print("<<<<<<<<<<<<<<<", status_list)
 
     db_connection.close()
 
@@ -288,9 +277,6 @@ def status(request, group_name=None):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'status_list': status_list,
-            'cloud_limits': cloud_limits,
-            'vm_list': vm_list,
-            'job_list': job_list,
             'response_code': 0,
             'message': None,
         }
@@ -485,6 +471,40 @@ def yaml_fetch(request, selector=None):
       return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received an invalid YAML file id "%s".' % id})
     else:
       return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received no YAML file id.'})
+
+#-------------------------------------------------------------------------------
+
+@requires_csrf_token
+def yaml_list(request):
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    db_engine,db_session,db_connection,db_map = db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    if rc != 0:
+        db_connection.close()
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Retrieve cloud/yaml information.
+    s = select([csv2_group_resource_yaml]).where(csv2_group_resource_yaml.c.group_name == active_user.active_group)
+    cloud_yaml_list = qt(db_connection.execute(s), prune=['password'])
+    db_connection.close()
+
+    # Render the page.
+    context = {
+            'active_user': active_user,
+            'active_group': active_user.active_group,
+            'user_groups': user_groups,
+            'cloud_yaml_list': cloud_yaml_list,
+            'response_code': 0,
+            'message': None
+        }
+
+    return render(request, 'csv2/cloud_yaml_list.html', context)
 
 #-------------------------------------------------------------------------------
 
