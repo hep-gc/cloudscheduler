@@ -8,8 +8,8 @@ create or replace view view_cloud_status as
 */
 select
 
-group_name,
-cloud_name,
+vcsr.group_name,
+vcsr.cloud_name,
 cast(sum(VMs) as int) as VMs,
 sum(VMs_running) as VMs_running,
 sum(VMs_retiring) as VMs_retiring,
@@ -23,9 +23,16 @@ sum(Jobs_s2) as Jobs_s2,
 sum(Jobs_s3) as Jobs_s3,
 sum(Jobs_s4) as Jobs_s4,
 sum(Jobs_s5) as Jobs_s5,
-sum(Jobs_s6) as Jobs_s6
+sum(Jobs_s6) as Jobs_s6,
+case when cores_ctl is null then 0 else case when cores_ctl=-1 or cores_ctl>cores_max then cores_max-cores_used else cores_ctl-cores_used end end as idle_cores,
+case when ram_ctl is null then 0 else case when ram_ctl=-1 or ram_ctl>ram_max then ram_max-ram_used else ram_ctl-ram_used end end as idle_ram
 
-from view_cloud_status_raw
+from view_cloud_status_raw as vcsr
+
+left outer join view_group_resources as vgr on
+vcsr.group_name=vgr.group_name and
+vcsr.cloud_name=vgr.cloud_name
+
 group by group_name,cloud_name
 
 ;
