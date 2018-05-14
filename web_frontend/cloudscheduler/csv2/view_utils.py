@@ -217,6 +217,26 @@ def _map_parameter_to_field_values_pw_check(pw1, pw2=None):
 
 #-------------------------------------------------------------------------------
 
+def manage_user_group_lists(tables, group=None, groups=None, user=None, users=None):
+
+
+    table = tables['csv2_user']
+
+    if groups:
+        pass
+        
+
+
+
+
+
+
+
+
+    return 0, 'xxx'
+
+#-------------------------------------------------------------------------------
+
 def qt(query, keys=None, prune=[]):
     """
     Query Transform takes a list of dictionaries (eg. the result of an SqlAlchemy query)
@@ -298,7 +318,11 @@ def qt(query, keys=None, prune=[]):
     primary_list = []
     secondary_dict = {}
 
-    for row in query:
+    if query:
+        Query = query
+    else:
+        Query = []
+    for row in Query:
         cols = dict(row)
 
         if keys:
@@ -318,10 +342,8 @@ def qt(query, keys=None, prune=[]):
                 new_row = {}
                 for col in cols:
                     if col not in keys['secondary'] + prune:
-                      if cols[col]:
-                          new_row[col] = cols[col]
-                      else:
-                          new_row[col] = None
+                        new_row[col] = cols[col]
+
 
                 primary_list.append(new_row)
 
@@ -329,10 +351,7 @@ def qt(query, keys=None, prune=[]):
             new_row = {}
             for col in cols:
                 if col not in prune:
-                  if cols[col]:
-                      new_row[col] = cols[col]
-                  else:
-                      new_row[col] = None
+                  new_row[col] = cols[col]
 
             primary_list.append(new_row)
 
@@ -404,13 +423,12 @@ def render(request, template, context):
     return an HTML string.
     """
 
-    from django.contrib.auth.models import User
     from django.shortcuts import render as django_render
     from django.http import HttpResponse
-    from django.core import serializers
     from django.db.models.query import QuerySet
+    from sqlalchemy.orm.query import Query
+    from sqlalchemy.engine.result import ResultProxy
     from .models import user as csv2_user
-    from sqlalchemy.engine import result as sql_result
     import datetime
     import decimal
     import json
@@ -429,6 +447,18 @@ def render(request, template, context):
 
             if isinstance(obj, dict) and 'ResultProxy' in obj:
                 return json.dumps(obj['ResultProxy'])
+
+            if isinstance(obj, Query):
+                fields = {}
+                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                    data = obj.__getattribute__(field)
+                    try:
+                        json.dumps(data) # this will fail on non-encodable values, like other classes
+                        fields[field] = data
+                    except TypeError:
+                        fields[field] = None
+                # a json-encodable dict
+                return json.dumps(fields)
 
             return json.JSONEncoder.default(self, obj)
 
@@ -549,23 +579,28 @@ def validate_fields(request, fields, db_engine, tables, active_user):
     primary_key_columns = []
     Tables = {}
     Columns = {}
-    for table in tables:
+    for table_option in tables:
+        table = table_option.split(',')
+        
         try:
-            Tables[table] = Table(table, MetaData(bind=db_engine), autoload=True)
+            Tables[table[0]] = Table(table[0], MetaData(bind=db_engine), autoload=True)
         except:
-            raise Exception('view_utils.validate_fields: "tables" parameter contains an invalid table name "%s".' % table)
+            raise Exception('view_utils.validate_fields: "tables" parameter contains an invalid table name "%s".' % table[0])
             
-        Columns[table] = [[], []]
-        for column in Tables[table].c:
+        if len(table) > 1 and table[1] == 'n':
+            continue
+
+        Columns[table[0]] = [[], []]
+        for column in Tables[table[0]].c:
             if column not in all_columns:
                 all_columns.append(column.name)
 
             if column.primary_key:
-                Columns[table][0].append(column.name)
+                Columns[table[0]][0].append(column.name)
                 if column not in primary_key_columns:
                     primary_key_columns.append(column.name)
             else:
-                Columns[table][1].append(column.name)
+                Columns[table[0]][1].append(column.name)
 
     # Process fields parameter:
     Formats = {}
@@ -606,6 +641,8 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 field_alias = '%s2' % field[:-1]
                 pw2 = request.POST.get(field_alias)
                 if not pw2:
+                    if not request.POST[field]:
+                        continue
                     return 1, 'password update received a password but no verify password; both are required.', None, None, None
 
                 rc, value = _validate_fields_pw_check(request.POST[field],pw2=pw2)
@@ -616,8 +653,10 @@ def validate_fields(request, fields, db_engine, tables, active_user):
             elif Formats[field] == 'password2':
                 field_alias = '%s1' % field[:-1]
                 if not request.POST.get(field_alias):
+                    if not request.POST[field]:
+                        continue
                     return 1, 'password update received a verify password but no password; both are required.', None, None, None
-                field_alias = None
+                continue
 
             elif Formats[field] == 'uppercase':
                 value = request.POST[field].upper()
@@ -625,14 +664,14 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                     return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
 
         if field_alias in all_columns:
-            if value or not (field in Formats and Formats[field][0] == 'p'):
+            if value or field_alias != 'password':
                 Fields[field_alias] = value
         else: 
             array_field = field.split('.')
-            if array_field in all_columns:
-                if array_field not in Fields:
-                    Fields[array_field] = []
-                Fields[array_field].append(value)
+            if array_field[0] in all_columns:
+                if array_field[0] not in Fields:
+                    Fields[array_field[0]] = []
+                Fields[array_field[0]].append(value)
             else:
                 if not _validate_fields_ignore_field_error(Formats, field):
                     return 1, 'request contained a bad parameter "%s".' % field, None, None, None

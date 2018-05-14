@@ -142,3 +142,6 @@ li:hover {
 .close:hover { background: #00d9ff; }
 
 
+.highlight {
+  background-color: gainsboro;
+}
