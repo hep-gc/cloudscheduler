@@ -148,14 +148,14 @@ def delete(request):
         if success:
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno('CV08'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno('CV08'), request.method))
+            return list(request, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno('CV09'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud delete, no cloud name specified.' % lno('CV09'))
+            return list(request, response_code=1, message='%s cloud delete, no cloud name specified.' % lno('CV10'))
 
 #-------------------------------------------------------------------------------
 
@@ -263,7 +263,7 @@ def status(request, group_name=None):
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
     if rc != 0:
         db_connection.close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV10'), msg), active_user=active_user, user_groups=user_groups)
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
 
     # get vm and job counts per cloud
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
@@ -303,13 +303,13 @@ def update(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # update the cloud.
         table = tables['csv2_group_resources']
@@ -318,14 +318,14 @@ def update(request):
         if success:
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV13'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV14'), fields['group_name'], fields['cloud_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV14'), request.method))
+            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV15'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud update, no cloud name specified.' % lno('CV15'))
+            return list(request, response_code=1, message='%s cloud update, no cloud name specified.' % lno('CV16'))
 
 #-------------------------------------------------------------------------------
 
@@ -350,13 +350,13 @@ def yaml_add(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV16'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud yaml-add %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud yaml-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud yaml file.
         table = tables['csv2_group_resource_yaml']
@@ -365,14 +365,14 @@ def yaml_add(request):
         if success:
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud YAML file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-add "%s::%s::%s" failed - %s.' % (lno('CV18'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-add "%s::%s::%s" failed - %s.' % (lno('CV19'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud yaml_add, invalid method "%s" specified.' % (lno('CV19'), request.method))
+            return list(request, response_code=1, message='%s cloud yaml_add, invalid method "%s" specified.' % (lno('CV20'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud yaml_add, no cloud name specified.' % lno('CV20'))
+            return list(request, response_code=1, message='%s cloud yaml_add, no cloud name specified.' % lno('CV21'))
 
 #-------------------------------------------------------------------------------
 
@@ -397,13 +397,13 @@ def yaml_delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %S' % (lno('CV21'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %S' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud yaml-delete %s' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud yaml-delete %s' % (lno('CV23'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud yaml file.
         table = tables['csv2_group_resource_yaml']
@@ -419,14 +419,14 @@ def yaml_delete(request):
         if success:
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud YAML file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-delete "%s::%s::%s" failed - %s.' % (lno('CV23'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-delete "%s::%s::%s" failed - %s.' % (lno('CV24'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud yaml_delete, invalid method "%s" specified.' % (lno('CV24'), request.method))
+            return list(request, response_code=1, message='%s cloud yaml_delete, invalid method "%s" specified.' % (lno('CV25'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud yaml_delete, no cloud name specified.' % lno('CV25'))
+            return list(request, response_code=1, message='%s cloud yaml_delete, no cloud name specified.' % lno('CV26'))
 
 #-------------------------------------------------------------------------------
 
@@ -442,7 +442,7 @@ def yaml_fetch(request, selector=None):
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
     if rc != 0:
         db_connection.close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV26'), msg), active_user=active_user, user_groups=user_groups)
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV27'), msg), active_user=active_user, user_groups=user_groups)
 
     # Retrieve YAML file.
     obj_act_id = request.path.split('/') # /cloud/yaml_fetch/<group>.<cloud>.<yaml>
@@ -529,13 +529,13 @@ def yaml_update(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV27'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud yaml-update %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud yaml-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the cloud yaml file.
         table = tables['csv2_group_resource_yaml']
@@ -548,12 +548,13 @@ def yaml_update(request):
         if success:
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud YAML file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-update "%s::%s::%s" failed - %s.' % (lno('CV29'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud yaml_update, invalid method "%s" specified.' % (lno('CV30'), request.method))
+            return list(request, response_code=1, message='%s cloud yaml_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud yaml_update, no cloud name specified.' % lno('CV31'))
+            return list(request, response_code=1, message='%s cloud yaml_update, no cloud name specified.' % lno('CV32'))
+
 
