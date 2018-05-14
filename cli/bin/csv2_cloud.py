@@ -202,6 +202,8 @@ def status(gvar):
             [
                 'group_name/Group',
                 'cloud_name/Cloud',
+                'idle_cores/Idle Cores',
+                'idle_ram/Idle RAM',
                 'VMs',
                 'VMs_running/VMs_running',
                 'VMs_retiring/VMs_retiring',
@@ -280,7 +282,7 @@ def yaml_delete(gvar):
     # Delete the cloud/YAML file.
     response = requests(
         gvar,
-        '/cloud/yaml_delete/',
+        '/cloud/yaml-delete/',
         form_data = {
             'cloud_name': gvar['user_settings']['cloud-name'],
             'yaml_name': gvar['user_settings']['yaml-name'],
@@ -299,7 +301,7 @@ def yaml_edit(gvar):
     check_keys(gvar, ['-cn', '-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/cloud/yaml_fetch/%s::%s::%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/cloud/yaml-fetch/%s::%s::%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/%s/yaml' % (
@@ -348,7 +350,7 @@ def yaml_edit(gvar):
     # Replace the YAML file.
     response = requests(
         gvar,
-        '/cloud/yaml_update/',
+        '/cloud/yaml-update/',
         form_data
         )
     
@@ -379,7 +381,7 @@ def yaml_load(gvar):
     # Replace the YAML file.
     response = requests(
         gvar,
-        '/cloud/yaml_add/',
+        '/cloud/yaml-add/',
         form_data
         )
     

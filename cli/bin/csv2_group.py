@@ -229,7 +229,7 @@ def yaml_delete(gvar):
     # Delete the group/YAML file.
     response = requests(
         gvar,
-        '/group/yaml_delete/',
+        '/group/yaml-delete/',
         form_data = {
             'yaml_name': gvar['user_settings']['yaml-name'],
             }
@@ -247,7 +247,7 @@ def yaml_edit(gvar):
     check_keys(gvar, ['-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/group/yaml_fetch/%s::%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/group/yaml-fetch/%s::%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/yaml' % (
@@ -294,7 +294,7 @@ def yaml_edit(gvar):
     # Replace the YAML file.
     response = requests(
         gvar,
-        '/group/yaml_update/',
+        '/group/yaml-update/',
         form_data
         )
     
@@ -323,7 +323,7 @@ def yaml_load(gvar):
     # Replace the YAML file.
     response = requests(
         gvar,
-        '/group/yaml_add/',
+        '/group/yaml-add/',
         form_data
         )
     
