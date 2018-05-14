@@ -35,7 +35,7 @@ class CSConfig:
 
         self.default_instancetype = kwargs['job'].get('instancetype', 'm1.small')
         self.default_image = kwargs['job'].get('image', 'cernvm3-micro-2.8-6.hdd')
-        self.default_network = kwargs['job'].get('network', 'private')
+        self.default_network = kwargs['job'].get('network', '')
 
     def setup(config_file="/etc/cloudscheduler/cloudscheduler.yaml"):
         """
