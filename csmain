@@ -93,7 +93,7 @@ def main():
                     continue
                 if idle_job.target_clouds:
                     target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
-                else
+                else:
                     target_cloud_list = []
 
                 for tri in flavor_list:
