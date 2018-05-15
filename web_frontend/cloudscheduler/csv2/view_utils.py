@@ -562,6 +562,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     array      - Multiple numbered input fields to be returned as a list eg: group_name.1,
                  group_name.2, etc. returned as { 'group_name': [ 'val1', 'val2', etc. ]}
+    az09       - Make sure the input value is all lowercase and nummerics (or error).
     boolean    - A value of True or False will be inserted into the out put fields.
     ignore     - The input field is not defined in the tables but can be ignored.
     lowercase  - Make sure the input value is all lowercase (or error).
@@ -573,6 +574,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
     from sqlalchemy import Table, MetaData
+    import re
 
     # Retrieve relevant (re: tables) schema.
     all_columns = []
@@ -627,6 +629,12 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         value = request.POST[field]
 
         if field in Formats:
+            if Formats[field] == 'az09':
+                if re.match("^[a-z0-9_-]*$", request.POST[field]):
+                    value = request.POST[field].lower()
+                else:
+                    return 1, 'value specified for "%s" must be all lower case and numeric digits.' % field, None, None, None
+
             if Formats[field] == 'lowercase':
                 value = request.POST[field].lower()
                 if request.POST[field] != value:
