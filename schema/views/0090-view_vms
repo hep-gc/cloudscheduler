@@ -14,6 +14,11 @@ cf.name as flavor_name,
 case when isnull(total_slots) then 0 else total_slots end as condor_slots,
 case when isnull(condor_off) then 0 else condor_off end as condor_off,
 case when concat(lower(cv.group_name),"-",lower(cv.cloud_name))=substring_index(hostname, '-', 2) then False else True end as foreign_vm,
+cores,
+disk,
+ephemeral_disk,
+ram,
+swap,
 cvsc.status as "poller_status"
 
 from csv2_vms as cv
