@@ -27,7 +27,8 @@ def check_keys(gvar, mp, rp, op, key_map=None):
     for key in mandatory:
         if key[2] in gvar['command_args']:
             if key_map and key[0] in key_map:
-                form_data[key_map[key[0]]] = gvar['command_args'][key[2]]
+#               form_data[key_map[key[0]]] = gvar['command_args'][key[2]]
+                form_data[key_map[key[0]]] = _check_keys_for_password(gvar, key)
         else:
             missing.append(key[1])
 
@@ -42,7 +43,8 @@ def check_keys(gvar, mp, rp, op, key_map=None):
     for key in required:
         if key[2] in gvar['user_settings']:
             if key_map and key[0] in key_map:
-                form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
+#               form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
+                form_data[key_map[key[0]]] = _check_keys_for_password(gvar, key)
         else:
             missing.append(key[1])
 
@@ -56,9 +58,33 @@ def check_keys(gvar, mp, rp, op, key_map=None):
     if key_map:
         for key in options:
             if key[0] in key_map and key[2] in gvar['user_settings']:
-                form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
+                form_data[key_map[key[0]]] = _check_keys_for_password(gvar, key)
 
     return form_data
+
+def _check_keys_for_password(gvar, key):
+    """
+    Internal function to prompt for passwords (if requested, iw -upw ?).
+    """
+    
+    from getpass import getpass
+
+    if key[2] != 'server-password' and key[2][-8:] == 'password' and len(gvar['user_settings'][key[2]]) > 0 and gvar['user_settings'][key[2]][0] == '?':
+        while(1):
+            pw1 = getpass('Enter %s: ' % key[2])
+            if len(pw1) > 5:
+                if len(gvar['user_settings'][key[2]]) > 1 and gvar['user_settings'][key[2]][1] == '?':
+                    pw2 = getpass('Verify %s: ' % key[2])
+                    if pw1 == pw2:
+                        return pw1
+                    else:
+                        print('Passwords did not match.')
+                else:
+                    return pw1
+            else:
+                print('Passwords must be at least 6 characters long.')
+    else:
+       return gvar['user_settings'][key[2]]
 
 def requests(gvar, request, form_data={}):
     """
@@ -188,8 +214,6 @@ def _requests(gvar, request, form_data={}):
             gvar['cookies'] = _r.cookies
             gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
 
-#   print("++++++++++++++++++++++++", request, ":", gvar['cookies'], gvar['csrf'])
-
     if 'active_group' in response:
         gvar['active_group'] = response['active_group']
 
@@ -198,10 +222,19 @@ def _requests(gvar, request, form_data={}):
 
     return response
 
+def show_header(gvar, response):
+    """
+    Print the server response header.
+    """
+
+    print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
+
 def show_table(gvar, queryset, columns, allow_null=True):
     """
-    Print a table from a django query set.
+    Print a table from a SQLAlchemy query set.
     """
+
+    import json
 
     # Normalize column definitions.
     _field_names = []
@@ -307,33 +340,33 @@ def verify_yaml_file(file_path):
     file_string = fd.read()
     fd.close()
 
-    # Verify attribute line.
-    attribute, yaml = file_string.split('\n',1)
-    if len(attribute) > 1 and attribute[0] == '#':
-        attributes = '\n'.join(' '.join(attribute[1:].split()).split(', '))
-        result = _yaml_load_and_verify(attributes)
-    else:
-        print('Error: No attribute line, format: # yaml_enabled: <True | False>, yaml_mime_type = <cloud-config | ...>')
-        exit(1)
-
-    if not result[0]:
-        print('Error: Invalid attribute line "%s": %s' % (result[1], result[2]))
-        exit(1)
-
-    if 'yaml_enabled' in result[1]:
-        if result[1]['yaml_enabled'] == True:
-            yaml_enabled = 1
-        else:
-            yaml_enabled = 0
-    else:
-        print('Error: yaml_enabled missing from attribute line.')
-        exit(1)
-
-    if 'yaml_mime_type' in result[1]:
-        yaml_mime_type = result[1]['yaml_mime_type']
-    else:
-        print('Error: yaml_mime_type missing from attribute line.')
-        exit(1)
+#   # Verify attribute line.
+#   attribute, yaml = file_string.split('\n',1)
+#   if len(attribute) > 1 and attribute[0] == '#':
+#       attributes = '\n'.join(' '.join(attribute[1:].split()).split(', '))
+#       result = _yaml_load_and_verify(attributes)
+#   else:
+#       print('Error: No attribute line, format: # yaml_enabled: <True | False>, yaml_mime_type = <cloud-config | ...>')
+#       exit(1)
+#
+#   if not result[0]:
+#       print('Error: Invalid attribute line "%s": %s' % (result[1], result[2]))
+#       exit(1)
+#
+#   if 'yaml_enabled' in result[1]:
+#       if result[1]['yaml_enabled'] == True:
+#           yaml_enabled = 1
+#       else:
+#           yaml_enabled = 0
+#   else:
+#       print('Error: yaml_enabled missing from attribute line.')
+#       exit(1)
+#
+#   if 'yaml_mime_type' in result[1]:
+#       yaml_mime_type = result[1]['yaml_mime_type']
+#   else:
+#       print('Error: yaml_mime_type missing from attribute line.')
+#       exit(1)
 
     # Verify the remaining yaml.
     result = _yaml_load_and_verify(yaml)

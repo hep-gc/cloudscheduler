@@ -6,6 +6,11 @@ import json
 import redis
 from glintwebui.glint_api import repo_connector
 import glintwebui.config as config
+from .db_util import get_db_base_and_session
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
 
 
 logger = logging.getLogger('glintv2')
@@ -402,8 +407,7 @@ def parse_pending_transactions(group_name, cloud_name, image_list, user):
 # image and retrieve the img id (uuid) to use as the repo image key
 # Then finally we can call the asynch celery tasks
 def process_pending_transactions(group_name, json_img_dict):
-    from glintwebui.models import Group_Resources
-    from .glintwebui import transfer_image, delete_image, upload_image
+    from .celery_app import transfer_image, delete_image, upload_image
 
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
     trans_key = group_name + '_pending_transactions'
@@ -412,6 +416,9 @@ def process_pending_transactions(group_name, json_img_dict):
     # seems like there is no assignment in while conditionals for python
     # so We will have to be smart and use break
     while True:
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
         trans = red.lpop(trans_key)
         if trans is None:
             break
@@ -421,9 +428,8 @@ def process_pending_transactions(group_name, json_img_dict):
             # First we need to create a placeholder img and get the new image_id
             # This may cause an error if the same repo is added twice, perhaps we
             # can screen for this when repos are added
-            repo_obj = Group_Resources.objects.get(
-                group_name=transaction['group_name'],
-                cloud_name=transaction['cloud_name'])
+            repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == transaction['group_name'], Group_Resources.cloud_name == transaction['cloud_name']).first()
+
 
             rcon = repo_connector(
                 auth_url=repo_obj.authurl,
@@ -464,9 +470,8 @@ def process_pending_transactions(group_name, json_img_dict):
             # First check if it exists in the redis dictionary, if it doesn't exist we can't delete it
             if img_dict[transaction['cloud_name']].get(transaction['image_id']) is not None:
                 # Set state and queue delete task
-                repo_obj = Group_Resources.objects.get(
-                    group_name=transaction['group_name'],
-                    cloud_name=transaction['cloud_name'])
+                repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == transaction['group_name'], Group_Resources.cloud_name == transaction['cloud_name']).first()
+
                 img_dict[transaction['cloud_name']][transaction['image_id']]['state'] = 'Pending Delete'
                 delete_image.delay(
                     image_id=transaction['image_id'],
@@ -487,9 +492,7 @@ def process_pending_transactions(group_name, json_img_dict):
             image_path = transaction['local_path']
             disk_format = transaction['disk_format']
             container_format = transaction['container_format']
-            repo_obj = Group_Resources.objects.get(
-                group_name=transaction['group_name'],
-                cloud_name=transaction['cloud_name'])
+            repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == transaction['group_name'], Group_Resources.cloud_name == transaction['cloud_name']).first()
             upload_image.delay(
                 image_name=img_name,
                 image_path=image_path,
@@ -594,14 +597,16 @@ def process_state_changes(group_name, json_img_dict):
 # dictionary until it finds a match where state='present' and returns a tuple of
 # (auth_url, tenant, username, password, img_id)
 def find_image_by_name(group_name, image_name):
-    from glintwebui.models import Group_Resources
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Group_Resources = Base.classes.csv2_group_resources
 
     image_dict = json.loads(get_images_for_group(group_name))
     for cloud in image_dict:
         for image in image_dict[cloud]:
             if image_dict[cloud][image]['name'] == image_name:
                 if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
-                    repo_obj = Group_Resources.objects.get(group_name=group_name, cloud_name=cloud)
+                    repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
                     return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
                         repo_obj.password, image, image_dict[cloud][image]['checksum'],\
                         repo_obj.user_domain_name, repo_obj.project_domain_name)
@@ -770,7 +775,10 @@ def decrement_transactions():
 def get_num_transactions():
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
     num_tx = red.get("num_transactions")
-    if num_tx < 0 or num_tx is None:
+    if num_tx is None:
+        num_tx = 0
+        red.set("num_transactions", num_tx)
+    if int(num_tx) < 0:
         num_tx = 0
         red.set("num_transactions", num_tx)
     return int(num_tx)
