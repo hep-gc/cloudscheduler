@@ -33,7 +33,7 @@ CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'lowercase',
+        'cloud_name':          'az09',
 
         'cores_slider':        'ignore',
         'csrfmiddlewaretoken': 'ignore',
@@ -46,7 +46,7 @@ YAML_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'lowercase',
+        'cloud_name':          'az09',
         'yaml_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',

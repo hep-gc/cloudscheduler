@@ -33,7 +33,7 @@ import datetime
 GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'lowercase',
+        'group_name':          'az09',
 
         'csrfmiddlewaretoken': 'ignore',
         'username':            'ignore',
@@ -58,7 +58,7 @@ USER_KEYS = {
 USER_GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'lowercase',
+        'group_name':          'az09',
         'username':            'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
@@ -121,25 +121,26 @@ def manage_user_group_lists2(tables, groups, users):
    
     else:
 	user=user.0
-        found={}
+    found={}
 	if user in table_users:
                
 
-             for group in groups:
-		
-                  if group in table_groups:
-                        	
-                      for row in table_user_groups:
-                          # is already on the db
-                          if row['username'] == user and row['group_name'] == group:
-                               found.append(group)
-	                       
-	      		
-                  #its on the page and not in the db, add it
-         
+        for group in groups:
+	
+            if group in table_groups:
+                    	
+                for row in table_user_groups:
+                    # is already on the db
+                    if row['username'] == user and row['group_name'] == group:
+                        found.append(group)
+                       
+      		
+            #its on the page and not in the db, add it
+            if group not in found:
+                
                    
 
-		  #its in the db but not the page, remove it
+		#its in the db but not the page, remove it
 
     '''
 
