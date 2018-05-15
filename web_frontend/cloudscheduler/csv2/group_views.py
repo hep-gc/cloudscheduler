@@ -33,7 +33,7 @@ GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'lowercase',
+        'group_name':          'az09',
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
