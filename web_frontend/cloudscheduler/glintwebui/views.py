@@ -10,24 +10,31 @@ from django.http import HttpResponse
 from django.http import StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
 import glintwebui.config as config
 
-from .models import Group_Resources, User_Group, Glint_User, Group
+
+
 from .forms import addRepoForm
 from .glint_api import repo_connector, validate_repo, change_image_name
 from .utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
     build_id_lookup_dict, repo_modified, get_conflicts_for_group, find_image_by_name, \
     add_cached_image, check_cached_images, increment_transactions, check_for_existing_images,\
-    get_hidden_image_list, parse_hidden_images
+    get_hidden_image_list, parse_hidden_images, get_num_transactions
 from .__version__ import version
+from .db_util import get_db_base_and_session
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
 
 
 logger = logging.getLogger('glintv2')
 
 def getUser(request):
     user = request.META.get('REMOTE_USER')
-    auth_user_list = Glint_User.objects.all()
+    Base, session = get_db_base_and_session()
+    Glint_User = Base.classes.csv2_user
+    auth_user_list = session.query(Glint_User)
     for auth_user in auth_user_list:
         if user == auth_user.cert_cn or user == auth_user.username:
             return auth_user
@@ -50,12 +57,13 @@ def index(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    # This is a good place to spawn the data-collection worker thread
-    # The one drawback is if someone tries to go directly to another page before hitting this one
-    # It may be better to put it in the urls.py file then pass in the repo/image info
-    # If it cannot be accessed it means its deed and needs to be spawned again.
+    # set up database objects
+    Base, session = get_db_base_and_session()
+    User_Group = Base.classes.csv2_user_groups
+
+
     user_obj = getUser(request)
-    user_group = User_Group.objects.filter(user=user_obj)
+    user_group = session.query(User_Group).filter(User_Group.username == user_obj.username)
     if user_group is None:
         #User has access to no groups yet, tell them to contact admin
         #Render index page that has the above info
@@ -81,11 +89,16 @@ def project_details(request, group_name="No groups available", message=None):
     # this means we now have to create a new unique image set that is just the image names
     if not verifyUser(request):
         raise PermissionDenied
+
+    # set up database objects
+    Base, session = get_db_base_and_session()
+    User_Group = Base.classes.csv2_user_groups
+
     user_obj = getUser(request)
     if group_name is None or group_name in "No groups available":
         # First time user, lets put them at the first project the have access to
         try:
-            group_name = User_Group.objects.filter(user=user_obj).first().group_name.group_name
+            group_name = session.query(User_Group).filter(User_Group.username == user_obj.username).first().group_name.group_name
             if not group_name:
                 group_name = "No groups available"
         except Exception:
@@ -93,7 +106,8 @@ def project_details(request, group_name="No groups available", message=None):
             group_name = "No groups available"
 
     user_obj.active_group = group_name
-    user_obj.save()
+    session.merge(user_obj)
+    session.commit()
 
 
     try:
@@ -117,7 +131,7 @@ def project_details(request, group_name="No groups available", message=None):
 
     # The image_list is a unique list of images stored in tuples (img_id, img_name)
     # Still need to add detection for images that have different names but the same ID
-    user_groups = User_Group.objects.filter(user=user_obj)
+    user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
     group_list = []
     for grp in user_groups:
         grp_name = grp.group_name
@@ -129,6 +143,9 @@ def project_details(request, group_name="No groups available", message=None):
         pass
 
     conflict_dict = get_conflicts_for_group(group_name)
+    num_tx = get_num_transactions()
+    if num_tx is None:
+        num_tx = 0
     context = {
         'group_name': group_name,
         'group_list': group_list,
@@ -139,7 +156,8 @@ def project_details(request, group_name="No groups available", message=None):
         'message': message,
         'is_superuser': getSuperUserStatus(request),
         'conflict_dict': conflict_dict,
-        'version': version
+        'version': version,
+        'num_tx': num_tx
     }
     return render(request, 'glintwebui/project_details.html', context)
 
@@ -152,6 +170,9 @@ def add_repo(request, group_name):
     if request.method == 'POST':
         form = addRepoForm(request.POST)
         user = getUser(request)
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
 
         #Check if the form data is valid
         if form.is_valid():
@@ -167,7 +188,7 @@ def add_repo(request, group_name):
             if validate_resp[0]:
                 #check if repo/auth_url combo already exists
                 try:
-                    if Group_Resources.objects.get(group_name=group_name, project=form.cleaned_data['tenant'], authurl=form.cleaned_data['auth_url']) is not None:
+                    if session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.project == form.cleaned_data['tenant'], Group_Resources.authurl == form.cleaned_data['auth_url']).first() is not None:
                         #This combo already exists
                         context = {
                             'group_name': group_name,
@@ -179,7 +200,7 @@ def add_repo(request, group_name):
                     pass
                 #check if cloud_name is already in use
                 try:
-                    if Group_Resources.objects.get(group_name=group_name, cloud_name=form.cleaned_data['cloud_name']) is not None:
+                    if session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == form.cleaned_data['cloud_name']).first() is not None:
                         #This cloud_name already exists
                         context = {
                             'group_name': group_name,
@@ -198,8 +219,10 @@ def add_repo(request, group_name):
                     password=form.cleaned_data['password'],
                     cloud_name=form.cleaned_data['cloud_name'],
                     user_domain_name=form.cleaned_data['user_domain_name'],
-                    project_domain_name=form.cleaned_data['project_domain_name'])
-                new_repo.save()
+                    project_domain_name=form.cleaned_data['project_domain_name'],
+                    cloud_type="openstack")
+                session.merge(new_repo)
+                session.commit()
                 repo_modified()
 
 
@@ -239,9 +262,12 @@ def save_images(request, group_name):
     if not verifyUser(request):
         raise PermissionDenied
     if request.method == 'POST':
+        # set up database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
         user = getUser(request)
         #get repos
-        repo_list = Group_Resources.objects.filter(group_name=group_name)
+        repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
 
         # need to iterate thru a for loop of the repos in this group and get the list for each and
         # check if we need to update any states. Every image will have to be checked since if
@@ -272,8 +298,11 @@ def save_hidden_images(request, group_name):
         raise PermissionDenied
     if request.method == 'POST':
         user = getUser(request)
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
         #get repos
-        repo_list = Group_Resources.objects.filter(group_name=group_name)
+        repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
 
         # need to iterate thru a for loop of the repos in this group and get the list for each and
         # check if we need to change any of the hidden states
@@ -294,7 +323,12 @@ def resolve_conflict(request, group_name, cloud_name):
         raise PermissionDenied
     if request.method == 'POST':
         user = getUser(request)
-        repo_obj = Group_Resources.objects.get(group_name=group_name, cloud_name=cloud_name)
+
+        #setup database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
+
+        repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud_name).first()
         image_dict = json.loads(get_images_for_group(group_name))
         changed_names = 0
         #key is img_id, calue is image name
@@ -332,9 +366,15 @@ def manage_repos(request, group_name, feedback_msg=None, error_msg=None):
     if not verifyUser(request):
         raise PermissionDenied
     user_obj = getUser(request)
-    repo_list = Group_Resources.objects.filter(group_name=group_name)
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Group_Resources = Base.classes.csv2_group_resources
+    User_Group = Base.classes.csv2_user_groups
 
-    user_groups = User_Group.objects.filter(user=user_obj)
+
+    repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
+
+    user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
     group_list = []
     for grp in user_groups:
         grp_name = grp.group_name
@@ -383,14 +423,19 @@ def update_repo(request, group_name):
                 project_domain_name=project_domain_name)
             if validate_resp[0]:
                 # new data is good, grab the old repo and update to the new info
-                repo_obj = Group_Resources.objects.get(cloud_name=cloud_name)
+                # setup database objects
+                Base, session = get_db_base_and_session()
+                Group_Resources = Base.classes.csv2_group_resources
+
+                repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud_name).first()
                 repo_obj.username = usr
                 repo_obj.authurl = auth_url
                 repo_obj.project = tenant
                 repo_obj.password = pwd
                 repo_obj.project_domain_name = project_domain_name
                 repo_obj.user_domain_name = user_domain_name
-                repo_obj.save()
+                session.merge(repo_obj)
+                session.commit()
             else:
                 #invalid changes, reload manage_repos page with error msg
                 return manage_repos(
@@ -413,11 +458,16 @@ def delete_repo(request, group_name):
         raise PermissionDenied
     if request.method == 'POST':
         #handle delete
+        #setup database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
         repo = request.POST.get('repo')
         cloud_name = request.POST.get('cloud_name')
         if repo is not None and cloud_name is not None:
             logger.info("Attempting to delete repo: %s", repo)
-            Group_Resources.objects.filter(project=repo, cloud_name=cloud_name).delete()
+            repo_to_del = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud_name).first()
+            session.delete(repo_to_del)
+            session.commit()
             repo_modified()
             return HttpResponse(True)
         else:
@@ -436,6 +486,10 @@ def add_user(request):
     if not getSuperUserStatus(request):
         raise PermissionDenied
     if request.method == 'POST':
+
+        Base, session = get_db_base_and_session()
+        Glint_User = Base.classes.csv2_user
+
         user = request.POST.get('username')
         pass1 = request.POST.get('pass1')
         pass2 = request.POST.get('pass2')
@@ -460,8 +514,9 @@ def add_user(request):
             #passwords should be good at this point
 
 
-            #check if username exists, if not add it
-            user_found = Glint_User.objects.filter(username=user)
+            # check if username exists, if not add it
+            # This could be cleaned up to not depend on an exception. using first() will return none if no user is found
+            user_found = session.query(Glint_User).filter(Glint_User.username == user).one()
             logger.error("Found user %s, already in system", user_found[0])
             #if we get here it means the user already exists
             message = "Unable to add user, username already exists"
@@ -471,8 +526,10 @@ def add_user(request):
             glint_user = Glint_User(
                 username=user,
                 cert_cn=cert_cn,
-                password=bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a")))
-            glint_user.save()
+                password=bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a")),
+                is_superuser=0)
+            session.merge(glint_user)
+            session.commit()
             message = "User %s added successfully" % user
             return manage_users(request, message)
 
@@ -486,6 +543,11 @@ def self_update_user(request):
         raise PermissionDenied
 
     if request.method == 'POST':
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Glint_User = Base.classes.csv2_user
+
+
         original_user = request.POST.get('old_usr')
         usr_obj = getUser(request)
         if not original_user == usr_obj.username:
@@ -509,11 +571,12 @@ def self_update_user(request):
 
         logger.info("Updating info for user %s", original_user)
         try:
-            glint_user_obj = Glint_User.objects.get(username=original_user)
+            glint_user_obj = session.query(Glint_User).filter(Glint_User.username == original_user).first()
             glint_user_obj.cert_cn = cert_cn
             if len(pass1) > 3:
                 glint_user_obj.password = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
-            glint_user_obj.save()
+            session.merge(glint_user_obj)
+            session.commit()
             message = "User " + original_user + " updated successfully."
         except Exception as e:
             logger.error("Unable to retrieve user %s, there may be a database inconsistency.", original_user)
@@ -531,6 +594,9 @@ def update_user(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
         raise PermissionDenied
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Glint_User = Base.classes.csv2_user
     if request.method == 'POST':
         original_user = request.POST.get('old_usr')
         user = request.POST.get('username')
@@ -558,13 +624,14 @@ def update_user(request):
 
         logger.info("Updating info for user %s", original_user)
         try:
-            glint_user_obj = Glint_User.objects.get(username=original_user)
+            glint_user_obj = session.query(Glint_User).filter(Glint_User.username == original_user).first()
             glint_user_obj.username = user
             glint_user_obj.cert_cn = cert_cn
             glint_user_obj.is_superuser = admin_status
             if len(pass1) > 3:
                 glint_user_obj.password = bcrypt.hashpw(pass1.encode(), bcrypt.gensalt(prefix=b"2a"))
-            glint_user_obj.save()
+            session.merge(glint_user_obj)
+            session.commit()
             message = "User " + user + " updated successfully."
         except Exception as e:
             logger.error("Unable to retrieve user %s, there may be a database inconsistency.", \
@@ -582,11 +649,16 @@ def delete_user(request):
         raise PermissionDenied
     if not getSuperUserStatus(request):
         raise PermissionDenied
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Glint_User = Base.classes.csv2_user
+
     if request.method == 'POST':
         user = request.POST.get('user')
         logger.info("Attempting to delete user %s", user)
-        user_obj = Glint_User.objects.get(username=user)
-        user_obj.delete()
+        user_obj = session.query(Glint_User).filter(Glint_User.username == user).first()
+        session.delete(user_obj)
+        session.commit()
         message = "User %s deleted." % user
         return manage_users(request, message)
     else:
@@ -599,10 +671,14 @@ def manage_users(request, message=None):
         raise PermissionDenied
     if not getSuperUserStatus(request):
         raise PermissionDenied
-    user_list = Glint_User.objects.all()
-    user_obj_list = Glint_User.objects.filter(is_superuser=1)
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Glint_User = Base.classes.csv2_user
+
+    user_list = session.query(Glint_User)
+    suser_obj_list = session.query(Glint_User).filter(Glint_User.is_superuser == 1)
     admin_list = []
-    for usr in user_obj_list:
+    for usr in suser_obj_list:
         admin_list.append(usr.username)
     context = {
         'user_list': user_list,
@@ -634,15 +710,22 @@ def delete_user_group(request):
     if not getSuperUserStatus(request):
         raise PermissionDenied
     if request.method == 'POST':
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Glint_User = Base.classes.csv2_user
+        User_Group = Base.classes.csv2_user_groups
+        Group = Base.classes.csv2_groups
+
         user = request.POST.get('user')
         group = request.POST.get('group')
         logger.info("Attempting to delete user %s from group %s" % (user, group))
-        user_obj = Glint_User.objects.get(username=user)
+        user_obj = session.query(Glint_User).filter(Glint_User.username == user)
         user_obj.active_group = None
-        user_obj.save()
-        grp_obj = Group.objects.get(group_name=group)
-        user_group_obj = User_Group.objects.get(user=user_obj, group_name=grp_obj)
-        user_group_obj.delete()
+        session.merge(user_obj)
+        grp_obj = session.query(Group).filter(Group.group_name == group).first()
+        user_group_obj = session.query(User_Group).filter(User_Group.username == user_obj.username, User_Group.group_name == grp_obj.group_name)
+        session.delete(user_group_obj)
+        session.commit()
         message = "User %s deleted from %s" % (user, group)
         return manage_users(request, message)
     else:
@@ -655,29 +738,45 @@ def add_user_group(request):
     if not getSuperUserStatus(request):
         raise PermissionDenied
     if request.method == 'POST':
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        User_Group = Base.classes.csv2_user_groups
+        Glint_User = Base.classes.csv2_user
+        Group = Base.classes.csv2_groups
+
         user = request.POST.get('user')
         group = request.POST.get('group')
         user_obj = None
         grp_obj = None
         logger.info("Attempting to add user %s to group %s" % (user, group))
         try:
-            user_obj = Glint_User.objects.get(username=user)
-            grp_obj = Group.objects.get(group_name=group)
+            user_obj = session.query(Glint_User).filter(Glint_User.username == user).first()
+            grp_obj = session.query(Group).filter(Group.group_name == group).first()
         except Exception as e:
             logger.error("Either user or group does not exist, could not add user_group.")
             logger.error(e)
         try:
             #check to make sure it's not already there
             logger.info("Checking if user already has access.")
-            User_Group.objects.get(user=user_obj, group_name=grp_obj)
-            #if we continue here the user group already exists and we can return without adding it
-            message = "%s already has access to %s" % (user, group)
-            return manage_groups(request, message)
+            usr_grp = session.query(User_Group).filter(User_Group.username == user_obj.usernmae, User_Group.group_name == grp_obj.group_name)
+            if usr_grp is not None: 
+                #if we continue here the user group already exists and we can return without adding it
+                message = "%s already has access to %s" % (user, group)
+                return manage_groups(request, message)
+            else:
+                logger.info("No previous entry, adding new user_group")
+                new_usr_grp = User_Group(username=user_obj.username, group_name=grp_obj.group_name)
+                session.merge(new_usr_grp)
+                session.commit()
+                message = "User %s added to %s" % (user, group)
+                return manage_groups(request=request, message=message)
         except Exception:
             #If we get here the user group wasn't present and we can safely add it
+            # this exception may not be needed with the sqlalchemy implimentation
             logger.info("No previous entry, adding new user_group")
-            new_usr_grp = User_Group(user=user_obj, group_name=grp_obj)
-            new_usr_grp.save()
+            new_usr_grp = User_Group(username=user_obj.username, group_name=grp_obj.group_name)
+            session.merge(new_usr_grp)
+            session.commit()
             message = "User %s added to %s" % (user, group)
             return manage_groups(request=request, message=message)
     else:
@@ -690,18 +789,27 @@ def delete_group(request):
     if not getSuperUserStatus(request):
         raise PermissionDenied
     if request.method == 'POST':
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Glint_User = Base.classes.csv2_user
+        Group = Base.classes.csv2_groups
+
         group = request.POST.get('group')
         logger.info("Attempting to delete group %s", group)
-        grp_obj = Group.objects.get(group_name=group)
-        grp_obj.delete()
+        grp_obj = session.query(Group).filter(Group.group_name == group).first()
+        session.delete(grp_obj)
+        session.commit()
         message = "Group %s deleted." % group
         #need to also remove any instanced where this group was the active one for users.
         try:
-            users = Glint_User.objects.get(active_group=group)
+            users = session.query(Glint_User).filter(Glint_User.active_group == group)
             if users is not None:
                 for user in users:
                     user.active_group = None
-                    user.save()
+                    session.merge(user)
+                session.commit()
+            else:
+                logger.info("No users to clean-up..")
         except:
             #No users tied to this group
             logger.info("No users to clean-up..")
@@ -717,21 +825,36 @@ def update_group(request):
     if not getSuperUserStatus(request):
         raise PermissionDenied
     if request.method == 'POST':
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Group = Base.classes.csv2_groups
+
         old_group = request.POST.get('old_group')
         new_group = request.POST.get('group')
         logger.info("Attempting to update group name %s to %s" % (old_group, new_group))
         #check for groups with the new name
         try:
-            new_group_obj = Group.objects.get(group_name=new_group)
-            #name already taken, don't edit the name and return
-            logger.info("Could not update group name to %s, name already in use", new_group)
-            message = "Could not update group name to %s, name already in use" % new_group
-            return manage_groups(request=request, message=message)
+            new_group_obj = session.query(Group).filter(Group.group_name == group).first()
+            if new_group_obj is not None:
+                #name already taken, don't edit the name and return
+                logger.info("Could not update group name to %s, name already in use", new_group)
+                message = "Could not update group name to %s, name already in use" % new_group
+                return manage_groups(request=request, message=message)
+            else:
+                #No group has the new name, proceed freely
+                group_obj = session.query(Group).filter(Group.group_name == old_group).first()
+                group_obj.group_name = new_group
+                session.merge(group_obj)
+                session.commit()
+                message = "Successfully updated group name to %s" % new_group
+                logger.info("Successfully updated group name to %s", new_group)
+                return manage_groups(request=request, message=message)
         except Exception:
             #No group has the new name, proceed freely
-            group_obj = Group.objects.get(group_name=old_group)
+            group_obj = session.query(Group).filter(Group.group_name == old_group).first()
             group_obj.group_name = new_group
-            group_obj.save()
+            session.merge(group_obj)
+            session.commit()
             message = "Successfully updated group name to %s" % new_group
             logger.info("Successfully updated group name to %s", new_group)
             return manage_groups(request=request, message=message)
@@ -746,18 +869,32 @@ def add_group(request):
     if not getSuperUserStatus(request):
         raise PermissionDenied
     if request.method == 'POST':
+        # setup database objects
+        Base, session = get_db_base_and_session()
+        Group = Base.classes.csv2_groups
+
         group = request.POST.get('group')
         logger.info("Attempting to add group %s", group)
         try:
-            group_obj = Group.objects.get(group_name=group)
-            #group exists, return without adding
-            message = "Group with that name already exists"
-            logger.info("Could not add group %s, name already in use.", group)
-            return manage_groups(request=request, message=message)
+            group_obj =  session.query(Group).filter(Group.group_name == group).first()
+            if group_obj is not None:
+                #group exists, return without adding
+                message = "Group with that name already exists"
+                logger.info("Could not add group %s, name already in use.", group)
+                return manage_groups(request=request, message=message)
+            else:
+                #group doesnt exist, we can go ahead and add it.
+                new_grp = Group(group_name=group)
+                session.merge(new_grp)
+                session.commit()
+                logging.info("Group '%s' created successfully", group)
+                message = "Group '%s' created successfully" % group
+                return manage_groups(request=request, message=message)
         except Exception:
             #group doesnt exist, we can go ahead and add it.
             new_grp = Group(group_name=group)
-            new_grp.save()
+            session.merge(new_grp)
+            session.commit()
             logging.info("Group '%s' created successfully", group)
             message = "Group '%s' created successfully" % group
             return manage_groups(request=request, message=message)
@@ -771,20 +908,27 @@ def manage_groups(request, message=None):
     if not getSuperUserStatus(request):
         raise PermissionDenied
 
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Group_Resources = Base.classes.csv2_group_resources
+    User_Group = Base.classes.csv2_user_groups
+    Glint_User = Base.classes.csv2_user
+    Group = Base.classes.csv2_groups
+
     #Retrieve groups, build group:user dictionary
     group_user_dict = {}
-    group_list = Group.objects.all()
-    user_groups = User_Group.objects.all()
-    user_list = Glint_User.objects.all()
+    group_list = session.query(Group)
+    user_groups = session.query(User_Group)
+    user_list = session.query(Glint_User)
     for usr_grp in user_groups:
         #check if this group is in dict yet
         if usr_grp.group_name in group_user_dict:
             #if so append this user to that key
-            group_user_dict[usr_grp.group_name].append(usr_grp.user.username)
+            group_user_dict[usr_grp.group_name].append(usr_grp.username)
         else:
             #else create new key with user
             group_user_dict[usr_grp.group_name] = list()
-            group_user_dict[usr_grp.group_name].append(usr_grp.user.username)
+            group_user_dict[usr_grp.group_name].append(usr_grp.username)
 
     context = {
         'group_list': group_list,

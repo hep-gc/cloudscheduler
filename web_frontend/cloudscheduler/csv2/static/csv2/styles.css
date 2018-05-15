@@ -1,3 +1,15 @@
+
+.footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  background-color: #efefef;
+  text-align: center;
+}
+
+
 .main-div {
   position: relative;
   left:0;
@@ -129,3 +141,7 @@ li:hover {
 
 .close:hover { background: #00d9ff; }
 
+
+.highlight {
+  background-color: gainsboro;
+}

@@ -44,7 +44,9 @@ def main(args):
                     'update':       csv2_cloud.update,
                     'yaml-delete':  csv2_cloud.yaml_delete,
                     'yaml-edit':    csv2_cloud.yaml_edit,
+                    'yaml-list':    csv2_cloud.yaml_list,
                     'yaml-load':    csv2_cloud.yaml_load,
+                    'yaml-update':  csv2_cloud.yaml_update,
                     }
                 ],
             'group': [
@@ -57,10 +59,12 @@ def main(args):
                     'update':       csv2_group.update,
                     'yaml-delete':  csv2_group.yaml_delete,
                     'yaml-edit':    csv2_group.yaml_edit,
+                    'yaml-list':    csv2_group.yaml_list,
                     'yaml-load':    csv2_group.yaml_load,
+                    'yaml-update':  csv2_group.yaml_update,
                     }
                 ],
-            'settings': [
+            'my-defaults': [
                 False, # super_user?
                 {
                     'delete':       csv2_settings.delete,
@@ -117,7 +121,7 @@ def main(args):
             ('-upw', '--user-password', True),
             ('-Y',   '--yes', False),
             ('-ye',  '--yaml-enabled', True),
-            ('-ym',  '--yaml-mime-type', True),
+            ('-ymt', '--yaml-mime-type', True),
             ('-yn',  '--yaml-name', True),
             ('-vc',  '--vm-cores', True),
             ('-vk',  '--vm-keypair', True),

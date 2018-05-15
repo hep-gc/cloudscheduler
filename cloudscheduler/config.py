@@ -35,7 +35,7 @@ class CSConfig:
 
         self.default_instancetype = kwargs['job'].get('instancetype', 'm1.small')
         self.default_image = kwargs['job'].get('image', 'cernvm3-micro-2.8-6.hdd')
-        self.default_network = kwargs['job'].get('network', 'private')
+        self.default_network = kwargs['job'].get('network', '')
 
     def setup(config_file="/etc/cloudscheduler/cloudscheduler.yaml"):
         """
@@ -44,6 +44,7 @@ class CSConfig:
         :param config_file: the file path where the config is stored on disk
         :return: the config object
         """
+        log = logging.getLogger(__name__)
         # Prime the dict with it's sections:
         lconfig = {'general': {}, 'job': {}}
         # Load up any changed values from file
@@ -54,9 +55,9 @@ class CSConfig:
                 for k, val in config_file.items():
                     lconfig[k] = val
         except FileNotFoundError as ex:
-            self.log.exception(ex)
+            log.exception(ex)
         except yaml.parser.ParserError as ex:
-            self.log.exception(ex)
+            log.exception(ex)
         return lconfig
 
 

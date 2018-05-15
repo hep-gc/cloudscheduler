@@ -1,5 +1,12 @@
 <head>
-<meta http-equiv="refresh" content="6">
+{% if num_tx > 0 %}
+    <meta http-equiv="refresh" content="6">
+{% else %}
+    <meta http-equiv="refresh" content="180">
+{% endif %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <link rel="stylesheet" href="/static/glintwebui/css/glint_button.css">
 <link rel="stylesheet" href="/static/glintwebui/css/glint_header_footer.css">
@@ -12,34 +19,10 @@
 
 </style>
 </head>
-<ul>
-    <li style="padding 0px"><a style="padding: 0px" href="/ui/"><img href="/ui/" style="height: 60px;" src="/static/glintwebui/img/glintv2whitetext.png"></a></li>
-    <li><h4>Group:</h4></li>
-    <li><div><a style="color: #4CAF50;font-weight: bold;" onclick="doDropdown()" class="dropbtn">{{group_name}}</a>
-        <div id="myDropdown" class="dropdown-content">
-            {% for group in group_list %}
-                <a href='/ui/project_details/{{group}}/'>{{group}}</a>
-            {% endfor %}
-        </div>
-        </div>
-    </li>
-    {% if group_name not in "No groups available" %}
-        <li><a href="/ui/manage_repos/{{group_name}}">Manage '{{group_name}}' repos</a></li>
-    {% endif %}
-    {% if is_superuser %}
-       <li> <div>
-                <a onclick="doAdminDropdown()" class="dropbtn">Admin Tools</a>
-                <div id="myAdminDropdown" class="dropdown-content">
-                    <a href='/ui/manage_users/'>User Management</a>
-                    <a href='/ui/manage_groups/'>Group Management</a>
-                </div>
-            </div>
-       </li>
-    {% endif %}
-    <li><a href="/ui/user_settings/">User Settings</a></li>
-</ul>
-<br/>
-<div class="wrapper">
+{% block navbar %}
+    {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+<div class="wrapper" style="padding-top:60px">
 <table class="image_matrix" style="border:none">
 <tr>
     <td class='public' id='public_filter'> Hidden Images </td><td class='private' id='private_filter'>Glint Images</td>

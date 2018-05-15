@@ -143,7 +143,7 @@ def map_parameter_to_field_values(request, db_engine, query, table_keys, active_
                 rekey = '%s2' % key[:-1]
                 pw2 = request.POST.get(rekey)
                 if not pw2:
-                    return 1, 'password update received a password but no verify password; both are required.'
+                    return 1, None, 'password update received a password but no verify password; both are required.'
 
                 rc, value = _map_parameter_to_field_values_pw_check(request.POST[key],pw2=pw2)
                 if rc != 0:
@@ -217,6 +217,26 @@ def _map_parameter_to_field_values_pw_check(pw1, pw2=None):
 
 #-------------------------------------------------------------------------------
 
+def manage_user_group_lists(tables, group=None, groups=None, user=None, users=None):
+
+
+    table = tables['csv2_user']
+
+    if groups:
+        pass
+        
+
+
+
+
+
+
+
+
+    return 0, 'xxx'
+
+#-------------------------------------------------------------------------------
+
 def qt(query, keys=None, prune=[]):
     """
     Query Transform takes a list of dictionaries (eg. the result of an SqlAlchemy query)
@@ -224,44 +244,85 @@ def qt(query, keys=None, prune=[]):
     it can make the following transformations:
 
         o It can delete columns from the rows (prune=[col1, col2,..]).
-        o It can remove columns from the primary list and create a related
-          sub-dictionary. For example:
+        o It can split the query into a list and corresponding dictionaries (
+          (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
 
-          keys={
-              'primary': ['group_name', 'cloud_name'],
-              'secondary': ['yaml_name', 'yaml_enabled', 'yaml_mime_type', 'yaml']
-              }
-        
-          from an input list containing those columns, would return:
+    Splitting a query into a list and corresponding dictionaries:
 
-          primary_list = [
-              {'group_name': <val>, 'cloud_name': <val, <other_non_secodary_columns>},
-              {'group_name': <val>, 'cloud_name': <val, <other_non_secodary_columns>},
-                  .
-                  .
-              ],
-          secondary_dict = {  
-              '<group_name_val>': {
-                  '<cloud_name_val>': {
-                      'yaml_name_val': {
-                          'yaml_name': <val>,
-                          'yaml_enabled': <val>,
-                          'yaml_mime_type': <val>,
-                          'yaml': <val>
-                          }
-                      }
-                  }
-              }
+    If the keys parameter is specified, it must contain both a 'primary' and
+    'secondary' list of keys, and optionally, a 'match_lst'.  For each row in
+    the input query, which must contain all primary/secondary keys, qt uses
+    the two key lists as follows:
 
-    If the "keys" argument is given, the function returns both the primary_list and the
-    secondary_dict. Otherwise, only the primary_list is returned.
+    o For all keys in the primary list and any other key in the query not 
+      mentioned in the secondary list, qt copies the values from the query
+      into the primary output list.
+
+    o For all keys in the primary list, plus the first key in the secondary
+      list, qt creates a multi-level, nested output dictionary and copies
+      the values for all secondary keys from the query into the lowest level
+      dictionary.
+
+    The 'match_list' is both a switch (requesting additional processing) and
+    complimantary input. It causes qt to generate and return a multi-level
+    nested dictionary/list of all secondary key values per compound primary
+    key. The match list must contain all the primary keys and is used to
+    build an empty structure with all possible compound privary key values.
+    Subsequently, qt scans the secondary dictionary extracting the secondary
+    keys to be listed.
+    
+    An practical example of list splitting can be found in user_views.py, which
+    doese the following:
+    
+    # Retrieve the user list but loose the passwords.
+    s = select([view_user_groups_and_available_groups])
+    user_list = qt(db_connection.execute(s), prune=['password'])
+
+    # Retrieve user/groups list (dictionary containing list for each user).
+    s = select([csv2_user_groups])
+    ignore1, ignore2, groups_per_user = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'username',
+                ],
+            'secondary': [
+                'group_name',
+                ],
+            'match_list': user_list,
+            }
+        )
+
+    # Retrieve  available groups list (dictionary containing list for each user).
+    s = select([view_user_groups_available])
+    ignore1, ignore2, available_groups_per_user = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'username',
+                ],
+            'secondary': [
+                'group_name',
+                'available',
+                ],
+            'match_list': user_list,
+            }
+        )
     """
+
+    if keys and ('primary' not in keys or 'secondary' not in keys):
+        raise Exception('view_utils.qt: "keys" dictionary requires both "primary" and "secondary" entries')
+
     from .view_utils import _qt, _qt_list
 
     primary_list = []
     secondary_dict = {}
 
-    for row in query:
+    if query:
+        Query = query
+    else:
+        Query = []
+    for row in Query:
         cols = dict(row)
 
         if keys:
@@ -281,10 +342,8 @@ def qt(query, keys=None, prune=[]):
                 new_row = {}
                 for col in cols:
                     if col not in keys['secondary'] + prune:
-                      if cols[col]:
-                          new_row[col] = cols[col]
-                      else:
-                          new_row[col] = None
+                        new_row[col] = cols[col]
+
 
                 primary_list.append(new_row)
 
@@ -292,10 +351,7 @@ def qt(query, keys=None, prune=[]):
             new_row = {}
             for col in cols:
                 if col not in prune:
-                  if cols[col]:
-                      new_row[col] = cols[col]
-                  else:
-                      new_row[col] = None
+                  new_row[col] = cols[col]
 
             primary_list.append(new_row)
 
@@ -367,13 +423,12 @@ def render(request, template, context):
     return an HTML string.
     """
 
-    from django.contrib.auth.models import User
     from django.shortcuts import render as django_render
     from django.http import HttpResponse
-    from django.core import serializers
     from django.db.models.query import QuerySet
+    from sqlalchemy.orm.query import Query
+    from sqlalchemy.engine.result import ResultProxy
     from .models import user as csv2_user
-    from sqlalchemy.engine import result as sql_result
     import datetime
     import decimal
     import json
@@ -392,6 +447,18 @@ def render(request, template, context):
 
             if isinstance(obj, dict) and 'ResultProxy' in obj:
                 return json.dumps(obj['ResultProxy'])
+
+            if isinstance(obj, Query):
+                fields = {}
+                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                    data = obj.__getattribute__(field)
+                    try:
+                        json.dumps(data) # this will fail on non-encodable values, like other classes
+                        fields[field] = data
+                    except TypeError:
+                        fields[field] = None
+                # a json-encodable dict
+                return json.dumps(fields)
 
             return json.JSONEncoder.default(self, obj)
 
@@ -432,6 +499,232 @@ def set_user_groups(request, db_session, db_map):
         active_user.save()
 
     return 0, None, active_user, user_groups
+
+#-------------------------------------------------------------------------------
+
+def table_fields(Fields, Table, Columns, selection):
+    """
+    This function returns input fields for the specified table.
+
+    Arguments:
+
+    Table    - Is a table object as returned by validate_fields.
+
+    Columns  - Are the primary and secondary column lists for tables
+               as returned by validate_fields.
+
+    Fields   - Is a dictionary of input fields as returned by
+               validate_fields.
+    """
+
+    output_fields = {}
+
+    if selection == 'insert':
+        for field in Columns[Table.name][0]:
+            if field in Fields:
+                output_fields[field] = Fields[field]
+
+    if selection == 'insert' or selection == 'update':
+        for field in Columns[Table.name][1]:
+            if field in Fields:
+                output_fields[field] = Fields[field]
+
+    return output_fields
+
+#-------------------------------------------------------------------------------
+
+def validate_fields(request, fields, db_engine, tables, active_user):
+    """
+    This function validates/normalizes form fields/command arguments.
+
+    Arguments:
+
+    requests  - is a web request containing POST data.
+    db_engine - An open database connection object.
+    tables    - is a list of table names.
+    fields    - is a  list of structures in the following format:
+
+               CLOUD_FIELDS = {
+                   'auto_active_group': active_user.active_group, # or None.
+                   'format': {
+                       'cloud_name': 'lowercase',
+                       'groupname': 'lowercase',
+
+                       'cores_slider': 'ignore',
+                       'csrfmiddlewaretoken': 'ignore',
+                       'group': 'ignore',
+                       'ram_slider': 'ignore',
+                       },
+                   }
+
+
+    Possible format strings are:
+
+    array      - Multiple numbered input fields to be returned as a list eg: group_name.1,
+                 group_name.2, etc. returned as { 'group_name': [ 'val1', 'val2', etc. ]}
+    boolean    - A value of True or False will be inserted into the out put fields.
+    ignore     - The input field is not defined in the tables but can be ignored.
+    lowercase  - Make sure the input value is all lowercase (or error).
+    password   - A password value to be checked and hashed
+    password1  - A password value to be verified against password2, checked and hashed.
+    password2  - A password value to be verified against password1, checked and hashed.
+    uppercase  - Make sure the input value is all uppercase (or error).
+    """
+
+    from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
+    from sqlalchemy import Table, MetaData
+
+    # Retrieve relevant (re: tables) schema.
+    all_columns = []
+    primary_key_columns = []
+    Tables = {}
+    Columns = {}
+    for table_option in tables:
+        table = table_option.split(',')
+        
+        try:
+            Tables[table[0]] = Table(table[0], MetaData(bind=db_engine), autoload=True)
+        except:
+            raise Exception('view_utils.validate_fields: "tables" parameter contains an invalid table name "%s".' % table[0])
+            
+        if len(table) > 1 and table[1] == 'n':
+            continue
+
+        Columns[table[0]] = [[], []]
+        for column in Tables[table[0]].c:
+            if column not in all_columns:
+                all_columns.append(column.name)
+
+            if column.primary_key:
+                Columns[table[0]][0].append(column.name)
+                if column not in primary_key_columns:
+                    primary_key_columns.append(column.name)
+            else:
+                Columns[table[0]][1].append(column.name)
+
+    # Process fields parameter:
+    Formats = {}
+    Options = {
+        'auto_active_group': False,
+        'unnamed_fields_are_bad': False,
+        }
+
+    for option_set in fields:
+        for option in option_set:
+            if option == 'format':
+                for field in option_set[option]:
+                    Formats[field] = option_set[option][field]
+            else:
+                Options[option] = option_set[option]
+
+    # Process input fields.
+    Fields = {}
+    for field in request.POST:
+        if Options['unnamed_fields_are_bad'] and field not in Formats:
+            return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
+
+        field_alias = field
+        value = request.POST[field]
+
+        if field in Formats:
+            if Formats[field] == 'lowercase':
+                value = request.POST[field].lower()
+                if request.POST[field] != value:
+                    return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+            elif Formats[field] == 'password':
+                rc, value = _validate_fields_pw_check(request.POST[field])
+                if rc != 0:
+                    return 1, value, None, None, None
+
+            elif Formats[field] == 'password1':
+                field_alias = '%s2' % field[:-1]
+                pw2 = request.POST.get(field_alias)
+                if not pw2:
+                    if not request.POST[field]:
+                        continue
+                    return 1, 'password update received a password but no verify password; both are required.', None, None, None
+
+                rc, value = _validate_fields_pw_check(request.POST[field],pw2=pw2)
+                if rc != 0:
+                    return 1, value, None, None, None
+                field_alias = field[:-1]
+
+            elif Formats[field] == 'password2':
+                field_alias = '%s1' % field[:-1]
+                if not request.POST.get(field_alias):
+                    if not request.POST[field]:
+                        continue
+                    return 1, 'password update received a verify password but no password; both are required.', None, None, None
+                continue
+
+            elif Formats[field] == 'uppercase':
+                value = request.POST[field].upper()
+                if request.POST[field] != value:
+                    return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
+
+        if field_alias in all_columns:
+            if value or field_alias != 'password':
+                Fields[field_alias] = value
+        else: 
+            array_field = field.split('.')
+            if array_field[0] in all_columns:
+                if array_field[0] not in Fields:
+                    Fields[array_field[0]] = []
+                Fields[array_field[0]].append(value)
+            else:
+                if not _validate_fields_ignore_field_error(Formats, field):
+                    return 1, 'request contained a bad parameter "%s".' % field, None, None, None
+
+    if Options['auto_active_group'] and 'group_name' not in Fields:
+        Fields['group_name'] = active_user.active_group
+
+    for field in primary_key_columns:
+        if field not in Fields and not _validate_fields_ignore_field_error(Formats, field):
+            return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
+
+    for field in Formats:
+        if Formats[field] == 'boolean':
+            if request.POST.get(field):
+                Fields[field] = True
+            else:
+                Fields[field] = False
+
+    return 0, None, Fields, Tables, Columns
+
+#-------------------------------------------------------------------------------
+
+def _validate_fields_ignore_field_error(Formats, field):
+    """
+    Check if a field error should be ignore.
+    """
+
+    if field in Formats and Formats[field] == 'ignore':
+        return True
+
+    return False
+#-------------------------------------------------------------------------------
+
+def _validate_fields_pw_check(pw1, pw2=None):
+    """
+    Ensure passwords conform to certain standards.
+    """
+
+    import bcrypt
+
+    if len(pw1) < 6:
+      return 1, 'value specified for a password is less than 6 characters.'
+
+    if len(pw1) < 16:
+      rc =   any(pwx.islower() for pwx in pw1) and any(pwx.isupper() for pwx in pw1) and any(pwx.isnumeric() for pwx in pw1)
+      if not rc:
+        return 1, 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.'
+
+    if pw2 and pw2 != pw1:
+        return 1, 'values specified for passwords do not match.'
+
+
+    return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
 #-------------------------------------------------------------------------------
 

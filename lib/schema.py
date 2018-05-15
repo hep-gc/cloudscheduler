@@ -301,7 +301,7 @@ csv2_groups = Table('csv2_groups', metadata,
   )
 
 csv2_poll_times = Table('csv2_poll_times', metadata,
-  Column('proccess_id', String(64), primary_key=True),
+  Column('process_id', String(64), primary_key=True),
   Column('last_poll', Integer)
   )
 
@@ -459,7 +459,9 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('Jobs_s3', Integer),
   Column('Jobs_s4', Integer),
   Column('Jobs_s5', Integer),
-  Column('Jobs_s6', Integer)
+  Column('Jobs_s6', Integer),
+  Column('idle_cores', Integer),
+  Column('idle_ram', Integer)
   )
 
 view_cloud_status_raw = Table('view_cloud_status_raw', metadata,
@@ -507,20 +509,6 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
   Column('hold_job', Integer)
-  )
-
-view_group_list = Table('view_group_list', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String),
-  Column('VMs', Integer),
-  Column('Jobs', Integer)
-  )
-
-view_group_list_raw = Table('view_group_list_raw', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String),
-  Column('VMs', Integer),
-  Column('Jobs', Integer)
   )
 
 view_group_resources = Table('view_group_resources', metadata,

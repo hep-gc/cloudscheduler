@@ -34,7 +34,7 @@ def main():
         # basic scheduling: fifo w/ condor_prioity
 
         Base0 = automap_base()
-        engine0 = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+        engine0 = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                      csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
         Base0.prepare(engine0, reflect=True)
         CSGroups = Base0.classes.csv2_groups
@@ -48,7 +48,7 @@ def main():
 
             # Setup the resources for group and sort out their group and cloud specific yamls
             Base = automap_base()
-            engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+            engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                      csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
             Base.prepare(engine, reflect=True)
             session = Session(engine)
@@ -87,9 +87,15 @@ def main():
                 # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
                 job_count = idle_job.count # number of jobs with identical request
                 enough_booting = False
-                flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
+                if idle_job.flavors:
+                    flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
+                else:
+                    continue
+                if idle_job.target_clouds:
+                    target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
+                else
+                    target_cloud_list = []
 
-                target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
                 for tri in flavor_list:
                     if enough_booting:
                         break
@@ -159,11 +165,6 @@ def main():
             # Other tasks the scheduling loop needs to handle for a group?
             # Will need to see about freeing space for higher priority jobs that are not running.
 
-
-
-
-
-
             # Repeat for next group
         #break # will need to take this out and put in an actual stopping condition.
         time.sleep(15)
@@ -175,8 +176,22 @@ def check_registered_condor_machines(group):
     """Query the condor machines for everything belonging to the group to get idea
     of how many available resources there are for idle jobs - including brand new machines
     that are in the benchmarking state etc. and use that info to determine if more VMs are needed."""
+    log = logging.getLogger(__name__)
     machines_dict = defaultdict(int)
     # TODO The new VMs have a state Unclaimed, and activity Benchmarking that lasts a few seconds.
+    base = automap_base()
+    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+    base.prepare(engine, reflect=True)
+    session = Session(engine)
+    machines = base.classes.condor_machines
+    registered_machines = session.query(machines).filter(machines.group_name == group)
+    for machine in registered_machines:
+        log.debug(machine)
+
+
+
+    log.debug(machines_dict)
     return machines_dict
 
 def check_idle_machines(group):
@@ -188,7 +203,7 @@ def check_idle_machines(group):
     log = logging.getLogger(__name__)
     log.debug("Check Idle Machines: %s", group)
     Base = automap_base()
-    engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                            csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
     Base.prepare(engine, reflect=True)
     session = Session(engine)
@@ -227,7 +242,7 @@ def check_unregistered_machines(group):
     log = logging.getLogger(__name__)
     log.debug("Check Unregistered Machines: %s", group)
     Base = automap_base()
-    engine = create_engine("mysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                            csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
     Base.prepare(engine, reflect=True)
     session = Session(engine)

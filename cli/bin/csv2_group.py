@@ -12,9 +12,12 @@ KEY_MAP = {
     '-jed': 'job_scratch',
     '-jr':  'job_ram',
     '-js':  'job_swap',
+    '-yn':  'yaml_name',
+    '-ye':  'enabled',
+    '-ymt': 'mime_type',
     }
 
-def _filter_by_group(gvar, qs):
+def _filter_by_group_name_and_or_yaml_name(gvar, qs):
     """
     Internal function to filter a query set by the specified group name.
     """
@@ -22,6 +25,11 @@ def _filter_by_group(gvar, qs):
     if 'group-name' in gvar['command_args']:
         for _ix in range(len(qs)-1, -1, -1):
             if qs[_ix]['group_name'] != gvar['command_args']['group-name']:
+                del(qs[_ix])
+
+    if 'yaml-name' in gvar['command_args']:
+        for _ix in range(len(qs)-1, -1, -1):
+            if qs[_ix]['yaml_name'] != gvar['command_args']['yaml-name']:
                 del(qs[_ix])
 
     return qs
@@ -144,7 +152,7 @@ def list(gvar):
         print(response['message'])
 
     # Filter response as requested (or not).
-    group_list = _filter_by_group(gvar, response['group_list'])
+    group_list = _filter_by_group_name_and_or_yaml_name(gvar, response['group_list'])
 
     # Print report
     show_header(gvar, response)
@@ -215,21 +223,21 @@ def yaml_delete(gvar):
                     break
    
     if not _found:
-        print('Error: "csv2 group yaml-delete" cannot delete "%s-%s-%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        print('Error: "csv2 group yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
         exit(1)
 
     # Confirm group/YAML file delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete the YAML file "%s-%s-%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        print('Are you sure you want to delete the YAML file "%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 group yaml-delete "%s-&s-%s" cancelled.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+            print('csv2 group yaml-delete "%s::%s::%s" cancelled.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the group/YAML file.
     response = requests(
         gvar,
-        '/group/yaml_delete/',
+        '/group/yaml-delete/',
         form_data = {
             'yaml_name': gvar['user_settings']['yaml-name'],
             }
@@ -247,7 +255,7 @@ def yaml_edit(gvar):
     check_keys(gvar, ['-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/group/yaml_fetch/%s.%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/group/yaml-fetch/%s::%s' % (gvar['active_group'], gvar['user_settings']['yaml-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/yaml' % (
@@ -261,14 +269,17 @@ def yaml_edit(gvar):
 
     # Write the reference copy.
     fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.write(response['yaml'])
     fd.close()
 
     # Write the edit copy.
     fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
+    fd.write(response['yaml'])
     fd.close()
 
+    # Edit the YAML file.
     p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
     p.communicate()
 
@@ -276,7 +287,7 @@ def yaml_edit(gvar):
         '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
         '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
         ):
-        print('csv2 group yaml-edit "%s-%s" completed, no changes.' % (response['group_name'],  response['yaml_name']))
+        print('csv2 group yaml-edit "%s::%s" completed, no changes.' % (response['group_name'],  response['yaml_name']))
         exit(0)
 
     # Verify the changed YAML file.
@@ -288,13 +299,53 @@ def yaml_edit(gvar):
     # Replace the YAML file.
     response = requests(
         gvar,
-        '/group/yaml_update/',
+        '/group/yaml-update/',
         form_data
         )
     
     if response['message']:
         print(response['message'])
 
+def yaml_list(gvar):
+    """
+    List clouds for the active group.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-yn'])
+
+    # Retrieve data (possibly after changing the group).
+    response = requests(gvar, '/group/yaml-list/')
+    
+    if response['message']:
+        print(response['message'])
+
+    # Filter response as requested (or not).
+    group_yaml_list = _filter_by_group_name_and_or_yaml_name(gvar, response['group_yaml_list'])
+
+    # Print report.
+    show_header(gvar, response)
+
+    if gvar['command_args']['only-keys']:
+        show_table(
+            gvar,
+            group_yaml_list,
+            [
+                'group_name/Group',
+                'yaml_name/YAML Filename',
+            ],
+            )
+    else:
+        show_table(
+            gvar,
+            group_yaml_list,
+            [
+                'group_name/Group',
+                'yaml_name/YAML Filename',
+                'enabled/Enabled',
+                'mime_type/MIME Type',
+            ],
+            )
 
 def yaml_load(gvar):
     """
@@ -317,7 +368,34 @@ def yaml_load(gvar):
     # Replace the YAML file.
     response = requests(
         gvar,
-        '/group/yaml_add/',
+        '/group/yaml-add/',
+        form_data
+        )
+    
+    if response['message']:
+        print(response['message'])
+
+def yaml_update(gvar):
+    """
+    Update YAML fiel information.
+    """
+
+    # Check for missing arguments or help required.
+    form_data = check_keys(
+        gvar,
+        ['-yn'],
+        [],
+        ['-ye', '-ymt'],
+        key_map=KEY_MAP)
+
+    if len(form_data) < 2:
+        print('Error: "csv2 group yaml-update" requires at least one option to modify.')
+        exit(1)
+
+    # Create the cloud.
+    response = requests(
+        gvar,
+        '/group/yaml-update/',
         form_data
         )
     
