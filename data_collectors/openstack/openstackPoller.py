@@ -51,7 +51,7 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
                 tenant_name=project)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as exc:
-            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", (auth_url, exc))
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s:%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
             return False
         return sess
@@ -178,7 +178,7 @@ def vm_poller():
         # Itterate over cloud list
         poll_time =  int(time.time())
         for cloud in cloud_list:
-            logging.info("Polling VMs from group:cloud -  %s:%s", (cloud.group_name, cloud.cloud_name))
+            logging.info("Polling VMs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -235,12 +235,12 @@ def vm_poller():
                 try:
                     db_session.merge(new_vm)
                 except Exception as exc:
-                    logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:", (cloud.group_name, cloud.cloud_name))
+                    logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
             try:        
                 db_session.commit()
             except Exception as exc:
-                logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:", (cloud.group_name, cloud.cloud_name))
+                logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
                 logging.error(exc)
                 logging.error("Aborting cycle...")
         logging.debug("Poll cycle complete, sleeping...")
@@ -277,12 +277,12 @@ def flavorPoller():
         logging.debug("Polling flavors")
         current_cycle = int(time.time())
         for cloud in cloud_list:
-             logging.info("Processing flavours from group:cloud -  %s:%s", (cloud.group_name, cloud.cloud_name))
+             logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                logging.error("Bad openstack URL, could not determine version, skipping %s" % cloud.authurl)
                 continue
             if version == 2:
                 session = get_openstack_session(
@@ -377,7 +377,7 @@ def imagePoller():
         current_cycle = int(time.time())
         current_cycle = int(time.time())
         for cloud in cloud_list:
-            logging.info("Processing Images from group:cloud -  %s:%s", (cloud.group_name, cloud.cloud_name))
+            logging.info("Processing Images from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -442,7 +442,7 @@ def imagePoller():
             try:        
                 db_session.commit()
             except Exception as exc:
-                logging.error("Unable to commit database session while proccessing for grp:cloud - %s:%s:", (cloud.group_name, cloud.cloud_name))
+                logging.error("Unable to commit database session while proccessing for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
                 logging.error(exc)
                 logging.error("Aborting poll cycle...")
                 break
@@ -481,7 +481,7 @@ def limitPoller():
 
         current_cycle = int(time.time())
         for cloud in cloud_list:
-            logging.info("Processing Limits from group:cloud -  %s:%s", (cloud.group_name, cloud.cloud_name))
+            logging.info("Processing Limits from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -567,7 +567,7 @@ def networkPoller():
 
         current_cycle = int(time.time())
         for cloud in cloud_list:
-            logging.info("Processing Limits from group:cloud -  %s:%s", (cloud.group_name, cloud.cloud_name))
+            logging.info("Processing Limits from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -681,7 +681,7 @@ def vmCleanUp():
         logging.debug("Querying database for vms to remove...")
         vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
         for vm in vm_to_delete:
-            logging.info("Cleaning up VM: %s from group:cloud - %s:%s", (vm.hostname, vm.group_name, vm.cloud_name))
+            logging.info("Cleaning up VM: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             db_session.delete(vm)
 
         # need to commit the session here to remove vms that are gone before we look at which to terminate
@@ -701,7 +701,7 @@ def vmCleanUp():
         logging.debug("Querying database for VMs marked for termination...")
         vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1)
         for vm in vm_to_destroy:
-            logging.info("VM marked for termination... terminating: %s from group:cloud - %s:%s", (vm.hostname, vm.group_name, vm.cloud_name))
+            logging.info("VM marked for termination... terminating: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             # terminate vm
             # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
             logging.info("Getting cloud connection info from group resources..")
@@ -714,7 +714,7 @@ def vmCleanUp():
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
                 continue
-            logging.info("Creating openstack session for group:cloud - %s:%s", (cloud.group_name, cloud.cloud_name))
+            logging.info("Creating openstack session for group:cloud - %s:%s" % (cloud.group_name, cloud.cloud_name))
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
