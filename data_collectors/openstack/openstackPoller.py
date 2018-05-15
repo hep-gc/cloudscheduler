@@ -40,7 +40,7 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.error("Bad openstack URL, could not determine version, aborting session")
+        logging.error("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
         return False
     if version == 2:
         try:
@@ -51,7 +51,8 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
                 tenant_name=project)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as exc:
-            logging.error("Problem importing keystone modules, and getting session: %s", exc)
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s:%s" % (auth_url, exc))
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
             return False
         return sess
     elif version == 3:
@@ -66,7 +67,8 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
                 project_domain_name=project_domain_name)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as exc:
-            logging.error("Problem importing keystone modules, and getting session: %s", exc)
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
             return False
         return sess
 
@@ -176,6 +178,7 @@ def vm_poller():
         # Itterate over cloud list
         poll_time =  int(time.time())
         for cloud in cloud_list:
+            logging.info("Polling VMs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -199,6 +202,10 @@ def vm_poller():
 
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
                 continue
             # setup nova object
             nova = get_nova_client(session)
@@ -228,12 +235,12 @@ def vm_poller():
                 try:
                     db_session.merge(new_vm)
                 except Exception as exc:
-                    logging.error("unable to merge sessions, database incosistency or other error:")
+                    logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
             try:        
                 db_session.commit()
             except Exception as exc:
-                logging.error("Unable to commit database session")
+                logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
                 logging.error(exc)
                 logging.error("Aborting cycle...")
         logging.debug("Poll cycle complete, sleeping...")
@@ -270,11 +277,12 @@ def flavorPoller():
         logging.debug("Polling flavors")
         current_cycle = int(time.time())
         for cloud in cloud_list:
+            logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                logging.error("Bad openstack URL, could not determine version, skipping %s" % cloud.authurl)
                 continue
             if version == 2:
                 session = get_openstack_session(
@@ -293,6 +301,10 @@ def flavorPoller():
 
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
                 continue
             # setup openstack api objects
             nova = get_nova_client(session)
@@ -365,6 +377,7 @@ def imagePoller():
         current_cycle = int(time.time())
         current_cycle = int(time.time())
         for cloud in cloud_list:
+            logging.info("Processing Images from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -387,6 +400,10 @@ def imagePoller():
                     project_domain_name=cloud.project_domain_name)
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
                 continue
 
             # setup openstack api object
@@ -419,12 +436,13 @@ def imagePoller():
                 try:
                     db_session.merge(new_image)
                 except Exception as exc:
-                    logging.error("Database inconsistency, unable to merge image entry")
+                    logging.error("Database inconsistency, unable to merge image entry:")
+                    logging.error(img_dict)
                     logging.error(exc)
             try:        
                 db_session.commit()
             except Exception as exc:
-                logging.error("Unable to commit database session")
+                logging.error("Unable to commit database session while proccessing for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
                 logging.error(exc)
                 logging.error("Aborting poll cycle...")
                 break
@@ -463,6 +481,7 @@ def limitPoller():
 
         current_cycle = int(time.time())
         for cloud in cloud_list:
+            logging.info("Processing Limits from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -486,6 +505,10 @@ def limitPoller():
 
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
                 continue
             # setup openstack api objects
             nova = get_nova_client(session)
@@ -544,6 +567,7 @@ def networkPoller():
 
         current_cycle = int(time.time())
         for cloud in cloud_list:
+            logging.info("Processing Limits from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -567,6 +591,10 @@ def networkPoller():
 
             if session is False:
                 logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
                 continue
             # setup openstack api objects
             neutron = get_neutron_client(session)
@@ -650,9 +678,10 @@ def vmCleanUp():
             continue
 
         # check for vms that have dissapeared since the last cycle
+        logging.debug("Querying database for vms to remove...")
         vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
         for vm in vm_to_delete:
-            logging.info("Cleaning up VM: %s", vm)
+            logging.info("Cleaning up VM: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             db_session.delete(vm)
 
         # need to commit the session here to remove vms that are gone before we look at which to terminate
@@ -669,9 +698,10 @@ def vmCleanUp():
         db_session = Session(engine)
 
         # check for vms that have been marked for termination
+        logging.debug("Querying database for VMs marked for termination...")
         vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1)
         for vm in vm_to_destroy:
-            logging.info("VM marked for termination... terminating: %s", vm.hostname)
+            logging.info("VM marked for termination... terminating: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             # terminate vm
             # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
             logging.info("Getting cloud connection info from group resources..")
@@ -684,7 +714,7 @@ def vmCleanUp():
             except ValueError:
                 logging.error("Bad openstack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
                 continue
-            logging.info("Creating openstack session...")
+            logging.info("Creating openstack session for group:cloud - %s:%s" % (cloud.group_name, cloud.cloud_name))
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -701,10 +731,14 @@ def vmCleanUp():
                     project_domain_name=cloud.project_domain_name)
             if session is False:
                 logging.error("Unable to setup session, unable to terminate %s", vm)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
             # returns true if vm terminated, false if an error occured
             # probably wont need to use this result outside debugging as
             # deleted VMs should be removed on the next cycle
-            logging.info("Terminating...")
+            logging.info("Terminating %s", (vm.hostname,))
             result = terminate_vm(session, vm)
 
         try:        
