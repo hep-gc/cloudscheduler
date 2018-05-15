@@ -78,6 +78,75 @@ UNPRIVILEGED_USER_KEYS = {
         },
     }
 
+
+
+def manage_user_group_lists2(tables, groups, users):
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", groups, users)
+
+    '''
+    table_users = tables['csv2_user']
+    table_groups = tables['csv2_groups']
+    table_user_groups = tables['csv2_user_groups']
+
+    plus_row = {}
+    minus_row = {}
+
+    user_groups_state = {}
+
+
+    if len(group)==1:
+
+        group=groups[0]
+
+
+
+        # for group in groups:
+
+        if group in table_groups:
+
+            for user in users:
+
+                if user in table_users:
+                    flag = 0
+
+                    for row in table_user_groups:
+
+                        if row['username'] == user and row['group_name'] == group:
+                            flag = 1
+
+                    if flag == 0:
+                        plus_row['username'] = user
+                        plus_row['group_name'] = group
+    
+   
+    else:
+	user=user.0
+        found={}
+	if user in table_users:
+               
+
+             for group in groups:
+		
+                  if group in table_groups:
+                        	
+                      for row in table_user_groups:
+                          # is already on the db
+                          if row['username'] == user and row['group_name'] == group:
+                               found.append(group)
+	                       
+	      		
+                  #its on the page and not in the db, add it
+         
+                   
+
+		  #its in the db but not the page, remove it
+
+    '''
+
+    return 0, 'xxx'
+
+
+
 #-------------------------------------------------------------------------------
 
 
@@ -130,7 +199,7 @@ def add(request):
 
         # Add user_groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(tables, user=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_group_lists2(tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
 
@@ -439,7 +508,7 @@ def update(request):
 
         # Update user_groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(tables, user=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_group_lists2(tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
 
