@@ -85,7 +85,8 @@ class BaseCloud(ABC):
             for yam in yaml_list:
                 [contents, mimetype] = cloudscheduler.cloud_init_util\
                     .read_file_type_pairs(yam)
-                raw_yaml_list.append(('jobyaml', contents, mimetype))
+                if contents and mimetype:
+                    raw_yaml_list.append(('jobyaml', contents, mimetype))
             group_yaml.extend(raw_yaml_list)
         if self.extrayaml:
             group_yaml.extend(self.extrayaml)
