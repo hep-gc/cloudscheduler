@@ -277,7 +277,7 @@ def flavorPoller():
         logging.debug("Polling flavors")
         current_cycle = int(time.time())
         for cloud in cloud_list:
-             logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
+            logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
