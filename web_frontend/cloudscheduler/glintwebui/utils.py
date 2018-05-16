@@ -78,7 +78,12 @@ def jsonify_image_list(image_list, repo_list):
                 img['visibility'] = image[5]
                 img['checksum'] = image[6]
                 img_dict[image[2]] = img
-                img['hidden'] = bool(img['visibility'] != "private")
+                if img['visibility'] == "private":
+                    img['hidden'] = False
+                elif img['visibility'] == "shared":
+                    img['hidden'] = False
+                else:
+                    img['hidden'] = True
 
         repo_dict[repo.cloud_name] = img_dict
     return json.dumps(repo_dict)
@@ -663,7 +668,7 @@ def do_cache_cleanup():
             #check if it is in cache
             file_found = False
             for cached_item in cache_tuple_list:
-                cached_item = literal_eval(cached_item)
+                cached_item = literal_eval(str(cached_item))
                 if path + "/" + f == cached_item[2]:
                     #file in cache, break and go onto next file
                     file_found = True
@@ -682,12 +687,12 @@ def do_cache_cleanup():
     expire_time = config.cache_expire_time
     current_time = int(time.time())
     for cached_item in cache_tuple_list:
-        cached_item = literal_eval(cached_item)
+        cached_item = literal_eval(str(cached_item))
         if not os.path.exists(cached_item[2]):
             #file is missing, remove it from cache
             logger.error("Cached file missing at %s, removing cache entry.", cached_item[2])
             del_cached_image(cached_item)
-        elif (current_time-cached_item[3]) > expire_time:
+        elif (int(current_time-cached_item[3])) > expire_time:
             #item has expired and remove it
             logger.info("Cached image %s has expired, removing from cache.", cached_item[0])
             os.remove(cached_item[2])

@@ -7,8 +7,7 @@ db_host = "localhost"
 db_port = 3306
 db_user = "csv2"
 db_password = ""
-
-
+log_file_path = "/var/log/cloudscheduler/csv2_web.log"
 
 if os.path.isfile("/etc/cloudscheduler/cloudscheduler.yaml"):
     path = "/etc/cloudscheduler/cloudscheduler.yaml"

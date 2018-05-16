@@ -31,7 +31,41 @@ ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev2.heprc.uvic.ca",
                 ]
 
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'formatters': {
+        'simple': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'applogfile': {
+            'level':'INFO',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': config.log_file_path,
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'glintv2': {
+            'handlers': ['applogfile'],
+            'level': 'INFO',
+        },
+    }
+}
 # Application definition
 
 INSTALLED_APPS = [

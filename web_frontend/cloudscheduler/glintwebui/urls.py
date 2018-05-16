@@ -32,6 +32,7 @@ urlpatterns = [
     url(r'^download_image/(?P<group_name>.+)/(?P<image_name>.+)/$',\
         views.download_image, name='download_image'),
     url(r'^upload_image/(?P<group_name>.+)/$', views.upload_image, name='upload_image'),
+    url(r'^upload_image/$', views.upload_image, name='upload_image'),
     url(r'^save_hidden_images/(?P<group_name>.+)/$',\
         views.save_hidden_images, name='save_hidden_images'),
 ]

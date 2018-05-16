@@ -83,7 +83,7 @@ def index(request):
 
 
 
-def project_details(request, group_name="No groups available", message=None):
+def project_details(request, group_name=None, message=None):
     # Since img name, img id is no longer a unique way to identify images across clouds
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
     # this means we now have to create a new unique image set that is just the image names
@@ -95,7 +95,11 @@ def project_details(request, group_name="No groups available", message=None):
     User_Group = Base.classes.csv2_user_groups
 
     user_obj = getUser(request)
-    if group_name is None or group_name in "No groups available":
+
+    if group_name is None:
+        group_name = user_obj.active_group
+
+    if group_name is None:
         # First time user, lets put them at the first project the have access to
         try:
             group_name = session.query(User_Group).filter(User_Group.username == user_obj.username).first().group_name.group_name
@@ -136,19 +140,14 @@ def project_details(request, group_name="No groups available", message=None):
     for grp in user_groups:
         grp_name = grp.group_name
         group_list.append(grp_name)
-    try:
-        group_list.remove(group_name)
-    except ValueError:
-        #list is empty
-        pass
 
     conflict_dict = get_conflicts_for_group(group_name)
     num_tx = get_num_transactions()
     if num_tx is None:
         num_tx = 0
     context = {
-        'group_name': group_name,
-        'group_list': group_list,
+        'active_group': group_name,
+        'user_groups': group_list,
         'image_dict': image_dict,
         'image_set': image_set,
         'hidden_image_set': hidden_image_set,
@@ -990,10 +989,12 @@ def download_image(request, group_name, image_name):
     response['Content-Length'] = os.path.getsize(file_full_path)
     return response
 
-def upload_image(request, group_name):
+def upload_image(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
-
+    user_obj = getUser(request)
+    if group_name is None:
+        group_name = user_obj.active_group
     try:
         image_file = request.FILES['myfile']
     except Exception:

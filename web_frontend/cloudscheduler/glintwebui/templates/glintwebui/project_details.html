@@ -28,7 +28,7 @@
     <td class='public' id='public_filter'> Hidden Images </td><td class='private' id='private_filter'>Glint Images</td>
     <td style="background-color: #fffeea; border:none"><b>Image Filter:</b></td>
     <td style="background-color: #fffeea; border:none"> <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Image Name"> </td>
-    <td id="glint_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton" style="height:44px;" type="button" value="Upload Image" onclick="window.location.href='/ui/upload_image/{{group_name}}'">
+    <td id="glint_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton" style="height:44px;" type="button" value="Upload Image" onclick="window.location.href='/images/upload_image/{{group_name}}'">
     <input class="button greenbutton" style="height:44px;" type="submit" onclick="submitImageMatrix()" value="Submit Changes" />
     </td>
     <td id="hidden_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton"style="height:44px" type="submit" onclick="submitHiddenImageMatrix()" value="Hide/Show Images" /></td>
@@ -38,7 +38,7 @@
 	<p style="color:green; font-weight:bold">{{message}}</p>
 {% endif%}
 
-<div class="image_matrix" id="glint_matrix"><form id="glint_images_form" name="glint_images_form" action="/ui/save_images/{{group_name}}/" method="post">
+<div class="image_matrix" id="glint_matrix"><form id="glint_images_form" name="glint_images_form" action="/images/save_images/{{active_group}}/" method="post">
 	{% csrf_token %}
       <table>
 		<tr>
@@ -78,7 +78,7 @@
 </form></div>
 
 
-<div class="image_matrix" id="hidden_matrix" hidden="True"><form id="hidden_images_form" action="/ui/save_hidden_images/{{group_name}}/" method="post">
+<div class="image_matrix" id="hidden_matrix" hidden="True"><form id="hidden_images_form" action="/images/save_hidden_images/{{group_name}}/" method="post">
 	{% csrf_token %}
 	<table>
 		<tr>
@@ -268,7 +268,7 @@ function doAdminDropdown() {
 function downloadImage(image) {
 	if (confirm("Are you sure you want to download: " + image) == true) {;
 		//could put a "preparing download screen here, as it will take quite some time for the large images"
-		window.location.href = "/ui/download_image/{{group_name}}/" + image;
+		window.location.href = "/images/download_image/{{group_name}}/" + image;
 	}
 }
 
