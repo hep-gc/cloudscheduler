@@ -65,7 +65,7 @@ try:
         cfg = yaml.load(db_yaml.yaml)   
         if "condor_machines" in cfg:
             if "collection_interval" in cfg["condor_machines"]:
-                poller_log_file = cfg["condor_machines"]["collection_interval"]
+                collection_interval = cfg["condor_machines"]["collection_interval"]
 
             if "command_sleep_interval" in cfg["condor_machines"]:
                 command_sleep_interval = cfg["condor_machines"]["command_sleep_interval"]
