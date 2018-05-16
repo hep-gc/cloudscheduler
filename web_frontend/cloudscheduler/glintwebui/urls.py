@@ -16,7 +16,7 @@ urlpatterns = [
 #    url(r'^delete_repo/(?P<group_name>.+)/$', views.delete_repo, name='delete_repo'),
     url(r'^save_images/(?P<group_name>.+)/$', views.save_images, name='save_images'),
 #    url(r'^resolve_conflict/(?P<group_name>.+)/(?P<repo_alias>.+)/$',\
-        views.resolve_conflict, name='resolve_conflict'),
+#        views.resolve_conflict, name='resolve_conflict'),
 #    url(r'^manage_users/$', views.manage_users, name='manage_users'),
 #    url(r'^user_settings/$', views.user_settings, name='user_settings'),
 #    url(r'^update_user/$', views.update_user, name='update_user'),
