@@ -13,6 +13,7 @@ from .view_utils import \
     getcsv2User, \
     getSuperUserStatus, \
     lno,  \
+    manage_user_group_lists, \
     qt, \
     render, \
     set_user_groups, \
@@ -27,14 +28,16 @@ from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
 
+# lno: GV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'az09',
-
+        'group_name':          'lowerdash',
+        'username':            'array',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
@@ -99,7 +102,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_DEFAULTS_KEYS, GROUP_KEYS], db_engine, ['csv2_groups', 'csv2_group_defaults'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups', 'csv2_group_defaults'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -112,8 +115,8 @@ def add(request):
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add user_groups.
-        if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(tables, users=fields['username'], groups=fields['group_name'])
+        if 'username' in fields:
+            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
 
@@ -488,7 +491,7 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups','csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
@@ -500,7 +503,7 @@ def update(request):
 
         # Update user groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
 

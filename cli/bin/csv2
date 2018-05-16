@@ -64,7 +64,7 @@ def main(args):
                     'yaml-update':  csv2_group.yaml_update,
                     }
                 ],
-            'my-defaults': [
+            'defaults': [
                 False, # super_user?
                 {
                     'delete':       csv2_settings.delete,

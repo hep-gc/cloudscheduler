@@ -27,13 +27,15 @@ from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
 
+# lno: CV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'az09',
+        'cloud_name':          'lowerdash',
 
         'cores_slider':        'ignore',
         'csrfmiddlewaretoken': 'ignore',
@@ -46,7 +48,7 @@ YAML_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'az09',
+        'cloud_name':          'lowerdash',
         'yaml_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
