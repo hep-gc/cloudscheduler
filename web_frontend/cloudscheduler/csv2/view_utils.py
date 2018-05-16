@@ -479,10 +479,11 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     array      - Multiple numbered input fields to be returned as a list eg: group_name.1,
                  group_name.2, etc. returned as { 'group_name': [ 'val1', 'val2', etc. ]}
-    az09       - Make sure the input value is all lowercase and nummerics (or error).
     boolean    - A value of True or False will be inserted into the out put fields.
     ignore     - The input field is not defined in the tables but can be ignored.
     lowercase  - Make sure the input value is all lowercase (or error).
+    lowerdash  - Make sure the input value is all lowercase, nummerics, and dashes but 
+                 can't start or end with a dash (or error).
     password   - A password value to be checked and hashed
     password1  - A password value to be verified against password2, checked and hashed.
     password2  - A password value to be verified against password1, checked and hashed.
@@ -546,11 +547,11 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         value = request.POST[field]
 
         if field in Formats:
-            if Formats[field] == 'az09':
-                if re.match("^[a-z0-9_-]*$", request.POST[field]):
-                    value = request.POST[field].lower()
+            if Formats[field] == 'lowerdash':
+                if re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                    value = request.POST[field]
                 else:
-                    return 1, 'value specified for "%s" must be all lower case and numeric digits.' % field, None, None, None
+                    return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
 
             if Formats[field] == 'lowercase':
                 value = request.POST[field].lower()

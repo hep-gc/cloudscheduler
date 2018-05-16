@@ -28,13 +28,15 @@ from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
 
+# lno: GV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'az09',
+        'group_name':          'lowerdash',
         'username':            'array',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
