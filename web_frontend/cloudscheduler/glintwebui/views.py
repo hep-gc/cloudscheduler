@@ -292,11 +292,13 @@ def save_images(request, group_name):
 
 
 # this function accepts a post request and updates the hidden status of any images within.
-def save_hidden_images(request, group_name):
+def save_hidden_images(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
     if request.method == 'POST':
         user = getUser(request)
+        if group_name is None:
+            group_name = user.active_group
         # setup database objects
         Base, session = get_db_base_and_session()
         Group_Resources = Base.classes.csv2_group_resources
