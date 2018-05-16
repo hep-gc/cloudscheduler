@@ -16,26 +16,26 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Temporary table structure for view `view_vms_up_down`
+-- Temporary table structure for view `view_user_groups_available`
 --
 
-DROP TABLE IF EXISTS `view_vms_up_down`;
-/*!50001 DROP VIEW IF EXISTS `view_vms_up_down`*/;
+DROP TABLE IF EXISTS `view_user_groups_available`;
+/*!50001 DROP VIEW IF EXISTS `view_user_groups_available`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-/*!50001 CREATE TABLE `view_vms_up_down` (
-  `flavor` tinyint NOT NULL,
-  `VMs_up` tinyint NOT NULL,
-  `VMs_down` tinyint NOT NULL
+/*!50001 CREATE TABLE `view_user_groups_available` (
+  `username` tinyint NOT NULL,
+  `group_name` tinyint NOT NULL,
+  `available` tinyint NOT NULL
 ) ENGINE=MyISAM */;
 SET character_set_client = @saved_cs_client;
 
 --
--- Final view structure for view `view_vms_up_down`
+-- Final view structure for view `view_user_groups_available`
 --
 
-/*!50001 DROP TABLE IF EXISTS `view_vms_up_down`*/;
-/*!50001 DROP VIEW IF EXISTS `view_vms_up_down`*/;
+/*!50001 DROP TABLE IF EXISTS `view_user_groups_available`*/;
+/*!50001 DROP VIEW IF EXISTS `view_user_groups_available`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
@@ -44,7 +44,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `view_vms_up_down` AS select concat(`cv`.`group_name`,':',`cv`.`cloud_name`,':',`cf`.`name`) AS `flavor`,sum(case when (`cv`.`status` = 'ACTIVE' and `cv`.`power_status` = 1 and `cv`.`task` is null) then 1 else 0 end) AS `VMs_up`,sum(case when (`cv`.`status` <> 'ACTIVE' or `cv`.`power_status` <> 1 or `cv`.`task` is not null) then 1 else 0 end) AS `VMs_down` from (`csv2_vms` `cv` join `cloud_flavors` `cf` on(`cv`.`group_name` = `cf`.`group_name` and `cv`.`cloud_name` = `cf`.`cloud_name` and `cv`.`flavor_id` = `cf`.`id`)) */;
+/*!50001 VIEW `view_user_groups_available` AS select `cucg`.`username` AS `username`,`cucg`.`group_name` AS `group_name`,`cug`.`username` AS `available` from (((select `csv2`.`csv2_user`.`username` AS `username`,`csv2`.`csv2_groups`.`group_name` AS `group_name` from (`csv2`.`csv2_user` join `csv2`.`csv2_groups`))) `cucg` left join `csv2`.`csv2_user_groups` `cug` on(`cucg`.`username` = `cug`.`username` and `cucg`.`group_name` = `cug`.`group_name`)) where `cug`.`username` is null */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;

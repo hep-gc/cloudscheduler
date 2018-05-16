@@ -16,19 +16,16 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `cloud_defaults`
+-- Table structure for table `csv2_poll_times`
 --
 
-DROP TABLE IF EXISTS `cloud_defaults`;
+DROP TABLE IF EXISTS `csv2_poll_times`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `cloud_defaults` (
-  `auth_url` varchar(128) NOT NULL,
-  `project` varchar(128) NOT NULL COMMENT 'could hold region for other clouds',
-  `image` text NOT NULL,
-  `flavor` text NOT NULL COMMENT 'Should be an ID or name',
-  `network` text NOT NULL,
-  PRIMARY KEY (`auth_url`,`project`)
+CREATE TABLE `csv2_poll_times` (
+  `process_id` varchar(64) NOT NULL,
+  `last_poll` int(11) DEFAULT NULL,
+  PRIMARY KEY (`process_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -41,4 +38,4 @@ CREATE TABLE `cloud_defaults` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-15 15:11:07
+-- Dump completed on 2018-05-15 15:16:34
