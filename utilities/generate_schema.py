@@ -29,6 +29,14 @@ def main(args):
       - Appends the table footer to _stdout.
       - Writes the table definition to stdout.
     """
+    gvar = {
+        'backup_data': [
+            'csv2_attribute_mapping',
+            'csv2_config',
+            'csv2_cloud_types',
+            ],
+        'cmd_path': os.path.abspath(args[0]),
+        }
 
 
     gvar = {}
