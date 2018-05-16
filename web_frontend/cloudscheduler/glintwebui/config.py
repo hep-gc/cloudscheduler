@@ -25,7 +25,8 @@ if exists("/etc/cloudscheduler/glintv2.yaml"):
 
 elif exists("/opt/cloudscheduler/web_frontend/cloudscheduler/glintv2.yaml"):
     path = "/opt/cloudscheduler/web_frontend/cloudscheduler/glintv2.yaml"
-
+else:
+    path = nopath
 
 try:
     with open(path, 'r') as ymlfile:
