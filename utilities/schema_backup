@@ -8,6 +8,7 @@ from tempfile import mkdtemp
 import os
 import shutil
 import sys
+import yaml
 
 def backup(gvar, table, data=False):
     """
@@ -15,12 +16,15 @@ def backup(gvar, table, data=False):
     and only moved to the permanent directory if the table has changed. Since the backup
     directories are part of a git repository, this procedure reduces the number of commits.
     """
+
+    print(table)
+
     if data:
         backup_cmd = [
             'mysqldump',
-            '-uroot',
-            '-p%s' % gvar['pw'],
-            'csv2',
+            '-u%s' % gvar['csv2_config']['database']['db_user'],
+            '-p%s' % gvar['csv2_config']['database']['db_password'],
+            gvar['csv2_config']['database']['db_name'],
             table
             ]
         schema_backup_dir = \
@@ -28,10 +32,10 @@ def backup(gvar, table, data=False):
     else:
         backup_cmd = [
             'mysqldump',
-            '-uroot',
-            '-p%s' % gvar['pw'],
+            '-u%s' % gvar['csv2_config']['database']['db_user'],
+            '-p%s' % gvar['csv2_config']['database']['db_password'],
             '--no-data',
-            'csv2',
+            gvar['csv2_config']['database']['db_name'],
             table
             ]
         schema_backup_dir = \
@@ -111,48 +115,22 @@ def main(args):
         'cmd_path': os.path.abspath(args[0]),
         }
 
+    fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
+    gvar['csv2_config'] = yaml.load(fd.read())
+    fd.close()
+    
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
     gvar['temp_dir'] = mkdtemp()
-    gvar['secrets_file'] = '/home/crlb/Git/ansible-systems/heprc/staticvms/vars/csv2-dev-secrets.yaml' 
-#       % '/'.join(gvar['path_info'][:gvar['ix']])
-    gvar['vp_file'] = '%s/.pw/staticvms' % '/'.join(gvar['path_info'][:3])
-
-    _p1 = Popen(
-        [
-            'ansible-vault',
-            'view',
-            gvar['secrets_file'],
-            '--vault-password-file',
-            gvar['vp_file']
-            ],
-        stdout=PIPE,
-        stderr=PIPE
-        )
-    _p2 = Popen(
-        [
-            'awk',
-            '/^mariadb_root:/ {print $2}'
-            ],
-        stdin=_p1.stdout,
-        stdout=PIPE,
-        stderr=PIPE
-        )
-    stdout, stderr = _p2.communicate()
-    if stderr != '':
-        print('Failed to retrieve DB password.')
-        exit(1)
-
-    gvar['pw'] = stdout.strip()
 
     _p1 = Popen(
         [
             'mysql',
-            '-uroot',
-            '-p%s' % gvar['pw'],
+            '-u%s' % gvar['csv2_config']['database']['db_user'],
+            '-p%s' % gvar['csv2_config']['database']['db_password'],
             '-e',
             'show tables;',
-            'csv2'
+            gvar['csv2_config']['database']['db_name']
             ],
         stdout=PIPE,
         stderr=PIPE
@@ -170,6 +148,8 @@ def main(args):
     if stderr != '':
         print('Failed to retrieve table list.')
         exit(1)
+
+    print('csv2 schema-backup starting...')
 
     tables = stdout.split()
     for table in tables:
