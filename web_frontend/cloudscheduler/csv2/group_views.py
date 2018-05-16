@@ -115,7 +115,7 @@ def add(request):
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add user_groups.
-        if 'group_name' in fields:
+        if 'username' in fields:
             rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
