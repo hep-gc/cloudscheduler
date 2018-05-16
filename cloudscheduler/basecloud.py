@@ -69,8 +69,8 @@ class BaseCloud(ABC):
 
     def _generate_next_name(self):
         """Generate hostnames and check they're not in use."""
-        name = ''.join([self.group.replace('_', '-').lower(), '-',
-                        self.name.replace('_', '-').lower(), '-',
+        name = ''.join([self.group.replace('_', '-').lower(), '--',
+                        self.name.replace('_', '-').lower(), '--',
                         str(uuid.uuid4().node)])
         for vm in self.vms.values():
             if name == vm.hostname:

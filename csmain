@@ -226,7 +226,7 @@ def check_idle_machines(group):
         else:
             log.debug("Ignoring classad for: %s, flag: %s Inactive for only %s", machine.name, str(machine.condor_off),
                       str(machine.my_current_time - machine.entered_current_state))
-            name_parts = machine.machine.split('-')
+            name_parts = machine.machine.split('--')
             if len(name_parts) >= 2:
                 machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
 
@@ -261,7 +261,7 @@ def check_unregistered_machines(group):
     log.debug("VMs that are unregistered with condor collector:")
     for vm in unregistered_vms:
         try:
-            hostname_split = vm.hostname.split('-')
+            hostname_split = vm.hostname.split('--')
             if len(hostname_split) == 1:
                 continue
             cname = hostname_split[1]
