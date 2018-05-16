@@ -3,7 +3,7 @@ import sys
 import yaml
 
 static_files_root = "/var/www/glintv2/static/"
-cert_auth_bundle_path = "/etc/glintv2/CABundle.crt"
+cert_auth_bundle_path = "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
 log_file_path = "/var/log/glintv2/glintv2.log"
 celery_url = "redis://localhost:6379/0"
 celery_backend = "redis://localhost:6379/"
