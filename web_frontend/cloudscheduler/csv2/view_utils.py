@@ -95,21 +95,16 @@ def manage_user_group_lists(db_connection, tables, groups, users):
 
     from sqlalchemy.sql import select
 
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", groups, users)
-    #db_engine,db_session,db_connection,db_map = db_open()
-    
-    #table_users = tables['csv2_user']
-    #table_groups = tables['csv2_groups']
-    #table_user_groups = tables['csv2_user_groups']
-
     table = tables['csv2_user_groups']
 
-
+    # if there is only one user, make it a list anyway
     if isinstance(users, str):
         user_list = [users]
     else:
         user_list = users
 
+
+    # if there is only one group, make it a list anyway
     if isinstance(groups, str):
         group_list = [groups]
     else:
@@ -144,11 +139,6 @@ def manage_user_group_lists(db_connection, tables, groups, users):
         for group in remove_groups:
             #remove_fields[user]=group
             success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-
-
-        print(">>>>>>>>>>>>>>>>db_group>s>>>>>>>>>>>>>>>>>>", user, db_groups)
-        print(">>>>>>>>>>>>>>>>add_groups>>>>>>>>>>>>>>>>>>", user, add_groups)
-        print(">>>>>>>>>>>>>>>remove_groups>>>>>>>>>>>>>>>>", user, remove_groups)
     
     return 0, 'xxx'
 
