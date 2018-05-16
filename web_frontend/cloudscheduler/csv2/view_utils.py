@@ -217,22 +217,71 @@ def _map_parameter_to_field_values_pw_check(pw1, pw2=None):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_group_lists(tables, group=None, groups=None, user=None, users=None):
+def manage_user_group_lists(tables, groups, users):
+
+    from sqlalchemy.sql import select
+
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", groups, users)
+    db_engine,db_session,db_connection,db_map = db_open()
+    
+    #table_users = tables['csv2_user']
+    #table_groups = tables['csv2_groups']
+    #table_user_groups = tables['csv2_user_groups']
+
+    table = tables['csv2_user_groups']
+
+    if isinstance(users, str):
+        users = [users]
+        print(">>>>>>>>>>>>>>>>list_test>>>>>>>>>>>>>>>>>>", users)
 
 
-    table = tables['csv2_user']
+    for user in users:
 
-    if groups:
-        pass
+        db_groups=[]
         
+        
+        s = select([table]).where(table.c.username==user)
+        user_groups_list = qt(db_connection.execute(s))
+
+        # put all the user's groups in a list
+        for group in user_groups_list:
+            db_groups.append(group['group_name'])
+
+        # group is on the page and not in the db, add it
+        add_groups = [x for x in groups if x not in db_groups]   
+
+        add_fields = {}
+        for group in add_groups:
+            #add_fields[user]=group
+            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+
+        #success,message = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        #success,message = db_execute(db_connection, table.insert().values(add_fields))
 
 
 
+        # group is in the db but not the page, remove it
+        remove_groups = [x for x in db_groups if x not in groups]
+        
+        remove_fields = {}
+        for group in remove_groups:
+            #remove_fields[user]=group
+            success,message = db_execute(db_connection,
+            table.delete((table.c.username==user) & (table.c.group_name==group))
+            )
 
 
 
+        '''
+        success,message = db_execute(db_connection,
+            table.delete( (table.c.username==remove_fields['username']) & (table.c.group_name==remove_fields['group_name']))
+            )
+        '''
 
-
+        print(">>>>>>>>>>>>>>>>db_group>s>>>>>>>>>>>>>>>>>>", user, db_groups)
+        print(">>>>>>>>>>>>>>>>add_groups>>>>>>>>>>>>>>>>>>", user, add_groups)
+        print(">>>>>>>>>>>>>>>remove_groups>>>>>>>>>>>>>>>>", user, remove_groups)
+    
     return 0, 'xxx'
 
 #-------------------------------------------------------------------------------

@@ -111,6 +111,12 @@ def add(request):
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
+        # Add user_groups.
+        if 'group_name' in fields:
+            rc, msg = manage_user_group_lists(tables, users=fields['username'], groups=fields['group_name'])
+        else:
+            rc = 0
+
         # Add the group defaults.
         table = tables['csv2_group_defaults']
         success,message = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
@@ -485,11 +491,19 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('CV23'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
         table = tables['csv2_groups']
         success, message = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
+
+
+        # Update user groups.
+        if 'group_name' in fields:
+            rc, msg = manage_user_group_lists(tables, users=fields['username'], groups=fields['group_name'])
+        else:
+            rc = 0
+
         db_connection.close()
         if success:
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
@@ -525,7 +539,7 @@ def yaml_add(request):
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s group yaml-add %s' % (lno('CV27'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group yaml-add %s' % (lno('GV27'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group yaml file.
         table = tables['csv2_group_yaml']
