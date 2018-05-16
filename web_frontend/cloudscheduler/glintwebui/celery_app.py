@@ -127,7 +127,7 @@ def image_collection(self):
 
             #check if httpd is running
             output = subprocess.check_output(['ps', '-A'])
-            if 'httpd' not in output:
+            if 'httpd' not in str(output):
                 #apache has shut down, time for image collection to do the same
                 logger.info("httpd offile, terminating")
                 term_signal = True
