@@ -12,6 +12,7 @@ from subprocess import Popen, PIPE
 from tempfile import mkdtemp
 import os
 import sys
+import yaml
 
 REMOVE_BRACKETS = str.maketrans('()', '  ')
 
@@ -28,56 +29,29 @@ def main(args):
       - Appends the table footer to _stdout.
       - Writes the table definition to stdout.
     """
-    gvar = {
-        'backup_data': [
-            'csv2_attribute_mapping',
-            'csv2_config',
-            ],
-        'cmd_path': os.path.abspath(args[0]),
-        }
 
+
+    gvar = {}
+
+    fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
+    gvar['csv2_config'] = yaml.load(fd.read())
+    fd.close()
+    
+    gvar['cmd_path'] = os.path.abspath(args[0])
+    gvar['cmd_path_stat'] = os.stat(gvar['cmd_path'])
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
-    gvar['temp_dir'] = mkdtemp()
-    gvar['secrets_file'] = '%s/ansible-systems/heprc/staticvms/vars/csv2-dev-secrets.yaml' \
-        % '/'.join(gvar['path_info'][:gvar['ix']])
-    gvar['vp_file'] = '%s/.pw/staticvms' % '/'.join(gvar['path_info'][:3])
-
-    _p1 = Popen(
-        [
-            'ansible-vault',
-            'view',
-            gvar['secrets_file'],
-            '--vault-password-file',
-            gvar['vp_file']
-            ],
-        stdout=PIPE,
-        stderr=PIPE
-        )
-    _p2 = Popen(
-        [
-            'awk',
-            '/^mariadb_root:/ {print $2}'
-            ],
-        stdin=_p1.stdout,
-        stdout=PIPE,
-        stderr=PIPE
-        )
-    stdout, stderr = _p2.communicate()
-    if _p2.returncode != 0:
-        print('Failed to retrieve DB password.')
-        exit(1)
-
-    gvar['pw'] = stdout.strip().decode('ascii')
+    gvar['schema_path'] = '%s/lib/schema.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+    gvar['fd'] = open(gvar['schema_path'], 'w')
 
     _p1 = Popen(
         [
             'mysql',
-            '-uroot',
-            '-p%s' % gvar['pw'],
+            '-u%s' % gvar['csv2_config']['database']['db_user'],
+            '-p%s' % gvar['csv2_config']['database']['db_password'],
             '-e',
             'show tables;',
-            'csv2'
+            gvar['csv2_config']['database']['db_name']
             ],
         stdout=PIPE,
         stderr=PIPE
@@ -96,10 +70,10 @@ def main(args):
         print('Failed to retrieve table list.')
         exit(1)
 
-    print(
+    gvar['fd'].write(
         "if 'Table' not in locals() and 'Table' not in globals():\n" + \
         "  from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey\n" + \
-        "  metadata = MetaData()\n"
+        "  metadata = MetaData()\n\n"
         )
 
 
@@ -110,11 +84,11 @@ def main(args):
         _p1 = Popen(
             [
                 'mysql',
-                '-uroot',
-                '-p%s' % gvar['pw'],
+                '-u%s' % gvar['csv2_config']['database']['db_user'],
+                '-p%s' % gvar['csv2_config']['database']['db_password'],
                 '-e',
                 'show columns from %s;' % table,
-                'csv2'
+                gvar['csv2_config']['database']['db_name']
                 ],
             stdout=PIPE,
             stderr=PIPE
@@ -168,7 +142,18 @@ def main(args):
                 else:
                     _stdout.append(")\n  )\n")
 
-        print(''.join(_stdout))
+        gvar['fd'].write('%s\n' % ''.join(_stdout))
+
+    gvar['fd'].close()
+
+    _p1 = Popen(
+        [
+            'chown',
+            '%s.%s' % (gvar['cmd_path_stat'].st_uid, gvar['cmd_path_stat'].st_gid),
+            gvar['schema_path']
+            ]
+        )
+    _p1.communicate()
 
 if __name__ == "__main__":
     main(sys.argv)
