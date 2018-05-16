@@ -6,6 +6,11 @@ html, body {
 
 .footer, .push {
     height: 0px; /* .push must be the same height as .footer */
+    background-color: #fffeea;
+}
+.glintfooter {
+    height: 0px; /* .push must be the same height as .footer */
+    background-color: #fffeea;
 }
 .wrapper {
     margin: 5;
