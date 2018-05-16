@@ -29,6 +29,8 @@ from lib.schema import *
 import sqlalchemy.exc
 import datetime
 
+# lno: UV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 GROUP_KEYS = {

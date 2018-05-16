@@ -2,6 +2,8 @@ from django.views.decorators.csrf import requires_csrf_token
 from .view_utils import db_open, getSuperUserStatus, render, set_user_groups
 from lib.schema import *
 
+# lno: SV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
