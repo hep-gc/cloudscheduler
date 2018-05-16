@@ -268,7 +268,6 @@ def status(request, group_name=None):
     # get vm and job counts per cloud
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
     status_list = qt(db_connection.execute(s))
-    print("<<<<<<<<<<<<<<<", status_list)
 
     db_connection.close()
 
