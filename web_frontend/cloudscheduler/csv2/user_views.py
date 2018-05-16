@@ -48,8 +48,8 @@ USER_KEYS = {
         'group_name':          'array',
         'is_superuser':        'boolean',
         'password':            'password',
-        'password1':           'password1',
-        'password2':           'password2',
+        'password.1':           'password1',
+        'password.2':           'password2',
 
         'csrfmiddlewaretoken': 'ignore',
         'username':            'ignore',
@@ -72,8 +72,8 @@ UNPRIVILEGED_USER_KEYS = {
     'format': {
         'username':            'lowercase',
         'password':            'password',
-        'password1':           'password1',
-        'password2':           'password2',
+        'password.1':           'password1',
+        'password.2':           'password2',
 
         'csrfmiddlewaretoken': 'ignore',
         },
@@ -132,7 +132,7 @@ def add(request):
 
         # Add user_groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
 
@@ -441,7 +441,7 @@ def update(request):
 
         # Update user_groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
             rc = 0
 

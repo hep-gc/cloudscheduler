@@ -91,12 +91,12 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_group_lists(tables, groups, users):
+def manage_user_group_lists(db_connection, tables, groups, users):
 
     from sqlalchemy.sql import select
 
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", groups, users)
-    db_engine,db_session,db_connection,db_map = db_open()
+    #db_engine,db_session,db_connection,db_map = db_open()
     
     #table_users = tables['csv2_user']
     #table_groups = tables['csv2_groups']
@@ -104,15 +104,22 @@ def manage_user_group_lists(tables, groups, users):
 
     table = tables['csv2_user_groups']
 
+
     if isinstance(users, str):
-        users = [users]
-        print(">>>>>>>>>>>>>>>>list_test>>>>>>>>>>>>>>>>>>", users)
+        user_list = [users]
+    else:
+        user_list = users
+
+    if isinstance(groups, str):
+        group_list = [groups]
+    else:
+        group_list = groups
 
 
-    for user in users:
+
+    for user in user_list:
 
         db_groups=[]
-        
         
         s = select([table]).where(table.c.username==user)
         user_groups_list = qt(db_connection.execute(s))
@@ -122,35 +129,22 @@ def manage_user_group_lists(tables, groups, users):
             db_groups.append(group['group_name'])
 
         # group is on the page and not in the db, add it
-        add_groups = [x for x in groups if x not in db_groups]   
+        add_groups = [x for x in group_list if x not in db_groups]   
 
         add_fields = {}
         for group in add_groups:
             #add_fields[user]=group
             success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
 
-        #success,message = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
-        #success,message = db_execute(db_connection, table.insert().values(add_fields))
-
-
 
         # group is in the db but not the page, remove it
-        remove_groups = [x for x in db_groups if x not in groups]
+        remove_groups = [x for x in db_groups if x not in group_list]
         
         remove_fields = {}
         for group in remove_groups:
             #remove_fields[user]=group
-            success,message = db_execute(db_connection,
-            table.delete((table.c.username==user) & (table.c.group_name==group))
-            )
+            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
 
-
-
-        '''
-        success,message = db_execute(db_connection,
-            table.delete( (table.c.username==remove_fields['username']) & (table.c.group_name==remove_fields['group_name']))
-            )
-        '''
 
         print(">>>>>>>>>>>>>>>>db_group>s>>>>>>>>>>>>>>>>>>", user, db_groups)
         print(">>>>>>>>>>>>>>>>add_groups>>>>>>>>>>>>>>>>>>", user, add_groups)
