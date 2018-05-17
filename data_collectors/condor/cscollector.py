@@ -276,12 +276,6 @@ def cleanUp():
                 if machine.name not in condor_name_list:
                     #machine is missing from condor, clean it up
                     logging.info("Found machine missing from condor: %s, cleaning up.", machine.name)
-                    # if the classad was marked for retirement update the vm entry
-                    if machine.condor_off >= 1:
-                        #mark relavent VM entry for termination
-                        # can use group_name and Name?
-                        pass #TODO#
-
 
                     machine_dict = machine.__dict__
                     logging.info(machine_dict)
