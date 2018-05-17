@@ -12,7 +12,11 @@
             <li><a href="/cloud/list/">Clouds</a></li>
             <li><a href="/group/list/">Groups</a></li>
             <li><a href="/user/list/">Users</a></li>
-            <li><a href="/images/">Images</a></li>
+            {% if enable_glint %}
+                <li><a href="/images/">Images</a></li>
+            {% else %}
+                <li style="opacity:1"><span title="Edit csv2 webserver config to enable Image management">Images</span></li>
+            {% endif %}
         </div>
         <div class="float-right">
             <li><a>{{ active_user }}</a></li>

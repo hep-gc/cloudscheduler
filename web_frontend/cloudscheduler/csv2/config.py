@@ -8,6 +8,7 @@ db_port = 3306
 db_user = "csv2"
 db_password = ""
 log_file_path = "/var/log/cloudscheduler/csv2_web.log"
+enable_glint = False
 
 if os.path.isfile("/etc/cloudscheduler/cloudscheduler.yaml"):
     path = "/etc/cloudscheduler/cloudscheduler.yaml"
@@ -42,3 +43,12 @@ if "database" in cfg:
 
     if "db_password" in cfg["database"]:
         db_password = cfg["database"]["db_password"]
+
+
+if "general" in cfg:
+    if "log_file_path" in cfg["general"]:
+        log_file_path = cfg["general"]["log_file_path"]
+
+    if "enable_glint" in cfg["general"]:
+        enable_glint = bool(cfg["general"]["enable_glint"])
+

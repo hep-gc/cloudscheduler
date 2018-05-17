@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
+from . import config
 
 from .view_utils import \
     db_execute, \
@@ -400,7 +401,8 @@ def list(
             'available_groups_per_user': available_groups_per_user,
             'current_user': current_user,
             'response_code': response_code,
-            'message': message
+            'message': message,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/users.html', context)

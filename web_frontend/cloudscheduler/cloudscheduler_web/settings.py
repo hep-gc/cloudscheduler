@@ -70,7 +70,6 @@ LOGGING = {
 
 INSTALLED_APPS = [
     'csv2.apps.Csv2Config',
-#    'glintwebui.apps.GlintwebuiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -79,6 +78,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
 ]
+if config.enable_glint:
+    INSTALLED_APPS.append('glintwebui.apps.GlintwebuiConfig')
+
 INTERNAL_IPS = [
     '142.104.60.114',
     '142.104.60.61',

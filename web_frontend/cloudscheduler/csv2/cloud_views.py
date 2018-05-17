@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
+from . import config
 
 from .view_utils import \
     db_execute, \
@@ -241,7 +242,8 @@ def list(
             'yaml_dict': yaml_dict,
             'current_cloud': current_cloud,
             'response_code': response_code,
-            'message': message
+            'message': message,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/clouds.html', context)
@@ -280,6 +282,7 @@ def status(request, group_name=None):
             'status_list': status_list,
             'response_code': 0,
             'message': None,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/status.html', context)
@@ -463,7 +466,8 @@ def yaml_fetch(request, selector=None):
                         'yaml_mime_type': row.mime_type,
                         'yaml_name': row.yaml_name,
                         'response_code': 0,
-                        'message': None
+                        'message': None,
+                        'enable_glint': config.enable_glint
                         }
                 
                     return render(request, 'csv2/clouds.html', context)
@@ -502,7 +506,8 @@ def yaml_list(request):
             'user_groups': user_groups,
             'cloud_yaml_list': cloud_yaml_list,
             'response_code': 0,
-            'message': None
+            'message': None,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/cloud_yaml_list.html', context)

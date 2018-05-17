@@ -1,0 +1,10 @@
+general:
+    clouscheduler_log_file: "/var/log/cloudscheduler/cloudscheduler.log"
+    enable_glint: True
+
+database:
+    db_user: "csv2"
+    db_password: ""
+    db_host: ""
+    db_port: 3306
+    db_name: "csv2"
