@@ -272,7 +272,7 @@ def qt(query, keys=None, prune=[]):
                 for key in keys['primary'][:-1]:
                     add_row, matched_dict_ptr = _qt(add_row, matched_dict_ptr, row, key)
 
-                matched_dict_ptr[row[key]] = []
+                matched_dict_ptr[row[keys['primary'][-1]]] = []
 
             secondary_dict_ptr = secondary_dict
             matched_dict_ptr = matched_dict
