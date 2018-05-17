@@ -48,7 +48,7 @@ USER_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'username':            'lowercase',
-        'group_name':          'array',
+        'group_name':          'ignore',
         'is_superuser':        'boolean',
         'password':            'password',
         'password.1':           'password1',
