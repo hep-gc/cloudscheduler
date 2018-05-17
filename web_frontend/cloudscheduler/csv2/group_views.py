@@ -14,7 +14,7 @@ from .view_utils import \
     getcsv2User, \
     getSuperUserStatus, \
     lno,  \
-    manage_user_group_lists, \
+    manage_group_users, \
     qt, \
     render, \
     set_user_groups, \
@@ -38,7 +38,7 @@ GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'group_name':          'lowerdash',
-        'username':            'array',
+        'username':            'ignore',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
@@ -103,10 +103,10 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups', 'csv2_group_defaults'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups', 'csv2_group_defaults','csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group.
         table = tables['csv2_groups']
@@ -117,9 +117,10 @@ def add(request):
 
         # Add user_groups.
         if 'username' in fields:
-            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
-            rc = 0
+            rc, msg = manage_group_users(db_connection, tables, users=[], groups=fields['group_name'])
+
 
         # Add the group defaults.
         table = tables['csv2_group_defaults']
@@ -505,10 +506,11 @@ def update(request):
 
 
         # Update user groups.
-        if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+        if 'username' in fields:
+            rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
-            rc = 0
+            rc, msg = manage_group_users(db_connection, tables, users=[], groups=fields['group_name'])
+
 
         db_connection.close()
         if success:

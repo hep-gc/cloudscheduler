@@ -17,7 +17,7 @@ write_files:
 
         ## Set this to the group_name using this VM
         group_name = "{{cs_group_name}}"
-        FLAVOR = "{{cs_flavor}}"
+        flavor = "{{cs_flavor}}"
 
         ## Hostname of the central manager.
         # Prefer value contextualized by Cloud Scheduler and then use central_manager
@@ -90,7 +90,7 @@ write_files:
         PREEMPT = False
         KILL = False
 
-        STARTD_ATTRS = COLLECTOR_HOST_STRING group_name FLAVOR
+        STARTD_ATTRS = COLLECTOR_HOST_STRING group_name flavor
 
         HIGHPORT = 50000
         LOWPORT = 40000
