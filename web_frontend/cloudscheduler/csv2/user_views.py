@@ -63,6 +63,7 @@ USER_GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'group_name':          'lowercase',
+        'password':            'password',
         'username':            'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
@@ -137,7 +138,7 @@ def add(request):
         if 'group_name' in fields:
             rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
-            rc = 0
+            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=[])
 
         db_connection.close()
         if rc == 0:
@@ -447,7 +448,7 @@ def update(request):
         if 'group_name' in fields:
             rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
-            rc = 0
+            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=[])
 
         db_connection.close()
         if rc == 0:
