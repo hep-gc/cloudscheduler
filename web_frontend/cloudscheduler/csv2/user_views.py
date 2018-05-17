@@ -14,7 +14,7 @@ from .view_utils import \
     getcsv2User, \
     getSuperUserStatus, \
     lno, \
-    manage_user_group_lists, \
+    manage_user_groups, \
     qt, \
     render, \
     set_user_groups, \
@@ -136,9 +136,9 @@ def add(request):
 
         # Add user_groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_groups(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
-            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=[])
+            rc, msg = manage_user_groups(db_connection, tables, users=fields['username'], groups=[])
 
         db_connection.close()
         if rc == 0:
@@ -446,9 +446,9 @@ def update(request):
 
         # Update user_groups.
         if 'group_name' in fields:
-            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_user_groups(db_connection, tables, users=fields['username'], groups=fields['group_name'])
         else:
-            rc, msg = manage_user_group_lists(db_connection, tables, users=fields['username'], groups=[])
+            rc, msg = manage_user_groups(db_connection, tables, users=fields['username'], groups=[])
 
         db_connection.close()
         if rc == 0:

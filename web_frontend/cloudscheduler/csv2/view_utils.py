@@ -92,7 +92,7 @@ def lno(id, comment=None):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_group_lists(db_connection, tables, groups, users):
+def manage_user_groups(db_connection, tables, groups, users):
 
     from sqlalchemy.sql import select
 
@@ -111,9 +111,11 @@ def manage_user_group_lists(db_connection, tables, groups, users):
     else:
         group_list = groups
 
+    message = "fail"
 
+    if len(user_list)==1:
 
-    for user in user_list:
+        user=user_list[0]
 
         db_groups=[]
         
@@ -125,23 +127,84 @@ def manage_user_group_lists(db_connection, tables, groups, users):
             db_groups.append(group['group_name'])
 
         # group is on the page and not in the db, add it
-        add_groups = [x for x in group_list if x not in db_groups]   
+        add_groups = _list_diff(group_list, db_groups)
 
         add_fields = {}
         for group in add_groups:
-            #add_fields[user]=group
             success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
 
 
         # group is in the db but not the page, remove it
-        remove_groups = [x for x in db_groups if x not in group_list]
+        remove_groups = _list_diff(db_groups, group_list)
+
         
         remove_fields = {}
         for group in remove_groups:
-            #remove_fields[user]=group
             success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-    
-    return 0, 'xxx'
+   
+
+    return 0, message
+
+
+
+def manage_group_users(db_connection, tables, groups, users):
+
+    from sqlalchemy.sql import select
+
+    table = tables['csv2_user_groups']
+
+    # if there is only one user, make it a list anyway
+    if isinstance(users, str):
+        user_list = [users]
+    else:
+        user_list = users
+
+
+    # if there is only one group, make it a list anyway
+    if isinstance(groups, str):
+        group_list = [groups]
+    else:
+        group_list = groups
+
+    message = "fail"
+
+    if len(group_list)==1:
+
+        group=group_list[0]
+
+        db_users=[]
+
+        s = select([table]).where(table.c.group_name==group)
+        user_groups_list = qt(db_connection.execute(s))
+
+        # put all the group users in a list
+        for user in user_groups_list:
+            db_users.append(user['username'])
+
+        # group is on the page and not in the db, add it
+        add_users = _list_diff(user_list, db_users)
+
+        for user in add_users:
+            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+
+
+        # group is in the db but not the page, remove it
+        remove_users = _list_diff(db_users, user_list)
+        
+        for user in remove_users:
+            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+
+
+    return 0, message
+
+
+
+#-------------------------------------------------------------------------------
+
+def _list_diff(list1,list2):
+
+    return [x for x in list1 if x not in list2] 
+
 
 #-------------------------------------------------------------------------------
 

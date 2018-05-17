@@ -105,6 +105,12 @@
                     <td><textarea name="group_yaml" rows="10" cols="30">Enter yaml here</textarea></td></tr>
                     -->
 
+                    <tr class="highlight2"><td><label for="user_groups">Users</label></td><td></td></tr>
+                    {% for user in groups_per_user %}
+                        {{ user.group_name }}
+                            <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" /> {{ user.username }}</td></tr>
+                    {% endfor %}
+
                     <tr><td><input type="submit" value="Add Group" /></td></tr>
 
                 </table>
