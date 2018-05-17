@@ -79,9 +79,10 @@ def getSuperUserStatus(request):
 
 #-------------------------------------------------------------------------------
 
-def lno(id):
+def lno(id, comment=None):
     """
-    This function returns the source file line number of the caller.
+    This function returns the source file line number of the caller. The comment
+    is used to document the unit tests and is not otherwise used.
     """
 
     from inspect import currentframe
