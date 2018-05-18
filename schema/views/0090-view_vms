@@ -34,4 +34,6 @@ on cv.hostname=substring_index(machine, '.', 1)
 left outer join csv2_vm_status_codes as cvsc
 on concat(case when concat(lower(cv.group_name),"-",lower(cv.cloud_name))=substring_index(hostname, '-', 2) then False else True end, ",", power_status, ",", cv.status, ",", case when isnull(condor_off) then 0 else condor_off end)=cvsc.status_from_poller
 
+group by cv.group_name,cv.cloud_name,cv.hostname
+
 ;
