@@ -18,12 +18,13 @@
 </script>
 
 </head>
-<body onpageshow="show_group('{{current_group}}')">
+
+<body class="groups" onpageshow="show_group('{{current_group}}')">
 
 <div class="main-div">
 
     <section class="vertical-menu">
-        <a href="#" class="active">Groups</a>
+        <!--<a href="#" class="active">Groups</a>-->
             {% for group in group_list %}
             <a href="#{{group.group_name}}">{{group.group_name}}</a>
             {% endfor %}

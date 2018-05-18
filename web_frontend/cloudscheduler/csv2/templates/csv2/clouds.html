@@ -17,12 +17,12 @@
 </script>
 
 </head>
-<body onpageshow="show_cloud('{{current_cloud}}')">
+<body class="clouds" onpageshow="show_cloud('{{current_cloud}}')">
 
 <div class="main-div">
 
 <section class="vertical-menu">
-    <a href="#" class="active">Clouds</a>
+    <!--<a href="#" class="active">Clouds</a>-->
         {% for cloud in cloud_list %}
         <a href="#{{cloud.cloud_name}}">{{cloud.cloud_name}}</a>
         {% endfor %}

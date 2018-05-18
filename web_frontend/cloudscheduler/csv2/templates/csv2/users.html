@@ -18,12 +18,12 @@
 </script>
 
 </head>
-<body onpageshow="show_user('{{current_user}}')">
+<body class="users" onpageshow="show_user('{{current_user}}')">
 
 <div class="main-div">
 
     <section class="vertical-menu">
-        <a href="#" class="active">users</a>
+        <!--<a href="#" class="active">users</a>-->
             {% for user in user_list %}
             <a href="#{{user.username}}">{{user.username}}</a>
             {% endfor %}
