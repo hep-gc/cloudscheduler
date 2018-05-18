@@ -205,8 +205,8 @@ def get_unique_image_list(group_name):
     # start by making a list of the keys, using a set will keep them unique
     for repo_key in image_dict:
         for image_id in image_dict[repo_key]:
-            if not image_dict[repo_key][image_id]['hidden']:
-                image_set.add(image_dict[repo_key][image_id]['name'])
+#            if not image_dict[repo_key][image_id]['hidden']:
+            image_set.add(image_dict[repo_key][image_id]['name'])
     return sorted(image_set, key=lambda s: s.lower())
 
 
@@ -610,7 +610,8 @@ def find_image_by_name(group_name, image_name):
     for cloud in image_dict:
         for image in image_dict[cloud]:
             if image_dict[cloud][image]['name'] == image_name:
-                if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
+                #if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
+                if image_dict[cloud][image]['state'] == 'Present':
                     repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
                     return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
                         repo_obj.password, image, image_dict[cloud][image]['checksum'],\
