@@ -156,7 +156,8 @@ def project_details(request, group_name=None, message=None):
         'is_superuser': getSuperUserStatus(request),
         'conflict_dict': conflict_dict,
         'version': version,
-        'num_tx': num_tx
+        'num_tx': num_tx,
+        'enable_glint': True
     }
     return render(request, 'glintwebui/project_details.html', context)
 

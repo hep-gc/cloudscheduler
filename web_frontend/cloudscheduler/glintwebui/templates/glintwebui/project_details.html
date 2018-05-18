@@ -309,17 +309,17 @@ window.onclick = function(event) {
 }, false);
 
 
-
 $('#image_search').keyup(function() {
-	var filter = localStorage.getItem("filter");
-	var $rows = $('.image_row');
-	var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-
-	$rows.show().filter(function() {
-	    var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-	    return !~text.indexOf(val);
-	}).hide();
-
+        var filter = localStorage.getItem("filter");
+        var $rows = $('.image_row');
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        $rows.show().filter(function() {
+            var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+            return !~text.indexOf(val);
+        }).hide();
+        if( localStorage.getItem("public_rows") == "Hidden"){
+            hidePublicRowsFiltered()
+        }
 });
 
 function togglePublicImages(){
@@ -355,6 +355,23 @@ function hidePublicRows(){
         }
     });
 }
+
+
+function hidePublicRowsFiltered(){
+    $('.image_row').filter(":visible").each(function(){
+        if($(this).children().hasClass("public")){
+            $(this).hide();
+        }
+        if($(this).children().hasClass("shared")){
+            $(this).show();
+        }
+        if($(this).children().hasClass("private")){
+            $(this).show();
+        }
+    });
+}
+
+
 
 function submitImageMatrix(){
     document.getElementById("glint_images_form").submit();
