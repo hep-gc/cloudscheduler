@@ -504,7 +504,6 @@ def update(request):
         table = tables['csv2_groups']
         success, message = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
 
-
         # Update user groups.
         if 'username' in fields:
             rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])

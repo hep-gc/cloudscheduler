@@ -531,10 +531,8 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     Possible format strings are:
 
-    array      - Multiple numbered input fields to be returned as a list eg: group_name.1,
-                 group_name.2, etc. returned as { 'group_name': [ 'val1', 'val2', etc. ]}
     boolean    - A value of True or False will be inserted into the out put fields.
-    ignore     - The input field is not defined in the tables but can be ignored.
+    ignore     - Ignore missing mandatory fields or fields for undefined columns.
     lowercase  - Make sure the input value is all lowercase (or error).
     lowerdash  - Make sure the input value is all lowercase, nummerics, and dashes but 
                  can't start or end with a dash (or error).
@@ -542,6 +540,10 @@ def validate_fields(request, fields, db_engine, tables, active_user):
     password1  - A password value to be verified against password2, checked and hashed.
     password2  - A password value to be verified against password1, checked and hashed.
     uppercase  - Make sure the input value is all uppercase (or error).
+
+    POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
+    returning the variable "name" as a list of strings. 
+
     """
 
     from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
@@ -607,7 +609,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 else:
                     return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
 
-            if Formats[field] == 'lowercase':
+            elif Formats[field] == 'lowercase':
                 value = request.POST[field].lower()
                 if request.POST[field] != value:
                     return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
