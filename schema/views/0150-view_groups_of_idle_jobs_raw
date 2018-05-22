@@ -72,8 +72,8 @@ select
   /*
   ** Count the items in each group.
   */
-  case when job_status=1 then count(global_job_id) else 0 end as count,
-  case when job_status=2 then count(global_job_id) else 0 end as running
+  count(global_job_id) as count,
+  (select count(*) from condor_jobs) as total
 
 from view_condor_jobs_group_defaults_applied as vcjgda
 
@@ -82,7 +82,7 @@ left outer join view_available_resources as var on
   request_cpus<=cores and
   request_ram<=ram 
 
-where job_status=1 or job_status=2
+where job_status=1
 
 /*
 ** Define the grouping.
