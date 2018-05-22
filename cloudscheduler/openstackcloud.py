@@ -129,7 +129,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             elif 'default' in instancetype_dict.keys():
                 flavorl = nova.flavors.find(name=instancetype_dict['default'])
             elif flavor:
-                flavorl = nova.flavors.find(name=flavor)
+                flavorl = nova.flavors.find(name=flavor.split(':')[2])
             elif self.default_flavor:
                 flavorl = nova.flavors.find(name=self.default_flavor)
             else:
