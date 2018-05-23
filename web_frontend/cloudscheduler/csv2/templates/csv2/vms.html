@@ -41,36 +41,33 @@
                 <th>Flavor Name</th>
                 <th>Condor Slots</th>
                 <th>Condor Off</th>
-
                 <th>Foreign</th>
-
                 <th>Cores</th>
                 <th>RAM</th>
                 <th>SWAP</th>
                 <th>Disk</th>
                 <th>Ephemeral Disk</th>
             </tr>
-<!--
-            {% for cloud in status_list %}
+
+            {% for vm in vm_list %}
                 <tr>
-                    <td>{{cloud.cloud_name}}</td>
-                    <td>{{cloud.VMs}}</td>
-                    <td>{{cloud.VMs_running}}</td>
-                    <td>{{cloud.VMs_retiring}}</td>
-                    <td>{{cloud.VMs_in_error}}</td>
-                    <td>{{cloud.VMs_other}}</td>
-                    <td>{{cloud.Foreign_VMs}}</td>
-                    <td>{{cloud.Jobs}}</td>
-                    <td>{{cloud.Jobs_s0}}</td>
-                    <td>{{cloud.Jobs_s1}}</td>
-                    <td>{{cloud.Jobs_s2}}</td>
-                    <td>{{cloud.Jobs_s3}}</td>
-                    <td>{{cloud.Jobs_s4}}</td>
-                    <td>{{cloud.Jobs_s5}}</td>
-                    <td>{{cloud.Jobs_s6}}</td>
+                    <td>{{vm.cloud_name}}</td>
+                    <td>{{vm.vmid}}</td>
+                    <td>{{vm.project}}</td>
+                    <td>{{vm.hostname}}</td>
+                    <td>{{vm.status}}</td>
+                    <td>{{vm.flavor_id}}</td>
+                    <td>{{vm.condor_slots}}</td>
+                    <td>{{vm.condor_off}}</td>
+                    <td>{{vm.foreign_vm}}</td>
+                    <td>{{vm.cores}}</td>
+                    <td>{{vm.ram}}</td>
+                    <td>{{vm.swap}}</td>
+                    <td>{{vm.disk}}</td>
+                    <td>{{vm.ephemeral_disk}}</td>
                 </tr>
             {% endfor %}
--->
+
             </tbody>
         </table>
     </div>
