@@ -24,18 +24,15 @@ select
   max_price,
   user_data,
   job_per_core,
-  queue_date,
-
-  /*
-  ** Use group_concat() DB function to create (a list of) flavors.
-  */
-  group_concat(flavor) as flavors,
-
-  count,
-  total
+  min(queue_date),
+  idle,
+  running,
+  completed,
+  held,
+  other
 
 from view_groups_of_idle_jobs_raw
-where job_status=1 and flavor_priority=1
+where flavor_priority=1 and idle > 0
 
 /*
 ** Define the grouping.
