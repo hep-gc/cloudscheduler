@@ -163,7 +163,14 @@ def _requests(gvar, request, form_data={}):
     try:
         response = _r.json()
     except:
-        response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+        if _r.status_code and _r.status_code == 401:   
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
+        elif _r.status_code and _r.status_code == 403:   
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
+        elif _r.status_code:   
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
+        else:
+            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
 
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
