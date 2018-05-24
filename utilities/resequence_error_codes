@@ -27,7 +27,7 @@ def main(argv):
     if len(argv) > 1 and os.path.isfile(argv[1]):
 
         gvar = {}
-        gvar['current_time'] = '%s-%s' % (datetime.datetime.now().date(), str(datetime.datetime.now().time())[:8])
+        gvar['current_time'] = '.%s-%s' % (datetime.datetime.now().date(), str(datetime.datetime.now().time())[:8])
         gvar['cmd_path'] = os.path.abspath(argv[0])
         gvar['file_changes'] = []
         gvar['file_path'] = os.path.abspath(argv[1])
