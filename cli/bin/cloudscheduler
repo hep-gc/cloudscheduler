@@ -16,8 +16,10 @@ import json
 import csv2_cloud
 import csv2_group
 import csv2_help
+import csv2_job
 import csv2_settings
 import csv2_user
+import csv2_vm
 
 DEFAULT_SETTINGS = {
     'server-address': 'https://localhost',
@@ -72,6 +74,12 @@ def main(args):
                     'set':          csv2_settings.set,
                     }
                 ],
+            'job': [
+                False, # super_user?
+                {
+                    'list':         csv2_job.list,
+                    }
+                ],
             'user': [
                 True, # super_user?
                 {
@@ -81,6 +89,12 @@ def main(args):
                     'group-delete': csv2_user.group_delete,
                     'list':         csv2_user.list,
                     'update':       csv2_user.update,
+                    }
+                ],
+            'vm': [
+                False, # super_user?
+                {
+                    'list':         csv2_vm.list,
                     }
                 ]
             },
@@ -124,8 +138,16 @@ def main(args):
             ('-ymt', '--yaml-mime-type', True),
             ('-yn',  '--yaml-name', True),
             ('-vc',  '--vm-cores', True),
+            ('-vco',  '--vm-condor-off', True),
+            ('-vd',  '--vm-disk', True),
+            ('-ved',  '--vm-ephemeral-disk', True),
+            ('-vF',  '--vm-foreign', True),
+            ('-vf',  '--vm-flavor', True),
             ('-vk',  '--vm-keypair', True),
             ('-vr',  '--vm-ram', True),
+            ('-vS',  '--vm-status', True),
+            ('-vs',  '--vm-swap', True),
+            ('-vt',  '--vm-terminate', True),
             ('-xA',  '--expose-API', False),
             ),
         'cookies': dict(),
