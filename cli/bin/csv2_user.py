@@ -206,7 +206,7 @@ def update(gvar):
         gvar,
         ['-un'],
         [],
-        ['-SU', '-ucn', '-upw'],
+        ['-gn', '-SU', '-ucn', '-upw'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
