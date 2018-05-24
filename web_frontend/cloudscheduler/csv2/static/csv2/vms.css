@@ -1,32 +1,43 @@
+.vm div{
+  height: 100%;
+  width: 100%;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  position: fixed;
+}
 
-
-.status th {
+.vm th {
     background-color: #4CAF50;
     color: white;
+    text-align: left;
 }
 
-
-.status table {
+.vm table {
   overflow: hidden;
+  table-layout: fixed;
   border-collapse: collapse;
 }
-.status td:hover {
+
+
+.vm td:hover {
   background-color: red;
   color: white;
 }
 
-.status tr:hover {
+.vm tr:hover {
   background-color: yellow;
 }
 
-.status td, th {
+.vm td {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
   position: relative;
 }
-.status td:hover::after,
-.status th:hover::after {
+
+.vm td:hover::after,
+.vm th:hover::after {
   content: "";
   position: absolute;
   background-color: yellow;
