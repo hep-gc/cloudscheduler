@@ -24,7 +24,7 @@ select
   max_price,
   user_data,
   job_per_core,
-  min(queue_date),
+  queue_date,
   idle,
   running,
   completed,
