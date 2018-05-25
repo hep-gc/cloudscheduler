@@ -25,6 +25,12 @@ select
   user_data,
   job_per_core,
   queue_date,
+
+  /*
+  ** Use group_concat() DB function to create (a list of) flavors.
+  */
+  group_concat(flavor) as flavors,
+
   idle,
   running,
   completed,
