@@ -104,8 +104,8 @@ def main():
                 num_jobs_per_flavor_possible = {}
                 for cloud_match in clouds_matching:
                     cpu = cloud_match.flavor_cores / idle_job.request_cpus
-                    ram = cloud_match.flavor_ram / idle_job.request_memory
-                    disk = cloud_match.flavor_disk / (idle_job.request_storage / 1000000.0) # convert the condor number to Gb
+                    ram = cloud_match.flavor_ram / idle_job.request_ram
+                    disk = cloud_match.flavor_disk / (idle_job.request_disk / 1000000.0) # convert the condor number to Gb
                     jobs_possible = int(min([cpu,ram,disk]))
                     if jobs_possible < 1:
                         jobs_possible = 1
@@ -142,7 +142,7 @@ def main():
                             if cm_group.clouds[cloud_match.cloud_name].enabled:
                                 cm_group.clouds[cloud_match.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
-                                               num=num_vms_to_boot,
+                                               num=int(num_vms_to_boot),
                                                flavor=cloud.flavor, #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
                                                job=idle_job,
                                                template_dict=template_dict)
