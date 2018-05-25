@@ -29,7 +29,7 @@ def resources_producer():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", flavor]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
     sleep_interval = config.collection_interval
     last_poll_time = 0
