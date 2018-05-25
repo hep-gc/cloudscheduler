@@ -31,9 +31,14 @@ try:
         cfg = yaml.load(ymlfile)
 
 except Exception as e:
-    print("Configuration file problem: There was a " \
-          "problem reading %s. Check that it is readable," \
-          "and that it exists. " % path, file=sys.stderr)
+    # Python 3
+    #print("Configuration file problem: There was a " \
+    #      "problem reading %s. Check that it is readable," \
+    #      "and that it exists. " % path, file=sys.stderr)
+    # Python 2
+    print >> sys.stderr, "Configuration file problem: There was a " \
+                         "problem reading %s. Check that it is readable," \
+                         "and that it exists. "
 
 if "database" in cfg:
     if "db_host" in cfg["database"]:
@@ -65,7 +70,7 @@ try:
         cfg = yaml.load(db_yaml.yaml)   
         if "condor_jobs" in cfg:
             if "collection_interval" in cfg["condor_jobs"]:
-                collection_interval = cfg["condor_jobs"]["collection_interval"]
+                poller_log_file = cfg["condor_jobs"]["collection_interval"]
 
             if "command_sleep_interval" in cfg["condor_jobs"]:
                 command_sleep_interval = cfg["condor_jobs"]["command_sleep_interval"]
@@ -80,13 +85,22 @@ try:
                 log_level = cfg["condor_jobs"]["log_level"]       
 
     except yaml.YAMLError:
+        # Python 3
+        #print("Unable to load condor jobs config from yaml blob in database" \
+        #      " Please check the yaml in database and retry", file=sys.stderr)
+        # Python 2
         print >> sys.stderr, "Unable to load condor jobs config from yaml blob in database" \
-                         " Please check the yaml in database and retry"
+                             " Please check the yaml in database and retry"
         sys.exit(1)
 
 
 except Exception as e:
-    print("Unable to connect to the database and extract relevent config," \
-          " please ensure the database parameters are correct and restart csjobs", file=sys.stderr)
-    print(e, file=sys.stderr)
+    # Python 3
+    #print("Unable to connect to the database and extract relevent config," \
+    #      " please ensure the database parameters are correct and restart csjobs", file=sys.stderr)
+    #print(e, file=sys.stderr)
+    # Python 2
+    print >> sys.stderr, "Unable to connect to the database and extract relevent config," \
+                         " please ensure the database parameters are correct and restart csjobs"
+    print >> sys.stderr, e
     sys.exit(1)
