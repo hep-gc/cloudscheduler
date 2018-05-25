@@ -201,6 +201,7 @@ condor_machines = Table('condor_machines', metadata,
   Column('machine', String(256)),
   Column('group_name', String(128)),
   Column('condor_host', String(64)),
+  Column('flavor', String(32)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
   Column('address', String(512)),
@@ -508,7 +509,12 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job', Integer)
+  Column('hold_job', Integer),
+  Column('js_idle', Integer),
+  Column('js_running', Integer),
+  Column('js_completed', Integer),
+  Column('js_held', Integer),
+  Column('js_other', Integer)
   )
 
 view_group_resources = Table('view_group_resources', metadata,
@@ -655,7 +661,11 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('job_per_core', Integer),
   Column('queue_date', Integer),
   Column('flavors', String),
-  Column('count', Integer)
+  Column('idle', Integer),
+  Column('running', Integer),
+  Column('completed', Integer),
+  Column('held', Integer),
+  Column('other', Integer)
   )
 
 view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
@@ -667,7 +677,6 @@ view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
   Column('request_scratch', Integer),
   Column('request_swap', Integer),
   Column('requirements', String(512)),
-  Column('job_status', Integer),
   Column('job_priority', Integer),
   Column('user', String(512)),
   Column('image', String),
@@ -685,7 +694,11 @@ view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
   Column('flavor_scratch', Integer),
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
-  Column('count', Integer)
+  Column('idle', Integer),
+  Column('running', Integer),
+  Column('completed', Integer),
+  Column('held', Integer),
+  Column('other', Integer)
   )
 
 view_groups_with_yaml = Table('view_groups_with_yaml', metadata,
