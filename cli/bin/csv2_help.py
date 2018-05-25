@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE
 import os
 
-def help(gvar, mandatory=None, required=None, options=None):
+def help(gvar, mandatory=None, required=None, options=None, requires_server=True):
     """
     Print long and short help messages.
     """
@@ -10,30 +10,46 @@ def help(gvar, mandatory=None, required=None, options=None):
     # If help requested, display the help for the current command.
     if gvar['user_settings']['help']:
         if not gvar['object']:
-            print('Help requested for "csv2". One of the following objects must be specified:')
+            print('Help requested for "cloudscheduler". One of the following objects must be specified:')
             for obj in sorted(gvar['actions']):
                 if gvar['super_user'] or not gvar['actions'][obj][0]:
                     print('  %s' % obj)
 
         elif gvar['object'] not in gvar['actions']:
-            print('Help requested for "csv2 %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
+            print('Help requested for "cloudscheduler %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
             for obj in sorted(gvar['actions']):
                 if gvar['super_user'] or not gvar['actions'][obj][0]:
                     print('  %s' % obj)
 
         elif not gvar['action']:
-            print('Help requested for "csv2 %s". One of the following actions must be specified:' % gvar['object'])
+            print('Help requested for "cloudscheduler %s". One of the following actions must be specified:' % gvar['object'])
             for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
         elif gvar['action'] not in gvar['actions'][gvar['object']][1]:
-            print('Help requested for "csv2 %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
+            print('Help requested for "cloudscheduler %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
             for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
         else:
+#           if requires_server:
+            if requires_server and 'server-address' not in gvar['user_settings']:
+                print('*')
+                print('* The "cloudscheduler %s %s" command sends requests to a cloudscheduler server and requires the server' % (gvar['object'], gvar['action']))
+                print('* address and your identity (either by user name and password or by grid certificate and key). The following')
+                print('* parameters provide the required information:')
+                print('*   -sa  |  --server-address')
+                print('*   -sC  |  --server-grid-cert')
+                print('*   -sK  |  --server-grid-key')
+                print('*   -spw |  --server-password')
+                print('*   -su  |  --server-user')
+                print('*')
+                print('* These messages are displayed because you have not used the "cloudscheduler defaults set" command to save')
+                print('* the server address and your identity for the server "%s".' % gvar['server'])
+                print('*')
+
             if mandatory:
-                print('Help requested for "csv2 %s %s". The following parameters are mandatory and must be specified on the command line:' % (gvar['object'], gvar['action']))
+                print('Help requested for "cloudscheduler %s %s". The following parameters are mandatory and must be specified on the command line:' % (gvar['object'], gvar['action']))
                 for key in mandatory:
                     print('  %s' % key[1])
 
@@ -41,7 +57,7 @@ def help(gvar, mandatory=None, required=None, options=None):
                 if mandatory:
                     print('A command line or a default value is required for the following parameters:')
                 else:
-                    print('Help requested for "csv2 %s %s". A command line or a default value is required for the following parameters:' % (gvar['object'], gvar['action']))
+                    print('Help requested for "cloudscheduler %s %s". A command line or a default value is required for the following parameters:' % (gvar['object'], gvar['action']))
                 for key in required:
                     print('  %s' % key[1])
 
@@ -49,13 +65,13 @@ def help(gvar, mandatory=None, required=None, options=None):
                 if mandatory or required:
                     print('The following optional parameters may be specified:')
                 else:
-                    print('Help requested for "csv2 %s %s". The following optional parameters may be specified:' % (gvar['object'], gvar['action']))
+                    print('Help requested for "cloudscheduler %s %s". The following optional parameters may be specified:' % (gvar['object'], gvar['action']))
       
                 for key in options:
                     print('  %s' % key[1])
 
-            if not mandatory and not required and not options:
-                print('Help requested for "csv2 %s %s". There are no parameters for this command.' % (gvar['object'], gvar['action']))
+            if not mandatory and not required and not options and not requires_server:
+                print('Help requested for "cloudscheduler %s %s". There are no parameters for this command.' % (gvar['object'], gvar['action']))
 
         print('For more information, use -H.')
 
@@ -66,7 +82,7 @@ def help(gvar, mandatory=None, required=None, options=None):
             _long_help(gvar, 'csv2', 'csv2.1')
 
         elif gvar['object'] not in gvar['actions']:
-            print('Long help requested for "csv2 %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
+            print('Long help requested for "cloudscheduler %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
             for obj in sorted(gvar['actions']):
                 print('  %s' % obj)
 
@@ -74,7 +90,7 @@ def help(gvar, mandatory=None, required=None, options=None):
             _long_help(gvar, 'csv2 %s' % gvar['object'], 'csv2_%s.1' % gvar['object'])
 
         elif gvar['action'] not in gvar['actions'][gvar['object']][1]:
-            print('Long help requested for "csv2 %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
+            print('Long help requested for "cloudscheduler %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
             for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 

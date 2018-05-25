@@ -214,7 +214,7 @@ def main(args):
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
     # Set active_group and super_user.
-    if gvar['object'] == 'settings':
+    if gvar['object'] == 'defaults' or gvar['object'] == 'helpers':
         gvar['active_group'] = '-'
         gvar['super_user'] = False
     else:
