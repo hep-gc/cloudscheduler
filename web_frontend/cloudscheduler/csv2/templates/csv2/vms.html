@@ -21,7 +21,7 @@
 {% endif %}
 
 <div class="main-div">
-    <div class="status">
+    <div class="vm">
         <table>
           <colgroup>
             <col class="grey" />
@@ -48,27 +48,29 @@
                 <th>Disk</th>
                 <th>Ephemeral Disk</th>
             </tr>
+          </thead>
 
+          <tbody>
             {% for vm in vm_list %}
-                <tr>
-                    <td>{{vm.cloud_name}}</td>
-                    <td>{{vm.vmid}}</td>
-                    <td>{{vm.project}}</td>
-                    <td>{{vm.hostname}}</td>
-                    <td>{{vm.status}}</td>
-                    <td>{{vm.flavor_id}}</td>
-                    <td>{{vm.condor_slots}}</td>
-                    <td>{{vm.condor_off}}</td>
-                    <td>{{vm.foreign_vm}}</td>
-                    <td>{{vm.cores}}</td>
-                    <td>{{vm.ram}}</td>
-                    <td>{{vm.swap}}</td>
-                    <td>{{vm.disk}}</td>
-                    <td>{{vm.ephemeral_disk}}</td>
-                </tr>
+              <tr>
+                  <td>{{vm.cloud_name}}</td>
+                  <td>{{vm.vmid}}</td>
+                  <td>{{vm.project}}</td>
+                  <td>{{vm.hostname}}</td>
+                  <td>{{vm.status}}</td>
+                  <td>{{vm.flavor_name}}</td>
+                  <td>{{vm.condor_slots}}</td>
+                  <td>{{vm.condor_off}}</td>
+                  <td>{{vm.foreign_vm}}</td>
+                  <td>{{vm.cores}}</td>
+                  <td>{{vm.ram}}</td>
+                  <td>{{vm.swap}}</td>
+                  <td>{{vm.disk}}</td>
+                  <td>{{vm.ephemeral_disk}}</td>
+              </tr>
             {% endfor %}
 
-            </tbody>
+          </tbody>
         </table>
     </div>
 </div>

@@ -1,4 +1,4 @@
-def check_keys(gvar, mp, rp, op, key_map=None):
+def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
     """
     Modify user settings.
     """
@@ -12,14 +12,14 @@ def check_keys(gvar, mp, rp, op, key_map=None):
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
-            mandatory.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            mandatory.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in rp:
-            required.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            required.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in op or (op == ['*'] and key[0] not in mp + rp):
-            options.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            options.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
 
     # Check if help requested.
-    csv2_help.help(gvar, mandatory=mandatory, required=required,  options=options)
+    csv2_help.help(gvar, mandatory=mandatory, required=required,  options=options, requires_server=requires_server)
 
     # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
     form_data = {}
@@ -163,7 +163,14 @@ def _requests(gvar, request, form_data={}):
     try:
         response = _r.json()
     except:
-        response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+        if _r.status_code and _r.status_code == 401:   
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
+        elif _r.status_code and _r.status_code == 403:   
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
+        elif _r.status_code:   
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
+        else:
+            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
 
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
