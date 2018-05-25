@@ -16,6 +16,7 @@ import json
 import csv2_cloud
 import csv2_group
 import csv2_help
+import csv2_helpers
 import csv2_job
 import csv2_settings
 import csv2_user
@@ -51,6 +52,14 @@ def main(args):
                     'yaml-update':  csv2_cloud.yaml_update,
                     }
                 ],
+            'defaults': [
+                False, # super_user?
+                {
+                    'delete':       csv2_settings.delete,
+                    'list':         csv2_settings.list,
+                    'set':          csv2_settings.set,
+                    }
+                ],
             'group': [
                 True, # super_user?
                 {
@@ -66,12 +75,10 @@ def main(args):
                     'yaml-update':  csv2_group.yaml_update,
                     }
                 ],
-            'defaults': [
+            'helpers': [
                 False, # super_user?
                 {
-                    'delete':       csv2_settings.delete,
-                    'list':         csv2_settings.list,
-                    'set':          csv2_settings.set,
+                    'generate_bash_completion_script': csv2_helpers.generate_bash_completion_script,
                     }
                 ],
             'job': [
