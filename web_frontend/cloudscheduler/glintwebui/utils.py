@@ -78,7 +78,12 @@ def jsonify_image_list(image_list, repo_list):
                 img['visibility'] = image[5]
                 img['checksum'] = image[6]
                 img_dict[image[2]] = img
-                img['hidden'] = bool(img['visibility'] != "private")
+                if img['visibility'] == "private":
+                    img['hidden'] = False
+                elif img['visibility'] == "shared":
+                    img['hidden'] = False
+                else:
+                    img['hidden'] = True
 
         repo_dict[repo.cloud_name] = img_dict
     return json.dumps(repo_dict)
@@ -200,8 +205,8 @@ def get_unique_image_list(group_name):
     # start by making a list of the keys, using a set will keep them unique
     for repo_key in image_dict:
         for image_id in image_dict[repo_key]:
-            if not image_dict[repo_key][image_id]['hidden']:
-                image_set.add(image_dict[repo_key][image_id]['name'])
+#            if not image_dict[repo_key][image_id]['hidden']:
+            image_set.add(image_dict[repo_key][image_id]['name'])
     return sorted(image_set, key=lambda s: s.lower())
 
 
@@ -605,7 +610,8 @@ def find_image_by_name(group_name, image_name):
     for cloud in image_dict:
         for image in image_dict[cloud]:
             if image_dict[cloud][image]['name'] == image_name:
-                if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
+                #if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
+                if image_dict[cloud][image]['state'] == 'Present':
                     repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
                     return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
                         repo_obj.password, image, image_dict[cloud][image]['checksum'],\
@@ -663,7 +669,7 @@ def do_cache_cleanup():
             #check if it is in cache
             file_found = False
             for cached_item in cache_tuple_list:
-                cached_item = literal_eval(cached_item)
+                cached_item = literal_eval(str(cached_item))
                 if path + "/" + f == cached_item[2]:
                     #file in cache, break and go onto next file
                     file_found = True
@@ -682,12 +688,12 @@ def do_cache_cleanup():
     expire_time = config.cache_expire_time
     current_time = int(time.time())
     for cached_item in cache_tuple_list:
-        cached_item = literal_eval(cached_item)
+        cached_item = literal_eval(str(cached_item))
         if not os.path.exists(cached_item[2]):
             #file is missing, remove it from cache
             logger.error("Cached file missing at %s, removing cache entry.", cached_item[2])
             del_cached_image(cached_item)
-        elif (current_time-cached_item[3]) > expire_time:
+        elif (int(current_time-cached_item[3])) > expire_time:
             #item has expired and remove it
             logger.info("Cached image %s has expired, removing from cache.", cached_item[0])
             os.remove(cached_item[2])

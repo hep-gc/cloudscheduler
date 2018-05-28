@@ -91,149 +91,119 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def map_parameter_to_field_values(request, db_engine, query, table_keys, active_user):
-    """
-    This function maps form fields/command arguments to table columns.
-    """
+def manage_user_groups(db_connection, tables, groups, users):
 
-    # Set up to handle table_keys, mandatory: auto_active_group (bolean), primary(list), 
-    # optional: secondary_filter(list), ignore_bad(list), and format(dict).
+    from sqlalchemy.sql import select
 
-    auto_active_group = table_keys['auto_active_group']
-    primary_keys = table_keys['primary']
+    table = tables['csv2_user_groups']
 
-    if 'secondary_filter' in table_keys:
-        secondary_filter = table_keys['secondary_filter']
+    # if there is only one user, make it a list anyway
+    if isinstance(users, str):
+        user_list = [users]
     else:
-        secondary_filter = None
+        user_list = users
 
-    if 'ignore_bad' in table_keys:
-        ignore_bad = table_keys['ignore_bad']
+
+    # if there is only one group, make it a list anyway
+    if isinstance(groups, str):
+        group_list = [groups]
     else:
-        ignore_bad = None
+        group_list = groups
 
-    if 'format' in table_keys:
-        format = table_keys['format']
-    else:
-        format = None
+    message = "fail"
 
-    from sqlalchemy import Table, MetaData
-    from .view_utils import _map_parameter_to_field_values_pw_check
+    if len(user_list)==1:
 
-    metadata = MetaData(bind=db_engine)
-    table = Table(query, metadata, autoload=True)
+        user=user_list[0]
 
-    values = [{}, {}, []]
-    for key in request.POST:
-        rekey = key
-        value = request.POST[key]
-
-        if format and key in format:
-            if format[key] == 'l':
-                value = request.POST[key].lower()
-                if request.POST[key] != value:
-                    return 1, None, 'value specified for "%s" must be all lower case.' % key
-
-            elif format[key] == 'p':
-                rc, value = _map_parameter_to_field_values_pw_check(request.POST[key])
-                if rc != 0:
-                    return 1, None, value
-
-            elif format[key] == 'p1':
-                rekey = '%s2' % key[:-1]
-                pw2 = request.POST.get(rekey)
-                if not pw2:
-                    return 1, None, 'password update received a password but no verify password; both are required.'
-
-                rc, value = _map_parameter_to_field_values_pw_check(request.POST[key],pw2=pw2)
-                if rc != 0:
-                    return 1, None, value
-                rekey = key[:-1]
-
-            elif format[key] == 'p2':
-                rekey = '%s1' % key[:-1]
-                if not request.POST.get(rekey):
-                    return 1, None, 'password update received a verify password but no password; both are required.'
-                rekey = None
-
-            elif format[key] == 'u':
-                value = request.POST[key].upper()
-                if request.POST[key] != value:
-                    return 1, None, 'value specified for "%s" must be all upper case.' % key
-
-        if rekey and rekey in table.c:
-            if key in primary_keys:
-                values[0][rekey] = value
-            else:
-                if not secondary_filter or key in secondary_filter:
-                    if value or not (key in format and format[key][0] == 'p'):
-                        values[1][rekey] = value
-        else:
-            if rekey and key not in ignore_bad:
-                return 1, None, 'request contained a bad parameter "%s".' % key
-
-    if auto_active_group and 'group_name' not in values[0]:
-        values[0]['group_name'] = active_user.active_group
-
-    if format:
-        for key in format:
-            if format[key] == 'b':
-                if request.POST.get(key):
-                    boolean_value = True
-                else:
-                    boolean_value = False
-
-                if key in primary_keys:
-                    values[0][key] = boolean_value
-                else:
-                    values[1][key] = boolean_value
-
-    for key in table.c:
-        values[2].append(key.name)
-
-    return 0, table, values
-
-#-------------------------------------------------------------------------------
-
-def _map_parameter_to_field_values_pw_check(pw1, pw2=None):
-    """
-    Ensure passwords conform to certain standards.
-    """
-    import bcrypt
-
-    if len(pw1) < 6:
-      return 1, 'value specified for a password is less than 6 characters.'
-
-    if len(pw1) < 16:
-      rc =   any(pwx.islower() for pwx in pw1) and any(pwx.isupper() for pwx in pw1) and any(pwx.isnumeric() for pwx in pw1)
-      if not rc:
-        return 1, 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.'
-
-    if pw2 and pw2 != pw1:
-        return 1, 'values specified for passwords do not match.'
-
-
-    return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
-
-#-------------------------------------------------------------------------------
-
-def manage_user_group_lists(tables, group=None, groups=None, user=None, users=None):
-
-
-    table = tables['csv2_user']
-
-    if groups:
-        pass
+        db_groups=[]
         
+        s = select([table]).where(table.c.username==user)
+        user_groups_list = qt(db_connection.execute(s))
+
+        # put all the user's groups in a list
+        for group in user_groups_list:
+            db_groups.append(group['group_name'])
+
+        # group is on the page and not in the db, add it
+        add_groups = _list_diff(group_list, db_groups)
+
+        add_fields = {}
+        for group in add_groups:
+            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+
+
+        # group is in the db but not the page, remove it
+        remove_groups = _list_diff(db_groups, group_list)
+
+        
+        remove_fields = {}
+        for group in remove_groups:
+            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+   
+
+    return 0, message
 
 
 
+def manage_group_users(db_connection, tables, groups, users):
+
+    from sqlalchemy.sql import select
+
+    table = tables['csv2_user_groups']
+
+    # if there is only one user, make it a list anyway
+    if isinstance(users, str):
+        user_list = [users]
+    else:
+        user_list = users
+
+
+    # if there is only one group, make it a list anyway
+    if isinstance(groups, str):
+        group_list = [groups]
+    else:
+        group_list = groups
+
+    message = "fail"
+
+    if len(group_list)==1:
+
+        group=group_list[0]
+
+        db_users=[]
+
+        s = select([table]).where(table.c.group_name==group)
+        user_groups_list = qt(db_connection.execute(s))
+
+        # put all the group users in a list
+        for user in user_groups_list:
+            db_users.append(user['username'])
+
+        # group is on the page and not in the db, add it
+        add_users = _list_diff(user_list, db_users)
+
+        for user in add_users:
+            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+
+
+        # group is in the db but not the page, remove it
+        remove_users = _list_diff(db_users, user_list)
+        
+        for user in remove_users:
+            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+
+
+    return 0, message
 
 
 
+#-------------------------------------------------------------------------------
 
+def _list_diff(list1,list2):
 
-    return 0, 'xxx'
+    return [x for x in list1 if x not in list2] 
+
 
 #-------------------------------------------------------------------------------
 
@@ -364,7 +334,7 @@ def qt(query, keys=None, prune=[]):
                 for key in keys['primary'][:-1]:
                     add_row, matched_dict_ptr = _qt(add_row, matched_dict_ptr, row, key)
 
-                matched_dict_ptr[row[key]] = []
+                matched_dict_ptr[row[keys['primary'][-1]]] = []
 
             secondary_dict_ptr = secondary_dict
             matched_dict_ptr = matched_dict
@@ -560,16 +530,19 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     Possible format strings are:
 
-    array      - Multiple numbered input fields to be returned as a list eg: group_name.1,
-                 group_name.2, etc. returned as { 'group_name': [ 'val1', 'val2', etc. ]}
-    az09       - Make sure the input value is all lowercase and nummerics (or error).
     boolean    - A value of True or False will be inserted into the out put fields.
-    ignore     - The input field is not defined in the tables but can be ignored.
+    ignore     - Ignore missing mandatory fields or fields for undefined columns.
     lowercase  - Make sure the input value is all lowercase (or error).
+    lowerdash  - Make sure the input value is all lowercase, nummerics, and dashes but 
+                 can't start or end with a dash (or error).
     password   - A password value to be checked and hashed
     password1  - A password value to be verified against password2, checked and hashed.
     password2  - A password value to be verified against password1, checked and hashed.
     uppercase  - Make sure the input value is all uppercase (or error).
+
+    POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
+    returning the variable "name" as a list of strings. 
+
     """
 
     from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
@@ -608,6 +581,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
     Formats = {}
     Options = {
         'auto_active_group': False,
+        'auto_active_user': False,
         'unnamed_fields_are_bad': False,
         }
 
@@ -629,13 +603,13 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         value = request.POST[field]
 
         if field in Formats:
-            if Formats[field] == 'az09':
-                if re.match("^[a-z0-9_-]*$", request.POST[field]):
-                    value = request.POST[field].lower()
+            if Formats[field] == 'lowerdash':
+                if re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                    value = request.POST[field]
                 else:
-                    return 1, 'value specified for "%s" must be all lower case and numeric digits.' % field, None, None, None
+                    return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
 
-            if Formats[field] == 'lowercase':
+            elif Formats[field] == 'lowercase':
                 value = request.POST[field].lower()
                 if request.POST[field] != value:
                     return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
@@ -676,7 +650,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 Fields[field_alias] = value
         else: 
             array_field = field.split('.')
-            if array_field[0] in all_columns:
+            if array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0]):
                 if array_field[0] not in Fields:
                     Fields[array_field[0]] = []
                 Fields[array_field[0]].append(value)
@@ -686,6 +660,9 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     if Options['auto_active_group'] and 'group_name' not in Fields:
         Fields['group_name'] = active_user.active_group
+
+    if Options['auto_active_user'] and 'username' not in Fields:
+        Fields['username'] = active_user
 
     for field in primary_key_columns:
         if field not in Fields and not _validate_fields_ignore_field_error(Formats, field):

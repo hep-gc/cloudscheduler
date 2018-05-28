@@ -1,0 +1,79 @@
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/vms.css" %}">
+
+<meta http-equiv="refresh" content="30">
+</head>
+
+<body class="status">
+
+
+{% if err_message is not None %}
+    <p style="color:red;">{{err_message}}</p>
+{% endif %}
+{% if message is not None %}
+    <p style="color:green;">{{message}}</p>
+{% endif %}
+
+<div class="main-div">
+    <div class="vm">
+        <table>
+          <colgroup>
+            <col class="grey" />
+            <col class="red" span="1" />
+            <col class="clear" span="4" />
+            <col class="blue" span="1" />
+            <col class="red" span="1" />
+            <col class="clear" span="7"/>
+          </colgroup>
+          <thead>
+            <tr>
+                <th>Cloud</th>
+                <th>VM ID</th>
+                <th>Project</th>
+                <th>Hostname</th>
+                <th>Status</th>
+                <th>Flavor Name</th>
+                <th>Condor Slots</th>
+                <th>Condor Off</th>
+                <th>Foreign</th>
+                <th>Cores</th>
+                <th>RAM</th>
+                <th>SWAP</th>
+                <th>Disk</th>
+                <th>Ephemeral Disk</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for vm in vm_list %}
+              <tr>
+                  <td>{{vm.cloud_name}}</td>
+                  <td>{{vm.vmid}}</td>
+                  <td>{{vm.project}}</td>
+                  <td>{{vm.hostname}}</td>
+                  <td>{{vm.status}}</td>
+                  <td>{{vm.flavor_name}}</td>
+                  <td>{{vm.condor_slots}}</td>
+                  <td>{{vm.condor_off}}</td>
+                  <td>{{vm.foreign_vm}}</td>
+                  <td>{{vm.cores}}</td>
+                  <td>{{vm.ram}}</td>
+                  <td>{{vm.swap}}</td>
+                  <td>{{vm.disk}}</td>
+                  <td>{{vm.ephemeral_disk}}</td>
+              </tr>
+            {% endfor %}
+
+          </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

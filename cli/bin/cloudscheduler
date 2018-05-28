@@ -14,10 +14,13 @@ import yaml
 import json
 
 import csv2_cloud
+import csv2_defaults
 import csv2_group
 import csv2_help
-import csv2_settings
+import csv2_helpers
+import csv2_job
 import csv2_user
+import csv2_vm
 
 DEFAULT_SETTINGS = {
     'server-address': 'https://localhost',
@@ -49,6 +52,14 @@ def main(args):
                     'yaml-update':  csv2_cloud.yaml_update,
                     }
                 ],
+            'defaults': [
+                False, # super_user?
+                {
+                    'delete':       csv2_defaults.delete,
+                    'list':         csv2_defaults.list,
+                    'set':          csv2_defaults.set,
+                    }
+                ],
             'group': [
                 True, # super_user?
                 {
@@ -64,12 +75,16 @@ def main(args):
                     'yaml-update':  csv2_group.yaml_update,
                     }
                 ],
-            'my-defaults': [
+            'helpers': [
                 False, # super_user?
                 {
-                    'delete':       csv2_settings.delete,
-                    'list':         csv2_settings.list,
-                    'set':          csv2_settings.set,
+                    'generate_bash_completion_script': csv2_helpers.generate_bash_completion_script,
+                    }
+                ],
+            'job': [
+                False, # super_user?
+                {
+                    'list':         csv2_job.list,
                     }
                 ],
             'user': [
@@ -81,6 +96,12 @@ def main(args):
                     'group-delete': csv2_user.group_delete,
                     'list':         csv2_user.list,
                     'update':       csv2_user.update,
+                    }
+                ],
+            'vm': [
+                False, # super_user?
+                {
+                    'list':         csv2_vm.list,
                     }
                 ]
             },
@@ -111,6 +132,7 @@ def main(args):
             ('-s',   '--server', True),
             ('-sa',  '--server-address', True),
             ('-sC',  '--server-grid-cert', True),
+            ('-sel', '--select', True),
             ('-sK',  '--server-grid-key', True),
             ('-spw', '--server-password', True),
             ('-SU',  '--super-user', False),
@@ -124,8 +146,16 @@ def main(args):
             ('-ymt', '--yaml-mime-type', True),
             ('-yn',  '--yaml-name', True),
             ('-vc',  '--vm-cores', True),
+            ('-vco',  '--vm-condor-off', True),
+            ('-vd',  '--vm-disk', True),
+            ('-ved',  '--vm-ephemeral-disk', True),
+            ('-vF',  '--vm-foreign', True),
+            ('-vf',  '--vm-flavor', True),
             ('-vk',  '--vm-keypair', True),
             ('-vr',  '--vm-ram', True),
+            ('-vS',  '--vm-status', True),
+            ('-vs',  '--vm-swap', True),
+            ('-vt',  '--vm-terminate', True),
             ('-xA',  '--expose-API', False),
             ),
         'cookies': dict(),
@@ -185,7 +215,7 @@ def main(args):
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
     # Set active_group and super_user.
-    if gvar['object'] == 'settings':
+    if gvar['object'] == 'defaults' or gvar['object'] == 'helpers':
         gvar['active_group'] = '-'
         gvar['super_user'] = False
     else:

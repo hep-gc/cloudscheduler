@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
+from . import config
 
 from .view_utils import \
     db_execute, \
@@ -27,13 +28,15 @@ from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
 
+# lno: CV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'az09',
+        'cloud_name':          'lowerdash',
 
         'cores_slider':        'ignore',
         'csrfmiddlewaretoken': 'ignore',
@@ -46,7 +49,7 @@ YAML_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'az09',
+        'cloud_name':          'lowerdash',
         'yaml_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
@@ -239,7 +242,8 @@ def list(
             'yaml_dict': yaml_dict,
             'current_cloud': current_cloud,
             'response_code': response_code,
-            'message': message
+            'message': message,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/clouds.html', context)
@@ -268,7 +272,6 @@ def status(request, group_name=None):
     # get vm and job counts per cloud
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
     status_list = qt(db_connection.execute(s))
-    print("<<<<<<<<<<<<<<<", status_list)
 
     db_connection.close()
 
@@ -279,6 +282,7 @@ def status(request, group_name=None):
             'status_list': status_list,
             'response_code': 0,
             'message': None,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/status.html', context)
@@ -462,7 +466,8 @@ def yaml_fetch(request, selector=None):
                         'yaml_mime_type': row.mime_type,
                         'yaml_name': row.yaml_name,
                         'response_code': 0,
-                        'message': None
+                        'message': None,
+                        'enable_glint': config.enable_glint
                         }
                 
                     return render(request, 'csv2/clouds.html', context)
@@ -501,7 +506,8 @@ def yaml_list(request):
             'user_groups': user_groups,
             'cloud_yaml_list': cloud_yaml_list,
             'response_code': 0,
-            'message': None
+            'message': None,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/cloud_yaml_list.html', context)

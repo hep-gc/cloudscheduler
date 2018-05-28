@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from . import views, cloud_views, group_views, settings_views, user_views
+from . import views, cloud_views, group_views, job_views, settings_views, user_views, vm_views
 
 urlpatterns = [
 
@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^group/yaml-list',                   group_views.yaml_list,       name='group-yaml-list'),
     url(r'^group/yaml-update',                 group_views.yaml_update,     name='group-yaml-update'),
 
-#   url(r'^job/list',                          job_views.list,              name='job-list'),
+    url(r'^job/list',                          job_views.list,              name='job-list'),
 #   url(r'^job/modify',                        job_views.modify,            name='job-list'),
 
 #    url(r'^settings/preferences',              settings_views.preferences,  name='settings-preferences'),
@@ -41,9 +41,10 @@ urlpatterns = [
     url(r'^user/group-add',                    user_views.group_add,        name='user-group-add'),
     url(r'^user/group-delete',                 user_views.group_delete,     name='user-group-delete'),
     url(r'^user/list',                         user_views.list,             name='user-list'),
+    url(r'^user/settings',                     user_views.settings,         name='user-settings'),
     url(r'^user/update',                       user_views.update,           name='user-update'),
 
-#   url(r'^vm/list',                           vm_views.list,               name='vm-list'),
+    url(r'^vm/list',                           vm_views.list,               name='vm-list'),
 #   url(r'^vm/modify',                         vm_views.modify,             name='vm-list'),
 
 ]

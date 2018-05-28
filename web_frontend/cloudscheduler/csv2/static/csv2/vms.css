@@ -1,0 +1,63 @@
+.vm div{
+  height: 100%;
+  width: 100%;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  position: fixed;
+}
+
+.vm th {
+    background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+.vm table {
+  overflow: hidden;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+
+.vm td:hover {
+  background-color: red;
+  color: white;
+}
+
+.vm tr:hover {
+  background-color: yellow;
+}
+
+.vm td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.vm td:hover::after,
+.vm th:hover::after {
+  content: "";
+  position: absolute;
+  background-color: yellow;
+  left: 0;
+  top: -5000px;
+  height: 10000px;
+  width: 100%;
+  z-index: -1;
+}
+
+
+
+.grey {
+  background-color: #eee;
+  color: white;
+}
+.red {
+  background-color: rgba(255,0,0,.25);
+}
+.blue {
+  background-color: rgba(0,0,255,.25);
+}
+.clear {}

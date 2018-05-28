@@ -120,7 +120,7 @@ class repo_connector(object):
         file_path = scratch_dir + image_name
         image_file = open(file_path, 'w+')
         for chunk in glance.images.data(image_id):
-            image_file.write(chunk)
+            image_file.write(str(chunk))
 
         return True
 

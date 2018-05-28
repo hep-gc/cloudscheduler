@@ -26,7 +26,7 @@
 	{% if message is not None%}
 		<p style="color:red; font-weight:bold">{{message}}</p>
 	{% endif%}
-	<form method="post" action="/ui/upload_image/{{account_name}}/" enctype="multipart/form-data">
+	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
 	<table style="width: 30%;">
 		<tr id="imagefromfile">
@@ -77,7 +77,7 @@
 			</td>
 		</tr>
 		
-		<tr><td/><td><a href="/ui/"><input type="button" value="Cancel"/></a><button style="float:right" type="submit">Upload</button></td></tr>
+		<tr><td/><td><a href="/images/"><input type="button" value="Cancel"/></a><button style="float:right" type="submit">Upload</button></td></tr>
 	</table>
 	</form>
 

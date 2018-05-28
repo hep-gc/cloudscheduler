@@ -32,7 +32,12 @@ select
   job_per_core,
   entered_current_status,
   q_date,
-  hold_job
+  hold_job,
+  case when job_status=1 then 1 else 0 end as js_idle, 
+  case when job_status=2 then 1 else 0 end as js_running, 
+  case when job_status=4 then 1 else 0 end as js_completed, 
+  case when job_status=5 then 1 else 0 end as js_held, 
+  case when job_status=0 or job_status=3 or job_status=6 then 1 else 0 end as js_other 
 
 from condor_jobs as cj
 

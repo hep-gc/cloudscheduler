@@ -1,4 +1,7 @@
 
+
+/*******************************************/
+
 .float-left {
     float:left;
 }
@@ -28,7 +31,7 @@
   
 .top-nav ul li {
   display:inline-block;
-  padding:0 10px;
+  padding:0 0px;
   }
 
 .top-nav a {
@@ -37,9 +40,23 @@
   font-size:20px;
   line-height: 60px;
   text-decoration:none;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .top-nav a:hover { 
-  background-color: red; 
+  background-color: dimgrey;
+  color:white;
 }
 
+/*******************************************/
+
+.status a.status,
+.clouds a.clouds,
+.groups a.groups,
+.users a.users,
+.images a.images
+{
+  background: green;
+  color:white;
+}

@@ -1,4 +1,4 @@
-def check_keys(gvar, mp, rp, op, key_map=None):
+def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
     """
     Modify user settings.
     """
@@ -12,14 +12,14 @@ def check_keys(gvar, mp, rp, op, key_map=None):
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
-            mandatory.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            mandatory.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in rp:
-            required.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            required.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in op or (op == ['*'] and key[0] not in mp + rp):
-            options.append([key[0], '%-3s | %s' % (key[0], key[1]), key[1][2:]])
+            options.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
 
     # Check if help requested.
-    csv2_help.help(gvar, mandatory=mandatory, required=required,  options=options)
+    csv2_help.help(gvar, mandatory=mandatory, required=required,  options=options, requires_server=requires_server)
 
     # If the current command has mandatory parameters and they have not been specified, issue error messages and exit.
     form_data = {}
@@ -163,7 +163,10 @@ def _requests(gvar, request, form_data={}):
     try:
         response = _r.json()
     except:
-        response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+        if _r.status_code:
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, %s.' % (gvar['server'], _r.status_code, py_requests.status_codes._codes[_r.status_code][0])}
+        else:
+            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
 
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
@@ -236,6 +239,12 @@ def show_table(gvar, queryset, columns, allow_null=True):
 
     import json
 
+    # Check for and initialize column selections.
+    if 'select' in gvar['user_settings']:
+        column_selections = gvar['user_settings']['select'].split(',')
+    else:
+        column_selections = None
+
     # Normalize column definitions.
     _field_names = []
     _column_names = []
@@ -249,6 +258,9 @@ def show_table(gvar, queryset, columns, allow_null=True):
         _w = column.split('/')
         if len(_w) < 2:
           _w.append(_w[0])
+
+        if column_selections and _w[1] not in column_selections:
+            continue
 
         _field_names.append(_w[0])
         _column_names.append(_w[1])

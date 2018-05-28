@@ -10,6 +10,24 @@
 }
 
 
+
+.highlight1 {
+  background-color: lightcyan;
+}
+
+.highlight2 {
+  background-color: whitesmoke;
+}
+
+.highlight3 {
+  background-color: lightgreen;
+}
+
+.highlight4 {
+  background-color: lightpink;
+}
+
+
 .main-div {
   position: relative;
   left:0;
@@ -142,6 +160,3 @@ li:hover {
 .close:hover { background: #00d9ff; }
 
 
-.highlight {
-  background-color: gainsboro;
-}

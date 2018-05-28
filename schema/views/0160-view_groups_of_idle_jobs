@@ -31,10 +31,14 @@ select
   */
   group_concat(flavor) as flavors,
 
-  count
+  idle,
+  running,
+  completed,
+  held,
+  other
 
 from view_groups_of_idle_jobs_raw
-where job_status=1 and flavor_priority=1
+where flavor_priority=1 and idle > 0
 
 /*
 ** Define the grouping.

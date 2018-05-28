@@ -29,7 +29,7 @@ def resources_producer():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "GroupName"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
     sleep_interval = config.collection_interval
     last_poll_time = 0
@@ -276,12 +276,6 @@ def cleanUp():
                 if machine.name not in condor_name_list:
                     #machine is missing from condor, clean it up
                     logging.info("Found machine missing from condor: %s, cleaning up.", machine.name)
-                    # if the classad was marked for retirement update the vm entry
-                    if machine.condor_off >= 1:
-                        #mark relavent VM entry for termination
-                        # can use group_name and Name?
-                        pass #TODO#
-
 
                     machine_dict = machine.__dict__
                     logging.info(machine_dict)

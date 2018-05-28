@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from csv2 import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,12 +31,45 @@ ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev2.heprc.uvic.ca",
                 ]
 
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'formatters': {
+        'simple': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'applogfile': {
+            'level':'INFO',
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': config.log_file_path,
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'glintv2': {
+            'handlers': ['applogfile'],
+            'level': 'INFO',
+        },
+    }
+}
 # Application definition
 
 INSTALLED_APPS = [
     'csv2.apps.Csv2Config',
-#    'glintwebui.apps.GlintwebuiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +78,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
 ]
+if config.enable_glint:
+    INSTALLED_APPS.append('glintwebui.apps.GlintwebuiConfig')
+
 INTERNAL_IPS = [
     '142.104.60.114',
     '142.104.60.61',
@@ -115,9 +152,9 @@ WSGI_APPLICATION = 'cloudscheduler_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': "csv2",
-        'USER': 'csv2',
-        'PASSWORD': 'ZZvw2gDtGN5LL9Kv',
+        'NAME': config.db_name,
+        'USER': config.db_user,
+        'PASSWORD': config.db_password,
 #        'HOST': '127.0.0.1',
 #        'PORT': '3306',
     }
@@ -148,7 +185,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Vancouver'
 
 USE_I18N = True
 
@@ -167,7 +204,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/'
 
-'''
 # Celery variables
 # not sure if it should be json for sure or not yet.
 CELERY_ACCEPT_CONTENT = ['json']
@@ -184,4 +220,3 @@ CELERY_QUEUES = {
 CELERY_ROUTES = {
     'Glintv2.glintv2.tasks.image_collection': {'queue': 'image_collection'},
 }
-'''

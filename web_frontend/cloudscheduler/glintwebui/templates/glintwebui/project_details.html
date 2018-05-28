@@ -5,9 +5,9 @@
     <meta http-equiv="refresh" content="180">
 {% endif %}
 {% load static %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <link rel="stylesheet" href="/static/glintwebui/css/glint_button.css">
 <link rel="stylesheet" href="/static/glintwebui/css/glint_header_footer.css">
 <link rel="stylesheet" href="/static/glintwebui/css/glint_matrix.css">
@@ -15,7 +15,7 @@
 
 <style>
 
-{% load template_utils %}
+{% load glint_template_utils %}
 
 </style>
 </head>
@@ -25,24 +25,23 @@
 <div class="wrapper" style="padding-top:60px">
 <table class="image_matrix" style="border:none">
 <tr>
-    <td class='public' id='public_filter'> Hidden Images </td><td class='private' id='private_filter'>Glint Images</td>
     <td style="background-color: #fffeea; border:none"><b>Image Filter:</b></td>
     <td style="background-color: #fffeea; border:none"> <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Image Name"> </td>
-    <td id="glint_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton" style="height:44px;" type="button" value="Upload Image" onclick="window.location.href='/ui/upload_image/{{group_name}}'">
+    <td id="glint_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton" style="height:44px;" type="button" value="Toggle Public Images" onclick="togglePublicImages()">
+    <td id="glint_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton" style="height:44px;" type="button" value="+Upload Image" onclick="window.location.href='/images/upload_image/{{group_name}}'">
     <input class="button greenbutton" style="height:44px;" type="submit" onclick="submitImageMatrix()" value="Submit Changes" />
     </td>
-    <td id="hidden_matrix_btn" style="background-color: #fffeea; border: none"><input class="button greenbutton"style="height:44px" type="submit" onclick="submitHiddenImageMatrix()" value="Hide/Show Images" /></td>
 </tr>
 </table>
 {% if message is not None%}
 	<p style="color:green; font-weight:bold">{{message}}</p>
 {% endif%}
 
-<div class="image_matrix" id="glint_matrix"><form id="glint_images_form" name="glint_images_form" action="/ui/save_images/{{group_name}}/" method="post">
+<div class="image_matrix" id="glint_matrix"><form id="glint_images_form" name="glint_images_form" action="/images/save_images/{{active_group}}/" method="post">
 	{% csrf_token %}
       <table>
 		<tr>
-			<th>GLINT IMAGES</th>
+			<th>IMAGES</th>
 		{% for repo in image_dict %}
 			<th>{{repo}}</th>
 		{% endfor %}
@@ -77,52 +76,6 @@
 	</table>
 </form></div>
 
-
-<div class="image_matrix" id="hidden_matrix" hidden="True"><form id="hidden_images_form" action="/ui/save_hidden_images/{{group_name}}/" method="post">
-	{% csrf_token %}
-	<table>
-		<tr>
-			<th>HIDDEN IMAGES</th>
-		{% for repo in image_dict %}
-			<th>{{repo}}</th>
-		{% endfor %}
-		</tr>
-		{% comment %}
-			For each image print the image name to begin the row then check the image is
-			in each repo dictionary. If it is display it as checked, otherwise display it
-			as unchecked. Additionally if it is in the dict as a pending transaction 
-			display a note accordingly.
-		{% endcomment %}
-		{% if hidden_image_set is not None %}
-			{% for image in hidden_image_set %}
-				<tr class="image_row"><td> <b>{{image}}</b>  <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/></td>
-				{% for repo_key, repo_value in image_dict.items %}
-					{% with image_id=image_lookup|get_item:repo_key|get_item:image %}
-					{% if repo_value|get_item:image_id is not None %}
-						{% if repo_value|get_item:image_id|get_item:"state" == "Pending Delete" %}
-							<td>Pending Delete<input hidden name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
-						{% elif repo_value|get_item:image_id|get_item:"state" == "Pending Transfer" %}
-							<td>Pending Transfer<input hidden name="{{repo_key}}" type="checkbox" value="{{image}}" checked></td>
-						{% elif repo_value|get_item:image_id|get_item:"hidden" %}
-							<td class='{{repo_value|get_item:image_id|get_item:"visibility"}}'><input name="{{repo_key}}" type="checkbox" value="{{image}}" checked></td>
-						{% else %}
-							<td class='{{repo_value|get_item:image_id|get_item:"visibility"}}'><input name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
-						{% endif %}
-					{% else %}
-						<td class=""><input name="{{repo_key}}" type="checkbox" value="{{image}}"></td>
-					{% endif %}
-					{% endwith %}
-				{% endfor %}
-				</tr>
-			{% endfor %}
-		{% endif %}
-	</table>
-</form></div>
-
-{% if conflict_dict is not none %}
-    <div class="conflictButton"><p style="color:red; font-weight:bold; height:52px">Image conflicts detected, some images may be missing below:<input style="font-size: 16px;margin: 4px 2px;" class="button redbutton" type="button" onclick="showConflicts();" value="View Image Conflicts"/></p></div>
-    <div class="matrixButton" hidden="True"><input class="button greenbutton" type="button" onclick="showImageMatrix();" value="View Image Matrix"/></div>
-{% endif %}
 
 {% if conflict_dict is not none %}
     <table class="conflict_table" hidden="true"> 
@@ -159,9 +112,8 @@
     {% endfor %}
     </table>
 {% endif %}
-
 <div class="push"></div>
-<div class="footer">
+<div class="glintfooter">
 	<footer id="footer" style="text-align:center">
 		<div>
 			&copy; University of Victoria  ||  <a href="https://github.com/hep-gc/Glintv2">Visit GitHub Project <i class="icon-hand-up"></i></a>
@@ -268,7 +220,7 @@ function doAdminDropdown() {
 function downloadImage(image) {
 	if (confirm("Are you sure you want to download: " + image) == true) {;
 		//could put a "preparing download screen here, as it will take quite some time for the large images"
-		window.location.href = "/ui/download_image/{{group_name}}/" + image;
+		window.location.href = "/images/download_image/{{group_name}}/" + image;
 	}
 }
 
@@ -344,21 +296,82 @@ window.onclick = function(event) {
     {% if conflict_dict is none %}
     	showImageMatrix();
     {% endif %}
+    if(localStorage.getItem("public_rows") == null){
+        localStorage.setItem("public_rows", "Hidden");
+        hidePublicRows();
+    }
+    else if(localStorage.getItem("public_rows") == "Hidden"){
+        hidePublicRows();
+    }
+    else{
+        showAllRows();
+    }
 }, false);
 
 
-
 $('#image_search').keyup(function() {
-	var filter = localStorage.getItem("filter");
-	var $rows = $('.image_row');
-	var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-
-	$rows.show().filter(function() {
-	    var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
-	    return !~text.indexOf(val);
-	}).hide();
-
+        var filter = localStorage.getItem("filter");
+        var $rows = $('.image_row');
+        var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+        $rows.show().filter(function() {
+            var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+            return !~text.indexOf(val);
+        }).hide();
+        if( localStorage.getItem("public_rows") == "Hidden"){
+            hidePublicRowsFiltered()
+        }
 });
+
+function togglePublicImages(){
+    var public_rows = localStorage.getItem("public_rows");
+    if( public_rows == "Hidden"){
+        showAllRows()
+        public_rows = "Shown"
+    }
+    else{
+        hidePublicRows()
+        public_rows = "Hidden"
+    }
+    localStorage.setItem("public_rows", public_rows);
+    
+}
+
+function showAllRows(){
+    $('.image_row').each(function(){
+        $(this).show()
+    });
+}
+
+function hidePublicRows(){
+    $('.image_row').each(function(){
+        if($(this).children().hasClass("public")){
+            $(this).hide();
+        }
+        if($(this).children().hasClass("private")){
+            $(this).show();
+        }
+        if($(this).children().hasClass("shared")){
+            $(this).show();
+        }
+    });
+}
+
+
+function hidePublicRowsFiltered(){
+    $('.image_row').filter(":visible").each(function(){
+        if($(this).children().hasClass("public")){
+            $(this).hide();
+        }
+        if($(this).children().hasClass("shared")){
+            $(this).show();
+        }
+        if($(this).children().hasClass("private")){
+            $(this).show();
+        }
+    });
+}
+
+
 
 function submitImageMatrix(){
     document.getElementById("glint_images_form").submit();

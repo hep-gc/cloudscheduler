@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
+from . import config
 
 from .view_utils import \
     db_execute, \
@@ -13,6 +14,7 @@ from .view_utils import \
     getcsv2User, \
     getSuperUserStatus, \
     lno,  \
+    manage_group_users, \
     qt, \
     render, \
     set_user_groups, \
@@ -27,14 +29,16 @@ from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
 
+# lno: GV - error code identifier.
+
 #-------------------------------------------------------------------------------
 
 GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'az09',
-
+        'group_name':          'lowerdash',
+        'username':            'ignore',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
@@ -99,10 +103,10 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_DEFAULTS_KEYS, GROUP_KEYS], db_engine, ['csv2_groups', 'csv2_group_defaults'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups', 'csv2_group_defaults','csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group.
         table = tables['csv2_groups']
@@ -110,6 +114,13 @@ def add(request):
         if not success:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # Add user_groups.
+        if 'username' in fields:
+            rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+        else:
+            rc, msg = manage_group_users(db_connection, tables, users=[], groups=fields['group_name'])
+
 
         # Add the group defaults.
         table = tables['csv2_group_defaults']
@@ -191,7 +202,8 @@ def defaults(request):
             'defaults_list': defaults_list,
 #           'current_group': current_group,
             'response_code': response_code,
-            'message': message
+            'message': message,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/group_defaults.html', context)
@@ -452,7 +464,8 @@ def list(
             'yaml_dict': yaml_dict,
             'current_group': current_group,
             'response_code': response_code,
-            'message': message
+            'message': message,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/groups.html', context)
@@ -482,14 +495,22 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_engine, ['csv2_groups','csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('CV23'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
         table = tables['csv2_groups']
         success, message = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
+
+        # Update user groups.
+        if 'username' in fields:
+            rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+        else:
+            rc, msg = manage_group_users(db_connection, tables, users=[], groups=fields['group_name'])
+
+
         db_connection.close()
         if success:
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
@@ -525,7 +546,7 @@ def yaml_add(request):
         rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s group yaml-add %s' % (lno('CV27'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group yaml-add %s' % (lno('GV27'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group yaml file.
         table = tables['csv2_group_yaml']
@@ -624,7 +645,8 @@ def yaml_fetch(request, selector=None):
                         'yaml_mime_type': row.mime_type,
                         'yaml_name': row.yaml_name,
                         'response_code': 0,
-                        'message': None
+                        'message': None,
+                        'enable_glint': config.enable_glint
                         }
                 
                     return render(request, 'csv2/groups.html', context)
@@ -662,7 +684,8 @@ def yaml_list(request):
             'user_groups': user_groups,
             'group_yaml_list': group_yaml_list,
             'response_code': 0,
-            'message': None
+            'message': None,
+            'enable_glint': config.enable_glint
         }
 
     return render(request, 'csv2/cloud_yaml_list.html', context)
