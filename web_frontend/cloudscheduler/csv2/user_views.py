@@ -1,9 +1,4 @@
-#from django.shortcuts import render, get_object_or_404, redirect
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
-
-from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 from . import config
 
