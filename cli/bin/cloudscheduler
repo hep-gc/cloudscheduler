@@ -132,6 +132,7 @@ def main(args):
             ('-s',   '--server', True),
             ('-sa',  '--server-address', True),
             ('-sC',  '--server-grid-cert', True),
+            ('-sel', '--select', True),
             ('-sK',  '--server-grid-key', True),
             ('-spw', '--server-password', True),
             ('-SU',  '--super-user', False),
