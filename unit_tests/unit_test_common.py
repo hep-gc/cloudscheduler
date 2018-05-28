@@ -3,19 +3,15 @@ def _caller():
     import os
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
-def _execute_selections(gvar, expected_text, expected_values):
+def _execute_selections(gvar, request, expected_text, expected_values):
     from unit_test_common import _caller
     
     gvar['ut_count'] += 1
     if len(gvar['selections']) < 1 or str(gvar['ut_count']) in gvar['selections']:
         return True
     else:
-        if expected_values:
-            print('%03d %s Skipping: %s' % (gvar['ut_count'], _caller(), expected_values))
-        elif expected_text:
-            print('%03d %s Skipping: %s' % (gvar['ut_count'], _caller(), expected_text))
-        else:
-            print('%03d %s Skipping...' % (gvar['ut_count'], _caller()))
+        gvar['ut_skipped'] += 1
+        print('%03d %s Skipping: %s, %s, %s' % (gvar['ut_count'], _caller(), request, expected_text, expected_values))
         return False
    
 def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
@@ -23,7 +19,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
     from subprocess import Popen, PIPE
     from unit_test_common import _caller, _execute_selections
 
-    if _execute_selections(gvar, expected_text, None):
+    if _execute_selections(gvar, cmd, expected_text, None):
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
 
@@ -41,7 +37,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: cmd=%s, expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
+            print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
             print('    return code=%s' % p.returncode)
             print('    error code=%s' % error_code)
             print('    stdout=%s' % str(stdout))
@@ -49,7 +45,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
 
             return 1
         else:
-            print('%03d %s OK: expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), expected_rc, expected_ec, expected_text))
+            print('%03d %s OK: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
             return 0
     else:
         return 0
@@ -62,9 +58,10 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
     from unit_test_common import _caller, _execute_selections, _requests
     
-    if _execute_selections(gvar, expected_text, values):
+    if _execute_selections(gvar, '%s %s' % (request, form_data), expected_text, values):
         if server_user and server_pw:
-           gvar['csrf'] = None
+            gvar['csrf'] = None
+            gvar['cookies'] = None
 
         # Obtain a CSRF as required.
         if form_data and not gvar['csrf']:
@@ -88,7 +85,8 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
         response = _requests(gvar, request, form_data=form_data, server_user=server_user, server_pw=server_pw)
 
         if server_user and server_pw:
-           gvar['csrf'] = None
+            gvar['csrf'] = None
+            gvar['cookies'] = None
 
         failed = False
 
@@ -104,7 +102,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: request=%s, form_data=%s, expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+            print('\n%03d %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
             print('    response code=%s' % response['response_code'])
             print('    error code=%s' % error_code)
             print('    message=%s\n' % response['message'])
@@ -119,17 +117,17 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                             for key in values:
                                 if row[key] != values[key]:
                                     failed = True
-                                    print('\n%03d %s Failed: request=%s, list=%s, filter=%s, values=%s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                    print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
                                     print('    row=%s\n' % row)
 
                 if failed:
                     gvar['ut_failed'] += 1
                     return 1
                 else:
-                    print('%03d %s OK: request=%s, list=%s, filter=%s, values=%s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                    print('%03d %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, list, filter, values))
                     return 0
 
-            print('%03d %s OK: request=%s, expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), request, expected_rc, expected_ec, expected_text))
+            print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
     else:
         return 0
 
@@ -146,10 +144,20 @@ def initialize_csv2_request(gvar, command, selections=None):
     gvar['server'] = 'unit-test'
     gvar['ut_count'] = 0
     gvar['ut_failed'] = 0
+    gvar['ut_skipped'] = 0
     gvar['ut_dir'] = os.path.dirname(os.path.abspath(command))
 
     if selections:
-        gvar['selections'] = selections.split(',')
+        gvar['selections'] = []
+        tmp_selections = selections.split(',')
+        for ix in range(len(tmp_selections)):
+            w = tmp_selections[ix].split('-')
+            if len(w) == 2:
+                for iy in range(int(w[0]), int(w[1])+1):
+                    gvar['selections'].append(str(iy))
+            else:
+                gvar['selections'].append(tmp_selections[ix])
+#       print(gvar['selections'])
     else:
         gvar['selections'] = []
 

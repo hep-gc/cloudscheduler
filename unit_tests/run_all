@@ -24,7 +24,7 @@ def main():
     user_requests.main(gvar)
     user_requests_cleanup.main(gvar)
 
-    print('Test run=%s, failed=%s.' % (gvar['ut_count'], gvar['ut_failed']))
+    print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
     exit(gvar['ut_failed'])
 
 if __name__ == "__main__":
