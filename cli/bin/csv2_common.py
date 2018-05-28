@@ -239,6 +239,12 @@ def show_table(gvar, queryset, columns, allow_null=True):
 
     import json
 
+    # Check for and initialize column selections.
+    if 'select' in gvar['user_settings']:
+        column_selections = gvar['user_settings']['select'].split(',')
+    else:
+        column_selections = None
+
     # Normalize column definitions.
     _field_names = []
     _column_names = []
@@ -252,6 +258,9 @@ def show_table(gvar, queryset, columns, allow_null=True):
         _w = column.split('/')
         if len(_w) < 2:
           _w.append(_w[0])
+
+        if column_selections and _w[1] not in column_selections:
+            continue
 
         _field_names.append(_w[0])
         _column_names.append(_w[1])
