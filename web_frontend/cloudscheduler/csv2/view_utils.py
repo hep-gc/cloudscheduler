@@ -581,6 +581,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
     Formats = {}
     Options = {
         'auto_active_group': False,
+        'auto_active_user': False,
         'unnamed_fields_are_bad': False,
         }
 
@@ -659,6 +660,9 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     if Options['auto_active_group'] and 'group_name' not in Fields:
         Fields['group_name'] = active_user.active_group
+
+    if Options['auto_active_user'] and 'username' not in Fields:
+        Fields['username'] = active_user
 
     for field in primary_key_columns:
         if field not in Fields and not _validate_fields_ignore_field_error(Formats, field):

@@ -1,9 +1,5 @@
-#from django.shortcuts import render, get_object_or_404, redirect
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
-
-from django.contrib.auth.models import User #to get auth_user table
+from django.contrib.auth import update_session_auth_hash
 from .models import user as csv2_user
 from . import config
 
@@ -49,6 +45,7 @@ USER_GROUP_KEYS = {
     }
 
 UNPRIVILEGED_USER_KEYS = {
+    'auto_active_user': True,
     'unnamed_fields_are_bad': True,
     # Named argument formats (anything else is a string).
     'format': {
@@ -237,6 +234,7 @@ def group_add(request):
 
     ### Bad request.
     else:
+ 
         return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV17'), request.method))
 
 #-------------------------------------------------------------------------------
@@ -306,10 +304,10 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        response_code, message, active_user, user_groups = set_user_groups(request, db_session, db_map)
-        if response_code != 0:
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        if rc != 0:
             db_connection.close()
-            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV22'), message)})
+            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV22'), msg)})
 
     # Retrieve the user list but loose the passwords.
     s = select([view_user_groups_and_available_groups])
@@ -386,6 +384,65 @@ def list(
 
 #-------------------------------------------------------------------------------
 
+def settings(request):
+    """
+    Unprivileged update useri (password change).
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    db_engine,db_session,db_connection,db_map = db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    if rc == 0:
+        if request.method == 'POST':
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(request, [UNPRIVILEGED_USER_KEYS], db_engine, ['csv2_user', 'django_session,n'], active_user)
+            if rc == 0:        
+                # Update the user.
+                table = tables['csv2_user']
+                success, message = db_execute(db_connection, table.update().where(table.c.username==fields['username']).values(table_fields(fields, table, columns, 'update')))
+                if success:
+                    update_session_auth_hash(request, getcsv2User(request))
+                    request.session.set_expiry(0)
+                    message = 'user "%s" successfully updated.' % fields['username']
+                else:
+                    message = '%s user update, "%s" failed - %s.' % (lno('UV23'), fields['username'], message)
+
+            else:
+                message='%s user update, %s' % (lno('UV24'), msg)
+
+        ### Bad request.
+        else:
+            message = '%s user update, invalid method "%s" specified.' % (lno('UV25'), request.method)
+
+    else:
+        message='%s %s' % (lno('UV26'), msg)
+
+    db_connection.close()
+
+    if message[:2] != 'UV':
+        response_code = 0
+    else:
+        response_code = 1
+
+    # Render the page.
+    context = {
+            'active_user': active_user,
+            'active_group': active_user.active_group,
+            'user_groups': user_groups,
+            'response_code': response_code,
+            'message': message,
+            'enable_glint': config.enable_glint
+        }
+
+    return render(request, 'csv2/user_settings.html', context)
+
+#-------------------------------------------------------------------------------
+
 def update(request):
     """
     Update a user.
@@ -404,13 +461,13 @@ def update(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV23'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV27'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s user update, %s' % (lno('UV24'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s user update, %s' % (lno('UV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the user.
         table = tables['csv2_user']
@@ -418,7 +475,7 @@ def update(request):
 
         if not success:
             db_connection.close()
-            return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV25'), fields['username'], message), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV29'), fields['username'], message), active_user=active_user, user_groups=user_groups)
 
         # Update user_groups.
         if 'group_name' in fields:
@@ -430,9 +487,9 @@ def update(request):
         if rc == 0:
             return list(request, selector=fields['username'], response_code=0, message='user "%s" successfully updated.' % (fields['username']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group update "%s.%s" failed - %s.' % (lno('UV26'), fields['username'], group_name, msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group update "%s.%s" failed - %s.' % (lno('UV30'), fields['username'], group_name, msg), active_user=active_user, user_groups=user_groups)
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s user update, invalid method "%s" specified.' % (lno('UV27'), request.method))
+        return list(request, response_code=1, message='%s user update, invalid method "%s" specified.' % (lno('UV31'), request.method))
 
