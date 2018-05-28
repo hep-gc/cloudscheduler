@@ -41,6 +41,7 @@ urlpatterns = [
     url(r'^user/group-add',                    user_views.group_add,        name='user-group-add'),
     url(r'^user/group-delete',                 user_views.group_delete,     name='user-group-delete'),
     url(r'^user/list',                         user_views.list,             name='user-list'),
+    url(r'^user/settings',                     user_views.settings,         name='user-settings'),
     url(r'^user/update',                       user_views.update,           name='user-update'),
 
     url(r'^vm/list',                           vm_views.list,               name='vm-list'),
