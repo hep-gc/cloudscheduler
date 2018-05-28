@@ -51,11 +51,12 @@
 
 /*******************************************/
 
-.status a.status,
-.clouds a.clouds,
-.groups a.groups,
-.users a.users,
-.images a.images
+.status-nav a.status-nav,
+.clouds-nav a.clouds-nav,
+.groups-nav a.groups-nav,
+.users-nav a.users-nav,
+.images-nav a.images-nav,
+.vms-nav a.vms-nav
 {
   background: green;
   color:white;
