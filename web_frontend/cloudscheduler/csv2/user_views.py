@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth import update_session_auth_hash
 from .models import user as csv2_user
 from . import config
 
@@ -233,6 +234,7 @@ def group_add(request):
 
     ### Bad request.
     else:
+ 
         return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV17'), request.method))
 
 #-------------------------------------------------------------------------------
@@ -302,10 +304,10 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        response_code, message, active_user, user_groups = set_user_groups(request, db_session, db_map)
-        if response_code != 0:
+        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        if rc != 0:
             db_connection.close()
-            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV22'), message)})
+            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV22'), msg)})
 
     # Retrieve the user list but loose the passwords.
     s = select([view_user_groups_and_available_groups])
@@ -404,6 +406,8 @@ def settings(request):
                 table = tables['csv2_user']
                 success, message = db_execute(db_connection, table.update().where(table.c.username==fields['username']).values(table_fields(fields, table, columns, 'update')))
                 if success:
+                    update_session_auth_hash(request, getcsv2User(request))
+                    request.session.set_expiry(0)
                     message = 'user "%s" successfully updated.' % fields['username']
                 else:
                     message = '%s user update, "%s" failed - %s.' % (lno('UV23'), fields['username'], message)
