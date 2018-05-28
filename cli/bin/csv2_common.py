@@ -163,12 +163,8 @@ def _requests(gvar, request, form_data={}):
     try:
         response = _r.json()
     except:
-        if _r.status_code and _r.status_code == 401:   
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
-        elif _r.status_code and _r.status_code == 403:   
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
-        elif _r.status_code:   
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
+        if _r.status_code:
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, %s.' % (gvar['server'], _r.status_code, py_requests.status_codes._codes[_r.status_code][0])}
         else:
             response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
 
