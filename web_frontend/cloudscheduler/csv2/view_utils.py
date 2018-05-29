@@ -671,7 +671,10 @@ def validate_fields(request, fields, db_engine, tables, active_user):
     for field in Formats:
         if Formats[field] == 'boolean':
             if request.POST.get(field):
-                Fields[field] = True
+                if request.POST[field] == 'invalid-unit-test':
+                    Fields[field] = 'invalid-unit-test'
+                else:
+                    Fields[field] = True
             else:
                 Fields[field] = False
 
