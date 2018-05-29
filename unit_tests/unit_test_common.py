@@ -291,6 +291,10 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
 
     return response
 
+def ut_id(gvar, IDs):
+    ids = IDs.split(',')
+    return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
+
 def main():
     return
 
