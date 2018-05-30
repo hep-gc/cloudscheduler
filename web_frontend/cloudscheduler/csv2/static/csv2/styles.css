@@ -1,4 +1,6 @@
 
+/*----------footer bar to hold status----------*/
+
 .footer {
   position: absolute;
   right: 0;
@@ -9,7 +11,7 @@
   text-align: center;
 }
 
-
+/*----------different highligh colours----------*/
 
 .highlight1 {
   background-color: lightcyan;
@@ -28,13 +30,15 @@
 }
 
 
+/*----------main div containing page----------*/
+
+
 .main-div {
   position: relative;
   left:0;
   top: 60px;
   margin: 0px 0;
 }
-
 
 .main-div table, th, td {
     border: none;
@@ -49,64 +53,52 @@
        float:left;
 }
 
+/*----------vertical menu and contents----------*/
 
-.vertical-menu {
-    top: 50px;
-    width: 200px; /* Set a width if you like */
+.menu {
+  min-height: 7em;    /* No height: can grow if :target doesn't work */
+  line-height: 1;   /* Easier to calculate with */
+  z-index: 0;     /* So that we can put other things behind */
+  width: 200px; /* Set a width if you like */
+  position: fixed;
+  overflow: auto;
 }
+.menu > div {
+  display: block;
 
-.vertical-menu a {
-    background-color: #eee; /* Grey background color */
-    color: black; /* Black text color */
-    display: block; /* Make the links appear below each other */
-    padding: 12px; /* Add some padding */
-    text-decoration: none; /* Remove underline from links */
 }
-
-.vertical-menu a:hover {
-    background-color: red; /* Dark grey background on mouse-over */
+.menu > div:not(:target) > a {
+  background-color: whitesmoke; /* Grey background color */
+  color: black; /* Black text color */
+  display: block; /* Make the links appear below each other */
+  padding: 12px; /* Add some padding */
+  text-decoration: none; /* Remove underline from links */
 }
+.menu > div:target > a,  /* Apply to the targeted item or... */
+:target #default2 > a {   /* ... to the default item */
+  background-color: green; /* Grey background color */
+  color: white; /* Black text color */
+  display: block; /* Make the links appear below each other */
+  padding: 12px; /* Add some padding */
+  text-decoration: none; /* Remove underline from links */
 
-.vertical-menu a.active {
-    background-color: #4CAF50; /* Add a green color to the "active/current" link */
-    color: white;
 }
-
-.vertical-menu a.add {
-    background-color: #4CAF50; /* Add a green color to the "active/current" link */
-    color: white;
+.menu > div > div.menu-target {
+  position: fixed;
+  left: 220px;
+  top: 70px;
+  bottom:20px;
+  overflow: auto;
 }
-
-
-li:hover {
-    color: red;
-}
-.target > div {
+.menu > div:not(:target) > div.menu-target { /* Protect CSS1 & CSS2 browsers */
     display:none;
 }
-
-.target > div:target{
-    display:block;
-    background: white;
+.menu > div:target > div, :target #default2 > div.menu-target {
+  display:block;
+  background: white;
 }
 
-:target {
-  animation: highlight 1s ease;  
-  transform: translateX(0px);     
-}
-@keyframes highlight {
-  0% { border-left-color: red; }
-  100% { border-left-color: white; }
-}
-.target > div {
-    float: right;
-    border-left: 10px solid white;
-    padding: 0px;
-    transition: all 0.5s ease;     
-    padding-right: 50px;
-    margin-left: 0px;    
-}
-
+/*----------Popup dialog box----------*/
 
 .modalDialog {
     position: fixed;
@@ -158,5 +150,4 @@ li:hover {
 }
 
 .close:hover { background: #00d9ff; }
-
 

@@ -5,18 +5,18 @@
 {% endblock %}
 
 <head>
-{% load template_utils %}
-{% load static %}
-<!--<link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">-->
-<link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
+    {% load template_utils %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
 
-<script type="text/javascript">
-    function show_group(group_name){
-        if (group_name.length > 0) {
-            document.location.hash = group_name;
+    <script type="text/javascript">
+        function show_group(group_name){
+            if (group_name.length > 0) {
+                document.location.hash = group_name;
+            }
         }
-    }
-</script>
+    </script>
 
 </head>
 
@@ -27,7 +27,7 @@
     {% for group in group_list %}
         <div id="{{group.group_name}}"> <a href="#{{group.group_name}}">{{group.group_name}}</a>
             
-            <div>
+            <div class="menu-target">
                 <form name="{{group.group_name}}" action="/group/update/" method="post">
                     {% csrf_token %}
                     <table>
@@ -57,7 +57,7 @@
         </div>
     {% endfor %}
         <div id="add-group"> <a href="#add-group">+</a>
-            <div>
+            <div class="menu-target">
                 <form name="add_group" action="/group/add/" method="post">
                     {% csrf_token %}
                     <table>
