@@ -110,23 +110,23 @@ def add(request):
 
         # Add the group.
         table = tables['csv2_groups']
-        success,message = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
-        if not success:
+        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add user_groups.
         if 'username' in fields:
-            rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
         else:
-            rc, msg = manage_group_users(db_connection, tables, users=[], groups=fields['group_name'])
+            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], [])
 
 
         # Add the group defaults.
         table = tables['csv2_group_defaults']
-        success,message = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
         db_connection.close()
-        if success:
+        if rc == 0:
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully added.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults add "%s" failed - %s.' % (lno('GV03'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
@@ -158,8 +158,8 @@ def defaults(request):
                 if rc == 0:        
                     # Update the group defaults.
                     table = tables['csv2_group_defaults']
-                    success, message = db_execute(db_connection, table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
-                    if success:
+                    rc, msg = db_execute(db_connection, table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
+                    if rc == 0:
                         message='group defaults "%s" successfully updated.' % (active_user.active_group)
                     else:
                         message='%s group defaults update "%s" failed - %s.' % (lno('GV05'), active_user.active_group, message)
@@ -261,117 +261,117 @@ def delete(request):
                 table = tables['csv2_group_yaml']
                 for yaml_name in yaml_names:
                     # Delete the groupYAML file.
-                    success, message = db_execute(
+                    rc, msg = db_execute(
                         db_connection,
                         table.delete((table.c.group_name==fields['group_name']) & (table.c.yaml_name==yaml_name))
                         )
-                    if not success:
+                    if rc != 0:
                         db_connection.close()
                         return list(request, selector=fields['group_name'], response_code=1, message='%s group YAML file delete "%s::%s" failed - %s.' % (lno('GV10'), fields['group_name'], yaml_name, message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group defaults.
         table = tables['csv2_group_defaults']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV11'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
         # Delete the csv2_group_resources.
         table = tables['csv2_group_resources']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV12'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
         # Delete the csv2_group_resource_yaml.
         table = tables['csv2_group_resource_yaml']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_user_groups.
         table = tables['csv2_user_groups']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_vms.
         table = tables['csv2_vms']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_limits.
         table = tables['cloud_limits']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_images.
         table = tables['cloud_images']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_flavors.
         table = tables['cloud_flavors']
-        success, message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        if not success:
+        if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV19'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV19'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group.
         table = tables['csv2_groups']
-        success,message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete(table.c.group_name==fields['group_name'])
             )
         db_connection.close()
-        if success:
+        if rc == 0:
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group delete "%s" failed - %s.' % (lno('GV20'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group delete "%s" failed - %s.' % (lno('GV20'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -502,20 +502,20 @@ def update(request):
 
         # Update the group.
         table = tables['csv2_groups']
-        success, message = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
+        rc, msg = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
 
         # Update user groups.
         if 'username' in fields:
-            rc, msg = manage_group_users(db_connection, tables, users=fields['username'], groups=fields['group_name'])
+            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
         else:
-            rc, msg = manage_group_users(db_connection, tables, users=[], groups=fields['group_name'])
+            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], [])
 
 
         db_connection.close()
-        if success:
+        if rc == 0:
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV24'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV24'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -550,12 +550,12 @@ def yaml_add(request):
 
         # Add the group yaml file.
         table = tables['csv2_group_yaml']
-        success,message = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
         db_connection.close()
-        if success:
+        if rc == 0:
             return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s::%s" successfully added.' % (active_user.active_group, fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-add "%s::%s" failed - %s.' % (lno('GV28'), active_user.active_group, fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-add "%s::%s" failed - %s.' % (lno('GV28'), active_user.active_group, fields['yaml_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -593,7 +593,7 @@ def yaml_delete(request):
 
         # Delete the group yaml file.
         table = tables['csv2_group_yaml']
-        success,message = db_execute(
+        rc, msg = db_execute(
             db_connection,
             table.delete( \
                 (table.c.group_name==active_user.active_group) & \
@@ -601,10 +601,10 @@ def yaml_delete(request):
                 )
             )
         db_connection.close()
-        if success:
+        if rc == 0:
             return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s::%s" successfully deleted.' % (active_user.active_group, fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-delete "%s::%s" failed - %s.' % (lno('GV33'), active_user.active_group, fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-delete "%s::%s" failed - %s.' % (lno('GV33'), active_user.active_group, fields['yaml_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -720,15 +720,15 @@ def yaml_update(request):
 
         # Update the group yaml file.
         table = tables['csv2_group_yaml']
-        success,message = db_execute(db_connection, table.update().where( \
+        rc, msg = db_execute(db_connection, table.update().where( \
             (table.c.group_name==active_user.active_group) & \
             (table.c.yaml_name==fields['yaml_name']) \
             ).values(table_fields(fields, table, columns, 'update')))
         db_connection.close()
-        if success:
+        if rc == 0:
             return list(request, selector=active_user.active_group, response_code=0, message='group YAML file "%s::%s" successfully  updated.' % (active_user.active_group, fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-update "%s::%s" failed - %s.' % (lno('GV39'), active_user.active_group, fields['yaml_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=active_user.active_group, response_code=1, message='%s group yaml-update "%s::%s" failed - %s.' % (lno('GV39'), active_user.active_group, fields['yaml_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
