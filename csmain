@@ -118,9 +118,12 @@ def main():
                 for flavor in num_jobs_per_flavor_possible.keys():
                     (group, cloud_name, flavor_name) = flavor.split(':')
                     runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]
+                log.debug("Runnable_job_count before: %s", runnable_job_count)
                 runnable_job_count -= idle_job.running # Subtract the already running jobs
                 runnable_job_count -= idle_job.idle # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
-                if runnable_job_count < 0: # Need more VMs - try to boot stuff
+                log.debug("Runnable_job_count after: %s", runnable_job_count)
+                log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
+                if runnable_job_count <= 0: # Need more VMs - try to boot stuff
                     clouds_matching = session.query(view_available_resources).filter(
                         view_available_resources.c.flavor.in_(flavor_list),
                         view_available_resources.c.cloud_name.in_(target_cloud_list))
