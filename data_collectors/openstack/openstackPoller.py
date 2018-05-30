@@ -696,6 +696,28 @@ def vmCleanUp():
             time.sleep(config.vm_cleanup_interval)
             continue
         db_session = Session(engine)
+        
+        # Check for VMs that have had their group resources removed
+        # logic here is non trivial, since it is a combined key we cant do the filter based on either one at a time 
+        # to reduce a ton of database queries we will just take the entire list of vms at once and check them here
+        group_resources = db_session.query(Cloud)
+        group_resources_keys = []
+        for gr in group_resources:
+            group_resources_keys.append((gr.group_name, gr.cloud_name))
+        all_vms = db_session.query(Vm)
+        for vm in all_vms:
+            del_flag = True
+            for key_pair in group_resources_keys:
+                if vm.group_name == key_pair[0] and vm.cloud_name == key_pair[1]:
+                    # then this vm is fine lets break
+                    del_flag = False
+                    break
+            if del_flag and group_resources_keys:
+                logging.info("Found VM with no group_resources, removing  %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
+                db_session.delete(vm)
+        db_session.commit()
+
+
 
         # check for vms that have been marked for termination
         logging.debug("Querying database for VMs marked for termination...")
@@ -706,7 +728,6 @@ def vmCleanUp():
             # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
             logging.info("Getting cloud connection info from group resources..")
             cloud = db_session.query(Cloud).filter(
-                Cloud.group_name == vm.group_name,
                 Cloud.cloud_name == vm.cloud_name).first()
             authsplit = cloud.authurl.split('/')
             try:
