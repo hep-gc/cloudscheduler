@@ -6,20 +6,23 @@ UTILITY FUNCTIONS
 '''
 #-------------------------------------------------------------------------------
 
-def db_execute(db_connection, request):
+def db_execute(db_connection, request, allow_no_rows=True):
     """
     Execute a DB request and return the response. Also, trap and return errors.
     """
 
+    from sqlalchemy.engine.result import ResultProxy
     import sqlalchemy.exc
 
     try:
-        db_connection.execute(request)
-        return True,None
+        result_proxy = db_connection.execute(request)
+        if result_proxy.rowcount == 0 and not allow_no_rows:
+            return 1, 'the request did not match any rows'
+        return 0, None
     except sqlalchemy.exc.IntegrityError as ex:
-        return False, ex.orig
+        return 1, ex.orig
     except Exception as ex:
-        return False, ex
+        return 1, ex
 
 #-------------------------------------------------------------------------------
 
@@ -91,7 +94,12 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_groups(db_connection, tables, groups, users):
+def manage_group_users(db_connection, tables, group, users):
+    """
+    Ensure all the specified users and only the specified users are
+    members of the specified group. The specified group and users
+    have all been pre-verified.
+    """
 
     from sqlalchemy.sql import select
 
@@ -103,107 +111,144 @@ def manage_user_groups(db_connection, tables, groups, users):
     else:
         user_list = users
 
+    # Retrieve the list of users already in the group.
+    db_users=[]
 
-    # if there is only one group, make it a list anyway
-    if isinstance(groups, str):
-        group_list = [groups]
-    else:
-        group_list = groups
+    s = select([table]).where(table.c.group_name==group)
+    user_groups_list = qt(db_connection.execute(s))
 
-    message = "fail"
+    for row in user_groups_list:
+        db_users.append(row['username'])
 
-    if len(user_list)==1:
+    # Get the list of users specified that are not already in the group.
+    add_users = _manage_user_group_list_diff(user_list, db_users)
 
-        user=user_list[0]
-
-        db_groups=[]
-        
-        s = select([table]).where(table.c.username==user)
-        user_groups_list = qt(db_connection.execute(s))
-
-        # put all the user's groups in a list
-        for group in user_groups_list:
-            db_groups.append(group['group_name'])
-
-        # group is on the page and not in the db, add it
-        add_groups = _list_diff(group_list, db_groups)
-
-        add_fields = {}
-        for group in add_groups:
-            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+    # Add the missing users.
+    for user in add_users:
+        rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+        if rc != 0:
+            return 1, msg
 
 
-        # group is in the db but not the page, remove it
-        remove_groups = _list_diff(db_groups, group_list)
-
-        
-        remove_fields = {}
-        for group in remove_groups:
-            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-   
-
-    return 0, message
-
-
-
-def manage_group_users(db_connection, tables, groups, users):
-
-    from sqlalchemy.sql import select
-
-    table = tables['csv2_user_groups']
-
-    # if there is only one user, make it a list anyway
-    if isinstance(users, str):
-        user_list = [users]
-    else:
-        user_list = users
-
-
-    # if there is only one group, make it a list anyway
-    if isinstance(groups, str):
-        group_list = [groups]
-    else:
-        group_list = groups
-
-    message = "fail"
-
-    if len(group_list)==1:
-
-        group=group_list[0]
-
-        db_users=[]
-
-        s = select([table]).where(table.c.group_name==group)
-        user_groups_list = qt(db_connection.execute(s))
-
-        # put all the group users in a list
-        for user in user_groups_list:
-            db_users.append(user['username'])
-
-        # group is on the page and not in the db, add it
-        add_users = _list_diff(user_list, db_users)
-
-        for user in add_users:
-            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
-
-
-        # group is in the db but not the page, remove it
-        remove_users = _list_diff(db_users, user_list)
-        
-        for user in remove_users:
-            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-
-
-    return 0, message
-
-
+    # Get a list of users not specified that are already in the group.
+    remove_users = _manage_user_group_list_diff(db_users, user_list)
+    
+    # Remove the extraneous users.
+    for user in remove_users:
+        rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+        if rc != 0:
+            return 1, msg
+    return 0, None
 
 #-------------------------------------------------------------------------------
 
-def _list_diff(list1,list2):
+def manage_user_groups(db_connection, tables, user, groups):
+    """
+    Ensure all the specified groups and only the specified groups are
+    have the specified user as a member. The specified user and groups
+    have all been pre-verified.
+    """
+
+    from sqlalchemy.sql import select
+
+    table = tables['csv2_user_groups']
+
+    # if there is only one group, make it a list anyway
+    if isinstance(groups, str):
+        group_list = [groups]
+    else:
+        group_list = groups
+
+    # Retrieve the list of groups the user already has.
+    db_groups=[]
+    
+    s = select([table]).where(table.c.username==user)
+    user_groups_list = qt(db_connection.execute(s))
+
+    for row in user_groups_list:
+        db_groups.append(row['group_name'])
+
+    # Get the list of groups specified that the user doesn't already have.
+    add_groups = _manage_user_group_list_diff(group_list, db_groups)
+
+    # Add the missing groups.
+    for group in add_groups:
+        rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+        if rc != 0:
+            return 1, msg
+
+    # Get a list of groups not specified that the user already has.
+    remove_groups = _manage_user_group_list_diff(db_groups, group_list)
+    
+    # Remove the extraneous groups.
+    for group in remove_groups:
+        rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+        if rc != 0:
+            return 1, msg
+
+    return 0, None
+
+#-------------------------------------------------------------------------------
+
+def _manage_user_group_list_diff(list1,list2):
+    """
+    Return a list of items in list1 but not in list2.
+    """
 
     return [x for x in list1 if x not in list2] 
 
+#-------------------------------------------------------------------------------
+
+def manage_user_group_verification(db_connection, tables, users, groups):
+    """
+    Make sure the specified users and groups exit.
+    """
+
+    from sqlalchemy.sql import select
+
+    if users:
+        # if there is only one user, make it a list anyway
+        if isinstance(users, str):
+            user_list = [users]
+        else:
+            user_list = users
+
+        # Get the list of valid users.
+        table = tables['csv2_user']
+        s = select([table])
+        db_user_list = qt(db_connection.execute(s))
+
+        valid_users = {}
+        for row in db_user_list:
+            valid_users[row['username']] = True
+
+        # Check the list of specified users.
+        for user in user_list:
+            if user not in valid_users:
+                return 1, 'specified user "%s" does not exist' % user
+
+    if groups:
+        # if there is only one group, make it a list anyway
+        if isinstance(groups, str):
+            group_list = [groups]
+        else:
+            group_list = groups
+
+        # Get the list of valid groups.
+        table = tables['csv2_groups']
+        s = select([table])
+        db_group_list = qt(db_connection.execute(s))
+
+        valid_groups = {}
+        for row in db_group_list:
+            valid_groups[row['group_name']] = True
+
+        # Check the list of specified groups.
+        for group in group_list:
+            if group not in valid_groups:
+                return 1, 'specified group "%s" does not exist' % group
+
+    return 0, None
 
 #-------------------------------------------------------------------------------
 
@@ -517,8 +562,8 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                CLOUD_FIELDS = {
                    'auto_active_group': active_user.active_group, # or None.
                    'format': {
-                       'cloud_name': 'lowercase',
-                       'groupname': 'lowercase',
+                       'cloud_name': 'lowerdash',
+                       'group_name': 'lowerdash',
 
                        'cores_slider': 'ignore',
                        'csrfmiddlewaretoken': 'ignore',
