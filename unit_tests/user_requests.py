@@ -31,7 +31,7 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 1, 'UV01', 'must be all lower case.',
-        '/user/add/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
+        '/user/add/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': 'Abc123', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
@@ -151,7 +151,7 @@ def main(gvar):
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV06', 'user group-add "crlb-utu6.[\'crlb-utg3\', \'crlb-utg3\']" failed - (1062, "Duplicate entry \'crlb-utu6-crlb-utg3\' for key \'PRIMARY\'").',
+        gvar, 1, 'UV06', 'user group-add "{0}.[\'{1}\', \'{1}\']" failed - (1062, "Duplicate entry \'{0}-{1}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg3')),
         '/user/add/', form_data={'username': ut_id(gvar, 'utu6'), 'password1': 'AaBbCc123', 'password2': 'AaBbCc123', 'cert_cn': '%s test user six' % ut_id(gvar, 'unit'), 'is_superuser': True, 'group_name.2': ut_id(gvar, 'utg3'), 'group_name.1': ut_id(gvar, 'utg3')}
         )
 
@@ -187,13 +187,12 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 403, forbidden.',
-        '/user/group-add/', form_data={'username': ut_id(gvar, 'utu7'), 'group_name': ut_id(gvar, 'utg1')},
+        '/user/update/', form_data={'username': ut_id(gvar, 'utu7'), 'group_name': ut_id(gvar,'utg1')},
         server_user=ut_id(gvar, 'utu1'), server_pw='AaBbCc123'
         )
-
     execute_csv2_request(
         gvar, 2, None, 'server "unit-test", HTTP response code 403, forbidden.',
-        '/user/group-delete/', form_data={'username': ut_id(gvar, 'utu7'), 'group_name': ut_id(gvar, 'utg1')},
+        '/user/update/', form_data={'username': ut_id(gvar, 'utu7'), 'group_name': []},
         server_user=ut_id(gvar, 'utu1'), server_pw='AaBbCc123'
         )
 
@@ -293,7 +292,7 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 1, 'UV19', 'must be all lower case.',
-        '/user/update/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
+        '/user/update/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': 'Abc123', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
@@ -327,7 +326,7 @@ def main(gvar):
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'user update, "crlb-utu0" failed - the request did not match any rows.',
+        gvar, 1, 'UV21', 'user update, "%s" failed - the request did not match any rows.' % ut_id(gvar, 'utu0'),
         '/user/update/', form_data={'username': ut_id(gvar, 'utu0'), 'is_superuser': 'invalid-unit-test'}
         )
 
@@ -368,6 +367,205 @@ def main(gvar):
         '/user/list/',
         list='user_list', filter={'username': ut_id(gvar, 'utu1')}, values={'cert_cn': '%s test user one' % ut_id(gvar, 'unit'), 'user_groups': ut_id(gvar, 'utg2'), 'is_superuser': 0}
         )
+
+    #### User Group Add and Delete.
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu1')}
+        )
+
+    # adding a group to a user that doesn't exit should fail
+    execute_csv2_request(
+        gvar, 1, 'UV21', 'user update, "%s" failed - the request did not match any rows.' % ut_id(gvar, 'utu1'),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name.1': ut_id(gvar, 'utg1')
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': None}
+        )
+
+    # adding a user with a group that doesn't exist should fail
+    execute_csv2_request(
+        gvar, 1, 'UV04', 'user add, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'password1': 'AaBbCc123',
+            'password2': 'AaBbCc123',
+            'group_name.1': ut_id(gvar, 'utg4'),
+            'cert_cn': '%s test user one' % ut_id(gvar, 'unit')
+            }
+        )
+
+    # adding a user with a list of groups, one which doesn't exist should fail
+    execute_csv2_request(
+        gvar, 1, 'UV04', 'user add, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'password1': 'AaBbCc123',
+            'password2': 'AaBbCc123',
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_name.2': ut_id(gvar, 'utg3'),
+            'group_name.3': ut_id(gvar, 'utg4'),
+            'cert_cn': '%s test user one' % ut_id(gvar, 'unit')
+            }
+        )
+
+    # adding a user with a list of valid groups should succeed
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully added.' % ut_id(gvar, 'utu1'),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'password1': 'AaBbCc123',
+            'password2': 'AaBbCc123',
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_name.2': ut_id(gvar, 'utg3'),
+            'cert_cn': '%s test user one' % ut_id(gvar, 'unit')
+            }
+        )
+
+    # user added with group list should be associated with those groups
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': '{},{}'.format(ut_id(gvar, 'utg2'), ut_id(gvar, 'utg3'))}
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu1')}
+        )
+    
+    # adding a user with no groups should succeed
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully added.' % ut_id(gvar, 'utu1'),
+        '/user/add/', form_data={'username': ut_id(gvar, 'utu1'), 'password1': 'AaBbCc123', 'password2': 'AaBbCc123', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
+        )
+
+    # user added with no groups shouldn't have any groups
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': None, 'is_superuser': 0}
+        )
+
+    # adding a group that doesn't exist should fail
+    execute_csv2_request(
+        gvar, 1, 'UV20', 'user update, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name.1': ut_id(gvar, 'utg4')
+            } 
+        )
+
+    # failed update shouldn't add any groups
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': None}
+        )
+
+    # adding a group that exists should succeed
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully updated.' % ut_id(gvar, 'utu1'),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name.1': ut_id(gvar, 'utg1')
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': ut_id(gvar, 'utg1')}
+        )
+
+    # adding a list of groups where one doesn't exist should fail
+    execute_csv2_request(
+        gvar, 1, 'UV20', 'user update, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_name.2': ut_id(gvar, 'utg4')
+            }
+        )
+
+    # failed update shouldn't add any groups, valid or not
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': ut_id(gvar, 'utg1')}
+        )
+
+    # adding a list of valid groups should succeed
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully updated.' % ut_id(gvar, 'utu1'),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            'group_name.2': ut_id(gvar, 'utg2'),
+            'group_name.3': ut_id(gvar, 'utg3')
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': '{},{},{}'.format(ut_id(gvar, 'utg1'), ut_id(gvar, 'utg2'), ut_id(gvar, 'utg3'))}
+        )
+
+    # removing a group from a list should succeed
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully updated.' % ut_id(gvar, 'utu1'),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_name.2': ut_id(gvar, 'utg3')
+            }
+        )
+    
+    # TODO: Failing - expect the utg1 group to be removed as not in list above
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': '{},{}'.format(ut_id(gvar, 'utg2'), ut_id(gvar, 'utg3'))}
+        )
+
+    # removing all groups from a user should succeed
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully updated.' % ut_id(gvar, 'utu1'),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group_name': None,
+            }
+        )
+
+    # groups should be removed
+    # TODO: Failing - expect no user groups as none were specified in the update
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={'user_groups': None}
+        )
+
+
+
+    #### User Delete.
+
 
 if __name__ == "__main__":
     main(None)
