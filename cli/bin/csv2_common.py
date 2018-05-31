@@ -33,7 +33,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             missing.append(key[1])
 
     if missing:
-        print('Error: "csv2 %s %s" - the following mandatory parameters must be specfied on the command line:' % (gvar['object'], gvar['action']))
+        print('Error: "%s %s %s" - the following mandatory parameters must be specfied on the command line:' % (gvar['command_name'], gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
         print('For more information, use -H.')
@@ -49,7 +49,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             missing.append(key[1])
 
     if missing:
-        print('Error: "csv2 %s %s" - no value, neither default nor command line, for the following required parameters:' % (gvar['object'], gvar['action']))
+        print('Error: "%s %s %s" - no value, neither default nor command line, for the following required parameters:' % (gvar['command_name'], gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
         print('For more information, use -h or -H.')
@@ -147,7 +147,7 @@ def _requests(gvar, request, form_data={}):
 
     elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
-            gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
+            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['server']))
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
             headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
@@ -157,7 +157,7 @@ def _requests(gvar, request, form_data={}):
             )
 
     else:
-        print('Error: csv2 servers require certificates or username/password for authentication.')
+        print('Error: %s servers require certificates or username/password for authentication.' % gvar['command_name'])
         exit(1)
 
     try:
@@ -352,44 +352,14 @@ def verify_yaml_file(file_path):
     file_string = fd.read()
     fd.close()
 
-#   # Verify attribute line.
-#   attribute, yaml = file_string.split('\n',1)
-#   if len(attribute) > 1 and attribute[0] == '#':
-#       attributes = '\n'.join(' '.join(attribute[1:].split()).split(', '))
-#       result = _yaml_load_and_verify(attributes)
-#   else:
-#       print('Error: No attribute line, format: # yaml_enabled: <True | False>, yaml_mime_type = <cloud-config | ...>')
-#       exit(1)
-#
-#   if not result[0]:
-#       print('Error: Invalid attribute line "%s": %s' % (result[1], result[2]))
-#       exit(1)
-#
-#   if 'yaml_enabled' in result[1]:
-#       if result[1]['yaml_enabled'] == True:
-#           yaml_enabled = 1
-#       else:
-#           yaml_enabled = 0
-#   else:
-#       print('Error: yaml_enabled missing from attribute line.')
-#       exit(1)
-#
-#   if 'yaml_mime_type' in result[1]:
-#       yaml_mime_type = result[1]['yaml_mime_type']
-#   else:
-#       print('Error: yaml_mime_type missing from attribute line.')
-#       exit(1)
-
-    # Verify the remaining yaml.
-    result = _yaml_load_and_verify(yaml)
+    # Verify the yaml.
+    result = _yaml_load_and_verify(file_string)
     if not result[0]:
         print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
         exit(1)
 
     return {
-        'yaml': yaml,
-        'enabled': yaml_enabled, 
-        'mime_type': yaml_mime_type, 
+        'yaml': file_string,
         }
 
 def _yaml_load_and_verify(yaml_string):

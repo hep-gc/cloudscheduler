@@ -83,7 +83,7 @@ def delete(gvar):
         break
    
     if not _found:
-        print('Error: "csv2 cloud delete" cannot delete "%s", cloud doesn\'t exist in group "%s".' % (gvar['user_settings']['cloud-name'], response['active_group']))
+        print('Error: "%s cloud delete" cannot delete "%s", cloud doesn\'t exist in group "%s".' % (gvar['command_name'], gvar['user_settings']['cloud-name'], response['active_group']))
         exit(1)
 
     # Confirm cloud delete.
@@ -91,7 +91,7 @@ def delete(gvar):
         print('Are you sure you want to delete cloud "%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 cloud delete "%s::%s" cancelled.' % (response['active_group'], gvar['user_settings']['cloud-name']))
+            print('%s cloud delete "%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name']))
             exit(0)
 
     # Delete the cloud.
@@ -247,7 +247,7 @@ def update(gvar):
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "csv2 cloud update" requires at least one option to modify.')
+        print('Error: "%s cloud update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
 
     # Create the cloud.
@@ -280,7 +280,7 @@ def yaml_delete(gvar):
                     break
    
     if not _found:
-        print('Error: "csv2 cloud yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('Error: "%s cloud yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         exit(1)
 
     # Confirm cloud/YAML file delete.
@@ -288,7 +288,7 @@ def yaml_delete(gvar):
         print('Are you sure you want to delete the YAML file "%s::%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 cloud yaml-delete "%::%::%s" cancelled.' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+            print('%s cloud yaml-delete "%::%::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the cloud/YAML file.
@@ -345,7 +345,7 @@ def yaml_edit(gvar):
         '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
         '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
         ):
-        print('csv2 cloud yaml-edit "%s::%s::%s" completed, no changes.' % (response['group_name'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('%s cloud yaml-edit "%s::%s::%s" completed, no changes.' % (gvar['command_name'], response['group_name'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         exit(0)
 
     # Verify the changed YAML file.
@@ -453,7 +453,7 @@ def yaml_update(gvar):
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "csv2 cloud yaml-update" requires at least one option to modify.')
+        print('Error: "%s cloud yaml-update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
 
     # Create the cloud.

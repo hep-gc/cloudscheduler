@@ -114,7 +114,7 @@ def delete(gvar):
         break
    
     if not _found:
-        print('Error: "csv2 group delete" cannot delete "%s", group doesn\'t exist.' % gvar['user_settings']['group-name'])
+        print('Error: "%s group delete" cannot delete "%s", group doesn\'t exist.' % (gvar['command_name'], gvar['user_settings']['group-name']))
         exit(1)
 
     # Confirm group delete.
@@ -122,7 +122,7 @@ def delete(gvar):
         print('Are you sure you want to delete group "%s"? (yes|..)' % gvar['user_settings']['group-name'])
         _reply = input()
         if _reply != 'yes':
-          print('csv2 group delete "%s" cancelled.' % gvar['user_settings']['group-name'])
+          print('%s group delete "%s" cancelled.' % (gvar['command_name'], gvar['user_settings']['group-name']))
           exit(0)
 
     # Delete the group.
@@ -190,7 +190,7 @@ def update(gvar):
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "csv2 group update" requires at least one option to update.')
+        print('Error: "%s group update" requires at least one option to update.' % gvar['command_name'])
         exit(1)
 
     # Create the group.
@@ -223,7 +223,7 @@ def yaml_delete(gvar):
                     break
    
     if not _found:
-        print('Error: "csv2 group yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+        print('Error: "%s group yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
         exit(1)
 
     # Confirm group/YAML file delete.
@@ -231,7 +231,7 @@ def yaml_delete(gvar):
         print('Are you sure you want to delete the YAML file "%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('csv2 group yaml-delete "%s::%s::%s" cancelled.' % (response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+            print('%s group yaml-delete "%s::%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the group/YAML file.
@@ -287,7 +287,7 @@ def yaml_edit(gvar):
         '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
         '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
         ):
-        print('csv2 group yaml-edit "%s::%s" completed, no changes.' % (response['group_name'],  response['yaml_name']))
+        print('%s group yaml-edit "%s::%s" completed, no changes.' % (gvar['command_name'], response['group_name'],  response['yaml_name']))
         exit(0)
 
     # Verify the changed YAML file.
@@ -389,7 +389,7 @@ def yaml_update(gvar):
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "csv2 group yaml-update" requires at least one option to modify.')
+        print('Error: "%s group yaml-update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
 
     # Create the cloud.
