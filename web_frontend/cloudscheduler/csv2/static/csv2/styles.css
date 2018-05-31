@@ -76,7 +76,7 @@
 }
 .menu > div:target > a,  /* Apply to the targeted item or... */
 :target #default2 > a {   /* ... to the default item */
-  background-color: green; /* Grey background color */
+  background-color: maroon; /* Grey background color */
   color: white; /* Black text color */
   display: block; /* Make the links appear below each other */
   padding: 12px; /* Add some padding */

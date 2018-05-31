@@ -29,26 +29,26 @@
                     {% csrf_token %}
                     <table>
                         <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
-                        <tr><td><label for="authurl">URL</label></td>
+                        <tr class="highlight1"><td><label for="authurl">URL</label></td>
                         <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
-                        <tr><td><label for="project">Project</label></td>
+                        <tr class="highlight1"><td><label for="project">Project</label></td>
                         <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                        <tr><td><label for="username">Username</label></td>
+                        <tr class="highlight1"><td><label for="username">Username</label></td>
                         <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
-                        <tr><td><label for="password">Password</label></td>
+                        <tr class="highlight1"><td><label for="password">Password</label></td>
                         <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
-                        <tr><td><label for="keyname">Key pair name</label></td>
+                        <tr class="highlight1"><td><label for="keyname">Key pair name</label></td>
                         <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
-                        <tr><td><label for="cacertificate">CA certificate</label></td>
+                        <tr class="highlight1"><td><label for="cacertificate">CA certificate</label></td>
                         <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                        <tr><td><label for="region">Region</label></td>
+                        <tr class="highlight1"><td><label for="region">Region</label></td>
                         <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                        <tr><td><label for="user_domain_name">User domain name</label></td>
+                        <tr class="highlight1"><td><label for="user_domain_name">User domain name</label></td>
                         <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                        <tr><td><label for="project_domain_name">Project domain name</label></td>
+                        <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
                         <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-                        <tr><td><label for="cloud_type">Cloud type</label></td>
+                        <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
                         <td><select name="cloud_type" id=""/>
                         {% for type in type_list %}
                             {% if cloud.cloud_type == type.cloud_type %}
@@ -58,7 +58,7 @@
                             {% endif %}
                         {% endfor %}
 
-                        <tr><td><label for="cores_ctl">Cores</label></td>
+                        <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
                         <td>
                             <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" onchange="cores_ctl.value=cores_slider.value" />
                             <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" onchange="cores_slider.value=cores_ctl.value" />
@@ -70,7 +70,7 @@
                             {% endif %}
                         </td></tr>
 
-                        <tr><td><label for="ram_ctl">RAM</label></td>
+                        <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
                         <td>
                             <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" onchange="ram_ctl.value=ram_slider.value" />
                             <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" onchange="ram_slider.value=ram_ctl.value" />

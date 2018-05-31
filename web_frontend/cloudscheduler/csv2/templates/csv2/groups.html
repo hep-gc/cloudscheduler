@@ -24,6 +24,7 @@
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
+    <!--https://codepen.io/nathanlong/pen/mBrvn-->
     {% for group in group_list %}
         <div id="{{group.group_name}}"> <a href="#{{group.group_name}}">{{group.group_name}}</a>
             
@@ -36,8 +37,9 @@
                         <tr class="highlight1"><td><label for="condor_central_manager">Condor Central Manager</label></td>
                         <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
 
-                        <tr class="highlight2"><td><label for="user_groups">Users</label></td><td></td></tr>
-
+                        <tr class="highlight2"><td><label for="user_groups">Users</label></td>
+                        <td><input id="user-search" type="text" placeholder="User search.."></td></tr>
+                        <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
                         {% for user in groups_per_user %}
                             {{ user.group_name }}
                             {% if group.group_name in user.user_groups %}
@@ -55,6 +57,7 @@
             </div>
 
         </div>
+
     {% endfor %}
         <div id="add-group"> <a href="#add-group">+</a>
             <div class="menu-target">
