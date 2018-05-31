@@ -371,13 +371,13 @@ def main(gvar):
     #### User Group Add and Delete.
 
     execute_csv2_request(
-        gvar, 0, None, None,
+        gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu1')}
         )
 
     # adding a group to a user that doesn't exit should fail
     execute_csv2_request(
-        gvar, 1, 'UV21', 'user update, "%s" failed - the request did not match any rows.' % ut_id(gvar, 'utu1'),
+        gvar, 1, 'UV21', '"%s" failed - the request did not match any rows.' % ut_id(gvar, 'utu1'),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu1'),
             'group_name.1': ut_id(gvar, 'utg1')
@@ -393,7 +393,7 @@ def main(gvar):
 
     # adding a user with a group that doesn't exist should fail
     execute_csv2_request(
-        gvar, 1, 'UV04', 'user add, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        gvar, 1, 'UV04', '"{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu1'),
             'password1': 'AaBbCc123',
@@ -405,7 +405,7 @@ def main(gvar):
 
     # adding a user with a list of groups, one which doesn't exist should fail
     execute_csv2_request(
-        gvar, 1, 'UV04', 'user add, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        gvar, 1, 'UV04', '"{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu1'),
             'password1': 'AaBbCc123',
@@ -439,7 +439,7 @@ def main(gvar):
         )
 
     execute_csv2_request(
-        gvar, 0, None, None,
+        gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu1')}
         )
     
@@ -459,7 +459,7 @@ def main(gvar):
 
     # adding a group that doesn't exist should fail
     execute_csv2_request(
-        gvar, 1, 'UV20', 'user update, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        gvar, 1, 'UV20', '"{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu1'),
             'group_name.1': ut_id(gvar, 'utg4')
@@ -492,7 +492,7 @@ def main(gvar):
 
     # adding a list of groups where one doesn't exist should fail
     execute_csv2_request(
-        gvar, 1, 'UV20', 'user update, "{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
+        gvar, 1, 'UV20', '"{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu1'), ut_id(gvar, 'utg4')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu1'),
             'group_name.1': ut_id(gvar, 'utg2'),
@@ -536,7 +536,6 @@ def main(gvar):
             }
         )
     
-    # TODO: Failing - expect the utg1 group to be removed as not in list above
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
@@ -554,7 +553,6 @@ def main(gvar):
         )
 
     # groups should be removed
-    # TODO: Failing - expect no user groups as none were specified in the update
     execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
@@ -566,6 +564,77 @@ def main(gvar):
 
     #### User Delete.
 
+    # invaid group
+    execute_csv2_request(
+        gvar, 1, 'UV08', 'cannnot switch to invalid group "invalid-unit-test".',
+        '/user/delete/', form_data={
+            'username': ut_id(gvar, 'utu1'),
+            'group': 'invalid-unit-test'
+            }
+        )
+
+    # validate input fields
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'value specified for "username" must be all lower case.',
+        '/user/delete/', form_data={'username': ut_id(gvar, 'UTu1')}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'value specified for a password is less than 6 characters.',
+        '/user/delete/', form_data={'password': '1'}
+        )
+    
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        '/user/delete/', form_data={'password': 'abcdef'}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        '/user/delete/', form_data={'password': 'AaBbCc'}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'password update received a password but no verify password; both are required.',
+        '/user/delete/', form_data={'password1': 'AaBb123'}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'password update received a verify password but no password; both are required.',
+        '/user/delete/', form_data={'password2': 'AaBb123'}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'values specified for passwords do not match.',
+        '/user/delete/', form_data={'password1': 'AaBb123', 'password2': 'aAbB321'}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'request did not contain mandatory parameter "username".',
+        '/user/delete/', form_data={'password': 'AaBb123'}
+        )
+
+    # TODO: expected to get an error if the username doesn't exist
+    execute_csv2_request(
+        gvar, 1, None, '"%s" failed - the request did not match any rows.' % ut_id(gvar, 'utu1'),
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu8')}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV12', 'invalid method "GET" specified',
+        '/user/delete/'
+        )
+
+    # TODO: not sure how to trigger these errors
+#    execute_csv2_request(
+#        gvar, 1, 'UV10', '',
+#        '/user/delete/', form_data={}
+#        )
+
+#    execute_csv2_request(
+#        gvar, 1, 'UV11', '',
+#        '/user/delete/', form_data={}
+#        )
 
 if __name__ == "__main__":
     main(None)
