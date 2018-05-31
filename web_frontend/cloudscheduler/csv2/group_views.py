@@ -502,8 +502,17 @@ def update(request):
         rc, msg = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
 
         # Update user groups.
-        if 'username' in fields:
-            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
+        if request.META['HTTP_ACCEPT'] == 'application/json':
+            if 'username' in fields:
+                if 'user_option' in fields and fields['user_option'] == 'delete':
+                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='delete')
+                else:
+                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='add')
+        else:
+            if 'username' in fields:
+                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
+            else:
+                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], None)
 
         db_connection.close()
         if rc == 0:

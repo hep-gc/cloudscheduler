@@ -392,6 +392,8 @@ def update(request):
         else:
             if 'group_name' in fields:
                 rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=fields['group_name'])
+            else:
+                rc, msg = manage_user_groups(db_connection, tables, fields['username'], None)
 
         db_connection.close()
         if rc == 0:

@@ -106,10 +106,13 @@ def manage_group_users(db_connection, tables, group, users, option=None):
     table = tables['csv2_user_groups']
 
     # if there is only one user, make it a list anyway
-    if isinstance(users, str):
-        user_list = users.split(',')
+    if users:
+        if isinstance(users, str):
+            user_list = users.split(',')
+        else:
+            user_list = users
     else:
-        user_list = users
+        user_list = []
 
     # Retrieve the list of users already in the group.
     db_users=[]
@@ -166,10 +169,13 @@ def manage_user_groups(db_connection, tables, user, groups, option=None):
     table = tables['csv2_user_groups']
 
     # if there is only one group, make it a list anyway
-    if isinstance(groups, str):
-        group_list = groups.split(',')
+    if groups:
+        if isinstance(groups, str):
+            group_list = groups.split(',')
+        else:
+            group_list = groups
     else:
-        group_list = groups
+        group_list = []
 
     # Retrieve the list of groups the user already has.
     db_groups=[]
