@@ -159,6 +159,7 @@ def main(args):
             ('-vt',  '--vm-terminate', True),
             ('-xA',  '--expose-API', False),
             ),
+        'command_name': os.path.basename(args[0]),
         'cookies': dict(),
         'csrf': None,
         'function_args': None,
@@ -229,7 +230,7 @@ def main(args):
     # Call object handler.
     if gvar['object'] in gvar['actions']:
         if not gvar['super_user'] and gvar['actions'][gvar['object']][0]:
-            print('Error: You are not authorized to access object "%s"; use "csv2 -h" or "csv2 -H" for help.' % gvar['object'])
+            print('Error: You are not authorized to access object "%s"; use "%s -h" or "%s -H" for help.' % (gvar['object'], gvar['command_name'], gvar['command_name']))
             exit(1)
 
         if gvar['action'] in gvar['actions'][gvar['object']][1]:

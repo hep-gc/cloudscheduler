@@ -65,7 +65,7 @@ def delete(gvar):
         break
    
     if not _found:
-        print('Error: "csv2 user delete" cannot delete "%s", user doesn\'t exist.' % gvar['user_settings']['username'])
+        print('Error: "%s user delete" cannot delete "%s", user doesn\'t exist.' % (gvar['command_name'], gvar['user_settings']['username']))
         exit(1)
 
     # Confirm user delete.
@@ -73,7 +73,7 @@ def delete(gvar):
         print('Are you sure you want to delete user "%s"? (yes|..)' % gvar['user_settings']['username'])
         _reply = input()
         if _reply != 'yes':
-          print('csv2 user delete "%s" cancelled.' % gvar['user_settings']['username'])
+          print('%s user delete "%s" cancelled.' % (gvar['command_name'], gvar['user_settings']['username']))
           exit(0)
 
     # Delete the user.
@@ -133,7 +133,7 @@ def group_delete(gvar):
         break
    
     if not _found:
-        print('Error: "csv2 user delete" cannot delete "%s", user doesn\'t exist.' % gvar['user_settings']['username'])
+        print('Error: "%s user delete" cannot delete "%s", user doesn\'t exist.' % (gvar['command_name'], gvar['user_settings']['username']))
         exit(1)
 
     # Confirm user delete.
@@ -141,7 +141,7 @@ def group_delete(gvar):
         print('Are you sure you want to delete user::group "%s::%s"? (yes|..)' % (gvar['user_settings']['username'], gvar['user_settings']['group-name']))
         _reply = input()
         if _reply != 'yes':
-          print('csv2 user::group delete "%s::%s" cancelled.' % (gvar['user_settings']['username'], gvar['user_settings']['group-name']))
+          print('%s user::group delete "%s::%s" cancelled.' % (gvar['command_name'], gvar['user_settings']['username'], gvar['user_settings']['group-name']))
           exit(0)
 
     # Delete the user/group.
@@ -211,7 +211,7 @@ def update(gvar):
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "csv2 user update" requires at least one option to update.')
+        print('Error: "%s user update" requires at least one option to update.' % gvar['command_name'])
         exit(1)
 
     # Create the user.
