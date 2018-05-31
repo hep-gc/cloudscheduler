@@ -38,8 +38,6 @@ urlpatterns = [
 
     url(r'^user/add',                          user_views.add,              name='user-add'),
     url(r'^user/delete',                       user_views.delete,           name='user-delete'),
-    url(r'^user/group-add',                    user_views.group_add,        name='user-group-add'),
-    url(r'^user/group-delete',                 user_views.group_delete,     name='user-group-delete'),
     url(r'^user/list',                         user_views.list,             name='user-list'),
     url(r'^user/settings',                     user_views.settings,         name='user-settings'),
     url(r'^user/update',                       user_views.update,           name='user-update'),
