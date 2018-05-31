@@ -94,7 +94,7 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def manage_group_users(db_connection, tables, group, users):
+def manage_group_users(db_connection, tables, group, users, option=None):
     """
     Ensure all the specified users and only the specified users are
     members of the specified group. The specified group and users
@@ -107,7 +107,7 @@ def manage_group_users(db_connection, tables, group, users):
 
     # if there is only one user, make it a list anyway
     if isinstance(users, str):
-        user_list = [users]
+        user_list = users.split(',')
     else:
         user_list = users
 
@@ -120,29 +120,41 @@ def manage_group_users(db_connection, tables, group, users):
     for row in user_groups_list:
         db_users.append(row['username'])
 
-    # Get the list of users specified that are not already in the group.
-    add_users = _manage_user_group_list_diff(user_list, db_users)
+    if not option or option == 'add':
+        # Get the list of users specified that are not already in the group.
+        add_users = _manage_user_group_list_diff(user_list, db_users)
 
-    # Add the missing users.
-    for user in add_users:
-        rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
-        if rc != 0:
-            return 1, msg
+        # Add the missing users.
+        for user in add_users:
+            rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+            if rc != 0:
+                return 1, msg
 
+    if not option:
+        # Get the list of users that the group currently has but were not specified.
+        remove_users = _manage_user_group_list_diff(db_users, user_list)
+        
+        # Remove the extraneous users.
+        for user in remove_users:
+            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
 
-    # Get a list of users not specified that are already in the group.
-    remove_users = _manage_user_group_list_diff(db_users, user_list)
-    
-    # Remove the extraneous users.
-    for user in remove_users:
-        rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-        if rc != 0:
-            return 1, msg
-    return 0, None
+    elif option == 'delete':
+        # Get the list of users that the group currently has and were specified.
+        remove_users = _manage_user_group_list_diff(user_list, db_users, option='and')
+        
+        # Remove the extraneous users.
+        for user in remove_users:
+            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
+
+        return 0, None
 
 #-------------------------------------------------------------------------------
 
-def manage_user_groups(db_connection, tables, user, groups):
+def manage_user_groups(db_connection, tables, user, groups, option=None):
     """
     Ensure all the specified groups and only the specified groups are
     have the specified user as a member. The specified user and groups
@@ -155,7 +167,7 @@ def manage_user_groups(db_connection, tables, user, groups):
 
     # if there is only one group, make it a list anyway
     if isinstance(groups, str):
-        group_list = [groups]
+        group_list = groups.split(',')
     else:
         group_list = groups
 
@@ -168,34 +180,50 @@ def manage_user_groups(db_connection, tables, user, groups):
     for row in user_groups_list:
         db_groups.append(row['group_name'])
 
-    # Get the list of groups specified that the user doesn't already have.
-    add_groups = _manage_user_group_list_diff(group_list, db_groups)
+    if not option or option == 'add':
+        # Get the list of groups specified that the user doesn't already have.
+        add_groups = _manage_user_group_list_diff(group_list, db_groups)
 
-    # Add the missing groups.
-    for group in add_groups:
-        rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
-        if rc != 0:
-            return 1, msg
+        # Add the missing groups.
+        for group in add_groups:
+            rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+            if rc != 0:
+                return 1, msg
 
-    # Get a list of groups not specified that the user already has.
-    remove_groups = _manage_user_group_list_diff(db_groups, group_list)
-    
-    # Remove the extraneous groups.
-    for group in remove_groups:
-        rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-        if rc != 0:
-            return 1, msg
+    if not option:
+        # Get the list of groups that the user currently has but were not specified.
+        remove_groups = _manage_user_group_list_diff(db_groups, group_list)
+        
+        # Remove the extraneous groups.
+        for group in remove_groups:
+            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
+
+    elif option == 'delete':
+        # Get the list of groups that the user currently has and were specified.
+        remove_groups = _manage_user_group_list_diff(group_list, db_groups, option='and')
+        
+        # Remove the extraneous groups.
+        for group in remove_groups:
+            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
 
     return 0, None
 
 #-------------------------------------------------------------------------------
 
-def _manage_user_group_list_diff(list1,list2):
+def _manage_user_group_list_diff(list1,list2, option=None):
     """
-    Return a list of items in list1 but not in list2.
+    if option equal 'and', return a list of items which are in both list1
+    and list2. Otherwise, return a list of items in list1 but not in list2.
     """
 
-    return [x for x in list1 if x not in list2] 
+    if option and option == 'and':
+        return [x for x in list1 if x in list2] 
+    else:
+        return [x for x in list1 if x not in list2] 
 
 #-------------------------------------------------------------------------------
 
@@ -209,7 +237,7 @@ def manage_user_group_verification(db_connection, tables, users, groups):
     if users:
         # if there is only one user, make it a list anyway
         if isinstance(users, str):
-            user_list = [users]
+            user_list = users.split(',')
         else:
             user_list = users
 
@@ -230,7 +258,7 @@ def manage_user_group_verification(db_connection, tables, users, groups):
     if groups:
         # if there is only one group, make it a list anyway
         if isinstance(groups, str):
-            group_list = [groups]
+            group_list = groups.split(',')
         else:
             group_list = groups
 
@@ -640,7 +668,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     # Process input fields.
     Fields = {}
-    for field in request.POST:
+    for field in sorted(request.POST):
         if Options['unnamed_fields_are_bad'] and field not in Formats:
             return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
 
@@ -695,12 +723,15 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 Fields[field_alias] = value
         else: 
             array_field = field.split('.')
-            if array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0]):
+#           if array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0]):
+            if len(array_field) > 1 and array_field[0] in all_columns:
                 if array_field[0] not in Fields:
                     Fields[array_field[0]] = []
                 Fields[array_field[0]].append(value)
             else:
-                if not _validate_fields_ignore_field_error(Formats, field):
+                if _validate_fields_ignore_field_error(Formats, field):
+                    Fields[field] = value
+                else:
                     return 1, 'request contained a bad parameter "%s".' % field, None, None, None
 
     if Options['auto_active_group'] and 'group_name' not in Fields:

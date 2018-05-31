@@ -42,6 +42,7 @@ USER_GROUP_KEYS = {
 
         'csrfmiddlewaretoken': 'ignore',
         'group_name':          'ignore',
+        'group_option':        'ignore',
         },
     }
 
@@ -491,10 +492,17 @@ def update(request):
             return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV29'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update user_groups.
-        if 'group_name' in fields:
-            rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=fields['group_name'])
+        if request.META['HTTP_ACCEPT'] == 'application/json':
+            if 'group_name' in fields:
+                if 'group_option' in fields and fields['group_option'] == 'delete':
+                    rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=fields['group_name'], option='delete')
+                else:
+                    rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=fields['group_name'], option='add')
         else:
-            rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=[])
+            if 'group_name' in fields:
+                rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=fields['group_name'])
+            else:
+                rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=[])
 
         db_connection.close()
         if rc == 0:
