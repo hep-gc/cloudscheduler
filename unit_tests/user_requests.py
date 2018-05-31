@@ -210,49 +210,49 @@ def main(gvar):
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV27', 'user "%s" is not a member of any group.' % ut_id(gvar, "utu1"),
+        gvar, 1, 'UV17', 'user "%s" is not a member of any group.' % ut_id(gvar, "utu1"),
         '/user/settings/',
         server_user=ut_id(gvar, 'utu1'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV26', 'user update, invalid method "GET" specified.',
+        gvar, 1, 'UV16', 'user update, invalid method "GET" specified.',
         '/user/settings/',
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV25', 'user update, value specified for a password is less than 6 characters.',
+        gvar, 1, 'UV15', 'user update, value specified for a password is less than 6 characters.',
         '/user/settings/', form_data={'password': 'abc'},
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV25', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        gvar, 1, 'UV15', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/settings/', form_data={'password': 'abc123'},
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV25', 'user update, password update received a password but no verify password; both are required.',
+        gvar, 1, 'UV15', 'user update, password update received a password but no verify password; both are required.',
         '/user/settings/', form_data={'password1': 'abc123'},
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV25', 'user update, password update received a verify password but no password; both are required.',
+        gvar, 1, 'UV15', 'user update, password update received a verify password but no password; both are required.',
         '/user/settings/', form_data={'password2': 'abc123'},
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV25', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        gvar, 1, 'UV15', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/settings/', form_data={'password1': 'abc123', 'password2': 'abc123'},
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV25', 'user update, values specified for passwords do not match.',
+        gvar, 1, 'UV15', 'user update, values specified for passwords do not match.',
         '/user/settings/', form_data={'password1': 'Abc123', 'password2': 'abc123'},
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
@@ -276,7 +276,7 @@ def main(gvar):
     #### User Update.
 
     execute_csv2_request(
-        gvar, 1, 'UV28', 'cannnot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'UV18', 'cannnot switch to invalid group "invalid-unit-test".',
         '/user/update/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit'), 'group': 'invalid-unit-test'}
         )
 
@@ -287,52 +287,52 @@ def main(gvar):
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV33', 'user update, invalid method "GET" specified.',
+        gvar, 1, 'UV23', 'user update, invalid method "GET" specified.',
         '/user/update/'
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'must be all lower case.',
+        gvar, 1, 'UV19', 'must be all lower case.',
         '/user/update/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'user update, password update received a password but no verify password; both are required.',
+        gvar, 1, 'UV19', 'user update, password update received a password but no verify password; both are required.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'password1': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'user update, password update received a verify password but no password; both are required.',
+        gvar, 1, 'UV19', 'user update, password update received a verify password but no password; both are required.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'password2': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'user update, value specified for a password is less than 6 characters.',
+        gvar, 1, 'UV19', 'user update, value specified for a password is less than 6 characters.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'password1': '1', 'password2': '2', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        gvar, 1, 'UV19', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'password1': '123456', 'password2': '234567', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        gvar, 1, 'UV19', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'password1': 'AB3456', 'password2': '234567', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV29', 'user update, values specified for passwords do not match.',
+        gvar, 1, 'UV19', 'user update, values specified for passwords do not match.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'password1': 'this password is longer than 16 characters', 'password2': 'and so is this password', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit')}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV31', 'user update, "crlb-utu0" failed - the request did not match any rows.',
+        gvar, 1, 'UV21', 'user update, "crlb-utu0" failed - the request did not match any rows.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu0'), 'is_superuser': 'invalid-unit-test'}
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV31', "Incorrect integer value: 'invalid-unit-test' for column 'is_superuser'",
+        gvar, 1, 'UV21', "Incorrect integer value: 'invalid-unit-test' for column 'is_superuser'",
         '/user/update/', form_data={'username': ut_id(gvar, 'utu1'), 'is_superuser': 'invalid-unit-test'}
         )
 
