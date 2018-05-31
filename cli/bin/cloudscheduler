@@ -120,6 +120,7 @@ def main(args):
             ('-g',   '--group', True),
             ('-gm',  '--group-manager', True),
             ('-gn',  '--group-name', True),
+            ('-go',  '--group-option', True),
             ('-H',   '--long-help', False),
             ('-h',   '--help', False),
             ('-jc',  '--job-cores', True),

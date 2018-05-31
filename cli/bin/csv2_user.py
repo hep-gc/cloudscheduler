@@ -6,6 +6,7 @@ import os
 
 KEY_MAP = {
     '-gn':   'group_name',
+    '-go':   'group_option',
     '-SU':   'is_superuser',
     '-ucn':  'cert_cn',
     '-un':   'username',
@@ -34,7 +35,7 @@ def add(gvar):
         gvar,
         ['-ucn', '-un', '-upw'],
         [],
-        ['-gn'],
+        ['-gn', '-SU'],
         key_map=KEY_MAP)
 
     # Create the user.
@@ -206,7 +207,7 @@ def update(gvar):
         gvar,
         ['-un'],
         [],
-        ['-gn', '-SU', '-ucn', '-upw'],
+        ['-gn', '-go', '-SU', '-ucn', '-upw'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
