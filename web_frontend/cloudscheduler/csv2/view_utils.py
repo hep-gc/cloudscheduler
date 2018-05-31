@@ -723,8 +723,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 Fields[field_alias] = value
         else: 
             array_field = field.split('.')
-#           if array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0]):
-            if len(array_field) > 1 and array_field[0] in all_columns:
+            if len(array_field) > 1 and (array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0])):
                 if array_field[0] not in Fields:
                     Fields[array_field[0]] = []
                 Fields[array_field[0]].append(value)
