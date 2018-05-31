@@ -119,8 +119,6 @@ def add(request):
         # Add user_groups.
         if 'group_name' in fields:
             rc, msg = manage_user_groups(db_connection, tables, fields['username'], fields['group_name'])
-        else:
-            rc, msg = manage_user_groups(db_connection, tables, fields['username'], [])
 
         db_connection.close()
         if rc == 0:
@@ -501,8 +499,6 @@ def update(request):
         else:
             if 'group_name' in fields:
                 rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=fields['group_name'])
-            else:
-                rc, msg = manage_user_groups(db_connection, tables, fields['username'], groups=[])
 
         db_connection.close()
         if rc == 0:
