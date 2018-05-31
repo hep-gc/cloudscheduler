@@ -106,7 +106,7 @@ def add(request):
         if 'group_name' in fields:
             rc, msg = manage_user_group_verification(db_connection, tables, None, fields['group_name']) 
             if rc != 0:
-                return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV94'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV04'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         fields['join_date'] = datetime.datetime.today().strftime('%Y-%m-%d')
         
@@ -114,7 +114,7 @@ def add(request):
         table = tables['csv2_user']
         rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
-            return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV04'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV05'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         # Add user_groups.
         if 'group_name' in fields:
@@ -126,11 +126,11 @@ def add(request):
         if rc == 0:
             return list(request, selector=fields['username'], response_code=0, message='user "%s" successfully added.' % (fields['username']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group-add "%s.%s" failed - %s.' % (lno('UV05'), fields['username'], fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group-add "%s.%s" failed - %s.' % (lno('UV06'), fields['username'], fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
                     
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV06'), request.method))
+        return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV07'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -152,19 +152,19 @@ def delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV07'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV08'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user', 'csv2_user_groups,n'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s user delete, %s' % (lno('UV08'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s user delete, %s' % (lno('UV09'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any user_groups for the user.
         table = tables['csv2_user_groups']
         rc, msg = db_execute(db_connection, table.delete(table.c.username==fields['username']))
         if rc != 0:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group-delete "%s" failed - %s.' % (lno('UV09'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group-delete "%s" failed - %s.' % (lno('UV10'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the user.
         table = tables['csv2_user']
@@ -173,11 +173,11 @@ def delete(request):
         if rc == 0:
             return list(request, selector=fields['username'], response_code=0, message='user "%s" successfully deleted.' % (fields['username']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=fields['username'], response_code=1, message='%s user delete, "%s" failed - %s.' % (lno('UV10'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user delete, "%s" failed - %s.' % (lno('UV11'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno('UV11'), request.method))
+        return list(request, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno('UV12'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -199,13 +199,13 @@ def group_add(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV12'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user,n', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s user group-add %s' % (lno('UV13'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s user group-add %s' % (lno('UV14'), msg), active_user=active_user, user_groups=user_groups)
 
         # Verify that the user exists.
         table = tables['csv2_user']
@@ -217,7 +217,7 @@ def group_add(request):
                 found = True
 
         if not found:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group-add specified an invalid username "%s".' % (lno('UV14'), fields['username']), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group-add specified an invalid username "%s".' % (lno('UV15'), fields['username']), active_user=active_user, user_groups=user_groups)
 
         # Verify that the group exists.
         table = tables['csv2_groups']
@@ -229,7 +229,7 @@ def group_add(request):
                 found = True
 
         if not found:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group-add specified an invalid group_name "%s".' % (lno('UV15'), fields['group_name']), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group-add specified an invalid group_name "%s".' % (lno('UV16'), fields['group_name']), active_user=active_user, user_groups=user_groups)
 
         # Add the user_group.
         table = tables['csv2_user_groups']
@@ -238,12 +238,12 @@ def group_add(request):
         if rc == 0:
             return list(request, selector=fields['username'], response_code=0, message='user group "%s.%s" successfully added.' % (fields['username'], fields['group_name']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group-add "%s.%s" failed - %s.' % (lno('UV16'), fields['username'], fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group-add "%s.%s" failed - %s.' % (lno('UV17'), fields['username'], fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
     ### Bad request.
     else:
  
-        return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV17'), request.method))
+        return list(request, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno('UV18'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -265,13 +265,13 @@ def group_delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV19'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s user group-delete, %s' % (lno('UV19'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s user group-delete, %s' % (lno('UV20'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the user/group.
         table = tables['csv2_user_groups']
@@ -280,11 +280,11 @@ def group_delete(request):
         if rc == 0:
             return list(request, selector=fields['username'], response_code=0, message='user group-delete, "%s::%s" successfully deleted.' % (fields['username'], fields['group_name']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group-delete, "%s::%s" failed - %s.' % (lno('UV20'), fields['username'], fields['group_name'], message), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group-delete, "%s::%s" failed - %s.' % (lno('UV21'), fields['username'], fields['group_name'], message), active_user=active_user, user_groups=user_groups)
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s user group-delete, invalid method "%s" specified.' % (lno('UV21'), request.method))
+        return list(request, response_code=1, message='%s user group-delete, invalid method "%s" specified.' % (lno('UV22'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ def list(
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV22'), msg)})
+            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV23'), msg)})
 
     # Retrieve the user list but loose the passwords.
     s = select([view_user_groups_and_available_groups])
@@ -418,17 +418,17 @@ def settings(request):
                     update_session_auth_hash(request, getcsv2User(request))
                     message = 'user "%s" successfully updated.' % fields['username']
                 else:
-                    message = '%s user update, "%s" failed - %s.' % (lno('UV23'), fields['username'], message)
+                    message = '%s user update, "%s" failed - %s.' % (lno('UV24'), fields['username'], message)
 
             else:
-                message='%s user update, %s' % (lno('UV24'), msg)
+                message='%s user update, %s' % (lno('UV25'), msg)
 
         ### Bad request.
         else:
-            message = '%s user update, invalid method "%s" specified.' % (lno('UV25'), request.method)
+            message = '%s user update, invalid method "%s" specified.' % (lno('UV26'), request.method)
 
     else:
-        message='%s %s' % (lno('UV26'), msg)
+        message='%s %s' % (lno('UV27'), msg)
 
     db_connection.close()
 
@@ -469,19 +469,19 @@ def update(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
         if rc != 0:
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV27'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s user update, %s' % (lno('UV28'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s user update, %s' % (lno('UV29'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified groups.
         if 'group_name' in fields:
             rc, msg = manage_user_group_verification(db_connection, tables, None, fields['group_name']) 
             if rc != 0:
-                return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV94'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV30'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update the user.
         table = tables['csv2_user']
@@ -489,7 +489,7 @@ def update(request):
 
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV29'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV31'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update user_groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -508,9 +508,9 @@ def update(request):
         if rc == 0:
             return list(request, selector=fields['username'], response_code=0, message='user "%s" successfully updated.' % (fields['username']), active_user=active_user, user_groups=user_groups)
         else:
-            return list(request, selector=fields['username'], response_code=1, message='%s user group update "%s.%s" failed - %s.' % (lno('UV30'), fields['username'], group_name, msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['username'], response_code=1, message='%s user group update "%s.%s" failed - %s.' % (lno('UV32'), fields['username'], group_name, msg), active_user=active_user, user_groups=user_groups)
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s user update, invalid method "%s" specified.' % (lno('UV31'), request.method))
+        return list(request, response_code=1, message='%s user update, invalid method "%s" specified.' % (lno('UV33'), request.method))
 
