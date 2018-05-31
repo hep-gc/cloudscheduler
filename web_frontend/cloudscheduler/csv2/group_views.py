@@ -118,9 +118,6 @@ def add(request):
         # Add user_groups.
         if 'username' in fields:
             rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
-        else:
-            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], [])
-
 
         # Add the group defaults.
         table = tables['csv2_group_defaults']
@@ -507,9 +504,6 @@ def update(request):
         # Update user groups.
         if 'username' in fields:
             rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
-        else:
-            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], [])
-
 
         db_connection.close()
         if rc == 0:
