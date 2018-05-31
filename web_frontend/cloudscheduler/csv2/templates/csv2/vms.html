@@ -22,10 +22,9 @@
       <p style="color:green;">{{message}}</p>
   {% endif %}
 
-    <div class="main-div">
+    <div class="main-div" style="overflow: auto;">
       <div class="vm-table">
         <table>
-
           <!-- <thead> -->
             <tr>
               <th>Cloud</th>
@@ -33,6 +32,8 @@
               <th>Hostname</th>
               <th>VM ID</th>
               <th>Status</th>
+              <th>Status Changed Time</th>
+              <th>Task</th>
               <th>Flavor Name</th>
               <th>Condor Slots</th>
               <th>Condor Off</th>
@@ -42,6 +43,9 @@
               <th>SWAP</th>
               <th>Disk</th>
               <th>Ephemeral Disk</th>
+              <th>Terminate</th>
+              <th>Terminate Time</th>
+              <th>Poller Status</th>
             </tr>
           <!-- </thead> -->
 
@@ -53,6 +57,8 @@
                 <td>{{vm.hostname}}</td>
                 <td>{{vm.vmid}}</td>
                 <td>{{vm.status}}</td>
+                <td>{{vm.status_changed_time}}</td>
+                <td>{{vm.task}}</td>
                 <td>{{vm.flavor_name}}</td>
                 <td>{{vm.condor_slots}}</td>
                 <td>{{vm.condor_off}}</td>
@@ -62,6 +68,9 @@
                 <td>{{vm.swap}}</td>
                 <td>{{vm.disk}}</td>
                 <td>{{vm.ephemeral_disk}}</td>
+                <td>{{vm.terminate}}</td>
+                <td>{{vm.terminate_time}}</td>
+                <td>{{vm.poller_status}}</td>
               </tr>
             {% endfor %}
           <!-- </tbody> -->

@@ -1,39 +1,25 @@
 :root {
   --header_background_color: #4CAF50;
   --alternate_row_background_color: #F2F2F2;
-
-  --table_width: 100%;
-  --table_body_height: 100%;
-  --column_cloud_width: 200px;
-  --column_one_width: 50px;
-  --column_two_width: 200px;
-  --column_three_width: 350px;
 }
 
 .vm-table {
-  display: block;
-  overflow-y: hidden;
-  overflow-x: hidden;
+  display: inline-block;
+  overflow-y: auto;
+  overflow-x: scroll;
   height: 90%;
+  width: 100%;/
   margin-right: 8px;
-  width: var(--table_width);
 }
 
 .vm-table table {
-  display: block;
   border: 0px;
   padding: 0px;
   table-layout: fixed;
 }
 
-.vm-table thead {
-  background-color: var(--header_background_color);
-  color: white;
-  display: block;
-}
-
-.vm-table thead > tr {
-    display: block;
+.vm-table th, td {
+  border: 2px solid white;
 }
 
 .vm-table th {
@@ -44,9 +30,9 @@
 }
 
 .vm-table tbody {
-  display: block;
-  height: 100%;
-  overflow-y: auto;
+  /* display: block; */
+  /* height: 100%; */
+  /* overflow-y: auto; */
 }
 
 .vm-table tbody > tr:nth-child(even) {
@@ -54,43 +40,6 @@
 }
 
 .vm-table td {
-  border-bottom: 1px solid #ddd;
   padding: 8px;
   text-align: center;
-}
-
-.vm-table-col-cloud {
-  width: 125px;
-}
-
-.vm-table-col-project {
-  width: 75px;
-}
-
-.vm-table-col-hostname {
-  width: 375px;
-}
-
-.vm-table-col-vmid {
-  width: 350px;
-}
-
-.vm-table-col-status {
-  width: 100px;
-}
-
-.vm-table-col-flavorname {
-  width: 175px;
-}
-.vm-table-col-condorslots {
-  width: 100px;
-}
-.vm-table-col-condoroff {
-  width: 100px;
-}
-.vm-table-col-foreign {
-  width: 100px;
-}
-.vm-table-col-data {
-  width: 75px;
 }
