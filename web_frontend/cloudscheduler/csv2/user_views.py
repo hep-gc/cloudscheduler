@@ -372,7 +372,11 @@ def update(request):
         if 'group_name' in fields:
             rc, msg = manage_user_group_verification(db_connection, tables, None, fields['group_name']) 
             if rc != 0:
-                return list(request, selector=fields['username'], response_code=1, message='%s user add, "%s" failed - %s.' % (lno('UV20'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV20'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+
+        # Validity check the group option.
+        if 'group_option' in fields and fields['group_option'] != 'add' and fields['group_option'] != 'delete':
+            return list(request, selector=fields['username'], response_code=1, message='%s user update, group-option "%s" invalid, must be either "add" or "delete".' % (lno('UV99'), fields['group_option']), active_user=active_user, user_groups=user_groups)
 
         # Update the user.
         table = tables['csv2_user']
