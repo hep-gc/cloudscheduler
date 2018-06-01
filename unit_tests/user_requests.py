@@ -25,7 +25,7 @@ def main(gvar):
         )
 
     execute_csv2_request(
-        gvar, 1, 'UV00', 'cannnot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'UV00', 'cannot switch to invalid group "invalid-unit-test".',
         '/user/add/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit'), 'group': 'invalid-unit-test'}
         )
 
@@ -269,13 +269,26 @@ def main(gvar):
         server_user=ut_id(gvar, 'utu3'), server_pw='AaBbCc123'
         )
 
+    #TODO: currently fails due to typo in error message 'cannnot'->'cannot'
+    execute_csv2_request(
+        gvar, 1, 'UV17', 'cannot switch to invalid group "invalid-unit-test".',
+        '/user/settings/', form_data={'group': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'utu3'), server_pw='Abc123'
+        )
+
+    # TODO: Can't figure out how to trigger this error
+#    execute_csv2_request(
+#        gvar, 1, 'UV14', 'error message',
+#        '/user/settings/'
+#        )
+
 
 
 
     #### User Update.
-
+    
     execute_csv2_request(
-        gvar, 1, 'UV18', 'cannnot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'UV18', 'cannot switch to invalid group "invalid-unit-test".',
         '/user/update/', form_data={'username': ut_id(gvar, 'UTu1'), 'password': '1', 'cert_cn': '%s test user one' % ut_id(gvar, 'unit'), 'group': 'invalid-unit-test'}
         )
 
@@ -560,13 +573,127 @@ def main(gvar):
         values={'user_groups': None}
         )
 
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu2')}
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "%s" successfully added.' % ut_id(gvar, 'utu2'),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'password1': 'AaBbCc123',
+            'password2': 'AaBbCc123',
+            'cert_cn': '%s test user two' % ut_id(gvar, 'unit'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            }
+        )
+    
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu2')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_option': 'add'
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu2')},
+        values={'user_groups': ut_id(gvar, 'utg1,utg2')}
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu2')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            'group_option': 'delete'
+            }
+        )
+    
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu2')},
+        values={'user_groups': ut_id(gvar, 'utg2')}
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu2')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            'group_name.2': ut_id(gvar, 'utg2'),
+            'group_option': 'delete'
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu2')},
+        values={'user_groups': None}
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV21', '"{}" failed - the request did not match any rows.'.format(ut_id(gvar, 'utu8')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu8'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            'group_option': 'add'
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV20', '"{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu2'), ut_id(gvar, 'utg4')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'group_name.1': ut_id(gvar, 'utg4'),
+            'group_option': 'add'
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV20', '"{}" failed - specified group "{}" does not exist.'.format(ut_id(gvar, 'utu2'), ut_id(gvar, 'utg4')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'group_name.1': ut_id(gvar, 'utg4'),
+            'group_option': 'delete'
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 1, 'UV99', 'group-option "invalid-option" invalid, must be either "add" or "delete".',
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu2'),
+            'group_name.1': ut_id(gvar, 'utg1'),
+            'group_option': 'invalid-option'
+            }
+        )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu2')},
+        values={'user_groups': None}
+        )
+
+    # TODO: how to trigger this error
+#    execute_csv2_request(
+#        gvar, 1, 'UV22', 'error msg',
+#        '/user/update/'
+#        )
+
 
 
     #### User Delete.
 
     # invaid group
     execute_csv2_request(
-        gvar, 1, 'UV08', 'cannnot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'UV08', 'cannot switch to invalid group "invalid-unit-test".',
         '/user/delete/', form_data={
             'username': ut_id(gvar, 'utu1'),
             'group': 'invalid-unit-test'
@@ -635,6 +762,24 @@ def main(gvar):
 #        gvar, 1, 'UV11', '',
 #        '/user/delete/', form_data={}
 #        )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully deleted.'.format(ut_id(gvar, 'utu1')),
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu1')}
+        )
+
+    #### User List.
+
+    execute_csv2_request(
+        gvar, 1, 'UV13', 'cannot switch to invalid group "invalid-unit-test".',
+        '/user/list/', form_data={'group': 'invalid-unit-test'},
+        list='user_list', filter={'username': ut_id(gvar, 'utu1')},
+        values={}
+        )
+
+
+
+
 
 if __name__ == "__main__":
     main(None)
