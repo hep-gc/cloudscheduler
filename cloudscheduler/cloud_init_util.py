@@ -34,6 +34,7 @@ def read_file_type_pairs(file_type_pair):
     log = logging.getLogger(__name__)
     content = None
     format_type = None
+    name = None
     if file_type_pair.startswith('http'):
         try:
             (pre, http_loc, format_type) = file_type_pair.split(":", 2)
@@ -47,6 +48,7 @@ def read_file_type_pairs(file_type_pair):
         try:
             response = requests.get(http_loc)
             content = response.content
+            name = http_loc
         except requests.exceptions.HTTPError as ex:
             log.exception("Unable to read url: %s: %s", http_loc, ex)
             return (None, None)
@@ -66,11 +68,11 @@ def read_file_type_pairs(file_type_pair):
             return (None, None)
         with open(filename) as file_handle:
             content = file_handle.read()
-
+        name = filename
     if content is None:
         return (None, None)
 
-    return (content, format_type)
+    return (name, content, format_type)
 
 def validate_yaml(content):
     """ Try to load yaml to see if it passes basic validation."""
