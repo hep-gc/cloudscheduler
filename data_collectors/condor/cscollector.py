@@ -256,7 +256,14 @@ def cleanUp():
         archResource = Base.classes.archived_condor_machines
 
         # Clean up machine/resource ads
-        condor_machine_list = condor_c.query()
+        try:
+            condor_machine_list = condor_c.query()
+        except Exception as exc:
+            logging.error(exc)
+            logging.error("Failed to execute job query... aborting cycle")
+            logging.error("Sleeping until next cycle...")
+            time.sleep(config.sleep_interval)
+            continue
         #this quert asks for only resources containing reported by this collector (host)
         db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
 
@@ -285,6 +292,7 @@ def cleanUp():
                     session.merge(new_arch_machine)
             except Exception as exc:
                 logging.error("Error attempting to delete %s... skipping", machine.name)
+                logging.error(exc)
 
         try:        
             session.commit()

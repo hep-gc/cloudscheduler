@@ -259,7 +259,15 @@ def cleanUp():
         archJob = Base.classes.archived_condor_jobs
 
         # Clean up job ads
-        condor_job_list = condor_s.query()
+        try:
+            condor_job_list = condor_s.query()
+        except Exception as exc:
+            logging.error(exc)
+            logging.error("Unable to query condor job list, aborting cycle...")
+            logging.error("Sleeping until next cycle...")
+            time.sleep(config.cleanup_sleep_interval)
+            continue
+
         # this query asks for only jobs that contain the local hostname as part of their JobID
         db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname+ "%"))
         # loop through the condor data and make a list of GlobalJobId
