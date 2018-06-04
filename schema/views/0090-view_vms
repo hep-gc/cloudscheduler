@@ -19,6 +19,7 @@ disk,
 ephemeral_disk,
 ram,
 swap,
+cvsc.status_from_poller as "poller_status_code",
 cvsc.status as "poller_status"
 
 from csv2_vms as cv
