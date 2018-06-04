@@ -288,7 +288,7 @@ def yaml_delete(gvar):
         print('Are you sure you want to delete the YAML file "%s::%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('%s cloud yaml-delete "%::%::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+            print('%s cloud yaml-delete "%s::%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the cloud/YAML file.
