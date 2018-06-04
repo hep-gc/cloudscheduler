@@ -146,7 +146,7 @@ def _requests(gvar, request, form_data={}):
             )
 
     elif 'server-user' in gvar['user_settings']:
-        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
+        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
             gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['server']))
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
