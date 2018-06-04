@@ -38,9 +38,10 @@ GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'group_name':          'lowerdash',
-        'username':            'ignore',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
+        'username':            'ignore',
+        'user_option':         'ignore',
         },
     }
 
@@ -496,6 +497,10 @@ def update(request):
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Validity check the user option.
+        if 'user_option' in fields and fields['user_option'] != 'add' and fields['user_option'] != 'delete':
+            return list(request, selector=fields['username'], response_code=1, message='%s user update, user-option "%s" invalid, must be either "add" or "delete".' % (lno('GV99'), fields['user_option']), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
         table = tables['csv2_groups']
