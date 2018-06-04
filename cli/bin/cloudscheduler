@@ -141,6 +141,7 @@ def main(args):
             ('-te',  '--text-editor', True),
             ('-ucn', '--user-common-name', True),
             ('-un',  '--username', True),
+            ('-uo',  '--user_option', True),
             ('-upw', '--user-password', True),
             ('-Y',   '--yes', False),
             ('-ye',  '--yaml-enabled', True),

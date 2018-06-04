@@ -12,6 +12,8 @@ KEY_MAP = {
     '-jed': 'job_scratch',
     '-jr':  'job_ram',
     '-js':  'job_swap',
+    '-un':  'username',
+    '-uo':  'user_option',
     '-yn':  'yaml_name',
     '-ye':  'enabled',
     '-ymt': 'mime_type',
@@ -44,7 +46,7 @@ def add(gvar):
         gvar,
         ['-gm', '-gn'],
         [],
-        [],
+        ['-un'],
         key_map=KEY_MAP)
 
     # Create the group.
@@ -186,7 +188,7 @@ def update(gvar):
         gvar,
         ['-gn'],
         [],
-        ['-gm'],
+        ['-gm', '-un', '-uo'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
