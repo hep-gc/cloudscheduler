@@ -25,6 +25,7 @@ import bcrypt
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
+from sqlalchemy.sql import and_
 from lib.schema import *
 import sqlalchemy.exc
 
@@ -90,26 +91,36 @@ def list(
             db_connection.close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
+    # Position the page.
+    obj_act_id = request.path.split('/')
+    if selector:
+        if selector == '-':
+            current_cloud = ''
+            cloud_column_prune = ['']
+            s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+        else:
+            current_cloud = selector
+            cloud_column_prune = ['cloud_name']
+            s = select([view_vms]).where(and_(view_vms.c.group_name == active_user.active_group, view_vms.c.cloud_name == current_cloud))
+        # elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
+        #     current_cloud = str(obj_act_id[3])
+        #     cloud_column_prune = [cloud_name]
+    else:
+        # if len(cloud_list) > 0:
+        #     current_cloud = str(cloud_list[0]['cloud_name'])
+        #     cloud_column_prune = ['cloud_name']
+        # else:
+        #     current_cloud = ''
+        #     cloud_column_prune = ['']
+        current_cloud = ''
+        cloud_column_prune = ['']
+        s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+
     # Retrieve VM information.
-    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(db_connection.execute(s))
+    # s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+    vm_list = qt(db_connection.execute(s)), prune=cloud_column_prune)
 
     db_connection.close()
-
-#   # Position the page.
-#   obj_act_id = request.path.split('/')
-#   if selector:
-#       if selector == '-':
-#           current_cloud = ''
-#       else:
-#           current_cloud = selector
-#   elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
-#       current_cloud = str(obj_act_id[3])
-#   else:
-#       if len(cloud_list) > 0:
-#           current_cloud = str(cloud_list[0]['cloud_name'])
-#       else:
-#           current_cloud = ''
 
     # Render the page.
     context = {
