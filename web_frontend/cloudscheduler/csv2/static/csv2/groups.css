@@ -8,3 +8,13 @@
     margin-top: 8px;
     margin-right: 16px;
 }
+
+
+
+.user-list {
+    overflow: auto;
+    height: 100px;
+}
+.user-list ul {
+  list-style-type: none;
+}

@@ -41,17 +41,14 @@
 }
 
 .main-div table, th, td {
-    border: none;
-    border-collapse: collapse;
-    padding: 8px;
+  border: none;
+  border-collapse: collapse;
+  padding: 8px;
 }
 .main-div th {
-    text-align: right;
+  text-align: right;
 }
 
-.main-div section{
-       float:left;
-}
 
 /*----------vertical menu and contents----------*/
 
@@ -61,11 +58,10 @@
   z-index: 0;     /* So that we can put other things behind */
   width: 200px; /* Set a width if you like */
   position: fixed;
-  overflow: auto;
 }
 .menu > div {
   display: block;
-
+  overflow: auto;
 }
 .menu > div:not(:target) > a {
   background-color: whitesmoke; /* Grey background color */
