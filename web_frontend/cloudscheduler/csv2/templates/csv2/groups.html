@@ -7,7 +7,7 @@
 <head>
     {% load template_utils %}
     {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static "csv2/styles.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
 
     <script type="text/javascript">
@@ -18,12 +18,12 @@
         }
 
 
-        function user_search(group_name) {
+        function search(id_tag) {
             // Declare variables
             var input, filter, ul, li, x, i;
-            input = document.getElementById("user-search-" + group_name);
+            input = document.getElementById("search-" + id_tag)
             filter = input.value.toUpperCase();
-            ul = document.getElementById("user-ul-" + group_name);
+            ul = document.getElementById("ul-" + id_tag);
             li = ul.getElementsByTagName('li');
 
             // Loop through all list items, and hide those who don't match the search query
@@ -59,12 +59,12 @@
                         <td><input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" /></td></tr>
                         
                         <tr class="highlight2"><td><label for="user_groups">Users</label></td>
-                        <td><input id="user-search-{{ group.group_name }}" type="text" placeholder="User search.." onkeyup="user_search('{{group.group_name}}')"></td></tr>
+                        <td><input id="search-{{ group.group_name }}" type="text" placeholder="User search.." onkeyup="search('{{group.group_name}}')"></td></tr>
                         <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
 
                         <tr><td></td><td class="highlight2">
                         <div class="user-list">
-                        <ul id="user-ul-{{ group.group_name }}">
+                        <ul id="ul-{{ group.group_name }}">
                         {% for user in groups_per_user %}
                             {{ user.group_name }}
                             {% if group.group_name in user.user_groups %}
@@ -105,12 +105,12 @@
 
 
                         <tr class="highlight2"><td><label for="user_groups">Users</label></td>
-                        <td><input id="user-search-{{ group.group_name }}" type="text" placeholder="User search.." onkeyup="user_search('{{group.group_name}}')"></td></tr>
+                        <td><input id="search-{{ group.group_name }}" type="text" placeholder="User search.." onkeyup="search('{{group.group_name}}')"></td></tr>
                         <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
 
                         <tr><td></td><td class="highlight2">
                         <div class="user-list">
-                        <ul id="user-ul-{{ group.group_name }}">
+                        <ul id="ul-{{ group.group_name }}">
                         {% for user in groups_per_user %}
                             {{ user.group_name }}
                                 <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></li>
