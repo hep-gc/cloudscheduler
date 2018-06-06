@@ -1,4 +1,4 @@
--- MySQL dump 10.16  Distrib 10.2.14-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.2.15-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
@@ -32,7 +32,6 @@ SET character_set_client = utf8;
   `request_scratch` tinyint NOT NULL,
   `request_swap` tinyint NOT NULL,
   `requirements` tinyint NOT NULL,
-  `job_status` tinyint NOT NULL,
   `job_priority` tinyint NOT NULL,
   `user` tinyint NOT NULL,
   `image` tinyint NOT NULL,
@@ -50,7 +49,11 @@ SET character_set_client = utf8;
   `flavor_scratch` tinyint NOT NULL,
   `flavor_swap` tinyint NOT NULL,
   `flavor_priority` tinyint NOT NULL,
-  `count` tinyint NOT NULL
+  `idle` tinyint NOT NULL,
+  `running` tinyint NOT NULL,
+  `completed` tinyint NOT NULL,
+  `held` tinyint NOT NULL,
+  `other` tinyint NOT NULL
 ) ENGINE=MyISAM */;
 SET character_set_client = @saved_cs_client;
 
@@ -68,7 +71,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `view_groups_of_idle_jobs_raw` AS select `vcjgda`.`group_name` AS `group_name`,`vcjgda`.`target_clouds` AS `target_clouds`,`vcjgda`.`request_cpus` AS `request_cpus`,`vcjgda`.`request_ram` AS `request_ram`,`vcjgda`.`request_disk` AS `request_disk`,`vcjgda`.`request_scratch` AS `request_scratch`,`vcjgda`.`request_swap` AS `request_swap`,`vcjgda`.`requirements` AS `requirements`,`vcjgda`.`job_status` AS `job_status`,`vcjgda`.`job_priority` AS `job_priority`,`vcjgda`.`user` AS `user`,`vcjgda`.`image` AS `image`,`vcjgda`.`instance_type` AS `instance_type`,`vcjgda`.`network` AS `network`,`vcjgda`.`max_price` AS `max_price`,`vcjgda`.`user_data` AS `user_data`,`vcjgda`.`job_per_core` AS `job_per_core`,min(`vcjgda`.`q_date`) AS `queue_date`,`var`.`flavor` AS `flavor`,case when locate(`var`.`flavor_instance_type`,`vcjgda`.`instance_type`) > 0 then 0 else 1 end AS `flavor_mismatch`,`var`.`flavor_cores` AS `flavor_cores`,`var`.`flavor_ram` AS `flavor_ram`,`var`.`flavor_disk` AS `flavor_disk`,`var`.`flavor_scratch` AS `flavor_scratch`,`var`.`flavor_swap` AS `flavor_swap`,row_number() over ( partition by `vcjgda`.`group_name`,`vcjgda`.`target_clouds`,`vcjgda`.`request_cpus`,`vcjgda`.`request_ram`,`vcjgda`.`request_disk`,`vcjgda`.`request_scratch`,`vcjgda`.`request_swap`,`vcjgda`.`requirements`,`vcjgda`.`job_priority`,`vcjgda`.`user`,`vcjgda`.`image`,`vcjgda`.`instance_type`,`vcjgda`.`network`,`vcjgda`.`max_price`,`vcjgda`.`user_data`,`vcjgda`.`job_per_core`,min(`vcjgda`.`q_date`) order by `vcjgda`.`instance_type`,case when locate(`var`.`flavor_instance_type`,`vcjgda`.`instance_type`) > 0 then 0 else 1 end,`var`.`flavor_cores`,`var`.`flavor_ram`,`var`.`flavor_disk`,`var`.`flavor_scratch`,`var`.`flavor_swap`) AS `flavor_priority`,count(`vcjgda`.`global_job_id`) AS `count` from (`view_condor_jobs_group_defaults_applied` `vcjgda` left join `view_available_resources` `var` on(`vcjgda`.`group_name` = `var`.`group_name` and `vcjgda`.`request_cpus` <= `var`.`cores` and `vcjgda`.`request_ram` <= `var`.`ram`)) where `vcjgda`.`job_status` = 1 group by `vcjgda`.`group_name`,`vcjgda`.`target_clouds`,`vcjgda`.`request_cpus`,`vcjgda`.`request_ram`,`vcjgda`.`request_disk`,`vcjgda`.`request_scratch`,`vcjgda`.`request_swap`,`vcjgda`.`requirements`,`vcjgda`.`job_priority`,`vcjgda`.`user`,`vcjgda`.`image`,`vcjgda`.`instance_type`,`vcjgda`.`network`,`vcjgda`.`max_price`,`vcjgda`.`user_data`,`vcjgda`.`job_per_core`,`vcjgda`.`q_date`,`var`.`flavor` order by `vcjgda`.`instance_type`,case when locate(`var`.`flavor_instance_type`,`vcjgda`.`instance_type`) > 0 then 0 else 1 end,`var`.`flavor_cores`,`var`.`flavor_ram`,`var`.`flavor_disk`,`var`.`flavor_scratch`,`var`.`flavor_swap` */;
+/*!50001 VIEW `view_groups_of_idle_jobs_raw` AS select `vcjgda`.`group_name` AS `group_name`,`vcjgda`.`target_clouds` AS `target_clouds`,`vcjgda`.`request_cpus` AS `request_cpus`,`vcjgda`.`request_ram` AS `request_ram`,`vcjgda`.`request_disk` AS `request_disk`,`vcjgda`.`request_scratch` AS `request_scratch`,`vcjgda`.`request_swap` AS `request_swap`,`vcjgda`.`requirements` AS `requirements`,`vcjgda`.`job_priority` AS `job_priority`,`vcjgda`.`user` AS `user`,`vcjgda`.`image` AS `image`,`vcjgda`.`instance_type` AS `instance_type`,`vcjgda`.`network` AS `network`,`vcjgda`.`max_price` AS `max_price`,`vcjgda`.`user_data` AS `user_data`,`vcjgda`.`job_per_core` AS `job_per_core`,min(`vcjgda`.`q_date`) AS `queue_date`,`var`.`flavor` AS `flavor`,case when locate(`var`.`flavor_instance_type`,`vcjgda`.`instance_type`) > 0 then 0 else 1 end AS `flavor_mismatch`,`var`.`flavor_cores` AS `flavor_cores`,`var`.`flavor_ram` AS `flavor_ram`,`var`.`flavor_disk` AS `flavor_disk`,`var`.`flavor_scratch` AS `flavor_scratch`,`var`.`flavor_swap` AS `flavor_swap`,row_number() over ( partition by `vcjgda`.`group_name`,`vcjgda`.`target_clouds`,`vcjgda`.`request_cpus`,`vcjgda`.`request_ram`,`vcjgda`.`request_disk`,`vcjgda`.`request_scratch`,`vcjgda`.`request_swap`,`vcjgda`.`requirements`,`vcjgda`.`job_priority`,`vcjgda`.`user`,`vcjgda`.`image`,`vcjgda`.`instance_type`,`vcjgda`.`network`,`vcjgda`.`max_price`,`vcjgda`.`user_data`,`vcjgda`.`job_per_core`,min(`vcjgda`.`q_date`) order by `vcjgda`.`instance_type`,case when locate(`var`.`flavor_instance_type`,`vcjgda`.`instance_type`) > 0 then 0 else 1 end,`var`.`flavor_cores`,`var`.`flavor_ram`,`var`.`flavor_disk`,`var`.`flavor_scratch`,`var`.`flavor_swap`) AS `flavor_priority`,sum(`vcjgda`.`js_idle`) AS `idle`,sum(`vcjgda`.`js_running`) AS `running`,sum(`vcjgda`.`js_completed`) AS `completed`,sum(`vcjgda`.`js_held`) AS `held`,sum(`vcjgda`.`js_other`) AS `other` from (`view_condor_jobs_group_defaults_applied` `vcjgda` left join `view_available_resources` `var` on(`vcjgda`.`group_name` = `var`.`group_name` and `vcjgda`.`request_cpus` <= `var`.`cores` and `vcjgda`.`request_ram` <= `var`.`ram`)) group by `vcjgda`.`group_name`,`vcjgda`.`target_clouds`,`vcjgda`.`request_cpus`,`vcjgda`.`request_ram`,`vcjgda`.`request_disk`,`vcjgda`.`request_scratch`,`vcjgda`.`request_swap`,`vcjgda`.`requirements`,`vcjgda`.`job_priority`,`vcjgda`.`user`,`vcjgda`.`image`,`vcjgda`.`instance_type`,`vcjgda`.`network`,`vcjgda`.`max_price`,`vcjgda`.`user_data`,`vcjgda`.`job_per_core`,`var`.`flavor` order by `vcjgda`.`instance_type`,case when locate(`var`.`flavor_instance_type`,`vcjgda`.`instance_type`) > 0 then 0 else 1 end,`var`.`flavor_cores`,`var`.`flavor_ram`,`var`.`flavor_disk`,`var`.`flavor_scratch`,`var`.`flavor_swap` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -82,4 +85,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-15 15:16:35
+-- Dump completed on 2018-06-06 13:56:56

@@ -1,4 +1,4 @@
--- MySQL dump 10.16  Distrib 10.2.14-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.2.15-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
@@ -48,7 +48,12 @@ SET character_set_client = utf8;
   `job_per_core` tinyint NOT NULL,
   `entered_current_status` tinyint NOT NULL,
   `q_date` tinyint NOT NULL,
-  `hold_job` tinyint NOT NULL
+  `hold_job` tinyint NOT NULL,
+  `js_idle` tinyint NOT NULL,
+  `js_running` tinyint NOT NULL,
+  `js_completed` tinyint NOT NULL,
+  `js_held` tinyint NOT NULL,
+  `js_other` tinyint NOT NULL
 ) ENGINE=MyISAM */;
 SET character_set_client = @saved_cs_client;
 
@@ -66,7 +71,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `view_condor_jobs_group_defaults_applied` AS select `cj`.`global_job_id` AS `global_job_id`,`cj`.`group_name` AS `group_name`,`cj`.`target_clouds` AS `target_clouds`,`cj`.`cloud_name` AS `cloud_name`,`cj`.`job_status` AS `job_status`,case when (`cj`.`request_cpus` is null or `cj`.`request_cpus` < 0) then case when `cgd`.`job_cpus` is null then 0 else `cgd`.`job_cpus` end else `cj`.`request_cpus` end AS `request_cpus`,case when (`cj`.`request_ram` is null or `cj`.`request_ram` < 0) then case when `cgd`.`job_ram` is null then 0 else `cgd`.`job_ram` end else `cj`.`request_ram` end AS `request_ram`,case when (`cj`.`request_disk` is null or `cj`.`request_disk` < 0) then case when `cgd`.`job_disk` is null then 0 else `cgd`.`job_disk` end else `cj`.`request_disk` end AS `request_disk`,case when (`cj`.`request_swap` is null or `cj`.`request_swap` < 0) then case when `cgd`.`job_swap` is null then 0 else `cgd`.`job_swap` end else `cj`.`request_swap` end AS `request_swap`,case when (`cj`.`request_scratch` is null or `cj`.`request_scratch` < 0) then case when `cgd`.`job_scratch` is null then 0 else `cgd`.`job_scratch` end else `cj`.`request_scratch` end AS `request_scratch`,`cj`.`requirements` AS `requirements`,`cj`.`job_priority` AS `job_priority`,`cj`.`cluster_id` AS `cluster_id`,`cj`.`proc_id` AS `proc_id`,`cj`.`user` AS `user`,`cj`.`image` AS `image`,`cj`.`instance_type` AS `instance_type`,`cj`.`network` AS `network`,`cj`.`keep_alive` AS `keep_alive`,`cj`.`max_price` AS `max_price`,`cj`.`user_data` AS `user_data`,`cj`.`job_per_core` AS `job_per_core`,`cj`.`entered_current_status` AS `entered_current_status`,`cj`.`q_date` AS `q_date`,`cj`.`hold_job` AS `hold_job` from (`condor_jobs` `cj` left join `csv2_group_defaults` `cgd` on(`cj`.`group_name` = `cgd`.`group_name`)) */;
+/*!50001 VIEW `view_condor_jobs_group_defaults_applied` AS select `cj`.`global_job_id` AS `global_job_id`,`cj`.`group_name` AS `group_name`,`cj`.`target_clouds` AS `target_clouds`,`cj`.`cloud_name` AS `cloud_name`,`cj`.`job_status` AS `job_status`,case when (`cj`.`request_cpus` is null or `cj`.`request_cpus` < 0) then case when `cgd`.`job_cpus` is null then 0 else `cgd`.`job_cpus` end else `cj`.`request_cpus` end AS `request_cpus`,case when (`cj`.`request_ram` is null or `cj`.`request_ram` < 0) then case when `cgd`.`job_ram` is null then 0 else `cgd`.`job_ram` end else `cj`.`request_ram` end AS `request_ram`,case when (`cj`.`request_disk` is null or `cj`.`request_disk` < 0) then case when `cgd`.`job_disk` is null then 0 else `cgd`.`job_disk` end else `cj`.`request_disk` end AS `request_disk`,case when (`cj`.`request_swap` is null or `cj`.`request_swap` < 0) then case when `cgd`.`job_swap` is null then 0 else `cgd`.`job_swap` end else `cj`.`request_swap` end AS `request_swap`,case when (`cj`.`request_scratch` is null or `cj`.`request_scratch` < 0) then case when `cgd`.`job_scratch` is null then 0 else `cgd`.`job_scratch` end else `cj`.`request_scratch` end AS `request_scratch`,`cj`.`requirements` AS `requirements`,`cj`.`job_priority` AS `job_priority`,`cj`.`cluster_id` AS `cluster_id`,`cj`.`proc_id` AS `proc_id`,`cj`.`user` AS `user`,`cj`.`image` AS `image`,`cj`.`instance_type` AS `instance_type`,`cj`.`network` AS `network`,`cj`.`keep_alive` AS `keep_alive`,`cj`.`max_price` AS `max_price`,`cj`.`user_data` AS `user_data`,`cj`.`job_per_core` AS `job_per_core`,`cj`.`entered_current_status` AS `entered_current_status`,`cj`.`q_date` AS `q_date`,`cj`.`hold_job` AS `hold_job`,case when `cj`.`job_status` = 1 then 1 else 0 end AS `js_idle`,case when `cj`.`job_status` = 2 then 1 else 0 end AS `js_running`,case when `cj`.`job_status` = 4 then 1 else 0 end AS `js_completed`,case when `cj`.`job_status` = 5 then 1 else 0 end AS `js_held`,case when (`cj`.`job_status` = 0 or `cj`.`job_status` = 3 or `cj`.`job_status` = 6) then 1 else 0 end AS `js_other` from (`condor_jobs` `cj` left join `csv2_group_defaults` `cgd` on(`cj`.`group_name` = `cgd`.`group_name`)) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -80,4 +85,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-15 15:16:35
+-- Dump completed on 2018-06-06 13:56:56
