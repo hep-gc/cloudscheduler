@@ -160,7 +160,7 @@ def delete(request):
 
         # Delete any user_groups for the user.
         table = tables['csv2_user_groups']
-        rc, msg = db_execute(db_connection, table.delete(table.c.username==fields['username']))
+        rc, msg = db_execute(db_connection, table.delete(table.c.username==fields['username']), allow_no_rows=True)
         if rc != 0:
             return list(request, selector=fields['username'], response_code=1, message='%s user group-delete "%s" failed - %s.' % (lno('UV10'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
