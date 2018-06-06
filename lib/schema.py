@@ -34,6 +34,8 @@ archived_condor_machines = Table('archived_condor_machines', metadata,
   Column('name', String(128), primary_key=True),
   Column('machine', String(256)),
   Column('condor_host', String(64)),
+  Column('hostname', String(32)),
+  Column('flavor', String(32)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
   Column('address', String(512)),
@@ -201,6 +203,7 @@ condor_machines = Table('condor_machines', metadata,
   Column('machine', String(256)),
   Column('group_name', String(128)),
   Column('condor_host', String(64)),
+  Column('hostname', String(32)),
   Column('flavor', String(32)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
@@ -256,6 +259,7 @@ csv2_group_resource_yaml = Table('csv2_group_resource_yaml', metadata,
   Column('cloud_name', String(128), primary_key=True),
   Column('yaml_name', String(128), primary_key=True),
   Column('enabled', Integer),
+  Column('priority', Integer),
   Column('yaml', String),
   Column('mime_type', String(128))
   )
@@ -292,6 +296,7 @@ csv2_group_yaml = Table('csv2_group_yaml', metadata,
   Column('group_name', String(128), primary_key=True),
   Column('yaml_name', String(128), primary_key=True),
   Column('enabled', Integer),
+  Column('priority', Integer),
   Column('yaml', String),
   Column('mime_type', String(128))
   )
@@ -299,6 +304,10 @@ csv2_group_yaml = Table('csv2_group_yaml', metadata,
 csv2_groups = Table('csv2_groups', metadata,
   Column('group_name', String(128), primary_key=True),
   Column('condor_central_manager', String)
+  )
+
+csv2_mime_types = Table('csv2_mime_types', metadata,
+  Column('mime_type', String(32), primary_key=True)
   )
 
 csv2_poll_times = Table('csv2_poll_times', metadata,
@@ -767,6 +776,7 @@ view_vms = Table('view_vms', metadata,
   Column('ephemeral_disk', Integer),
   Column('ram', Integer),
   Column('swap', Integer),
+  Column('poller_status_code', String(64)),
   Column('poller_status', String(8))
   )
 
