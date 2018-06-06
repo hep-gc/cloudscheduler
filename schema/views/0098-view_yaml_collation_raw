@@ -1,0 +1,37 @@
+/*
+** List VMs with foreign indicator and poller status.
+*/
+create or replace view view_yaml_collation_raw as
+
+/*
+** Retrieve information.
+*/
+
+select
+
+cgr.group_name,
+cloud_name,
+"group" as type,
+priority,
+yaml_name
+
+from csv2_group_resources as cgr
+
+left outer join csv2_group_yaml as cgy
+on cgr.group_name=cgy.group_name
+
+where enabled=1
+
+union all select
+
+group_name,
+cloud_name,
+"cloud" as type,
+priority,
+yaml_name
+
+from csv2_group_resource_yaml
+
+where enabled=1
+
+;
