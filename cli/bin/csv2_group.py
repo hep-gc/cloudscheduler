@@ -14,9 +14,10 @@ KEY_MAP = {
     '-js':  'job_swap',
     '-un':  'username',
     '-uo':  'user_option',
-    '-yn':  'yaml_name',
     '-ye':  'enabled',
     '-ymt': 'mime_type',
+    '-yn':  'yaml_name',
+    '-yp':  'priority',
     }
 
 def _filter_by_group_name_and_or_yaml_name(gvar, qs):
@@ -233,7 +234,7 @@ def yaml_delete(gvar):
         print('Are you sure you want to delete the YAML file "%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['yaml-name']))
         _reply = input()
         if _reply != 'yes':
-            print('%s group yaml-delete "%s::%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['yaml-name']))
+            print('%s group yaml-delete "%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['yaml-name']))
             exit(0)
 
     # Delete the group/YAML file.
@@ -345,6 +346,7 @@ def yaml_list(gvar):
                 'group_name/Group',
                 'yaml_name/YAML Filename',
                 'enabled/Enabled',
+                'priority/Priority',
                 'mime_type/MIME Type',
             ],
             )
@@ -355,23 +357,31 @@ def yaml_load(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-f', '-yn'], [], ['-g'])
+    form_data = check_keys(
+        gvar,
+        ['-f', '-yn'],
+        [],
+        ['-g', '-ye', '-ymt', '-yp'],
+        key_map=KEY_MAP)
 
     if not os.path.exists(gvar['user_settings']['file-path']):
         print('Error: The specified YAML file "%s" does not exist.' % gvar['user_settings']['file-path'])
         exit(1)
 
-    # Verify the changed YAML file and build input form data.
-    form_data = {
-        **verify_yaml_file(gvar['user_settings']['file-path']),
-        'yaml_name': gvar['user_settings']['yaml-name'],
-        }
+#   # Verify the changed YAML file and build input form data.
+#   form_data = {
+#       **verify_yaml_file(gvar['user_settings']['file-path']),
+#       'yaml_name': gvar['user_settings']['yaml-name'],
+#       }
 
     # Replace the YAML file.
     response = requests(
         gvar,
         '/group/yaml-add/',
-        form_data
+        {
+            **form_data,
+            **verify_yaml_file(gvar['user_settings']['file-path']),
+            }
         )
     
     if response['message']:
@@ -387,7 +397,7 @@ def yaml_update(gvar):
         gvar,
         ['-yn'],
         [],
-        ['-ye', '-ymt'],
+        ['-g', '-ye', '-ymt', '-yp'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

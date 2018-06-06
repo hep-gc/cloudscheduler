@@ -19,9 +19,11 @@ KEY_MAP = {
     '-vc':  'cores_ctl',
     '-vk':  'keyname',
     '-vr':  'ram_ctl',
-    '-yn':  'yaml_name',
     '-ye':  'enabled',
+    '-ylo': 'yaml_list_option',
     '-ymt': 'mime_type',
+    '-yn':  'yaml_name',
+    '-yp':  'priority',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -178,7 +180,7 @@ def list(gvar):
                 'security_group_rules_max/Security Group Rules (Max)',
                 'server_group_members_max/Security Group Members (Max)',
                 'server_meta_max/Server Metadata (Max)',
-            ],
+                ],
             )
 
 def status(gvar):
@@ -328,13 +330,11 @@ def yaml_edit(gvar):
 
     # Write the reference copy.
     fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
     fd.write(response['yaml'])
     fd.close()
 
     # Write the edit copy.
     fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-#   fd.write('# yaml_enabled: %s, yaml_mime_type: %s\n%s' % (response['yaml_enabled'], response['yaml_mime_type'], response['yaml']))
     fd.write(response['yaml'])
     fd.close()
 
@@ -372,10 +372,13 @@ def yaml_list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-yn'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-ylo', '-yn'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/cloud/yaml-list/')
+    if 'yaml-list-option' in gvar['user_settings'] and gvar['user_settings']['yaml-list-option'] == 'merge':
+        response = requests(gvar, '/cloud/yaml-list/', {'yaml_list_option': 'merge'})
+    else:
+        response = requests(gvar, '/cloud/yaml-list/')
     
     if response['message']:
         print(response['message'])
@@ -396,6 +399,18 @@ def yaml_list(gvar):
                 'yaml_name/YAML Filename',
             ],
             )
+    elif 'yaml-list-option' in gvar['user_settings'] and gvar['user_settings']['yaml-list-option'] == 'merge':
+        show_table(
+            gvar,
+            cloud_yaml_list,
+            [
+                'group_name/Group',
+                'cloud_name/Cloud',
+                'type/Type',
+                'priority/priority',
+                'yaml_name/YAML Filename',
+                ],
+            )
     else:
         show_table(
             gvar,
@@ -405,6 +420,7 @@ def yaml_list(gvar):
                 'cloud_name/Cloud',
                 'yaml_name/YAML Filename',
                 'enabled/Enabled',
+                'priority/Priority',
                 'mime_type/MIME Type',
             ],
             )
@@ -415,25 +431,26 @@ def yaml_load(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-f', '-yn'], [], ['-g'])
+    form_data = check_keys(
+        gvar,
+        ['-cn', '-f', '-yn'],
+        [],
+        ['-g', '-ye', '-ymt', '-yp'],
+        key_map=KEY_MAP
+        )
 
     if not os.path.exists(gvar['user_settings']['file-path']):
         print('Error: The specified YAML file "%s" does not exist.' % gvar['user_settings']['file-path'])
         exit(1)
 
-    # Verify the changed YAML file and build input form data.
-    form_data = {
-        **verify_yaml_file(gvar['user_settings']['file-path']),
-        'group_name': gvar['active_group'],
-        'cloud_name': gvar['user_settings']['cloud-name'],
-        'yaml_name': gvar['user_settings']['yaml-name'],
-        }
-
     # Replace the YAML file.
     response = requests(
         gvar,
         '/cloud/yaml-add/',
-        form_data
+        {
+            **form_data,
+            **verify_yaml_file(gvar['user_settings']['file-path']),
+            }
         )
     
     if response['message']:
@@ -449,14 +466,15 @@ def yaml_update(gvar):
         gvar,
         ['-cn', '-yn'],
         [],
-        ['-ye', '-ymt'],
-        key_map=KEY_MAP)
+        ['-g', '-ye', '-ymt', '-yp'],
+        key_map=KEY_MAP
+        )
 
-    if len(form_data) < 2:
+    if len(form_data) < 3:
         print('Error: "%s cloud yaml-update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
 
-    # Create the cloud.
+    # Update the YAML file information.
     response = requests(
         gvar,
         '/cloud/yaml-update/',
