@@ -229,79 +229,86 @@ def cleanUp():
     condor_host = socket.gethostname()
     fail_count = 0
     while True:
-        logging.info("Commencing cleanup cycle...")
-        # Setup condor classes and database connctions
-        # this stuff may be able to be moved outside the while loop, but i think its better to
-        # re-mirror the database each time for the sake on consistency.
         try:
-            condor_c = htcondor.Collector()
-        except Exception as exc:
-            fail_count = fail_count + 1
-            logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
-            logging.error(exc)
-            logging.error("Sleeping until next cycle...")
-            time.sleep(config.sleep_interval)
-            continue
-
-        fail_count = 0
-
-        Base = automap_base()
-        local_hostname = socket.gethostname()
-        engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        session = Session(engine)
-        #setup database objects
-        Resource = Base.classes.condor_machines
-        archResource = Base.classes.archived_condor_machines
-
-        # Clean up machine/resource ads
-        try:
-            condor_machine_list = condor_c.query()
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Failed to execute job query... aborting cycle")
-            logging.error("Sleeping until next cycle...")
-            time.sleep(config.sleep_interval)
-            continue
-        #this quert asks for only resources containing reported by this collector (host)
-        db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
-
-
-        # if a machine is found in the db but not condor we need to check if it was flagged
-        # for shutdown, in that case we need to update the the entry in the vm table who was
-        # running the job such that we can also destroy the VM, if there is no recovery
-        # proccess with a vm with a dead condor thread we can forgo the retire/shutdown check
-        # and just mark them all for termination
-
-        condor_name_list = []
-        for ad in condor_machine_list:
-            ad_dict = dict(ad)
-            condor_name_list.append(ad_dict['Name'])
-        for machine in db_machine_list:
+            logging.info("Commencing cleanup cycle...")
+            # Setup condor classes and database connctions
+            # this stuff may be able to be moved outside the while loop, but i think its better to
+            # re-mirror the database each time for the sake on consistency.
             try:
-                if machine.name not in condor_name_list:
-                    #machine is missing from condor, clean it up
-                    logging.info("Found machine missing from condor: %s, cleaning up.", machine.name)
-
-                    machine_dict = machine.__dict__
-                    logging.info(machine_dict)
-                    session.delete(machine)
-                    del machine_dict['_sa_instance_state']
-                    new_arch_machine = archResource(**machine_dict)
-                    session.merge(new_arch_machine)
+                condor_c = htcondor.Collector()
             except Exception as exc:
-                logging.error("Error attempting to delete %s... skipping", machine.name)
+                fail_count = fail_count + 1
+                logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
                 logging.error(exc)
+                logging.error("Sleeping until next cycle...")
+                time.sleep(config.sleep_interval)
+                continue
 
-        try:        
-            session.commit()
+            fail_count = 0
+
+            Base = automap_base()
+            local_hostname = socket.gethostname()
+            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            session = Session(engine)
+            #setup database objects
+            Resource = Base.classes.condor_machines
+            archResource = Base.classes.archived_condor_machines
+
+            # Clean up machine/resource ads
+            try:
+                condor_machine_list = condor_c.query()
+            except Exception as exc:
+                logging.error(exc)
+                logging.error("Failed to execute job query... aborting cycle")
+                logging.error("Sleeping until next cycle...")
+                time.sleep(config.sleep_interval)
+                continue
+            #this quert asks for only resources containing reported by this collector (host)
+            db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
+
+
+            # if a machine is found in the db but not condor we need to check if it was flagged
+            # for shutdown, in that case we need to update the the entry in the vm table who was
+            # running the job such that we can also destroy the VM, if there is no recovery
+            # proccess with a vm with a dead condor thread we can forgo the retire/shutdown check
+            # and just mark them all for termination
+
+            condor_name_list = []
+            for ad in condor_machine_list:
+                ad_dict = dict(ad)
+                condor_name_list.append(ad_dict['Name'])
+            for machine in db_machine_list:
+                try:
+                    if machine.name not in condor_name_list:
+                        #machine is missing from condor, clean it up
+                        logging.info("Found machine missing from condor: %s, cleaning up.", machine.name)
+
+                        machine_dict = machine.__dict__
+                        logging.info(machine_dict)
+                        session.delete(machine)
+                        del machine_dict['_sa_instance_state']
+                        new_arch_machine = archResource(**machine_dict)
+                        session.merge(new_arch_machine)
+                except Exception as exc:
+                    logging.error("Error attempting to delete %s... skipping", machine.name)
+                    logging.error(exc)
+
+            try:        
+                session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
+            logging.info("Cleanup cycle finished sleeping...")
+            time.sleep(config.cleanup_sleep_interval)
         except Exception as exc:
-            logging.error("Unable to commit database session")
             logging.error(exc)
+            logging.error("Error during database automapping or during general execution")
             logging.error("Aborting cycle...")
-        logging.info("Cleanup cycle finished sleeping...")
-        time.sleep(config.cleanup_sleep_interval)
+            logging.info("Cleanup cycle finished sleeping...")
+            time.sleep(config.cleanup_sleep_interval)
 
 
 if __name__ == '__main__':

@@ -265,96 +265,103 @@ def flavorPoller():
 
     while True:
         #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Flavor = Base.classes.cloud_flavors
-        Cloud = Base.classes.csv2_group_resources
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+        try:
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            Flavor = Base.classes.cloud_flavors
+            Cloud = Base.classes.csv2_group_resources
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
-        logging.debug("Polling flavors")
-        current_cycle = int(time.time())
-        for cloud in cloud_list:
-            logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s" % cloud.authurl)
-                continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
-
-            if session is False:
-                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+            logging.debug("Polling flavors")
+            current_cycle = int(time.time())
+            for cloud in cloud_list:
+                logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
+                authsplit = cloud.authurl.split('/')
+                try:
+                    version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+                except ValueError:
+                    logging.error("Bad openstack URL, could not determine version, skipping %s" % cloud.authurl)
+                    continue
                 if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                    session = get_openstack_session(
+                        auth_url=cloud.authurl,
+                        username=cloud.username,
+                        password=cloud.password,
+                        project=cloud.project)
                 else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
-                continue
-            # setup openstack api objects
-            nova = get_nova_client(session)
+                    session = get_openstack_session(
+                        auth_url=cloud.authurl,
+                        username=cloud.username,
+                        password=cloud.password,
+                        project=cloud.project,
+                        user_domain=cloud.user_domain_name,
+                        project_domain_name=cloud.project_domain_name)
 
-            flav_list = get_flavor_data(nova)
-            if flav_list is False:
-                continue
-            for flavor in flav_list:
-                if flavor.swap == "":
-                    swap = 0
-                else:
-                    swap = flavor.swap
+                if session is False:
+                    logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                    if version == 2:
+                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                    else:
+                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+                    continue
+                # setup openstack api objects
+                nova = get_nova_client(session)
 
-                if flavor.disk == "":
-                    disk = 0
-                else:
-                    disk = flavor.disk
-                flav_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'name': flavor.name,
-                    'ram': flavor.ram,
-                    'vcpus': flavor.vcpus,
-                    'id': flavor.id,
-                    'swap': swap,
-                    'disk': disk,
-                    'ephemeral_disk': flavor.ephemeral,
-                    'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
-                    'last_updated': current_cycle
-                }
-                flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
-                new_flav = Flavor(**flav_dict)
-                db_session.merge(new_flav)
+                flav_list = get_flavor_data(nova)
+                if flav_list is False:
+                    continue
+                for flavor in flav_list:
+                    if flavor.swap == "":
+                        swap = 0
+                    else:
+                        swap = flavor.swap
 
-            #now remove any that were not updated
-            flav_to_delete = db_session.query(Flavor).filter(
-                Flavor.last_updated < current_cycle,
-                Flavor.group_name == cloud.group_name,
-                Flavor.cloud_name == cloud.cloud_name)
-            for flav in flav_to_delete:
-                logging.info("Cleaning up flavor: %s", flav)
-                db_session.delete(flav)
-        try:        
-            db_session.commit()
+                    if flavor.disk == "":
+                        disk = 0
+                    else:
+                        disk = flavor.disk
+                    flav_dict = {
+                        'group_name': cloud.group_name,
+                        'cloud_name': cloud.cloud_name,
+                        'name': flavor.name,
+                        'ram': flavor.ram,
+                        'vcpus': flavor.vcpus,
+                        'id': flavor.id,
+                        'swap': swap,
+                        'disk': disk,
+                        'ephemeral_disk': flavor.ephemeral,
+                        'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
+                        'last_updated': current_cycle
+                    }
+                    flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                    new_flav = Flavor(**flav_dict)
+                    db_session.merge(new_flav)
+
+                #now remove any that were not updated
+                flav_to_delete = db_session.query(Flavor).filter(
+                    Flavor.last_updated < current_cycle,
+                    Flavor.group_name == cloud.group_name,
+                    Flavor.cloud_name == cloud.cloud_name)
+                for flav in flav_to_delete:
+                    logging.info("Cleaning up flavor: %s", flav)
+                    db_session.delete(flav)
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.error("Unable to commit database session")
+                logging.error(exc)
+                logging.error("Aborting cycle...")
+            logging.debug("End of cycle, sleeping...")
+            time.sleep(config.flavor_sleep_interval)
         except Exception as exc:
-            logging.error("Unable to commit database session")
             logging.error(exc)
+            logging.error("Exception during database automapping or general execution")
             logging.error("Aborting cycle...")
-        logging.debug("End of cycle, sleeping...")
-        time.sleep(config.flavor_sleep_interval)
+            logging.debug("End of cycle, sleeping...")
+            time.sleep(config.flavor_sleep_interval)
 
     return None
 
