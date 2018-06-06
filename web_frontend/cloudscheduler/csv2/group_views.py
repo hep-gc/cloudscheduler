@@ -58,6 +58,7 @@ YAML_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
+        'enabled':             'dboolean',
         'yaml_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
@@ -265,95 +266,104 @@ def delete(request):
                         )
                     if rc != 0:
                         db_connection.close()
-                        return list(request, selector=fields['group_name'], response_code=1, message='%s group YAML file delete "%s::%s" failed - %s.' % (lno('GV10'), fields['group_name'], yaml_name, message), active_user=active_user, user_groups=user_groups, attributes=columns)
+                        return list(request, selector=fields['group_name'], response_code=1, message='%s group YAML file delete "%s::%s" failed - %s.' % (lno('GV10'), fields['group_name'], yaml_name, msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group defaults.
         table = tables['csv2_group_defaults']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV11'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV11'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
         # Delete the csv2_group_resources.
         table = tables['csv2_group_resources']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV12'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV12'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
         # Delete the csv2_group_resource_yaml.
         table = tables['csv2_group_resource_yaml']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_user_groups.
         table = tables['csv2_user_groups']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_vms.
         table = tables['csv2_vms']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_limits.
         table = tables['cloud_limits']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_images.
         table = tables['cloud_images']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], message), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_flavors.
         table = tables['cloud_flavors']
         rc, msg = db_execute(
             db_connection,
-            table.delete(table.c.group_name==fields['group_name'])
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
             )
         if rc != 0:
             db_connection.close()

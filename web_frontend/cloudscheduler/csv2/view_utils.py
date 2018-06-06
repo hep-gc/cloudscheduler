@@ -6,7 +6,7 @@ UTILITY FUNCTIONS
 '''
 #-------------------------------------------------------------------------------
 
-def db_execute(db_connection, request, allow_no_rows=True):
+def db_execute(db_connection, request, allow_no_rows=False):
     """
     Execute a DB request and return the response. Also, trap and return errors.
     """
@@ -18,7 +18,7 @@ def db_execute(db_connection, request, allow_no_rows=True):
         result_proxy = db_connection.execute(request)
         if result_proxy.rowcount == 0 and not allow_no_rows:
             return 1, 'the request did not match any rows'
-        return 0, None
+        return 0, result_proxy.rowcount
     except sqlalchemy.exc.IntegrityError as ex:
         return 1, ex.orig
     except Exception as ex:
@@ -609,7 +609,9 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     Possible format strings are:
 
-    boolean    - A value of True or False will be inserted into the out put fields.
+    boolean    - A value of True or False will be inserted into the output fields.
+    dboolean   - Database boolean values are either 0 or 1; allow and
+                 convert true/false/yes/no.
     ignore     - Ignore missing mandatory fields or fields for undefined columns.
     lowercase  - Make sure the input value is all lowercase (or error).
     lowerdash  - Make sure the input value is all lowercase, nummerics, and dashes but 
@@ -682,7 +684,17 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         value = request.POST[field]
 
         if field in Formats:
-            if Formats[field] == 'lowerdash':
+            if Formats[field] == 'dboolean':
+                lower_value = value.lower()
+                print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", value, lower_value)
+                if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
+                    value = 1
+                elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
+                    value = 0
+                else:
+                    return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
+
+            elif Formats[field] == 'lowerdash':
                 if re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
                     value = request.POST[field]
                 else:

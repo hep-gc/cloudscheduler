@@ -50,6 +50,7 @@ YAML_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'cloud_name':          'lowerdash',
+        'enabled':             'dboolean',
         'yaml_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
@@ -494,9 +495,23 @@ def yaml_list(request):
         db_connection.close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
+    if request.method == 'POST' and 'yaml_list_option' in request.POST:
+        if request.POST['yaml_list_option'] == 'merge':
+            merge_list = True
+        else:
+            db_connection.close()
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml-list, yaml-list-option "%s" is invalid; only "merge" is valid.' % request.POST['yaml_list_option']})
+    else:
+        merge_list = False
+
     # Retrieve cloud/yaml information.
-    s = select([csv2_group_resource_yaml]).where(csv2_group_resource_yaml.c.group_name == active_user.active_group)
-    cloud_yaml_list = qt(db_connection.execute(s), prune=['password'])
+    if merge_list:
+        s = select([view_yaml_collation]).where(view_yaml_collation.c.group_name == active_user.active_group)
+        cloud_yaml_list = qt(db_connection.execute(s))
+    else:
+        s = select([csv2_group_resource_yaml]).where(csv2_group_resource_yaml.c.group_name == active_user.active_group)
+        cloud_yaml_list = qt(db_connection.execute(s))
+
     db_connection.close()
 
     # Render the page.
