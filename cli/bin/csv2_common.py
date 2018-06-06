@@ -352,11 +352,16 @@ def verify_yaml_file(file_path):
     file_string = fd.read()
     fd.close()
 
-    # Verify the yaml.
-    result = _yaml_load_and_verify(file_string)
-    if not result[0]:
-        print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
-        exit(1)
+    # Verify yaml files.
+    if (len(file_path) > 4 and file_path[-4:] == '.yml') or \
+        (len(file_path) > 5 and file_path[-5:] == '.yaml') or \
+        (len(file_path) > 7 and file_path[-7:] == '.yml.j2') or \
+        (len(file_path) > 8 and file_path[-8:] == '.yaml.j2'):
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        result = _yaml_load_and_verify(file_string)
+        if not result[0]:
+            print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
+            exit(1)
 
     return {
         'yaml': file_string,
