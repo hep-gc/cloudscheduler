@@ -786,3 +786,19 @@ view_vms_up_down = Table('view_vms_up_down', metadata,
   Column('VMs_down', Integer)
   )
 
+view_yaml_collation = Table('view_yaml_collation', metadata,
+  Column('group_name', String(128)),
+  Column('cloud_name', String(128)),
+  Column('type', String(5)),
+  Column('priority', Integer),
+  Column('yaml_name', String(128))
+  )
+
+view_yaml_collation_raw = Table('view_yaml_collation_raw', metadata,
+  Column('group_name', String(128)),
+  Column('cloud_name', String(128)),
+  Column('type', String(5)),
+  Column('priority', Integer),
+  Column('yaml_name', String(128))
+  )
+
