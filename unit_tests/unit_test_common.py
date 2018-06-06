@@ -1,6 +1,8 @@
 def _caller():
     import inspect
     import os
+    if inspect.stack()[-3][1] == '<string>':
+        return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
 def _execute_selections(gvar, request, expected_text, expected_values):
@@ -88,6 +90,9 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
             gvar['csrf'] = None
             gvar['cookies'] = None
 
+        if gvar['hidden']:
+            return 0
+
         failed = False
 
         if expected_rc and expected_rc != response['response_code']:
@@ -131,7 +136,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
     else:
         return 0
 
-def initialize_csv2_request(gvar, command, selections=None):
+def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     import os
     import yaml
 
@@ -146,6 +151,7 @@ def initialize_csv2_request(gvar, command, selections=None):
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
     gvar['ut_dir'] = os.path.dirname(os.path.abspath(command))
+    gvar['hidden'] = hidden
 
     if selections:
         gvar['selections'] = []
