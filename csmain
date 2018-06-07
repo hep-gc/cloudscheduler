@@ -294,6 +294,7 @@ def check_idle_machines(group):
                                                              machines.group_name == group)
     machines_dict = defaultdict(int)
     for machine in unclaimed_idle_machines:
+        # TODO Make sure this line is behaving as intended and not catching every machine after 30 minutes irregardless of activity
         if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # TODO make configurable setting for now ~30minutes
             log.debug("Setting condor off flag for machine: %s", machine.name)
             machine.condor_off = 1
@@ -331,7 +332,8 @@ def check_unregistered_machines(group):
     vms = Base.classes.csv2_vms
     clouds = Base.classes.csv2_group_resources
     group_clouds = session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group).filter(~exists().where(machines.machine.contains(view_vms.c.hostname)))
+    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group).filter(~exists().
+                                                                                             where(machines.machine.contains(view_vms.c.hostname)))
 
     cloud_names = []
     for cloud in group_clouds:
