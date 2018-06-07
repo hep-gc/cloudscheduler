@@ -48,6 +48,11 @@ def main(gvar):
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu7')}
         )
+    
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu8')}
+        )
 
     execute_csv2_request(
         gvar, None, None, None,

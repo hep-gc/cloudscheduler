@@ -1,6 +1,8 @@
 def _caller():
     import inspect
     import os
+    if inspect.stack()[-3][1] == '<string>':
+        return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
 def _execute_selections(gvar, request, expected_text, expected_values):
@@ -50,7 +52,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
     else:
         return 0
 
-def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, form_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None):
+def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, form_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
     obtain a CSRF (for POST requests) prior to making the atual request.
@@ -82,7 +84,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                 ) 
             
         # Perform the callers request.
-        response = _requests(gvar, request, form_data=form_data, server_user=server_user, server_pw=server_pw)
+        response = _requests(gvar, request, form_data=form_data, server_user=server_user, server_pw=server_pw, html=html)
 
         if server_user and server_pw:
             gvar['csrf'] = None
@@ -102,10 +104,12 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
-            print('    response code=%s' % response['response_code'])
-            print('    error code=%s' % error_code)
-            print('    message=%s\n' % response['message'])
+
+            if not gvar['hidden']:
+                print('\n%03d %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+                print('    response code=%s' % response['response_code'])
+                print('    error code=%s' % error_code)
+                print('    message=%s\n' % response['message'])
 
             return 1
         else:
@@ -117,21 +121,36 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                             for key in values:
                                 if row[key] != values[key]:
                                     failed = True
-                                    print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                                    print('    row=%s\n' % row)
+                                    if not gvar['hidden']:
+                                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                        print('    row=%s\n' % row)
 
                 if failed:
                     gvar['ut_failed'] += 1
                     return 1
                 else:
-                    print('%03d %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, list, filter, values))
+                    if not gvar['hidden']:
+                        print('%03d %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, list, filter, values))
                     return 0
 
-            print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+            if not gvar['hidden']:
+                print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
     else:
         return 0
 
-def initialize_csv2_request(gvar, command, selections=None):
+def html_message(text):
+    import re
+    p = re.compile(r'Error: (.*)</b>')
+    m = p.search(text.replace('\n', ''))
+    if m and m.group(1):
+        return True, m.group(1)
+    p = re.compile(r'<div class="footer"(.*)</div>')
+    m = p.search(text.replace('\n', ''))
+    if m and m.group(1):
+        return False, re.sub(r'</?[a-z]{2}>', '', m.group(1).strip())
+    return False, 'no message found'
+
+def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     import os
     import yaml
 
@@ -146,6 +165,7 @@ def initialize_csv2_request(gvar, command, selections=None):
     gvar['ut_failed'] = 0
     gvar['ut_skipped'] = 0
     gvar['ut_dir'] = os.path.dirname(os.path.abspath(command))
+    gvar['hidden'] = hidden
 
     if selections:
         gvar['selections'] = []
@@ -157,7 +177,6 @@ def initialize_csv2_request(gvar, command, selections=None):
                     gvar['selections'].append(str(iy))
             else:
                 gvar['selections'].append(tmp_selections[ix])
-#       print(gvar['selections'])
     else:
         gvar['selections'] = []
 
@@ -167,7 +186,7 @@ def initialize_csv2_request(gvar, command, selections=None):
 
     return
 
-def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
+def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, html=False):
     """
     Make RESTful request and return response.
     """
@@ -189,10 +208,15 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
         _function = py_requests.get
         _form_data = {}
 
+    if html:
+        headers={'Referer': gvar['user_settings']['server-address']}
+    else:
+        headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']}
+
     if server_user and server_pw:
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            headers=headers,
             auth=(server_user, server_pw),
             data=_form_data,
             cookies=gvar['cookies'] 
@@ -204,7 +228,7 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
         os.path.exists(gvar['user_settings']['server-grid-key']):
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            headers=headers,
             cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
             cookies=gvar['cookies']
@@ -215,7 +239,7 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
             gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            headers=headers,
             auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
             cookies=gvar['cookies'] 
@@ -232,6 +256,12 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
         elif _r.status_code and _r.status_code == 403:   
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
+        elif html and _r.status_code and _r.status_code == 200:
+            error, message = html_message(_r.text)
+            if error:
+                response = {'response_code': 1, 'message': message.replace('&quot;', '"')}
+            else:
+                response = {'response_code': 0, 'message': message.replace('&quot;', '"')}
         elif _r.status_code:   
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
         else:
@@ -241,11 +271,11 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
         print("Expose API requested:\n" \
             "  py_requests.%s(\n" \
             "    %s%s,\n" \
-            "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
+            "    headers=%s," % (
                 _function.__name__,
                 gvar['user_settings']['server-address'],
                 request,
-                gvar['user_settings']['server-address'],
+                headers,
                 )
             )
 

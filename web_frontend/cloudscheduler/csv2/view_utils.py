@@ -540,7 +540,7 @@ def set_user_groups(request, db_session, db_map):
                 active_user.active_group = group_name
                 active_user.save()
             else:
-                return 1,'cannnot switch to invalid group "%s".' % group_name, active_user, user_groups
+                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
 
     # if no active group, set first group as default.
     if active_user.active_group is None:
