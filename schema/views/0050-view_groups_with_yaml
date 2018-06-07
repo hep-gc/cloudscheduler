@@ -9,6 +9,7 @@ cg.group_name,
 condor_central_manager,
 yaml_name,
 enabled,
+priority,
 yaml,
 mime_type
 

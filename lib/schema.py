@@ -606,6 +606,7 @@ view_group_resources_with_yaml = Table('view_group_resources_with_yaml', metadat
   Column('server_meta_max', Integer),
   Column('yaml_name', String(128)),
   Column('yaml_enabled', Integer),
+  Column('yaml_priority', Integer),
   Column('yaml_mime_type', String(128)),
   Column('yaml', String)
   )
@@ -715,6 +716,7 @@ view_groups_with_yaml = Table('view_groups_with_yaml', metadata,
   Column('condor_central_manager', String),
   Column('yaml_name', String(128)),
   Column('enabled', Integer),
+  Column('priority', Integer),
   Column('yaml', String),
   Column('mime_type', String(128))
   )
