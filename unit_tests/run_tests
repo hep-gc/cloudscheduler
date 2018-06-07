@@ -24,10 +24,17 @@ def get_test_list():
 def main():
     test_names, test_files = get_test_list()
     options = []
+    setup = True
+    cleanup = True
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
             if arg == '-h' or arg == '--help':
                 print(test_names)
+                exit()
+            elif arg == '-ss' or arg == '--skip-setup':
+                setup = False
+            elif arg == '-sc' or arg == '--skip-cleanup':
+                cleanup = False
             elif arg.endswith(']'):
                 temp = arg.split('[')
                 if temp[0] not in test_names:
@@ -50,25 +57,29 @@ def main():
     if len(options) == 0:
         gvar = {}
         initialize_csv2_request(gvar, sys.argv[0])
-        print('Setting up user tests...')
-        user_requests_setup.main(hidden_gvar)
+        if setup:
+            print('Setting up user tests...')
+            user_requests_setup.main(hidden_gvar)
         for i in range(len(test_names)):
             exec('import {}'.format(test_files[i]), globals(), locals())
             print('\n*** Testing {} ***\n'.format(test_names[i]))
             exec('{}.main(gvar)'.format(test_files[i]), globals(), locals())
-        print('Cleaning up user tests...')
-        user_requests_cleanup.main(hidden_gvar)
+        if cleanup:
+            print('Cleaning up user tests...')
+            user_requests_cleanup.main(hidden_gvar)
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])
     else:
-        print('Setting up user tests...')
-        user_requests_setup.main(hidden_gvar)
+        if setup:
+            print('Setting up user tests...')
+            user_requests_setup.main(hidden_gvar)
         for o, g in options:
             exec('import {}'.format(test_files[test_names.index(o)]), globals(), locals())
             print('\n*** Testing {} ***\n'.format(o))
             exec('{}.main(g)'.format(test_files[test_names.index(o)]), globals(), locals())
-        print('Cleaning up user tests...')
-        user_requests_cleanup.main(hidden_gvar)
+        if cleanup:
+            print('Cleaning up user tests...')
+            user_requests_cleanup.main(hidden_gvar)
         for o, g in options:
             print('Test {} run={}, skipped={}, failed={}.'.format(o, g['ut_count']-g['ut_skipped'], g['ut_skipped'], g['ut_failed']))
 

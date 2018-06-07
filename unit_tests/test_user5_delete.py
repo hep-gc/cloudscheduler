@@ -61,8 +61,8 @@ def main(gvar):
 
     # deleting a user that doesn't exist should fail
     execute_csv2_request(
-        gvar, 1, 'UV11', '"%s" failed - the request did not match any rows.' % ut_id(gvar, 'utu8'),
-        '/user/delete/', form_data={'username': ut_id(gvar, 'utu8')}
+        gvar, 1, 'UV11', '"%s" failed - the request did not match any rows.' % ut_id(gvar, 'invalid-unit-test'),
+        '/user/delete/', form_data={'username': ut_id(gvar, 'invalid-unit-test')}
         )
 
     execute_csv2_request(

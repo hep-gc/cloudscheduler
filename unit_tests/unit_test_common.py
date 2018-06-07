@@ -90,9 +90,6 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
             gvar['csrf'] = None
             gvar['cookies'] = None
 
-        if gvar['hidden']:
-            return 0
-
         failed = False
 
         if expected_rc and expected_rc != response['response_code']:
@@ -107,10 +104,12 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
-            print('    response code=%s' % response['response_code'])
-            print('    error code=%s' % error_code)
-            print('    message=%s\n' % response['message'])
+
+            if not gvar['hidden']:
+                print('\n%03d %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+                print('    response code=%s' % response['response_code'])
+                print('    error code=%s' % error_code)
+                print('    message=%s\n' % response['message'])
 
             return 1
         else:
@@ -122,17 +121,20 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                             for key in values:
                                 if row[key] != values[key]:
                                     failed = True
-                                    print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                                    print('    row=%s\n' % row)
+                                    if not gvar['hidden']:
+                                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                        print('    row=%s\n' % row)
 
                 if failed:
                     gvar['ut_failed'] += 1
                     return 1
                 else:
-                    print('%03d %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, list, filter, values))
+                    if not gvar['hidden']:
+                        print('%03d %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, list, filter, values))
                     return 0
 
-            print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+            if not gvar['hidden']:
+                print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
     else:
         return 0
 
@@ -163,7 +165,6 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
                     gvar['selections'].append(str(iy))
             else:
                 gvar['selections'].append(tmp_selections[ix])
-#       print(gvar['selections'])
     else:
         gvar['selections'] = []
 
