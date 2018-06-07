@@ -390,5 +390,53 @@ def main(gvar):
         values={'user_groups': ut_id(gvar, 'utg1,utg2,utg3')}
     )
 
+    # check that group operations behave as expected without the accept json header
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu8')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu8'),
+            'group_name.1': ut_id(gvar, 'utg1')
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu8')},
+        values={'user_groups': ut_id(gvar, 'utg1')}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu8')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu8'),
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_name.2': ut_id(gvar, 'utg3')
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu8')},
+        values={'user_groups': ut_id(gvar, 'utg2,utg3')}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu8')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu8'),
+            'group_name.1': ut_id(gvar, 'utg2'),
+            'group_option': 'delete'
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'utu8')},
+        values={'user_groups': ut_id(gvar, 'utg2')}
+    )
+
 if __name__ == "__main__":
     main(None)

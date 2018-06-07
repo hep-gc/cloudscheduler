@@ -26,15 +26,22 @@ def main():
     options = []
     setup = True
     cleanup = True
+    selections = ''
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
             if arg == '-h' or arg == '--help':
-                print(test_names)
+                print('Options:')
+                print('-ss | --skip-setup\tFlag to specify if unit test setup should be skipped')
+                print('-sc | --skip-cleanup\tFlag to specify if unit test cleanup should be skipped')
+                print('The valid tests in this folder are:')
+                print('\n'.join(test_names))
                 exit()
             elif arg == '-ss' or arg == '--skip-setup':
                 setup = False
             elif arg == '-sc' or arg == '--skip-cleanup':
                 cleanup = False
+            elif arg.startswith('['):
+                selections = arg[1:-1]
             elif arg.endswith(']'):
                 temp = arg.split('[')
                 if temp[0] not in test_names:
@@ -56,7 +63,10 @@ def main():
     
     if len(options) == 0:
         gvar = {}
-        initialize_csv2_request(gvar, sys.argv[0])
+        if selections == '':
+            initialize_csv2_request(gvar, sys.argv[0])
+        else:
+            initialize_csv2_request(gvar, sys.argv[0], selections=selections)
         if setup:
             print('Setting up user tests...')
             user_requests_setup.main(hidden_gvar)
