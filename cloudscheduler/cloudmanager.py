@@ -52,7 +52,8 @@ class CloudManager():
         for cloud in self.group_resources:
             cloud_yamls = session.query(cloud_yaml).\
                 filter(cloud_yaml.group_name == self.name,
-                       cloud_yaml.cloud_name == cloud.cloud_name)
+                       cloud_yaml.cloud_name == cloud.cloud_name,
+                       cloud_yaml.enabled == 1)
             cloud_yaml_list = []
             for yam in cloud_yamls:
                 cloud_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])

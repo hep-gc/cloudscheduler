@@ -56,7 +56,8 @@ def main():
             Resources = Base.classes.csv2_group_resources
             group_resources = session.query(Resources).filter(Resources.group_name == csgroup.group_name)
             Group_Yaml = Base.classes.csv2_group_yaml
-            group_yamls = session.query(Group_Yaml).filter(Group_Yaml.group_name == csgroup.group_name)
+            group_yamls = session.query(Group_Yaml).filter(Group_Yaml.group_name == csgroup.group_name,
+                                                           Group_Yaml.enabled == 1)
             group_yaml_list = []
             for yam in group_yamls:
                 group_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])
