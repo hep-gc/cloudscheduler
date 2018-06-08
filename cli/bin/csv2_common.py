@@ -333,6 +333,7 @@ def show_table(gvar, queryset, columns, allow_null=True):
         print('| %s |' % ' | '.join(_show_table_pad(_column_lengths, _row)))
 
     print(_ruler)
+    print('Rows: %s' % len(_qs))
 
 def _show_table_pad(lens, cols):
     """
