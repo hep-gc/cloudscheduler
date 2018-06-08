@@ -23,9 +23,11 @@ DROP TABLE IF EXISTS `csv2_vm_status_codes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `csv2_vm_status_codes` (
-  `status_from_poller` varchar(64) NOT NULL,
-  `status` varchar(8) NOT NULL,
-  PRIMARY KEY (`status_from_poller`)
+  `power_status` int(11) DEFAULT NULL,
+  `vm_status` varchar(16) DEFAULT NULL,
+  `condor_off` tinyint(1) DEFAULT NULL,
+  `manual_control` tinyint(1) DEFAULT NULL,
+  `status` varchar(16) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -35,7 +37,7 @@ CREATE TABLE `csv2_vm_status_codes` (
 
 LOCK TABLES `csv2_vm_status_codes` WRITE;
 /*!40000 ALTER TABLE `csv2_vm_status_codes` DISABLE KEYS */;
-INSERT INTO `csv2_vm_status_codes` VALUES ('0,0,ERROR,0','error'),('0,1,ACTIVE,0','running'),('0,1,ACTIVE,1','retiring'),('0,1,ACTIVE,2','retiring'),('0,1,ERROR,0','error');
+INSERT INTO `csv2_vm_status_codes` VALUES (NULL,NULL,NULL,1,'manual'),(NULL,'ERROR',NULL,NULL,'error'),(1,'ACTIVE',0,0,'running'),(1,'ACTIVE',1,0,'retiring'),(1,'ACTIVE',2,0,'retiring'),(1,'ACTIVE',NULL,0,'unregistered');
 /*!40000 ALTER TABLE `csv2_vm_status_codes` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -48,4 +50,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-08 11:51:04
+-- Dump completed on 2018-06-08 15:15:57
