@@ -16,28 +16,37 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `auth_user`
+-- Table structure for table `cloud_limits`
 --
 
-DROP TABLE IF EXISTS `auth_user`;
+DROP TABLE IF EXISTS `cloud_limits`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `auth_user` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `password` varchar(128) NOT NULL,
-  `last_login` datetime DEFAULT NULL,
-  `is_superuser` tinyint(1) NOT NULL,
-  `username` varchar(150) NOT NULL,
-  `first_name` varchar(30) NOT NULL,
-  `last_name` varchar(30) NOT NULL,
-  `email` varchar(254) NOT NULL,
-  `is_staff` tinyint(1) NOT NULL,
-  `is_active` tinyint(1) NOT NULL,
-  `date_joined` datetime NOT NULL,
-  `csv2_user` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
+CREATE TABLE `cloud_limits` (
+  `group_name` varchar(128) NOT NULL,
+  `cloud_name` varchar(128) NOT NULL,
+  `server_meta_max` int(11) NOT NULL,
+  `instances_max` int(11) NOT NULL,
+  `personality_max` int(11) NOT NULL,
+  `image_meta_max` int(11) NOT NULL,
+  `personality_size_max` int(11) NOT NULL,
+  `ram_max` int(11) NOT NULL,
+  `server_groups_max` int(11) NOT NULL,
+  `security_group_rules_max` int(11) NOT NULL,
+  `keypairs_max` int(11) NOT NULL,
+  `security_groups_max` int(11) NOT NULL,
+  `server_group_members_max` int(11) NOT NULL,
+  `floating_ips_max` int(11) NOT NULL,
+  `cores_max` int(11) NOT NULL,
+  `server_groups_used` int(11) NOT NULL,
+  `instances_used` int(11) NOT NULL,
+  `ram_used` int(11) NOT NULL,
+  `security_groups_used` int(11) NOT NULL,
+  `floating_ips_used` int(11) NOT NULL,
+  `cores_used` int(11) NOT NULL,
+  `last_updated` int(11) NOT NULL,
+  PRIMARY KEY (`group_name`,`cloud_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +58,4 @@ CREATE TABLE `auth_user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-08 11:05:03
+-- Dump completed on 2018-06-08 11:28:00

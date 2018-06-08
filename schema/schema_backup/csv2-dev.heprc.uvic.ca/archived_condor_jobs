@@ -16,28 +16,40 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `auth_user`
+-- Table structure for table `archived_condor_jobs`
 --
 
-DROP TABLE IF EXISTS `auth_user`;
+DROP TABLE IF EXISTS `archived_condor_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `auth_user` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `password` varchar(128) NOT NULL,
-  `last_login` datetime DEFAULT NULL,
-  `is_superuser` tinyint(1) NOT NULL,
-  `username` varchar(150) NOT NULL,
-  `first_name` varchar(30) NOT NULL,
-  `last_name` varchar(30) NOT NULL,
-  `email` varchar(254) NOT NULL,
-  `is_staff` tinyint(1) NOT NULL,
-  `is_active` tinyint(1) NOT NULL,
-  `date_joined` datetime NOT NULL,
-  `csv2_user` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
+CREATE TABLE `archived_condor_jobs` (
+  `global_job_id` varchar(128) NOT NULL,
+  `group_name` varchar(128) DEFAULT NULL,
+  `target_clouds` text DEFAULT NULL,
+  `cloud_name` text DEFAULT NULL,
+  `job_status` int(11) DEFAULT NULL,
+  `request_cpus` int(11) NOT NULL,
+  `request_ram` int(11) DEFAULT NULL,
+  `request_disk` int(11) DEFAULT NULL,
+  `request_swap` int(11) DEFAULT NULL,
+  `request_scratch` int(11) DEFAULT NULL,
+  `requirements` varchar(512) DEFAULT NULL,
+  `job_priority` int(11) DEFAULT NULL,
+  `cluster_id` int(11) DEFAULT NULL,
+  `proc_id` int(11) NOT NULL,
+  `user` varchar(512) DEFAULT NULL,
+  `image` text DEFAULT NULL,
+  `instance_type` varchar(512) DEFAULT NULL,
+  `network` varchar(512) DEFAULT NULL,
+  `keep_alive` varchar(512) DEFAULT NULL,
+  `max_price` varchar(512) DEFAULT NULL,
+  `user_data` varchar(512) DEFAULT NULL,
+  `job_per_core` int(11) DEFAULT NULL,
+  `entered_current_status` int(11) DEFAULT NULL,
+  `q_date` int(11) DEFAULT NULL,
+  `hold_job` int(2) DEFAULT NULL,
+  PRIMARY KEY (`global_job_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +61,4 @@ CREATE TABLE `auth_user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-08 11:05:03
+-- Dump completed on 2018-06-08 11:28:00
