@@ -164,97 +164,102 @@ def terminate_vm(session, vm):
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
     while True:
-        logging.debug("Begining poll cycle")
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Vm = Base.classes.csv2_vms
-        Cloud = Base.classes.csv2_group_resources
-        Poll_Times = Base.classes.csv2_poll_times
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+        try:
+            logging.debug("Begining poll cycle")
+            Base = automap_base()
+            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+            Base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            Vm = Base.classes.csv2_vms
+            Cloud = Base.classes.csv2_group_resources
+            Poll_Times = Base.classes.csv2_poll_times
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
-        # Itterate over cloud list
-        poll_time =  int(time.time())
-        for cloud in cloud_list:
-            logging.info("Polling VMs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
-                continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
-
-            if session is False:
-                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
-                continue
-            # setup nova object
-            nova = get_nova_client(session)
-
-            # get server list
-            vm_list = get_vm_list(nova)
-            if vm_list is False:
-                continue
-            for vm in vm_list:
-                vm_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'auth_url': cloud.authurl,
-                    'project': cloud.project,
-                    'hostname': vm.name,
-                    'vmid': vm.id,
-                    'status': vm.status,
-                    'flavor_id': vm.flavor["id"],
-                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
-                    'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
-                    'last_updated': int(time.time())
-                }
-
-                vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
-                vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
-                new_vm = Vm(**vm_dict)
+            # Itterate over cloud list
+            poll_time =  int(time.time())
+            for cloud in cloud_list:
+                logging.info("Polling VMs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
+                authsplit = cloud.authurl.split('/')
                 try:
-                    db_session.merge(new_vm)
+                    version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+                except ValueError:
+                    logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                    continue
+                if version == 2:
+                    session = get_openstack_session(
+                        auth_url=cloud.authurl,
+                        username=cloud.username,
+                        password=cloud.password,
+                        project=cloud.project)
+                else:
+                    session = get_openstack_session(
+                        auth_url=cloud.authurl,
+                        username=cloud.username,
+                        password=cloud.password,
+                        project=cloud.project,
+                        user_domain=cloud.user_domain_name,
+                        project_domain_name=cloud.project_domain_name)
+
+                if session is False:
+                    logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                    if version == 2:
+                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+                    else:
+                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+                    continue
+                # setup nova object
+                nova = get_nova_client(session)
+
+                # get server list
+                vm_list = get_vm_list(nova)
+                if vm_list is False:
+                    continue
+                for vm in vm_list:
+                    vm_dict = {
+                        'group_name': cloud.group_name,
+                        'cloud_name': cloud.cloud_name,
+                        'auth_url': cloud.authurl,
+                        'project': cloud.project,
+                        'hostname': vm.name,
+                        'vmid': vm.id,
+                        'status': vm.status,
+                        'flavor_id': vm.flavor["id"],
+                        'task': vm.__dict__.get("OS-EXT-STS:task_state"),
+                        'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
+                        'last_updated': int(time.time())
+                    }
+
+                    vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                    vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
+                    new_vm = Vm(**vm_dict)
+                    try:
+                        db_session.merge(new_vm)
+                    except Exception as exc:
+                        logging.error(exc)
+                        logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
+                try:        
+                    db_session.commit()
                 except Exception as exc:
                     logging.error(exc)
-                    logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
-            try:        
+                    logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Aborting cycle...")
+            logging.debug("Poll cycle complete, sleeping...")
+            try:
+                new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=poll_time)
+                db_session.merge(new_pt)
                 db_session.commit()
             except Exception as exc:
                 logging.error(exc)
-                logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
-                logging.error("Aborting cycle...")
-        logging.debug("Poll cycle complete, sleeping...")
-        try:
-            new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=poll_time)
-            db_session.merge(new_pt)
-            db_session.commit()
+                logging.error("Unable to update vm poll time")
+            # This cycle should be reasonably fast such that the scheduler will always have the most
+            # up to date data during a given execution cycle.
+            time.sleep(config.vm_sleep_interval)
         except Exception as exc:
             logging.error(exc)
-            logging.error("Unable to update vm poll time")
-        # This cycle should be reasonably fast such that the scheduler will always have the most
-        # up to date data during a given execution cycle.
-        time.sleep(config.vm_sleep_interval)
-
+            logging.error("Error during database automapping or general execution")
+            logging.error("Aborting cycle...")
+            time.sleep(config.vm_sleep_interval)
 
 
     return None
@@ -356,6 +361,7 @@ def flavorPoller():
                 logging.error("Aborting cycle...")
             logging.debug("End of cycle, sleeping...")
             time.sleep(config.flavor_sleep_interval)
+
         except Exception as exc:
             logging.error(exc)
             logging.error("Exception during database automapping or general execution")
