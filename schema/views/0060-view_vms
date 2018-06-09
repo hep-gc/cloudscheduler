@@ -29,7 +29,7 @@ left outer join cloud_flavors as cf on
   cv.flavor_id=cf.id
 
 left outer join condor_machines as cm
-on cv.hostname=substring_index(machine, '.', 1)
+on cv.hostname=cm.hostname
 
 left outer join csv2_vm_status_codes as cvsc
 on case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then 0 else 1 end = 0 and (
