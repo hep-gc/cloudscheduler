@@ -330,8 +330,11 @@ csv2_user_groups = Table('csv2_user_groups', metadata,
   )
 
 csv2_vm_status_codes = Table('csv2_vm_status_codes', metadata,
-  Column('status_from_poller', String(64), primary_key=True),
-  Column('status', String(8))
+  Column('power_status', Integer),
+  Column('vm_status', String(16)),
+  Column('condor_off', Integer),
+  Column('manual_control', Integer),
+  Column('status', String(16))
   )
 
 csv2_vms = Table('csv2_vms', metadata,
@@ -345,6 +348,7 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('flavor_id', String(128)),
   Column('task', String(32)),
   Column('power_status', Integer),
+  Column('manual_control', Integer),
   Column('terminate', Integer),
   Column('terminate_time', Integer),
   Column('status_changed_time', Integer),
@@ -379,21 +383,6 @@ django_session = Table('django_session', metadata,
   Column('session_key', String(40), primary_key=True),
   Column('session_data', String),
   Column('expire_date', Integer)
-  )
-
-project_job_defaults = Table('project_job_defaults', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('image_name', String),
-  Column('flavor', String),
-  Column('cpu_cores', Integer),
-  Column('memory', Integer),
-  Column('storage', Integer),
-  Column('job_yaml_files', String)
-  )
-
-project_users = Table('project_users', metadata,
-  Column('projectid', Integer),
-  Column('username', String(64))
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -457,8 +446,10 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('group_name', String(128)),
   Column('cloud_name', String),
   Column('VMs', Integer),
+  Column('VMs_unregistered', Integer),
   Column('VMs_running', Integer),
   Column('VMs_retiring', Integer),
+  Column('VMs_manual', Integer),
   Column('VMs_in_error', Integer),
   Column('VMs_other', Integer),
   Column('Foreign_VMs', Integer),
@@ -478,8 +469,10 @@ view_cloud_status_raw = Table('view_cloud_status_raw', metadata,
   Column('group_name', String(128)),
   Column('cloud_name', String),
   Column('VMs', Integer),
+  Column('VMs_unregistered', Integer),
   Column('VMs_running', Integer),
   Column('VMs_retiring', Integer),
+  Column('VMs_manual', Integer),
   Column('VMs_in_error', Integer),
   Column('VMs_other', Integer),
   Column('Foreign_VMs', Integer),
@@ -765,6 +758,7 @@ view_vms = Table('view_vms', metadata,
   Column('flavor_id', String(128)),
   Column('task', String(32)),
   Column('power_status', Integer),
+  Column('manual_control', Integer),
   Column('terminate', Integer),
   Column('terminate_time', Integer),
   Column('status_changed_time', Integer),
@@ -778,8 +772,7 @@ view_vms = Table('view_vms', metadata,
   Column('ephemeral_disk', Integer),
   Column('ram', Integer),
   Column('swap', Integer),
-  Column('poller_status_code', String(64)),
-  Column('poller_status', String(8))
+  Column('poller_status', String(16))
   )
 
 view_vms_up_down = Table('view_vms_up_down', metadata,
