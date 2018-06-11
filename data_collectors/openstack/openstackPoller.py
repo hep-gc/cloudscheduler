@@ -692,7 +692,7 @@ def vmCleanUp():
 
         # check for vms that have dissapeared since the last cycle
         logging.debug("Querying database for vms to remove...")
-        vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle, Vm.auth_url != "unit-test")
+        vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
         for vm in vm_to_delete:
             logging.info("Cleaning up VM: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             db_session.delete(vm)
