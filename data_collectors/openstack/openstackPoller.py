@@ -692,7 +692,7 @@ def vmCleanUp():
 
         # check for vms that have dissapeared since the last cycle
         logging.debug("Querying database for vms to remove...")
-        vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
+        vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle, Vm.auth_url != "unit-test")
         for vm in vm_to_delete:
             logging.info("Cleaning up VM: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             db_session.delete(vm)
@@ -712,7 +712,7 @@ def vmCleanUp():
 
         # check for vms that have been marked for termination
         logging.debug("Querying database for VMs marked for termination...")
-        vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1)
+        vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1, Vm.manual_control != 1)
         for vm in vm_to_destroy:
             logging.info("VM marked for termination... terminating: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
             # terminate vm

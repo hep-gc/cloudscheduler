@@ -266,7 +266,7 @@ def cleanUp():
                 time.sleep(config.sleep_interval)
                 continue
             #this quert asks for only resources containing reported by this collector (host)
-            db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
+            db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host, Resource.requirements != "unit-test")
 
 
             # if a machine is found in the db but not condor we need to check if it was flagged
