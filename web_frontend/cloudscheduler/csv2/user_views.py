@@ -75,7 +75,7 @@ def add(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -84,7 +84,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_ctl, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups,n'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s user add, %s' % (lno('UV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -144,7 +144,7 @@ def delete(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -153,7 +153,7 @@ def delete(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV08'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user', 'csv2_user_groups,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_ctl, ['csv2_user', 'csv2_user_groups,n'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s user delete, %s' % (lno('UV09'), msg), active_user=active_user, user_groups=user_groups)
@@ -199,7 +199,7 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -292,14 +292,14 @@ def settings(request):
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
     if rc == 0:
         if request.method == 'POST':
             # Validate input fields.
-            rc, msg, fields, tables, columns = validate_fields(request, [UNPRIVILEGED_USER_KEYS], db_engine, ['csv2_user', 'django_session,n'], active_user)
+            rc, msg, fields, tables, columns = validate_fields(request, [UNPRIVILEGED_USER_KEYS], db_ctl, ['csv2_user', 'django_session,n'], active_user)
             if rc == 0:        
                 # Update the user.
                 table = tables['csv2_user']
@@ -354,7 +354,7 @@ def update(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -363,7 +363,7 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_engine, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_ctl, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s user update, %s' % (lno('UV19'), msg), active_user=active_user, user_groups=user_groups)

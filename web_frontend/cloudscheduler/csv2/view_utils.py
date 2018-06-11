@@ -582,7 +582,7 @@ def table_fields(Fields, Table, Columns, selection):
 
 #-------------------------------------------------------------------------------
 
-def validate_fields(request, fields, db_engine, tables, active_user):
+def validate_fields(request, fields, db_ctl, tables, active_user):
     """
     This function validates/normalizes form fields/command arguments.
 
@@ -609,17 +609,19 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     Possible format strings are:
 
-    boolean    - A value of True or False will be inserted into the output fields.
-    dboolean   - Database boolean values are either 0 or 1; allow and
-                 convert true/false/yes/no.
-    ignore     - Ignore missing mandatory fields or fields for undefined columns.
-    lowercase  - Make sure the input value is all lowercase (or error).
-    lowerdash  - Make sure the input value is all lowercase, nummerics, and dashes but 
-                 can't start or end with a dash (or error).
-    password   - A password value to be checked and hashed
-    password1  - A password value to be verified against password2, checked and hashed.
-    password2  - A password value to be verified against password1, checked and hashed.
-    uppercase  - Make sure the input value is all uppercase (or error).
+    ['opt1', 'opt2', ...]  - A list of valid options.
+    ('table', 'column')    - A list of valid options derrived from the named table and column.
+    boolean                - A value of True or False will be inserted into the output fields.
+    dboolean               - Database boolean values are either 0 or 1; allow and
+                             convert true/false/yes/no.
+    ignore                 - Ignore missing mandatory fields or fields for undefined columns.
+    lowercase              - Make sure the input value is all lowercase (or error).
+    lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
+                             can't start or end with a dash (or error).
+    password               - A password value to be checked and hashed
+    password1              - A password value to be verified against password2, checked and hashed.
+    password2              - A password value to be verified against password1, checked and hashed.
+    uppercase              - Make sure the input value is all uppercase (or error).
 
     POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
     returning the variable "name" as a list of strings. 
@@ -628,7 +630,12 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
     from sqlalchemy import Table, MetaData
+    from sqlalchemy.sql import select
+    import lib.schema
     import re
+
+    # address the DB objects.
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     # Retrieve relevant (re: tables) schema.
     all_columns = []
@@ -684,9 +691,28 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         value = request.POST[field]
 
         if field in Formats:
-            if Formats[field] == 'dboolean':
+            if isinstance(Formats[field], (list, tuple)):
+                if isinstance(Formats[field], tuple):
+                    options = []
+                    s = select([lib.schema.__dict__[Formats[field][0]]])
+                    for row in db_connection.execute(s):
+                       if Formats[field][1] in row:
+                          options.append(row[Formats[field][1]])
+                else:
+                    options = Formats[field]
+
                 lower_value = value.lower()
-                print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", value, lower_value)
+                value = None
+                for opt in options:
+                    if lower_value == opt.lower():
+                        value = opt
+                        break
+
+                if not value:
+                    return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
+
+            elif Formats[field] == 'dboolean':
+                lower_value = value.lower()
                 if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
                     value = 1
                 elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
@@ -695,7 +721,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                     return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
 
             elif Formats[field] == 'lowerdash':
-                if re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
                     value = request.POST[field]
                 else:
                     return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None

@@ -51,6 +51,7 @@ YAML_KEYS = {
     'format': {
         'cloud_name':          'lowerdash',
         'enabled':             'dboolean',
+        'mime_type':           ('csv2_mime_types', 'mime_type'),
         'yaml_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
@@ -78,7 +79,7 @@ def add(request):
 
     if request.method == 'POST' and 'cloud_name' in request.POST:
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -87,7 +88,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -122,7 +123,7 @@ def delete(request):
 
     if request.method == 'POST' and 'cloud_name' in request.POST:
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -131,7 +132,7 @@ def delete(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_YAML_NAME], db_engine, ['csv2_group_resources', 'csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_YAML_NAME], db_ctl, ['csv2_group_resources', 'csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg), active_user=active_user, user_groups=user_groups)
@@ -179,7 +180,7 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -262,7 +263,7 @@ def status(request, group_name=None):
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -302,7 +303,7 @@ def update(request):
 
     if request.method == 'POST' and 'cloud_name' in request.POST:
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -311,7 +312,7 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_engine, ['csv2_group_resources'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
@@ -349,7 +350,7 @@ def yaml_add(request):
         'yaml_name' in request.POST:
 
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -358,7 +359,7 @@ def yaml_add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud yaml-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
@@ -396,7 +397,7 @@ def yaml_delete(request):
         'yaml_name' in request.POST:
 
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -405,7 +406,7 @@ def yaml_delete(request):
             return list(request, selector='-', response_code=1, message='%s %S' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud yaml-delete %s' % (lno('CV23'), msg), active_user=active_user, user_groups=user_groups)
@@ -441,7 +442,7 @@ def yaml_fetch(request, selector=None):
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -487,7 +488,7 @@ def yaml_list(request):
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -544,7 +545,7 @@ def yaml_update(request):
         'yaml_name' in request.POST:
 
         # open the database.
-        db_engine,db_session,db_connection,db_map = db_open()
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
@@ -553,7 +554,7 @@ def yaml_update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_engine, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_resource_yaml'], active_user)
         if rc != 0:        
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s cloud yaml-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
