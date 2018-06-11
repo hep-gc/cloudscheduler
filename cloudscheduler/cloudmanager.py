@@ -56,7 +56,7 @@ class CloudManager():
                        cloud_yaml.enabled == 1)
             cloud_yaml_list = []
             for yam in cloud_yamls:
-                cloud_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])
+                cloud_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type, yam.priority])
             cloud_vms = session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
                                                        cloud_vm.cloud_name == cloud.cloud_name)
             try:
