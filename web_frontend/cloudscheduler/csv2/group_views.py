@@ -245,8 +245,13 @@ def delete(request):
                 'cloud_flavors'
             ], active_user)
         if rc != 0:        
+<<<<<<< 1dafe26649e9f1d1116c8f07c091cbb1c97c2dcb
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('CV09'), msg), active_user=active_user, user_groups=user_groups)
+=======
+            db_connection.close()
+            return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
+>>>>>>> Fix typo 'CV09' -> 'GV09'
 
         # Delete any group metadata files for the group.
         s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
