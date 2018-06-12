@@ -18,7 +18,7 @@
 {% block navbar %}
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
-
+<div class="wrapper" style="padding-top:60px">
 <div class="image_matrix"><form id="keypair_form" name="keypair_form" action="/keypairs/save_keypairs/{{active_group}}/" method="post">
     {% csrf_token %}
     <table>
@@ -31,10 +31,10 @@
         {% for key in fingerprint_dict %}
             <tr>
                 <th>
-                    {{fingerprint_dict|get_item:key|get_item:name}}
+                    {{fingerprint_dict|get_item:key|get_item:"name"}}
                 </th>
                 {% for cloud in group_resources %}
-                    {% if fingerprint_dict|get_item:key|getitem:cloud.cloud_name %}
+                    {% if fingerprint_dict|get_item:key|get_item:cloud.cloud_name %}
                         <td class="{{key}}"><input name="{{cloud.cloud_name}}" type="checkbox" value="{{key}}" checked></td>
                     {% else %}
                         <td class="{{key}}"><input name="{{cloud.cloud_name}}" type="checkbox" value="{{key}}" ></td>
@@ -44,3 +44,4 @@
         {% endfor %}
     </table>
 </form></div>
+</div>
