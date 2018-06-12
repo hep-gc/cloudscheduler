@@ -1172,3 +1172,36 @@ def upload_image(request, group_name=None):
             'message': None
         }
         return render(request, 'glintwebui/upload_image.html', context)
+
+def manage_keys(request, group_name=None, message=None):
+    if not verifyUser(request):
+        raise PermissionDenied
+    user_obj = getUser(request)
+    if group_name is None:
+        group_name = user_obj.active_group
+
+    Base, session = get_db_base_and_session()
+    Group_Resources = Base.classes.csv2_group_resources
+    Keypairs = Base.classes.csv2_keypairs
+
+    grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
+    fingerprint_dict = {}
+
+    for cloud in group_resources:
+        for key in fingerprint_dict:
+            fingerprint_dict[key][cloud.cloud_name] = False
+        cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
+        for key in cloud_keys:
+            # issue of renaming here if keys have different names on different clouds
+            # the keys will have a unique fingerprint and that is what is used as an identifier
+            fingerprint_dict[key.fingerprint]["name"] = key.keyname
+            fingerprint_dict[key.fingerprint][key.cloud_name] = True
+
+    context = {
+        "group_resources": group_resources,
+        "fingerprint_dict": fingerprint_dict,
+        "active_group": group_name,
+        "message": message
+    }
+    # need to create template
+    return render(request, 'glintwebui/manage_keys.html', context)
