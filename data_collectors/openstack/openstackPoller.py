@@ -765,6 +765,102 @@ def vmCleanUp():
         time.sleep(config.vm_cleanup_interval)
     return None
 
+def keypair_poller():
+    multiprocessing.current_process().name = "Keypair Poller"
+    last_cycle = 0
+
+    while True:
+        current_cycle_time = time.time()
+        #set up database objects
+        logging.debug("Begining keypair polling cycle")
+        Base = automap_base()
+        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+        Base.prepare(engine, reflect=True)
+        db_session = Session(engine)
+        Keypairs = Base.classes.csv2_keypairs
+        Cloud = Base.classes.csv2_group_resources
+        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+
+        current_cycle = int(time.time())
+        for cloud in cloud_list:
+            logging.info("Processing Keypairs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
+            authsplit = cloud.authurl.split('/')
+            try:
+                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+            except ValueError:
+                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                continue
+            if version == 2:
+                session = get_openstack_session(
+                    auth_url=cloud.authurl,
+                    username=cloud.username,
+                    password=cloud.password,
+                    project=cloud.project)
+            else:
+                session = get_openstack_session(
+                    auth_url=cloud.authurl,
+                    username=cloud.username,
+                    password=cloud.password,
+                    project=cloud.project,
+                    user_domain=cloud.user_domain_name,
+                    project_domain_name=cloud.project_domain_name)
+
+            if session is False:
+                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
+                if version == 2:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (cloud.auth_url, cloud.username, cloud.project))
+                else:
+                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (cloud.auth_url, cloud.sername, cloud.project, cloud.user_domain, cloud.project_domain_name))
+                continue
+
+            # setup openstack api objects
+            nova = get_nova_client(session)
+
+            #setup fingerprint list
+            fingerprint_list = []
+
+            # get keypairs and add them to database
+            cloud_keys = nova.keypairs.list()
+            for key in cloud_keys:
+                key_dict = {
+                    "cloud_name":  cloud.cloud_name,
+                    "group_name":  cloud.group_name,
+                    "key_name":    key.name
+                    "fingerprint": key.fingerprint
+                }
+                fingerprint_list.append(key.fingerprint)
+                new_key = Keypairs(**key_dict)
+                db_session.merge(new_key)
+            try:
+                db_session.commit()
+            except Exception as exc:
+                logging.error(exc)
+                logging.error("Unable to commit database session during keypair proccessing")
+                logging.error("Skipping %s - %s" % (cloud.group_name, cloud.cloud_name))
+                break
+
+            # now we need to check database for any keys that have been deleted
+            db_keys = db_session.query(Keypairs).filter(
+                Keypairs.cloud_name == cloud.cloud_name,
+                Keypairs.group_name == cloud.group_name)
+
+            for key in db_keys:
+                #check against fingerprint list created earlier
+                if key.fingerprint not in fingerprint_list:
+                    # delete it
+                    session.delete(key)
+            try:
+                session.commit()
+            except Exception as exc:
+                logging.error(exc)
+                logging.error("Unable to commit database session during keypair proccessing")
+                logging.error("Skipping %s - %s" % (cloud.group_name, cloud.cloud_name))
+                break
+        logging.info("End of cycle, sleeping")
+        time.sleep(config.keypair_sleep_interval)
+
+
 
 ## MAIN
 #
