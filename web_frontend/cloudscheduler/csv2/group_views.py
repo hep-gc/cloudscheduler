@@ -245,13 +245,8 @@ def delete(request):
                 'cloud_flavors'
             ], active_user)
         if rc != 0:        
-<<<<<<< 1dafe26649e9f1d1116c8f07c091cbb1c97c2dcb
-            db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('CV09'), msg), active_user=active_user, user_groups=user_groups)
-=======
             db_connection.close()
             return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
->>>>>>> Fix typo 'CV09' -> 'GV09'
 
         # Delete any group metadata files for the group.
         s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
@@ -550,7 +545,7 @@ def metadata_delete(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('CV32'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV32'), msg)})
 
         # Delete the group metadata file.
         table = tables['csv2_group_metadata']
@@ -678,7 +673,7 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('CV38'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV38'), msg)})
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
