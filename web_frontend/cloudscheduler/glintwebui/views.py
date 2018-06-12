@@ -1198,8 +1198,12 @@ def manage_keys(request, group_name=None, message=None):
         for key in cloud_keys:
             # issue of renaming here if keys have different names on different clouds
             # the keys will have a unique fingerprint and that is what is used as an identifier
-            fingerprint_dict[key.fingerprint]["name"] = key.key_name
-            fingerprint_dict[key.fingerprint][key.cloud_name] = True
+            if fingerprint_dict[key.fingerprint]:
+                fingerprint_dict[key.fingerprint][key.cloud_name] = True
+            else:
+                fingerprint_dict[key.fingerprint] = {}
+                fingerprint_dict[key.fingerprint]["name"] = key.key_name
+                fingerprint_dict[key.fingerprint][key.cloud_name] = True
 
     context = {
         "group_resources": grp_resources,
