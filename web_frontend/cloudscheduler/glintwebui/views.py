@@ -98,7 +98,6 @@ def project_details(request, group_name=None, message=None):
 
     if group_name is None:
         group_name = user_obj.active_group
-
     if group_name is None:
         # First time user, lets put them at the first project the have access to
         try:
@@ -116,19 +115,24 @@ def project_details(request, group_name=None, message=None):
 
     try:
         image_set = get_unique_image_list(group_name)
-        hidden_image_set = get_hidden_image_list(group_name)
-        image_dict = json.loads(get_images_for_group(group_name))
-        # since we are using name as the unique identifer we need to pass in a dictionary
-        # that lets us get the image id (uuid) from the repo and image name
-        # We will have to implement logic here that spots two images with the same name
-        # and forces the user to resolve
-        reverse_img_lookup = build_id_lookup_dict(image_dict)
-
-    except Exception:
+        #hidden_image_set = get_hidden_image_list(group_name)
+        json_dict = get_images_for_group(group_name)
+        if json_dict:
+            image_dict = json.loads(json_dict)
+            # since we are using name as the unique identifer we need to pass in a dictionary
+            # that lets us get the image id (uuid) from the repo and image name
+            # We will have to implement logic here that spots two images with the same name
+            # and forces the user to resolve
+            reverse_img_lookup = build_id_lookup_dict(image_dict)
+        else:
+            image_dict = None
+            reverse_img_lookup = None
+    except Exception as exc:
         # No images in database yet may want some logic here forcing it to wait a little on start up
         logger.info("No images yet in database, or possible error collecting image sets")
+        logger.error(exc)
         image_set = None
-        hidden_image_set = None
+        #hidden_image_set = None
         image_dict = None
         reverse_img_lookup = None
         # Should render a page here that says no image info available please refresh in 20 seconds
@@ -141,7 +145,7 @@ def project_details(request, group_name=None, message=None):
         grp_name = grp.group_name
         group_list.append(grp_name)
 
-    conflict_dict = get_conflicts_for_group(group_name)
+    #conflict_dict = get_conflicts_for_group(group_name)
     num_tx = get_num_transactions()
     if num_tx is None:
         num_tx = 0
@@ -150,11 +154,11 @@ def project_details(request, group_name=None, message=None):
         'user_groups': group_list,
         'image_dict': image_dict,
         'image_set': image_set,
-        'hidden_image_set': hidden_image_set,
+        #'hidden_image_set': hidden_image_set,
         'image_lookup': reverse_img_lookup,
         'message': message,
         'is_superuser': getSuperUserStatus(request),
-        'conflict_dict': conflict_dict,
+        #'conflict_dict': conflict_dict,
         'version': version,
         'num_tx': num_tx,
         'enable_glint': True
