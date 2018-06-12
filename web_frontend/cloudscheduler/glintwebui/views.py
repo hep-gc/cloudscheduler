@@ -1191,18 +1191,18 @@ def manage_keys(request, group_name=None, message=None):
     grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
     fingerprint_dict = {}
 
-    for cloud in group_resources:
+    for cloud in grp_resources:
         for key in fingerprint_dict:
             fingerprint_dict[key][cloud.cloud_name] = False
         cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
         for key in cloud_keys:
             # issue of renaming here if keys have different names on different clouds
             # the keys will have a unique fingerprint and that is what is used as an identifier
-            fingerprint_dict[key.fingerprint]["name"] = key.keyname
+            fingerprint_dict[key.fingerprint]["name"] = key.key_name
             fingerprint_dict[key.fingerprint][key.cloud_name] = True
 
     context = {
-        "group_resources": group_resources,
+        "group_resources": grp_resources,
         "fingerprint_dict": fingerprint_dict,
         "active_group": group_name,
         "message": message
