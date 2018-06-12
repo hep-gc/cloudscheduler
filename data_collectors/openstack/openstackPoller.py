@@ -765,7 +765,7 @@ def vmCleanUp():
         time.sleep(config.vm_cleanup_interval)
     return None
 
-def keypair_poller():
+def keypairPoller():
     multiprocessing.current_process().name = "Keypair Poller"
     last_cycle = 0
 
@@ -826,7 +826,7 @@ def keypair_poller():
                 key_dict = {
                     "cloud_name":  cloud.cloud_name,
                     "group_name":  cloud.group_name,
-                    "key_name":    key.name
+                    "key_name":    key.name,
                     "fingerprint": key.fingerprint
                 }
                 fingerprint_list.append(key.fingerprint)
@@ -849,9 +849,9 @@ def keypair_poller():
                 #check against fingerprint list created earlier
                 if key.fingerprint not in fingerprint_list:
                     # delete it
-                    session.delete(key)
+                    db_session.delete(key)
             try:
-                session.commit()
+                db_session.commit()
             except Exception as exc:
                 logging.error(exc)
                 logging.error("Unable to commit database session during keypair proccessing")
@@ -884,6 +884,8 @@ if __name__ == '__main__':
     processes.append(p_limit_poller)
     p_network_poller = Process(target=networkPoller)
     processes.append(p_network_poller)
+    p_keypair_poller = Process(target=keypairPoller)
+    processes.append(p_keypair_poller)
 
     # Wait for keyboard input to exit
     try:
