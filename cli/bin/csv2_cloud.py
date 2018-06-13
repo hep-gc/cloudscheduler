@@ -16,19 +16,19 @@ KEY_MAP = {
     '-cU':  'user_domain_name',
     '-g':   'group',
     '-ga':  'cacertificate',
+    '-me':  'enabled',
+    '-mlo': 'metadata_list_option',
+    '-mmt': 'mime_type',
+    '-mn':  'metadata_name',
+    '-mp':  'priority',
     '-vc':  'cores_ctl',
     '-vk':  'keyname',
     '-vr':  'ram_ctl',
-    '-ye':  'enabled',
-    '-ylo': 'yaml_list_option',
-    '-ymt': 'mime_type',
-    '-yn':  'yaml_name',
-    '-yp':  'priority',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
 
-def _filter_by_cloud_name_and_or_yaml_name(gvar, qs):
+def _filter_by_cloud_name_and_or_metadata_name(gvar, qs):
     """
     Internal function to filter a query set by the specified group name.
     """
@@ -38,9 +38,9 @@ def _filter_by_cloud_name_and_or_yaml_name(gvar, qs):
             if qs[_ix]['cloud_name'] != gvar['command_args']['cloud-name']:
                 del(qs[_ix])
 
-    if 'yaml-name' in gvar['command_args']:
+    if 'metadata-name' in gvar['command_args']:
         for _ix in range(len(qs)-1, -1, -1):
-            if qs[_ix]['yaml_name'] != gvar['command_args']['yaml-name']:
+            if qs[_ix]['metadata_name'] != gvar['command_args']['metadata-name']:
                 del(qs[_ix])
 
     return qs
@@ -123,7 +123,7 @@ def list(gvar):
         print(response['message'])
 
     # Filter response as requested (or not).
-    cloud_list = _filter_by_cloud_name_and_or_yaml_name(gvar, response['cloud_list'])
+    cloud_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_list'])
 
     # Print report.
     show_header(gvar, response)
@@ -154,7 +154,7 @@ def list(gvar):
                 'user_domain_name/User Domain',
                 'project_domain_name/Project Domain',
                 'cloud_type/Cloud Type',
-                'yaml_names/YAML Filenames',
+                'metadata_names/Metadata Filenames',
                 'cores_ctl/Cores (Control)',
                 'cores_max/Cores (Max)',
                 'cores_used/Cores (Used)',
@@ -195,7 +195,7 @@ def status(gvar):
     response = requests(gvar, '/cloud/status/')
 
     # Filter response as requested (or not).
-    status_list = _filter_by_cloud_name_and_or_yaml_name(gvar, response['status_list'])
+    status_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['status_list'])
 
     # Print report
     show_header(gvar, response)
@@ -264,63 +264,63 @@ def update(gvar):
     if response['message']:
         print(response['message'])
 
-def yaml_delete(gvar):
+def metadata_delete(gvar):
     """
-    Delete a cloud/YAML file.
+    Delete a cloud metadata file.
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-yn'], [], ['-g'])
+    check_keys(gvar, ['-cn', '-mn'], [], ['-g'])
 
-    # Check that the target cloudYAML file exists.
+    # Check that the target cloud metadata file exists.
     response = requests(gvar, '/cloud/list/')
     _found = False
     for row in response['cloud_list']:
         if row['cloud_name'] == gvar['user_settings']['cloud-name']:
-            yaml_names = row['yaml_names'].split(',')
-            for yaml_name in yaml_names:
+            metadata_names = row['metadata_names'].split(',')
+            for metadata_name in metadata_names:
                 if row['cloud_name'] == gvar['user_settings']['cloud-name']:
                     _found = True
                     break
    
     if not _found:
-        print('Error: "%s cloud yaml-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('Error: "%s cloud metadata-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
         exit(1)
 
-    # Confirm cloud/YAML file delete.
+    # Confirm cloud metadata file delete.
     if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete the YAML file "%s::%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('Are you sure you want to delete the metadata file "%s::%s::%s"? (yes|..)' % (response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
         _reply = input()
         if _reply != 'yes':
-            print('%s cloud yaml-delete "%s::%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+            print('%s cloud metadata-delete "%s::%s::%s" cancelled.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
             exit(0)
 
-    # Delete the cloud/YAML file.
+    # Delete the cloud metadata file.
     response = requests(
         gvar,
-        '/cloud/yaml-delete/',
+        '/cloud/metadata-delete/',
         form_data = {
             'cloud_name': gvar['user_settings']['cloud-name'],
-            'yaml_name': gvar['user_settings']['yaml-name'],
+            'metadata_name': gvar['user_settings']['metadata-name'],
             }
         )
     
     if response['message']:
         print(response['message'])
 
-def yaml_edit(gvar):
+def metadata_edit(gvar):
     """
-    Edit the specified cloud/YAML file.
+    Edit the specified cloud metadata file.
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-yn'], ['-te'], ['-g'])
+    check_keys(gvar, ['-cn', '-mn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/cloud/yaml-fetch/%s::%s::%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+    response = requests(gvar, '/cloud/metadata-fetch/%s::%s::%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
 
     # Ensure the fetch directory structure exists.
-    fetch_dir = '%s/.csv2/%s/files/%s/%s/yaml' % (
+    fetch_dir = '%s/.csv2/%s/files/%s/%s/metadata' % (
         gvar['home_dir'],
         gvar['server'],
         response['group_name'],
@@ -331,62 +331,62 @@ def yaml_edit(gvar):
         os.makedirs(fetch_dir, mode=0o700)  
 
     # Write the reference copy.
-    fd = open('%s/.%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write(response['yaml'])
+    fd = open('%s/.%s' % (fetch_dir, response['metadata_name']), 'w')
+    fd.write(response['metadata'])
     fd.close()
 
     # Write the edit copy.
-    fd = open('%s/%s.yaml' % (fetch_dir, response['yaml_name']), 'w')
-    fd.write(response['yaml'])
+    fd = open('%s/%s' % (fetch_dir, response['metadata_name']), 'w')
+    fd.write(response['metadata'])
     fd.close()
 
-    p = Popen([gvar['user_settings']['text-editor'], '%s/%s.yaml' % (fetch_dir, response['yaml_name'])])
+    p = Popen([gvar['user_settings']['text-editor'], '%s/%s' % (fetch_dir, response['metadata_name'])])
     p.communicate()
 
     if filecmp.cmp(
-        '%s/.%s.yaml' % (fetch_dir, response['yaml_name']),
-        '%s/%s.yaml' % (fetch_dir, response['yaml_name'])
+        '%s/.%s' % (fetch_dir, response['metadata_name']),
+        '%s/%s' % (fetch_dir, response['metadata_name'])
         ):
-        print('%s cloud yaml-edit "%s::%s::%s" completed, no changes.' % (gvar['command_name'], response['group_name'], gvar['user_settings']['cloud-name'], gvar['user_settings']['yaml-name']))
+        print('%s cloud metadata-edit "%s::%s::%s" completed, no changes.' % (gvar['command_name'], response['group_name'], gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
         exit(0)
 
-    # Verify the changed YAML file.
+    # Verify the changed metadata file.
     form_data = {
-        **verify_yaml_file('%s/%s.yaml' % (fetch_dir, response['yaml_name'])),
+        **verify_yaml_file('%s/%s' % (fetch_dir, response['metadata_name'])),
         'group_name': response['group_name'],
         'cloud_name': response['cloud_name'],
-        'yaml_name': response['yaml_name'],
+        'metadata_name': response['metadata_name'],
         }
 
-    # Replace the YAML file.
+    # Replace the metadata file.
     response = requests(
         gvar,
-        '/cloud/yaml-update/',
+        '/cloud/metadata-update/',
         form_data
         )
     
     if response['message']:
         print(response['message'])
 
-def yaml_list(gvar):
+def metadata_list(gvar):
     """
     List clouds for the active group.
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-ylo', '-yn'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mlo', '-mn'])
 
     # Retrieve data (possibly after changing the group).
-    if 'yaml-list-option' in gvar['user_settings'] and gvar['user_settings']['yaml-list-option'] == 'merge':
-        response = requests(gvar, '/cloud/yaml-list/', {'yaml_list_option': 'merge'})
+    if 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
+        response = requests(gvar, '/cloud/metadata-list/', {'metadata_list_option': 'merge'})
     else:
-        response = requests(gvar, '/cloud/yaml-list/')
+        response = requests(gvar, '/cloud/metadata-list/')
     
     if response['message']:
         print(response['message'])
 
     # Filter response as requested (or not).
-    cloud_yaml_list = _filter_by_cloud_name_and_or_yaml_name(gvar, response['cloud_yaml_list'])
+    cloud_metadata_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_metadata_list'])
 
     # Print report.
     show_header(gvar, response)
@@ -394,61 +394,61 @@ def yaml_list(gvar):
     if gvar['command_args']['only-keys']:
         show_table(
             gvar,
-            cloud_yaml_list,
+            cloud_metadata_list,
             [
                 'group_name/Group',
                 'cloud_name/Cloud',
-                'yaml_name/YAML Filename',
+                'metadata_name/Metadata Filename',
             ],
             )
-    elif 'yaml-list-option' in gvar['user_settings'] and gvar['user_settings']['yaml-list-option'] == 'merge':
+    elif 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
         show_table(
             gvar,
-            cloud_yaml_list,
+            cloud_metadata_list,
             [
                 'group_name/Group',
                 'cloud_name/Cloud',
                 'type/Type',
                 'priority/priority',
-                'yaml_name/YAML Filename',
+                'metadata_name/Metadata Filename',
                 ],
             )
     else:
         show_table(
             gvar,
-            cloud_yaml_list,
+            cloud_metadata_list,
             [
                 'group_name/Group',
                 'cloud_name/Cloud',
-                'yaml_name/YAML Filename',
+                'metadata_name/Metadata Filename',
                 'enabled/Enabled',
                 'priority/Priority',
                 'mime_type/MIME Type',
             ],
             )
 
-def yaml_load(gvar):
+def metadata_load(gvar):
     """
-    Load a new cloud/YAML file.
+    Load a new cloud metadata file.
     """
 
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-cn', '-f', '-yn'],
+        ['-cn', '-f', '-mn'],
         [],
-        ['-g', '-ye', '-ymt', '-yp'],
+        ['-g', '-me', '-mmt', '-mp'],
         key_map=KEY_MAP
         )
 
     if not os.path.exists(gvar['user_settings']['file-path']):
-        print('Error: The specified YAML file "%s" does not exist.' % gvar['user_settings']['file-path'])
+        print('Error: The specified metadata file "%s" does not exist.' % gvar['user_settings']['file-path'])
         exit(1)
 
-    # Replace the YAML file.
+    # Replace the metadata file.
     response = requests(
         gvar,
-        '/cloud/yaml-add/',
+        '/cloud/metadata-add/',
         {
             **form_data,
             **verify_yaml_file(gvar['user_settings']['file-path']),
@@ -458,7 +458,7 @@ def yaml_load(gvar):
     if response['message']:
         print(response['message'])
 
-def yaml_update(gvar):
+def metadata_update(gvar):
     """
     Modify a cloud in the active group.
     """
@@ -466,20 +466,20 @@ def yaml_update(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-cn', '-yn'],
+        ['-cn', '-mn'],
         [],
-        ['-g', '-ye', '-ymt', '-yp'],
+        ['-g', '-me', '-mmt', '-mp'],
         key_map=KEY_MAP
         )
 
     if len(form_data) < 3:
-        print('Error: "%s cloud yaml-update" requires at least one option to modify.' % gvar['command_name'])
+        print('Error: "%s cloud metadata-update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
 
-    # Update the YAML file information.
+    # Update the metadata file information.
     response = requests(
         gvar,
-        '/cloud/yaml-update/',
+        '/cloud/metadata-update/',
         form_data
         )
     

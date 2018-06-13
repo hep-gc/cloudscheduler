@@ -358,14 +358,13 @@ def verify_yaml_file(file_path):
         (len(file_path) > 5 and file_path[-5:] == '.yaml') or \
         (len(file_path) > 7 and file_path[-7:] == '.yml.j2') or \
         (len(file_path) > 8 and file_path[-8:] == '.yaml.j2'):
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         result = _yaml_load_and_verify(file_string)
         if not result[0]:
             print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
             exit(1)
 
     return {
-        'yaml': file_string,
+        'metadata': file_string,
         }
 
 def _yaml_load_and_verify(yaml_string):

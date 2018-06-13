@@ -1,27 +1,15 @@
-from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_header, show_table
 from subprocess import Popen, PIPE
 
 import filecmp
 import os
 
 KEY_MAP = {
-    '-ca':  'authurl',
-    '-cpw': 'password',
     '-cn':  'cloud_name',
-    '-cp':  'project',
-    '-cr':  'region',
-    '-ct':  'cloud_type',
-    '-cu':  'username',
-    '-cP':  'project_domain_name',
-    '-cU':  'user_domain_name',
     '-g':   'group',
-    '-ga':  'cacertificate',
     '-vc':  'cores_ctl',
     '-vk':  'keyname',
     '-vr':  'ram_ctl',
-    '-yn':  'yaml_name',
-    '-ye':  'enabled',
-    '-ymt': 'mime_type',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')

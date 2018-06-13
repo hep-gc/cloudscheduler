@@ -1,27 +1,15 @@
-from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_header, show_table
 from subprocess import Popen, PIPE
 
 import filecmp
 import os
 
 KEY_MAP = {
-    '-ca':  'authurl',
-    '-cpw': 'password',
     '-cn':  'cloud_name',
-    '-cp':  'project',
-    '-cr':  'region',
-    '-ct':  'cloud_type',
-    '-cu':  'username',
-    '-cP':  'project_domain_name',
-    '-cU':  'user_domain_name',
     '-g':   'group',
-    '-ga':  'cacertificate',
     '-vc':  'cores_ctl',
     '-vk':  'keyname',
     '-vr':  'ram_ctl',
-    '-yn':  'yaml_name',
-    '-ye':  'enabled',
-    '-ymt': 'mime_type',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -35,8 +23,6 @@ def _filter(gvar, qs):
         if 'cloud-name' in gvar['command_args'] and qs[_ix]['cloud_name'] != gvar['command_args']['cloud-name']:
             del(qs[_ix])
         elif 'vm-cores' in gvar['command_args'] and str(qs[_ix]['cores']) != gvar['command_args']['vm-cores']:
-            del(qs[_ix])
-        elif 'vm-condor-off' in gvar['command_args'] and str(qs[_ix]['condor_off']) != gvar['command_args']['vm-condor-off']:
             del(qs[_ix])
         elif 'vm-disk' in gvar['command_args'] and str(qs[_ix]['disk']) != gvar['command_args']['vm-disk']:
             del(qs[_ix])
@@ -52,8 +38,6 @@ def _filter(gvar, qs):
             del(qs[_ix])
         elif 'vm-swap' in gvar['command_args'] and str(qs[_ix]['swap']) != gvar['command_args']['vm-swap']:
             del(qs[_ix])
-        elif 'vm-terminate' in gvar['command_args'] and str(qs[_ix]['terminate']) != gvar['command_args']['vm-terminate']:
-            del(qs[_ix])
 
     return qs
 
@@ -63,7 +47,7 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-vc', '-vco', '-vd', '-ved', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs', '-vt'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-vc', '-vd', '-ved', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/vm/list/')
