@@ -5,17 +5,21 @@
 
 .vm-table {
   display: inline-block;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: scroll;
-  height: 90%;
-  width: 100%;/
+  /* height: 100%; */
+  width: 100%;
   margin-right: 8px;
+  margin-bottom: 1rem;
+  left: 202px;
+  position: fixed;
+  z-index: 0;
 }
 
 .vm-table table {
   border: 0px;
   padding: 0px;
-  table-layout: fixed;
+  /* table-layout: fixed; */
 }
 
 .vm-table th, td {

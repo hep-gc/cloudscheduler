@@ -22,7 +22,13 @@
       <p style="color:green;">{{message}}</p>
   {% endif %}
 
-    <div class="main-div">
+    <div class="main-div" style="overflow-x: hidden;">
+      <div class="menu">
+        {% for cloud in cloud_list %}
+          <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}">{{cloud.cloud_name}}</a>
+          </div>
+        {% endfor %}
+      </div>
 
       <!-- Table Setup - thead and tbody are commented out. Enable for static header
       but good luck getting the column widths to match. -->
