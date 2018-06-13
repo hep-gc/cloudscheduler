@@ -36,7 +36,10 @@ urlpatterns = [
     url(r'^save_hidden_images/(?P<group_name>.+)/$',\
         views.save_hidden_images, name='save_hidden_images'),
     url(r'^save_hidden_images/$', views.save_hidden_images, name='save_hidden_images'),
-    url(r'^keypairs/(?P<group_name>.+)/$', views.manage_keys, name='manage_keys')
+    url(r'^keypairs/(?P<group_name>.+)/$', views.manage_keys, name='manage_keys'),
+    url(r'^save_keypairs/(?P<group_name>.+)/$', views.save_keypairs, name='save_keypairs')
+
+    
 
 ]
 

@@ -1213,3 +1213,56 @@ def manage_keys(request, group_name=None, message=None):
     }
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)
+
+def save_keypairs(request, group_name=None, message=None):
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    user_obj = getUser(request)
+    if group_name is None:
+        group_name = user_obj.active_group
+    if group_name is None:
+        return None
+
+
+    if request.method == 'POST':
+        #set up database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
+        Keypairs = Base.classes.csv2_keypairs
+
+        # get list of clouds for this group
+        # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
+        # check the checklist for diffs (add/remove keys)
+        grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
+        for cloud in grp_resource:
+            #check_list will only have the names of keys checked for that cloud
+            check_list = request.POST.getlist(cloud.cloud_name)
+
+            #cross reference check list against what is in database:
+            cloud_keys = session.query(Keypairs).filter(Keypairs.group_name == group_name, Keypairs.cloud_name == cloud.cloud_name)
+            cloud_fingerprints = []
+            #check for deleted keys
+            for keypair in cloud_keys:
+                cloud_fingerprints.append(keypair.fingerprint)
+                if keypair.fingerprint not in check_list:
+                    # key has been deleted from this cloud:
+                    # delete key from openstack
+                    # remove database entry
+            # check for new key transfers
+            for key_fingerprint in checklist:
+                if key_fingerprint not in cloud_fingerprints:
+                    # transfer key to this cloud
+                    # get existing keypair
+                    # get group resources corresponding to that keypair
+                    # download key from that group resources
+                    # upload key to current "cloud"
+
+        
+        return None
+
+
+    # not a post, do nothing
+    return None
+
+

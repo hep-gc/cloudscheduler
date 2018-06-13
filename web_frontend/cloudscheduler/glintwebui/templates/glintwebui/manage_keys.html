@@ -19,7 +19,9 @@
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
 <div class="wrapper" style="padding-top:60px">
-<div class="image_matrix"><form id="keypair_form" name="keypair_form" action="/keypairs/save_keypairs/{{active_group}}/" method="post">
+    <input class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" />
+<div class="image_matrix">
+    <form id="keypair_form" name="keypair_form" action="/images/save_keypairs/{{active_group}}/" method="post">
     {% csrf_token %}
     <table>
         <tr>
@@ -45,3 +47,8 @@
     </table>
 </form></div>
 </div>
+
+
+function submitKeyMatrix(){
+    document.getElementById("keypair_form").submit();
+}
