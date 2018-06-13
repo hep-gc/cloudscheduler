@@ -8,6 +8,7 @@ from .models import user as csv2_user
 from . import config
 
 from .view_utils import \
+    db_close, \
     db_execute, \
     db_open, \
     getAuthUser, \
@@ -15,6 +16,7 @@ from .view_utils import \
     getSuperUserStatus, \
     lno,  \
     manage_group_users, \
+    manage_user_group_verification, \
     qt, \
     render, \
     set_user_groups, \
@@ -41,7 +43,7 @@ GROUP_KEYS = {
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         'username':            'ignore',
-        'user_option':         'ignore',
+        'user_option':         ['add', 'delete'],
         },
     }
 
@@ -54,22 +56,22 @@ GROUP_DEFAULTS_KEYS = {
         },
     }
 
-YAML_KEYS = {
+METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
         'enabled':             'dboolean',
         'mime_type':           ('csv2_mime_types', 'mime_type'),
-        'yaml_name':           'lowercase',
+        'metadata_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
     }
 
-IGNORE_YAML_NAME = {
+IGNORE_METADATA_NAME = {
     'format': {
-        'yaml_name':           'ignore',
+        'metadata_name':           'ignore',
         },
     }
 
@@ -100,36 +102,45 @@ def add(request):
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups', 'csv2_group_defaults','csv2_user_groups'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups', 'csv2_group_defaults','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Validity check the specified users.
+        if 'username' in fields:
+            rc, msg = manage_user_group_verification(db_ctl, tables, fields['username'], None) 
+            if rc != 0:
+                db_close(db_ctl)
+                return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group.
         table = tables['csv2_groups']
-        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV02'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add user_groups.
         if 'username' in fields:
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>", tables, fields)
-            rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
+            rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], fields['username'])
+            if rc != 0:
+                db_close(db_ctl)
 
         # Add the group defaults.
         table = tables['csv2_group_defaults']
-        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
-        db_connection.close()
+        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
+            db_close(db_ctl, commit=True)
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully added.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults add "%s" failed - %s.' % (lno('GV03'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -151,7 +162,7 @@ def defaults(request):
 
     message = None
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc == 0:
         if request.method == 'POST':
                 # Validate input fields.
@@ -159,13 +170,13 @@ def defaults(request):
                 if rc == 0:        
                     # Update the group defaults.
                     table = tables['csv2_group_defaults']
-                    rc, msg = db_execute(db_connection, table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
+                    rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                     if rc == 0:
+                        db_session.commit()
                         message='group defaults "%s" successfully updated.' % (active_user.active_group)
                     else:
                         message='%s group defaults update "%s" failed - %s.' % (lno('GV05'), active_user.active_group, msg)
                 else:
-                    db_connection.close()
                     message='%s group defaults update %s' % (lno('GV06'), msg)
     else:
         message='%s %s' % (lno('GV07'), msg)
@@ -178,22 +189,7 @@ def defaults(request):
         defaults_list = qt(db_connection.execute(s))
         response_code = 0
 
-    db_connection.close()
-
-#   # Position the page.
-#   obj_act_id = request.path.split('/')
-#   if selector:
-#       if selector == '-':
-#           current_group = ''
-#       else:
-#           current_group = selector
-#   elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
-#       current_group = str(obj_act_id[3])
-#   else:
-#       if len(group_list) > 0:
-#           current_group = str(group_list[0]['group_name'])
-#       else:
-#           current_group = ''
+    db_close(db_ctl)
 
     # Render the page.
     context = {
@@ -201,7 +197,6 @@ def defaults(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'defaults_list': defaults_list,
-#           'current_group': current_group,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint
@@ -230,18 +225,18 @@ def delete(request):
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV08'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_DEFAULTS_KEYS, GROUP_KEYS, IGNORE_YAML_NAME, IGNORE_KEYS], db_ctl, [
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_DEFAULTS_KEYS, GROUP_KEYS, IGNORE_METADATA_NAME, IGNORE_KEYS], db_ctl, [
                 'csv2_groups',
-                'csv2_group_yaml',
+                'csv2_group_metadata',
                 'csv2_group_defaults',
                 'csv2_group_resources',
-                'csv2_group_resource_yaml',
+                'csv2_group_resource_metadata',
                 'csv2_user_groups',
                 'csv2_vms',
                 'cloud_networks',
@@ -250,137 +245,138 @@ def delete(request):
                 'cloud_flavors'
             ], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('CV09'), msg), active_user=active_user, user_groups=user_groups)
 
-        # Delete any group/YAML files for the group.
-        s = select([view_groups_with_yaml_names]).where((view_groups_with_yaml_names.c.group_name == fields['group_name']))
+        # Delete any group metadata files for the group.
+        s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
         group_list = qt(db_connection.execute(s))
         for row in group_list:
-            if row['group_name'] == fields['group_name'] and row['yaml_names']:
-                yaml_names = row['yaml_names'].split(',')
-                table = tables['csv2_group_yaml']
-                for yaml_name in yaml_names:
-                    # Delete the groupYAML file.
+            if row['group_name'] == fields['group_name'] and row['metadata_names']:
+                metadata_names = row['metadata_names'].split(',')
+                table = tables['csv2_group_metadata']
+                for metadata_name in metadata_names:
+                    # Delete the group metadata files.
                     rc, msg = db_execute(
-                        db_connection,
-                        table.delete((table.c.group_name==fields['group_name']) & (table.c.yaml_name==yaml_name))
+                        db_ctl,
+                        table.delete((table.c.group_name==fields['group_name']) & (table.c.metadata_name==metadata_name))
                         )
                     if rc != 0:
-                        db_connection.close()
-                        return list(request, selector=fields['group_name'], response_code=1, message='%s group YAML file delete "%s::%s" failed - %s.' % (lno('GV10'), fields['group_name'], yaml_name, msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+                        db_close(db_ctl)
+                        return list(request, selector=fields['group_name'], response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno('GV10'), fields['group_name'], metadata_name, msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group defaults.
         table = tables['csv2_group_defaults']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV11'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
         # Delete the csv2_group_resources.
         table = tables['csv2_group_resources']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV12'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
-        # Delete the csv2_group_resource_yaml.
-        table = tables['csv2_group_resource_yaml']
+        # Delete the csv2_group_resource_metadata.
+        table = tables['csv2_group_resource_metadata']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_user_groups.
         table = tables['csv2_user_groups']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_vms.
         table = tables['csv2_vms']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_limits.
         table = tables['cloud_limits']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_images.
         table = tables['cloud_images']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_flavors.
         table = tables['cloud_flavors']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
             )
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV19'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group.
         table = tables['csv2_groups']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete(table.c.group_name==fields['group_name'])
             )
-        db_connection.close()
         if rc == 0:
+            db_close(db_ctl, commit=True)
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group delete "%s" failed - %s.' % (lno('GV20'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -411,29 +407,29 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': msg})
 
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        s = select([view_groups_with_yaml_names]).order_by('group_name')
+        s = select([view_groups_with_metadata_names]).order_by('group_name')
         group_list = qt(db_connection.execute(s))
-        yaml_dict = {}
+        metadata_dict = {}
     else:
-        s = select([view_groups_with_yaml]).order_by('group_name')
-        group_list, yaml_dict = qt(
+        s = select([view_groups_with_metadata]).order_by('group_name')
+        group_list, metadata_dict = qt(
             db_connection.execute(s),
             keys = {
                 'primary': [
                     'group_name',
                     ],
                 'secondary': [
-                    'yaml_name',
-                    'yaml_enabled',
-                    'yaml_mime_type',
-                    'yaml',
+                    'metadata_name',
+                    'metadata_enabled',
+                    'metadata_mime_type',
+                    'metadata',
                     ]
                 },
             prune=['password']    
@@ -446,7 +442,7 @@ def list(
             prune=['password']    
             )
 
-    db_connection.close()
+    db_close(db_ctl)
 
     # Position the page.
     obj_act_id = request.path.split('/')
@@ -471,7 +467,7 @@ def list(
             'user_groups': user_groups,
             'group_list': group_list,
             'groups_per_user': groups_per_user,
-            'yaml_dict': yaml_dict,
+            'metadata_dict': metadata_dict,
             'current_group': current_group,
             'response_code': response_code,
             'message': message,
@@ -499,24 +495,26 @@ def update(request):
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups','csv2_user_groups'], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
 
-        # Validity check the user option.
-        if 'user_option' in fields and fields['user_option'] != 'add' and fields['user_option'] != 'delete':
-            return list(request, selector=fields['username'], response_code=1, message='%s user update, user-option "%s" invalid, must be either "add" or "delete".' % (lno('GV99'), fields['user_option']), active_user=active_user, user_groups=user_groups)
+        # Validity check the specified users.
+        if 'username' in fields:
+            rc, msg = manage_user_group_verification(db_connection, tables, fields['username'], None) 
+            if rc != 0:
+                return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
         table = tables['csv2_groups']
-        rc, msg = db_execute(db_connection, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
+        rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
 
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -531,10 +529,11 @@ def update(request):
             else:
                 rc, msg = manage_group_users(db_connection, tables, fields['group_name'], None)
 
-        db_connection.close()
         if rc == 0:
+            db_close(db_ctl, commit=True)
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_close(db_ctl)
             return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV24'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -543,99 +542,101 @@ def update(request):
 
 #-------------------------------------------------------------------------------
 
-def yaml_add(request):
+def metadata_add(request):
     """
-    This function should recieve a post request with a payload of a YAML file
+    This function should recieve a post request with a payload of a metadata file
     to add to a given group.
     """
 
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'yaml_name' in request.POST:
+    if request.method == 'POST' and 'metadata_name' in request.POST:
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV26'), msg)})
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml-add %s' % (lno('GV27'), msg)})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV27'), msg)})
 
-        # Add the group yaml file.
-        table = tables['csv2_group_yaml']
-        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
-        db_connection.close()
+        # Add the group metadata file.
+        table = tables['csv2_group_metadata']
+        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
-            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group YAML file "%s::%s" successfully added.' % (active_user.active_group, fields['yaml_name'])})
+            db_close(db_ctl, commit=True)
+            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml-add "%s::%s" failed - %s.' % (lno('GV28'), active_user.active_group, fields['yaml_name'], msg)})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV28'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml_add, invalid method "%s" specified.' % (lno('GV29'), request.method)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV29'), request.method)})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml_add, no group name specified.' % lno('GV30')})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, no group name specified.' % lno('GV30')})
 
 #-------------------------------------------------------------------------------
 
-def yaml_delete(request):
+def metadata_delete(request):
     """
-    This function should recieve a post request with a payload of a YAML file
+    This function should recieve a post request with a payload of a metadata file
     name to be deleted from the given group.
     """
 
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'yaml_name' in request.POST:
+    if request.method == 'POST' and 'metadata_name' in request.POST:
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (ln('GV18'), msg)})
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml-add %s' % (lno('CV32'), msg)})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('CV32'), msg)})
 
-        # Delete the group yaml file.
-        table = tables['csv2_group_yaml']
+        # Delete the group metadata file.
+        table = tables['csv2_group_metadata']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete( \
                 (table.c.group_name==active_user.active_group) & \
-                (table.c.yaml_name==fields['yaml_name']) \
+                (table.c.metadata_name==fields['metadata_name']) \
                 )
             )
-        db_connection.close()
         if rc == 0:
-            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group YAML file "%s::%s" successfully deleted.' % (active_user.active_group, fields['yaml_name'])})
+            db_close(db_ctl, commit=True)
+            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml-delete "%s::%s" failed - %s.' % (lno('GV33'), active_user.active_group, fields['yaml_name'], msg)})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV33'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml_delete, invalid method "%s" specified.' % (lno('GV34'), request.method)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV34'), request.method)})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml_delete, no group name specified.' % lno('GV35')})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, no group name specified.' % lno('GV35')})
 
 #-------------------------------------------------------------------------------
 
-def yaml_fetch(request, selector=None):
+def metadata_fetch(request, selector=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -643,42 +644,45 @@ def yaml_fetch(request, selector=None):
     db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
-        db_connection.close()
+        db_close(db_ctl)
         return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg)})
 
-    # Retrieve YAML file.
+    # Retrieve metadata file.
     obj_act_id = request.path.split('/')
     if len(obj_act_id) > 3:
         id = obj_act_id[3]
         ids = id.split('::')
         if len(ids) == 2:
-            YAML = db_map.classes.csv2_group_yaml
-            YAMLobj = db_session.query(YAML).filter((YAML.group_name==ids[0]) & (YAML.yaml_name==ids[1]))
-            if YAMLobj:
-                for row in YAMLobj:
+            s = db_map.classes.csv2_group_metadata
+            METADATAobj = db_session.query(s).filter((METADATA.group_name==ids[0]) & (METADATA.metadata_name==ids[1]))
+            if METADATAobj:
+                for row in METADATAobj:
                     context = {
                         'group_name': row.group_name,
-                        'yaml': row.yaml,
-                        'yaml_enabled': row.enabled,
-                        'yaml_mime_type': row.mime_type,
-                        'yaml_name': row.yaml_name,
+                        'metadata': row.metadata,
+                        'metadata_enabled': row.enabled,
+                        'metadata_mime_type': row.mime_type,
+                        'metadata_name': row.metadata_name,
                         'response_code': 0,
                         'message': None,
                         'enable_glint': config.enable_glint
                         }
                 
+                    db_close(db_ctl)
                     return render(request, 'csv2/groups.html', context)
              
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group yaml_fetch, file "%s" does not exist.' % id})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s" does not exist.' % id})
 
-    return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group yaml_fetch, received an invalid key "%s".' % id})
+    db_close(db_ctl)
+    return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, received an invalid key "%s".' % id})
 
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def yaml_list(request):
+def metadata_list(request):
 
     if not verifyUser(request):
         raise PermissionDenied
@@ -687,74 +691,75 @@ def yaml_list(request):
     db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
-        db_connection.close()
+        db_close(db_ctl)
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
-    # Retrieve cloud/yaml information.
-    s = select([csv2_group_yaml]).where(csv2_group_yaml.c.group_name == active_user.active_group)
-    group_yaml_list = qt(db_connection.execute(s))
-    db_connection.close()
+    # Retrieve cloud/metadata information.
+    s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)
+    group_metadata_list = qt(db_connection.execute(s))
+    db_close(db_ctl)
 
     # Render the page.
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'group_yaml_list': group_yaml_list,
+            'group_metadata_list': group_metadata_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
         }
 
-    return render(request, 'csv2/group_yaml_list.html', context)
+    return render(request, 'csv2/group_metadata_list.html', context)
 
 #-------------------------------------------------------------------------------
 
-def yaml_update(request):
+def metadata_update(request):
     """
-    This function should recieve a post request with a payload of a YAML file
+    This function should recieve a post request with a payload of a metadata file
     as a replacement for the specified file.
     """
 
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'yaml_name' in request.POST:
+    if request.method == 'POST' and 'metadata_name' in request.POST:
 
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV37'), msg)})
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml-add %s' % (lno('CV38'), msg)})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('CV38'), msg)})
 
-        # Update the group yaml file.
-        table = tables['csv2_group_yaml']
-        rc, msg = db_execute(db_connection, table.update().where( \
+        # Update the group metadata file.
+        table = tables['csv2_group_metadata']
+        rc, msg = db_execute(db_ctl, table.update().where( \
             (table.c.group_name==active_user.active_group) & \
-            (table.c.yaml_name==fields['yaml_name']) \
+            (table.c.metadata_name==fields['metadata_name']) \
             ).values(table_fields(fields, table, columns, 'update')))
-        db_connection.close()
         if rc == 0:
-            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group YAML file "%s::%s" successfully  updated.' % (active_user.active_group, fields['yaml_name'])})
+            db_close(db_ctl, commit=True)
+            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully  updated.' % (active_user.active_group, fields['metadata_name'])})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml-update "%s::%s" failed - %s.' % (lno('GV39'), active_user.active_group, fields['yaml_name'], msg)})
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV39'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml_update, invalid method "%s" specified.' % (lno('GV40'), request.method)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV40'), request.method)})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group yaml_update, no group name specified.' % lno('GV41')})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, no group name specified.' % lno('GV41')})
 
 

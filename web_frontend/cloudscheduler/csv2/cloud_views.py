@@ -8,6 +8,7 @@ from .models import user as csv2_user
 from . import config
 
 from .view_utils import \
+    db_close, \
     db_execute, \
     db_open, \
     getAuthUser, \
@@ -45,23 +46,23 @@ CLOUD_KEYS = {
         },
     }
 
-YAML_KEYS = {
+METADATA_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
         'cloud_name':          'lowerdash',
         'enabled':             'dboolean',
         'mime_type':           ('csv2_mime_types', 'mime_type'),
-        'yaml_name':           'lowercase',
+        'metadata_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
     }
 
-IGNORE_YAML_NAME = {
+IGNORE_METADATA_NAME = {
     'format': {
-        'yaml_name':           'ignore',
+        'metadata_name':           'ignore',
         },
     }
 
@@ -82,24 +83,26 @@ def add(request):
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources'], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud.
         table = tables['csv2_group_resources']
-        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
         db_connection.close()
         if rc == 0:
+            db_close(db_ctl, commit=True)
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -126,33 +129,34 @@ def delete(request):
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_YAML_NAME], db_ctl, ['csv2_group_resources', 'csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_METADATA_NAME], db_ctl, ['csv2_group_resources', 'csv2_group_resource_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg), active_user=active_user, user_groups=user_groups)
 
-        # Delete any cloud/YAML files for the cloud.
-        table = tables['csv2_group_resource_yaml']
-        rc, msg = db_execute(db_connection, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])))
+        # Delete any cloud metadata files for the cloud.
+        table = tables['csv2_group_resource_metadata']
+        rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])))
         if rc != 0:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud.
         table = tables['csv2_group_resources']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name']))
             )
-        db_connection.close()
         if rc == 0:
+            db_close(db_ctl, commit=True)
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno('CV08'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -184,9 +188,9 @@ def list(
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     s = select([csv2_cloud_types])
@@ -194,12 +198,12 @@ def list(
 
     # Retrieve cloud information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        s = select([view_group_resources_with_yaml_names]).where(view_group_resources_with_yaml_names.c.group_name == active_user.active_group)
+        s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(db_connection.execute(s), prune=['password'])
-        yaml_dict = {}
+        metadata_dict = {}
     else:
-        s = select([view_group_resources_with_yaml]).where(view_group_resources_with_yaml.c.group_name == active_user.active_group)
-        cloud_list, yaml_dict = qt(
+        s = select([view_group_resources_with_metadata]).where(view_group_resources_with_metadata.c.group_name == active_user.active_group)
+        cloud_list, metadata_dict = qt(
             db_connection.execute(s),
             keys = {
                 'primary': [
@@ -207,16 +211,16 @@ def list(
                     'cloud_name'
                     ],
                 'secondary': [
-                    'yaml_name',
-                    'yaml_enabled',
-                    'yaml_mime_type',
-                    'yaml',
+                    'metadata_name',
+                    'metadata_enabled',
+                    'metadata_mime_type',
+                    'metadata',
                     ]
                 },
             prune=['password']    
             )
 
-    db_connection.close()
+    db_close(db_ctl)
 
     # Position the page.
     obj_act_id = request.path.split('/')
@@ -241,7 +245,7 @@ def list(
             'user_groups': user_groups,
             'cloud_list': cloud_list,
             'type_list': type_list,
-            'yaml_dict': yaml_dict,
+            'metadata_dict': metadata_dict,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
@@ -266,16 +270,16 @@ def status(request, group_name=None):
     db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
-        db_connection.close()
+        db_close(db_ctl)
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
 
     # get vm and job counts per cloud
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
     status_list = qt(db_connection.execute(s))
 
-    db_connection.close()
+    db_close(db_ctl)
 
     context = {
             'active_user': active_user,
@@ -306,24 +310,25 @@ def update(request):
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources'], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # update the cloud.
         table = tables['csv2_group_resources']
-        rc, msg = db_execute(db_connection, table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, selection='update')))
-        db_connection.close()
+        rc, msg = db_execute(db_ctl, table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, selection='update')))
         if rc == 0:
+            db_close(db_ctl, commit=True)
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV14'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -336,9 +341,9 @@ def update(request):
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def yaml_add(request):
+def metadata_add(request):
     """
-    This function should recieve a post request with a payload of yaml configuration
+    This function should recieve a post request with a payload of metadata configuration
     to add to a given group/cloud.
     """
 
@@ -347,45 +352,46 @@ def yaml_add(request):
 
     if request.method == 'POST' and \
         'cloud_name' in request.POST and \
-        'yaml_name' in request.POST:
+        'metadata_name' in request.POST:
 
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud yaml-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
 
-        # Add the cloud yaml file.
-        table = tables['csv2_group_resource_yaml']
-        rc, msg = db_execute(db_connection, table.insert().values(table_fields(fields, table, columns, 'insert')))
-        db_connection.close()
+        # Add the cloud metadata file.
+        table = tables['csv2_group_resource_metadata']
+        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud YAML file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+            db_close(db_ctl, commit=True)
+            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-add "%s::%s::%s" failed - %s.' % (lno('CV19'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            db_close(db_ctl)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV19'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud yaml_add, invalid method "%s" specified.' % (lno('CV20'), request.method))
+            return list(request, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno('CV20'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud yaml_add, no cloud name specified.' % lno('CV21'))
+            return list(request, response_code=1, message='%s cloud metadata_add, no cloud name specified.' % lno('CV21'))
 
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def yaml_delete(request):
+def metadata_delete(request):
     """
-    This function should recieve a post request with a payload of yaml configuration
+    This function should recieve a post request with a payload of metadata configuration
     to add to a given group/cloud.
     """
 
@@ -394,50 +400,51 @@ def yaml_delete(request):
 
     if request.method == 'POST' and \
         'cloud_name' in request.POST and \
-        'yaml_name' in request.POST:
+        'metadata_name' in request.POST:
 
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %S' % (lno('CV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud yaml-delete %s' % (lno('CV23'), msg), active_user=active_user, user_groups=user_groups)
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-delete %s' % (lno('CV23'), msg), active_user=active_user, user_groups=user_groups)
 
-        # Delete the cloud yaml file.
-        table = tables['csv2_group_resource_yaml']
+        # Delete the cloud metadata file.
+        table = tables['csv2_group_resource_metadata']
         rc, msg = db_execute(
-            db_connection,
+            db_ctl,
             table.delete( \
                 (table.c.group_name==fields['group_name']) & \
                 (table.c.cloud_name==fields['cloud_name']) & \
-                (table.c.yaml_name==fields['yaml_name']) \
+                (table.c.metadata_name==fields['metadata_name']) \
                 )
             )
-        db_connection.close()
         if rc == 0:
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud YAML file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+            db_close(db_ctl, commit=True)
+            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-delete "%s::%s::%s" failed - %s.' % (lno('CV24'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            db_close(db_ctl)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV24'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud yaml_delete, invalid method "%s" specified.' % (lno('CV25'), request.method))
+            return list(request, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno('CV25'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud yaml_delete, no cloud name specified.' % lno('CV26'))
+            return list(request, response_code=1, message='%s cloud metadata_delete, no cloud name specified.' % lno('CV26'))
 
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def yaml_fetch(request, selector=None):
+def metadata_fetch(request, selector=None):
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -445,44 +452,47 @@ def yaml_fetch(request, selector=None):
     db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
-        db_connection.close()
+        db_close(db_ctl)
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV27'), msg), active_user=active_user, user_groups=user_groups)
 
-    # Retrieve YAML file.
-    obj_act_id = request.path.split('/') # /cloud/yaml_fetch/<group>.<cloud>.<yaml>
+    # Retrieve metadata file.
+    obj_act_id = request.path.split('/') # /cloud/metadata_fetch/<group>.<cloud>.<metadata>
     if len(obj_act_id) > 3:
         id = obj_act_id[3]
         ids = id.split('::')
         if len(ids) == 3:
-            YAML = db_map.classes.csv2_group_resource_yaml
-            YAMLobj = db_session.query(YAML).filter((YAML.group_name==ids[0]) & (YAML.cloud_name==ids[1]) & (YAML.yaml_name==ids[2]))
-            if YAMLobj:
-                for row in YAMLobj:
+            s = db_map.classes.csv2_group_resource_metadata
+            METADATAobj = db_session.query(s).filter((METADATA.group_name==ids[0]) & (METADATA.cloud_name==ids[1]) & (METADATA.metadata_name==ids[2]))
+            if METADATAobj:
+                for row in METADATAobj:
                     context = {
                         'group_name': row.group_name,
                         'cloud_name': row.cloud_name,
-                        'yaml': row.yaml,
-                        'yaml_enabled': row.enabled,
-                        'yaml_mime_type': row.mime_type,
-                        'yaml_name': row.yaml_name,
+                        'metadata': row.metadata,
+                        'metadata_enabled': row.enabled,
+                        'metadata_mime_type': row.mime_type,
+                        'metadata_name': row.metadata_name,
                         'response_code': 0,
                         'message': None,
                         'enable_glint': config.enable_glint
                         }
                 
+                    db_close(db_ctl)
                     return render(request, 'csv2/clouds.html', context)
              
+    db_close(db_ctl)
+
     if id:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received an invalid YAML file id "%s".' % id})
+      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s".' % id})
     else:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml_fetch, received no YAML file id.'})
+      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received no metadata file id.'})
 
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def yaml_list(request):
+def metadata_list(request):
 
     if not verifyUser(request):
         raise PermissionDenied
@@ -491,49 +501,49 @@ def yaml_list(request):
     db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
-        db_connection.close()
+        db_close(db_ctl)
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
-    if request.method == 'POST' and 'yaml_list_option' in request.POST:
-        if request.POST['yaml_list_option'] == 'merge':
+    if request.method == 'POST' and 'metadata_list_option' in request.POST:
+        if request.POST['metadata_list_option'] == 'merge':
             merge_list = True
         else:
-            db_connection.close()
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud yaml-list, yaml-list-option "%s" is invalid; only "merge" is valid.' % request.POST['yaml_list_option']})
+            db_close(db_ctl)
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata-list, metadata-list-option "%s" is invalid; only "merge" is valid.' % request.POST['metadata_list_option']})
     else:
         merge_list = False
 
-    # Retrieve cloud/yaml information.
+    # Retrieve cloud/metadata information.
     if merge_list:
-        s = select([view_yaml_collation]).where(view_yaml_collation.c.group_name == active_user.active_group)
-        cloud_yaml_list = qt(db_connection.execute(s))
+        s = select([view_metadata_collation]).where(view_metadata_collation.c.group_name == active_user.active_group)
+        cloud_metadata_list = qt(db_connection.execute(s))
     else:
-        s = select([csv2_group_resource_yaml]).where(csv2_group_resource_yaml.c.group_name == active_user.active_group)
-        cloud_yaml_list = qt(db_connection.execute(s))
+        s = select([csv2_group_resource_metadata]).where(csv2_group_resource_metadata.c.group_name == active_user.active_group)
+        cloud_metadata_list = qt(db_connection.execute(s))
 
-    db_connection.close()
+    db_close(db_ctl)
 
     # Render the page.
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_yaml_list': cloud_yaml_list,
+            'cloud_metadata_list': cloud_metadata_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
         }
 
-    return render(request, 'csv2/cloud_yaml_list.html', context)
+    return render(request, 'csv2/cloud_metadata_list.html', context)
 
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def yaml_update(request):
+def metadata_update(request):
     """
-    This function should recieve a post request with a payload of yaml configuration
+    This function should recieve a post request with a payload of metadata configuration
     to add to a given group/cloud.
     """
 
@@ -542,41 +552,42 @@ def yaml_update(request):
 
     if request.method == 'POST' and \
         'cloud_name' in request.POST and \
-        'yaml_name' in request.POST:
+        'metadata_name' in request.POST:
 
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [YAML_KEYS], db_ctl, ['csv2_group_resource_yaml'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
         if rc != 0:        
-            db_connection.close()
-            return list(request, selector='-', response_code=1, message='%s cloud yaml-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
 
-        # Update the cloud yaml file.
-        table = tables['csv2_group_resource_yaml']
-        rc, msg = db_execute(db_connection, table.update().where( \
+        # Update the cloud metadata file.
+        table = tables['csv2_group_resource_metadata']
+        rc, msg = db_execute(db_ctl, table.update().where( \
             (table.c.group_name==fields['group_name']) & \
             (table.c.cloud_name==fields['cloud_name']) & \
-            (table.c.yaml_name==fields['yaml_name']) \
+            (table.c.metadata_name==fields['metadata_name']) \
             ).values(table_fields(fields, table, columns, 'update')))
-        db_connection.close()
         if rc == 0:
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud YAML file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['yaml_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+            db_close(db_ctl, commit=True)
+            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud yaml-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['yaml_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            db_close(db_ctl)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud yaml_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
+            return list(request, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud yaml_update, no cloud name specified.' % lno('CV32'))
+            return list(request, response_code=1, message='%s cloud metadata_update, no cloud name specified.' % lno('CV32'))
 
 
