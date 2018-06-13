@@ -13,6 +13,10 @@
 
 {% load glint_template_utils %}
 
+.header_table{
+    border: 0;
+}
+
 </style>
 </head>
 {% block navbar %}
@@ -20,8 +24,12 @@
 {% endblock %}
 <div class="wrapper" style="padding-top:60px">
     <div id="page_header">
-        <h1 style="float:left">User Keys</h1>
-        <input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" />
+         <table class="header_table" border="0">
+             <tr class="header_table">
+                 <th class="header_table"><h1 style="float:left">User Keys</h1></th>
+                 <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" /></td>
+             </tr>
+         </table>
     </div>
 <div class="image_matrix">
     <form id="keypair_form" name="keypair_form" action="/images/save_keypairs/{{active_group}}/" method="post">
