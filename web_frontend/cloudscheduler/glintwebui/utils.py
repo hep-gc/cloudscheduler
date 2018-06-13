@@ -12,6 +12,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+from keystoneclient.auth.identity import v2, v3
+from keystoneauth1 import session
+from keystoneauth1 import exceptions
+from novaclient import client as novaclient
+
 
 logger = logging.getLogger('glintv2')
 
@@ -808,6 +813,35 @@ def repo_proccesed():
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
     red.set("repos_modified", 0)
 
+def delete_keypair(fingerprint, cloud):
+    sess = _get_keystone_session(cloud)
+    nova = _get_nova_client(sess)
+
+    keys = nova.keypairs.list()
+    for key in keys:
+        if key.fingerprint == fingerprint:
+            nova.keypairs.delete(key)
+            return True
+
+    return False
+
+def get_keypair(fingerprint, cloud):
+    sess = _get_keystone_session(cloud)
+    nova = _get_nova_client(sess)
+
+    keys = nova.keypairs.list()
+    for key in keys:
+        if key.fingerprint == fingerprint:
+            return key
+    return None
+
+def transfer_key(keypair, cloud):
+    sess = _get_keystone_session(cloud)
+    nova = _get_nova_client(sess)
+
+    nova.keypairs.create(name=keypair.name, public_key=keypair.public_key, key_type=keypair.key_type)
+    return True
+
 
 
 def __get_image_ids(repo_dict):
@@ -826,4 +860,39 @@ def __get_image_details(group_name, image):
         for img in proj_dict[repo]:
             if proj_dict[repo][img]['name'] == image:
                 return (proj_dict[repo][img]['disk_format'], proj_dict[repo][img]['container_format'])
+
+
+def _get_keystone_session(cloud):
+    authsplit = cloud.auth_url.split('/')
+    version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+
+    if version == 2:
+        try:
+            auth = v2.Password(
+                auth_url=cloud.auth_url,
+                username=cloud.username,
+                password=cloud.password,
+                tenant_name=cloud.project)
+            sess = session.Session(auth=auth, verify=config.cert_auth_bundle_path)
+        except Exception as exc:
+            print("Problem importing keystone modules, and getting session: %s" % exc)
+        return sess
+    elif version == 3:
+        #connect using keystone v3
+        try:
+            auth = v3.Password(
+                auth_url=cloud.auth_url,
+                username=cloud.username,
+                password=cloud.password,
+                project_name=cloud.project,
+                user_domain_name=cloud.user_domain_name,
+                project_domain_name=cloud.project_domain_name)
+            sess = session.Session(auth=auth, verify=config.cert_auth_bundle_path)
+        except Exception as exc:
+            print("Problem importing keystone modules, and getting session: %s" % exc)
+        return sess
+
+def _get_nova_client(session):
+    nova = novaclient.Client("2", session=session)
+    return nova
     
