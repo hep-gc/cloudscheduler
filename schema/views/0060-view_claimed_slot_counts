@@ -1,0 +1,21 @@
+/*
+** List VMs with foreign indicator and poller status.
+*/
+create or replace view view_claimed_slot_counts as
+
+/*
+** Retrieve information.
+*/
+
+select
+
+hostname,
+count(state) as claimed_slots
+
+from condor_machines as cm
+
+where  state = "claimed"
+
+group by hostname
+
+;

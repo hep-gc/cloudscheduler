@@ -11,6 +11,7 @@ select
 
 cv.*,
 cf.name as flavor_name,
+claimed_slots as condor_slots_used,
 total_slots as condor_slots,
 cm.condor_off,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
@@ -38,6 +39,9 @@ on case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_in
   (cv.power_status = 1 and cv.status = cvsc.vm_status and cm.condor_off = cvsc.condor_off) or                                                   /* status = running or retiringi   */
   (cv.power_status = 1 and cv.status = cvsc.vm_status and cm.condor_off is null and cvsc.condor_off is null)                                    /* status = unregistered           */
   )
+
+left outer join view_claimed_slot_counts as vcsc
+on cv.hostname=vcsc.hostname
 
 group by cv.group_name,cv.cloud_name,cv.hostname
 
