@@ -1239,6 +1239,7 @@ def save_keypairs(request, group_name=None, message=None):
             #set up database objects
             Base, session = get_db_base_and_session()
             Group_Resources = Base.classes.csv2_group_resources
+            Keypairs = Base.classes.csv2_keypairs
             # get list of clouds for this group
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
