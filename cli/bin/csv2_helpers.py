@@ -1,10 +1,5 @@
 from csv2_common import check_keys, show_table
 
-import json
-import os
-import shutil
-import yaml
-
 def generate_bash_completion_script(gvar):
     """
     List settings.
