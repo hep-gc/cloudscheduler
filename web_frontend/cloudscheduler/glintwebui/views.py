@@ -1188,6 +1188,12 @@ def manage_keys(request, group_name=None, message=None):
     Base, session = get_db_base_and_session()
     Group_Resources = Base.classes.csv2_group_resources
     Keypairs = Base.classes.csv2_keypairs
+    User_Group = Base.classes.csv2_user_groups
+    user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
+    group_list = []
+    for grp in user_groups:
+        grp_name = grp.group_name
+        group_list.append(grp_name)
 
     grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
     fingerprint_dict = {}
@@ -1210,7 +1216,9 @@ def manage_keys(request, group_name=None, message=None):
         "group_resources": grp_resources,
         "fingerprint_dict": fingerprint_dict,
         "active_group": group_name,
-        "message": message
+        "message": message,
+        "enable_glint": True,
+        "user_groups": group_list
     }
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)
@@ -1231,8 +1239,6 @@ def save_keypairs(request, group_name=None, message=None):
             #set up database objects
             Base, session = get_db_base_and_session()
             Group_Resources = Base.classes.csv2_group_resources
-            Keypairs = Base.classes.csv2_keypairs
-
             # get list of clouds for this group
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
@@ -1268,7 +1274,7 @@ def save_keypairs(request, group_name=None, message=None):
                             "group_name": group_name,
                             "cloud_name": cloud.cloud_name,
                             "fingerprint": key_fingerprint,
-                            "key_name": os_keypair.name 
+                            "key_name": os_keypair.name
                         }
                         new_keypair = Keypairs(**keypair_dict)
                         session.merge(new_keypair)
