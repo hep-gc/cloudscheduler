@@ -182,7 +182,7 @@ def defaults(request):
         message='%s %s' % (lno('GV07'), msg)
 
     if message and message[:2] == 'GV':
-        default_list = []
+        defaults_list = []
         response_code = 1
     else:
         s = select([csv2_group_defaults]).where(csv2_group_defaults.c.group_name==active_user.active_group)
@@ -478,70 +478,6 @@ def list(
 
 #-------------------------------------------------------------------------------
 
-def update(request):
-    """
-    This function should recieve a post request with a payload of group configuration
-    to update a given group.
-    """
-
-    if not verifyUser(request):
-        raise PermissionDenied
-
-    if not getSuperUserStatus(request):
-        raise PermissionDenied
-
-    if request.method == 'POST':
-        # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
-        if rc != 0:
-            db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV22'), msg), active_user=active_user, user_groups=user_groups)
-
-        # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups','csv2_user_groups'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
-
-        # Validity check the specified users.
-        if 'username' in fields:
-            rc, msg = manage_user_group_verification(db_connection, tables, fields['username'], None) 
-            if rc != 0:
-                return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
-
-        # Update the group.
-        table = tables['csv2_groups']
-        rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
-
-        # Update user groups.
-        if request.META['HTTP_ACCEPT'] == 'application/json':
-            if 'username' in fields:
-                if 'user_option' in fields and fields['user_option'] == 'delete':
-                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='delete')
-                else:
-                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='add')
-        else:
-            if 'username' in fields:
-                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
-            else:
-                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], None)
-
-        if rc == 0:
-            db_close(db_ctl, commit=True)
-            return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
-        else:
-            db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV24'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
-
-    ### Bad request.
-    else:
-        return list(request, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno('GV25'), request.method))
-
-#-------------------------------------------------------------------------------
-
 def metadata_add(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -650,34 +586,31 @@ def metadata_fetch(request, selector=None):
         return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg)})
 
     # Retrieve metadata file.
-    obj_act_id = request.path.split('/')
-    if len(obj_act_id) > 3:
-        id = obj_act_id[3]
-        ids = id.split('::')
-        if len(ids) == 2:
-            s = db_map.classes.csv2_group_metadata
-            METADATAobj = db_session.query(s).filter((METADATA.group_name==ids[0]) & (METADATA.metadata_name==ids[1]))
-            if METADATAobj:
-                for row in METADATAobj:
-                    context = {
-                        'group_name': row.group_name,
-                        'metadata': row.metadata,
-                        'metadata_enabled': row.enabled,
-                        'metadata_mime_type': row.mime_type,
-                        'metadata_name': row.metadata_name,
-                        'response_code': 0,
-                        'message': None,
-                        'enable_glint': config.enable_glint
-                        }
-                
-                    db_close(db_ctl)
-                    return render(request, 'csv2/groups.html', context)
-             
-            db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s" does not exist.' % id})
+    id = request.path.split('/')
+    if len(id) > 3:
+        METADATA = db_map.classes.csv2_group_metadata
+        METADATAobj = db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.metadata_name == id[3])
+        if METADATAobj:
+            for row in METADATAobj:
+                context = {
+                    'group_name': row.group_name,
+                    'metadata': row.metadata,
+                    'metadata_enabled': row.enabled,
+                    'metadata_mime_type': row.mime_type,
+                    'metadata_name': row.metadata_name,
+                    'response_code': 0,
+                    'message': None,
+                    'enable_glint': config.enable_glint
+                    }
+            
+                db_close(db_ctl)
+                return render(request, 'csv2/groups.html', context)
+         
+        db_close(db_ctl)
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
 
     db_close(db_ctl)
-    return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, received an invalid key "%s".' % id})
+    return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -762,4 +695,67 @@ def metadata_update(request):
         else:
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, no group name specified.' % lno('GV41')})
 
+#-------------------------------------------------------------------------------
+
+def update(request):
+    """
+    This function should recieve a post request with a payload of group configuration
+    to update a given group.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if not getSuperUserStatus(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        # open the database.
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV22'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups','csv2_user_groups'], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Validity check the specified users.
+        if 'username' in fields:
+            rc, msg = manage_user_group_verification(db_connection, tables, fields['username'], None) 
+            if rc != 0:
+                return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+
+        # Update the group.
+        table = tables['csv2_groups']
+        rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
+
+        # Update user groups.
+        if request.META['HTTP_ACCEPT'] == 'application/json':
+            if 'username' in fields:
+                if 'user_option' in fields and fields['user_option'] == 'delete':
+                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='delete')
+                else:
+                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='add')
+        else:
+            if 'username' in fields:
+                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
+            else:
+                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], None)
+
+        if rc == 0:
+            db_close(db_ctl, commit=True)
+            return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+        else:
+            db_close(db_ctl)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV24'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+    ### Bad request.
+    else:
+        return list(request, response_code=1, message='%s group update, invalid method "%s" specified.' % (lno('GV25'), request.method))
 

@@ -257,90 +257,6 @@ def list(
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def status(request, group_name=None):
-    """
-    This function generates a the status of a given groups operations
-    VM status, job status, and machine status should all be available for a given group on this page
-    """
-
-    if not verifyUser(request):
-        raise PermissionDenied
-
-    # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
-
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
-    if rc != 0:
-        db_close(db_ctl)
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
-
-    # get vm and job counts per cloud
-    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    status_list = qt(db_connection.execute(s))
-
-    db_close(db_ctl)
-
-    context = {
-            'active_user': active_user,
-            'active_group': active_user.active_group,
-            'user_groups': user_groups,
-            'status_list': status_list,
-            'response_code': 0,
-            'message': None,
-            'enable_glint': config.enable_glint
-        }
-
-    return render(request, 'csv2/status.html', context)
-
-#-------------------------------------------------------------------------------
-
-@requires_csrf_token
-def update(request):
-    """
-    This function should recieve a post request with a payload of cloud configuration
-    to update a given cloud.
-    """
-
-    if not verifyUser(request):
-        raise PermissionDenied
-
-    if request.method == 'POST' and 'cloud_name' in request.POST:
-        # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
-        if rc != 0:
-            db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
-
-        # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
-
-        # update the cloud.
-        table = tables['csv2_group_resources']
-        rc, msg = db_execute(db_ctl, table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, selection='update')))
-        if rc == 0:
-            db_close(db_ctl, commit=True)
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
-        else:
-            db_close(db_ctl)
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV14'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
-
-    ### Bad request.
-    else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV15'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud update, no cloud name specified.' % lno('CV16'))
-
-#-------------------------------------------------------------------------------
-
-@requires_csrf_token
 def metadata_add(request):
     """
     This function should recieve a post request with a payload of metadata configuration
@@ -462,9 +378,9 @@ def metadata_fetch(request, selector=None):
     if len(obj_act_id) > 3:
         id = obj_act_id[3]
         ids = id.split('::')
-        if len(ids) == 3:
-            s = db_map.classes.csv2_group_resource_metadata
-            METADATAobj = db_session.query(s).filter((METADATA.group_name==ids[0]) & (METADATA.cloud_name==ids[1]) & (METADATA.metadata_name==ids[2]))
+        if len(ids) == 2:
+            METADATA = db_map.classes.csv2_group_resource_metadata
+            METADATAobj = db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==ids[0]) & (METADATA.metadata_name==ids[1]))
             if METADATAobj:
                 for row in METADATAobj:
                     context = {
@@ -485,9 +401,9 @@ def metadata_fetch(request, selector=None):
     db_close(db_ctl)
 
     if id:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s".' % id})
+      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
     else:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received no metadata file id.'})
+      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -590,4 +506,87 @@ def metadata_update(request):
         else:
             return list(request, response_code=1, message='%s cloud metadata_update, no cloud name specified.' % lno('CV32'))
 
+#-------------------------------------------------------------------------------
+
+@requires_csrf_token
+def status(request, group_name=None):
+    """
+    This function generates a the status of a given groups operations
+    VM status, job status, and machine status should all be available for a given group on this page
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    if rc != 0:
+        db_close(db_ctl)
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
+
+    # get vm and job counts per cloud
+    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
+    status_list = qt(db_connection.execute(s))
+
+    db_close(db_ctl)
+
+    context = {
+            'active_user': active_user,
+            'active_group': active_user.active_group,
+            'user_groups': user_groups,
+            'status_list': status_list,
+            'response_code': 0,
+            'message': None,
+            'enable_glint': config.enable_glint
+        }
+
+    return render(request, 'csv2/status.html', context)
+
+#-------------------------------------------------------------------------------
+
+@requires_csrf_token
+def update(request):
+    """
+    This function should recieve a post request with a payload of cloud configuration
+    to update a given cloud.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if request.method == 'POST' and 'cloud_name' in request.POST:
+        # open the database.
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources'], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
+
+        # update the cloud.
+        table = tables['csv2_group_resources']
+        rc, msg = db_execute(db_ctl, table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, selection='update')))
+        if rc == 0:
+            db_close(db_ctl, commit=True)
+            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+        else:
+            db_close(db_ctl)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV14'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+    ### Bad request.
+    else:
+        if request.method != 'POST':
+            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV15'), request.method))
+        else:
+            return list(request, response_code=1, message='%s cloud update, no cloud name specified.' % lno('CV16'))
 
