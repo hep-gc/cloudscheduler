@@ -73,6 +73,7 @@ def resources_producer():
                     r_dict = trim_keys(r_dict, resource_attributes)
                     r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
                     r_dict["condor_host"] = condor_host
+                    r_dict["hostname"] = condor_host.split(".")[0]
                     new_resource = Resource(**r_dict)
                     logging.info("Adding new or updating resource: %s", r_dict["name"])
                     session.merge(new_resource)

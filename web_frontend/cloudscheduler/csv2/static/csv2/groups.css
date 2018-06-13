@@ -9,12 +9,92 @@
     margin-right: 16px;
 }
 
+.lists {
+	position: fixed;
+	left: 580px;
+  	top: 70px;
+  	bottom:20px;
+    overflow: auto;
+}
 
+.lists ul {
+  list-style-type: none;
+}
+
+/*
 
 .user-list {
-    overflow: auto;
-    height: 100px;
+    display: none;
 }
+
 .user-list ul {
   list-style-type: none;
+}
+
+.users {
+  &:focus {
+    opacity: 1;
+    
+    .user-list {
+      opacity: 1;
+    }
+  }
+}
+.users:focus ~ .user-list {
+  display:block;
+}
+*/
+
+
+.meta-list {
+    display: none;
+}
+.meta-list ul {
+  list-style-type: none;
+}
+
+.metadata {
+  &:focus {
+    opacity: 1;
+    
+    .meta-list {
+      opacity: 1;
+    }
+  }
+}
+.metadata:focus ~ .meta-list {
+  display:block;
+}
+
+
+/*----------vertical menu and contents----------*/
+
+
+/*
+.users div:not(:target) > div.user-list {
+  display: none;
+}
+*/
+
+
+
+.users-test2 div{ /* Protect CSS1 & CSS2 browsers */
+    display: none;
+}
+
+.users-test2 div:target {
+	display: block;
+	position: fixed;
+	left: 580px;
+  	top: 70px;
+  	bottom:20px;
+    overflow: auto;
+}
+
+.tab div {
+    display: none;
+}
+
+.tab div:target {
+    display: block;
 }
