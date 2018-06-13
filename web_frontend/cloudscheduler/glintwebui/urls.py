@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'^save_hidden_images/(?P<group_name>.+)/$',\
         views.save_hidden_images, name='save_hidden_images'),
     url(r'^save_hidden_images/$', views.save_hidden_images, name='save_hidden_images'),
+    url(r'^keypairs/(?P<group_name>.+)/$', views.manage_keys, name='manage_keys')
+
 ]
 
 # Check if the image collection task is running, if not start it and set it to running
