@@ -17,6 +17,12 @@
 ./run_tests [999] -ss -sc
 ```
 
+Maybe:
+```bash
+#./run_tests <object>(<endpoint>[<selection>, ...], ...), ...
+./run_tests user(add[1-5,10],delete) group delete[1,2,5-10]
+```
+
 ## To Develop
 
 Add test files with a name of the form: `test_<object><priority>_<endpoint>[_<detail>].py`.

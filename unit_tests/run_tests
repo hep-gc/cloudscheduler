@@ -11,55 +11,72 @@ from re import sub
 import sys
 import user_requests_setup
 import user_requests_cleanup
+import group_requests_setup
+import group_requests_cleanup
 
 def get_test_list():
-    test_files = []
-    test_names = []
+    user_test_files = []
+    user_test_names = []
+    group_test_files = []
+    group_test_names = []
     for f in sorted(listdir('.')):
-        if f.startswith('test'):
-            test_files.append(f[:-3])
-            test_names.append(sub(r'\d', '', f[5:-3]))
-    return test_names, test_files
+        if f.startswith('test_user'):
+            user_test_files.append(f[:-3])
+            user_test_names.append(sub(r'\d', '', f[5:-3]))
+        if f.startswith('test_group'):
+            group_test_files.append(f[:-3])
+            group_test_names.append(sub(r'\d', '', f[5:-3]))
+    return user_test_names, user_test_files, group_test_names, group_test_files
 
 def main():
-    test_names, test_files = get_test_list()
+    ut_names, ut_files, gt_names, gt_files = get_test_list()
     options = []
     setup = True
     cleanup = True
+    hidden = True
     selections = ''
+    tests_present = {'user': False, 'group': False}
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
             if arg == '-h' or arg == '--help':
                 print('Options:')
                 print('-ss | --skip-setup\tFlag to specify if unit test setup should be skipped')
                 print('-sc | --skip-cleanup\tFlag to specify if unit test cleanup should be skipped')
+                print('-v | --verbose\tPrint setup and clean up output')
                 print('The valid tests in this folder are:')
-                print('\n'.join(test_names))
+                print('\n'.join(ut_names))
+                print('\n'.join(gt_names))
                 exit()
             elif arg == '-ss' or arg == '--skip-setup':
                 setup = False
             elif arg == '-sc' or arg == '--skip-cleanup':
                 cleanup = False
+            elif arg == '-v':
+                hidden = False
             elif arg.startswith('['):
                 selections = arg[1:-1]
             elif arg.endswith(']'):
                 temp = arg.split('[')
-                if temp[0] not in test_names:
+                if temp[0] not in ut_names and temp[0] not in gt_names:
                     print('Error: {} is not a valid test group. For a list of valid tests run command with the "-h" option.'.format(temp[0]))
                     exit(1)
                 option = (temp[0], {})
                 initialize_csv2_request(option[1], sys.argv[0], selections=temp[1][:-1])
                 options.append(option)
             else:
-                if arg not in test_names:
+                if arg not in ut_names and arg not in gt_names:
                     print('Error: {} is not a valid test group. For a list of valid tests run command with the "-h" option.'.format(arg))
                     exit(1)
                 option = (arg, {})
                 initialize_csv2_request(option[1], sys.argv[0])
                 options.append(option)
+            if arg.startswith('user'):
+                tests_present['user'] = True
+            elif arg.startswith('group'):
+                tests_present['group'] = True
     
     hidden_gvar = {}
-    initialize_csv2_request(hidden_gvar, sys.argv[0], hidden=True)
+    initialize_csv2_request(hidden_gvar, sys.argv[0], hidden=hidden)
     
     if len(options) == 0:
         gvar = {}
@@ -67,29 +84,59 @@ def main():
             initialize_csv2_request(gvar, sys.argv[0])
         else:
             initialize_csv2_request(gvar, sys.argv[0], selections=selections)
+        # User Tests
         if setup:
             print('Setting up user tests...')
             user_requests_setup.main(hidden_gvar)
-        for i in range(len(test_names)):
-            exec('import {}'.format(test_files[i]), globals(), locals())
-            print('\n*** Testing {} ***\n'.format(test_names[i]))
-            exec('{}.main(gvar)'.format(test_files[i]), globals(), locals())
+        for i in range(len(ut_names)):
+            exec('import {}'.format(ut_files[i]), globals(), locals())
+            print('\n*** Testing {} ***\n'.format(ut_names[i]))
+            exec('{}.main(gvar)'.format(ut_files[i]), globals(), locals())
         if cleanup:
             print('Cleaning up user tests...')
             user_requests_cleanup.main(hidden_gvar)
+        # Group Tests
+        if setup:
+            print('Setting up group tests...')
+            group_requests_setup.main(hidden_gvar)
+        for i in range(len(gt_names)):
+            exec('import {}'.format(gt_files[i]), globals(), locals())
+            print('\n*** Testing {} ***\n'.format(gt_names[i]))
+            exec('{}.main(gvar)'.format(gt_files[i]), globals(), locals())
+        if cleanup:
+            print('Cleaning up group tests...')
+            group_requests_cleanup.main(hidden_gvar)
+
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])
     else:
-        if setup:
-            print('Setting up user tests...')
-            user_requests_setup.main(hidden_gvar)
-        for o, g in options:
-            exec('import {}'.format(test_files[test_names.index(o)]), globals(), locals())
-            print('\n*** Testing {} ***\n'.format(o))
-            exec('{}.main(g)'.format(test_files[test_names.index(o)]), globals(), locals())
-        if cleanup:
-            print('Cleaning up user tests...')
-            user_requests_cleanup.main(hidden_gvar)
+        # User Tests
+        if tests_present['user']:
+            if setup:
+                print('Setting up user tests...')
+                user_requests_setup.main(hidden_gvar)
+            for o, g in options:
+                if o.startswith('user'):
+                    exec('import {}'.format(ut_files[ut_names.index(o)]), globals(), locals())
+                    print('\n*** Testing {} ***\n'.format(o))
+                    exec('{}.main(g)'.format(ut_files[ut_names.index(o)]), globals(), locals())
+            if cleanup:
+                print('Cleaning up user tests...')
+                user_requests_cleanup.main(hidden_gvar)
+        # Group Tests
+        if tests_present['group']:
+            if setup:
+                print('Setting up group tests...')
+                group_requests_setup.main(hidden_gvar)
+            for o, g in options:
+                if o.startswith('group'):
+                    exec('import {}'.format(gt_files[gt_names.index(o)]), globals(), locals())
+                    print('\n*** Testing {} ***\n'.format(o))
+                    exec('{}.main(g)'.format(gt_files[gt_names.index(o)]), globals(), locals())
+            if cleanup:
+                print('Cleaning up group tests...')
+                group_requests_cleanup.main(hidden_gvar)
+
         for o, g in options:
             print('Test {} run={}, skipped={}, failed={}.'.format(o, g['ut_count']-g['ut_skipped'], g['ut_skipped'], g['ut_failed']))
 
