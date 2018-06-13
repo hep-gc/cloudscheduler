@@ -8,6 +8,7 @@ from .models import user as csv2_user
 from . import config
 
 from .view_utils import \
+    db_close, \
     db_execute, \
     db_open, \
     getAuthUser, \
@@ -81,20 +82,20 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
     job_list = qt(db_connection.execute(s))
 
-    db_connection.close()
+    db_close(db_ctl)
 
 #   # Position the page.
 #   obj_act_id = request.path.split('/')

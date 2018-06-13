@@ -4,18 +4,37 @@ from .models import user as csv2_user
 '''
 UTILITY FUNCTIONS
 '''
+
 #-------------------------------------------------------------------------------
 
-def db_execute(db_connection, request, allow_no_rows=False):
+def db_close(db_ctl, commit=False):
+    """
+    Commit or rollback and then close the database connection.
+    """
+
+    db_engine, db_session, db_connection, db_map = db_ctl
+
+    if commit:
+        db_session.commit()
+    else:
+        db_session.rollback()
+
+    db_connection.close()
+
+#-------------------------------------------------------------------------------
+
+def db_execute(db_ctl, request, allow_no_rows=False):
     """
     Execute a DB request and return the response. Also, trap and return errors.
     """
+
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     from sqlalchemy.engine.result import ResultProxy
     import sqlalchemy.exc
 
     try:
-        result_proxy = db_connection.execute(request)
+        result_proxy = db_session.execute(request)
         if result_proxy.rowcount == 0 and not allow_no_rows:
             return 1, 'the request did not match any rows'
         return 0, result_proxy.rowcount
@@ -46,12 +65,12 @@ def db_open():
             )
         )
 
-    db_session = Session(db_engine)
+    db_session = Session(bind=db_engine)
     db_connection = db_engine.connect()
     db_map = automap_base()
     db_map.prepare(db_engine, reflect=True)
 
-    return db_engine,db_session,db_connection,db_map
+    return db_engine, db_session, db_connection, db_map
 
 #-------------------------------------------------------------------------------
 
@@ -94,7 +113,7 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def manage_group_users(db_connection, tables, group, users, option=None):
+def manage_group_users(db_ctl, tables, group, users, option=None):
     """
     Ensure all the specified users and only the specified users are
     members of the specified group. The specified group and users
@@ -102,6 +121,8 @@ def manage_group_users(db_connection, tables, group, users, option=None):
     """
 
     from sqlalchemy.sql import select
+
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     table = tables['csv2_user_groups']
 
@@ -129,7 +150,7 @@ def manage_group_users(db_connection, tables, group, users, option=None):
 
         # Add the missing users.
         for user in add_users:
-            rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+            rc, msg = db_execute(db_ctl, table.insert().values(username=user, group_name=group))
             if rc != 0:
                 return 1, msg
 
@@ -139,7 +160,7 @@ def manage_group_users(db_connection, tables, group, users, option=None):
         
         # Remove the extraneous users.
         for user in remove_users:
-            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -149,15 +170,15 @@ def manage_group_users(db_connection, tables, group, users, option=None):
         
         # Remove the extraneous users.
         for user in remove_users:
-            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
-        return 0, None
+    return 0, None
 
 #-------------------------------------------------------------------------------
 
-def manage_user_groups(db_connection, tables, user, groups, option=None):
+def manage_user_groups(db_ctl, tables, user, groups, option=None):
     """
     Ensure all the specified groups and only the specified groups are
     have the specified user as a member. The specified user and groups
@@ -165,6 +186,8 @@ def manage_user_groups(db_connection, tables, user, groups, option=None):
     """
 
     from sqlalchemy.sql import select
+
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     table = tables['csv2_user_groups']
 
@@ -192,7 +215,7 @@ def manage_user_groups(db_connection, tables, user, groups, option=None):
 
         # Add the missing groups.
         for group in add_groups:
-            rc, msg = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+            rc, msg = db_execute(db_ctl, table.insert().values(username=user, group_name=group))
             if rc != 0:
                 return 1, msg
 
@@ -202,7 +225,7 @@ def manage_user_groups(db_connection, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -212,7 +235,7 @@ def manage_user_groups(db_connection, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-            rc, msg = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -233,12 +256,14 @@ def _manage_user_group_list_diff(list1,list2, option=None):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_group_verification(db_connection, tables, users, groups):
+def manage_user_group_verification(db_ctl, tables, users, groups):
     """
     Make sure the specified users and groups exit.
     """
 
     from sqlalchemy.sql import select
+
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     if users:
         # if there is only one user, make it a list anyway
@@ -520,7 +545,10 @@ def render(request, template, context):
 
 #-------------------------------------------------------------------------------
 
-def set_user_groups(request, db_session, db_map):
+def set_user_groups(request, db_ctl):
+
+    db_engine, db_session, db_connection, db_map = db_ctl
+
     active_user = getcsv2User(request)
     user_groups = db_map.classes.csv2_user_groups
     user_group_rows = db_session.query(user_groups).filter(user_groups.username==active_user)
@@ -634,7 +662,6 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     import lib.schema
     import re
 
-    # address the DB objects.
     db_engine, db_session, db_connection, db_map = db_ctl
 
     # Retrieve relevant (re: tables) schema.
@@ -806,7 +833,8 @@ def _validate_fields_ignore_field_error(Formats, field):
     Check if a field error should be ignore.
     """
 
-    if field in Formats and Formats[field] == 'ignore':
+#   if field in Formats and Formats[field] == 'ignore':
+    if field in Formats:
         return True
 
     return False
