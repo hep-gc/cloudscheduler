@@ -1,7 +1,7 @@
 /*
 ** List VMs with foreign indicator and poller status.
 */
-create or replace view view_yaml_collation as
+create or replace view view_metadata_collation as
 
 /*
 ** Retrieve information.
@@ -11,8 +11,8 @@ select
 
 *
 
-from view_yaml_collation_raw
+from view_metadata_collation_raw
 
-order by group_name,cloud_name,priority,yaml_name
+order by group_name,cloud_name,priority,metadata_name
 
 ;
