@@ -1223,6 +1223,15 @@ def manage_keys(request, group_name=None, message=None):
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)
 
+
+def upload_keypair():
+    return None
+
+
+def create_keypair():
+    return None
+
+
 def save_keypairs(request, group_name=None, message=None):
     if not verifyUser(request):
         raise PermissionDenied

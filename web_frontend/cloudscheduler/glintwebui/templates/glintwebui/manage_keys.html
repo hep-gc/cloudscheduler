@@ -19,13 +19,14 @@
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
 <div class="wrapper" style="padding-top:60px">
+    <h1>User Keys</h1>
     <input class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" />
 <div class="image_matrix">
     <form id="keypair_form" name="keypair_form" action="/images/save_keypairs/{{active_group}}/" method="post">
     {% csrf_token %}
     <table>
         <tr>
-            <th>Keypairs</th>
+            <th>Keys\Clouds</th>
             {% for cloud in group_resources %}
                 <th>{{cloud.cloud_name}}</th>
             {% endfor %}
