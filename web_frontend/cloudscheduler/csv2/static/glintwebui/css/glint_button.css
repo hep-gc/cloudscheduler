@@ -1,5 +1,5 @@
 .button {
-    background-color: #fffeea; /* Green */
+    background-color: #fffeea;  
     border: none;
     color: white;
     padding: 8px 16px;
@@ -17,11 +17,11 @@
 .greenbutton {
     background-color: white; 
     color: black; 
-    border: 2px solid #4CAF50;
+    border: 2px solid #fffeea;
 }
 
 .greenbutton:hover {
-    background-color: #4CAF50;
+    background-color: #fffeea;
     color: white;
 }
 
