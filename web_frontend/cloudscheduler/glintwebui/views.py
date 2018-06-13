@@ -1267,7 +1267,7 @@ def save_keypairs(request, group_name=None, message=None):
                             "group_name": group_name,
                             "cloud_name": cloud.cloud_name,
                             "fingerprint": key_fingerprint,
-                            "key_name" os_keypair.name: 
+                            "key_name": os_keypair.name 
                         }
                         new_keypair = Keypairs(**keypair_dict)
                         session.merge(new_keypair)
@@ -1282,7 +1282,7 @@ def save_keypairs(request, group_name=None, message=None):
             logger.error("Error setting up database objects or during general execution of save_keypairs")
 
         
-        return None
+        return redirect("manage_keys", message="Submisson Successful")
 
 
     # not a post, do nothing
