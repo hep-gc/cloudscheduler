@@ -1,0 +1,36 @@
+/*
+** Retrieve groups/cloud summary information.
+*/
+create or replace view view_job_status_raw as
+
+/*
+** Retrieve all groups.
+*/
+select
+
+group_name,
+0 as Jobs,
+0 as Idle,
+0 as Running,
+0 as Completed,
+0 as Held,
+0 as Other
+
+from csv2_group_resources
+
+/*
+** Retrieve job statistics for each group.
+*/
+union all select
+
+group_name,
+1 as Jobs,
+case when job_status=1 then 1 else 0 end as Idle,
+case when job_status=2 then 1 else 0 end as Running,
+case when job_status=4 then 1 else 0 end as Completed,
+case when job_status=5 then 1 else 0 end as Held,
+case when job_status=0 or job_status=3 or job_status=6 then 1 else 0 end as Other
+
+from condor_jobs
+
+;
