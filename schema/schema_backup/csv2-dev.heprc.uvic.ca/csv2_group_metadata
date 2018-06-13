@@ -16,39 +16,20 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `condor_jobs`
+-- Table structure for table `csv2_group_metadata`
 --
 
-DROP TABLE IF EXISTS `condor_jobs`;
+DROP TABLE IF EXISTS `csv2_group_metadata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `condor_jobs` (
-  `global_job_id` varchar(128) NOT NULL,
-  `group_name` varchar(128) DEFAULT NULL,
-  `target_clouds` text DEFAULT NULL,
-  `cloud_name` text DEFAULT NULL,
-  `job_status` int(11) DEFAULT NULL,
-  `request_cpus` int(11) NOT NULL,
-  `request_ram` int(11) DEFAULT NULL,
-  `request_disk` int(11) DEFAULT NULL,
-  `request_swap` int(11) DEFAULT NULL,
-  `request_scratch` int(11) DEFAULT NULL,
-  `requirements` varchar(512) DEFAULT NULL,
-  `job_priority` int(11) DEFAULT NULL,
-  `cluster_id` int(11) DEFAULT NULL,
-  `proc_id` int(11) NOT NULL,
-  `user` varchar(512) DEFAULT NULL,
-  `image` text DEFAULT NULL,
-  `instance_type` varchar(512) DEFAULT NULL,
-  `network` varchar(512) DEFAULT NULL,
-  `keep_alive` varchar(512) DEFAULT NULL,
-  `max_price` varchar(512) DEFAULT NULL,
-  `user_data` varchar(512) DEFAULT NULL,
-  `job_per_core` int(11) DEFAULT NULL,
-  `entered_current_status` int(11) DEFAULT NULL,
-  `q_date` int(11) DEFAULT NULL,
-  `hold_job` int(2) DEFAULT NULL,
-  PRIMARY KEY (`global_job_id`)
+CREATE TABLE `csv2_group_metadata` (
+  `group_name` varchar(128) NOT NULL,
+  `metadata_name` varchar(128) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `priority` int(11) NOT NULL DEFAULT 0,
+  `metadata` text NOT NULL,
+  `mime_type` varchar(128) NOT NULL DEFAULT 'cloud-config',
+  PRIMARY KEY (`group_name`,`metadata_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -61,4 +42,4 @@ CREATE TABLE `condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-06 13:56:55
+-- Dump completed on 2018-06-13 11:20:26
