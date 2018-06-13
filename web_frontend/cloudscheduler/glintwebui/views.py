@@ -19,7 +19,8 @@ from .glint_api import repo_connector, validate_repo, change_image_name
 from .utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
     build_id_lookup_dict, repo_modified, get_conflicts_for_group, find_image_by_name, \
     add_cached_image, check_cached_images, increment_transactions, check_for_existing_images,\
-    get_hidden_image_list, parse_hidden_images, get_num_transactions
+    get_hidden_image_list, parse_hidden_images, get_num_transactions, \
+    get_keypair, delete_keypair, transfer_keypair
 from .__version__ import version
 from .db_util import get_db_base_and_session
 
@@ -1236,7 +1237,7 @@ def save_keypairs(request, group_name=None, message=None):
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
             grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
-            for cloud in grp_resource:
+            for cloud in grp_resources:
                 #check_list will only have the names of keys checked for that cloud
                 check_list = request.POST.getlist(cloud.cloud_name)
 
@@ -1252,7 +1253,7 @@ def save_keypairs(request, group_name=None, message=None):
                         # delete from database
                         session.delete(keypair)
                 # check for new key transfers
-                for key_fingerprint in checklist:
+                for key_fingerprint in check_list:
                     if key_fingerprint not in cloud_fingerprints:
                         # transfer key to this cloud
                         # get existing keypair: need name, public_key, key_type and ?user?
@@ -1282,7 +1283,7 @@ def save_keypairs(request, group_name=None, message=None):
             logger.error("Error setting up database objects or during general execution of save_keypairs")
 
         
-        return redirect("manage_keys", message="Submisson Successful")
+        return redirect("manage_keys")
 
 
     # not a post, do nothing

@@ -835,11 +835,11 @@ def get_keypair(fingerprint, cloud):
             return key
     return None
 
-def transfer_key(keypair, cloud):
+def transfer_keypair(keypair, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
-    nova.keypairs.create(name=keypair.name, public_key=keypair.public_key, key_type=keypair.key_type)
+    nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
     return True
 
 
@@ -863,13 +863,13 @@ def __get_image_details(group_name, image):
 
 
 def _get_keystone_session(cloud):
-    authsplit = cloud.auth_url.split('/')
+    authsplit = cloud.authurl.split('/')
     version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
 
     if version == 2:
         try:
             auth = v2.Password(
-                auth_url=cloud.auth_url,
+                auth_url=cloud.authurl,
                 username=cloud.username,
                 password=cloud.password,
                 tenant_name=cloud.project)
@@ -881,7 +881,7 @@ def _get_keystone_session(cloud):
         #connect using keystone v3
         try:
             auth = v3.Password(
-                auth_url=cloud.auth_url,
+                auth_url=cloud.authurl,
                 username=cloud.username,
                 password=cloud.password,
                 project_name=cloud.project,
