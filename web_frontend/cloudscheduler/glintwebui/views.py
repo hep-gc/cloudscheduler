@@ -1249,7 +1249,7 @@ def save_keypairs(request, group_name=None, message=None):
                     cloud_fingerprints.append(keypair.fingerprint)
                     if keypair.fingerprint not in check_list:
                         # key has been deleted from this cloud:
-                        delete_key(keypair.fingerprint, cloud)
+                        delete_keypair(keypair.fingerprint, cloud)
                         # delete from database
                         session.delete(keypair)
                 # check for new key transfers
