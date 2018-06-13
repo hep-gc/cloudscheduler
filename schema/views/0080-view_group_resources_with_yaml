@@ -1,20 +1,20 @@
 /*
 ** Combine the resource information from csv2_group_resources and cloud_limits, setting defaults for missing values.
 */
-create or replace view view_group_resources_with_yaml as
+create or replace view view_group_resources_with_metadata as
 
 select
 
 vgr.*,
-yaml_name,
-enabled as yaml_enabled,
-priority as yaml_priority,
-mime_type as yaml_mime_type,
-yaml
+metadata_name,
+enabled as metadata_enabled,
+priority as metadata_priority,
+mime_type as metadata_mime_type,
+metadata
 
 from view_group_resources as vgr
 left outer join cloud_limits as cl on vgr.group_name=cl.group_name and vgr.cloud_name=cl.cloud_name
-left outer join csv2_group_resource_yaml as cgry on vgr.group_name=cgry.group_name and vgr.cloud_name=cgry.cloud_name
+left outer join csv2_group_resource_metadata as cgrm on vgr.group_name=cgrm.group_name and vgr.cloud_name=cgrm.cloud_name
 
 order by vgr.group_name,vgr.cloud_name
 

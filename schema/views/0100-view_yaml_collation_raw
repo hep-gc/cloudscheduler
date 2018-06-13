@@ -1,7 +1,7 @@
 /*
 ** List VMs with foreign indicator and poller status.
 */
-create or replace view view_yaml_collation_raw as
+create or replace view view_metadata_collation_raw as
 
 /*
 ** Retrieve information.
@@ -13,12 +13,12 @@ cgr.group_name,
 cloud_name,
 "group" as type,
 priority,
-yaml_name
+metadata_name
 
 from csv2_group_resources as cgr
 
-left outer join csv2_group_yaml as cgy
-on cgr.group_name=cgy.group_name
+left outer join csv2_group_metadata as cgm
+on cgr.group_name=cgm.group_name
 
 where enabled=1
 
@@ -28,9 +28,9 @@ group_name,
 cloud_name,
 "cloud" as type,
 priority,
-yaml_name
+metadata_name
 
-from csv2_group_resource_yaml
+from csv2_group_resource_metadata
 
 where enabled=1
 

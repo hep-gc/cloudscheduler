@@ -1,19 +1,19 @@
 /*
-** Consolidate group/yaml information into one row per group/cloud.
+** Consolidate group/metadata information into one row per group/cloud.
 */
-create or replace view view_groups_with_yaml as
+create or replace view view_groups_with_metadata as
 
 select
 
 cg.group_name,
 condor_central_manager,
-yaml_name,
+metadata_name,
 enabled,
 priority,
-yaml,
+metadata,
 mime_type
 
 from csv2_groups as cg
-left outer join csv2_group_yaml as cgy on cg.group_name=cgy.group_name
+left outer join csv2_group_metadata as cgm on cg.group_name=cgm.group_name
 
 ;
