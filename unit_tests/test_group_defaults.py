@@ -28,87 +28,91 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV07', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/defaults/', form_data={'group': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV07', 'cannot switch to invalid group "testing".',
         '/group/defaults/', form_data={'group': 'testing'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
+    # TODO: better error message??
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV05', 'group defaults update "{}" failed'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={'group': ut_id(gvar, 'gtg4')},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
     execute_csv2_request(
-        gvar, 1, None, '???',
+        gvar, 1, 'GV06', 'request contained a bad parameter "invalid-unit-test".',
         '/group/defaults/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
+    # TODO: better error message??
     execute_csv2_request(
-        gvar, 1, None, '???',
+        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
         '/group/defaults/', form_data={
-            'group_name': ut_id(gvar, 'gtg4'),
+            'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # execute_csv2_request(
-    #     gvar, 1, None, '???',
-    #     '/group/defaults/', form_data={
-    #         'group_name': ut_id(gvar, 'gtg4'),
-    #         'job_cpus': -1
-    #     },
-    #     server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    # )
+    # TODO: should this fail??
+    execute_csv2_request(
+        gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'job_cpus': -1
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
 
-    # execute_csv2_request(
-    #     gvar, 1, None, '???',
-    #     '/group/defaults/', form_data={
-    #         'group_name': ut_id(gvar, 'gtg4'),
-    #         'job_cpus': 1.2345
-    #     },
-    #     server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    # )
+    # TODO: should this fail??
+    execute_csv2_request(
+        gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'job_cpus': 1.2345
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
 
     execute_csv2_request(
-        gvar, 1, None, '???',
+        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
         '/group/defaults/', form_data={
-            'group_name': ut_id(gvar, 'gtg4'),
+            'group': ut_id(gvar, 'gtg4'),
             'job_ram': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
     execute_csv2_request(
-        gvar, 1, None, '???',
+        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_disk\' at row 1',
         '/group/defaults/', form_data={
-            'group_name': ut_id(gvar, 'gtg4'),
+            'group': ut_id(gvar, 'gtg4'),
             'job_disk': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
     execute_csv2_request(
-        gvar, 1, None, '???',
+        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_scratch\' at row 1',
         '/group/defaults/', form_data={
-            'group_name': ut_id(gvar, 'gtg4'),
+            'group': ut_id(gvar, 'gtg4'),
             'job_scratch': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
     execute_csv2_request(
-        gvar, 1, None, '???',
+        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_swap\' at row 1',
         '/group/defaults/', form_data={
-            'group_name': ut_id(gvar, 'gtg4'),
+            'group': ut_id(gvar, 'gtg4'),
             'job_swap': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
@@ -117,7 +121,7 @@ def main(gvar):
     execute_csv2_request(
         gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={
-            'group_name': ut_id(gvar, 'gtg4'),
+            'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 1,
             'job_ram': 1,
             'job_disk': 1,
