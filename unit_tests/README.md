@@ -7,6 +7,8 @@
 ./run_tests
 # run a subset of the tests
 ./run_tests [1-5,10]
+# run all user tests
+./run_tests user
 # run all the user add tests
 ./run_tests user_add
 # run specific tests in user add
@@ -15,12 +17,6 @@
 ./run_tests user_list user_add[1-5,10] user_delete
 # skip setup, cleanup, and all tests
 ./run_tests [999] -ss -sc
-```
-
-Maybe:
-```bash
-#./run_tests <object>(<endpoint>[<selection>, ...], ...), ...
-./run_tests user(add[1-5,10],delete) group delete[1,2,5-10]
 ```
 
 ## To Develop
