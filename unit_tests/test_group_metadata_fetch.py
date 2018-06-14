@@ -34,29 +34,22 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, None, 'received an invalid key "".',
-        '/group/metadata-fetch/',
+        gvar, 1, None, 'file "jodiew-gtg5::" does not exist.',
+        '/group/metadata-fetch/', form_data={'group': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
     execute_csv2_request(
         gvar, 1, None, 'file "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'gtg5')),
-        '/group/metadata-fetch/{}::invalid-unit-test'.format(ut_id(gvar, 'gtg5')),
+        '/group/metadata-fetch/invalid-unit-test', form_data={'group': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: how is this supposed to work?
-    # execute_csv2_request(
-    #     gvar, 0, None, None,
-    #     '/group/metadata-fetch/testing::another',
-    #     server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    # )
-
-    # execute_csv2_request(
-    #     gvar, 0, None, None,
-    #     '/group/metadata-fetch/{}::{}'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5')),
-    #     server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    # )
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/metadata-fetch/{}'.format(ut_id(gvar, 'gty5')), form_data={'group': ut_id(gvar, 'gtg5')},
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
 
 if __name__ == "__main__":
     main(None)

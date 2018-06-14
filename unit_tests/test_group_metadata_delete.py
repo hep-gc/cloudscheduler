@@ -27,7 +27,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
     )
 
-    # TODO: should a privileged user be able to add metadata to a group they are not in?
+    # TODO: should a privileged user be able to add/delete metadata to a group they are not in?
     # execute_csv2_request(
     #     gvar, 1, '???', '???',
     #     '/group/metadata-delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
@@ -50,8 +50,9 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
+    # TODO: 500
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV18', '???',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'invalid-unit-test'
@@ -59,8 +60,9 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
+    # TODO: 500
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV18', '???',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'testing'

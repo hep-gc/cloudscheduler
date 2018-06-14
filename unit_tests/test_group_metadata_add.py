@@ -98,7 +98,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: maybe this should be checked before insertion into db?
+    # TODO: better error message??
     execute_csv2_request(
         gvar, 1, 'GV28', 'Incorrect integer value: \'invalid-unit-test\' for column \'priority\' at row 1',
         '/group/metadata-add/', form_data={
@@ -112,12 +112,12 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: I thought files with .metadata endings were being validated as metadata
+    # TODO: I thought files with .yaml endings were being validated as yaml??
     # execute_csv2_request(
     #     gvar, 1, '???', '???',
     #     '/group/metadata-add/', form_data={
     #         'group': ut_id(gvar, 'gtg4'),
-    #         'metadata_name': 'invalid-unit-test.metadata',
+    #         'metadata_name': 'invalid-unit-test.yaml',
     #         'enabled': 0,
     #         'mime_type': 'cloud-config',
     #         'metadata': '{"invalid-unit-test":"yes"}',
@@ -169,6 +169,14 @@ def main(gvar):
             'metadata': '- example: yaml',
             'priority': 1
         },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
+        list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1')},
+        values={'metadata_name': ut_id(gvar, 'gty1'), 'enabled': 0, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 

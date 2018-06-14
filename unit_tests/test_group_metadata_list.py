@@ -33,14 +33,5 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: figure out how this works
-    # execute_csv2_request(
-    #     gvar, 0, None, None,
-    #     '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
-    #     list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty5')},
-    #     values={'metadata_name': 'invalid'},
-    #     server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    # )
-
 if __name__ == "__main__":
     main(None)
