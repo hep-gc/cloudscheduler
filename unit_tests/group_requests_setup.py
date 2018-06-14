@@ -62,7 +62,7 @@ def main(gvar):
         }
     )
 
-    # unprivileged user in group gtg4
+    # unprivileged user in group gtg5
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu3')),
         '/user/add/', form_data={
@@ -70,12 +70,11 @@ def main(gvar):
             'password1': 'Abc123',
             'password2': 'Abc123',
             'cert_cn': '{} test user three'.format(ut_id(gvar, 'group')),
-            'group_name.1': ut_id(gvar, 'gtg4'),
-            'group_name.2': ut_id(gvar, 'gtg5')
+            'group_name.1': ut_id(gvar, 'gtg5')
         }
     )
 
-    # privileged user in group gtg4,5,6
+    # privileged user in group gtg5,6
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu5')),
         '/user/add/', form_data={
@@ -84,8 +83,7 @@ def main(gvar):
             'password2': 'Abc123',
             'is_superuser': 1,
             'cert_cn': '{} test user five'.format(ut_id(gvar, 'group')),
-            'group_name.1': ut_id(gvar, 'gtg4'),
-            'group_name.2': ut_id(gvar, 'gtg5'),
+            'group_name.1': ut_id(gvar, 'gtg5'),
             'group_name.2': ut_id(gvar, 'gtg6')
         }
     )

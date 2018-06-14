@@ -63,8 +63,9 @@ def main(gvar):
         '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg1-')}
     )
 
+    # TODO: better error message??
     execute_csv2_request(
-        gvar, 1, 'GV24', '???',
+        gvar, 1, 'GV24', 'group update "invalid-unit-test" failed',
         '/group/update/', form_data={'group_name': 'invalid-unit-test'}
     )
 
@@ -73,6 +74,7 @@ def main(gvar):
         '/group/update/', form_data={'user_option': 'invalid-unit-test'}
     )
 
+    # TODO: 500
     execute_csv2_request(
         gvar, 1, '???', '???',
         '/group/update/', form_data={'username': 'invalid-unit-test'}
@@ -93,6 +95,7 @@ def main(gvar):
         values={'group_name': ut_id(gvar, 'gtg4'), 'condor_central_manager': 'unit-test-group-four-update.ca'}
     )
 
+    # TODO: 500
     execute_csv2_request(
         gvar, 1, '???', '???',
         '/group/update/', form_data={
@@ -108,6 +111,7 @@ def main(gvar):
         values={'group_name': ut_id(gvar, 'gtg4'), 'condor_central_manager': 'unit-test-group-four-update.ca'}
     )
 
+    # TODO: 500
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
@@ -129,11 +133,6 @@ def main(gvar):
         list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')}
     )
-    
-    # execute_csv2_request(
-    #     gvar, 1, '???', '???',
-    #     '/group/update/', form_data={}
-    # )
 
 if __name__ == "__main__":
     main(None)

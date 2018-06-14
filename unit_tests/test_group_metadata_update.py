@@ -35,7 +35,7 @@ def main(gvar):
 
     # TODO: this currently returns an SQL syntax error, should be something more user friendly
     execute_csv2_request(
-        gvar, 1, 'GV39', '???',
+        gvar, 1, 'GV39', 'group metadata-update "{}::invalid-unit-test" failed'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
@@ -91,6 +91,35 @@ def main(gvar):
             'mime_type': 'cloud-config',
             'group': ut_id(gvar, 'gtg5')
         },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
+        list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty5')},
+        values={'metadata_name': ut_id(gvar, 'gty5'), 'enabled': 1, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 0, 'mime_type': 'cloud-config'},
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group metadata file "{}::{}" successfully  updated.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5')),
+        '/group/metadata-update/', form_data={
+            'metadata_name': ut_id(gvar, 'gty5'),
+            'enabled': 0,
+            'mime_type': 'ucernvm-config',
+            'metadata': '- example: metadata',
+            'priority': 10,
+            'group': ut_id(gvar, 'gtg5')
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
+        list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty5')},
+        values={'metadata_name': ut_id(gvar, 'gty5'), 'enabled': 0, 'metadata': '- example: metadata', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 10, 'mime_type': 'ucernvm-config'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
