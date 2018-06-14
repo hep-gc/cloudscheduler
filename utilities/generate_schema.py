@@ -71,7 +71,7 @@ def main(args):
 
     gvar['fd'].write(
         "if 'Table' not in locals() and 'Table' not in globals():\n" + \
-        "  from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey\n" + \
+        "  from sqlalchemy import Table, Column, Float, Integer, String, MetaData, ForeignKey\n" + \
         "  metadata = MetaData()\n\n"
         )
 
@@ -128,6 +128,9 @@ def main(args):
                 _w[1] == 'longtext' or \
                 _w[1] == 'mediumtext':
                     _stdout.append(" String")
+
+                elif _w[1][:7] == 'double':
+                    _stdout.append(" Float")
 
                 else:
                     print('Unknown data type for column: %s' % columns[_ix])
