@@ -49,22 +49,46 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg5'),
-            'condor_central_manager': 'unit-test-group-five.ca'
+            'condor_central_manager': 'unit-test-group-five.ca',
+        }
+    )
+
+    # group to be deleted in group_delete
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg6')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'gtg6'),
+            'condor_central_manager': 'unit-test-group-six.ca',
         }
     )
 
     # unprivileged user in group gtg4
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu3')),
-            '/user/add/', form_data={
-                'username': ut_id(gvar, 'gtu3'),
-                'password1': 'Abc123',
-                'password2': 'Abc123',
-                'cert_cn': '{} test user three'.format(ut_id(gvar, 'group')),
-                'group_name.1': ut_id(gvar, 'gtg4'),
-                'group_name.2': ut_id(gvar, 'gtg5')
-            }
-        )
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'gtu3'),
+            'password1': 'Abc123',
+            'password2': 'Abc123',
+            'cert_cn': '{} test user three'.format(ut_id(gvar, 'group')),
+            'group_name.1': ut_id(gvar, 'gtg4'),
+            'group_name.2': ut_id(gvar, 'gtg5')
+        }
+    )
+
+    # privileged user in group gtg4,5,6
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu5')),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'gtu5'),
+            'password1': 'Abc123',
+            'password2': 'Abc123',
+            'is_superuser': 1,
+            'cert_cn': '{} test user five'.format(ut_id(gvar, 'group')),
+            'group_name.1': ut_id(gvar, 'gtg4'),
+            'group_name.2': ut_id(gvar, 'gtg5'),
+            'group_name.2': ut_id(gvar, 'gtg6')
+        }
+    )
     
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),

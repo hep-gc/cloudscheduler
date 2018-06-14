@@ -31,6 +31,11 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'gtu5')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg1')}
     )
 
@@ -52,6 +57,11 @@ def main(gvar):
     execute_csv2_request(
         gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg5')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg6')}
     )
 
 if __name__ == "__main__":
