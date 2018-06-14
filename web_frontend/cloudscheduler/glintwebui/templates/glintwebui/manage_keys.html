@@ -2,6 +2,7 @@
 <meta http-equiv="refresh" content="60">
 {% load static %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
 <link rel="stylesheet" href="/static/glintwebui/css/glint_button.css">
@@ -28,7 +29,14 @@
              <tr class="header_table">
                  <th class="header_table"><h1 style="float:left">User Keys</h1></th>
                  <td class="header_table" style="background-color: #fffeea; border:none"> <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Key Name"> </td>
-                 <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="uploadKey()" value="+Upload Key" /></td>
+                 <td class="header_table"><a href="#" id="popover">+Upload Key</a>
+                 <div id="popover-head" class="hide">Upload Key</div>
+                 <div id="popover-content" class="hide">
+                  <form>
+                    <h1>stuff</h1>
+                  </form>
+                </div>
+                 </td>
                  <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="createKey()" value="New Key" /></td>
                  <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" /></td>
              </tr>
@@ -88,5 +96,16 @@ $('#image_search').keyup(function() {
         var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
         return !~text.indexOf(val);
     }).hide();
+});
+
+
+$('#popover').popover({ 
+    html : true,
+    title: function() {
+      return $("#popover-head").html();
+    },
+    content: function() {
+      return $("#popover-content").html();
+    }
 });
 </script>
