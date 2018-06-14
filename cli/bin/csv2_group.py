@@ -98,6 +98,7 @@ def defaults(gvar):
             'job_ram/Job RAM (MBs)',
             'job_swap/Job Swap (GBs)',
             ],
+            title="Active Group Defaults:",
         )
 
 def delete(gvar):
@@ -167,6 +168,7 @@ def list(gvar):
             [
                 'group_name/Group',
             ],
+            title="Groups:",
             )
     else:
         show_table(
@@ -177,6 +179,7 @@ def list(gvar):
                 'condor_central_manager/Central Manager',
                 'metadata_names/Metadata Filenames',
                 ],
+            title="Groups:",
             )
 
 def update(gvar):
@@ -337,6 +340,7 @@ def metadata_list(gvar):
                 'group_name/Group',
                 'metadata_name/Metadata Filename',
             ],
+            title="Active Group/Metadata:",
             )
     else:
         show_table(
@@ -349,6 +353,7 @@ def metadata_list(gvar):
                 'priority/Priority',
                 'mime_type/MIME Type',
             ],
+            title="Active Group/Metadata:",
             )
 
 def metadata_load(gvar):

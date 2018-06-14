@@ -136,6 +136,7 @@ def list(gvar):
                 'group_name/Group',
                 'cloud_name/Cloud',
             ],
+            title="Clouds:",
             )
     else:
         show_table(
@@ -181,6 +182,7 @@ def list(gvar):
                 'server_group_members_max/Security Group Members (Max)',
                 'server_meta_max/Server Metadata (Max)',
                 ],
+            title="Clouds:",
             )
 
 def status(gvar):
@@ -195,7 +197,7 @@ def status(gvar):
     response = requests(gvar, '/cloud/status/')
 
     # Filter response as requested (or not).
-    status_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['status_list'])
+    cloud_status_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_status_list'])
 
     # Print report
     show_header(gvar, response)
@@ -203,21 +205,20 @@ def status(gvar):
     if gvar['command_args']['only-keys']:
         show_table(
             gvar,
-            status_list,
+            cloud_status_list,
             [
                 'group_name/Group',
                 'cloud_name/Cloud',
             ],
+            title="Clouds:",
             )
     else:
         show_table(
             gvar,
-            status_list,
+            cloud_status_list,
             [
                 'group_name/Group',
                 'cloud_name/Cloud',
-                'idle_cores/Idle Cores',
-                'idle_ram/Idle RAM',
                 'VMs',
                 'VMs_unregistered/VMs Unregistered',
                 'VMs_running/VMs Running',
@@ -226,15 +227,26 @@ def status(gvar):
                 'VMs_in_error/VMs in Error',
                 'VMs_other/VMs Other',
                 'Foreign_VMs/Foreign VMs',
-                'Jobs',
-                'Jobs_s0/Jobstat 0',
-                'Jobs_s1/Jobstat 1',
-                'Jobs_s2/Jobstat 2',
-                'Jobs_s3/Jobstat 3',
-                'Jobs_s4/Jobstat 4',
-                'Jobs_s5/Jobstat 5',
-                'Jobs_s6/Jobstat 6',
+                'total_slots/Total Slots',
+                'used_slots/Used Slots',
+                'idle_cores/Idle Cores',
+                'idle_ram/Idle RAM',
             ],
+            title="Cloud status:",
+            )
+
+        show_table(
+            gvar,
+            response['job_status_list'],
+            [
+                'group_name/Group',
+                'Jobs',
+                'Idle',
+                'Running',
+                'Completed',
+                'Other',
+            ],
+            title="Job status:",
             )
 
 def update(gvar):
@@ -400,6 +412,7 @@ def metadata_list(gvar):
                 'cloud_name/Cloud',
                 'metadata_name/Metadata Filename',
             ],
+            title="Clouds/Metadata:",
             )
     elif 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
         show_table(
@@ -412,6 +425,7 @@ def metadata_list(gvar):
                 'priority/priority',
                 'metadata_name/Metadata Filename',
                 ],
+            title="Clouds/Metadata Merge Order:",
             )
     else:
         show_table(
@@ -425,6 +439,7 @@ def metadata_list(gvar):
                 'priority/Priority',
                 'mime_type/MIME Type',
             ],
+            title="Clouds/Metadata:",
             )
 
 def metadata_load(gvar):
