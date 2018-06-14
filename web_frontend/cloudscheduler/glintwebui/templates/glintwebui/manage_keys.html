@@ -27,6 +27,9 @@
          <table class="header_table" border="0">
              <tr class="header_table">
                  <th class="header_table"><h1 style="float:left">User Keys</h1></th>
+                 <td class="header_table" style="background-color: #fffeea; border:none"> <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Key Name"> </td>
+                 <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="uploadKey()" value="+Upload Key" /></td>
+                 <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="createKey()" value="New Key" /></td>
                  <td class="header_table"><input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" /></td>
              </tr>
          </table>
@@ -42,7 +45,7 @@
             {% endfor %}
         </tr>
         {% for key in fingerprint_dict %}
-            <tr>
+            <tr class="key_row">
                 <th>
                     {{fingerprint_dict|get_item:key|get_item:"name"}}
                 </th>
@@ -63,4 +66,27 @@
 function submitKeyMatrix(){
     document.getElementById("keypair_form").submit();
 }
+function createKey(){
+    return 0
+}
+function uploadKey(){
+    return 0
+}
+
+var $rows = $('.key_row');
+var val = $.trim($('#image_search').val()).replace(/ +/g, ' ').toLowerCase();
+$rows.filter(function() {
+    var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+    return !~text.indexOf(val);
+}).hide();
+
+$('#image_search').keyup(function() {
+    var filter = localStorage.getItem("filter");
+    var $rows = $('.key_row');
+    var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+    $rows.show().filter(function() {
+        var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
+        return !~text.indexOf(val);
+    }).hide();
+});
 </script>
