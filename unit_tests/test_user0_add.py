@@ -145,11 +145,5 @@ def main(gvar):
         '/user/add/', form_data={'username': ut_id(gvar, 'utu6'), 'password1': 'AaBbCc123', 'password2': 'AaBbCc123', 'cert_cn': '%s test user six' % ut_id(gvar, 'unit'), 'is_superuser': True, 'group_name.2': ut_id(gvar, 'utg3'), 'group_name.1': ut_id(gvar, 'utg3')}
         )
 
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/user/list/',
-        list='user_list', filter={'username': ut_id(gvar, 'utu6')}, values={'cert_cn': '%s test user six' % ut_id(gvar, 'unit'), 'user_groups': ut_id(gvar, 'utg3'), 'is_superuser': 1}
-        )
-
 if __name__ == "__main__":
     main(None)

@@ -70,7 +70,8 @@ def main(gvar):
             'password1': 'Abc123',
             'password2': 'Abc123',
             'cert_cn': '{} test user three'.format(ut_id(gvar, 'group')),
-            'group_name.1': ut_id(gvar, 'gtg5')
+            'group_name.1': ut_id(gvar, 'gtg4'),
+            'group_name.2': ut_id(gvar, 'gtg5')
         }
     )
 
@@ -83,8 +84,9 @@ def main(gvar):
             'password2': 'Abc123',
             'is_superuser': 1,
             'cert_cn': '{} test user five'.format(ut_id(gvar, 'group')),
-            'group_name.1': ut_id(gvar, 'gtg5'),
-            'group_name.2': ut_id(gvar, 'gtg6')
+            'group_name.1': ut_id(gvar, 'gtg4'),
+            'group_name.2': ut_id(gvar, 'gtg5'),
+            'group_name.3': ut_id(gvar, 'gtg6')
         }
     )
     
