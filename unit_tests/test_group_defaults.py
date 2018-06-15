@@ -52,7 +52,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
+        gvar, 1, 'GV06', 'group defaults update value specified for "job_cpus" must be a integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 'invalid-unit-test'
@@ -61,7 +61,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
+        gvar, 1, 'GV06', 'group defaults update value specified for "job_ram" must be a integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_ram': 'invalid-unit-test'
@@ -70,7 +70,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_disk\' at row 1',
+        gvar, 1, 'GV06', 'group defaults update value specified for "job_disk" must be a integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_disk': 'invalid-unit-test'
@@ -79,7 +79,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_scratch\' at row 1',
+        gvar, 1, 'GV06', 'group defaults update value specified for "job_scratch" must be a integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_scratch': 'invalid-unit-test'
@@ -88,7 +88,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_swap\' at row 1',
+        gvar, 1, 'GV06', 'group defaults update value specified for "job_swap" must be a integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_swap': 'invalid-unit-test'

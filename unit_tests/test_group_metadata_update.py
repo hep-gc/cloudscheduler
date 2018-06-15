@@ -28,7 +28,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV41', 'no group name specified.',
+        gvar, 1, 'GV41', 'no metadata name specified.',
         '/group/metadata-update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
@@ -119,6 +119,58 @@ def main(gvar):
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty5')},
         values={'metadata_name': ut_id(gvar, 'gty5'), 'enabled': 0, 'metadata': '- example: metadata', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 10, 'mime_type': 'ucernvm-config'},
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 1, '???', 'invalid yaml file',
+        '/group/metadata-update/', form_data={
+            'metadata_name': ut_id(gvar, 'gty5.yaml'),
+            'enabled': 0,
+            'mime_type': 'ucernvm-config',
+            'metadata': '{"invalid-unit-test":"yes"}',
+            'priority': 10,
+            'group': ut_id(gvar, 'gtg5')
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 1, '???', 'invalid json file',
+        '/group/metadata-update/', form_data={
+            'metadata_name': ut_id(gvar, 'gty5.json'),
+            'enabled': 0,
+            'mime_type': 'ucernvm-config',
+            'metadata': '- invalid-unit-test: yes',
+            'priority': 10,
+            'group': ut_id(gvar, 'gtg5')
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group metadata file "{}::{}" successfully  updated.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5.yaml')),
+        '/group/metadata-update/', form_data={
+            'metadata_name': ut_id(gvar, 'gty5.yaml'),
+            'enabled': 0,
+            'mime_type': 'ucernvm-config',
+            'metadata': '- example: valid-yaml',
+            'priority': 10,
+            'group': ut_id(gvar, 'gtg5')
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group metadata file "{}::{}" successfully  updated.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5.json')),
+        '/group/metadata-update/', form_data={
+            'metadata_name': ut_id(gvar, 'gty5.json'),
+            'enabled': 0,
+            'mime_type': 'ucernvm-config',
+            'metadata': '{"example":"valid-json"}',
+            'priority': 10,
+            'group': ut_id(gvar, 'gtg5')
+        },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 

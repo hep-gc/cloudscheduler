@@ -27,16 +27,8 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
     )
 
-    # TODO: should a privileged user be able to add/delete metadata to a group they are not in?
-    # execute_csv2_request(
-    #     gvar, 1, '???', '???',
-    #     '/group/metadata-delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-    #     server_user=ut_id(gvar, 'gtu2'), server_pw='Abc123'
-    # )
-    
-    # TODO: should the error be "no metadata/meta name specified"?
     execute_csv2_request(
-        gvar, 1, 'GV35', 'no group name specified.',
+        gvar, 1, 'GV35', 'no metadata name specified.',
         '/group/metadata-delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
