@@ -42,9 +42,8 @@ def main(gvar):
         '/group/delete/', form_data={'group': 'invalid-unit-test'}
     )
 
-    # TODO: returns 500 code
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV09', 'group delete request did not contain mandatory parameter "group_name".',
         '/group/delete/', form_data={'group': ut_id(gvar, 'gtg6')},
         server_user=ut_id(gvar, 'gtu5'), server_pw='Abc123'
     )

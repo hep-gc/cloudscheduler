@@ -144,6 +144,11 @@ def main(gvar):
         gvar, 1, 'UV06', 'user group-add "{0}.[\'{1}\', \'{1}\']" failed - (1062, "Duplicate entry \'{0}-{1}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg3')),
         '/user/add/', form_data={'username': ut_id(gvar, 'utu6'), 'password1': 'AaBbCc123', 'password2': 'AaBbCc123', 'cert_cn': '%s test user six' % ut_id(gvar, 'unit'), 'is_superuser': True, 'group_name.2': ut_id(gvar, 'utg3'), 'group_name.1': ut_id(gvar, 'utg3')}
         )
+    
+    execute_csv2_request(
+        gvar, 1, 'UV01', 'request did not contain mandatory parameter "username".',
+        '/user/add/', form_data={'password1': 'AaBbCc123', 'password2': 'AaBbCc123'}
+        )
 
 if __name__ == "__main__":
     main(None)

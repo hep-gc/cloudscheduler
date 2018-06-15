@@ -50,9 +50,8 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: 500
     execute_csv2_request(
-        gvar, 1, 'GV18', '???',
+        gvar, 1, 'GV18', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'invalid-unit-test'
@@ -60,9 +59,8 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: 500
     execute_csv2_request(
-        gvar, 1, 'GV18', '???',
+        gvar, 1, 'GV18', 'cannot switch to invalid group "testing".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'testing'

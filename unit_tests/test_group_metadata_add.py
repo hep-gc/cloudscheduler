@@ -98,7 +98,6 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: better error message??
     execute_csv2_request(
         gvar, 1, 'GV28', 'Incorrect integer value: \'invalid-unit-test\' for column \'priority\' at row 1',
         '/group/metadata-add/', form_data={

@@ -39,7 +39,6 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: better error message??
     execute_csv2_request(
         gvar, 1, 'GV05', 'group defaults update "{}" failed'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={'group': ut_id(gvar, 'gtg4')},
@@ -52,32 +51,11 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: better error message??
     execute_csv2_request(
         gvar, 1, 'GV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 'invalid-unit-test'
-        },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    )
-
-    # TODO: should this fail??
-    execute_csv2_request(
-        gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/defaults/', form_data={
-            'group': ut_id(gvar, 'gtg4'),
-            'job_cpus': -1
-        },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    )
-
-    # TODO: should this fail??
-    execute_csv2_request(
-        gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
-        '/group/defaults/', form_data={
-            'group': ut_id(gvar, 'gtg4'),
-            'job_cpus': 1.2345
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )

@@ -128,24 +128,6 @@ def main(gvar):
         }
     )
 
-    # execute_csv2_request(
-    #     gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
-    #     '/group/add/', form_data={
-    #         'group_name': ut_id(gvar, 'gtg3'),
-    #         'condor_central_manager': 'unit-test-group-three.ca',
-    #         'job_cpus': -1
-    #     }
-    # )
-
-    # execute_csv2_request(
-    #     gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
-    #     '/group/add/', form_data={
-    #         'group_name': ut_id(gvar, 'gtg3'),
-    #         'condor_central_manager': 'unit-test-group-three.ca',
-    #         'job_cpus': 1.2345
-    #     }
-    # )
-
     execute_csv2_request(
         gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
         '/group/add/', form_data={

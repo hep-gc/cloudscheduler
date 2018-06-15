@@ -33,7 +33,6 @@ def main(gvar):
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
-    # TODO: this currently returns an SQL syntax error, should be something more user friendly
     execute_csv2_request(
         gvar, 1, 'GV39', 'group metadata-update "{}::invalid-unit-test" failed'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test'},
