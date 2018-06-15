@@ -245,7 +245,7 @@ def delete(request):
                 'cloud_flavors'
             ], active_user)
         if rc != 0:        
-            db_connection.close()
+            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any group metadata files for the group.
