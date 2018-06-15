@@ -119,16 +119,6 @@ def main(gvar):
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
-
-    execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5.json')),
-        '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
-            'metadata_name': ut_id(gvar, 'gty5.json'),
-            'metadata': '{"example":"json"}'
-        },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    )
     
     # unprivileged user to be added to groups
     execute_csv2_request(

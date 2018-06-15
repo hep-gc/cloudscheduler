@@ -125,13 +125,13 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', 'invalid json file',
+        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty1')),
         '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg4'),
-            'metadata_name': 'invalid-unit-test.json',
+            'group': ut_id(gvar, 'gtg5'),
+            'metadata_name': ut_id(gvar, 'gty1'),
             'enabled': 0,
             'mime_type': 'cloud-config',
-            'metadata': '- invalid-unit-test: yes',
+            'metadata': '{"not-yaml":"yes"}',
             'priority': 1
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
@@ -188,27 +188,6 @@ def main(gvar):
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
         values={'metadata_name': ut_id(gvar, 'gty1.yaml'), 'enabled': 0, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    )
-
-    execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty1.json')),
-        '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
-            'metadata_name': ut_id(gvar, 'gty1.json'),
-            'enabled': 0,
-            'mime_type': 'cloud-config',
-            'metadata': '{"example":"json"}',
-            'priority': 1
-        },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
-    )
-
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
-        list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1.json')},
-        values={'metadata_name': ut_id(gvar, 'gty1.json'), 'enabled': 0, 'metadata': '{"example":"json"}', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 
