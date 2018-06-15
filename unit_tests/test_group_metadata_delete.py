@@ -80,9 +80,9 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5')),
+        gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
         '/group/metadata-delete/', form_data={
-            'metadata_name': ut_id(gvar, 'gty5'),
+            'metadata_name': ut_id(gvar, 'gty4'),
             'group': ut_id(gvar, 'gtg5')
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
