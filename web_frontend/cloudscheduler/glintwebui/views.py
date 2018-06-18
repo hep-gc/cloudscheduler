@@ -1218,7 +1218,8 @@ def manage_keys(request, group_name=None, message=None):
         "active_group": group_name,
         "message": message,
         "enable_glint": True,
-        "user_groups": group_list
+        "user_groups": group_list,
+        "num_clouds": len(group_list)
     }
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)

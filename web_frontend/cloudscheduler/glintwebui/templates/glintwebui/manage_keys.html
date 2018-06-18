@@ -57,6 +57,24 @@
                 <td><input type="text" name="key_string" id="" value="" /></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>
                 <td><input type="text" name="group_name" id="" value="{{active_group}}" /></td></tr>
+                <tr>
+                    <section class="container">
+                    <div>
+                        <select id="leftValues" name="clouds" size="{{num_clouds}}" multiple></select>
+                    </div>
+                    <div>
+                        <input type="button" id="btnLeft" value="&lt;&lt;" />
+                        <input type="button" id="btnRight" value="&gt;&gt;" />
+                    </div>
+                    <div>
+                        <select id="rightValues" size="{{num_clouds}}" multiple>
+                            {% for for cloud in group_resources%}
+                                <option>{{cloud.cloud_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    </section>
+                </tr>
                 <tr style="border: 0"><td style="border: 0"/><td style="border: 0" ><input type="submit" value="Submit" /></td></tr>
             </table>
         </form>
@@ -70,6 +88,24 @@
                 <td><input type="text" name="key_name" id="" value="" /></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>
                 <td><input type="text" name="group_name" id="" value="{{active_group}}" /></td></tr>
+                <tr>
+                    <section class="container">
+                    <div>
+                        <select id="leftValues" name="clouds" size="{{num_clouds}}" multiple></select>
+                    </div>
+                    <div>
+                        <input type="button" id="btnLeft" value="&lt;&lt;" />
+                        <input type="button" id="btnRight" value="&gt;&gt;" />
+                    </div>
+                    <div>
+                        <select id="rightValues" size="{{num_clouds}}" multiple>
+                            {% for for cloud in group_resources%}
+                                <option>{{cloud.cloud_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    </section>
+                </tr>
                 <tr style="border: 0"><td style="border: 0"/><td style="border: 0" ><input type="submit" value="Submit" /></td></tr>
             </table>
         </form>
