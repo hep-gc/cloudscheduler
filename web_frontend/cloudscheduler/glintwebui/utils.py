@@ -846,8 +846,11 @@ def create_keypair(key_name, key_string, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
-    nova.keypairs.create(name=key_name, public_key=key_string)
-    return True
+    try:
+        new_key = nova.keypairs.create(name=key_name, public_key=key_string)
+    except Exception as exc:
+        raise
+    return new_key
 
 
 def __get_image_ids(repo_dict):

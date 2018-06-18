@@ -1235,17 +1235,26 @@ def upload_keypair(request, group_name=None):
          # set up database objects
         Base, session = get_db_base_and_session()
         Group_Resources = Base.classes.csv2_group_resources
+        Keypairs = Base.classes.csv2_keypairs
         user = getUser(request)
 
         # get list of target clouds to upload key to
         cloud_name_list = request.POST.getlist('clouds')
-        key_name = request.Post.get("key_name")
-        key_string = request.Post.get("key_string")
-        grp = request.Post.get("group_name")
+        key_name = request.POST.get("key_name")
+        key_string = request.POST.get("key_string")
+        grp = request.POST.get("group_name")
 
         for cloud in cloud_name_list:
             db_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).first()
-            new_key = create_keypair(key_name=key_name, key_string=key_string, cloud=db_cloud)
+            try:
+                new_key = create_keypair(key_name=key_name, key_string=key_string, cloud=db_cloud)
+            except Exception as exc:
+                logger.error("Failed openstack request to make keypair")
+                logger.error(exc)
+                logger.error("%s is likely an invalid keystring" % key_string)
+                message = "unable to upload key: '%s' is likely an invalid keystring" % key_string
+                return manage_keys(request=request,group_name=grp, message=message)
+
             keypair_dict = {
                 "group_name": grp,
                 "cloud_name": cloud,

@@ -134,6 +134,9 @@ SECTION > DIV + DIV {
         </form>
     </div>
 </div>
+{% if message is not None %}
+    <h3 style="color:red"> {{message}} <h3/>
+ {% endif %}
 <div class="image_matrix" style="float:left">
     <form id="keypair_form" name="keypair_form" action="/images/save_keypairs/{{active_group}}/" method="post">
     {% csrf_token %}
