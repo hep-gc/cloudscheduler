@@ -1198,7 +1198,9 @@ def manage_keys(request, group_name=None, message=None):
     grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
     fingerprint_dict = {}
 
+    num_clouds=0
     for cloud in grp_resources:
+        num_clouds=num_clouds+1
         for key in fingerprint_dict:
             fingerprint_dict[key][cloud.cloud_name] = False
         cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
@@ -1219,7 +1221,7 @@ def manage_keys(request, group_name=None, message=None):
         "message": message,
         "enable_glint": True,
         "user_groups": group_list,
-        "num_clouds": len(grp_resources)
+        "num_clouds": num_clouds
     }
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)

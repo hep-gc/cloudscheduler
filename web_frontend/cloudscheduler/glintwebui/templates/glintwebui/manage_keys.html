@@ -1,5 +1,5 @@
 <head>
-<meta http-equiv="refresh" content="60">
+<meta http-equiv="refresh" content="600">
 {% load static %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -35,7 +35,7 @@
 
 /* for image upload cloud picker widget */
 SELECT, INPUT[type="text"] {
-    width: 160px;
+    width: 100px;
     box-sizing: border-box;
 }
 SECTION {
@@ -48,7 +48,7 @@ SECTION > DIV {
     padding: 4px;
 }
 SECTION > DIV + DIV {
-    width: 40px;
+    width: 100px;
     text-align: center;
 }
 
@@ -69,25 +69,25 @@ SECTION > DIV + DIV {
         <h2>Upload Key</h2>
         <form name="upload_key" action="/images/add_key/" method="post">
             {% csrf_token %}
-            <table><td/>
+            <table>
                 <tr><td><label for="key_name">Key Name</label></td>
                 <td><input type="text" name="key_name" id="" value="" /></td></tr>
                 <tr><td><label for="key_string">Public Key</label></td>
                 <td><input type="text" name="key_string" id="" value="" /></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>
                 <td><input type="text" name="group_name" id="" value="{{active_group}}" /></td></tr>
-                <tr><td/>
-                    <td>
+                <tr>
+                    <td colspan="2">
                     <section class="container">
                     <div>
-                        <select id="leftValues" name="clouds" size="{{num_clouds}}" multiple></select>
+                        <select id="leftValuesUpload" name="clouds" size="{{num_clouds}}" multiple></select>
                     </div>
                     <div>
-                        <input type="button" id="btnLeft" value="&lt;&lt;" />
-                        <input type="button" id="btnRight" value="&gt;&gt;" />
+                        <input type="button" id="btnLeftUpload" value="&lt;&lt;" onclick="doLeftButtonUpload()"/>
+                        <input type="button" id="btnRightUpload" value="&gt;&gt;"onclick="doRightButtonUpload()" />
                     </div>
                     <div>
-                        <select id="rightValues" size="{{num_clouds}}" multiple>
+                        <select id="rightValuesUpload" size="{{num_clouds}}" multiple>
                             {% for cloud in group_resources%}
                                 <option>{{cloud.cloud_name}}</option>
                             {% endfor %}
@@ -109,18 +109,18 @@ SECTION > DIV + DIV {
                 <td><input type="text" name="key_name" id="" value="" /></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>
                 <td><input type="text" name="group_name" id="" value="{{active_group}}" /></td></tr>
-                <tr><td/>
-                    <td>
+                <tr>
+                    <td colspan="2">
                     <section class="container">
                     <div>
-                        <select id="leftValues" name="clouds" size="{{num_clouds}}" multiple></select>
+                        <select id="leftValuesCreate" name="clouds" size="{{num_clouds}}" multiple></select>
                     </div>
                     <div>
-                        <input type="button" id="btnLeft" value="&lt;&lt;" />
-                        <input type="button" id="btnRight" value="&gt;&gt;" />
+                        <input type="button" id="btnLeft" value="&lt;&lt;" onclick="doLeftButtonCreate() "/>
+                        <input type="button" id="btnRight" value="&gt;&gt;" onclick="doRightButtonCreate()" />
                     </div>
                     <div>
-                        <select id="rightValues" size="{{num_clouds}}" multiple>
+                        <select id="rightValuesCreate" size="{{num_clouds}}" multiple>
                             {% for cloud in group_resources%}
                                 <option>{{cloud.cloud_name}}</option>
                             {% endfor %}
@@ -205,18 +205,34 @@ $('#popover-newkey').popover({
 });
 
 /* for image upload cloud picker widget */
-$("#btnLeft").click(function () {
-    var selectedItem = $("#rightValues option:selected");
-    $("#leftValues").append(selectedItem);
+
+function doLeftButtonUpload() {
+    var selectedItem = $("#rightValuesUpload option:selected");
+    $("#leftValuesUpload").append(selectedItem);
+}
+
+function doRightButtonUpload() {
+    var selectedItem = $("#leftValuesUpload option:selected");
+    $("#rightValuesUpload").append(selectedItem);
+}
+
+$("#rightValuesUpload").change(function () {
+    var selectedItem = $("#rightValuesUpload option:selected");
+    $("#txtRight").val(selectedItem.text());
 });
 
-$("#btnRight").click(function () {
-    var selectedItem = $("#leftValues option:selected");
-    $("#rightValues").append(selectedItem);
-});
+function doLeftButtonCreate() {
+    var selectedItem = $("#rightValuesCreate option:selected");
+    $("#leftValuesCreate").append(selectedItem);
+}
 
-$("#rightValues").change(function () {
-    var selectedItem = $("#rightValues option:selected");
+function doRightButtonCreate() {
+    var selectedItem = $("#leftValuesCreate option:selected");
+    $("#rightValuesCreate").append(selectedItem);
+}
+
+$("#rightValuesCreate").change(function () {
+    var selectedItem = $("#rightValuesCreate option:selected");
     $("#txtRight").val(selectedItem.text());
 });
 </script>
