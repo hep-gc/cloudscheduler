@@ -112,13 +112,13 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', 'invalid yaml file',
+        gvar, 1, 'GV27', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test.yaml',
             'enabled': 0,
             'mime_type': 'cloud-config',
-            'metadata': '{"invalid-unit-test":"yes"}',
+            'metadata': 'foo: somebody said I should put a colon here: so I did',
             'priority': 1
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'

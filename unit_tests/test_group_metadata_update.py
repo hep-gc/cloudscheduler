@@ -123,12 +123,12 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', 'invalid yaml file',
+        gvar, 1, 'GV38', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
         '/group/metadata-update/', form_data={
             'metadata_name': ut_id(gvar, 'gty5.yaml'),
             'enabled': 0,
             'mime_type': 'ucernvm-config',
-            'metadata': '{"invalid-unit-test":"yes"}',
+            'metadata': 'foo: somebody said I should put a colon here: so I did',
             'priority': 10,
             'group': ut_id(gvar, 'gtg5')
         },
