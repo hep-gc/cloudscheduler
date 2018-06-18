@@ -33,7 +33,7 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'request did not contain mandatory parameter "group_name".',
-        '/group/add/', form_data={'group': 'testing'}
+        '/group/add/', form_data={'condor_central_manager': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
