@@ -5,14 +5,21 @@ create or replace view view_user_groups as
 
 select
 
-cu.*,
-group_concat(group_name) as user_groups
+cucg.username,
+cucg.cert_cn,
+cucg.password,
+cucg.is_superuser,
+cucg.join_date,
+cucg.active_group,
+group_concat(cug.group_name) as user_groups,
+group_concat(case when cug.group_name is null then cucg.group_name else Null end) as available_groups
 
-from csv2_user as cu
+from (select * from csv2_user,csv2_groups) as cucg
 
 left outer join csv2_user_groups as cug
-on cu.username=cug.username
+on cucg.username=cug.username and cucg.group_name=cug.group_name
 
-group by cu.username
+group by cucg.username
 
 ;
+

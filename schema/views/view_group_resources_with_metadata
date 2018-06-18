@@ -1,5 +1,6 @@
 /*
-** Combine the resource information from csv2_group_resources and cloud_limits, setting defaults for missing values.
+** List all group resources (clouds) with associated metadata (at least one row per group
+** resourceand one row per metadata file)..
 */
 create or replace view view_group_resources_with_metadata as
 
@@ -13,7 +14,6 @@ mime_type as metadata_mime_type,
 metadata
 
 from view_group_resources as vgr
-left outer join cloud_limits as cl on vgr.group_name=cl.group_name and vgr.cloud_name=cl.cloud_name
 left outer join csv2_group_resource_metadata as cgrm on vgr.group_name=cgrm.group_name and vgr.cloud_name=cgrm.cloud_name
 
 order by vgr.group_name,vgr.cloud_name
