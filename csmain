@@ -98,9 +98,13 @@ def main():
                     target_cloud_list = []
 
                 # Get All the possible matching clouds
-                clouds_matching = session.query(view_available_resources).filter(
-                    view_available_resources.c.flavor.in_(flavor_list),
-                    view_available_resources.c.cloud_name.in_(target_cloud_list))
+                if target_cloud_list:
+                    clouds_matching = session.query(view_available_resources).filter(
+                        view_available_resources.c.flavor.in_(flavor_list),
+                        view_available_resources.c.cloud_name.in_(target_cloud_list))
+                else:
+                    clouds_matching = session.query(view_available_resources).filter(
+                        view_available_resources.c.flavor.in_(flavor_list))
                 num_jobs_per_flavor_possible = {}
                 for cloud_match in clouds_matching:
                     cpu = cloud_match.flavor_cores / idle_job.request_cpus
