@@ -22,6 +22,17 @@
     position: absolute;
 }
 
+.popover-content{
+    border: 2px solid black; 
+    border-radius: 5px;
+    background-color: white;
+}
+
+.popover-title{
+    background-color: white;
+    padding: none
+}
+
 </style>
 </head>
 {% block navbar %}
@@ -31,12 +42,12 @@
     <div id="page_header">
                  <h1 style="float:left; margin:0px">User Keys</h1>
                  <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Key Name">
-                 <a href="#" id="popover" data-placement="bottom">+Upload Key</a>
+                 <a style="border: 2px solid black; border-radius: 5px; background-color:white;" class="button" href="#" id="popover-uploadkey" data-placement="bottom">+Upload Key</a>
                  <input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="createKey()" value="New Key" />
                  <input stlye="float:left" class="button greenbutton" style="height:44px;" type="submit" onclick="submitKeyMatrix()" value="Submit Changes" />
     </div>
-    <div id="popover-head" class="hide" hidden style="position:absolute">Upload Key</div>
-    <div id="popover-content" class="hide" hidden style="position:absolute">
+    <div id="popover-uploadkey-content" class="hide" hidden style="position:absolute">
+        <h2>Upload Key</h2>
         <form>
             <h1>stuff</h1>
         </form>
@@ -98,13 +109,23 @@ $('#image_search').keyup(function() {
 });
 
 
-$('#popover').popover({ 
+$('#popover-uploadkey').popover({ 
     html : true,
     title: function() {
-      return $("#popover-head").html();
+      return $("#popover-uploadkey-head").html();
     },
     content: function() {
-      return $("#popover-content").html();
+      return $("#popover-uploadkey-content").html();
+    }
+});
+
+$('#popover-newkey').popover({ 
+    html : true,
+    title: function() {
+      return $("#popover-newkey-head").html();
+    },
+    content: function() {
+      return $("#popover-newkey-content").html();
     }
 });
 </script>
