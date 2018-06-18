@@ -68,7 +68,7 @@
                     </div>
                     <div>
                         <select id="rightValues" size="{{num_clouds}}" multiple>
-                            {% for for cloud in group_resources%}
+                            {% for cloud in group_resources%}
                                 <option>{{cloud.cloud_name}}</option>
                             {% endfor %}
                         </select>
@@ -99,7 +99,7 @@
                     </div>
                     <div>
                         <select id="rightValues" size="{{num_clouds}}" multiple>
-                            {% for for cloud in group_resources%}
+                            {% for cloud in group_resources%}
                                 <option>{{cloud.cloud_name}}</option>
                             {% endfor %}
                         </select>
@@ -179,5 +179,21 @@ $('#popover-newkey').popover({
     content: function() {
       return $("#popover-newkey-content").html();
     }
+});
+
+/* for image upload cloud picker widget */
+$("#btnLeft").click(function () {
+    var selectedItem = $("#rightValues option:selected");
+    $("#leftValues").append(selectedItem);
+});
+
+$("#btnRight").click(function () {
+    var selectedItem = $("#leftValues option:selected");
+    $("#rightValues").append(selectedItem);
+});
+
+$("#rightValues").change(function () {
+    var selectedItem = $("#rightValues option:selected");
+    $("#txtRight").val(selectedItem.text());
 });
 </script>
