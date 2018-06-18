@@ -1,12 +1,10 @@
 /*
-** From condor_jobs and csv2_group_defaults, list jobs with group defaults for 
-** cpu, ram, disk, swap, and scratch applied.
+** List all condor jobs (one row per job) and for each requested resouce (cpu,
+** ram, disk, ephemeral disk(scratch), and swap) which is either Null or zero,
+** set the group default value for that resource.
 */
 create or replace view view_condor_jobs_group_defaults_applied as
 
-/*
-** Retrieve data from condor_jobs and view_available_resources.
-*/
 select
   global_job_id,
   cj.group_name,

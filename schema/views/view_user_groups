@@ -1,5 +1,5 @@
 /*
-** List user's available groups.
+** List all users (one row per user) and their (concatenated) associated groups.
 */
 create or replace view view_user_groups as
 

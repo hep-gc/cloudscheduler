@@ -70,6 +70,7 @@ def list(gvar):
                 'cloud_name/Cloud',
                 'vmid/VMID',
             ],
+            title="VMs:",
             )
     else:
         show_table(
@@ -101,5 +102,6 @@ def list(gvar):
                 'swap/Swap (GBs)',
                 'poller_status/Poller Status',
             ],
+            title="VMs:",
             )
 

@@ -232,7 +232,7 @@ def show_header(gvar, response):
 
     print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
 
-def show_table(gvar, queryset, columns, allow_null=True):
+def show_table(gvar, queryset, columns, allow_null=True, title=None):
     """
     Print a table from a SQLAlchemy query set.
     """
@@ -318,6 +318,9 @@ def show_table(gvar, queryset, columns, allow_null=True):
     for _ix in range(len(_column_lengths)):
         _column_underscore.append('-' * (_column_lengths[_ix] + 2))
     _ruler = '+%s+' % '+'.join(_column_underscore)
+
+    if title:
+        print('\n%s' % title)
 
     print(_ruler)
     if gvar['user_settings']['rotate']:

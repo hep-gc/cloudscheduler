@@ -181,6 +181,7 @@ def list(gvar):
             [
                 'username/Username',
             ],
+            title="Users:",
             )
     else:
         show_table(
@@ -195,6 +196,7 @@ def list(gvar):
                 'is_superuser/Super User',
                 'join_date/Joined',
             ],
+            title="Users:",
             )
 
 def update(gvar):

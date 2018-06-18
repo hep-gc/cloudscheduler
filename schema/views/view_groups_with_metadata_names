@@ -1,5 +1,5 @@
 /*
-** Consolidate group/metadata information into one row per group/cloud.
+** List all groups with (concatenated) associated metadata filenames (one row per group).
 */
 create or replace view view_groups_with_metadata_names as
 

@@ -1,5 +1,5 @@
 if 'Table' not in locals() and 'Table' not in globals():
-  from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+  from sqlalchemy import Table, Column, Float, Integer, String, MetaData, ForeignKey
   metadata = MetaData()
 
 archived_condor_jobs = Table('archived_condor_jobs', metadata,
@@ -458,18 +458,15 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('VMs_in_error', Integer),
   Column('VMs_other', Integer),
   Column('Foreign_VMs', Integer),
-  Column('total_slots', Integer),
-  Column('used_slots', Integer),
-  Column('Jobs', Integer),
-  Column('Jobs_s0', Integer),
-  Column('Jobs_s1', Integer),
-  Column('Jobs_s2', Integer),
-  Column('Jobs_s3', Integer),
-  Column('Jobs_s4', Integer),
-  Column('Jobs_s5', Integer),
-  Column('Jobs_s6', Integer),
-  Column('idle_cores', Integer),
-  Column('idle_ram', Integer)
+  Column('slots_max', Integer),
+  Column('slots_used', Integer),
+  Column('slots_percent', Float),
+  Column('cores_max', Integer),
+  Column('cores_used', Integer),
+  Column('cores_percent', Float),
+  Column('ram_max', Integer),
+  Column('ram_used', Integer),
+  Column('ram_percent', Float)
   )
 
 view_cloud_status_raw = Table('view_cloud_status_raw', metadata,

@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""
+Synopsis: utilities/list_views [ map ]
+
+This command produces one of two reports: 1. without the "map" option, list the view names 
+in the order they need to be created, or 2. with the "map" option, prints a report showing
+view dependencies.
+"""
+
+from subprocess import Popen, PIPE
+from tempfile import mkdtemp
+import os
+import sys
+import yaml
+
+REMOVE_BRACKETS = str.maketrans('()', '  ')
+
+def add_source(gvar, view, source):
+    if len(source) > 5 and source[:5] == 'view_':
+        if source not in gvar['views'][view]['views']:
+            gvar['views'][view]['views'].append(source)
+    else:
+        if source[0] != '(':
+            if source not in gvar['views'][view]['tables']:
+                gvar['views'][view]['tables'].append(source)
+            if source not in gvar['tables']:
+                gvar['tables'][source] = {'id': '-'}
+
+def get_priority(gvar, view, in_priority):
+    priority = in_priority
+
+    if len(gvar['views'][view]['views']) > 0:
+        for check_view in gvar['views'][view]['views']:
+            check_priority = get_priority(gvar, check_view, in_priority+1)
+            if priority < check_priority:
+                priority = check_priority
+
+    return priority
+
+def print_map(gvar, view, indent, show_reference_counts=False):
+    gvar['views'][view]['mapped'] += 1
+    
+    for comment in gvar['views'][view]['comment']:
+        print('%s* %s' % ('|  ' * indent, comment))
+
+    if show_reference_counts:
+        print('%s%s (%s)' % ('|  ' * indent, view, gvar['views'][view]['mapped']))
+    else:
+        print('%s%s' % ('|  ' * indent, view))
+
+    for table in sorted(gvar['views'][view]['tables']):
+        print('%s%s' % ('|  ' * (indent+1), table))
+
+    for sub_view in sorted(gvar['views'][view]['views']):
+        print_map(gvar, sub_view, indent+1, show_reference_counts=show_reference_counts)
+
+def main(args):
+    """
+    Retrieve view definitions and print the requested report.
+    """
+
+    if len(args) < 2 or (args[1] != 'list' and args[1] != 'map'):
+        print('Synopsis: view_utils [ list | map <view_name> ]')
+        exit(0)
+
+    gvar = {'priorities': {}, 'tables': {}, 'views': {}}
+
+    gvar['cmd_path'] = os.path.abspath(args[0])
+    gvar['path_info'] = gvar['cmd_path'].split('/')
+    gvar['ix'] = gvar['path_info'].index('cloudscheduler')
+    gvar['view_dir'] = '%s/schema/views' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+
+    for view_basename in os.listdir(gvar['view_dir']):
+        view_path = '%s/%s' % (gvar['view_dir'], view_basename)
+        if os.path.isfile(view_path) and view_basename[0] != '.':
+            comment_lines = []
+
+            fd = open(view_path)
+            data = fd.read()
+            fd.close()
+
+            words = data.split()
+
+            comment = False
+            for ix in range(len(words)):
+                if len(words[ix]) >= 2 and words[ix][:2] == '/*':
+                    comment_line = []
+                    comment_lines = []
+                    comment = True
+
+                elif comment:
+                    if len(words[ix]) >= 1 and words[ix][0] == '*' and words[ix][-1] == '*':
+                        if len(comment_line) > 0:
+                            comment_lines.append(' '.join(comment_line))
+                            comment_line = []
+
+                    elif len(words[ix]) >= 2 and words[ix][-2:] == '*/':
+                        if len(comment_line) > 0:
+                            comment_lines.append(' '.join(comment_line))
+                        comment = False
+
+                    else:
+                        comment_line.append(words[ix])
+
+                    continue
+
+                if words[ix] == 'view':
+                   view = words[ix+1]
+                   if view not in gvar['views']:
+                       gvar['views'][view] = {'comment': comment_lines, 'mapped': 0, 'path': view_path, 'tables': [], 'views': [], 'priority': 1}
+                       if view_basename != view:
+                           print('WARNING: view script name "%s" not equal to view name "%s".' % (view_basename, view))
+                elif words[ix] == 'from':
+                   add_source(gvar, view, words[ix+1])
+                elif words[ix] == 'join':
+                   add_source(gvar, view, words[ix+1])
+
+    for view in gvar['views']:
+        gvar['views'][view]['priority'] = get_priority(gvar, view, 1)
+        if gvar['views'][view]['priority'] not in gvar['priorities']:
+            gvar['priorities'][gvar['views'][view]['priority']] = []
+
+        gvar['priorities'][gvar['views'][view]['priority']].append(view)
+
+    if args[1] == 'list':
+        for priority in sorted(gvar['priorities']):
+            for view in sorted(gvar['priorities'][priority]):
+                print(gvar['views'][view]['path'])
+    else:
+        if len(args) < 3 or (args[2] != 'ALL' and args[2] not in gvar['views']):
+           x = ['*'] + sorted(gvar['views'])
+           print('"view_util map <view_name>" must specify one of the following:\n  ALL')
+           for view in  sorted(gvar['views']):
+               print('  %s' % view)
+           exit(1)
+        elif args[2] == 'ALL':
+            for priority in sorted(gvar['priorities'], reverse=True):
+                for view in sorted(gvar['priorities'][priority]):
+                    print_map(gvar, view, 0, show_reference_counts=True)
+        else:
+            print_map(gvar, args[2], 0)
+
+if __name__ == "__main__":
+    main(sys.argv)
