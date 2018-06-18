@@ -1,11 +1,10 @@
 /*
-** Count VMs by flavor.
+** For each flavor (group_name::cloud_name::flavor_name), count the number of (csv2)
+** VMs that are up (power=1, status=ACTIVE, task=Null) and the number of VMs that are
+** down (ie, not up).
 */
 create or replace view view_vms_up_down as
 
-/*
-** Retrieve information.
-*/
 select
   concat(cv.group_name, ":", cv.cloud_name, ":", cf.name) as flavor,
   sum(case when status="ACTIVE" and power_status=1 and task is NULL then 1 else 0 end) as VMs_up,
