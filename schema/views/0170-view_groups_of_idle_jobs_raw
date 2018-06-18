@@ -81,8 +81,9 @@ from view_condor_jobs_group_defaults_applied as vcjgda
 
 left outer join view_available_resources as var on
   vcjgda.group_name=var.group_name and
-  request_cpus<=cores and
-  request_ram<=ram 
+  (target_clouds is null or instr(target_clouds, var.cloud_name) > 0) and
+  request_cpus<=flavor_cores and
+  request_ram<=flavor_ram 
 
 /*
 ** Define the grouping.
