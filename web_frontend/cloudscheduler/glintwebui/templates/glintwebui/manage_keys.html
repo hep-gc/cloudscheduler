@@ -69,7 +69,7 @@ SECTION > DIV + DIV {
         <h2>Upload Key</h2>
         <form name="upload_key" action="/images/add_key/" method="post">
             {% csrf_token %}
-            <table>
+            <table style="border-bottom:0">
                 <tr><td><label for="key_name">Key Name</label></td>
                 <td><input type="text" name="key_name" id="" value="" /></td></tr>
                 <tr><td><label for="key_string">Public Key</label></td>
@@ -104,7 +104,7 @@ SECTION > DIV + DIV {
         <h2>Create Key</h2>
         <form name="new_key" action="/images/create_key/" method="post">
             {% csrf_token %}
-            <table>
+            <table style="border-bottom:0">
                 <tr><td><label for="key_name">Key Name</label></td>
                 <td><input type="text" name="key_name" id="" value="" /></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>

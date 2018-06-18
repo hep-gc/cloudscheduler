@@ -20,7 +20,7 @@ from .utils import get_unique_image_list, get_images_for_group, parse_pending_tr
     build_id_lookup_dict, repo_modified, get_conflicts_for_group, find_image_by_name, \
     add_cached_image, check_cached_images, increment_transactions, check_for_existing_images,\
     get_hidden_image_list, parse_hidden_images, get_num_transactions, \
-    get_keypair, delete_keypair, transfer_keypair
+    get_keypair, delete_keypair, transfer_keypair, create_keypair
 from .__version__ import version
 from .db_util import get_db_base_and_session
 
@@ -1227,11 +1227,50 @@ def manage_keys(request, group_name=None, message=None):
     return render(request, 'glintwebui/manage_keys.html', context)
 
 
-def upload_keypair():
+def upload_keypair(request, group_name=None):
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+         # set up database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
+        user = getUser(request)
+
+        # get list of target clouds to upload key to
+        cloud_name_list = request.POST.getlist('clouds')
+        key_name = request.Post.get("key_name")
+        key_string = request.Post.get("key_string")
+        grp = request.Post.get("group_name")
+
+        for cloud in cloud_name_list:
+            db_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).first()
+            new_key = create_keypair(key_name=key_name, key_string=key_string, cloud=db_cloud)
+            keypair_dict = {
+                "group_name": grp,
+                "cloud_name": cloud,
+                "fingerprint": new_key.fingerprint,
+                "key_name": key_name
+            }
+            new_keypair = Keypairs(**keypair_dict)
+            session.merge(new_keypair)
+
+            try:
+                session.commit()
+            except Exception as exc:
+                logger.error(exc)
+                logger.error("Error committing database session after creating new key")
+                logger.error("openstack and the database may be out of sync until next keypair poll cycle")
+
+        return redirect("manage_keys")
+    else:
+        #not a post do nothing
+        return None
+
     return None
 
 
-def create_keypair():
+def new_keypair():
     return None
 
 

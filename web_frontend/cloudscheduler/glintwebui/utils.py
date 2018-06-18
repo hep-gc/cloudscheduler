@@ -842,6 +842,12 @@ def transfer_keypair(keypair, cloud):
     nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
     return True
 
+def create_keypair(key_name, key_string, cloud):
+    sess = _get_keystone_session(cloud)
+    nova = _get_nova_client(sess)
+
+    nova.keypairs.create(name=key_name, public_key=key_string)
+    return True
 
 
 def __get_image_ids(repo_dict):
