@@ -1,6 +1,6 @@
 /*
-** List all VMs together with foreign indicator, poller status, condor slot counts (used/total), condor_off,
-** cores, disk, ephemeral disk (scratch) ram, and swap.
+** List all VMs together with foreign indicator, poller status, condor slot counts
+** (used/total), condor_off, cores, disk, ram, and swap.
 */
 create or replace view view_vms as
 
@@ -17,8 +17,7 @@ total_slots as condor_slots,
 cm.condor_off,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
 cores,
-disk,
-ephemeral_disk,
+disk + ephemeral_disk as disk,
 ram,
 swap,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then ifnull(cvsc.status, "other") else Null end  as "poller_status"

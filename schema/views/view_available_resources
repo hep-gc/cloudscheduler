@@ -33,24 +33,22 @@ from (
 
       name as flavor_name,
       id as flavor_id,
-      concat(vgr.cloud_name, ":", name) as flavor_instance_type,
+      concat(vgr.cloud_name, "::", name) as flavor_instance_type,
       cores as flavor_cores,
+      disk + ephemeral_disk as flavor_disk,
       cf.ram as flavor_ram,
-      disk as flavor_disk,
-      ephemeral_disk as flavor_scratch,
       swap as flavor_swap,
 
       /*
-      ** Use the row_number() DB function to create flavor_priority, ranking flavors by cores, ram, disk, scratch, and swap.
+      ** Use the row_number() DB function to create flavor_priority, ranking flavors by cores, disk, ram, and swap.
       */
       row_number() over (partition by
         vgr.group_name,
         vgr.cloud_name
       order by
         flavor_cores,
-        flavor_ram,
         flavor_disk,
-        flavor_scratch,
+        flavor_ram,
         flavor_swap
       ) as flavor_priority,
 
@@ -68,7 +66,7 @@ from (
     ) as grwcf /* group_resources_with_cloud_flavors */
 left outer join (
     select
-    concat(cv.group_name, ":", cv.cloud_name, ":", cf.name) as flavor,
+    concat(cv.group_name, "::", cv.cloud_name, "::", cf.name) as flavor,
     sum(case when status="ACTIVE" and power_status=1 and task is NULL then 1 else 0 end) as VMs_up,
     sum(case when status!="ACTIVE" or power_status!=1 or task is not NULL then 1 else 0 end) as VMs_down
     from csv2_vms as cv
