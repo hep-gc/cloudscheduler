@@ -138,7 +138,7 @@ from (
       flavor_ram,
       flavor_disk,
       flavor_swap 
-    ) as vgijr /* cwview_groups_of_idle_jobs_raw */
+    ) as vgoijr /* view_groups_of_idle_jobs_raw */
 
 where flavor_priority=1
 
