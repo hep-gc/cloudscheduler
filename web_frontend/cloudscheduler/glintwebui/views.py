@@ -1306,7 +1306,23 @@ def new_keypair(request, group_name=None,):
 
                 #get grp resources obj
                 cloud_obj =  session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).one()
-                create_new_keypair(key_name=key_name, cloud=cloud_obj)
+                new_key = create_new_keypair(key_name=key_name, cloud=cloud_obj)
+
+                keypair_dict = {
+                "group_name": grp,
+                "cloud_name": cloud,
+                "fingerprint": new_key.fingerprint,
+                "key_name": key_name
+                }
+                new_keypair = Keypairs(**keypair_dict)
+                session.merge(new_keypair)
+
+                try:
+                    session.commit()
+                except Exception as exc:
+                    logger.error(exc)
+                    logger.error("Error committing database session after creating new key")
+                    logger.error("openstack and the database may be out of sync until next keypair poll cycle")
             else:
                 #keypair name exists on this cloud
                 message = "Keypair name %s in use on cloud: %s. Aborting transation, keypair may have been created on some clouds" % (key_name, cloud)
