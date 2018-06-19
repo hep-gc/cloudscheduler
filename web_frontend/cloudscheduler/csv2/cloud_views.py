@@ -51,9 +51,11 @@ METADATA_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'cloud_name':          'lowerdash',
-        'enabled':             'dboolean',
-        'mime_type':           ('csv2_mime_types', 'mime_type'),
-        'metadata_name':           'lowercase',
+        'metadata_enabled':    'dboolean',
+        'metadata_priority':   'integer',
+        'metadata':            'metadata',
+        'metadata_name':       'lowercase',
+        'metadata_mime_type':           ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -213,6 +215,7 @@ def list(
                 'secondary': [
                     'metadata_name',
                     'metadata_enabled',
+                    'metadata_priority',
                     'metadata_mime_type',
                     'metadata',
                     ]
@@ -388,6 +391,7 @@ def metadata_fetch(request, selector=None):
                         'cloud_name': row.cloud_name,
                         'metadata': row.metadata,
                         'metadata_enabled': row.enabled,
+                        'metadata_priority': row.metadata_priority,
                         'metadata_mime_type': row.mime_type,
                         'metadata_name': row.metadata_name,
                         'response_code': 0,
@@ -527,9 +531,13 @@ def status(request, group_name=None):
         db_close(db_ctl)
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV11'), msg), active_user=active_user, user_groups=user_groups)
 
-    # get vm and job counts per cloud
+    # get cloud status per group
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    status_list = qt(db_connection.execute(s))
+    cloud_status_list = qt(db_connection.execute(s))
+
+    # get job status per group
+    s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
+    job_status_list = qt(db_connection.execute(s))
 
     db_close(db_ctl)
 
@@ -537,7 +545,8 @@ def status(request, group_name=None):
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'status_list': status_list,
+            'cloud_status_list': cloud_status_list,
+            'job_status_list': job_status_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint

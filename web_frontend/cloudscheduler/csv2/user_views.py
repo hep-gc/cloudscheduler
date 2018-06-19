@@ -216,7 +216,7 @@ def list(
             return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV13'), msg)})
 
     # Retrieve the user list but loose the passwords.
-    s = select([view_user_groups_and_available_groups])
+    s = select([view_user_groups])
     user_list = qt(db_connection.execute(s), prune=['password'])
 
     # Retrieve user/groups list (dictionary containing list for each user).

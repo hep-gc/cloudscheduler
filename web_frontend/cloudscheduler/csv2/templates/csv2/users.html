@@ -23,7 +23,7 @@
 <div class="main-div">
     <div class="menu">
     {% for user in user_list %}
-        <div id="{{user.username}}"> <a href="#{{user.username}}">{{user.username}}</a>
+        <div id="{{user.username}}"> <a href="#{{user.username}}" class="menu-link">{{user.username}}</a>
             
             <div class="menu-target">
                 <form name="{{user.username}}" action="/user/update/" method="post">
@@ -71,7 +71,7 @@
 
         </div>
     {% endfor %}
-        <div id="add-user"> <a href="#add-user">+</a>
+        <div id="add-user"> <a href="#add-user" class="menu-link">+</a>
             <div class="menu-target">
                 <form name="add_user" action="/user/add/" method="post">
                     {% csrf_token %}

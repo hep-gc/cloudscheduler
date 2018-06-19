@@ -22,7 +22,7 @@
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}">{{cloud.cloud_name}}</a>
+        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
                 <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
@@ -90,7 +90,7 @@
 
         </div>
     {% endfor %}
-        <div id="add-cloud"> <a href="#add-cloud">+</a>
+        <div id="add-cloud"> <a href="#add-cloud" class="menu-link">+</a>
             <div class="menu-target">
                 <form name="add_cloud" action="/cloud/add/" method="post">
                     {% csrf_token %}

@@ -50,6 +50,7 @@ VM_KEYS = {
 @requires_csrf_token
 def list(
     request,
+    selector=None,
     response_code=0,
     message=None,
     active_user=None,
@@ -68,6 +69,13 @@ def list(
         if rc != 0:
             db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Obtain selected Cloud
+    if selector:
+        if selector == '-':
+            current_cloud = ''
+        else:
+            current_cloud = selector
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)

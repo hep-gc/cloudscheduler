@@ -21,80 +21,25 @@
   list-style-type: none;
 }
 
-/*
-
-.user-list {
-    display: none;
-}
-
-.user-list ul {
-  list-style-type: none;
-}
-
-.users {
-  &:focus {
-    opacity: 1;
-    
-    .user-list {
-      opacity: 1;
-    }
-  }
-}
-.users:focus ~ .user-list {
-  display:block;
-}
-*/
-
-
-.meta-list {
-    display: none;
-}
-.meta-list ul {
-  list-style-type: none;
-}
-
-.metadata {
-  &:focus {
-    opacity: 1;
-    
-    .meta-list {
-      opacity: 1;
-    }
-  }
-}
-.metadata:focus ~ .meta-list {
-  display:block;
-}
-
-
-/*----------vertical menu and contents----------*/
 
 
 /*
-.users div:not(:target) > div.user-list {
-  display: none;
+
+.menu div.user-list {
+  display:none;
 }
+.menu div.user-list:target {
+  display:block;
+
+}
+
+
+.menu div.meta-list {
+  display:none;
+}
+.menu div.meta-list:target {
+  	display:block;
+}
+
+
 */
-
-
-
-.users-test2 div{ /* Protect CSS1 & CSS2 browsers */
-    display: none;
-}
-
-.users-test2 div:target {
-	display: block;
-	position: fixed;
-	left: 580px;
-  	top: 70px;
-  	bottom:20px;
-    overflow: auto;
-}
-
-.tab div {
-    display: none;
-}
-
-.tab div:target {
-    display: block;
-}
