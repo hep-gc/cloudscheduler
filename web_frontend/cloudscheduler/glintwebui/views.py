@@ -1255,7 +1255,7 @@ def upload_keypair(request, group_name=None):
                 logger.error(exc)
                 logger.error("%s is likely an invalid keystring" % key_string)
                 message = "unable to upload key: '%s' is likely an invalid keystring" % key_string
-                return manage_keys(request=request,group_name=grp, message=message)
+                return manage_keys(request=request, group_name=grp, message=message)
 
             keypair_dict = {
                 "group_name": grp,
@@ -1282,7 +1282,42 @@ def upload_keypair(request, group_name=None):
 
 
 def new_keypair():
-    return None
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if request.method == 'POST':
+         # set up database objects
+        Base, session = get_db_base_and_session()
+        Group_Resources = Base.classes.csv2_group_resources
+        Keypairs = Base.classes.csv2_keypairs
+        user = getUser(request)
+
+        # get list of target clouds to upload key to
+        cloud_name_list = request.POST.getlist('clouds')
+        key_name = request.POST.get("key_name")
+        grp = request.POST.get("group_name")
+
+        # Only check that needs to be made is if the key name is used on any of the target clouds
+        for cloud in cloud_name_list:
+            db_keypair = session.query(Keypairs).filter(Keypairs.group_name == grp, Keypairs.cloud_name == cloud, Keypairs.key_name == key_name).one_or_none()
+            if db_kepair is None:
+                #no entry exists, its safe to create this keypair
+                logging.info("creating new keypair %s on cloud %s" % (key_name, cloud))
+
+                #get grp resources obj
+                cloud_obj =  session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).one()
+                new_keypair(key_name=key_name, cloud=cloud_obj)
+            else:
+                #keypair name exists on this cloud
+                message = "Keypair name %s in use on cloud: %s. Aborting transation, keypair may have been created on some clouds" % (key_name, cloud)
+                logger.error(message)
+                return manage_keys(request=request, group_name=grp, message=message)
+
+        return redirect("manage_keys")
+ 
+    else:
+        #not a post do nothing
+        return None
 
 
 def save_keypairs(request, group_name=None, message=None):
