@@ -857,7 +857,7 @@ def create_keypair(key_name, key_string, cloud):
     return new_key
 
 
-def new_keypair(key_name, cloud):
+def create_new_keypair(key_name, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 

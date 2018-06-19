@@ -20,7 +20,7 @@ from .utils import get_unique_image_list, get_images_for_group, parse_pending_tr
     build_id_lookup_dict, repo_modified, get_conflicts_for_group, find_image_by_name, \
     add_cached_image, check_cached_images, increment_transactions, check_for_existing_images,\
     get_hidden_image_list, parse_hidden_images, get_num_transactions, \
-    get_keypair, delete_keypair, transfer_keypair, create_keypair
+    get_keypair, delete_keypair, transfer_keypair, create_new_keypair
 from .__version__ import version
 from .db_util import get_db_base_and_session
 
@@ -1300,13 +1300,13 @@ def new_keypair(request, group_name=None,):
         # Only check that needs to be made is if the key name is used on any of the target clouds
         for cloud in cloud_name_list:
             db_keypair = session.query(Keypairs).filter(Keypairs.group_name == grp, Keypairs.cloud_name == cloud, Keypairs.key_name == key_name).one_or_none()
-            if db_kepair is None:
+            if db_keypair is None:
                 #no entry exists, its safe to create this keypair
                 logging.info("creating new keypair %s on cloud %s" % (key_name, cloud))
 
                 #get grp resources obj
                 cloud_obj =  session.query(Group_Resources).filter(Group_Resources.group_name == grp, Group_Resources.cloud_name == cloud).one()
-                new_keypair(key_name=key_name, cloud=cloud_obj)
+                create_new_keypair(key_name=key_name, cloud=cloud_obj)
             else:
                 #keypair name exists on this cloud
                 message = "Keypair name %s in use on cloud: %s. Aborting transation, keypair may have been created on some clouds" % (key_name, cloud)
