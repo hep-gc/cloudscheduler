@@ -334,7 +334,7 @@ def metadata_edit(gvar):
     check_keys(gvar, ['-cn', '-mn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/cloud/metadata-fetch/%s::%s::%s' % (gvar['active_group'], gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
+    response = requests(gvar, '/cloud/metadata-fetch/%s::%s' % (gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/%s/metadata' % (

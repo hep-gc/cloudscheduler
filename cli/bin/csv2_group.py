@@ -229,7 +229,7 @@ def metadata_delete(gvar):
                     break
    
     if not _found:
-        print('Error: "%s group metadata-delete" cannot delete "%s::%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['group-name'], gvar['user_settings']['metadata-name']))
+        print('Error: "%s group metadata-delete" cannot delete "%s::%s", file doesn\'t exist.' % (gvar['command_name'], response['active_group'], gvar['user_settings']['metadata-name']))
         exit(1)
 
     # Confirm group metadata file delete.
@@ -261,7 +261,7 @@ def metadata_edit(gvar):
     check_keys(gvar, ['-yn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/group/metadata-fetch/%s::%s' % (gvar['active_group'], gvar['user_settings']['metadata-name']))
+    response = requests(gvar, '/group/metadata-fetch/%s' % gvar['user_settings']['metadata-name'])
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/metadata' % (
