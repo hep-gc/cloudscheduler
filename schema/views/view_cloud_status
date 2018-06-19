@@ -1,15 +1,12 @@
 /*
-** Retrieve groups/cloud summary information.
+** List all group resources (clouds) with VM & resource counts.
 */
 create or replace view view_cloud_status as
 
-/*
-** Retrieve all groups.
-*/
 select
 
-vcsr.group_name,
-vcsr.cloud_name,
+grwvs.group_name,
+grwvs.cloud_name,
 cast(sum(VMs) as int) as VMs,
 cast(sum(VMs_unregistered) as int) as VMs_unregistered,
 cast(sum(VMs_running) as int) as VMs_running,
@@ -28,11 +25,48 @@ case when ram_ctl is null then 0 else case when ram_ctl=-1 or ram_ctl>ram_max th
 ram_used,
 cast(case when ram_ctl is null then 0 else case when ram_ctl=-1 then case when ram_max=0 then 0 else round(ram_used*100/ram_max, 2) end else case when ram_ctl=0 then 0 else round(ram_used*100/ram_ctl, 2) end end end as double) as ram_percent
 
-from view_cloud_status_raw as vcsr
+from (
+    select
+
+    group_name,
+    cloud_name,
+    0 as VMs,
+    0 as VMs_unregistered,
+    0 as VMs_running,
+    0 as VMs_retiring,
+    0 as VMs_manual,
+    0 as VMs_in_error,
+    0 as VMs_other,
+    0 as Foreign_VMs,
+    0 as condor_slots,
+    0 as condor_slots_used
+
+    from csv2_group_resources
+
+    /*
+    ** Retrieve VM count for each group.
+    */
+    union all select
+
+    group_name,
+    cloud_name,
+    case when foreign_vm=0 then 1 else 0 end as VMs,
+    case when poller_status="unregistered" then 1 else 0 end as VMs_unregistered,
+    case when poller_status="running" then 1 else 0 end as VMs_running,
+    case when poller_status="retiring" then 1 else 0 end as VMs_retiring,
+    case when poller_status="manual" then 1 else 0 end as VMs_manual,
+    case when poller_status="error" then 1 else 0 end as VMs_in_error,
+    case when foreign_vm=0 and (isnull(poller_status) or (poller_status!="running" and poller_status!="retiring" and poller_status!="error")) then 1 else 0 end as VMs_other,
+    case when foreign_vm=0 then 0 else 1 end as Foreign_VMs,
+    condor_slots,
+    condor_slots_used
+
+    from view_vms
+    ) as grwvs /* group_resources_with_vm_status */
 
 left outer join view_group_resources as vgr on
-vcsr.group_name=vgr.group_name and
-vcsr.cloud_name=vgr.cloud_name
+grwvs.group_name=vgr.group_name and
+grwvs.cloud_name=vgr.cloud_name
 
 group by group_name,cloud_name
 

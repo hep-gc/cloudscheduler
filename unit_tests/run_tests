@@ -9,89 +9,121 @@ from os import listdir
 from re import sub
 
 import sys
-import user_requests_setup
-import user_requests_cleanup
+
+TEST_OBJECTS = ['user', 'group']
 
 def get_test_list():
-    test_files = []
     test_names = []
     for f in sorted(listdir('.')):
-        if f.startswith('test'):
-            test_files.append(f[:-3])
-            test_names.append(sub(r'\d', '', f[5:-3]))
-    return test_names, test_files
+        if f.startswith('test_'):
+            test_names.append((f[:-3],sub(r'\d', '', f[5:-3])))
+    return test_names
 
 def main():
-    test_names, test_files = get_test_list()
-    options = []
-    setup = True
-    cleanup = True
-    selections = ''
+    test_names = get_test_list()
+    user_options = {
+        'setup': True,
+        'cleanup': True,
+        'hidden': True,
+        'run_all': True,
+        'tests': [],
+        'objects': []
+    }
+
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
             if arg == '-h' or arg == '--help':
-                print('Options:')
-                print('-ss | --skip-setup\tFlag to specify if unit test setup should be skipped')
-                print('-sc | --skip-cleanup\tFlag to specify if unit test cleanup should be skipped')
-                print('The valid tests in this folder are:')
-                print('\n'.join(test_names))
-                exit()
+                    print('Options:')
+                    print('-ss | --skip-setup\tFlag to specify if unit test setup should be skipped')
+                    print('-sc | --skip-cleanup\tFlag to specify if unit test cleanup should be skipped')
+                    print('-v  | --verbose\t\tPrint setup and clean up output')
+                    print('The valid tests in this folder are:')
+                    for (_, name) in test_names:
+                        print(name)
+                    exit()
             elif arg == '-ss' or arg == '--skip-setup':
-                setup = False
+                user_options['setup'] = False
             elif arg == '-sc' or arg == '--skip-cleanup':
-                cleanup = False
+                user_options['cleanup'] = False
+            elif arg == '-v' or arg == '--verbose':
+                user_options['hidden'] = False
             elif arg.startswith('['):
-                selections = arg[1:-1]
-            elif arg.endswith(']'):
-                temp = arg.split('[')
-                if temp[0] not in test_names:
-                    print('Error: {} is not a valid test group. For a list of valid tests run command with the "-h" option.'.format(temp[0]))
-                    exit(1)
-                option = (temp[0], {})
-                initialize_csv2_request(option[1], sys.argv[0], selections=temp[1][:-1])
-                options.append(option)
+                user_options['run_all_selection'] = arg[1:-1]
             else:
-                if arg not in test_names:
-                    print('Error: {} is not a valid test group. For a list of valid tests run command with the "-h" option.'.format(arg))
-                    exit(1)
-                option = (arg, {})
-                initialize_csv2_request(option[1], sys.argv[0])
-                options.append(option)
+                user_options['run_all'] = False
+                if arg.endswith(']'):
+                    temp = arg.split('[')
+                    selection = temp[1][:-1]
+                    obj = temp[0]
+                else:
+                    obj = arg
+                    selection = None
+                if obj in TEST_OBJECTS:
+                    user_options['run_all'] = False
+                    filtered_tests = [test for test in test_names if test[1].startswith(obj)]
+                    for test in filtered_tests:
+                        option = (test, {})
+                        initialize_csv2_request(option[1], sys.argv[0], selections=selection)
+                        user_options['tests'].append(option)
+                    if obj not in user_options['objects']:
+                        user_options['objects'].append(obj)
+                else:
+                    test_found = [i for i, test in enumerate(test_names) if test[1] == obj]
+                    if test_found == []:
+                        print('No test of the name "{}". Run with the "-h" flag for a list of valid tests'.format(obj))
+                        exit()
+                    else:
+                        option = (test_names[test_found[0]], {})
+                        initialize_csv2_request(option[1], sys.argv[0], selections=selection)
+                        user_options['tests'].append(option)
+                        for o in TEST_OBJECTS:
+                            if obj.startswith(o) and o not in user_options['objects']:
+                                user_options['objects'].append(o)
+    
+    if user_options['run_all']:
+        for test in test_names:
+            user_options['tests'].append((test, None))
+        user_options['objects'] = TEST_OBJECTS
+
+    # print(user_options)
     
     hidden_gvar = {}
-    initialize_csv2_request(hidden_gvar, sys.argv[0], hidden=True)
+    initialize_csv2_request(hidden_gvar, sys.argv[0], hidden=user_options['hidden'])
     
-    if len(options) == 0:
-        gvar = {}
-        if selections == '':
-            initialize_csv2_request(gvar, sys.argv[0])
-        else:
-            initialize_csv2_request(gvar, sys.argv[0], selections=selections)
-        if setup:
-            print('Setting up user tests...')
-            user_requests_setup.main(hidden_gvar)
-        for i in range(len(test_names)):
-            exec('import {}'.format(test_files[i]), globals(), locals())
-            print('\n*** Testing {} ***\n'.format(test_names[i]))
-            exec('{}.main(gvar)'.format(test_files[i]), globals(), locals())
-        if cleanup:
-            print('Cleaning up user tests...')
-            user_requests_cleanup.main(hidden_gvar)
+    gvar = {}
+    if 'run_all_selection' in user_options.keys():
+        initialize_csv2_request(gvar, sys.argv[0], selections=user_options['run_all_selection'])
+    else:
+        initialize_csv2_request(gvar, sys.argv[0])
+    
+    for obj in user_options['objects']:
+        if user_options['setup']:
+            exec('import {}_requests_setup'.format(obj), globals(), locals())
+            print('Setting up {} tests...'.format(obj))
+            exec('{}_requests_setup.main(hidden_gvar)'.format(obj), globals(), locals())
+        for ((f, n), s) in user_options['tests']:
+            if s == None:
+                if n.startswith(obj):
+                    exec('import {}'.format(f), globals(), locals())
+                    print('\n*** Testing {} ***\n'.format(n))
+                    exec('{}.main(gvar)'.format(f), globals(), locals())
+            else:
+                if n.startswith(obj):
+                    exec('import {}'.format(f), globals(), locals())
+                    print('\n*** Testing {} ***\n'.format(n))
+                    exec('{}.main(s)'.format(f), globals(), locals())
+        if user_options['cleanup']:
+            exec('import {}_requests_cleanup'.format(obj))
+            print('Cleaning up {} tests...'.format(obj))
+            exec('{}_requests_cleanup.main(hidden_gvar)'.format(obj), globals(), locals())
+    if user_options['run_all']:
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])
-    else:
-        if setup:
-            print('Setting up user tests...')
-            user_requests_setup.main(hidden_gvar)
-        for o, g in options:
-            exec('import {}'.format(test_files[test_names.index(o)]), globals(), locals())
-            print('\n*** Testing {} ***\n'.format(o))
-            exec('{}.main(g)'.format(test_files[test_names.index(o)]), globals(), locals())
-        if cleanup:
-            print('Cleaning up user tests...')
-            user_requests_cleanup.main(hidden_gvar)
-        for o, g in options:
-            print('Test {} run={}, skipped={}, failed={}.'.format(o, g['ut_count']-g['ut_skipped'], g['ut_skipped'], g['ut_failed']))
+    
+    for ((_, n), s) in user_options['tests']:
+        print('Test {} run={}, skipped={}, failed={}.'.format(n, s['ut_count']-s['ut_skipped'], s['ut_skipped'], s['ut_failed']))
+    
+    
 
 
 if __name__ == "__main__":

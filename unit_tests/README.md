@@ -7,6 +7,8 @@
 ./run_tests
 # run a subset of the tests
 ./run_tests [1-5,10]
+# run all user tests
+./run_tests user
 # run all the user add tests
 ./run_tests user_add
 # run specific tests in user add

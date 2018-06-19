@@ -1,5 +1,6 @@
 /*
-** Combine the resource information from csv2_group_resources and cloud_limits, setting defaults for missing values.
+** List all group resources (clouds) and for each resource (cpu, disk, ephemeral disk(scrtch), ram, and swap) show 
+** contol, max, used, foreign, and native values.
 */
 create or replace view view_group_resources as
 
