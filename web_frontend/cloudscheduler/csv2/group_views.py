@@ -246,7 +246,7 @@ def delete(request):
             ], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('CV09'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any group metadata files for the group.
         s = select([view_groups_with_metadata_names]).where((view_groups_with_metadata_names.c.group_name == fields['group_name']))
@@ -518,7 +518,7 @@ def metadata_add(request):
         if request.method != 'POST':
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV29'), request.method)})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, no group name specified.' % lno('GV30')})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, no metadata name specified.' % lno('GV30')})
 
 #-------------------------------------------------------------------------------
 
@@ -545,7 +545,7 @@ def metadata_delete(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('CV32'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV32'), msg)})
 
         # Delete the group metadata file.
         table = tables['csv2_group_metadata']
@@ -568,7 +568,7 @@ def metadata_delete(request):
         if request.method != 'POST':
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV34'), request.method)})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, no group name specified.' % lno('GV35')})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, no metadata name specified.' % lno('GV35')})
 
 #-------------------------------------------------------------------------------
 
@@ -673,7 +673,7 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('CV38'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV38'), msg)})
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
@@ -693,7 +693,7 @@ def metadata_update(request):
         if request.method != 'POST':
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV40'), request.method)})
         else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, no group name specified.' % lno('GV41')})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, no metadata name specified.' % lno('GV41')})
 
 #-------------------------------------------------------------------------------
 
