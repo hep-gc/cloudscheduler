@@ -1379,10 +1379,13 @@ def save_keypairs(request, group_name=None, message=None):
                         fingerprint = split_key[0]
                         key_name = split_key[1]
                         # get existing keypair: need name, public_key, key_type and ?user?
+                        logger.info("getting source keypair database object...")
                         src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Keypairs.key_name == key_name).first()
                         # get group resources corresponding to that keypair
+                        logger.info("getting source cloud...")
                         src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
                         # download key from that group resources
+                        logger.info("getting source keypair openstack object...")
                         os_keypair = get_keypair(keypair_key, src_cloud)
                         # upload key to current "cloud"
                         transfer_keypair(os_keypair, cloud)
