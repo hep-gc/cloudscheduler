@@ -1281,7 +1281,7 @@ def upload_keypair(request, group_name=None):
     return None
 
 
-def new_keypair():
+def new_keypair(request, group_name=None,):
     if not verifyUser(request):
         raise PermissionDenied
 
