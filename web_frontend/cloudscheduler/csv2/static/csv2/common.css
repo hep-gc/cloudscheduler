@@ -59,19 +59,18 @@
   width: 200px; /* Set a width if you like */
   position: fixed;
 }
-.menu > div {
+.menu  div {
   display: block;
   overflow: auto;
 }
-.menu > div:not(:target) > a {
-  background-color: whitesmoke; /* Grey background color */
+.menu  div:not(:target) a.menu-link {
+  background-color: whitesmoke; /* Background color */
   color: black; /* Black text color */
   display: block; /* Make the links appear below each other */
   padding: 12px; /* Add some padding */
   text-decoration: none; /* Remove underline from links */
 }
-.menu > div:target > a,  /* Apply to the targeted item or... */
-:target #default2 > a {   /* ... to the default item */
+.menu  div:target a.menu-link {   /* ... to the default item */
   background-color: maroon; /* Grey background color */
   color: white; /* Black text color */
   display: block; /* Make the links appear below each other */
@@ -79,20 +78,24 @@
   text-decoration: none; /* Remove underline from links */
 
 }
-.menu > div > div.menu-target {
+.menu div.menu-target {
   position: fixed;
   left: 220px;
   top: 70px;
   bottom:20px;
   overflow: auto;
+  display:none;
 }
-.menu > div:not(:target) > div.menu-target { /* Protect CSS1 & CSS2 browsers */
-    display:none;
-}
-.menu > div:target > div, :target #default2 > div.menu-target {
+
+.menu div.menu-target:target {
   display:block;
-  background: white;
 }
+
+
+.menu  div:target  div, :target #default2 {
+  display:block;
+}
+
 
 /*----------Popup dialog box----------*/
 
