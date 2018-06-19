@@ -1357,6 +1357,7 @@ def save_keypairs(request, group_name=None, message=None):
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
             grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
+            logger.info("Checking for keys to transfer")
             for cloud in grp_resources:
                 #check_list will only have the names of keys checked for that cloud
                 check_list = request.POST.getlist(cloud.cloud_name)
@@ -1369,7 +1370,6 @@ def save_keypairs(request, group_name=None, message=None):
                     cloud_fingerprints.append(keypair.fingerprint + ";" + keypair.key_name)
 
                 # check for new key transfers
-                logger.info("Checking for keys to transfer")
                 for keypair_key in check_list:
                     if keypair_key not in cloud_fingerprints:
                         # transfer key to this cloud
@@ -1394,8 +1394,21 @@ def save_keypairs(request, group_name=None, message=None):
                         }
                         new_keypair = Keypairs(**keypair_dict)
                         session.merge(new_keypair)
+                try:
+                    session.commit()
+                except Exception as exc:
+                    logger.error(exc)
+                    logger.error("Error committing database session after proccessing key transfers")
+                    logger.error("openstack and the database may be out of sync until next keypair poll cycle")
 
-                logger.info("Checking for keys to delete")
+            # we need to do the entire loop of the clouds twice so we can do all the transfers, then all the deletes
+            logger.info("Checking for keys to delete")
+            for cloud in grp_resources:
+                #check_list will only have the names of keys checked for that cloud
+                check_list = request.POST.getlist(cloud.cloud_name)
+
+                #cross reference check list against what is in database:
+                cloud_keys = session.query(Keypairs).filter(Keypairs.group_name == group_name, Keypairs.cloud_name == cloud.cloud_name)
                 for keypair in cloud_keys:
                     if (keypair.fingerprint + ";" + keypair.key_name) not in check_list:
                         # key has been deleted from this cloud:
@@ -1403,12 +1416,14 @@ def save_keypairs(request, group_name=None, message=None):
                         delete_keypair(keypair.key_name, cloud)
                         # delete from database
                         session.delete(keypair)
-            try:
-                session.commit()
-            except Exception as exc:
-                logger.error(exc)
-                logger.error("Error committing database session after proccessing key transfers")
-                logger.error("openstack and the database may be out of sync until next keypair poll cycle")
+                try:
+                    session.commit()
+                except Exception as exc:
+                    logger.error(exc)
+                    logger.error("Error committing database session after proccessing key transfers")
+                    logger.error("openstack and the database may be out of sync until next keypair poll cycle")
+
+            
         except Exception as exc:
             logger.error(exc)
             logger.error("Error setting up database objects or during general execution of save_keypairs")
