@@ -1364,16 +1364,10 @@ def save_keypairs(request, group_name=None, message=None):
                 #cross reference check list against what is in database:
                 cloud_keys = session.query(Keypairs).filter(Keypairs.group_name == group_name, Keypairs.cloud_name == cloud.cloud_name)
                 cloud_fingerprints = []
-                #check for deleted keys
-                logger.info("Checking for keys to delete")
+
                 for keypair in cloud_keys:
                     cloud_fingerprints.append(keypair.fingerprint + ";" + keypair.key_name)
-                    if (keypair.fingerprint + ";" + keypair.key_name) not in check_list:
-                        # key has been deleted from this cloud:
-                        logging.info("Found key to delete: %s" % keypair.key_name)
-                        delete_keypair(keypair.key_name, cloud)
-                        # delete from database
-                        session.delete(keypair)
+                    
                 # check for new key transfers
                 logger.info("Checking for keys to transfer")
                 for keypair_key in check_list:
@@ -1400,6 +1394,15 @@ def save_keypairs(request, group_name=None, message=None):
                         }
                         new_keypair = Keypairs(**keypair_dict)
                         session.merge(new_keypair)
+
+                logger.info("Checking for keys to delete")
+                for keypair in cloud_keys:
+                    if (keypair.fingerprint + ";" + keypair.key_name) not in check_list:
+                        # key has been deleted from this cloud:
+                        logging.info("Found key to delete: %s" % keypair.key_name)
+                        delete_keypair(keypair.key_name, cloud)
+                        # delete from database
+                        session.delete(keypair)
             try:
                 session.commit()
             except Exception as exc:
