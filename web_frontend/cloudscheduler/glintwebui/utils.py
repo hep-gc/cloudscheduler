@@ -819,7 +819,7 @@ def delete_keypair(key_name, cloud):
 
     keys = nova.keypairs.list()
     for key in keys:
-        if key.key_name == key_name:
+        if key.name == key_name:
             nova.keypairs.delete(key)
             return True
 
@@ -829,13 +829,13 @@ def get_keypair(keypair_key, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
-    split_key = fingerprint.split(";")
+    split_key = keypair_key.split(";")
     fingerprint = split_key[0]
     key_name = split_key[1]
 
     keys = nova.keypairs.list()
     for key in keys:
-        if key.key_name == key_name:
+        if key.name == key_name:
             return key
     return None
 

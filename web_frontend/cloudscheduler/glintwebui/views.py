@@ -1317,9 +1317,9 @@ def save_keypairs(request, group_name=None, message=None):
                 logger.info("Checking for keys to delete")
                 for keypair in cloud_keys:
                     cloud_fingerprints.append(keypair.fingerprint + ";" + keypair.key_name)
-                    if (keypair.fingerprint + keypair.key_name) not in check_list:
+                    if (keypair.fingerprint + ";" + keypair.key_name) not in check_list:
                         # key has been deleted from this cloud:
-                        logging.info("Found key to delete form openstack: %s" % keypair.key_name)
+                        logging.info("Found key to delete: %s" % keypair.key_name)
                         delete_keypair(keypair.key_name, cloud)
                         # delete from database
                         session.delete(keypair)
@@ -1328,7 +1328,8 @@ def save_keypairs(request, group_name=None, message=None):
                 for keypair_key in check_list:
                     if keypair_key not in cloud_fingerprints:
                         # transfer key to this cloud
-                        logger.info("Found key: %s to transfer to %s" % (keypair.key_name, cloud.cloud_name))
+                        logger.info("%s not found in %s" % (keypair_key, cloud_fingerprints))
+                        logger.info("Found key: %s to transfer to %s" % (keypair_key, cloud.cloud_name))
                         split_key = keypair_key.split(";")
                         fingerprint = split_key[0]
                         key_name = split_key[1]
