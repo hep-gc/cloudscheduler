@@ -20,7 +20,7 @@ from .utils import get_unique_image_list, get_images_for_group, parse_pending_tr
     build_id_lookup_dict, repo_modified, get_conflicts_for_group, find_image_by_name, \
     add_cached_image, check_cached_images, increment_transactions, check_for_existing_images,\
     get_hidden_image_list, parse_hidden_images, get_num_transactions, \
-    get_keypair, delete_keypair, transfer_keypair, create_new_keypair
+    get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
 from .__version__ import version
 from .db_util import get_db_base_and_session
 
@@ -1388,6 +1388,7 @@ def save_keypairs(request, group_name=None, message=None):
                         logger.info("getting source keypair openstack object...")
                         os_keypair = get_keypair(keypair_key, src_cloud)
                         # upload key to current "cloud"
+                        logger.info("transferring keypair...")
                         transfer_keypair(os_keypair, cloud)
                         keypair_dict = {
                             "group_name": group_name,
