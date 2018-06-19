@@ -98,9 +98,13 @@ def main():
                     target_cloud_list = []
 
                 # Get All the possible matching clouds
-                clouds_matching = session.query(view_available_resources).filter(
-                    view_available_resources.c.flavor.in_(flavor_list),
-                    view_available_resources.c.cloud_name.in_(target_cloud_list))
+                if target_cloud_list:
+                    clouds_matching = session.query(view_available_resources).filter(
+                        view_available_resources.c.flavor.in_(flavor_list),
+                        view_available_resources.c.cloud_name.in_(target_cloud_list))
+                else:
+                    clouds_matching = session.query(view_available_resources).filter(
+                        view_available_resources.c.flavor.in_(flavor_list))
                 num_jobs_per_flavor_possible = {}
                 for cloud_match in clouds_matching:
                     cpu = cloud_match.flavor_cores / idle_job.request_cpus
@@ -110,6 +114,7 @@ def main():
                     if jobs_possible < 1:
                         jobs_possible = 1
                     num_jobs_per_flavor_possible[cloud_match.flavor] = jobs_possible
+                log.debug("num jobs per flavor: %s", num_jobs_per_flavor_possible)
                 # Now have the amount of jobs that can run on each option
                 # Next get all the VMs for this group with their flavor info - actually could be done outside of loop and re-use it
                 # Need a structure of the groups VMs accessible by the cloud_name and with a count of the flavor
@@ -124,10 +129,17 @@ def main():
                 log.debug("Runnable_job_count after: %s", runnable_job_count)
                 log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
                 if runnable_job_count <= 0: # Need more VMs - try to boot stuff
-                    clouds_matching = session.query(view_available_resources).filter(
-                        view_available_resources.c.flavor.in_(flavor_list),
-                        view_available_resources.c.cloud_name.in_(target_cloud_list))
-                    for cloud in clouds_matching:
+                    log.debug("flavor list: %s", flavor_list)
+                    if target_cloud_list:
+                        clouds_matching_new = session.query(view_available_resources).filter(
+                            view_available_resources.c.flavor.in_(flavor_list),
+                            view_available_resources.c.cloud_name.in_(target_cloud_list))
+                    else:
+                        clouds_matching_new = session.query(view_available_resources).filter(
+                            view_available_resources.c.flavor.in_(flavor_list))
+                    for cloud in clouds_matching_new:
+                        log.debug("Taking a look at booting on: %s", cloud.cloud_name)
+                        log.debug("num jobs per flavor: %s", num_jobs_per_flavor_possible)
                         # Need to redo this calculation for each cloud / flavor because it may change
                         num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
                         # This is the total wanted, but cloud may not be able to handle that request
@@ -163,8 +175,11 @@ def main():
                             log.exception("Disable cloud %s due to exception(later).", cloud_match.cloud_name)
                             #cm_group.clouds[cloud_match.cloud_name].enabled = False
                             # TODO Need logic for re-enable before stopping things and forgeting about them.
+                    else:
+                        log.debug("Hit the end of clouds_matching_new, anything boot or nothing?")
                 else:  # We have enough, wait for things to register
                     log.debug("Seem to have enough VMs for the number of idle jobs.")
+                    log.debug("Runnable count: %s", runnable_job_count)
                     continue
         time.sleep(15)  # delay between groups
 

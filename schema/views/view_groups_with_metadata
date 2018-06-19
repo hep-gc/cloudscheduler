@@ -8,10 +8,10 @@ select
 cg.group_name,
 condor_central_manager,
 metadata_name,
-enabled,
-priority,
+enabled as metadata_enabled,
+priority as metadata_priority,
 metadata,
-mime_type
+mime_type as metadata_mime_type
 
 from csv2_groups as cg
 left outer join csv2_group_metadata as cgm on cg.group_name=cgm.group_name

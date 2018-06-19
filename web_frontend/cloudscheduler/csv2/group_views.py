@@ -53,6 +53,11 @@ GROUP_DEFAULTS_KEYS = {
     'format': {
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
+        'job_cpus':            'integer',
+        'job_disk':            'integer',
+        'job_scratch':         'integer',
+        'job_ram':             'integer',
+        'job_swap':            'integer',
         },
     }
 
@@ -61,8 +66,9 @@ METADATA_KEYS = {
     'auto_active_group': True,
     'format': {
         'enabled':             'dboolean',
+        'metadata':            'metadata',
+        'metadata_name':       'lowercase',
         'mime_type':           ('csv2_mime_types', 'mime_type'),
-        'metadata_name':           'lowercase',
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -71,7 +77,7 @@ METADATA_KEYS = {
 
 IGNORE_METADATA_NAME = {
     'format': {
-        'metadata_name':           'ignore',
+        'metadata_name':       'ignore',
         },
     }
 
@@ -539,7 +545,7 @@ def metadata_delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (ln('GV18'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV18'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
@@ -589,7 +595,7 @@ def metadata_fetch(request, selector=None):
     id = request.path.split('/')
     if len(id) > 3:
         METADATA = db_map.classes.csv2_group_metadata
-        METADATAobj = db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.metadata_name == id[3])
+        METADATAobj = db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.metadata_name == id[3]))
         if METADATAobj:
             for row in METADATAobj:
                 context = {
@@ -720,14 +726,14 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV22'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups','csv2_user_groups'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV23'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified users.
         if 'username' in fields:
-            rc, msg = manage_user_group_verification(db_connection, tables, fields['username'], None) 
+            rc, msg = manage_user_group_verification(db_ctl, tables, fields['username'], None) 
             if rc != 0:
                 return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
@@ -739,14 +745,14 @@ def update(request):
         if request.META['HTTP_ACCEPT'] == 'application/json':
             if 'username' in fields:
                 if 'user_option' in fields and fields['user_option'] == 'delete':
-                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='delete')
+                    rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], users=fields['username'], option='delete')
                 else:
-                    rc, msg = manage_group_users(db_connection, tables, fields['group_name'], users=fields['username'], option='add')
+                    rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], users=fields['username'], option='add')
         else:
             if 'username' in fields:
-                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], fields['username'])
+                rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], fields['username'])
             else:
-                rc, msg = manage_group_users(db_connection, tables, fields['group_name'], None)
+                rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], None)
 
         if rc == 0:
             db_close(db_ctl, commit=True)
