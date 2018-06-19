@@ -1,0 +1,17 @@
+/*
+** List all groups with (concatenated) associated metadata filenames (one row per group).
+*/
+create or replace view view_groups_with_metadata_names as
+
+select
+
+cg.group_name,
+condor_central_manager,
+group_concat(metadata_name order by metadata_name) as metadata_names
+
+from csv2_groups as cg
+left outer join csv2_group_metadata as cgm on cg.group_name=cgm.group_name
+
+group by cg.group_name
+
+;

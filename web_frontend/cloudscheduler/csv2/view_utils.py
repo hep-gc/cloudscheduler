@@ -4,22 +4,44 @@ from .models import user as csv2_user
 '''
 UTILITY FUNCTIONS
 '''
+
 #-------------------------------------------------------------------------------
 
-def db_execute(db_connection, request):
+def db_close(db_ctl, commit=False):
+    """
+    Commit or rollback and then close the database connection.
+    """
+
+    db_engine, db_session, db_connection, db_map = db_ctl
+
+    if commit:
+        db_session.commit()
+    else:
+        db_session.rollback()
+
+    db_connection.close()
+
+#-------------------------------------------------------------------------------
+
+def db_execute(db_ctl, request, allow_no_rows=False):
     """
     Execute a DB request and return the response. Also, trap and return errors.
     """
 
+    db_engine, db_session, db_connection, db_map = db_ctl
+
+    from sqlalchemy.engine.result import ResultProxy
     import sqlalchemy.exc
 
     try:
-        db_connection.execute(request)
-        return True,None
+        result_proxy = db_session.execute(request)
+        if result_proxy.rowcount == 0 and not allow_no_rows:
+            return 1, 'the request did not match any rows'
+        return 0, result_proxy.rowcount
     except sqlalchemy.exc.IntegrityError as ex:
-        return False, ex.orig
+        return 1, ex.orig
     except Exception as ex:
-        return False, ex
+        return 1, ex
 
 #-------------------------------------------------------------------------------
 
@@ -43,12 +65,12 @@ def db_open():
             )
         )
 
-    db_session = Session(db_engine)
+    db_session = Session(bind=db_engine)
     db_connection = db_engine.connect()
     db_map = automap_base()
     db_map.prepare(db_engine, reflect=True)
 
-    return db_engine,db_session,db_connection,db_map
+    return db_engine, db_session, db_connection, db_map
 
 #-------------------------------------------------------------------------------
 
@@ -91,119 +113,201 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_groups(db_connection, tables, groups, users):
+def manage_group_users(db_ctl, tables, group, users, option=None):
+    """
+    Ensure all the specified users and only the specified users are
+    members of the specified group. The specified group and users
+    have all been pre-verified.
+    """
 
     from sqlalchemy.sql import select
+
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     table = tables['csv2_user_groups']
 
     # if there is only one user, make it a list anyway
-    if isinstance(users, str):
-        user_list = [users]
+    if users:
+        if isinstance(users, str):
+            user_list = users.split(',')
+        else:
+            user_list = users
     else:
-        user_list = users
+        user_list = []
 
+    # Retrieve the list of users already in the group.
+    db_users=[]
 
-    # if there is only one group, make it a list anyway
-    if isinstance(groups, str):
-        group_list = [groups]
-    else:
-        group_list = groups
+    s = select([table]).where(table.c.group_name==group)
+    user_groups_list = qt(db_connection.execute(s))
 
-    message = "fail"
+    for row in user_groups_list:
+        db_users.append(row['username'])
 
-    if len(user_list)==1:
+    if not option or option == 'add':
+        # Get the list of users specified that are not already in the group.
+        add_users = _manage_user_group_list_diff(user_list, db_users)
 
-        user=user_list[0]
-
-        db_groups=[]
-        
-        s = select([table]).where(table.c.username==user)
-        user_groups_list = qt(db_connection.execute(s))
-
-        # put all the user's groups in a list
-        for group in user_groups_list:
-            db_groups.append(group['group_name'])
-
-        # group is on the page and not in the db, add it
-        add_groups = _list_diff(group_list, db_groups)
-
-        add_fields = {}
-        for group in add_groups:
-            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
-
-
-        # group is in the db but not the page, remove it
-        remove_groups = _list_diff(db_groups, group_list)
-
-        
-        remove_fields = {}
-        for group in remove_groups:
-            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
-   
-
-    return 0, message
-
-
-
-def manage_group_users(db_connection, tables, groups, users):
-
-    from sqlalchemy.sql import select
-
-    table = tables['csv2_user_groups']
-
-    # if there is only one user, make it a list anyway
-    if isinstance(users, str):
-        user_list = [users]
-    else:
-        user_list = users
-
-
-    # if there is only one group, make it a list anyway
-    if isinstance(groups, str):
-        group_list = [groups]
-    else:
-        group_list = groups
-
-    message = "fail"
-
-    if len(group_list)==1:
-
-        group=group_list[0]
-
-        db_users=[]
-
-        s = select([table]).where(table.c.group_name==group)
-        user_groups_list = qt(db_connection.execute(s))
-
-        # put all the group users in a list
-        for user in user_groups_list:
-            db_users.append(user['username'])
-
-        # group is on the page and not in the db, add it
-        add_users = _list_diff(user_list, db_users)
-
+        # Add the missing users.
         for user in add_users:
-            success,message = db_execute(db_connection, table.insert().values(username=user, group_name=group))
+            rc, msg = db_execute(db_ctl, table.insert().values(username=user, group_name=group))
+            if rc != 0:
+                return 1, msg
 
-
-        # group is in the db but not the page, remove it
-        remove_users = _list_diff(db_users, user_list)
+    if not option:
+        # Get the list of users that the group currently has but were not specified.
+        remove_users = _manage_user_group_list_diff(db_users, user_list)
         
+        # Remove the extraneous users.
         for user in remove_users:
-            success,message = db_execute(db_connection, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
 
+    elif option == 'delete':
+        # Get the list of users that the group currently has and were specified.
+        remove_users = _manage_user_group_list_diff(user_list, db_users, option='and')
+        
+        # Remove the extraneous users.
+        for user in remove_users:
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
 
-    return 0, message
-
-
+    return 0, None
 
 #-------------------------------------------------------------------------------
 
-def _list_diff(list1,list2):
+def manage_user_groups(db_ctl, tables, user, groups, option=None):
+    """
+    Ensure all the specified groups and only the specified groups are
+    have the specified user as a member. The specified user and groups
+    have all been pre-verified.
+    """
 
-    return [x for x in list1 if x not in list2] 
+    from sqlalchemy.sql import select
 
+    db_engine, db_session, db_connection, db_map = db_ctl
+
+    table = tables['csv2_user_groups']
+
+    # if there is only one group, make it a list anyway
+    if groups:
+        if isinstance(groups, str):
+            group_list = groups.split(',')
+        else:
+            group_list = groups
+    else:
+        group_list = []
+
+    # Retrieve the list of groups the user already has.
+    db_groups=[]
+    
+    s = select([table]).where(table.c.username==user)
+    user_groups_list = qt(db_connection.execute(s))
+
+    for row in user_groups_list:
+        db_groups.append(row['group_name'])
+
+    if not option or option == 'add':
+        # Get the list of groups specified that the user doesn't already have.
+        add_groups = _manage_user_group_list_diff(group_list, db_groups)
+
+        # Add the missing groups.
+        for group in add_groups:
+            rc, msg = db_execute(db_ctl, table.insert().values(username=user, group_name=group))
+            if rc != 0:
+                return 1, msg
+
+    if not option:
+        # Get the list of groups that the user currently has but were not specified.
+        remove_groups = _manage_user_group_list_diff(db_groups, group_list)
+        
+        # Remove the extraneous groups.
+        for group in remove_groups:
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
+
+    elif option == 'delete':
+        # Get the list of groups that the user currently has and were specified.
+        remove_groups = _manage_user_group_list_diff(group_list, db_groups, option='and')
+        
+        # Remove the extraneous groups.
+        for group in remove_groups:
+            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            if rc != 0:
+                return 1, msg
+
+    return 0, None
+
+#-------------------------------------------------------------------------------
+
+def _manage_user_group_list_diff(list1,list2, option=None):
+    """
+    if option equal 'and', return a list of items which are in both list1
+    and list2. Otherwise, return a list of items in list1 but not in list2.
+    """
+
+    if option and option == 'and':
+        return [x for x in list1 if x in list2] 
+    else:
+        return [x for x in list1 if x not in list2] 
+
+#-------------------------------------------------------------------------------
+
+def manage_user_group_verification(db_ctl, tables, users, groups):
+    """
+    Make sure the specified users and groups exit.
+    """
+
+    from sqlalchemy.sql import select
+
+    db_engine, db_session, db_connection, db_map = db_ctl
+
+    if users:
+        # if there is only one user, make it a list anyway
+        if isinstance(users, str):
+            user_list = users.split(',')
+        else:
+            user_list = users
+
+        # Get the list of valid users.
+        table = tables['csv2_user']
+        s = select([table])
+        db_user_list = qt(db_connection.execute(s))
+
+        valid_users = {}
+        for row in db_user_list:
+            valid_users[row['username']] = True
+
+        # Check the list of specified users.
+        for user in user_list:
+            if user not in valid_users:
+                return 1, 'specified user "%s" does not exist' % user
+
+    if groups:
+        # if there is only one group, make it a list anyway
+        if isinstance(groups, str):
+            group_list = groups.split(',')
+        else:
+            group_list = groups
+
+        # Get the list of valid groups.
+        table = tables['csv2_groups']
+        s = select([table])
+        db_group_list = qt(db_connection.execute(s))
+
+        valid_groups = {}
+        for row in db_group_list:
+            valid_groups[row['group_name']] = True
+
+        # Check the list of specified groups.
+        for group in group_list:
+            if group not in valid_groups:
+                return 1, 'specified group "%s" does not exist' % group
+
+    return 0, None
 
 #-------------------------------------------------------------------------------
 
@@ -245,7 +349,7 @@ def qt(query, keys=None, prune=[]):
     doese the following:
     
     # Retrieve the user list but loose the passwords.
-    s = select([view_user_groups_and_available_groups])
+    s = select([view_user_groups])
     user_list = qt(db_connection.execute(s), prune=['password'])
 
     # Retrieve user/groups list (dictionary containing list for each user).
@@ -264,7 +368,7 @@ def qt(query, keys=None, prune=[]):
         )
 
     # Retrieve  available groups list (dictionary containing list for each user).
-    s = select([view_user_groups_available])
+    s = select([view_user_groups])
     ignore1, ignore2, available_groups_per_user = qt(
         db_connection.execute(s),
         keys = {
@@ -441,7 +545,10 @@ def render(request, template, context):
 
 #-------------------------------------------------------------------------------
 
-def set_user_groups(request, db_session, db_map):
+def set_user_groups(request, db_ctl):
+
+    db_engine, db_session, db_connection, db_map = db_ctl
+
     active_user = getcsv2User(request)
     user_groups = db_map.classes.csv2_user_groups
     user_group_rows = db_session.query(user_groups).filter(user_groups.username==active_user)
@@ -461,7 +568,7 @@ def set_user_groups(request, db_session, db_map):
                 active_user.active_group = group_name
                 active_user.save()
             else:
-                return 1,'cannnot switch to invalid group "%s".' % group_name, active_user, user_groups
+                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
 
     # if no active group, set first group as default.
     if active_user.active_group is None:
@@ -503,7 +610,7 @@ def table_fields(Fields, Table, Columns, selection):
 
 #-------------------------------------------------------------------------------
 
-def validate_fields(request, fields, db_engine, tables, active_user):
+def validate_fields(request, fields, db_ctl, tables, active_user):
     """
     This function validates/normalizes form fields/command arguments.
 
@@ -517,8 +624,8 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                CLOUD_FIELDS = {
                    'auto_active_group': active_user.active_group, # or None.
                    'format': {
-                       'cloud_name': 'lowercase',
-                       'groupname': 'lowercase',
+                       'cloud_name': 'lowerdash',
+                       'group_name': 'lowerdash',
 
                        'cores_slider': 'ignore',
                        'csrfmiddlewaretoken': 'ignore',
@@ -530,24 +637,38 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     Possible format strings are:
 
-    boolean    - A value of True or False will be inserted into the out put fields.
-    ignore     - Ignore missing mandatory fields or fields for undefined columns.
-    lowercase  - Make sure the input value is all lowercase (or error).
-    lowerdash  - Make sure the input value is all lowercase, nummerics, and dashes but 
-                 can't start or end with a dash (or error).
-    password   - A password value to be checked and hashed
-    password1  - A password value to be verified against password2, checked and hashed.
-    password2  - A password value to be verified against password1, checked and hashed.
-    uppercase  - Make sure the input value is all uppercase (or error).
+    ['opt1', 'opt2', ...]  - A list of valid options.
+    ('table', 'column')    - A list of valid options derrived from the named table and column.
+    boolean                - A value of True or False will be inserted into the output fields.
+    dboolean               - Database boolean values are either 0 or 1; allow and
+                             convert true/false/yes/no.
+    float                  - A floating point value.
+    ignore                 - Ignore missing mandatory fields or fields for undefined columns.
+    integer                - An integer value.
+    lowercase              - Make sure the input value is all lowercase (or error).
+    lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
+                             can't start or end with a dash (or error).
+    metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
+                             metadata string and a metadata filename. If the filename conforms to
+                             pre-defined patterns (eg. ends with ".yaml"), the string will be 
+                             checked to conform with the associated file type.
+    password               - A password value to be checked and hashed
+    password1              - A password value to be verified against password2, checked and hashed.
+    password2              - A password value to be verified against password1, checked and hashed.
+    uppercase              - Make sure the input value is all uppercase (or error).
 
     POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
     returning the variable "name" as a list of strings. 
 
     """
 
-    from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
+    from .view_utils import _validate_fields_pw_check
     from sqlalchemy import Table, MetaData
+    from sqlalchemy.sql import select
+    import lib.schema
     import re
+
+    db_engine, db_session, db_connection, db_map = db_ctl
 
     # Retrieve relevant (re: tables) schema.
     all_columns = []
@@ -567,12 +688,12 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
         Columns[table[0]] = [[], []]
         for column in Tables[table[0]].c:
-            if column not in all_columns:
+            if column.name not in all_columns:
                 all_columns.append(column.name)
 
             if column.primary_key:
                 Columns[table[0]][0].append(column.name)
-                if column not in primary_key_columns:
+                if column.name not in primary_key_columns:
                     primary_key_columns.append(column.name)
             else:
                 Columns[table[0]][1].append(column.name)
@@ -595,7 +716,7 @@ def validate_fields(request, fields, db_engine, tables, active_user):
 
     # Process input fields.
     Fields = {}
-    for field in request.POST:
+    for field in sorted(request.POST):
         if Options['unnamed_fields_are_bad'] and field not in Formats:
             return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
 
@@ -603,8 +724,49 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         value = request.POST[field]
 
         if field in Formats:
-            if Formats[field] == 'lowerdash':
-                if re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+            if isinstance(Formats[field], (list, tuple)):
+                if isinstance(Formats[field], tuple):
+                    options = []
+                    s = select([lib.schema.__dict__[Formats[field][0]]])
+                    for row in db_connection.execute(s):
+                       if Formats[field][1] in row:
+                          options.append(row[Formats[field][1]])
+                else:
+                    options = Formats[field]
+
+                lower_value = value.lower()
+                value = None
+                for opt in options:
+                    if lower_value == opt.lower():
+                        value = opt
+                        break
+
+                if not value:
+                    return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
+
+            elif Formats[field] == 'dboolean':
+                lower_value = value.lower()
+                if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
+                    value = 1
+                elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
+                    value = 0
+                else:
+                    return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
+
+            elif Formats[field] == 'float':
+                try:
+                    float_value = float(value)
+                except:
+                    return 1, 'value specified for "%s" must be a floating point value.' % field, None, None, None
+
+            elif Formats[field] == 'integer':
+                try:
+                    integer = int(value)
+                except:
+                    return 1, 'value specified for "%s" must be a integer value.' % field, None, None, None
+
+            elif Formats[field] == 'lowerdash':
+                if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
                     value = request.POST[field]
                 else:
                     return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
@@ -613,6 +775,25 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 value = request.POST[field].lower()
                 if request.POST[field] != value:
                     return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+            elif Formats[field] == 'metadata':
+                filename = '%s_name' % field
+                if filename in request.POST:
+                    # Verify yaml files.
+                    if (len(request.POST[filename]) > 4 and request.POST[filename][-4:] == '.yml') or \
+                        (len(request.POST[filename]) > 5 and request.POST[filename][-5:] == '.yaml') or \
+                        (len(request.POST[filename]) > 7 and request.POST[filename][-7:] == '.yml.j2') or \
+                        (len(request.POST[filename]) > 8 and request.POST[filename][-8:] == '.yaml.j2'):
+
+                        import yaml
+
+                        try:    
+                            temp_data = yaml.load(value)
+                            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", request.POST[filename], value, temp_data)
+                        except yaml.scanner.ScannerError as ex:
+                            return 1, 'yaml value specified for "%s (%s)" is invalid - scanner error - %s' % (field, filename, ex), None, None, None
+                        except yaml.parser.ParserError as ex:
+                            return 1, 'yaml value specified for "%s (%s)" is invalid - parser error - %s' % (field, filename, ex), None, None, None
 
             elif Formats[field] == 'password':
                 rc, value = _validate_fields_pw_check(request.POST[field])
@@ -650,12 +831,14 @@ def validate_fields(request, fields, db_engine, tables, active_user):
                 Fields[field_alias] = value
         else: 
             array_field = field.split('.')
-            if array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0]):
+            if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
                 if array_field[0] not in Fields:
                     Fields[array_field[0]] = []
                 Fields[array_field[0]].append(value)
             else:
-                if not _validate_fields_ignore_field_error(Formats, field):
+                if field in Formats:
+                    Fields[field] = value
+                else:
                     return 1, 'request contained a bad parameter "%s".' % field, None, None, None
 
     if Options['auto_active_group'] and 'group_name' not in Fields:
@@ -665,29 +848,21 @@ def validate_fields(request, fields, db_engine, tables, active_user):
         Fields['username'] = active_user
 
     for field in primary_key_columns:
-        if field not in Fields and not _validate_fields_ignore_field_error(Formats, field):
+        if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
             return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 
     for field in Formats:
         if Formats[field] == 'boolean':
             if request.POST.get(field):
-                Fields[field] = True
+                if request.POST[field] == 'invalid-unit-test':
+                    Fields[field] = 'invalid-unit-test'
+                else:
+                    Fields[field] = True
             else:
                 Fields[field] = False
 
     return 0, None, Fields, Tables, Columns
 
-#-------------------------------------------------------------------------------
-
-def _validate_fields_ignore_field_error(Formats, field):
-    """
-    Check if a field error should be ignore.
-    """
-
-    if field in Formats and Formats[field] == 'ignore':
-        return True
-
-    return False
 #-------------------------------------------------------------------------------
 
 def _validate_fields_pw_check(pw1, pw2=None):

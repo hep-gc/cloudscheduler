@@ -1,63 +1,49 @@
-.vm div{
-  height: 100%;
+:root {
+  --header_background_color: #4CAF50;
+  --alternate_row_background_color: #F2F2F2;
+}
+
+.vm-table {
+  display: inline-block;
+  overflow-y: scroll;
+  overflow-x: scroll;
+  /* height: 100%; */
   width: 100%;
-  left: 0;
-  top: 0;
-  overflow: hidden;
+  margin-right: 8px;
+  margin-bottom: 1rem;
+  left: 202px;
   position: fixed;
+  z-index: 0;
 }
 
-.vm th {
-    background-color: #4CAF50;
-    color: white;
-    text-align: left;
+.vm-table table {
+  border: 0px;
+  padding: 0px;
+  /* table-layout: fixed; */
 }
 
-.vm table {
-  overflow: hidden;
-  table-layout: fixed;
-  border-collapse: collapse;
+.vm-table th, td {
+  border: 2px solid white;
 }
 
-
-.vm td:hover {
-  background-color: red;
-  color: white;
-}
-
-.vm tr:hover {
-  background-color: yellow;
-}
-
-.vm td {
+.vm-table th {
+  background-color: var(--header_background_color);
+  text-align: center;
   padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-  position: relative;
-}
-
-.vm td:hover::after,
-.vm th:hover::after {
-  content: "";
-  position: absolute;
-  background-color: yellow;
-  left: 0;
-  top: -5000px;
-  height: 10000px;
-  width: 100%;
-  z-index: -1;
-}
-
-
-
-.grey {
-  background-color: #eee;
   color: white;
 }
-.red {
-  background-color: rgba(255,0,0,.25);
+
+.vm-table tbody {
+  /* display: block; */
+  /* height: 100%; */
+  /* overflow-y: auto; */
 }
-.blue {
-  background-color: rgba(0,0,255,.25);
+
+.vm-table tbody > tr:nth-child(even) {
+  background-color: var(--alternate_row_background_color);
 }
-.clear {}
+
+.vm-table td {
+  padding: 8px;
+  text-align: center;
+}

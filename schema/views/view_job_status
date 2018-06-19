@@ -1,0 +1,48 @@
+/*
+** For each group, list the condor job counts (total, idle, running, completed, held,
+** and other).
+*/
+create or replace view view_job_status as
+
+select
+
+cjs.group_name,
+sum(Jobs) as Jobs,
+sum(Idle) as Idle,
+sum(Running) as Running,
+sum(Completed) as Completed,
+sum(Held) as Held,
+sum(Other) as Other
+
+from (
+    select
+
+    group_name,
+    0 as Jobs,
+    0 as Idle,
+    0 as Running,
+    0 as Completed,
+    0 as Held,
+    0 as Other
+
+    from csv2_groups
+
+    /*
+    ** Retrieve job statistics for each group.
+    */
+    union all select
+
+    group_name,
+    1 as Jobs,
+    case when job_status=1 then 1 else 0 end as Idle,
+    case when job_status=2 then 1 else 0 end as Running,
+    case when job_status=4 then 1 else 0 end as Completed,
+    case when job_status=5 then 1 else 0 end as Held,
+    case when job_status=0 or job_status=3 or job_status=6 then 1 else 0 end as Other
+
+    from condor_jobs
+    ) as cjs /* condor_job_status */
+
+group by group_name
+
+;

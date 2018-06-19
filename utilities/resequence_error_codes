@@ -6,7 +6,7 @@ import sys
 
 def archive_a_file(gvar, file_path):
     abs_file_path = os.path.abspath(file_path)
-    archive_file_path = '%s/%s-%s' % ( os.path.dirname(abs_file_path), gvar['current_time'], os.path.basename(abs_file_path))
+    archive_file_path = '%s/.%s-%s' % ( os.path.dirname(abs_file_path), gvar['current_time'], os.path.basename(abs_file_path))
     print('Archiving: %s' % archive_file_path)
 
     p = Popen(['mv', abs_file_path, archive_file_path], stdout=PIPE, stderr=PIPE)
@@ -27,8 +27,9 @@ def main(argv):
     if len(argv) > 1 and os.path.isfile(argv[1]):
 
         gvar = {}
-        gvar['current_time'] = '.%s-%s' % (datetime.datetime.now().date(), str(datetime.datetime.now().time())[:8])
+        gvar['current_time'] = '%s-%s' % (datetime.datetime.now().date(), str(datetime.datetime.now().time())[:8])
         gvar['cmd_path'] = os.path.abspath(argv[0])
+        gvar['delimiter'] = '/\\//'
         gvar['file_changes'] = []
         gvar['file_path'] = os.path.abspath(argv[1])
         gvar['path_info'] = gvar['cmd_path'].split('/')
@@ -73,32 +74,30 @@ def main(argv):
 
         if len(gvar['file_changes']) > 0:
             print('Changes: %s' % gvar['file_changes'])
-            gvar['signature'] = "expected_ec='%s" % error_prefix
             for item in os.listdir(gvar['ut_path']):
-                if os.path.isfile('%s/%s' %(gvar['ut_path'], item)) and item[0] != '2':
+                if os.path.isfile('%s/%s' %(gvar['ut_path'], item)) and item[0] != '.':
                     ut_file_path = '%s/%s' %(gvar['ut_path'], item)
                     fd = open(ut_file_path)
                     ut_file = fd.read()
                     fd.close()
 
-                    if len(ut_file.split(gvar['signature'])) > 1:
-                        gvar['ut_files'][ut_file_path] = {'file_lines': ut_file.split('\n'), 'changed_lines': {}}
+                    changed = False
+                    for old_ec, new_ec in gvar['file_changes']:
+                        split_ut_file = ut_file.split(old_ec)
+                        if len(split_ut_file) > 1:
+                            changed = True
+                            ut_file = ('%s%s%s' % (new_ec[:1], gvar['delimiter'], new_ec[1:])).join(split_ut_file)
 
-                        for ix in range(len(gvar['ut_files'][ut_file_path]['file_lines'])):
-                            for old_ec, new_ec in gvar['file_changes']:
-                                if ix not in gvar['ut_files'][ut_file_path]['changed_lines']:
-                                    w = gvar['ut_files'][ut_file_path]['file_lines'][ix].split(old_ec)
-                                    if len(w) > 1:
-                                        gvar['ut_files'][ut_file_path]['changed_lines'][ix] = True
-                                        gvar['ut_files'][ut_file_path]['file_lines'][ix] = new_ec.join(w)
+                    if changed:
+                        gvar['ut_files'][ut_file_path] = ''.join(ut_file.split(gvar['delimiter'])).split('\n')
+
 
             archive_a_file(gvar, gvar['file_path'])
+            update_a_file(gvar, gvar['file_path'], gvar['file_lines'])
+
             for file_path in sorted(gvar['ut_files']):
                 archive_a_file(gvar, file_path)
-
-            update_a_file(gvar, gvar['file_path'], gvar['file_lines'])
-            for file_path in sorted(gvar['ut_files']):
-                update_a_file(gvar, file_path, gvar['ut_files'][file_path]['file_lines'])
+                update_a_file(gvar, file_path, gvar['ut_files'][file_path])
 
         else:
             print('No changes.')

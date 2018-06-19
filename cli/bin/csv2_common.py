@@ -33,7 +33,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             missing.append(key[1])
 
     if missing:
-        print('Error: "csv2 %s %s" - the following mandatory parameters must be specfied on the command line:' % (gvar['object'], gvar['action']))
+        print('Error: "%s %s %s" - the following mandatory parameters must be specfied on the command line:' % (gvar['command_name'], gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
         print('For more information, use -H.')
@@ -49,7 +49,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             missing.append(key[1])
 
     if missing:
-        print('Error: "csv2 %s %s" - no value, neither default nor command line, for the following required parameters:' % (gvar['object'], gvar['action']))
+        print('Error: "%s %s %s" - no value, neither default nor command line, for the following required parameters:' % (gvar['command_name'], gvar['object'], gvar['action']))
         for key in missing:
             print('  %s' % key)
         print('For more information, use -h or -H.')
@@ -146,8 +146,8 @@ def _requests(gvar, request, form_data={}):
             )
 
     elif 'server-user' in gvar['user_settings']:
-        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
-            gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
+        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
+            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['server']))
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
             headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
@@ -157,7 +157,7 @@ def _requests(gvar, request, form_data={}):
             )
 
     else:
-        print('Error: csv2 servers require certificates or username/password for authentication.')
+        print('Error: %s servers require certificates or username/password for authentication.' % gvar['command_name'])
         exit(1)
 
     try:
@@ -232,7 +232,7 @@ def show_header(gvar, response):
 
     print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
 
-def show_table(gvar, queryset, columns, allow_null=True):
+def show_table(gvar, queryset, columns, allow_null=True, title=None):
     """
     Print a table from a SQLAlchemy query set.
     """
@@ -319,6 +319,9 @@ def show_table(gvar, queryset, columns, allow_null=True):
         _column_underscore.append('-' * (_column_lengths[_ix] + 2))
     _ruler = '+%s+' % '+'.join(_column_underscore)
 
+    if title:
+        print('\n%s' % title)
+
     print(_ruler)
     if gvar['user_settings']['rotate']:
         print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, ['Key', 'Value'])))
@@ -333,6 +336,7 @@ def show_table(gvar, queryset, columns, allow_null=True):
         print('| %s |' % ' | '.join(_show_table_pad(_column_lengths, _row)))
 
     print(_ruler)
+    print('Rows: %s' % len(_qs))
 
 def _show_table_pad(lens, cols):
     """
@@ -352,44 +356,18 @@ def verify_yaml_file(file_path):
     file_string = fd.read()
     fd.close()
 
-#   # Verify attribute line.
-#   attribute, yaml = file_string.split('\n',1)
-#   if len(attribute) > 1 and attribute[0] == '#':
-#       attributes = '\n'.join(' '.join(attribute[1:].split()).split(', '))
-#       result = _yaml_load_and_verify(attributes)
-#   else:
-#       print('Error: No attribute line, format: # yaml_enabled: <True | False>, yaml_mime_type = <cloud-config | ...>')
-#       exit(1)
-#
-#   if not result[0]:
-#       print('Error: Invalid attribute line "%s": %s' % (result[1], result[2]))
-#       exit(1)
-#
-#   if 'yaml_enabled' in result[1]:
-#       if result[1]['yaml_enabled'] == True:
-#           yaml_enabled = 1
-#       else:
-#           yaml_enabled = 0
-#   else:
-#       print('Error: yaml_enabled missing from attribute line.')
-#       exit(1)
-#
-#   if 'yaml_mime_type' in result[1]:
-#       yaml_mime_type = result[1]['yaml_mime_type']
-#   else:
-#       print('Error: yaml_mime_type missing from attribute line.')
-#       exit(1)
-
-    # Verify the remaining yaml.
-    result = _yaml_load_and_verify(yaml)
-    if not result[0]:
-        print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
-        exit(1)
+    # Verify yaml files.
+    if (len(file_path) > 4 and file_path[-4:] == '.yml') or \
+        (len(file_path) > 5 and file_path[-5:] == '.yaml') or \
+        (len(file_path) > 7 and file_path[-7:] == '.yml.j2') or \
+        (len(file_path) > 8 and file_path[-8:] == '.yaml.j2'):
+        result = _yaml_load_and_verify(file_string)
+        if not result[0]:
+            print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
+            exit(1)
 
     return {
-        'yaml': yaml,
-        'enabled': yaml_enabled, 
-        'mime_type': yaml_mime_type, 
+        'metadata': file_string,
         }
 
 def _yaml_load_and_verify(yaml_string):

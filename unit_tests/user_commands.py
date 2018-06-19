@@ -46,7 +46,7 @@ def main(gvar):
 
     execute_csv2_command(
         gvar, 1, 'UV01', 'must be all lower case.',
-        ['cloudscheduler', 'user', 'add', '-un', 'UTu1', '-upw', '1', '-ucn', 'unit test user one']
+        ['cloudscheduler', 'user', 'add', '-un', 'UTu1', '-upw', 'Abc123', '-ucn', 'unit test user one']
         )
 
 if __name__ == "__main__":

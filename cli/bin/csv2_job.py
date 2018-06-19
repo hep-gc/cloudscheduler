@@ -1,27 +1,15 @@
-from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_header, show_table
 from subprocess import Popen, PIPE
 
 import filecmp
 import os
 
 KEY_MAP = {
-    '-ca':  'authurl',
-    '-cpw': 'password',
     '-cn':  'cloud_name',
-    '-cp':  'project',
-    '-cr':  'region',
-    '-ct':  'cloud_type',
-    '-cu':  'username',
-    '-cP':  'project_domain_name',
-    '-cU':  'user_domain_name',
     '-g':   'group',
-    '-ga':  'cacertificate',
     '-vc':  'cores_ctl',
     '-vk':  'keyname',
     '-vr':  'ram_ctl',
-    '-yn':  'yaml_name',
-    '-ye':  'enabled',
-    '-ymt': 'mime_type',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -87,9 +75,9 @@ def list(gvar):
             job_list,
             [
                 'group_name/Group',
-                'cloud_name/Cloud',
-                'vmid/VMID',
+                'global_job_id/Job ID',
             ],
+            title="Jobs",
             )
     else:
         show_table(
@@ -97,29 +85,36 @@ def list(gvar):
             job_list,
             [
                 'group_name/Group',
+                'global_job_id/Job ID',
+                'cluster_id/Cluster ID',
+                'proc_id/Process ID',
+                'user/User',
+                'user_data/User Data',
+                'requirements/Requirements',
+                'target_clouds/Target Clouds',
                 'cloud_name/Cloud',
-                'vmid/VMID',
-                'hostname/Hostname',
-                'auth_url/Authorization URL',
-                'project/Project',
-                'status/Status',
-                'flavor_id/Flavor ID',
-                'task/Task',
-                'power_status/Power Status',
-                'terminate/Terminate',
-                'terminate_time/Terminate Time',
-                'status_changed_time/Status Change Time',
-                'last_updated/Last Updated',
-                'flavor_name/Flavor',
-                'condor_slots/Condor Slots',
-                'condor_off/Condor Off',
-                'foreign_vm/Foreign',
-                'cores/cores',
-                'disk/Disk (GBs)',
-                'ephemeral_disk/Ephemeral Disk (GBs)',
-                'ram/Ram (MBs)',
-                'swap/Swap (GBs)',
-                'poller_status/Poller Status',
+                'instance_type/Instance Type',
+                'request_cpus/Requested CPUs',
+                'request_ram/Requested RAM {MBs}',
+                'request_disk/Requested Disk {GBs}',
+                'request_scratch/Requested Scratch (GBs)',
+                'request_swap/Requested Swap (GBs)',
+                'job_per_core/Jobs per Core',
+                'image/Image',
+                'network/Network',
+                'job_priority/Priority',
+                'job_status/Status Code',
+                'js_idle/Idle',
+                'js_running/Running',
+                'js_completed/Completed',
+                'js_held/Held',
+                'js_other/Other',
+                'keep_alive/Keep Alive (seconds)',
+                'max_price/Max Spot Price',
+                'entered_current_status/State Change Date',
+                'q_date/Queued Date',
+                'hold_job/Hold Job',
             ],
+            title="Jobs",
             )
 

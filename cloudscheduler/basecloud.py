@@ -83,13 +83,17 @@ class BaseCloud(ABC):
         if yaml_list:
             raw_yaml_list = []
             for yam in yaml_list:
-                [contents, mimetype] = cloudscheduler.cloud_init_util\
+                [name, contents, mimetype] = cloudscheduler.cloud_init_util\
                     .read_file_type_pairs(yam)
                 if contents and mimetype:
-                    raw_yaml_list.append(('jobyaml', contents, mimetype))
+                    raw_yaml_list.append((name, contents, mimetype, 0))  # Default priority to 0 for job yamls.?
             group_yaml.extend(raw_yaml_list)
         if self.extrayaml:
             group_yaml.extend(self.extrayaml)
+        try:
+            group_yaml = sorted(group_yaml, key= lambda prio: prio[3])  # Sort based on the priority value
+        except IndexError:
+            self.log.exception("Tuple not long enough, did we miss inserting all the values?")
         for yaml_tuple in group_yaml:
             if '.j2' in yaml_tuple[0]:
                 template_dict['cs_cloud_name'] = self.name

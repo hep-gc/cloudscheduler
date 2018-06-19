@@ -1,0 +1,19 @@
+/*
+** List all groups with associated metadata (at least one row per group and one row per metadata file)..
+*/
+create or replace view view_groups_with_metadata as
+
+select
+
+cg.group_name,
+condor_central_manager,
+metadata_name,
+enabled as metadata_enabled,
+priority as metadata_priority,
+metadata,
+mime_type as metadata_mime_type
+
+from csv2_groups as cg
+left outer join csv2_group_metadata as cgm on cg.group_name=cgm.group_name
+
+;

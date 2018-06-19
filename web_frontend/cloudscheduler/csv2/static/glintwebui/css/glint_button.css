@@ -1,7 +1,7 @@
 .button {
-    background-color: #4CAF50; /* Green */
+    background-color: #fffeea;  
     border: none;
-    color: white;
+    color: black;
     padding: 8px 16px;
     text-align: center;
     text-decoration: none;
@@ -17,12 +17,12 @@
 .greenbutton {
     background-color: white; 
     color: black; 
-    border: 2px solid #4CAF50;
+    border: 2px solid black;
 }
 
 .greenbutton:hover {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #fffeea;
+    color: green;
 }
 
 .redbutton {

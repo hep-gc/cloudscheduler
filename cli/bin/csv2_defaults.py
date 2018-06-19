@@ -19,7 +19,7 @@ def delete(gvar):
             print('Are you sure you want to delete the settings for server "%s"? (yes|..)' % gvar['server'])
             _reply = input()
             if _reply != 'yes':
-                print('csv2 settings delete "%" cancelled.' % gvar['server'])
+                print('%s settings delete "%" cancelled.' % gvar['server'] % gvar['command_name'])
                 exit(0)
 
         shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']))

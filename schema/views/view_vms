@@ -1,0 +1,59 @@
+/*
+** List all VMs together with foreign indicator, poller status, condor slot counts
+** (used/total), condor_off, cores, disk, ram, and swap.
+*/
+create or replace view view_vms as
+
+/*
+** Retrieve information.
+*/
+
+select
+
+cv.*,
+cf.name as flavor_name,
+claimed_slots as condor_slots_used,
+total_slots as condor_slots,
+cm.condor_off,
+case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
+cores,
+disk + ephemeral_disk as disk,
+ram,
+swap,
+case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then ifnull(cvsc.status, "other") else Null end  as "poller_status"
+
+from csv2_vms as cv
+
+left outer join cloud_flavors as cf on
+  cv.group_name=cf.group_name and
+  cv.cloud_name=cf.cloud_name and
+  cv.flavor_id=cf.id
+
+left outer join condor_machines as cm
+on cv.hostname=cm.hostname
+
+left outer join csv2_vm_status_codes as cvsc
+on case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then 0 else 1 end = 0 and (
+  (cv.status = 'ERROR' and cv.status = cvsc.vm_status) or                                                                                       /* status = error                  */
+  (cv.manual_control = 1 and cv.manual_control = cvsc.manual_control) or                                                                        /* status = manual                 */
+  (cv.power_status = 1 and cv.status = cvsc.vm_status and cm.condor_off = cvsc.condor_off) or                                                   /* status = running or retiringi   */
+  (cv.power_status = 1 and cv.status = cvsc.vm_status and cm.condor_off is null and cvsc.condor_off is null)                                    /* status = unregistered           */
+  )
+
+left outer join (
+    select
+
+    hostname,
+    count(state) as claimed_slots
+
+    from condor_machines as cm
+
+    where  state = "claimed"
+
+    group by hostname
+    ) as ccsc /* condor_claimed_slot_count */
+on cv.hostname=ccsc.hostname
+
+group by cv.group_name,cv.cloud_name,cv.hostname
+
+;

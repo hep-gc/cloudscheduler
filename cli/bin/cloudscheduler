@@ -40,39 +40,39 @@ def main(args):
             'cloud': [
                 False, # super_user?
                 {
-                    'add':          csv2_cloud.add,
-                    'delete':       csv2_cloud.delete,
-                    'list':         csv2_cloud.list,
-                    'status':       csv2_cloud.status,
-                    'update':       csv2_cloud.update,
-                    'yaml-delete':  csv2_cloud.yaml_delete,
-                    'yaml-edit':    csv2_cloud.yaml_edit,
-                    'yaml-list':    csv2_cloud.yaml_list,
-                    'yaml-load':    csv2_cloud.yaml_load,
-                    'yaml-update':  csv2_cloud.yaml_update,
+                    'add':              csv2_cloud.add,
+                    'delete':           csv2_cloud.delete,
+                    'list':             csv2_cloud.list,
+                    'status':           csv2_cloud.status,
+                    'update':           csv2_cloud.update,
+                    'metadata-delete':  csv2_cloud.metadata_delete,
+                    'metadata-edit':    csv2_cloud.metadata_edit,
+                    'metadata-list':    csv2_cloud.metadata_list,
+                    'metadata-load':    csv2_cloud.metadata_load,
+                    'metadata-update':  csv2_cloud.metadata_update,
                     }
                 ],
             'defaults': [
                 False, # super_user?
                 {
-                    'delete':       csv2_defaults.delete,
-                    'list':         csv2_defaults.list,
-                    'set':          csv2_defaults.set,
+                    'delete':           csv2_defaults.delete,
+                    'list':             csv2_defaults.list,
+                    'set':              csv2_defaults.set,
                     }
                 ],
             'group': [
                 True, # super_user?
                 {
-                    'add':          csv2_group.add,
-                    'defaults':     csv2_group.defaults,
-                    'delete':       csv2_group.delete,
-                    'list':         csv2_group.list,
-                    'update':       csv2_group.update,
-                    'yaml-delete':  csv2_group.yaml_delete,
-                    'yaml-edit':    csv2_group.yaml_edit,
-                    'yaml-list':    csv2_group.yaml_list,
-                    'yaml-load':    csv2_group.yaml_load,
-                    'yaml-update':  csv2_group.yaml_update,
+                    'add':              csv2_group.add,
+                    'defaults':         csv2_group.defaults,
+                    'delete':           csv2_group.delete,
+                    'list':             csv2_group.list,
+                    'update':           csv2_group.update,
+                    'metadata-delete':  csv2_group.metadata_delete,
+                    'metadata-edit':    csv2_group.metadata_edit,
+                    'metadata-list':    csv2_group.metadata_list,
+                    'metadata-load':    csv2_group.metadata_load,
+                    'metadata-update':  csv2_group.metadata_update,
                     }
                 ],
             'helpers': [
@@ -84,18 +84,18 @@ def main(args):
             'job': [
                 False, # super_user?
                 {
-                    'list':         csv2_job.list,
+                    'list':             csv2_job.list,
                     }
                 ],
             'user': [
                 True, # super_user?
                 {
-                    'add':          csv2_user.add,
-                    'delete':       csv2_user.delete,
-                    'group-add':    csv2_user.group_add,
-                    'group-delete': csv2_user.group_delete,
-                    'list':         csv2_user.list,
-                    'update':       csv2_user.update,
+                    'add':              csv2_user.add,
+                    'delete':           csv2_user.delete,
+                    'group-add':        csv2_user.group_add,
+                    'group-delete':     csv2_user.group_delete,
+                    'list':             csv2_user.list,
+                    'update':           csv2_user.update,
                     }
                 ],
             'vm': [
@@ -120,6 +120,7 @@ def main(args):
             ('-g',   '--group', True),
             ('-gm',  '--group-manager', True),
             ('-gn',  '--group-name', True),
+            ('-go',  '--group-option', True),
             ('-H',   '--long-help', False),
             ('-h',   '--help', False),
             ('-jc',  '--job-cores', True),
@@ -127,6 +128,11 @@ def main(args):
             ('-jed', '--job-ephemeral-disk', True),
             ('-jr',  '--job-ram', True),
             ('-js',  '--job-swap', True),
+            ('-me',  '--metadata-enabled', True),
+            ('-mmt', '--metadata-mime-type', True),
+            ('-mn',  '--metadata-name', True),
+            ('-mlo', '--metadata-list-option', True),
+            ('-mp',  '--metadata-priority', True),
             ('-ok',  '--only-keys', False),
             ('-r',   '--rotate', False),
             ('-s',   '--server', True),
@@ -140,24 +146,22 @@ def main(args):
             ('-te',  '--text-editor', True),
             ('-ucn', '--user-common-name', True),
             ('-un',  '--username', True),
+            ('-uo',  '--user_option', True),
             ('-upw', '--user-password', True),
-            ('-Y',   '--yes', False),
-            ('-ye',  '--yaml-enabled', True),
-            ('-ymt', '--yaml-mime-type', True),
-            ('-yn',  '--yaml-name', True),
             ('-vc',  '--vm-cores', True),
-            ('-vco',  '--vm-condor-off', True),
             ('-vd',  '--vm-disk', True),
             ('-ved',  '--vm-ephemeral-disk', True),
             ('-vF',  '--vm-foreign', True),
             ('-vf',  '--vm-flavor', True),
             ('-vk',  '--vm-keypair', True),
+            ('-vo',  '--vm-option', True),
             ('-vr',  '--vm-ram', True),
             ('-vS',  '--vm-status', True),
             ('-vs',  '--vm-swap', True),
-            ('-vt',  '--vm-terminate', True),
             ('-xA',  '--expose-API', False),
+            ('-Y',   '--yes', False),
             ),
+        'command_name': os.path.basename(args[0]),
         'cookies': dict(),
         'csrf': None,
         'function_args': None,
@@ -228,7 +232,7 @@ def main(args):
     # Call object handler.
     if gvar['object'] in gvar['actions']:
         if not gvar['super_user'] and gvar['actions'][gvar['object']][0]:
-            print('Error: You are not authorized to access object "%s"; use "csv2 -h" or "csv2 -H" for help.' % gvar['object'])
+            print('Error: You are not authorized to access object "%s"; use "%s -h" or "%s -H" for help.' % (gvar['object'], gvar['command_name'], gvar['command_name']))
             exit(1)
 
         if gvar['action'] in gvar['actions'][gvar['object']][1]:

@@ -1,0 +1,19 @@
+/*
+** List all group resources (clouds) with (concatenated) associated metadata filenames
+** (one row per group resource).
+*/
+create or replace view view_group_resources_with_metadata_names as
+
+select
+
+vgr.*,
+group_concat(metadata_name order by metadata_name) as metadata_names
+
+from view_group_resources as vgr
+left outer join csv2_group_resource_metadata as cgrm on vgr.group_name=cgrm.group_name and vgr.cloud_name=cgrm.cloud_name
+
+group by vgr.group_name,vgr.cloud_name
+
+order by vgr.group_name,vgr.cloud_name
+
+;

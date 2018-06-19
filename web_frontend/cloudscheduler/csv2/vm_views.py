@@ -8,6 +8,7 @@ from .models import user as csv2_user
 from . import config
 
 from .view_utils import \
+    db_close, \
     db_execute, \
     db_open, \
     getAuthUser, \
@@ -25,41 +26,22 @@ import bcrypt
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
+from sqlalchemy.sql import and_
 from lib.schema import *
 import sqlalchemy.exc
 
-# lno: CV - error code identifier.
+# lno: VV - error code identifier.
 
 #-------------------------------------------------------------------------------
 
-CLOUD_KEYS = {
+VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'lowerdash',
-
-        'cores_slider':        'ignore',
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
-        'ram_slider':          'ignore',
-        },
-    }
-
-YAML_KEYS = {
-    'auto_active_group': True,
-    # Named argument formats (anything else is a string).
-    'format': {
-        'cloud_name':          'lowerdash',
-        'yaml_name':           'lowercase',
+        'vm_option':           ['kill', 'retire', 'manctl', 'sysctl'],
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
-        },
-    }
-
-IGNORE_YAML_NAME = {
-    'format': {
-        'yaml_name':           'ignore',
         },
     }
 
@@ -69,54 +51,48 @@ IGNORE_YAML_NAME = {
 def list(
     request,
     selector=None,
-    group_name=None,
     response_code=0,
     message=None,
     active_user=None,
     user_groups=None,
-    attributes=None
     ):
 
     if not verifyUser(request):
         raise PermissionDenied
 
     # open the database.
-    db_engine,db_session,db_connection,db_map = db_open()
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request, db_session, db_map)
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
-            db_connection.close()
+            db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Obtain selected Cloud
+    if selector:
+        if selector == '-':
+            current_cloud = ''
+        else:
+            current_cloud = selector
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
     vm_list = qt(db_connection.execute(s))
 
-    db_connection.close()
+    # Retrieve available Clouds.
+    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
+    cloud_list = qt(db_connection.execute(s))
 
-#   # Position the page.
-#   obj_act_id = request.path.split('/')
-#   if selector:
-#       if selector == '-':
-#           current_cloud = ''
-#       else:
-#           current_cloud = selector
-#   elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
-#       current_cloud = str(obj_act_id[3])
-#   else:
-#       if len(cloud_list) > 0:
-#           current_cloud = str(cloud_list[0]['cloud_name'])
-#       else:
-#           current_cloud = ''
+    db_close(db_ctl)
 
     # Render the page.
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
-            'attributes': attributes,
             'user_groups': user_groups,
+            'cloud_list': cloud_list,
             'vm_list': vm_list,
             'response_code': response_code,
             'message': message,
@@ -124,3 +100,93 @@ def list(
         }
 
     return render(request, 'csv2/vms.html', context)
+
+#-------------------------------------------------------------------------------
+
+@requires_csrf_token
+def update(request):
+    """
+    Update VMs.
+    """
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    if request.method == 'POST' and 'vm_option' in request.POST:
+        # open the database.
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, response_code=1, message='%s cloud update %s' % (lno('VV00'), msg), active_user=active_user, user_groups=user_groups)
+
+        if fields['vm_option'] == 'kill':
+            table = tables['csv2_vms']
+            verb = 'killed'
+        elif fields['vm_option'] == 'retire':
+            table = tables['condor_machines']
+            verb = 'retired'
+        elif fields['vm_option'] == 'manctl':
+            table = tables['csv2_vms']
+            verb = 'set to manual control'
+        elif fields['vm_option'] == 'sysctl':
+            table = tables['csv2_vms']
+            verb = 'set to system control'
+        else:
+            return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('GV41'), fields['vm_option']))
+
+        if 'vm_hostname' in fields:
+            if isinstance(fields['vm_hostname'], list):
+                hosts = fields['vm_hostname']
+            else:
+                hosts = fields['vm_hostname'].split(',')
+        else:
+            hosts = None
+
+        s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) and (view_vms.c.foreign_vm == 0))
+        vm_list = qt(db_connection.execute(s))
+
+        count = 0
+        for vm in vm_list:
+            if 'cloud_name' in fields and vm['cloud_name'] != fields['cloud_name']:
+                continue
+
+            if 'vm_status' in fields and vm['poller_status'] != fields['vm_status']:
+                continue
+
+            if hosts and vm['hostname'] not in hosts:
+                continue
+
+            if fields['vm_option'] == 'kill':
+                update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
+            elif fields['vm_option'] == 'retire':
+                update = table.update().where(table.c.hostname == vm['hostname']).values({'condor_off': 1})
+            elif fields['vm_option'] == 'manctl':
+                update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
+            elif fields['vm_option'] == 'sysctl':
+                update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
+
+            rc, msg = db_execute(db_ctl, table.update().where(table.c.vmid == vm['vmid']).values(control), allow_no_rows=True)
+            if rc == 0:
+                count += msg
+            else:
+                db_close(db_ctl)
+                return list(request, response_code=1, message='%s VM update (%s) failed - %s' % (lno('GV41'), fields['vm_option'], msg))
+
+        db_close(db_ctl, commit=True)
+        return list(request, response_code=0, message='vm update, VMs %s=%s.' % (verb, count))
+
+    ### Bad request.
+    else:
+        if request.method != 'POST':
+            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV15'), request.method))
+        else:
+            return list(request, response_code=1, message='%s cloud update, the vm-option is required and must be one of the following: %s.' % (lno('CV15'), VM_KEYS['format']['vm_option']))

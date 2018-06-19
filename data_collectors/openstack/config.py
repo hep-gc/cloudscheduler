@@ -10,14 +10,12 @@ poller_log_file = "/var/log/cloudscheduler/openstackpoller.log"
 vm_sleep_interval = 60
 vm_cleanup_interval = 120
 network_sleep_interval = 300
-network_cleanup_interval = 3600
 image_sleep_interval = 300
-image_cleanup_interval = 3600
 limit_sleep_interval = 300
-limit_cleanup_interval = 3600
 no_limit_default = 999999999
 flavor_sleep_interval = 300
-flavor_cleanup_interval = 3600
+keypair_sleep_interval = 600
+
 cacert = "/etc/ssl/certs/CABundle.crt"
 log_level = 20 #INFO
 
@@ -166,6 +164,21 @@ try:
 
     except yaml.YAMLError:
         print >> sys.stderr, "Unable to load os flavor config from yaml blob in database" \
+                         "Please check the yaml in database and retry"
+        sys.exit(1)
+
+
+    # Query keypairs config
+    db_yaml = db_session.query(Conf).get("os_keypairs")
+
+    try:
+        cfg = yaml.load(db_yaml.yaml)
+        if "openstack_keypairs" in cfg:
+            if "sleep_interval" in cfg["openstack_keypairs"]:
+                keypair_sleep_interval = cfg["openstack_keypairs"]["sleep_interval"]
+
+    except yaml.YAMLError:
+        print >> sys.stderr, "Unable to load os keypairs config from yaml blob in database" \
                          "Please check the yaml in database and retry"
         sys.exit(1)
 

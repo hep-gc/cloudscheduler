@@ -1,21 +1,19 @@
 def _caller():
     import inspect
     import os
+    if inspect.stack()[-3][1] == '<string>':
+        return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
-def _execute_selections(gvar, expected_text, expected_values):
+def _execute_selections(gvar, request, expected_text, expected_values):
     from unit_test_common import _caller
     
     gvar['ut_count'] += 1
     if len(gvar['selections']) < 1 or str(gvar['ut_count']) in gvar['selections']:
         return True
     else:
-        if expected_values:
-            print('%03d %s Skipping: %s' % (gvar['ut_count'], _caller(), expected_values))
-        elif expected_text:
-            print('%03d %s Skipping: %s' % (gvar['ut_count'], _caller(), expected_text))
-        else:
-            print('%03d %s Skipping...' % (gvar['ut_count'], _caller()))
+        gvar['ut_skipped'] += 1
+        print('%03d %s Skipping: %s, %s, %s' % (gvar['ut_count'], _caller(), request, expected_text, expected_values))
         return False
    
 def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
@@ -23,7 +21,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
     from subprocess import Popen, PIPE
     from unit_test_common import _caller, _execute_selections
 
-    if _execute_selections(gvar, expected_text, None):
+    if _execute_selections(gvar, cmd, expected_text, None):
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
 
@@ -41,7 +39,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: cmd=%s, expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
+            print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
             print('    return code=%s' % p.returncode)
             print('    error code=%s' % error_code)
             print('    stdout=%s' % str(stdout))
@@ -49,12 +47,12 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
 
             return 1
         else:
-            print('%03d %s OK: expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), expected_rc, expected_ec, expected_text))
+            print('%03d %s OK: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
             return 0
     else:
         return 0
 
-def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, form_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None):
+def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, form_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
     obtain a CSRF (for POST requests) prior to making the atual request.
@@ -62,9 +60,10 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
     from unit_test_common import _caller, _execute_selections, _requests
     
-    if _execute_selections(gvar, expected_text, values):
+    if _execute_selections(gvar, '%s %s' % (request, form_data), expected_text, values):
         if server_user and server_pw:
-           gvar['csrf'] = None
+            gvar['csrf'] = None
+            gvar['cookies'] = None
 
         # Obtain a CSRF as required.
         if form_data and not gvar['csrf']:
@@ -85,10 +84,11 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                 ) 
             
         # Perform the callers request.
-        response = _requests(gvar, request, form_data=form_data, server_user=server_user, server_pw=server_pw)
+        response = _requests(gvar, request, form_data=form_data, server_user=server_user, server_pw=server_pw, html=html)
 
         if server_user and server_pw:
-           gvar['csrf'] = None
+            gvar['csrf'] = None
+            gvar['cookies'] = None
 
         failed = False
 
@@ -104,36 +104,77 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: request=%s, form_data=%s, expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
-            print('    response code=%s' % response['response_code'])
-            print('    error code=%s' % error_code)
-            print('    message=%s\n' % response['message'])
+
+            if not gvar['hidden']:
+                print('\n%03d %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+                print('    response code=%s' % response['response_code'])
+                print('    error code=%s' % error_code)
+                print('    message=%s\n' % response['message'])
 
             return 1
         else:
+            if list and filter and values and (list not in response):
+                failed = True
+                if not gvar['hidden']:
+                    print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                    print('\tNo list "{}" in response.\n'.format(list))
             if list and filter and values and list in response:
                 failed = False
-                for row in response[list]:
+                if len(response[list]) > 0:
+                    # Will only work for a single value in filter!!
                     for key in filter:
-                        if row[key] == filter[key]:
+                        filtered_list = [row for row in response[list] if key in row.keys() and row[key] == filter[key]]
+                    if len(filtered_list) > 0:
+                        for row in filtered_list:
                             for key in values:
-                                if row[key] != values[key]:
+                                if key not in row.keys():
                                     failed = True
-                                    print('\n%03d %s Failed: request=%s, list=%s, filter=%s, values=%s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                                    print('    row=%s\n' % row)
+                                    if not gvar['hidden']:
+                                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                        print('\trow=%s' % row)
+                                        print('\tValue key "{}" not present in row.\n'.format(key))
+                                elif row[key] != values[key]:
+                                    failed = True
+                                    if not gvar['hidden']:
+                                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                        print('\trow=%s\n' % row)
+                    else:
+                        failed = True
+                        if not gvar['hidden']:
+                            print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                            print('\tFilter didn\'t match any rows\n')
+                else:
+                    failed = True
+                    if not gvar['hidden']:
+                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                        print('\tResponse list "{}" is empty.\n'.format(list))
 
                 if failed:
                     gvar['ut_failed'] += 1
                     return 1
                 else:
-                    print('%03d %s OK: request=%s, list=%s, filter=%s, values=%s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                    if not gvar['hidden']:
+                        print('%03d %s OK: request=%s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, list, filter, values))
                     return 0
 
-            print('%03d %s OK: request=%s, expected_rc=%s, expected_ec=%s, expected_text=%s' % (gvar['ut_count'], _caller(), request, expected_rc, expected_ec, expected_text))
+            if not gvar['hidden']:
+                print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
     else:
         return 0
 
-def initialize_csv2_request(gvar, command, selections=None):
+def html_message(text):
+    import re
+    p = re.compile(r'Error: (.*)</b>')
+    m = p.search(text.replace('\n', ''))
+    if m and m.group(1):
+        return True, m.group(1)
+    p = re.compile(r'<div class="footer"(.*)</div>')
+    m = p.search(text.replace('\n', ''))
+    if m and m.group(1):
+        return False, re.sub(r'</?[a-z]{2}>', '', m.group(1).strip())
+    return False, 'no message found'
+
+def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     import os
     import yaml
 
@@ -146,10 +187,20 @@ def initialize_csv2_request(gvar, command, selections=None):
     gvar['server'] = 'unit-test'
     gvar['ut_count'] = 0
     gvar['ut_failed'] = 0
+    gvar['ut_skipped'] = 0
     gvar['ut_dir'] = os.path.dirname(os.path.abspath(command))
+    gvar['hidden'] = hidden
 
     if selections:
-        gvar['selections'] = selections.split(',')
+        gvar['selections'] = []
+        tmp_selections = selections.split(',')
+        for ix in range(len(tmp_selections)):
+            w = tmp_selections[ix].split('-')
+            if len(w) == 2:
+                for iy in range(int(w[0]), int(w[1])+1):
+                    gvar['selections'].append(str(iy))
+            else:
+                gvar['selections'].append(tmp_selections[ix])
     else:
         gvar['selections'] = []
 
@@ -159,7 +210,7 @@ def initialize_csv2_request(gvar, command, selections=None):
 
     return
 
-def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
+def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, html=False):
     """
     Make RESTful request and return response.
     """
@@ -181,10 +232,15 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
         _function = py_requests.get
         _form_data = {}
 
+    if html:
+        headers={'Referer': gvar['user_settings']['server-address']}
+    else:
+        headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']}
+
     if server_user and server_pw:
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            headers=headers,
             auth=(server_user, server_pw),
             data=_form_data,
             cookies=gvar['cookies'] 
@@ -196,7 +252,7 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
         os.path.exists(gvar['user_settings']['server-grid-key']):
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            headers=headers,
             cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
             cookies=gvar['cookies']
@@ -207,7 +263,7 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
             gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
         _r = _function(
             '%s%s' % (gvar['user_settings']['server-address'], request),
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            headers=headers,
             auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
             cookies=gvar['cookies'] 
@@ -224,6 +280,12 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, unauthorized.' % (gvar['server'], _r.status_code)}
         elif _r.status_code and _r.status_code == 403:   
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, forbidden.' % (gvar['server'], _r.status_code)}
+        elif html and _r.status_code and _r.status_code == 200:
+            error, message = html_message(_r.text)
+            if error:
+                response = {'response_code': 1, 'message': message.replace('&quot;', '"')}
+            else:
+                response = {'response_code': 0, 'message': message.replace('&quot;', '"')}
         elif _r.status_code:   
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
         else:
@@ -233,11 +295,11 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
         print("Expose API requested:\n" \
             "  py_requests.%s(\n" \
             "    %s%s,\n" \
-            "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
+            "    headers=%s," % (
                 _function.__name__,
                 gvar['user_settings']['server-address'],
                 request,
-                gvar['user_settings']['server-address'],
+                headers,
                 )
             )
 
@@ -282,6 +344,10 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None):
             gvar['super_user'] = response['super_user']
 
     return response
+
+def ut_id(gvar, IDs):
+    ids = IDs.split(',')
+    return '%s-%s' % (gvar['user_settings']['server-user'], (',%s-' % gvar['user_settings']['server-user']).join(ids))
 
 def main():
     return
