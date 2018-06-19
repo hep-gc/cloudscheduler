@@ -1196,27 +1196,29 @@ def manage_keys(request, group_name=None, message=None):
         group_list.append(grp_name)
 
     grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
-    fingerprint_dict = {}
+    key_dict = {}
 
     num_clouds=0
     for cloud in grp_resources:
         num_clouds=num_clouds+1
-        for key in fingerprint_dict:
-            fingerprint_dict[key][cloud.cloud_name] = False
+        for key in key_dict:
+            key_dict[key][cloud.cloud_name] = False
         cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
         for key in cloud_keys:
             # issue of renaming here if keys have different names on different clouds
             # the keys will have a unique fingerprint and that is what is used as an identifier
-            if key.fingerprint in fingerprint_dict:
-                fingerprint_dict[key.fingerprint][key.cloud_name] = True
+            if (key.fingerprint + ";" + key.key_name) in key_dict:
+                dict_key = key.fingerprint + ";" + key.key_name
+                key_dict[dict_key][key.cloud_name] = True
             else:
-                fingerprint_dict[key.fingerprint] = {}
-                fingerprint_dict[key.fingerprint]["name"] = key.key_name
-                fingerprint_dict[key.fingerprint][key.cloud_name] = True
+                dict_key = key.fingerprint + ";" + key.key_name
+                key_dict[dict_key] = {}
+                key_dict[dict_key]["name"] = key.key_name
+                key_dict[dict_key][key.cloud_name] = True
 
     context = {
         "group_resources": grp_resources,
-        "fingerprint_dict": fingerprint_dict,
+        "key_dict": key_dict,
         "active_group": group_name,
         "message": message,
         "enable_glint": True,
@@ -1304,28 +1306,28 @@ def save_keypairs(request, group_name=None, message=None):
                 cloud_fingerprints = []
                 #check for deleted keys
                 for keypair in cloud_keys:
-                    cloud_fingerprints.append(keypair.fingerprint)
-                    if keypair.fingerprint not in check_list:
+                    cloud_fingerprints.append(keypair.fingerprint + ";" + keypair.key_name)
+                    if (keypair.fingerprint + keypair.key_name) not in check_list:
                         # key has been deleted from this cloud:
                         delete_keypair(keypair.fingerprint, cloud)
                         # delete from database
                         session.delete(keypair)
                 # check for new key transfers
-                for key_fingerprint in check_list:
-                    if key_fingerprint not in cloud_fingerprints:
+                for keypair_key in check_list:
+                    if keypair_key not in cloud_fingerprints:
                         # transfer key to this cloud
                         # get existing keypair: need name, public_key, key_type and ?user?
-                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == key_fingerprint).first()
+                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == keypair_key).first()
                         # get group resources corresponding to that keypair
                         src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
                         # download key from that group resources
-                        os_keypair = get_keypair(key_fingerprint, src_cloud)
+                        os_keypair = get_keypair(keypair_key, src_cloud)
                         # upload key to current "cloud"
                         transfer_keypair(os_keypair, cloud)
                         keypair_dict = {
                             "group_name": group_name,
                             "cloud_name": cloud.cloud_name,
-                            "fingerprint": key_fingerprint,
+                            "fingerprint": os_keypair.fingerprint,
                             "key_name": os_keypair.name
                         }
                         new_keypair = Keypairs(**keypair_dict)

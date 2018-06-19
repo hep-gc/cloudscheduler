@@ -825,13 +825,17 @@ def delete_keypair(fingerprint, cloud):
 
     return False
 
-def get_keypair(fingerprint, cloud):
+def get_keypair(keypair_key, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
+    split_key = fingerprint.split(";")
+    fingerprint = split_key[0]
+    key_name = split_key[1]
+
     keys = nova.keypairs.list()
     for key in keys:
-        if key.fingerprint == fingerprint:
+        if key.key_name == key_name:
             return key
     return None
 
@@ -846,8 +850,8 @@ def create_keypair(key_name, key_string, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
-    nova.keypairs.create(name=key_name, public_key=key_string)
-    return True
+    keypair = nova.keypairs.create(name=key_name, public_key=key_string)
+    return keypair
 
 
 def __get_image_ids(repo_dict):
