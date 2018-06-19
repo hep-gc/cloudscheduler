@@ -13,7 +13,6 @@ select
   request_cpus,
   request_ram,
   request_disk,
-  request_scratch,
   request_swap,
   requirements,
   job_priority,
@@ -45,7 +44,6 @@ from (
       request_cpus,
       request_ram,
       request_disk,
-      request_scratch,
       request_swap,
       requirements,
       job_priority,
@@ -62,7 +60,6 @@ from (
       flavor_cores,
       flavor_ram,
       flavor_disk,
-      flavor_scratch,
       flavor_swap,
 
       /*
@@ -74,7 +71,6 @@ from (
         request_cpus,
         request_ram,
         request_disk,
-        request_scratch,
         request_swap,
         requirements,
         job_priority,
@@ -92,7 +88,6 @@ from (
         flavor_cores,
         flavor_ram,
         flavor_disk,
-        flavor_scratch,
         flavor_swap
       ) as flavor_priority,
 
@@ -111,7 +106,9 @@ from (
       vcjgda.group_name=var.group_name and
       (target_clouds is null or instr(target_clouds, var.cloud_name) > 0) and
       request_cpus<=flavor_cores and
-      request_ram<=flavor_ram 
+      request_disk<=flavor_disk and
+      request_ram<=flavor_ram and
+      request_swap<=flavor_swap 
 
     /*
     ** Define the grouping.
@@ -122,7 +119,6 @@ from (
       request_cpus,
       request_ram,
       request_disk,
-      request_scratch,
       request_swap,
       requirements,
       job_priority,
@@ -141,7 +137,6 @@ from (
       flavor_cores,
       flavor_ram,
       flavor_disk,
-      flavor_scratch,
       flavor_swap 
     ) as vgijr /* cwview_groups_of_idle_jobs_raw */
 
@@ -157,7 +152,6 @@ group by
   request_ram,
   request_disk,
   request_swap,
-  request_scratch,
   requirements,
   job_priority,
   user,
