@@ -813,13 +813,13 @@ def repo_proccesed():
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
     red.set("repos_modified", 0)
 
-def delete_keypair(fingerprint, cloud):
+def delete_keypair(key_name, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
     keys = nova.keypairs.list()
     for key in keys:
-        if key.fingerprint == fingerprint:
+        if key.key_name == key_name:
             nova.keypairs.delete(key)
             return True
 
