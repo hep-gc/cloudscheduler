@@ -1325,8 +1325,11 @@ def save_keypairs(request, group_name=None, message=None):
                 for keypair_key in check_list:
                     if keypair_key not in cloud_fingerprints:
                         # transfer key to this cloud
+                        split_key = keypair_key.split(";")
+                        fingerprint = split_key[0]
+                        key_name = split_key[1]
                         # get existing keypair: need name, public_key, key_type and ?user?
-                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == keypair_key).first()
+                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Kepairs.key_name == key_name).first()
                         # get group resources corresponding to that keypair
                         src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
                         # download key from that group resources
@@ -1336,8 +1339,8 @@ def save_keypairs(request, group_name=None, message=None):
                         keypair_dict = {
                             "group_name": group_name,
                             "cloud_name": cloud.cloud_name,
-                            "fingerprint": os_keypair.fingerprint,
-                            "key_name": os_keypair.name
+                            "fingerprint": fingerprint,
+                            "key_name": key_name
                         }
                         new_keypair = Keypairs(**keypair_dict)
                         session.merge(new_keypair)
