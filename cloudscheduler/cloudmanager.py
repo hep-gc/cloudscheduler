@@ -46,7 +46,7 @@ class CloudManager():
                                "/" + csconfig.config.db_name)
         base.prepare(engine, reflect=True)
         session = Session(engine)
-        cloud_yaml = base.classes.csv2_group_resource_yaml
+        cloud_yaml = base.classes.csv2_group_resource_metadata
         cloud_vm = base.classes.csv2_vms
 
         for cloud in self.group_resources:
@@ -56,7 +56,7 @@ class CloudManager():
                        cloud_yaml.enabled == 1)
             cloud_yaml_list = []
             for yam in cloud_yamls:
-                cloud_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type, yam.priority])
+                cloud_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
             cloud_vms = session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
                                                        cloud_vm.cloud_name == cloud.cloud_name)
             try:
