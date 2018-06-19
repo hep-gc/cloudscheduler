@@ -349,7 +349,7 @@ def qt(query, keys=None, prune=[]):
     doese the following:
     
     # Retrieve the user list but loose the passwords.
-    s = select([view_user_groups_and_available_groups])
+    s = select([view_user_groups])
     user_list = qt(db_connection.execute(s), prune=['password'])
 
     # Retrieve user/groups list (dictionary containing list for each user).
@@ -368,7 +368,7 @@ def qt(query, keys=None, prune=[]):
         )
 
     # Retrieve  available groups list (dictionary containing list for each user).
-    s = select([view_user_groups_available])
+    s = select([view_user_groups])
     ignore1, ignore2, available_groups_per_user = qt(
         db_connection.execute(s),
         keys = {
@@ -642,10 +642,16 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     boolean                - A value of True or False will be inserted into the output fields.
     dboolean               - Database boolean values are either 0 or 1; allow and
                              convert true/false/yes/no.
+    float                  - A floating point value.
     ignore                 - Ignore missing mandatory fields or fields for undefined columns.
+    integer                - An integer value.
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
                              can't start or end with a dash (or error).
+    metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
+                             metadata string and a metadata filename. If the filename conforms to
+                             pre-defined patterns (eg. ends with ".yaml"), the string will be 
+                             checked to conform with the associated file type.
     password               - A password value to be checked and hashed
     password1              - A password value to be verified against password2, checked and hashed.
     password2              - A password value to be verified against password1, checked and hashed.
@@ -656,7 +662,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
 
     """
 
-    from .view_utils import _validate_fields_ignore_field_error, _validate_fields_pw_check
+    from .view_utils import _validate_fields_pw_check
     from sqlalchemy import Table, MetaData
     from sqlalchemy.sql import select
     import lib.schema
@@ -682,12 +688,12 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
 
         Columns[table[0]] = [[], []]
         for column in Tables[table[0]].c:
-            if column not in all_columns:
+            if column.name not in all_columns:
                 all_columns.append(column.name)
 
             if column.primary_key:
                 Columns[table[0]][0].append(column.name)
-                if column not in primary_key_columns:
+                if column.name not in primary_key_columns:
                     primary_key_columns.append(column.name)
             else:
                 Columns[table[0]][1].append(column.name)
@@ -747,6 +753,18 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                 else:
                     return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
 
+            elif Formats[field] == 'float':
+                try:
+                    float_value = float(value)
+                except:
+                    return 1, 'value specified for "%s" must be a floating point value.' % field, None, None, None
+
+            elif Formats[field] == 'integer':
+                try:
+                    integer = int(value)
+                except:
+                    return 1, 'value specified for "%s" must be a integer value.' % field, None, None, None
+
             elif Formats[field] == 'lowerdash':
                 if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
                     value = request.POST[field]
@@ -757,6 +775,25 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                 value = request.POST[field].lower()
                 if request.POST[field] != value:
                     return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+            elif Formats[field] == 'metadata':
+                filename = '%s_name' % field
+                if filename in request.POST:
+                    # Verify yaml files.
+                    if (len(request.POST[filename]) > 4 and request.POST[filename][-4:] == '.yml') or \
+                        (len(request.POST[filename]) > 5 and request.POST[filename][-5:] == '.yaml') or \
+                        (len(request.POST[filename]) > 7 and request.POST[filename][-7:] == '.yml.j2') or \
+                        (len(request.POST[filename]) > 8 and request.POST[filename][-8:] == '.yaml.j2'):
+
+                        import yaml
+
+                        try:    
+                            temp_data = yaml.load(value)
+                            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", request.POST[filename], value, temp_data)
+                        except yaml.scanner.ScannerError as ex:
+                            return 1, 'yaml value specified for "%s (%s)" is invalid - scanner error - %s' % (field, filename, ex), None, None, None
+                        except yaml.parser.ParserError as ex:
+                            return 1, 'yaml value specified for "%s (%s)" is invalid - parser error - %s' % (field, filename, ex), None, None, None
 
             elif Formats[field] == 'password':
                 rc, value = _validate_fields_pw_check(request.POST[field])
@@ -794,12 +831,12 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                 Fields[field_alias] = value
         else: 
             array_field = field.split('.')
-            if len(array_field) > 1 and (array_field[0] in all_columns or _validate_fields_ignore_field_error(Formats, array_field[0])):
+            if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
                 if array_field[0] not in Fields:
                     Fields[array_field[0]] = []
                 Fields[array_field[0]].append(value)
             else:
-                if _validate_fields_ignore_field_error(Formats, field):
+                if field in Formats:
                     Fields[field] = value
                 else:
                     return 1, 'request contained a bad parameter "%s".' % field, None, None, None
@@ -811,7 +848,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         Fields['username'] = active_user
 
     for field in primary_key_columns:
-        if field not in Fields and not _validate_fields_ignore_field_error(Formats, field):
+        if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
             return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 
     for field in Formats:
@@ -826,18 +863,6 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
 
     return 0, None, Fields, Tables, Columns
 
-#-------------------------------------------------------------------------------
-
-def _validate_fields_ignore_field_error(Formats, field):
-    """
-    Check if a field error should be ignore.
-    """
-
-#   if field in Formats and Formats[field] == 'ignore':
-    if field in Formats:
-        return True
-
-    return False
 #-------------------------------------------------------------------------------
 
 def _validate_fields_pw_check(pw1, pw2=None):

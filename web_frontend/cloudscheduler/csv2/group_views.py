@@ -55,7 +55,6 @@ GROUP_DEFAULTS_KEYS = {
         'group':               'ignore',
         'job_cpus':            'integer',
         'job_disk':            'integer',
-        'job_scratch':         'integer',
         'job_ram':             'integer',
         'job_swap':            'integer',
         },
@@ -65,10 +64,11 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'enabled':             'dboolean',
+        'metadata_enabled':    'dboolean',
+        'metadata_priority':   'integer',
         'metadata':            'metadata',
         'metadata_name':       'lowercase',
-        'mime_type':           ('csv2_mime_types', 'mime_type'),
+        'metadata_mime_type':           ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -434,6 +434,7 @@ def list(
                 'secondary': [
                     'metadata_name',
                     'metadata_enabled',
+                    'metadata_priority',
                     'metadata_mime_type',
                     'metadata',
                     ]
@@ -601,8 +602,9 @@ def metadata_fetch(request, selector=None):
                 context = {
                     'group_name': row.group_name,
                     'metadata': row.metadata,
-                    'metadata_enabled': row.enabled,
-                    'metadata_mime_type': row.mime_type,
+                    'metadata_enabled': row.metadata_enabled,
+                    'metadata_priority': row.metadata_priority,
+                    'metadata_mime_type': row.metadata_mime_type,
                     'metadata_name': row.metadata_name,
                     'response_code': 0,
                     'message': None,
