@@ -402,54 +402,21 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('ram', Integer),
   Column('flavor_name', String(128)),
   Column('flavor_id', String(128)),
-  Column('flavor_instance_type', String(149)),
+  Column('flavor_instance_type', String(150)),
   Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
   Column('flavor_disk', Integer),
-  Column('flavor_scratch', Integer),
+  Column('flavor_ram', Integer),
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
-  Column('flavor', String(182)),
+  Column('flavor', String(184)),
   Column('flavor_slots', Integer),
   Column('VMs_up', Integer),
   Column('VMs_down', Integer)
   )
 
-view_available_resources_raw = Table('view_available_resources_raw', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(20)),
-  Column('authurl', String(128)),
-  Column('project', String(128)),
-  Column('username', String(20)),
-  Column('password', String),
-  Column('keyname', String(20)),
-  Column('cacertificate', String),
-  Column('region', String(20)),
-  Column('user_domain_name', String(20)),
-  Column('project_domain_name', String(20)),
-  Column('cloud_type', String(64)),
-  Column('cores', Integer),
-  Column('ram', Integer),
-  Column('flavor_name', String(128)),
-  Column('flavor_id', String(128)),
-  Column('flavor_instance_type', String(149)),
-  Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
-  Column('flavor_disk', Integer),
-  Column('flavor_scratch', Integer),
-  Column('flavor_swap', Integer),
-  Column('flavor_priority', Integer),
-  Column('flavor', String(182))
-  )
-
-view_claimed_slot_counts = Table('view_claimed_slot_counts', metadata,
-  Column('hostname', String(32)),
-  Column('claimed_slots', Integer)
-  )
-
 view_cloud_status = Table('view_cloud_status', metadata,
   Column('group_name', String(128)),
-  Column('cloud_name', String),
+  Column('cloud_name', String(128)),
   Column('VMs', Integer),
   Column('VMs_unregistered', Integer),
   Column('VMs_running', Integer),
@@ -469,29 +436,6 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('ram_percent', Float)
   )
 
-view_cloud_status_raw = Table('view_cloud_status_raw', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String),
-  Column('VMs', Integer),
-  Column('VMs_unregistered', Integer),
-  Column('VMs_running', Integer),
-  Column('VMs_retiring', Integer),
-  Column('VMs_manual', Integer),
-  Column('VMs_in_error', Integer),
-  Column('VMs_other', Integer),
-  Column('Foreign_VMs', Integer),
-  Column('condor_slots', Integer),
-  Column('condor_slots_used', Integer),
-  Column('Jobs', Integer),
-  Column('Jobs_s0', Integer),
-  Column('Jobs_s1', Integer),
-  Column('Jobs_s2', Integer),
-  Column('Jobs_s3', Integer),
-  Column('Jobs_s4', Integer),
-  Column('Jobs_s5', Integer),
-  Column('Jobs_s6', Integer)
-  )
-
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
   Column('global_job_id', String(128)),
   Column('group_name', String(128)),
@@ -499,10 +443,9 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('cloud_name', String),
   Column('job_status', Integer),
   Column('request_cpus', Integer),
-  Column('request_ram', Integer),
   Column('request_disk', Integer),
+  Column('request_ram', Integer),
   Column('request_swap', Integer),
-  Column('request_scratch', Integer),
   Column('requirements', String(512)),
   Column('job_priority', Integer),
   Column('cluster_id', Integer),
@@ -657,7 +600,6 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('request_cpus', Integer),
   Column('request_ram', Integer),
   Column('request_disk', Integer),
-  Column('request_scratch', Integer),
   Column('request_swap', Integer),
   Column('requirements', String(512)),
   Column('job_priority', Integer),
@@ -677,47 +619,14 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('other', Integer)
   )
 
-view_groups_of_idle_jobs_raw = Table('view_groups_of_idle_jobs_raw', metadata,
-  Column('group_name', String(128)),
-  Column('target_clouds', String),
-  Column('request_cpus', Integer),
-  Column('request_ram', Integer),
-  Column('request_disk', Integer),
-  Column('request_scratch', Integer),
-  Column('request_swap', Integer),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('image', String),
-  Column('instance_type', String(512)),
-  Column('network', String(512)),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('queue_date', Integer),
-  Column('flavor', String(182)),
-  Column('flavor_mismatch', Integer),
-  Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
-  Column('flavor_disk', Integer),
-  Column('flavor_scratch', Integer),
-  Column('flavor_swap', Integer),
-  Column('flavor_priority', Integer),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer)
-  )
-
 view_groups_with_metadata = Table('view_groups_with_metadata', metadata,
   Column('group_name', String(128)),
   Column('condor_central_manager', String),
   Column('metadata_name', String(128)),
-  Column('enabled', Integer),
-  Column('priority', Integer),
+  Column('metadata_enabled', Integer),
+  Column('metadata_priority', Integer),
   Column('metadata', String),
-  Column('mime_type', String(128))
+  Column('metadata_mime_type', String(128))
   )
 
 view_groups_with_metadata_names = Table('view_groups_with_metadata_names', metadata,
@@ -736,16 +645,6 @@ view_job_status = Table('view_job_status', metadata,
   Column('Other', Integer)
   )
 
-view_job_status_raw = Table('view_job_status_raw', metadata,
-  Column('group_name', String(128)),
-  Column('Jobs', Integer),
-  Column('Idle', Integer),
-  Column('Running', Integer),
-  Column('Completed', Integer),
-  Column('Held', Integer),
-  Column('Other', Integer)
-  )
-
 view_metadata_collation = Table('view_metadata_collation', metadata,
   Column('group_name', String(128)),
   Column('cloud_name', String(128)),
@@ -754,25 +653,7 @@ view_metadata_collation = Table('view_metadata_collation', metadata,
   Column('metadata_name', String(128))
   )
 
-view_metadata_collation_raw = Table('view_metadata_collation_raw', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String(128)),
-  Column('type', String(5)),
-  Column('priority', Integer),
-  Column('metadata_name', String(128))
-  )
-
 view_user_groups = Table('view_user_groups', metadata,
-  Column('username', String(32)),
-  Column('cert_cn', String(128)),
-  Column('password', String(128)),
-  Column('is_superuser', Integer),
-  Column('join_date', Integer),
-  Column('active_group', String(128)),
-  Column('user_groups', String)
-  )
-
-view_user_groups_and_available_groups = Table('view_user_groups_and_available_groups', metadata,
   Column('username', String(32)),
   Column('cert_cn', String(128)),
   Column('password', String(128)),
@@ -812,15 +693,8 @@ view_vms = Table('view_vms', metadata,
   Column('foreign_vm', Integer),
   Column('cores', Integer),
   Column('disk', Integer),
-  Column('ephemeral_disk', Integer),
   Column('ram', Integer),
   Column('swap', Integer),
   Column('poller_status', String(16))
-  )
-
-view_vms_up_down = Table('view_vms_up_down', metadata,
-  Column('flavor', String(386)),
-  Column('VMs_up', Integer),
-  Column('VMs_down', Integer)
   )
 
