@@ -29,7 +29,7 @@ select
   /*
   ** Use group_concat() DB function to create (a list of) flavors.
   */
-  group_concat(flavor) as flavors,
+  group_concat(flavor order by flavor) as flavors,
 
   idle,
   running,
