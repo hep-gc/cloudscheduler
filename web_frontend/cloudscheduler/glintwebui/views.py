@@ -1314,22 +1314,26 @@ def save_keypairs(request, group_name=None, message=None):
                 cloud_keys = session.query(Keypairs).filter(Keypairs.group_name == group_name, Keypairs.cloud_name == cloud.cloud_name)
                 cloud_fingerprints = []
                 #check for deleted keys
+                logger.info("Checking for keys to delete")
                 for keypair in cloud_keys:
                     cloud_fingerprints.append(keypair.fingerprint + ";" + keypair.key_name)
                     if (keypair.fingerprint + keypair.key_name) not in check_list:
                         # key has been deleted from this cloud:
-                        delete_keypair(keypair.fingerprint, cloud)
+                        logging.info("Found key to delete form openstack: %s" % keypair.key_name)
+                        delete_keypair(keypair.key_name, cloud)
                         # delete from database
                         session.delete(keypair)
                 # check for new key transfers
+                logger.info("Checking for keys to transfer")
                 for keypair_key in check_list:
                     if keypair_key not in cloud_fingerprints:
                         # transfer key to this cloud
+                        logger.info("Found key: %s to transfer to %s" % (keypair.key_name, cloud.cloud_name))
                         split_key = keypair_key.split(";")
                         fingerprint = split_key[0]
                         key_name = split_key[1]
                         # get existing keypair: need name, public_key, key_type and ?user?
-                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Kepairs.key_name == key_name).first()
+                        src_keypair = session.query(Keypairs).filter(Keypairs.fingerprint == fingerprint, Keypairs.key_name == key_name).first()
                         # get group resources corresponding to that keypair
                         src_cloud = session.query(Group_Resources).filter(Group_Resources.group_name == src_keypair.group_name, Group_Resources.cloud_name == src_keypair.cloud_name).first()
                         # download key from that group resources
