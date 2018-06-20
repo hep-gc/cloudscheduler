@@ -21,6 +21,7 @@
             checkboxes[i].checked = source.checked;
         }
       }
+
     </script>
   {% if err_message is not None %}
       <p style="color:red;">{{err_message}}</p>
@@ -63,7 +64,7 @@
           <!-- <tbody> -->
             {% for vm in vm_list %}
               <tr>
-                <td><input type="checkbox" name="vm" /></td>
+                <td><input type="checkbox" name="vm" value={{vm.vmid}}/></td>
                 <td>{{vm.cloud_name}}</td>
                 <td>{{vm.project}}</td>
                 <td>{{vm.hostname}}</td>
