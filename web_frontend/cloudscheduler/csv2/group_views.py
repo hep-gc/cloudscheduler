@@ -64,11 +64,11 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'metadata_enabled':    'dboolean',
-        'metadata_priority':   'integer',
+        'enabled':             'dboolean',
+        'priority':            'integer',
         'metadata':            'metadata',
         'metadata_name':       'lowercase',
-        'metadata_mime_type':           ('csv2_mime_types', 'mime_type'),
+        'mime_type':           ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -602,9 +602,9 @@ def metadata_fetch(request, selector=None):
                 context = {
                     'group_name': row.group_name,
                     'metadata': row.metadata,
-                    'metadata_enabled': row.metadata_enabled,
-                    'metadata_priority': row.metadata_priority,
-                    'metadata_mime_type': row.metadata_mime_type,
+                    'metadata_enabled': row.enabled,
+                    'metadata_priority': row.priority,
+                    'metadata_mime_type': row.mime_type,
                     'metadata_name': row.metadata_name,
                     'response_code': 0,
                     'message': None,
