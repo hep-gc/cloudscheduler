@@ -820,8 +820,12 @@ def keypairPoller():
             #setup fingerprint list
             fingerprint_list = []
 
-            # get keypairs and add them to database
-            cloud_keys = nova.keypairs.list()
+            try:
+                # get keypairs and add them to database
+                cloud_keys = nova.keypairs.list()
+            except Exception as exc:
+                logging.error(exc)
+                logging.error("Unable to poll keypairs from nova, skipping %s-%s" % (cloud.group_name, cloud.cloud_name))
             for key in cloud_keys:
                 key_dict = {
                     "cloud_name":  cloud.cloud_name,
