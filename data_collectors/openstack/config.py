@@ -31,18 +31,16 @@ if exists("/etc/cloudscheduler/cloudscheduler.yaml"):
 elif exists("/opt/cloudscheduler/cloudscheduler.yaml"):
     path = "/opt/cloudscheduler/cloudscheduler.yaml"
 
-
 try:
     with open(path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
 except Exception as e:
-    print >> sys.stderr, "Configuration file problem: There was a " \
-                         "problem reading %s. Check that it is readable," \
-                         "and that it exists. " % path
+    print("Configuration file problem: There was a " \
+          "problem reading %s. Check that it is readable," \
+          "and that it exists. " % path, file=sys.stderr)
 
 # Database config loaded from local file
-
 if "database" in cfg:
     if "db_host" in cfg["database"]:
         db_host = cfg["database"]["db_host"]
@@ -85,8 +83,8 @@ try:
             if "log_level" in cfg["general"]:
                 log_level = cfg["general"]["log_level"]
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load general os config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load general os config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
     # Query VM config
@@ -101,8 +99,8 @@ try:
             if "cleanup_interval" in cfg["openstack_vms"]:
                 vm_cleanup_interval = cfg["openstack_vms"]["cleanup_interval"]
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load os vm config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load os vm config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
 
@@ -116,8 +114,8 @@ try:
                 network_sleep_interval = cfg["openstack_networks"]["sleep_interval"]
 
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load os network config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load os network config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
 
@@ -131,8 +129,8 @@ try:
                 image_sleep_interval = cfg["openstack_images"]["sleep_interval"]
 
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load os image config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load os image config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
 
@@ -148,8 +146,8 @@ try:
                 no_limit_default = cfg["openstack_limits"]["no_limit_default"]
 
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load os limit config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load os limit config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
 
@@ -163,8 +161,8 @@ try:
                 flavor_sleep_interval = cfg["openstack_flavors"]["sleep_interval"]
 
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load os flavor config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load os flavor config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
 
@@ -178,14 +176,14 @@ try:
                 keypair_sleep_interval = cfg["openstack_keypairs"]["sleep_interval"]
 
     except yaml.YAMLError:
-        print >> sys.stderr, "Unable to load os keypairs config from yaml blob in database" \
-                         "Please check the yaml in database and retry"
+        print("Unable to load os keypairs config from yaml blob in database" \
+              "Please check the yaml in database and retry", file=sys.stderr)
         sys.exit(1)
 
 
 
 except Exception as e:
-    print >> sys.stderr, "Unable to connect to the database and extract relevent config," \
-                     "please ensure the database parameters are correct and restart csmetadata"
-    print >> sys.stderr, e
+    print("Unable to connect to the database and extract relevent config," \
+          "please ensure the database parameters are correct and restart csmetadata", file=sys.stderr)
+    print(e, file=sys.stderr)
     sys.exit(1)
