@@ -15,6 +15,11 @@ def main(gvar):
         list='user_list', filter={'username': ut_id(gvar, 'utu1')},
         values={}
         )
+    
+    execute_csv2_request(
+        gvar, 1, '???', '???',
+        '/user/list/', form_data={'invalid-unit-test': 'invalid-unit-test'}
+    )
 
 if __name__ == "__main__":
     main(None)

@@ -33,6 +33,11 @@ def main(gvar):
     )
 
     execute_csv2_request(
+        gvar, 1, '???', '???',
+        '/group/list/', form_data={'invalid-unit-test': 'invalid-unit-test'}
+    )
+
+    execute_csv2_request(
         gvar, 0, None, None,
         '/group/list/'
     )

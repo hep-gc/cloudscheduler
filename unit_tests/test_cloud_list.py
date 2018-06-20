@@ -48,6 +48,12 @@ def main(gvar):
     )
 
     execute_csv2_request(
+        gvar, 1, '???', '???',
+        '/cloud/list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/',
         list='cloud_list',

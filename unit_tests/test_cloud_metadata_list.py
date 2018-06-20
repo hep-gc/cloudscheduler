@@ -45,7 +45,6 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
-    # TODO: Should this fail?
     execute_csv2_request(
         gvar, 1, '???', '???',
         '/cloud/metadata-list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
