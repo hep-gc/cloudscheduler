@@ -40,7 +40,6 @@ def getSuperUserStatus(request):
 # WEB VIEWS
 
 def manage_keys(request, group_name=None, message=None):
-    print("MANAGE KEYS VIEW ENTRY")
     if not verifyUser(request):
         raise PermissionDenied
     user_obj = getUser(request)
@@ -199,7 +198,6 @@ def new_keypair(request, group_name=None,):
 
 
 def save_keypairs(request, group_name=None, message=None):
-    print("SAVE KEYS VIEW ENTRY")
     if not verifyUser(request):
         raise PermissionDenied
 
