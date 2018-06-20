@@ -778,7 +778,7 @@ def keypairPoller():
             "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Keypairs = Base.classes.csv2_keypairs
+        Keypairs = Base.classes.cloud_keypairs
         Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 

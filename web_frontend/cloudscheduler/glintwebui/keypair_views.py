@@ -49,7 +49,7 @@ def manage_keys(request, group_name=None, message=None):
 
     Base, session = get_db_base_and_session()
     Group_Resources = Base.classes.csv2_group_resources
-    Keypairs = Base.classes.csv2_keypairs
+    Keypairs = Base.classes.cloud_keypairs
     User_Group = Base.classes.csv2_user_groups
     user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
     group_list = []
@@ -99,7 +99,7 @@ def upload_keypair(request, group_name=None):
          # set up database objects
         Base, session = get_db_base_and_session()
         Group_Resources = Base.classes.csv2_group_resources
-        Keypairs = Base.classes.csv2_keypairs
+        Keypairs = Base.classes.cloud_keypairs
         user = getUser(request)
 
         # get list of target clouds to upload key to
@@ -151,7 +151,7 @@ def new_keypair(request, group_name=None,):
          # set up database objects
         Base, session = get_db_base_and_session()
         Group_Resources = Base.classes.csv2_group_resources
-        Keypairs = Base.classes.csv2_keypairs
+        Keypairs = Base.classes.cloud_keypairs
         user = getUser(request)
 
         # get list of target clouds to upload key to
@@ -215,7 +215,7 @@ def save_keypairs(request, group_name=None, message=None):
             #set up database objects
             Base, session = get_db_base_and_session()
             Group_Resources = Base.classes.csv2_group_resources
-            Keypairs = Base.classes.csv2_keypairs
+            Keypairs = Base.classes.cloud_keypairs
             # get list of clouds for this group
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
