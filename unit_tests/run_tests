@@ -101,6 +101,9 @@ def main():
             exec('import {}_requests_setup'.format(obj), globals(), locals())
             print('Setting up {} tests...'.format(obj))
             exec('{}_requests_setup.main(hidden_gvar)'.format(obj), globals(), locals())
+            if hidden_gvar['ut_failed'] > 0:
+                print('Error setting up tests. Run with -v flag to see output.')
+                exit(hidden_gvar['ut_failed'])
         for ((f, n), s) in user_options['tests']:
             if s == None:
                 if n.startswith(obj):
@@ -116,6 +119,9 @@ def main():
             exec('import {}_requests_cleanup'.format(obj))
             print('Cleaning up {} tests...'.format(obj))
             exec('{}_requests_cleanup.main(hidden_gvar)'.format(obj), globals(), locals())
+            if hidden_gvar['ut_failed'] > 0:
+                print('Error cleaning up tests. Run with -v flag to see output.')
+                exit(hidden_gvar['ut_failed'])
     if user_options['run_all']:
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])

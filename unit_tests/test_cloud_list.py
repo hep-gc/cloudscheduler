@@ -41,7 +41,7 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
+        '/cloud/list/',
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc2')},
         values={'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -49,9 +49,8 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
-        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc2')},
-        values={'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
+        '/cloud/list/',
+        list='cloud_list',
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123', html=True
     )
 

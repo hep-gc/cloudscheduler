@@ -110,7 +110,7 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
-    # cloud to be listed in test_cloud_update
+    # cloud to be changed in test_cloud_update, test_cloud_metadata_add, test_cloud_metadata_delete
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/add/', form_data={
@@ -122,6 +122,60 @@ def main(gvar):
             'password': 'Abc123',
             'region': ut_id(gvar, 'ctc3-r'),
             'cloud_type': 'unit-test-cloud-three-type'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    # metadata to be deleted in test_cloud_metadata_delete
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty2')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty2'),
+            'metadata': '- example: yes'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    # metadata to be updated in test_cloud_metadata_update
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty3'),
+            'metadata': '- example: yes'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    # metadata to be updated in test_cloud_metadata_update
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty3.yaml'),
+            'metadata': '- example: yes'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    # metadata to be fetched in test_cloud_metadata_fetch and test_cloud_metadata_list
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc2'),
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata': '- example: yes'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty1')),
+        '/group/metadata-add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata': '- example: yaml'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )

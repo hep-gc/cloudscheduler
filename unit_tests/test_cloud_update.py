@@ -79,7 +79,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={'server_meta_max': 0, 'server_group_members_max': 0, 'cores_native': 0, 'floating_ips_max': 0, 'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'unit-test-cloud-three-type', 'image_meta_max': 0, 'cacertificate': None, 'ram_ctl': -1, 'region': 'jodiew-ctc3-r', 'keyname': None, 'ram_native': 0, 'username': 'jodiew-ctu3', 'metadata_names': None, 'instances_max': 0, 'personality_size_max': 0, 'cores_max': 0, 'keypairs_max': 0, 'cores_foreign': 0, 'ram_foreign': 0, 'server_groups_max': 0, 'user_domain_name': 'Default', 'project': 'unit-test-cloud-three', 'ram_used': 0, 'cores_used': 0, 'server_groups_used': 0, 'security_groups_max': 0, 'cloud_name': 'jodiew-ctc3', 'personality_max': 0, 'instances_used': 0, 'ram_max': 0, 'group_name': 'jodiew-ctg1', 'security_group_rules_max': 0, 'cores_ctl': -1, 'floating_ips_used': 0, 'security_groups_used': 0},
+        values={'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'unit-test-cloud-three-type', 'ram_ctl': -1, 'region': 'jodiew-ctc3-r', 'username': 'jodiew-ctu3', 'project': 'unit-test-cloud-three', 'cloud_name': 'jodiew-ctc3', 'group_name': 'jodiew-ctg1'},
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
