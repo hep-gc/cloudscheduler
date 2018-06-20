@@ -1,3 +1,5 @@
+import logging
+
 from django.http import HttpResponse
 from django.http import StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
@@ -12,6 +14,30 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+logger = logging.getLogger('glintv2')
+
+def getUser(request):
+    user = request.META.get('REMOTE_USER')
+    Base, session = get_db_base_and_session()
+    Glint_User = Base.classes.csv2_user
+    auth_user_list = session.query(Glint_User)
+    for auth_user in auth_user_list:
+        if user == auth_user.cert_cn or user == auth_user.username:
+            return auth_user
+
+def verifyUser(request):
+    auth_user = getUser(request)
+    return bool(auth_user)
+
+def getSuperUserStatus(request):
+    auth_user = getUser(request)
+    if auth_user is None:
+        return False
+    else:
+        return auth_user.is_superuser
+
+
+# WEB VIEWS
 
 def manage_keys(request, group_name=None, message=None):
     if not verifyUser(request):
