@@ -13,8 +13,15 @@
   {% endblock %}
 
   <body class="vms-nav">
-
-
+    <script>
+      function toggle(source) {
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i] != source)
+            checkboxes[i].checked = source.checked;
+        }
+      }
+    </script>
   {% if err_message is not None %}
       <p style="color:red;">{{err_message}}</p>
   {% endif %}
@@ -30,7 +37,7 @@
         <table>
           <!-- <thead> -->
             <tr>
-              <th><input type="checkbox" name="vm" /></th>
+              <th><input type="checkbox" onclick="toggle(this);"/></th>
               <th>Cloud</th>
               <th>Project</th>
               <th>Hostname</th>
