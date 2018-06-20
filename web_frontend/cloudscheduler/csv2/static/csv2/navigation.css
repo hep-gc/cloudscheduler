@@ -34,7 +34,6 @@
   
 .top-nav ul li {
   display:inline-block;
-  padding:0 0px;
   }
 
 .top-nav a {
@@ -60,6 +59,7 @@
   text-decoration:none;
   padding-left: 20px;
   padding-right: 20px;
+
 }
 /*******************************************/
 
@@ -70,7 +70,6 @@ ul.sub-menu{
     margin-left:-25px;
     width:125px;
     padding-left:0px;
-    
     visibility: hidden;
 }
 
@@ -84,9 +83,7 @@ ul.sub-menu li:hover{
     color:white;
     background-color: #656565;
 }
-.top-nav li:hover{
-    color:white;
-}
+
 .top-nav li:hover .sub-menu {
     z-index:1;
     visibility: visible;
@@ -108,3 +105,11 @@ ul.sub-menu li:hover{
 
 /*******************************************/
 
+select {
+  -webkit-appearance: none; 
+  -moz-appearance: none;
+  appearance: none;       /* remove default arrow */
+  font-size:20px;
+  color:black;
+  background-color: whitesmoke;
+}

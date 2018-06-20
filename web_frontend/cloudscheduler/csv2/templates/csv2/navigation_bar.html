@@ -5,9 +5,10 @@
 </head>
 
 
-<nav class="top-nav nav-button">
+<nav class="top-nav">
     <ul>
         <div class="float-left">
+            <li></li>
             <li>
                 <form name="group_selector" action="" method="POST">
                     {% csrf_token %}
@@ -41,7 +42,7 @@
                     <li><a class="users-nav" href="/user/list/">Users</a></li>
                 </ul>
             </li>
-            <li>{{ active_user }}
+            <li class="nav-button">{{ active_user }}
                 <ul class="sub-menu">
                     <li><a class="" href="#">Settings</a></li>
                     <li><a class="" href="#">Logout</a></li>
