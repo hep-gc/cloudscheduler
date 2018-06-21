@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.urls import path
 
 from . import views, cloud_views, group_views, job_views, settings_views, user_views, vm_views
 
@@ -42,7 +43,8 @@ urlpatterns = [
     url(r'^user/settings',                         user_views.settings,             name='user-settings'),
     url(r'^user/update',                           user_views.update,               name='user-update'),
 
-    url(r'^vm/list/(?P<selector>)',                vm_views.list,                   name='vm-list'),
-#   url(r'^vm/modify',                             vm_views.modify,                 name='vm-list'),
+    path('vm/list/',                                vm_views.list),
+    path('vm/list/<path:selector>/',               vm_views.list),
+    path('vm/update/<path:selector>/',             vm_views.update),
 
 ]

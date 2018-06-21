@@ -60,6 +60,13 @@ UNPRIVILEGED_USER_KEYS = {
         },
     }
 
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        },
+    }
 
 #-------------------------------------------------------------------------------
 
@@ -100,7 +107,7 @@ def add(request):
                 return list(request, selector=fields['username'], response_code=1, message='%s username "%s" unavailable.' % (lno('UV02'), fields['username']), active_user=active_user, user_groups=user_groups)
 
             # Check #2 Check that the cert_cn is not equal to any username or other cert_cn
-            if fields['cert_cn'] is not None and (fields['cert_cn'] == registered_user["username"] or fields['cert_cn'] == registered_user["cert_cn"]):
+            if 'cert_cn' in fields and (fields['cert_cn'] == registered_user["username"] or fields['cert_cn'] == registered_user["cert_cn"]):
                 return list(request, selector=fields['username'], response_code=1, message='%s username "%s" conflicts with a registered common name.' % (lno('UV03'), fields['username']), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified groups.
@@ -214,6 +221,13 @@ def list(
         if rc != 0:
             db_close(db_ctl)
             return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno('UV13'), msg)})
+
+    # Validate input fields (should be none).
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user list, %s' % (lno('GV06'), msg)})
 
     # Retrieve the user list but loose the passwords.
     s = select([view_user_groups])

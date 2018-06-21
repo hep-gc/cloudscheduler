@@ -64,6 +64,14 @@ IGNORE_YAML_NAME = {
         },
     }
 
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        },
+    }
+
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
@@ -90,6 +98,13 @@ def list(
         if rc != 0:
             db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Validate input fields (should be none).
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('GV06'), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
@@ -124,5 +139,5 @@ def list(
             'enable_glint': config.enable_glint
         }
 
-    return render(request, 'csv2/vms.html', context)
+    return render(request, 'csv2/jobs.html', context)
 

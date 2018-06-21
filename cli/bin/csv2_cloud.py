@@ -394,8 +394,8 @@ def metadata_list(gvar):
     check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mlo', '-mn'])
 
     # Retrieve data (possibly after changing the group).
-    if 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
-        response = requests(gvar, '/cloud/metadata-list/', {'metadata_list_option': 'merge'})
+    if 'metadata-list-option' in gvar['user_settings']:
+        response = requests(gvar, '/cloud/metadata-list/', {'metadata_list_option': gvar['user_settings']['metadata-list-option']})
     else:
         response = requests(gvar, '/cloud/metadata-list/')
     

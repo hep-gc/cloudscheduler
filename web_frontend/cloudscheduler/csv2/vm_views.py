@@ -16,6 +16,7 @@ from .view_utils import \
     getSuperUserStatus, \
     lno, \
     qt, \
+    qt_filter_get, \
     render, \
     set_user_groups, \
     table_fields, \
@@ -45,12 +46,20 @@ VM_KEYS = {
         },
     }
 
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        },
+    }
+
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
 def list(
     request,
-    selector=None,
+    selector='::::',
     response_code=0,
     message=None,
     active_user=None,
@@ -70,16 +79,16 @@ def list(
             db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
-    # Obtain selected Cloud
-    if selector:
-        if selector == '-':
-            current_cloud = ''
-        else:
-            current_cloud = selector
+    # Validate input fields (should be none).
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('GV06'), msg)})
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(db_connection.execute(s))
+    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::')))
 
     # Retrieve available Clouds.
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
@@ -104,7 +113,7 @@ def list(
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def update(request):
+def update(request, selector='::::'):
     """
     Update VMs.
     """
@@ -151,20 +160,12 @@ def update(request):
         else:
             hosts = None
 
+        # Retrieve VM information.
         s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) and (view_vms.c.foreign_vm == 0))
-        vm_list = qt(db_connection.execute(s))
+        vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::')))
 
         count = 0
         for vm in vm_list:
-            if 'cloud_name' in fields and vm['cloud_name'] != fields['cloud_name']:
-                continue
-
-            if 'vm_status' in fields and vm['poller_status'] != fields['vm_status']:
-                continue
-
-            if hosts and vm['hostname'] not in hosts:
-                continue
-
             if fields['vm_option'] == 'kill':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
             elif fields['vm_option'] == 'retire':

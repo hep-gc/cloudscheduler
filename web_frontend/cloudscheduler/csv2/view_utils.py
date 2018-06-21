@@ -311,7 +311,7 @@ def manage_user_group_verification(db_ctl, tables, users, groups):
 
 #-------------------------------------------------------------------------------
 
-def qt(query, keys=None, prune=[]):
+def qt(query, keys=None, prune=[], filter=None):
     """
     Query Transform takes a list of dictionaries (eg. the result of an SqlAlchemy query)
     and transforms it into a standard python list (repeatably iterable). In the process,
@@ -320,6 +320,8 @@ def qt(query, keys=None, prune=[]):
         o It can delete columns from the rows (prune=[col1, col2,..]).
         o It can split the query into a list and corresponding dictionaries (
           (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
+        o It can filter rows based on the result of an evaluated string; True is
+          retained, and False is dropped.
 
     Splitting a query into a list and corresponding dictionaries:
 
@@ -398,6 +400,10 @@ def qt(query, keys=None, prune=[]):
         Query = []
     for row in Query:
         cols = dict(row)
+
+        if filter:
+            if not eval(filter):
+                continue
 
         if keys:
             add_row = False
@@ -488,6 +494,36 @@ def _qt_list(secondary_dict_ptr, secondary_key_list_ptr, cols, key):
         return secondary_dict_ptr[cols[key]], secondary_key_list_ptr[cols[key]]
     else:
       return secondary_dict_ptr, secondary_key_list_ptr
+
+#-------------------------------------------------------------------------------
+
+def qt_filter_get(columns, values, and_or='and'):
+    """
+    This function takes two lists (columns and values) or equal length and
+    returns a string that can be evaluated by view_utils.qt to filter rows
+    of a query.
+    """
+
+    if len(columns) != len(values):
+        return None
+#       raise Exception('view_utils. columns(%s) and values(%s) arguments must be of equal length.' % (len(columns), len(values)))
+
+    key_value_list = []
+    for ix in range(len(columns)):
+        if values[ix]:
+            try:
+                x = float(values[ix])
+                key_value_list.append("cols['%s'] == %s" % (columns[ix], values[ix]))
+            except:
+                if ',' in values[ix]:
+                  key_value_list.append("cols['%s'] in %s" % (columns[ix], values[ix].split(',')))
+                else:
+                  key_value_list.append("cols['%s'] == '%s'" % (columns[ix], values[ix]))
+
+    if len(key_value_list) < 1:
+        return None
+    else:
+        return (' %s ' % and_or).join(key_value_list)
 
 #-------------------------------------------------------------------------------
 
@@ -716,150 +752,150 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
 
     # Process input fields.
     Fields = {}
-    for field in sorted(request.POST):
-        if Options['unnamed_fields_are_bad'] and field not in Formats:
-            return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
+    if request.method == 'POST':
+        for field in sorted(request.POST):
+            if Options['unnamed_fields_are_bad'] and field not in Formats:
+                return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
 
-        field_alias = field
-        value = request.POST[field]
+            field_alias = field
+            value = request.POST[field]
 
-        if field in Formats:
-            if isinstance(Formats[field], (list, tuple)):
-                if isinstance(Formats[field], tuple):
-                    options = []
-                    s = select([lib.schema.__dict__[Formats[field][0]]])
-                    for row in db_connection.execute(s):
-                       if Formats[field][1] in row:
-                          options.append(row[Formats[field][1]])
+            if field in Formats:
+                if isinstance(Formats[field], (list, tuple)):
+                    if isinstance(Formats[field], tuple):
+                        options = []
+                        s = select([lib.schema.__dict__[Formats[field][0]]])
+                        for row in db_connection.execute(s):
+                           if Formats[field][1] in row:
+                              options.append(row[Formats[field][1]])
+                    else:
+                        options = Formats[field]
+
+                    lower_value = value.lower()
+                    value = None
+                    for opt in options:
+                        if lower_value == opt.lower():
+                            value = opt
+                            break
+
+                    if not value:
+                        return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
+
+                elif Formats[field] == 'dboolean':
+                    lower_value = value.lower()
+                    if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
+                        value = 1
+                    elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
+                        value = 0
+                    else:
+                        return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
+
+                elif Formats[field] == 'float':
+                    try:
+                        float_value = float(value)
+                    except:
+                        return 1, 'value specified for "%s" must be a floating point value.' % field, None, None, None
+
+                elif Formats[field] == 'integer':
+                    try:
+                        integer = int(value)
+                    except:
+                        return 1, 'value specified for "%s" must be a integer value.' % field, None, None, None
+
+                elif Formats[field] == 'lowerdash':
+                    if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
+                        value = request.POST[field]
+                    else:
+                        return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
+
+                elif Formats[field] == 'lowercase':
+                    value = request.POST[field].lower()
+                    if request.POST[field] != value:
+                        return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+                elif Formats[field] == 'metadata':
+                    filename = '%s_name' % field
+                    if filename in request.POST:
+                        # Verify yaml files.
+                        if (len(request.POST[filename]) > 4 and request.POST[filename][-4:] == '.yml') or \
+                            (len(request.POST[filename]) > 5 and request.POST[filename][-5:] == '.yaml') or \
+                            (len(request.POST[filename]) > 7 and request.POST[filename][-7:] == '.yml.j2') or \
+                            (len(request.POST[filename]) > 8 and request.POST[filename][-8:] == '.yaml.j2'):
+
+                            import yaml
+
+                            try:    
+                                temp_data = yaml.load(value)
+                            except yaml.scanner.ScannerError as ex:
+                                return 1, 'yaml value specified for "%s (%s)" is invalid - scanner error - %s' % (field, filename, ex), None, None, None
+                            except yaml.parser.ParserError as ex:
+                                return 1, 'yaml value specified for "%s (%s)" is invalid - parser error - %s' % (field, filename, ex), None, None, None
+
+                elif Formats[field] == 'password':
+                    rc, value = _validate_fields_pw_check(request.POST[field])
+                    if rc != 0:
+                        return 1, value, None, None, None
+
+                elif Formats[field] == 'password1':
+                    field_alias = '%s2' % field[:-1]
+                    pw2 = request.POST.get(field_alias)
+                    if not pw2:
+                        if not request.POST[field]:
+                            continue
+                        return 1, 'password update received a password but no verify password; both are required.', None, None, None
+
+                    rc, value = _validate_fields_pw_check(request.POST[field],pw2=pw2)
+                    if rc != 0:
+                        return 1, value, None, None, None
+                    field_alias = field[:-1]
+
+                elif Formats[field] == 'password2':
+                    field_alias = '%s1' % field[:-1]
+                    if not request.POST.get(field_alias):
+                        if not request.POST[field]:
+                            continue
+                        return 1, 'password update received a verify password but no password; both are required.', None, None, None
+                    continue
+
+                elif Formats[field] == 'uppercase':
+                    value = request.POST[field].upper()
+                    if request.POST[field] != value:
+                        return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
+
+            if field_alias in all_columns:
+                if value or field_alias != 'password':
+                    Fields[field_alias] = value
+            else: 
+                array_field = field.split('.')
+                if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
+                    if array_field[0] not in Fields:
+                        Fields[array_field[0]] = []
+                    Fields[array_field[0]].append(value)
                 else:
-                    options = Formats[field]
+                    if field in Formats:
+                        Fields[field] = value
+                    else:
+                        return 1, 'request contained a bad parameter "%s".' % field, None, None, None
 
-                lower_value = value.lower()
-                value = None
-                for opt in options:
-                    if lower_value == opt.lower():
-                        value = opt
-                        break
+        if Options['auto_active_group'] and 'group_name' not in Fields:
+            Fields['group_name'] = active_user.active_group
 
-                if not value:
-                    return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
+        if Options['auto_active_user'] and 'username' not in Fields:
+            Fields['username'] = active_user
 
-            elif Formats[field] == 'dboolean':
-                lower_value = value.lower()
-                if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
-                    value = 1
-                elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
-                    value = 0
+        for field in primary_key_columns:
+            if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
+                return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
+
+        for field in Formats:
+            if Formats[field] == 'boolean':
+                if request.POST.get(field):
+                    if request.POST[field] == 'invalid-unit-test':
+                        Fields[field] = 'invalid-unit-test'
+                    else:
+                        Fields[field] = True
                 else:
-                    return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
-
-            elif Formats[field] == 'float':
-                try:
-                    float_value = float(value)
-                except:
-                    return 1, 'value specified for "%s" must be a floating point value.' % field, None, None, None
-
-            elif Formats[field] == 'integer':
-                try:
-                    integer = int(value)
-                except:
-                    return 1, 'value specified for "%s" must be a integer value.' % field, None, None, None
-
-            elif Formats[field] == 'lowerdash':
-                if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
-                    value = request.POST[field]
-                else:
-                    return 1, 'value specified for "%s" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.' % field, None, None, None
-
-            elif Formats[field] == 'lowercase':
-                value = request.POST[field].lower()
-                if request.POST[field] != value:
-                    return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
-
-            elif Formats[field] == 'metadata':
-                filename = '%s_name' % field
-                if filename in request.POST:
-                    # Verify yaml files.
-                    if (len(request.POST[filename]) > 4 and request.POST[filename][-4:] == '.yml') or \
-                        (len(request.POST[filename]) > 5 and request.POST[filename][-5:] == '.yaml') or \
-                        (len(request.POST[filename]) > 7 and request.POST[filename][-7:] == '.yml.j2') or \
-                        (len(request.POST[filename]) > 8 and request.POST[filename][-8:] == '.yaml.j2'):
-
-                        import yaml
-
-                        try:    
-                            temp_data = yaml.load(value)
-                            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", request.POST[filename], value, temp_data)
-                        except yaml.scanner.ScannerError as ex:
-                            return 1, 'yaml value specified for "%s (%s)" is invalid - scanner error - %s' % (field, filename, ex), None, None, None
-                        except yaml.parser.ParserError as ex:
-                            return 1, 'yaml value specified for "%s (%s)" is invalid - parser error - %s' % (field, filename, ex), None, None, None
-
-            elif Formats[field] == 'password':
-                rc, value = _validate_fields_pw_check(request.POST[field])
-                if rc != 0:
-                    return 1, value, None, None, None
-
-            elif Formats[field] == 'password1':
-                field_alias = '%s2' % field[:-1]
-                pw2 = request.POST.get(field_alias)
-                if not pw2:
-                    if not request.POST[field]:
-                        continue
-                    return 1, 'password update received a password but no verify password; both are required.', None, None, None
-
-                rc, value = _validate_fields_pw_check(request.POST[field],pw2=pw2)
-                if rc != 0:
-                    return 1, value, None, None, None
-                field_alias = field[:-1]
-
-            elif Formats[field] == 'password2':
-                field_alias = '%s1' % field[:-1]
-                if not request.POST.get(field_alias):
-                    if not request.POST[field]:
-                        continue
-                    return 1, 'password update received a verify password but no password; both are required.', None, None, None
-                continue
-
-            elif Formats[field] == 'uppercase':
-                value = request.POST[field].upper()
-                if request.POST[field] != value:
-                    return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
-
-        if field_alias in all_columns:
-            if value or field_alias != 'password':
-                Fields[field_alias] = value
-        else: 
-            array_field = field.split('.')
-            if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
-                if array_field[0] not in Fields:
-                    Fields[array_field[0]] = []
-                Fields[array_field[0]].append(value)
-            else:
-                if field in Formats:
-                    Fields[field] = value
-                else:
-                    return 1, 'request contained a bad parameter "%s".' % field, None, None, None
-
-    if Options['auto_active_group'] and 'group_name' not in Fields:
-        Fields['group_name'] = active_user.active_group
-
-    if Options['auto_active_user'] and 'username' not in Fields:
-        Fields['username'] = active_user
-
-    for field in primary_key_columns:
-        if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
-            return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
-
-    for field in Formats:
-        if Formats[field] == 'boolean':
-            if request.POST.get(field):
-                if request.POST[field] == 'invalid-unit-test':
-                    Fields[field] = 'invalid-unit-test'
-                else:
-                    Fields[field] = True
-            else:
-                Fields[field] = False
+                    Fields[field] = False
 
     return 0, None, Fields, Tables, Columns
 

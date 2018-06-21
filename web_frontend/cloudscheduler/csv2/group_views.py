@@ -64,11 +64,11 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'metadata_enabled':    'dboolean',
-        'metadata_priority':   'integer',
+        'enabled':             'dboolean',
+        'priority':            'integer',
         'metadata':            'metadata',
         'metadata_name':       'lowercase',
-        'metadata_mime_type':           ('csv2_mime_types', 'mime_type'),
+        'mime_type':           ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -87,6 +87,14 @@ IGNORE_KEYS = {
         'username':             'ignore',
         'vmid':                 'ignore',
         'id':                   'ignore',
+        },
+    }
+
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
         },
     }
 
@@ -418,6 +426,13 @@ def list(
             db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': msg})
 
+    # Validate input fields (should be none).
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group list, %s' % (lno('GV06'), msg)})
+
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_groups_with_metadata_names]).order_by('group_name')
@@ -602,9 +617,9 @@ def metadata_fetch(request, selector=None):
                 context = {
                     'group_name': row.group_name,
                     'metadata': row.metadata,
-                    'metadata_enabled': row.metadata_enabled,
-                    'metadata_priority': row.metadata_priority,
-                    'metadata_mime_type': row.metadata_mime_type,
+                    'metadata_enabled': row.enabled,
+                    'metadata_priority': row.priority,
+                    'metadata_mime_type': row.mime_type,
                     'metadata_name': row.metadata_name,
                     'response_code': 0,
                     'message': None,
@@ -636,6 +651,12 @@ def metadata_list(request):
     if rc != 0:
         db_close(db_ctl)
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+    if rc != 0:        
+        db_close(db_ctl)
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-list, %s' % (lno('GV06'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)
