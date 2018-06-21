@@ -391,5 +391,20 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
+    execute_csv2_request(
+        gvar, 1, 'CV02', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gvar, 'ctc5'),
+            'authurl': 'unit-test-cloud-five.ca',
+            'project': 'unit-test-cloud-five',
+            'username': ut_id(gvar, 'ctu3'),
+            'password': 'Abc123',
+            'region': ut_id(gvar, 'ctc5-r'),
+            'cloud_type': 'local'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
 if __name__ == "__main__":
     main(None)
