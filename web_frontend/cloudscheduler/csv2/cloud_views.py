@@ -214,10 +214,11 @@ def list(
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
-    rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
-    if rc != 0:        
-        db_close(db_ctl)
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno('CV06'), msg)})
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno('CV06'), msg)})
 
     s = select([csv2_cloud_types])
     type_list = qt(db_connection.execute(s))
@@ -307,10 +308,17 @@ def metadata_add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Verify the specified cloud exists.
+        s = select([csv2_group_resources]).where((csv2_group_resources.c.group_name == active_user.active_group) & (csv2_group_resources.c.cloud_name == fields['cloud_name']))
+        cloud_list = qt(db_connection.execute(s))
+        if len(cloud_list) < 1:
+            db_close(db_ctl)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - cloud does not exist.' % (lno('CV19'), fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add the cloud metadata file.
         table = tables['csv2_group_resource_metadata']

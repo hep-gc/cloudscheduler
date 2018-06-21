@@ -21,52 +21,7 @@
 {% endif %}
 
 <div class="main-div">
-    <div class="status-table">
-        <table>
-          <colgroup>
-            <col class="grey" />
-            <col class="red" span="1" />
-            <col class="clear" span="4" />
-            <col class="blue" span="1" />
-            <col class="clear" span="2" />
-          </colgroup>
-          <thead>
-            <tr>
-                <th>Clouds</th>
-                <th>VMs</th>
-                <th>Running</th>
-                <th>Retiring</th>
-                <th>In Error</th>
-                <th>Other</th>
 
-                <th>Foreign</th>
-
-                <th>Slots</th>
-                <th>Cores</th>
-
-
-            </tr>
-            {% for cloud in cloud_status_list %}
-                <tr>
-                    <td>{{cloud.cloud_name}}</td>
-                    <td>{{cloud.VMs}}</td>
-                    <td>{{cloud.VMs_running}}</td>
-                    <td>{{cloud.VMs_retiring}}</td>
-                    <td>{{cloud.VMs_in_error}}</td>           
-                    <td>{{cloud.VMs_other}}</td>
-                    <td>{{cloud.Foreign_VMs}}</td>
-
-
-
-                    <td>{{cloud.slots_used}} / {{cloud.slots_max}}</td>
-                    <td>{{cloud.cores_used}} / {{cloud.cores_max}}</td>
-
-                </tr>
-            {% endfor %}
-            </tbody> 
-        </table>
-    </div>
-    <br>
     <br>
     <div class="status-table">
         <table>
@@ -87,18 +42,105 @@
             </tr>
             {% for cloud in job_status_list %}
                 <tr>
-                    <td>{{cloud.Jobs}}</td>
-                    <td>{{cloud.Idle}}</td>
-                    <td>{{cloud.Running}}</td>
-                    <td>{{cloud.Completed}}</td>
-                    <td>{{cloud.Held}}</td>
-                    <td>{{cloud.Other}}</td>
+
+                    {% if cloud.Jobs == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Jobs}}</td>
+                    {% endif %}
+
+                    {% if cloud.Idle == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Idle}}</td>
+                    {% endif %}
+
+                    {% if cloud.Running == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Running}}</td>
+                    {% endif %}
+
+                    {% if cloud.Completed == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Completed}}</td>
+                    {% endif %}
+
+                    {% if cloud.Held == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Held}}</td>
+                    {% endif %}
+
+                    {% if cloud.Other == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Other}}</td>
+                    {% endif %}
 
                 </tr>
             {% endfor %}
             </tbody> 
         </table>
     </div>
+
+    <br>
+
+    <div class="status-table">
+        <table>
+          <colgroup>
+            <col class="grey" />
+            <col class="red" span="1" />
+            <col class="clear" span="6" />
+            <col class="blue" span="1" />
+            <col class="clear" span="2" />
+          </colgroup>
+          <thead>
+            <tr>
+                <th>Clouds</th>
+                <th>VMs</th>
+                <th>Unregistered</th>
+                <th>Running</th>
+                <th>Retiring</th>
+                <th>Manual</th>
+                <th>In Error</th>
+                <th>Other</th>
+
+                <th>Foreign</th>
+
+                <th>Slots</th>
+                <th>Cores</th>
+
+
+            </tr>
+            {% for cloud in cloud_status_list %}
+                <tr>
+                    <td>{{cloud.cloud_name}}</td>
+                    {% if cloud.VMs == 0 %}
+                        <td><font color="grey">{{cloud.VMs}}</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.VMs}}</td>
+                    {% endif %}
+                    <td>{{cloud.VMs_unregistered}}</td>
+                    <td>{{cloud.VMs_running}}</td>
+                    <td>{{cloud.VMs_retiring}}</td>
+                    <td>{{cloud.VMs_manual}}</td>
+                    <td>{{cloud.VMs_in_error}}</td>           
+                    <td>{{cloud.VMs_other}}</td>
+                    <td>{{cloud.Foreign_VMs}}</td>
+
+
+
+                    <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
+                    <td>{{cloud.cores_used}} <b>/</b> {{cloud.cores_max}}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody> 
+        </table>
+    </div>
+    
 </div>
 
 </body>

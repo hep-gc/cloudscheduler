@@ -90,6 +90,14 @@ IGNORE_KEYS = {
         },
     }
 
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        },
+    }
+
 #-------------------------------------------------------------------------------
 
 def add(request):
@@ -418,6 +426,13 @@ def list(
             db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': msg})
 
+    # Validate input fields (should be none).
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group list, %s' % (lno('GV06'), msg)})
+
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_groups_with_metadata_names]).order_by('group_name')
@@ -636,6 +651,12 @@ def metadata_list(request):
     if rc != 0:
         db_close(db_ctl)
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+    if rc != 0:        
+        db_close(db_ctl)
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-list, %s' % (lno('GV06'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)

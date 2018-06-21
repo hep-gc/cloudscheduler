@@ -36,6 +36,8 @@ from (
       concat(vgr.cloud_name, "::", name) as flavor_instance_type,
       cores as flavor_cores,
       disk + ephemeral_disk as flavor_disk,
+      disk as flavor_enduring_disk,
+      ephemeral_disk as flavor_ephemeral_disk,
       cf.ram as flavor_ram,
       swap as flavor_swap,
 
@@ -48,6 +50,8 @@ from (
       order by
         flavor_cores,
         flavor_disk,
+        flavor_enduring_disk,
+        flavor_ephemeral_disk,
         flavor_ram,
         flavor_swap
       ) as flavor_priority,
