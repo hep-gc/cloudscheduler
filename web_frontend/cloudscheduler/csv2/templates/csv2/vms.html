@@ -14,21 +14,14 @@
 
   <body class="vms-nav">
 
+    {% if err_message is not None %}
+        <p style="color:red;">{{err_message}}</p>
+    {% endif %}
+    {% if message is not None %}
+        <p style="color:green;">{{message}}</p>
+    {% endif %}
 
-  {% if err_message is not None %}
-      <p style="color:red;">{{err_message}}</p>
-  {% endif %}
-  {% if message is not None %}
-      <p style="color:green;">{{message}}</p>
-  {% endif %}
-
-    <div class="main-div" style="overflow-x: hidden;">
-      <div class="menu">
-        {% for cloud in cloud_list %}
-          <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link">{{cloud.cloud_name}}</a>
-          </div>
-        {% endfor %}
-      </div>
+    <div class="main-div">
 
       <!-- Table Setup - thead and tbody are commented out. Enable for static header
       but good luck getting the column widths to match. -->
@@ -36,10 +29,11 @@
         <table>
           <!-- <thead> -->
             <tr>
+              <th><input id="select-all" type="checkbox"/></th>
               <th>Cloud</th>
               <th>Project</th>
               <th>Hostname</th>
-              <th>VM ID</th>
+              <!-- <th>VM ID</th> -->
               <th>Status</th>
               <th>Status Changed Time</th>
               <th>Task</th>
@@ -47,24 +41,25 @@
               <th>Condor Slots</th>
               <th>Condor Off</th>
               <th>Foreign</th>
-              <th>Cores</th>
-              <th>RAM</th>
-              <th>SWAP</th>
-              <th>Disk</th>
-              <th>Ephemeral Disk</th>
-              <th>Terminate</th>
-              <th>Terminate Time</th>
-              <th>Poller Status</th>
+              <!-- <th>Cores</th> -->
+              <!-- <th>RAM</th> -->
+              <!-- <th>SWAP</th> -->
+              <!-- <th>Disk</th> -->
+              <!-- <th>Ephemeral Disk</th> -->
+              <!-- <th>Terminate</th> -->
+              <!-- <th>Terminate Time</th> -->
+              <!-- <th>Poller Status</th> -->
             </tr>
           <!-- </thead> -->
 
           <!-- <tbody> -->
             {% for vm in vm_list %}
               <tr>
+                <td><input type="checkbox" name="vm" value={{vm.vmid}}/></td>
                 <td>{{vm.cloud_name}}</td>
                 <td>{{vm.project}}</td>
                 <td>{{vm.hostname}}</td>
-                <td>{{vm.vmid}}</td>
+                <!-- <td>{{vm.vmid}}</td> -->
                 <td>{{vm.status}}</td>
                 <td>{{vm.status_changed_time}}</td>
                 <td>{{vm.task}}</td>
@@ -72,14 +67,14 @@
                 <td>{{vm.condor_slots}}</td>
                 <td>{{vm.condor_off}}</td>
                 <td>{{vm.foreign_vm}}</td>
-                <td>{{vm.cores}}</td>
-                <td>{{vm.ram}}</td>
-                <td>{{vm.swap}}</td>
-                <td>{{vm.disk}}</td>
-                <td>{{vm.ephemeral_disk}}</td>
-                <td>{{vm.terminate}}</td>
-                <td>{{vm.terminate_time}}</td>
-                <td>{{vm.poller_status}}</td>
+                <!-- <td>{{vm.cores}}</td> -->
+                <!-- <td>{{vm.ram}}</td> -->
+                <!-- <td>{{vm.swap}}</td> -->
+                <!-- <td>{{vm.disk}}</td> -->
+                <!-- <td>{{vm.ephemeral_disk}}</td> -->
+                <!-- <td>{{vm.terminate}}</td> -->
+                <!-- <td>{{vm.terminate_time}}</td> -->
+                <!-- <td>{{vm.poller_status}}</td> -->
               </tr>
             {% endfor %}
           <!-- </tbody> -->
@@ -94,5 +89,34 @@
             <tr><td>{{ message }}</td></tr>
         {% endif %}
     </div>
+
+    <script type="text/javascript">
+      function checkToggle(event) {
+        var changed = event.target,
+          selectAll = document.getElementById('select-all'),
+          checkboxes = Array.prototype.slice.call(
+            this.querySelectorAll('input[type=checkbox]')
+          ).filter(function(check) {
+            return check !== selectAll;
+          });
+
+        if (changed === selectAll) {
+          checkboxes.forEach(function(check) {
+            check.checked = selectAll.checked;
+          });
+        } else {
+          var allChecked = checkboxes.filter(function(check) {
+            return check.checked;
+          }).length === checkboxes.length;
+
+          selectAll.checked = allChecked;
+        }
+
+      }
+
+      var tableElement = document.querySelector('table');
+      tableElement.addEventListener('change', checkToggle);
+
+    </script>
   </body>
 </html>

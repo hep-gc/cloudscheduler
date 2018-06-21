@@ -37,12 +37,13 @@ CLOUD_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'lowerdash',
+        'cloud_name':              'lowerdash',
+        'cloud_type':              ('csv2_cloud_types', 'cloud_type'),
 
-        'cores_slider':        'ignore',
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
-        'ram_slider':          'ignore',
+        'cores_slider':            'ignore',
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        'ram_slider':              'ignore',
         },
     }
 
@@ -50,21 +51,38 @@ METADATA_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'cloud_name':          'lowerdash',
-        'metadata_enabled':    'dboolean',
-        'metadata_priority':   'integer',
-        'metadata':            'metadata',
-        'metadata_name':       'lowercase',
-        'metadata_mime_type':           ('csv2_mime_types', 'mime_type'),
+        'cloud_name':              'lowerdash',
+        'enabled':                 'dboolean',
+        'priority':                'integer',
+        'metadata':                'metadata',
+        'metadata_name':           'lowercase',
+        'mime_type':               ('csv2_mime_types', 'mime_type'),
 
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
         },
     }
 
 IGNORE_METADATA_NAME = {
     'format': {
-        'metadata_name':           'ignore',
+        'metadata_name':            'ignore',
+        },
+    }
+
+LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        },
+    }
+
+METADATA_LIST_KEYS = {
+    # Named argument formats (anything else is a string).
+    'format': {
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
+        'metadata_list_option':    ['merge'],
         },
     }
 
@@ -144,7 +162,7 @@ def delete(request):
 
         # Delete any cloud metadata files for the cloud.
         table = tables['csv2_group_resource_metadata']
-        rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])))
+        rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
         if rc != 0:
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
@@ -194,6 +212,12 @@ def list(
         if rc != 0:
             db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+    if rc != 0:        
+        db_close(db_ctl)
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno('CV06'), msg)})
 
     s = select([csv2_cloud_types])
     type_list = qt(db_connection.execute(s))
@@ -391,7 +415,7 @@ def metadata_fetch(request, selector=None):
                         'cloud_name': row.cloud_name,
                         'metadata': row.metadata,
                         'metadata_enabled': row.enabled,
-                        'metadata_priority': row.metadata_priority,
+                        'metadata_priority': row.priority,
                         'metadata_mime_type': row.mime_type,
                         'metadata_name': row.metadata_name,
                         'response_code': 0,
@@ -424,14 +448,16 @@ def metadata_list(request):
     rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
         db_close(db_ctl)
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV06'), msg)})
 
-    if request.method == 'POST' and 'metadata_list_option' in request.POST:
-        if request.POST['metadata_list_option'] == 'merge':
-            merge_list = True
-        else:
-            db_close(db_ctl)
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata-list, metadata-list-option "%s" is invalid; only "merge" is valid.' % request.POST['metadata_list_option']})
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], db_ctl, [], active_user)
+    if rc != 0:        
+        db_close(db_ctl)
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV06'), msg)})
+
+    if 'metadata_list_option' in fields:
+        merge_list = True
     else:
         merge_list = False
 
