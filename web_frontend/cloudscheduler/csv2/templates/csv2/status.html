@@ -28,8 +28,7 @@
             <col class="red" span="1" />
             <col class="clear" span="4" />
             <col class="blue" span="1" />
-            <col class="red" span="1" />
-            <col class="clear" span="7"/>
+            <col class="clear" span="2" />
           </colgroup>
           <thead>
             <tr>
@@ -42,18 +41,12 @@
 
                 <th>Foreign</th>
 
-                <th>Jobs</th>
+                <th>Slots</th>
+                <th>Cores</th>
 
-                <th>Unexpanded</th>
-                <th>Idle</th>
-                <th>Running</th>
-                <th>Removed</th>
-                <th>Completed</th>
-                <th>Held</th>
-                <th>Sub. Err.</th>
 
             </tr>
-            {% for cloud in status_list %}
+            {% for cloud in cloud_status_list %}
                 <tr>
                     <td>{{cloud.cloud_name}}</td>
                     <td>{{cloud.VMs}}</td>
@@ -62,14 +55,45 @@
                     <td>{{cloud.VMs_in_error}}</td>           
                     <td>{{cloud.VMs_other}}</td>
                     <td>{{cloud.Foreign_VMs}}</td>
+
+
+
+                    <td>{{cloud.slots_used}} / {{cloud.slots_max}}</td>
+                    <td>{{cloud.cores_used}} / {{cloud.cores_max}}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody> 
+        </table>
+    </div>
+    <br>
+    <br>
+    <div class="status-table">
+        <table>
+          <colgroup>
+            <col class="red" span="1" />
+            <col class="clear" span="5" />
+
+          </colgroup>
+          <thead>
+            <tr>
+                <th>Jobs</th>
+                <th>Idle</th>
+                <th>Running</th>
+                <th>Completed</th>
+                <th>Held</th>
+                <th>Other</th>
+
+            </tr>
+            {% for cloud in job_status_list %}
+                <tr>
                     <td>{{cloud.Jobs}}</td>
-                    <td>{{cloud.Jobs_s0}}</td>
-                    <td>{{cloud.Jobs_s1}}</td>
-                    <td>{{cloud.Jobs_s2}}</td>
-                    <td>{{cloud.Jobs_s3}}</td>
-                    <td>{{cloud.Jobs_s4}}</td>
-                    <td>{{cloud.Jobs_s5}}</td>
-                    <td>{{cloud.Jobs_s6}}</td>
+                    <td>{{cloud.Idle}}</td>
+                    <td>{{cloud.Running}}</td>
+                    <td>{{cloud.Completed}}</td>
+                    <td>{{cloud.Held}}</td>
+                    <td>{{cloud.Other}}</td>
+
                 </tr>
             {% endfor %}
             </tbody> 

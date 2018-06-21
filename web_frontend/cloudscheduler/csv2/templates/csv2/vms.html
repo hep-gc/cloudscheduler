@@ -14,21 +14,41 @@
 
   <body class="vms-nav">
     <script type="text/javascript">
-      function toggle(source) {
-        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        for (var i = 0; i < checkboxes.length; i++) {
-          if (checkboxes[i] != source)
-            checkboxes[i].checked = source.checked;
+      //from https://stackoverflow.com/a/49280577
+      function checkToggle(event) {
+        var changed = event.target,
+          selectAll = document.getElementById('select-all'),
+          checkboxes = Array.prototype.slice.call(
+            this.querySelectorAll('input[type=checkbox]')
+          ).filter(function(check) {
+            return check !== selectAll;
+          });
+
+        if (changed === selectAll) {
+          checkboxes.forEach(function(check) {
+            check.checked = selectAll.checked;
+          });
+        } else {
+          var allChecked = checkboxes.filter(function(check) {
+            return check.checked;
+          }).length === checkboxes.length;
+
+          selectAll.checked = allChecked;
         }
+
       }
 
+      var tableElement = document.querySelector('table');
+      tableElement.addEventListener('change', checkToggle);
+
     </script>
-  {% if err_message is not None %}
-      <p style="color:red;">{{err_message}}</p>
-  {% endif %}
-  {% if message is not None %}
-      <p style="color:green;">{{message}}</p>
-  {% endif %}
+
+    {% if err_message is not None %}
+        <p style="color:red;">{{err_message}}</p>
+    {% endif %}
+    {% if message is not None %}
+        <p style="color:green;">{{message}}</p>
+    {% endif %}
 
     <div class="main-div">
 
@@ -38,7 +58,7 @@
         <table>
           <!-- <thead> -->
             <tr>
-              <th><input type="checkbox" onclick="toggle(this);"/></th>
+              <th><input id="select-all" type="checkbox"/></th>
               <th>Cloud</th>
               <th>Project</th>
               <th>Hostname</th>

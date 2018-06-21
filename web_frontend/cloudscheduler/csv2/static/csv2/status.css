@@ -11,17 +11,17 @@
   border-collapse: collapse;
 }
 .status-table td:hover {
-  background-color: red;
+  background-color: darkgrey;
   color: white;
 }
 
 .status-table tr:hover {
-  background-color: yellow;
+  background-color: gainsboro;
 }
 
 .status-table td, th {
   padding: 8px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #ddd;
   position: relative;
 }
@@ -29,7 +29,7 @@
 .status-table th:hover::after {
   content: "";
   position: absolute;
-  background-color: yellow;
+  background-color: gainsboro;
   left: 0;
   top: -5000px;
   height: 10000px;

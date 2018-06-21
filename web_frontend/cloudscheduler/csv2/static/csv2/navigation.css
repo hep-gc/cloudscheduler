@@ -74,9 +74,9 @@ ul.sub-menu{
 }
 
 ul.sub-menu li{
-    padding-left:25px;
-    padding-top:5px;
-    padding-bottom:5px;
+    width: 125px;
+    display: table;
+    table-layout: fixed;
    
 }
 ul.sub-menu li:hover{
@@ -112,4 +112,10 @@ select {
   font-size:20px;
   color:black;
   background-color: whitesmoke;
+  text-align-last: center;
+}
+
+.spacer{
+  padding-left:20px;
+
 }
