@@ -1,13 +1,14 @@
 Universe   = vanilla
-Executable = /opt/cloudscheduler/condor_data_collectors/tests/job_submitter/try.sh
+Executable = try.sh
 Arguments  = 4 10
-dir           = /opt/cloudscheduler/condor_data_collectors/tests/job_submitter/logs
+dir           = /tmp
 output        = $(dir)/$(Cluster).$(Process).out
 error         = $(dir)/$(Cluster).$(Process).err
 log           = $(dir)/$(Cluster).$(Process).log
-request_disk = 1 GB
+request_disk = 15000000
+request_scratch = 5000000
 priority       = 10
-Requirements = TARGET.Arch == "x86_64"
+Requirements = (group_name =?= "testing") && (TARGET.Arch == "x86_64")
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 
@@ -22,7 +23,7 @@ when_to_transfer_output = ON_EXIT
 +VMMaximumPrice = "0.10"
 +VMAMIConfig = "/srv/userdata/benchmark.yaml:cloud-config,/srv/userdata/verifycs.yaml:cloud-config,/srv/userdata/cernvm-data.txt:ucernvm-config"
 +VMInjectCA = False
-+TargetClouds = "beaver"
+#+TargetClouds = "beaver"
 
 queue 5
 
