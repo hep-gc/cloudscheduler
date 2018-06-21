@@ -180,6 +180,16 @@ def main(gvar):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV19', 'Duplicate entry \'{}-{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty1')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata': 'foo: somebody said I should put a colon here: so I did'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty1.yaml')),
         '/cloud/metadata-add/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
