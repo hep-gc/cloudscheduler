@@ -104,8 +104,9 @@ def image_collection(self):
 
             # Need to build conflict dictionary to be displayed on matrix page. Check for
             # image conflicts function returns a dictionary of conflicts, keyed by the repos
-            conflict_dict = check_for_image_conflicts(json_img_dict=updated_img_list)
-            set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
+            # THESE FUNCTIONS ARE NOT USED FOR CSV2 ANYWHERE SO I AM DISABLING THEM
+            #conflict_dict = check_for_image_conflicts(json_img_dict=updated_img_list)
+            #set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
 
         logger.info("Image collection complete, entering downtime")
         loop_counter = 0
