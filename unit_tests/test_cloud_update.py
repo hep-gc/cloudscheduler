@@ -85,7 +85,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'unit-test-cloud-three-type', 'ram_ctl': -1, 'region': 'jodiew-ctc3-r', 'username': 'jodiew-ctu3', 'project': 'unit-test-cloud-three', 'cloud_name': 'jodiew-ctc3', 'group_name': 'jodiew-ctg1'},
+        values={'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'local', 'ram_ctl': -1, 'region': 'jodiew-ctc3-r', 'username': 'jodiew-ctu3', 'project': 'unit-test-cloud-three', 'cloud_name': 'jodiew-ctc3', 'group_name': 'jodiew-ctg1'},
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
