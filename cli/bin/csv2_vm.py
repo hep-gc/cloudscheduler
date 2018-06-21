@@ -50,7 +50,7 @@ def list(gvar):
     check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-vc', '-vd', '-ved', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs'])
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/vm/list/')
+    response = requests(gvar, '/vm/list/::::')
     
     if response['message']:
         print(response['message'])
