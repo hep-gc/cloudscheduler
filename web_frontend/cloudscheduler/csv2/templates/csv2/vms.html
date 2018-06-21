@@ -13,35 +13,6 @@
   {% endblock %}
 
   <body class="vms-nav">
-    <script type="text/javascript">
-      //from https://stackoverflow.com/a/49280577
-      function checkToggle(event) {
-        var changed = event.target,
-          selectAll = document.getElementById('select-all'),
-          checkboxes = Array.prototype.slice.call(
-            this.querySelectorAll('input[type=checkbox]')
-          ).filter(function(check) {
-            return check !== selectAll;
-          });
-
-        if (changed === selectAll) {
-          checkboxes.forEach(function(check) {
-            check.checked = selectAll.checked;
-          });
-        } else {
-          var allChecked = checkboxes.filter(function(check) {
-            return check.checked;
-          }).length === checkboxes.length;
-
-          selectAll.checked = allChecked;
-        }
-
-      }
-
-      var tableElement = document.querySelector('table');
-      tableElement.addEventListener('change', checkToggle);
-
-    </script>
 
     {% if err_message is not None %}
         <p style="color:red;">{{err_message}}</p>
@@ -118,5 +89,34 @@
             <tr><td>{{ message }}</td></tr>
         {% endif %}
     </div>
+
+    <script type="text/javascript">
+      function checkToggle(event) {
+        var changed = event.target,
+          selectAll = document.getElementById('select-all'),
+          checkboxes = Array.prototype.slice.call(
+            this.querySelectorAll('input[type=checkbox]')
+          ).filter(function(check) {
+            return check !== selectAll;
+          });
+
+        if (changed === selectAll) {
+          checkboxes.forEach(function(check) {
+            check.checked = selectAll.checked;
+          });
+        } else {
+          var allChecked = checkboxes.filter(function(check) {
+            return check.checked;
+          }).length === checkboxes.length;
+
+          selectAll.checked = allChecked;
+        }
+
+      }
+
+      var tableElement = document.querySelector('table');
+      tableElement.addEventListener('change', checkToggle);
+
+    </script>
   </body>
 </html>
