@@ -33,7 +33,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV##', 'request contained a bad parameter "invalid-unit-test".',
         '/group/list/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 

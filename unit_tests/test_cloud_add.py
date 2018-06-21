@@ -139,6 +139,21 @@ def main(gvar):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV01', 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
         gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'server_meta_ctl\' at row 1',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
@@ -148,7 +163,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'server_meta_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -164,7 +179,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'instances_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -180,7 +195,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'personality_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -196,7 +211,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'image_meta_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -212,7 +227,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'personality_size_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -228,7 +243,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'ram_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -244,7 +259,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'server_groups_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -260,7 +275,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'security_group_rules_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -276,7 +291,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'keypairs_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -292,7 +307,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'security_groups_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -308,7 +323,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'server_group_members_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -324,7 +339,7 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'floating_ips_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
@@ -340,29 +355,27 @@ def main(gvar):
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test',
+            'cloud_type': 'local',
             'cores_ctl': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
-    # TODO: cloud name is not a consisnent lenght in schema.py (neither is group_name)
     execute_csv2_request(
         gvar, 1, 'CV02', 'Data too long for column \'cloud_name\' at row 1',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
-            'cloud_name': 'cloudnametoolongtobei',
+            'cloud_name': 'cloudnametoolongtobeinsertedintodb',
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test',
             'region': 'invalid-unit-test',
-            'cloud_type': 'invalid-unit-test'
+            'cloud_type': 'local'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
-    # TODO: is cloud_type allowed to be anything?
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', form_data={
@@ -373,7 +386,7 @@ def main(gvar):
             'username': ut_id(gvar, 'ctu3'),
             'password': 'Abc123',
             'region': ut_id(gvar, 'ctc5-r'),
-            'cloud_type': 'unit-test-cloud-five-type'
+            'cloud_type': 'local'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )

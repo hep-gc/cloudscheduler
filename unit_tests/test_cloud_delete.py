@@ -75,9 +75,8 @@ def main(gvar):
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
-    # TODO: need to have the no_rows_allowed = True for the metadata delete in cloud delete
     execute_csv2_request(
-        gvar, 1, 'CV08', '???',
+        gvar, 1, 'CV08', 'the request did not match any rows.',
         '/cloud/delete/', form_data={
             'cloud_name': 'invalid-unit-test',
             'group': ut_id(gvar, 'ctg1')
@@ -86,7 +85,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 0, None, '???',
+        gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
         '/cloud/delete/', form_data={
             'cloud_name': ut_id(gvar, 'ctc1'),
             'group': ut_id(gvar, 'ctg1')

@@ -149,12 +149,22 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV19', 'Incorrect integer value: \'invalid-unit-test\' for column \'priority\' at row 1',
+        gvar, 1, 'CV18', 'value specified for "priority" must be a integer value.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
             'metadata': 'invalid-unit-test',
             'priority': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV##', 'cloud doesn\'t exist',
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': 'invalid-unit-test',
+            'metadata_name': 'invalid-unit-test',
+            'metadata': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )

@@ -70,8 +70,14 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV13', 'cloud update request contained a bad parameter "invalid-unit-test".',
-        '/cloud/update/', form_data={'cloud_name': 'invalid-unit-test', 'group': ut_id(gvar, 'ctg1'), 'invalid-unit-test': 'invalid-unit-test'},
+        gvar, 1, 'CV13', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        '/cloud/update/', form_data={'cloud_name': 'invalid-unit-test!', 'group': ut_id(gvar, 'ctg1')},
+        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV13', 'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'cloud_type': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
 
@@ -97,7 +103,7 @@ def main(gvar):
             'region': 'updated-value',
             'user_domain_name': 'updated-value',
             'project_domain_name': 'updated-value',
-            'cloud_type': 'updated-value',
+            'cloud_type': 'local',
             'server_meta_ctl': 5,
             'instances_ctl': 5,
             'personality_ctl': 5,
@@ -130,7 +136,7 @@ def main(gvar):
             'region': 'updated-value',
             'user_domain_name': 'updated-value',
             'project_domain_name': 'updated-value',
-            'cloud_type': 'updated-value'
+            'cloud_type': 'local'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )

@@ -48,7 +48,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'CV06', 'request contained a bad parameter "invalid-unit-test".',
         '/cloud/list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )

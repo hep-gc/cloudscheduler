@@ -34,8 +34,16 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, '???', '???',
+        gvar, 1, 'GV##', 'request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/group/metadata-list/',
+        list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1')},
+        values={'metadata_name': 'error'}
         server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
     )
 

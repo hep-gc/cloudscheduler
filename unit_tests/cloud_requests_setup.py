@@ -89,7 +89,7 @@ def main(gvar):
             'username': ut_id(gvar, 'ctu3'),
             'password': 'Abc123',
             'region': ut_id(gvar, 'ctc1-r'),
-            'cloud_type': 'unit-test-cloud-one-type'
+            'cloud_type': 'local'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
@@ -105,7 +105,7 @@ def main(gvar):
             'username': ut_id(gvar, 'ctu3'),
             'password': 'Abc123',
             'region': ut_id(gvar, 'ctc2-r'),
-            'cloud_type': 'unit-test-cloud-two-type'
+            'cloud_type': 'local'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
@@ -121,7 +121,7 @@ def main(gvar):
             'username': ut_id(gvar, 'ctu3'),
             'password': 'Abc123',
             'region': ut_id(gvar, 'ctc3-r'),
-            'cloud_type': 'unit-test-cloud-three-type'
+            'cloud_type': 'local'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )

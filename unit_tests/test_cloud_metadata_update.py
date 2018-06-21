@@ -169,7 +169,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV30', 'Incorrect integer value: \'invalid-unit-test\' for column \'priority\' at row 1',
+        gvar, 1, 'CV29', 'value specified for "priority" must be a integer value.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),

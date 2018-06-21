@@ -52,7 +52,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 0, None, '???',
+        gvar, 0, None, None,
         '/cloud/metadata-fetch/{}::{}'.format(ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
         server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
     )
