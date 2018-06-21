@@ -42,12 +42,42 @@
             </tr>
             {% for cloud in job_status_list %}
                 <tr>
-                    <td>{{cloud.Jobs}}</td>
-                    <td>{{cloud.Idle}}</td>
-                    <td>{{cloud.Running}}</td>
-                    <td>{{cloud.Completed}}</td>
-                    <td>{{cloud.Held}}</td>
-                    <td>{{cloud.Other}}</td>
+
+                    {% if cloud.Jobs == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Jobs}}</td>
+                    {% endif %}
+
+                    {% if cloud.Idle == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Idle}}</td>
+                    {% endif %}
+
+                    {% if cloud.Running == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Running}}</td>
+                    {% endif %}
+
+                    {% if cloud.Completed == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Completed}}</td>
+                    {% endif %}
+
+                    {% if cloud.Held == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Held}}</td>
+                    {% endif %}
+
+                    {% if cloud.Other == 0 %}
+                        <td><font color="grey">0</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.Other}}</td>
+                    {% endif %}
 
                 </tr>
             {% endfor %}
@@ -87,7 +117,11 @@
             {% for cloud in cloud_status_list %}
                 <tr>
                     <td>{{cloud.cloud_name}}</td>
-                    <td>{{cloud.VMs}}</td>
+                    {% if cloud.VMs == 0 %}
+                        <td><font color="grey">{{cloud.VMs}}</td>
+                    {% else %}
+                        <td><font color="black">{{cloud.VMs}}</td>
+                    {% endif %}
                     <td>{{cloud.VMs_unregistered}}</td>
                     <td>{{cloud.VMs_running}}</td>
                     <td>{{cloud.VMs_retiring}}</td>
