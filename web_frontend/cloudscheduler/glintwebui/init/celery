@@ -8,7 +8,8 @@ CELERYD_NODES="w1 w2 w3 w4"
 CELERYD_PREFETCH_MULTIPLIER=1
 
 # Absolute path to "manage.py"
-CELERY_BIN="/opt/Glintv2/manage.py"
+#CELERY_BIN="python3 /opt/cloudscheduler/web_frontend/cloudscheduler/manage.py"
+CELERY_BIN="/usr/bin/celery"
 
 # Where to chdir at start. This could be the root of a virtualenv.
 CELERYD_CHDIR="/opt/cloudscheduler/web_frontend/cloudscheduler"
@@ -24,8 +25,8 @@ CELERYD_CHDIR="/opt/cloudscheduler/web_frontend/cloudscheduler"
 CELERYD_MULTI="celery multi"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="-Q:w1 image_collection -Q:w2,w3,w4 celery -A glintwebui --concurrency=1 -Ofair"
+CELERYD_OPTS="-Q:w1 image_collection -Q:w2,w3,w4 celery --app=glintwebui.celery_app:app --concurrency=1 -Ofair"
 
 # %N will be replaced with the first part of the nodename.
-CELERYD_LOG_FILE="/var/log/celery/%N.log"
-CELERYD_PID_FILE="/var/run/celery/%N.pid"
+CELERYD_LOG_FILE="/var/log/celery/%n%I.log"
+CELERYD_PID_FILE="/var/run/celery/%n.pid"

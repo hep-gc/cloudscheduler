@@ -35,7 +35,7 @@
 
 /* for image upload cloud picker widget */
 SELECT, INPUT[type="text"] {
-    width: 100px;
+    width: 150px;
     box-sizing: border-box;
 }
 SECTION {
@@ -48,7 +48,7 @@ SECTION > DIV {
     padding: 4px;
 }
 SECTION > DIV + DIV {
-    width: 100px;
+    width: 150px;
     text-align: center;
 }
 
@@ -57,9 +57,11 @@ SECTION > DIV + DIV {
 {% block navbar %}
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
-<div class="wrapper" style="padding-top:60px;padding-bottom:5px">
+<div class="wrapper" style="padding-top:60px;padding-bottom:5px;padding-left:40px">
+    <h1 style="float:left; margin:0px">User Keys</h1>
+</div>
+<div class="page_body" style="padding-top:40px;padding-left:100px">
     <div id="page_header">
-                 <h1 style="float:left; margin:0px">User Keys</h1>
                  <input type="text" id="image_search" autofocus="autofocus" placeholder="Search by Key Name">
                  <a style="border: 2px solid black; border-radius: 5px; background-color:white;" class="button" href="#" id="popover-uploadkey" data-placement="bottom">+Upload Key</a>
                  <a style="border: 2px solid black; border-radius: 5px; background-color:white;" class="button" href="#" id="popover-newkey" data-placement="bottom">Create Key</a>
@@ -67,17 +69,18 @@ SECTION > DIV + DIV {
     </div>
     <div id="popover-uploadkey-content" class="hide" hidden style="position:absolute">
         <h2>Upload Key</h2>
-        <form name="upload_key" action="/images/add_key/" method="post">
+        <form name="upload_key" action="/keypairs/add_key/" method="post">
             {% csrf_token %}
             <table style="border-bottom:0">
                 <tr><td><label for="key_name">Key Name</label></td>
-                <td><input type="text" name="key_name" id="" value="" /></td></tr>
+                <td><input type="text" name="key_name" id="" value="" style="width:100%"/></td></tr>
                 <tr><td><label for="key_string">Public Key</label></td>
-                <td><input type="text" name="key_string" id="" value="" /></td></tr>
+                <td><input type="text" name="key_string" id="" value="" style="width:100%"/></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>
                 <td><input type="text" name="group_name" id="" value="{{active_group}}" /></td></tr>
-                <tr>
-                    <td colspan="2">
+                <tr style="border-bottom:0"><td style="border:0">Upload to</td><td style="border:0;text-align:right">Available clouds</td></tr>
+                <tr style="border-top:0">
+                    <td  style="border-top:0" colspan="2">
                     <section class="container">
                     <div>
                         <select id="leftValuesUpload" name="clouds" size="{{num_clouds}}" multiple></select>
@@ -102,15 +105,16 @@ SECTION > DIV + DIV {
     </div>
     <div id="popover-newkey-content" class="hide" hidden style="position:absolute">
         <h2>Create Key</h2>
-        <form name="new_key" action="/images/new_key/" method="post">
+        <form name="new_key" action="/keypairs/new_key/" method="post">
             {% csrf_token %}
             <table style="border-bottom:0">
                 <tr><td><label for="key_name">Key Name</label></td>
-                <td><input type="text" name="key_name" id="" value="" /></td></tr>
+                <td><input type="text" name="key_name" id="" value="" style="width:100%"/></td></tr>
                 <tr hidden><td><label for="group_name">Group Name</label></td>
-                <td><input type="text" name="group_name" id="" value="{{active_group}}" /></td></tr>
-                <tr>
-                    <td colspan="2">
+                <td><input type="text" name="group_name" id="" value="{{active_group}}" style="width:100%"/></td></tr>
+                <tr style="border:0"><td style="border:0">Upload to</td><td style="border:0;text-align:right">Available clouds</td></tr>
+                <tr style="border-top:0">
+                    <td  style="border-top:0" colspan="2">
                     <section class="container">
                     <div>
                         <select id="leftValuesCreate" name="clouds" size="{{num_clouds}}" multiple></select>
@@ -137,8 +141,8 @@ SECTION > DIV + DIV {
 {% if message is not None %}
     <h3 style="color:red"> {{message}} <h3/>
  {% endif %}
-<div class="image_matrix" style="float:left">
-    <form id="keypair_form" name="keypair_form" action="/images/save_keypairs/{{active_group}}/" method="post">
+<div class="image_matrix" style="float:left;padding-left:100px">
+    <form id="keypair_form" name="keypair_form" action="/keypairs/save_keypairs/{{active_group}}/" method="post">
     {% csrf_token %}
     <table>
         <tr>
@@ -154,7 +158,7 @@ SECTION > DIV + DIV {
                 </th>
                 {% for cloud in group_resources %}
                     {% if key_dict|get_item:key|get_item:cloud.cloud_name %}
-                        <td class="{{key}}"><input name="{{cloud.cloud_name}}" type="checkbox" value="{{key}}" checked></td>
+                        <td class="{{key}}" style="background-color:#85ff87"><input name="{{cloud.cloud_name}}" type="checkbox" value="{{key}}" checked></td>
                     {% else %}
                         <td class="{{key}}"><input name="{{cloud.cloud_name}}" type="checkbox" value="{{key}}" ></td>
                     {% endif %}

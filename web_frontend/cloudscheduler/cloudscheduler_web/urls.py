@@ -26,7 +26,8 @@ urlpatterns = [
 
 if config.enable_glint:
     urlpatterns = [
-        url(r'^images/', include('glintwebui.urls')),
+        url(r'^images/', include('glintwebui.image_urls')),
+        url(r'^keypairs/', include('glintwebui.keypair_urls')),
     ] + urlpatterns
 
 if settings.DEBUG:

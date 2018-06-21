@@ -105,10 +105,10 @@ from (
     left outer join view_available_resources as var on
       vcjgda.group_name=var.group_name and
       (target_clouds is null or instr(target_clouds, var.cloud_name) > 0) and
-      request_cpus<=flavor_cores and
-      request_disk<=flavor_disk and
-      request_ram<=flavor_ram and
-      request_swap<=flavor_swap 
+      request_cpus <= flavor_cores and
+      request_disk <= flavor_disk and
+      request_ram  <= flavor_ram and
+      request_swap <= flavor_swap
 
     /*
     ** Define the grouping.

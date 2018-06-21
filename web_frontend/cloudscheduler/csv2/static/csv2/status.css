@@ -1,35 +1,49 @@
 
 
+
+
 .status-table th {
-    background-color: #4CAF50;
-    color: white;
+  background-color: #4CAF50;
+  color: white;
 }
 
 
 .status-table table {
   overflow: hidden;
   border-collapse: collapse;
-}
-.status-table td:hover {
-  background-color: red;
-  color: white;
+  text-align: center;
 }
 
-.status-table tr:hover {
-  background-color: yellow;
+.status-table th {
+  text-align: center;
 }
 
 .status-table td, th {
   padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+  text-align: center;
+  border-bottom: 2px solid #ddd;
   position: relative;
+  width: 80px;
 }
+
+
+.status-table td:hover {
+  background-color: darkgrey;
+  opacity: 50%;
+  color: white;
+}
+
+.status-table tr:hover {
+  background-color: gainsboro;
+  opacity: 50%;
+}
+
 .status-table td:hover::after,
 .status-table th:hover::after {
   content: "";
   position: absolute;
-  background-color: yellow;
+  background-color: gainsboro;
+  opacity: 50%;
   left: 0;
   top: -5000px;
   height: 10000px;

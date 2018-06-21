@@ -109,7 +109,7 @@ def main():
                 for cloud_match in clouds_matching:
                     cpu = cloud_match.flavor_cores / idle_job.request_cpus
                     ram = cloud_match.flavor_ram / idle_job.request_ram
-                    disk = cloud_match.flavor_disk / (idle_job.request_disk / 1000000.0)  # convert the condor number to Gb
+                    disk = cloud_match.flavor_disk / idle_job.request_disk
                     jobs_possible = int(min([cpu,ram,disk]))
                     if jobs_possible < 1:
                         jobs_possible = 1
@@ -121,7 +121,7 @@ def main():
                 # ie vms[cloud-name][flavor] = 6
                 runnable_job_count = 0
                 for flavor in num_jobs_per_flavor_possible.keys():
-                    (group, cloud_name, flavor_name) = flavor.split(':')
+                    (group, cloud_name, flavor_name) = flavor.split('::')
                     runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]
                 log.debug("Runnable_job_count before: %s", runnable_job_count)
                 runnable_job_count -= idle_job.running  # Subtract the already running jobs

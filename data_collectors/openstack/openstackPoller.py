@@ -778,7 +778,7 @@ def keypairPoller():
             "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
         Base.prepare(engine, reflect=True)
         db_session = Session(engine)
-        Keypairs = Base.classes.csv2_keypairs
+        Keypairs = Base.classes.cloud_keypairs
         Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
@@ -820,8 +820,12 @@ def keypairPoller():
             #setup fingerprint list
             fingerprint_list = []
 
-            # get keypairs and add them to database
-            cloud_keys = nova.keypairs.list()
+            try:
+                # get keypairs and add them to database
+                cloud_keys = nova.keypairs.list()
+            except Exception as exc:
+                logging.error(exc)
+                logging.error("Unable to poll keypairs from nova, skipping %s-%s" % (cloud.group_name, cloud.cloud_name))
             for key in cloud_keys:
                 key_dict = {
                     "cloud_name":  cloud.cloud_name,

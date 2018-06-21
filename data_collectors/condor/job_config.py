@@ -17,7 +17,7 @@ db_port = 3306
 db_user = "csv2"
 db_password = ""
 
-
+default_job_group = ""
 
 if exists("/etc/cloudscheduler/cloudscheduler.yaml"):
     path = "/etc/cloudscheduler/cloudscheduler.yaml"
@@ -83,6 +83,9 @@ try:
 
             if "log_level" in cfg["condor_jobs"]:
                 log_level = cfg["condor_jobs"]["log_level"]       
+
+            if "default_job_group" in cfg["condor_jobs"]:
+                default_job_group = cfg["condor_jobs"]["default_job_group"]       
 
     except yaml.YAMLError:
         # Python 3
