@@ -311,7 +311,7 @@ def manage_user_group_verification(db_ctl, tables, users, groups):
 
 #-------------------------------------------------------------------------------
 
-def qt(query, keys=None, prune=[]):
+def qt(query, keys=None, prune=[], filter=None):
     """
     Query Transform takes a list of dictionaries (eg. the result of an SqlAlchemy query)
     and transforms it into a standard python list (repeatably iterable). In the process,
@@ -320,6 +320,8 @@ def qt(query, keys=None, prune=[]):
         o It can delete columns from the rows (prune=[col1, col2,..]).
         o It can split the query into a list and corresponding dictionaries (
           (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
+        o It can filter rows based on the result of an evaluated string; True is
+          retained, and False is dropped.
 
     Splitting a query into a list and corresponding dictionaries:
 
@@ -398,6 +400,10 @@ def qt(query, keys=None, prune=[]):
         Query = []
     for row in Query:
         cols = dict(row)
+
+        if filter:
+            if not eval(filter):
+                continue
 
         if keys:
             add_row = False
@@ -488,6 +494,36 @@ def _qt_list(secondary_dict_ptr, secondary_key_list_ptr, cols, key):
         return secondary_dict_ptr[cols[key]], secondary_key_list_ptr[cols[key]]
     else:
       return secondary_dict_ptr, secondary_key_list_ptr
+
+#-------------------------------------------------------------------------------
+
+def qt_filter_get(columns, values, and_or='and'):
+    """
+    This function takes two lists (columns and values) or equal length and
+    returns a string that can be evaluated by view_utils.qt to filter rows
+    of a query.
+    """
+
+    if len(columns) != len(values):
+        return None
+#       raise Exception('view_utils. columns(%s) and values(%s) arguments must be of equal length.' % (len(columns), len(values)))
+
+    key_value_list = []
+    for ix in range(len(columns)):
+        if values[ix]:
+            try:
+                x = float(values[ix])
+                key_value_list.append("cols['%s'] == %s" % (columns[ix], values[ix]))
+            except:
+                if ',' in values[ix]:
+                  key_value_list.append("cols['%s'] in %s" % (columns[ix], values[ix].split(',')))
+                else:
+                  key_value_list.append("cols['%s'] == '%s'" % (columns[ix], values[ix]))
+
+    if len(key_value_list) < 1:
+        return None
+    else:
+        return (' %s ' % and_or).join(key_value_list)
 
 #-------------------------------------------------------------------------------
 
