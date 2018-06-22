@@ -56,8 +56,8 @@ from (
     case when poller_status="retiring" then 1 else 0 end as VMs_retiring,
     case when poller_status="manual" then 1 else 0 end as VMs_manual,
     case when poller_status="error" then 1 else 0 end as VMs_in_error,
-    case when foreign_vm=0 and (isnull(poller_status) or (poller_status!="running" and poller_status!="retiring" and poller_status!="error")) then 1 else 0 end as VMs_other,
-    case when foreign_vm=0 then 0 else 1 end as Foreign_VMs,
+    case when poller_status="other" then 1 else 0 end as VMs_other,
+    case when poller_status="foreign" then 1 else 0 end as Foreign_VMs,
     condor_slots,
     condor_slots_used
 

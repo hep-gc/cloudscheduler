@@ -302,8 +302,10 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 else int(float(authsplit[-2][1:]))
             if version == 2:
                 keystone_session = self._get_keystone_session_v2()
+                self.log.debug("Using a v2 session for %s", self.name)
             elif version == 3:
                 keystone_session = self._get_keystone_session_v3()
+                self.log.debug("Using a v3 session for %s", self.name)
         except ValueError as ex:
             self.log.exception("Error determining keystone version from auth url: %s", ex)
             keystone_session = None
