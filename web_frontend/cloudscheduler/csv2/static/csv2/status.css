@@ -28,7 +28,7 @@
 
 
 .status-table td:hover {
-  background-color: darkgrey;
+  background-color: grey;
   opacity: 50%;
   color: white;
 }
@@ -51,7 +51,27 @@
   z-index: -1;
 }
 
+.title-style a {
+  text-decoration: none;
+  color: maroon;
+  font-weight: bold;
+}
 
+.zero-style {
+  color: grey;
+}
+
+.more-style a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+.blank_row
+{
+    height: 10px !important; /* overwrites any other rules */
+    background-color: white !important;
+}
 
 .grey {
   background-color: #eee;

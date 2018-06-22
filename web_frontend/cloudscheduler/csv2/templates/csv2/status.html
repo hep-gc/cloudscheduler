@@ -4,6 +4,9 @@
 
 <head>
 {% load static %}
+{% load template_utils %}
+{% load mathfilters %}
+
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}">
 
@@ -44,39 +47,39 @@
                 <tr>
 
                     {% if cloud.Jobs == 0 %}
-                        <td><font color="grey">0</td>
+                        <td class="zero-style">0</td>
                     {% else %}
-                        <td><font color="black">{{cloud.Jobs}}</td>
+                        <td class="more-style"><a href="#">{{cloud.Jobs}}</a></td>
                     {% endif %}
 
                     {% if cloud.Idle == 0 %}
-                        <td><font color="grey">0</td>
+                        <td class="zero-style">0</td>
                     {% else %}
-                        <td><font color="black">{{cloud.Idle}}</td>
+                        <td class="more-style"><a href="#">{{cloud.Idle}}</a></td>
                     {% endif %}
 
                     {% if cloud.Running == 0 %}
-                        <td><font color="grey">0</td>
+                        <td class="zero-style">0</td>
                     {% else %}
-                        <td><font color="black">{{cloud.Running}}</td>
+                        <td class="more-style"><a href="#">{{cloud.Running}}</a></td>
                     {% endif %}
 
                     {% if cloud.Completed == 0 %}
-                        <td><font color="grey">0</td>
+                        <td class="zero-style">0</td>
                     {% else %}
-                        <td><font color="black">{{cloud.Completed}}</td>
+                        <td class="more-style"><a href="#">{{cloud.Completed}}</a></td>
                     {% endif %}
 
                     {% if cloud.Held == 0 %}
-                        <td><font color="grey">0</td>
+                        <td class="zero-style">0</td>
                     {% else %}
-                        <td><font color="black">{{cloud.Held}}</td>
+                        <td class="more-style"><a href="#">{{cloud.Held}}</a></td>
                     {% endif %}
 
                     {% if cloud.Other == 0 %}
-                        <td><font color="grey">0</td>
+                        <td class="zero-style">0</td>
                     {% else %}
-                        <td><font color="black">{{cloud.Other}}</td>
+                        <td class="more-style"><a href="#">{{cloud.Other}}</a></td>
                     {% endif %}
 
                 </tr>
@@ -86,7 +89,8 @@
     </div>
 
     <br>
-
+    {% set VMstotal = 0 %}
+    {% set VMs_foreign_total = 0 %}
     <div class="status-table">
         <table>
           <colgroup>
@@ -116,20 +120,62 @@
             </tr>
             {% for cloud in cloud_status_list %}
                 <tr>
-                    <td>{{cloud.cloud_name}}</td>
-                    {% if cloud.VMs == 0 %}
-                        <td><font color="grey">{{cloud.VMs}}</td>
-                    {% else %}
-                        <td><font color="black">{{cloud.VMs}}</td>
-                    {% endif %}
-                    <td>{{cloud.VMs_unregistered}}</td>
-                    <td>{{cloud.VMs_running}}</td>
-                    <td>{{cloud.VMs_retiring}}</td>
-                    <td>{{cloud.VMs_manual}}</td>
-                    <td>{{cloud.VMs_in_error}}</td>           
-                    <td>{{cloud.VMs_other}}</td>
-                    <td>{{cloud.Foreign_VMs}}</td>
+                    <td class="title-style"><a href="/vm/list/{{cloud.cloud_name}}::::">{{cloud.cloud_name}}</a></td>
 
+                    {% if cloud.VMs == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::::">{{cloud.VMs}}</a></td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_unregistered == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::unregistered::">{{cloud.VMs_unregistered}}</a></td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_running == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::running::">{{cloud.VMs_running}}</td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_retiring == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::retiring::">{{cloud.VMs_retiring}}</td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_manual == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::manual::">{{cloud.VMs_manual}}</td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_in_error == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::error::">{{cloud.VMs_in_error}}</td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_other == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::other::">{{cloud.VMs_other}}</td>
+                    {% endif %}
+
+
+                    {% if cloud.Foreign_VMs == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::foreign::">{{ cloud.Foreign_VMs }}</a></td>
+                    {% endif %}
 
 
                     <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
@@ -137,10 +183,73 @@
 
                 </tr>
             {% endfor %}
+            <tr class="blank_row">
+                <td colspan="11"></td>
+            </tr>
+             <tr>
+                <td>Totals:</td>
+
+                {% if cloud_total_list.VMs == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::::">{{cloud_total_list.VMs}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_unregistered == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::unregistered::">{{cloud_total_list.VMs_unregistered}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_running == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::running::">{{cloud_total_list.VMs_running}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_retiring == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::retiring::">{{cloud_total_list.VMs_retiring}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_manual == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::manual::">{{cloud_total_list.VMs_manual}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_in_error == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::error::">{{cloud_total_list.VMs_in_error}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_other == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::other::">{{cloud_total_list.VMs_other}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.Foreign_VMs == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::foreign::">{{cloud_total_list.Foreign_VMs}}</a></td>
+                {% endif %}
+
+                <td></td>
+                <td></td>
+            </tr>
             </tbody> 
         </table>
     </div>
-    
 </div>
 
 </body>
