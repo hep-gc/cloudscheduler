@@ -110,7 +110,7 @@ def main():
                 for cloud_match in clouds_matching:
                     cpu = cloud_match.flavor_cores / idle_job.request_cpus
                     ram = cloud_match.flavor_ram / idle_job.request_ram
-                    disk = cloud_match.flavor_disk / idle_job.request_disk
+                    disk = cloud_match.flavor_disk / idle_job.request_disk if idle_job.request_disk else 1000  # Better possible value?
                     jobs_possible = int(min([cpu,ram,disk]))
                     if jobs_possible < 1:
                         jobs_possible = 1
