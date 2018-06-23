@@ -15,15 +15,18 @@ cast(sum(VMs_manual) as int) as VMs_manual,
 cast(sum(VMs_in_error) as int) as VMs_in_error,
 cast(sum(VMs_other) as int) as VMs_other,
 cast(sum(Foreign_VMs) as int) as Foreign_VMs,
-cast(sum(condor_slots) as int) as "slots_max",
-cast(sum(condor_slots_used) as int) as "slots_used",
-cast(case when sum(condor_slots)=0 then 0 else round(sum(condor_slots_used) * 100 / sum(condor_slots), 2) end as double) as slots_percent,
-case when cores_ctl is null then 0 else case when cores_ctl=-1 or cores_ctl>cores_max then cores_max else cores_ctl end end as cores_max,
-cores_used,
-cast(case when cores_ctl is null then 0 else case when cores_ctl=-1 then case when cores_max=0 then 0 else round(cores_used*100/cores_max, 2) end else case when cores_ctl=0 then 0 else round(cores_used*100/cores_ctl, 2) end end end as double) as cores_percent,
-case when ram_ctl is null then 0 else case when ram_ctl=-1 or ram_ctl>ram_max then ram_max else ram_ctl end end as ram_max,
-ram_used,
-cast(case when ram_ctl is null then 0 else case when ram_ctl=-1 then case when ram_max=0 then 0 else round(ram_used*100/ram_max, 2) end else case when ram_ctl=0 then 0 else round(ram_used*100/ram_ctl, 2) end end end as double) as ram_percent
+cast(sum(grwvs.cores_ctl) as int) as cores_ctl,
+cast(sum(grwvs.cores_max) as int) as cores_max,
+cast(sum(grwvs.cores_native) as int) as cores_native,
+cast(sum(grwvs.cores_foreign) as int) as cores_foreign,
+cast(sum(grwvs.cores_idle) as int) as cores_idle,
+cast(sum(grwvs.ram_ctl) as int) as ram_ctl,
+cast(sum(grwvs.ram_max) as int) as ram_max,
+cast(sum(grwvs.ram_native) as int) as ram_native,
+cast(sum(grwvs.ram_foreign) as int) as ram_foreign,
+cast(sum(grwvs.ram_idle) as int) as ram_idle,
+cast(sum(condor_slots) as int) as slots_max,
+cast(sum(condor_slots_used) as int) as slots_used
 
 from (
     select
@@ -38,10 +41,20 @@ from (
     0 as VMs_in_error,
     0 as VMs_other,
     0 as Foreign_VMs,
+    cores_ctl,
+    cores_max,
+    cores_native,
+    cores_foreign,
+    cores_idle,
+    ram_ctl,
+    ram_max,
+    ram_native,
+    ram_foreign,
+    ram_idle,
     0 as condor_slots,
     0 as condor_slots_used
 
-    from csv2_group_resources
+    from view_group_resources
 
     /*
     ** Retrieve VM count for each group.
@@ -58,6 +71,16 @@ from (
     case when poller_status="error" then 1 else 0 end as VMs_in_error,
     case when poller_status="other" then 1 else 0 end as VMs_other,
     case when poller_status="foreign" then 1 else 0 end as Foreign_VMs,
+    0 as cores_ctl,
+    0 as cores_max,
+    0 as cores_native,
+    0 as cores_foreign,
+    0 as cores_idle,
+    0 as ram_ctl,
+    0 as ram_max,
+    0 as ram_native,
+    0 as ram_foreign,
+    0 as ram_idle,
     condor_slots,
     condor_slots_used
 
