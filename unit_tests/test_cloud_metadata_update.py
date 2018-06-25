@@ -1,7 +1,7 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
@@ -12,55 +12,55 @@ def main(gvar):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/cloud/metadata-update/',
-        server_user='invalid-unit-test', server_pw='Abc123'
+        server_user='invalid-unit-test', server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/metadata-update/',
-        server_user=ut_id(gvar, 'ctu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/metadata-update/',
-        server_user=ut_id(gvar, 'ctu2'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV31', 'cloud metadata_update, invalid method "GET" specified.',
         '/cloud/metadata-update/',
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/metadata-update/', form_data={'group': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/metadata-update/', form_data={'group': ut_id(gvar, 'ctg2')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV32', 'cloud metadata_update, no cloud name specified.',
         '/cloud/metadata-update/', form_data={'group': ut_id(gvar, 'ctg1')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV32', 'cloud metadata_update, no cloud name specified.',
         '/cloud/metadata-update/', form_data={'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV32', 'cloud metadata_update, no cloud name specified.',
         '/cloud/metadata-update/', form_data={'cloud_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -70,7 +70,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'invalid-unit-test': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -79,7 +79,7 @@ def main(gvar):
             'cloud_name': 'Invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -88,7 +88,7 @@ def main(gvar):
             'cloud_name': 'invalid-unit-test-',
             'metadata_name': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -97,7 +97,7 @@ def main(gvar):
             'cloud_name': 'invalid-unit-test!',
             'metadata_name': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -106,7 +106,7 @@ def main(gvar):
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'Invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -116,7 +116,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'enabled': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -126,7 +126,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'mime_type': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -136,7 +136,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'priority': 1
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -146,7 +146,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'priority': 1
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -155,7 +155,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -165,7 +165,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'metadata': 'foo: this is invalid: yaml'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -175,7 +175,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'priority': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -185,7 +185,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3'),
             'metadata': 'foo: this is invalid: yaml'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -195,7 +195,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'metadata': '- foo: this is valid yaml'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
 if __name__ == "__main__":

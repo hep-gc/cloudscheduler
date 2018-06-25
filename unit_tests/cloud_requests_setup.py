@@ -1,14 +1,16 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
 import sys
 import cloud_requests_cleanup
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
             initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
         else:
             initialize_csv2_request(gvar, sys.argv[0])
+    if not user_secret:
+        user_secret = generate_secret()
     
     cloud_requests_cleanup.main(gvar)
 
@@ -17,8 +19,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu1')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'ctu1'),
-            'password1': 'Abc123',
-            'password2': 'Abc123',
+            'password1': user_secret,
+            'password2': user_secret,
             'cert_cn': '{} test user one'.format(ut_id(gvar, 'cloud'))
         }
     )
@@ -28,8 +30,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu2')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'ctu2'),
-            'password1': 'Abc123',
-            'password2': 'Abc123',
+            'password1': user_secret,
+            'password2': user_secret,
             'cert_cn': '{} test user two'.format(ut_id(gvar, 'cloud')),
             'is_superuser': 1
         }
@@ -58,8 +60,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu3')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'ctu3'),
-            'password1': 'Abc123',
-            'password2': 'Abc123',
+            'password1': user_secret,
+            'password2': user_secret,
             'cert_cn': '{} test user three'.format(ut_id(gvar, 'cloud')),
             'group_name.1': ut_id(gvar, 'ctg1')
         }
@@ -70,8 +72,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu4')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'ctu4'),
-            'password1': 'Abc123',
-            'password2': 'Abc123',
+            'password1': user_secret,
+            'password2': user_secret,
             'cert_cn': '{} test user four'.format(ut_id(gvar, 'cloud')),
             'is_superuser': 1,
             'group_name.1': ut_id(gvar, 'ctg1')
@@ -87,11 +89,11 @@ def main(gvar):
             'authurl': 'unit-test-cloud-one.ca',
             'project': 'unit-test-cloud-one',
             'username': ut_id(gvar, 'ctu3'),
-            'password': 'Abc123',
+            'password': user_secret,
             'region': ut_id(gvar, 'ctc1-r'),
             'cloud_type': 'local'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # cloud to be listed in test_cloud_list
@@ -103,11 +105,11 @@ def main(gvar):
             'authurl': 'unit-test-cloud-two.ca',
             'project': 'unit-test-cloud-two',
             'username': ut_id(gvar, 'ctu3'),
-            'password': 'Abc123',
+            'password': user_secret,
             'region': ut_id(gvar, 'ctc2-r'),
             'cloud_type': 'local'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # cloud to be changed in test_cloud_update, test_cloud_metadata_add, test_cloud_metadata_delete
@@ -119,11 +121,11 @@ def main(gvar):
             'authurl': 'unit-test-cloud-three.ca',
             'project': 'unit-test-cloud-three',
             'username': ut_id(gvar, 'ctu3'),
-            'password': 'Abc123',
+            'password': user_secret,
             'region': ut_id(gvar, 'ctc3-r'),
             'cloud_type': 'local'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # metadata to be deleted in test_cloud_metadata_delete
@@ -134,7 +136,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty2'),
             'metadata': '- example: yes'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # metadata to be updated in test_cloud_metadata_update
@@ -145,7 +147,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3'),
             'metadata': '- example: yes'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # metadata to be updated in test_cloud_metadata_update
@@ -156,7 +158,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
             'metadata': '- example: yes'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # metadata to be fetched in test_cloud_metadata_fetch and test_cloud_metadata_list
@@ -167,7 +169,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': '- example: yes'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -177,7 +179,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'cty1'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
 if __name__ == "__main__":

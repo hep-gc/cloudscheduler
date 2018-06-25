@@ -1,7 +1,7 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
@@ -12,55 +12,55 @@ def main(gvar):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/cloud/metadata-delete/',
-        server_user='invalid-unit-test', server_pw='Abc123'
+        server_user='invalid-unit-test', server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/metadata-delete/',
-        server_user=ut_id(gvar, 'ctu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/metadata-delete/',
-        server_user=ut_id(gvar, 'ctu2'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV25', 'cloud metadata_delete, invalid method "GET" specified.',
         '/cloud/metadata-delete/',
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/metadata-delete/', form_data={'group': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/metadata-delete/', form_data={'group': ut_id(gvar, 'ctg2')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV26', 'cloud metadata_delete, no cloud name specified.',
         '/cloud/metadata-delete/', form_data={'group': ut_id(gvar, 'ctg1')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV26', 'cloud metadata_delete, no cloud name specified.',
         '/cloud/metadata-delete/', form_data={'cloud_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV26', 'cloud metadata_delete, no cloud name specified.',
         '/cloud/metadata-delete/', form_data={'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -69,7 +69,7 @@ def main(gvar):
             'cloud_name': 'Invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -78,7 +78,7 @@ def main(gvar):
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'Invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -87,7 +87,7 @@ def main(gvar):
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -96,7 +96,7 @@ def main(gvar):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty2')
         },
-        server_user=ut_id(gvar, 'ctu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
 if __name__ == "__main__":

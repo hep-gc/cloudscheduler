@@ -1,14 +1,16 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
 import sys
 import group_requests_cleanup
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
             initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
         else:
             initialize_csv2_request(gvar, sys.argv[0])
+    if not user_secret:
+        user_secret = generate_secret()
     
     group_requests_cleanup.main(gvar)
 
@@ -17,8 +19,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu1')),
             '/user/add/', form_data={
                 'username': ut_id(gvar, 'gtu1'),
-                'password1': 'Abc123',
-                'password2': 'Abc123',
+                'password1': user_secret,
+                'password2': user_secret,
                 'cert_cn': '{} test user one'.format(ut_id(gvar, 'group'))
             }
         )
@@ -28,8 +30,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu2')),
             '/user/add/', form_data={
                 'username': ut_id(gvar, 'gtu2'),
-                'password1': 'Abc123',
-                'password2': 'Abc123',
+                'password1': user_secret,
+                'password2': user_secret,
                 'cert_cn': '{} test user two'.format(ut_id(gvar, 'group')),
                 'is_superuser': 1
             }
@@ -67,8 +69,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu3')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'gtu3'),
-            'password1': 'Abc123',
-            'password2': 'Abc123',
+            'password1': user_secret,
+            'password2': user_secret,
             'cert_cn': '{} test user three'.format(ut_id(gvar, 'group')),
             'group_name.1': ut_id(gvar, 'gtg4'),
             'group_name.2': ut_id(gvar, 'gtg5')
@@ -80,8 +82,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu5')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'gtu5'),
-            'password1': 'Abc123',
-            'password2': 'Abc123',
+            'password1': user_secret,
+            'password2': user_secret,
             'is_superuser': 1,
             'cert_cn': '{} test user five'.format(ut_id(gvar, 'group')),
             'group_name.1': ut_id(gvar, 'gtg4'),
@@ -97,7 +99,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'gty4'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -107,7 +109,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'gty5'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -117,7 +119,7 @@ def main(gvar):
             'metadata_name': ut_id(gvar, 'gty5.yaml'),
             'metadata': '- example: yaml'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
     
     # unprivileged user to be added to groups
@@ -125,8 +127,8 @@ def main(gvar):
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu4')),
             '/user/add/', form_data={
                 'username': ut_id(gvar, 'gtu4'),
-                'password1': 'Abc123',
-                'password2': 'Abc123',
+                'password1': user_secret,
+                'password2': user_secret,
                 'cert_cn': '{} test user four'.format(ut_id(gvar, 'group'))
             }
         )

@@ -1,7 +1,7 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
@@ -17,13 +17,13 @@ def main(gvar):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/add/',
-        server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu2')),
         '/group/add/',
-        server_user=ut_id(gvar, 'gtu2'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -43,17 +43,17 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'Gtg1')}
+        '/group/add/', form_data={'group_name': 'Invalid-Unit-Test'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1-')}
+        '/group/add/', form_data={'group_name': 'invalid-unit-test-'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg!1')}
+        '/group/add/', form_data={'group_name': 'invalid!unit!test'}
     )
 
     execute_csv2_request(
@@ -65,7 +65,7 @@ def main(gvar):
         gvar, 1, 'GV97', '"{}" failed - specified user "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={
             'username.1': 'invalid-unit-test',
-            'group_name': ut_id(gvar, 'gtg1')
+            'group_name': 'invalid-unit-test'
         }
     )
 
@@ -73,7 +73,16 @@ def main(gvar):
         gvar, 1, 'GV01', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
         '/group/add/', form_data={
             'user_option': 'invalid-unit-test',
-            'group_name': ut_id(gvar, 'gtg1')
+            'group_name': 'invalid-unit-test'
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV##', 'duplicate username',
+        '/group/add/', form_data={
+            'group_name': 'invalid-unit-test',
+            'username.1': ut_id(gvar, 'gtu3'),
+            'username.2': ut_id(gvar, 'gtu3')
         }
     )
 
