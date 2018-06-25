@@ -78,7 +78,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'duplicate username',
+        gvar, 1, 'GV03', 'Duplicate entry \'invalid-unit-test\' for key \'PRIMARY\'',
         '/group/add/', form_data={
             'group_name': 'invalid-unit-test',
             'username.1': ut_id(gvar, 'gtu3'),

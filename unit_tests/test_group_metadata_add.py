@@ -49,7 +49,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV26', 'cannot switch to invalid group "testing".',
+        gvar, 1, 'GV26', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-add/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': ut_id(gvar, 'gtg7')

@@ -69,16 +69,16 @@ def main(gvar, user_secret):
     )
 
     # privileged user in utg1
-    # execute_csv2_request(
-    #     gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu4')),
-    #     '/user/add/', form_data={
-    #         'username': ut_id(gvar, 'utu4'),
-    #         'password': user_secret,
-    #         'cert_cn': '%s test user four' % ut_id(gvar, 'user'),
-    #         'group_name': ut_id(gvar, 'utg1'),
-    #         'is_superuser': 1
-    #     }
-    # )
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'utu4')),
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'utu4'),
+            'password': user_secret,
+            'cert_cn': '%s test user four' % ut_id(gvar, 'user'),
+            'group_name': ut_id(gvar, 'utg1'),
+            'is_superuser': 1
+        }
+    )
 
     # user to be deleted in test_user_delete
     execute_csv2_request(

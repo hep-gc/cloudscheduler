@@ -59,12 +59,20 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'the request did not match any rows.',
+        gvar, 1, 'UV21', 'You have an error in your SQL syntax',
         '/user/update/', form_data={'username': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        gvar, 1, 'UV21', 'the request did not match any rows.',
+        '/user/update/', form_data={
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test'
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'You have an error in your SQL syntax',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu6')}
     )
 
@@ -125,13 +133,13 @@ def main(gvar, user_secret):
         }
     )
 
-    execute_csv2_request(
-        gvar, 1, 'UV19', 'request contained a rejected/bad parameter "active_group".',
-        '/user/update/', form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'active_group': 'invalid-unit-test'
-        }
-    )
+    # execute_csv2_request(
+    #     gvar, 1, 'UV19', 'request contained a rejected/bad parameter "active_group".',
+    #     '/user/update/', form_data={
+    #         'username': ut_id(gvar, 'utu6'),
+    #         'active_group': 'invalid-unit-test'
+    #     }
+    # )
 
     execute_csv2_request(
         gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
@@ -159,7 +167,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'username "{}" conflicts with a registered common name.'.format(ut_id(gvar, 'utu6')),
+        gvar, 1, 'UV02', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu3')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'cert_cn': ut_id(gvar, 'utu3')
@@ -167,7 +175,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'username "{}" conflicts with a registered common name.'.format(ut_id(gvar, 'utu6')),
+        gvar, 1, 'UV02', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user three'), ut_id(gvar, 'utu3')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'cert_cn': ut_id(gvar, 'user test user three')
@@ -183,7 +191,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        gvar, 1, 'UV21', 'You have an error in your SQL syntax',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'add'
@@ -191,7 +199,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        gvar, 1, 'UV21', 'You have an error in your SQL syntax',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'delete'

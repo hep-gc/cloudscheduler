@@ -28,13 +28,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "testing".',
+        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg7')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV06', 'request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

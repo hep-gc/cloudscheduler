@@ -34,7 +34,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'cannot switch to invalid group "testing".',
+        gvar, 1, 'GV07', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/defaults/', form_data={'group': ut_id(gvar, 'gtg7')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

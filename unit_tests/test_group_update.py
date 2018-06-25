@@ -102,7 +102,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'duplicate username',
+        gvar, 1, 'GV24', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtu4'), ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),
