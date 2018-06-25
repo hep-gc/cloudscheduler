@@ -162,6 +162,18 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
     else:
         return 0
 
+def generate_secret():
+    from string import ascii_letters, digits
+    from random import SystemRandom, choice
+    alphabet = ascii_letters + digits
+    while True:
+        user_secret = ''.join(SystemRandom().choice(alphabet) for _ in range(10))
+        if (any(c.islower() for c in user_secret)
+                and any(c.isupper() for c in user_secret)
+                and sum(c.isdigit() for c in user_secret) >= 3):
+            break
+    return user_secret
+
 def html_message(text):
     import re
     p = re.compile(r'Error: (.*)</b>')

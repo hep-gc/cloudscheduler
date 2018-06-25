@@ -17,57 +17,68 @@ def main(gvar):
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu1')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu2')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu3')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu4')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu5')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu6')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'utu7')}
-        )
-    
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu10')}
+    )
+
     execute_csv2_request(
         gvar, None, None, None,
-        '/user/delete/', form_data={'username': ut_id(gvar, 'utu8')}
-        )
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu11')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu12')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'utu13')}
+    )
+
+    # just in case, this user shouldn't exist
+    execute_csv2_request(
+        gvar, None, None, None,
+        '/user/delete/', form_data={'username': 'invalid-unit-test'}
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'utg1')}
-        )
+    )
 
     execute_csv2_request(
         gvar, None, None, None,
         '/group/delete/', form_data={'group_name': ut_id(gvar, 'utg2')}
-        )
-
-    execute_csv2_request(
-        gvar, None, None, None,
-        '/group/delete/', form_data={'group_name': ut_id(gvar, 'utg3')}
-        )
+    )
 
 if __name__ == "__main__":
     main(None)
