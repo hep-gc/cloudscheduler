@@ -64,7 +64,16 @@ def main(gvar, user_secret):
         }
     )
 
-    # unprivileged user in group gtg5
+    # group with no users
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg7')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'gtg7'),
+            'condor_central_manager': 'unit-test-group-seven.ca',
+        }
+    )
+
+    # unprivileged user in groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu3')),
         '/user/add/', form_data={

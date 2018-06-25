@@ -55,7 +55,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV18', 'cannot switch to invalid group "testing".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
-            'group': 'testing'
+            'group': ut_id(gvar, 'gtg7')
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

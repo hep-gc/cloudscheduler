@@ -62,7 +62,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV97', '"{}" failed - specified user "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'gtg1')),
+        gvar, 1, 'GV97', 'specified user "invalid-unit-test" does not exist.',
         '/group/add/', form_data={
             'username.1': 'invalid-unit-test',
             'group_name': 'invalid-unit-test'

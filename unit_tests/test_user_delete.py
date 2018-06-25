@@ -49,7 +49,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV09', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'UV09', 'request contained superfluous parameter "invalid-unit-test".',
         '/user/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
@@ -58,18 +58,16 @@ def main(gvar, user_secret):
         '/user/delete/', form_data={'username': 'Invalid-unit-test'}
     )
 
-    # TODO: should you really be able to specify password as a parameter?
-    # execute_csv2_request(
-    #     gvar, 1, 'UV09', 'request did not contain mandatory parameter "username".',
-    #     '/user/delete/', form_data={'password': 'invalid-unit-test'}
-    # )
+    execute_csv2_request(
+        gvar, 1, 'UV09', 'request contained superfluous parameter "invalid-unit-test".',
+        '/user/delete/', form_data={'password': 'invalid-unit-test'}
+    )
 
-    # TODO: should you be able to specify the group parameter?
-    # execute_csv2_request(
-    #     gvar, 1, 'UV09', 'request contained a bad parameter "group".',
-    #     '/user/delete/', form_data={'group': ut_id(gvar, 'utg1')},
-    #     server_user=ut_id(gvar, 'utu4'), server_pw=user_secret
-    # )
+    execute_csv2_request(
+        gvar, 0, None, '???',
+        '/user/delete/', form_data={'group': ut_id(gvar, 'utg1')},
+        server_user=ut_id(gvar, 'utu4'), server_pw=user_secret
+    )
 
     execute_csv2_request(
         gvar, 1, 'UV11', 'the request did not match any rows.',

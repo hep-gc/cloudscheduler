@@ -75,17 +75,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV01', 'request did not contain mandatory parameter "username".',
+        gvar, 1, 'UV01', 'boolean value specified for "is_superuser" must be one of the following: true, false, yes, no, 1, or 0.',
         '/user/add/', form_data={
-            'is_superuser': 'invalid-unit-test'
-        }
-    )
-
-    execute_csv2_request(
-        gvar, 1, 'UV05', 'Incorrect integer value: \'invalid-unit-test\' for column \'is_superuser\' at row 1',
-        '/user/add/', form_data={
-            'username': 'invalid-unit-test',
-            'password': user_secret,
             'is_superuser': 'invalid-unit-test'
         }
     )
@@ -150,7 +141,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'bad parameter',
+        gvar, 1, 'UV01', 'request contained a rejected/bad parameter "join_date".',
         '/user/add/', form_data={
             'username': 'invalid-unit-test',
             'password': user_secret,
@@ -159,7 +150,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'bad parameter',
+        gvar, 1, 'UV01', 'request contained a rejected/bad parameter "active_group".',
         '/user/add/', form_data={
             'username': 'invalid-unit-test',
             'password': user_secret,

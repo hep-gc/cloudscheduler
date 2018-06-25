@@ -29,7 +29,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "testing".',
-        '/group/metadata-list/', form_data={'group': 'testing'},
+        '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg7')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

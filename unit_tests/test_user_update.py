@@ -69,17 +69,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV19', 'request did not contain mandatory parameter "username".',
+        gvar, 1, 'UV19', 'boolean value specified for "is_superuser" must be one of the following: true, false, yes, no, 1, or 0.',
         '/user/update/', form_data={'is_superuser': 'invalid-unit-test'}
-    )
-
-    # TODO: shouldn't is_superuser be checked in validate_fields??
-    execute_csv2_request(
-        gvar, 1, 'UV21', 'Incorrect integer value: \'invalid-unit-test\' for column \'is_superuser\' at row 1',
-        '/user/update/', form_data={
-            'username': ut_id(gvar, 'utu6'),
-            'is_superuser': 'invalid-unit-test'
-        }
     )
 
     execute_csv2_request(
@@ -127,7 +118,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'bad parameter',
+        gvar, 1, 'UV19', 'request contained a rejected/bad parameter "join_date".',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'join_date': 'invalid-unit-test'
@@ -135,7 +126,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'bad parameter',
+        gvar, 1, 'UV19', 'request contained a rejected/bad parameter "active_group".',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'active_group': 'invalid-unit-test'

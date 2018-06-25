@@ -52,7 +52,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV26', 'cannot switch to invalid group "testing".',
         '/group/metadata-add/', form_data={
             'metadata_name': 'invalid-unit-test',
-            'group': 'testing'
+            'group': ut_id(gvar, 'gtg7')
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
@@ -99,7 +99,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV28', 'Incorrect integer value: \'invalid-unit-test\' for column \'priority\' at row 1',
+        gvar, 1, 'GV27', 'value specified for "priority" must be a integer value.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test',
