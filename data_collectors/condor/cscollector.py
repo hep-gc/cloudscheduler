@@ -71,7 +71,10 @@ def resources_producer():
                     if "Start" in r_dict:
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
-                    r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    if unmapped is not None:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.eror(unmapped)
                     r_dict["condor_host"] = condor_host
                     r_dict["hostname"] = condor_host.split(".")[0]
                     new_resource = Resource(**r_dict)

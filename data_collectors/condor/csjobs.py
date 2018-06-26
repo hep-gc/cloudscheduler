@@ -63,7 +63,7 @@ def job_producer():
                 logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
                 logging.error(exc)
                 logging.error("Sleeping until next cycle...")
-                time.sleep(config.sleep_interval)
+                time.sleep(sleep_interval)
                 continue
 
             fail_count = 0
@@ -118,7 +118,10 @@ def job_producer():
                     job_dict['group_name'] = config.default_job_group
 
                 job_dict = trim_keys(job_dict, job_attributes)
-                job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                if unmapped is not None:
+                    logging.error("attribute mapper found unmapped variables:")
+                    logging.error(unmapped)
 
                 logging.info("Adding job %s", job_dict["global_job_id"])
                 new_job = Job(**job_dict)
@@ -154,7 +157,11 @@ def job_producer():
                     if "Requirements" in job_dict:
                         job_dict['Requirements'] = str(job_dict['Requirements'])
                     job_dict = trim_keys(job_dict, job_attributes)
-                    job_dict = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                    job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                    if unmapped is not None:
+                        logging.error("attribute mapper found unmapped variables:")
+                        logging.error(unmapped)
+                            
                     new_job = Job(**job_dict)
                     try:
                         session.merge(new_job)
