@@ -1,10 +1,8 @@
 
 
-
-
 .status-table th {
-  background-color: #4CAF50;
-  color: white;
+  font-weight: bold;
+  text-align: center;
 }
 
 
@@ -14,9 +12,7 @@
   text-align: center;
 }
 
-.status-table th {
-  text-align: center;
-}
+
 
 .status-table td, th {
   padding: 8px;
@@ -25,6 +21,28 @@
   position: relative;
   width: 80px;
 }
+
+.status-table .col-spacer {
+  background-color: white;
+  border-bottom: 0px;
+  color: white;
+  width: 20px;
+}
+.status-table .col-spacer:hover {
+  background-color: white;
+  color: white;
+}
+
+.status-table .row-spacer {
+  height: 10px;
+  background-color: white;
+  color: white;
+}
+.status-table .row-spacer:hover {
+  background-color: white;
+  color: white;
+}
+
 
 
 .status-table td:hover {
@@ -51,6 +69,31 @@
   z-index: -1;
 }
 
+.name-style{
+  background-color: maroon;
+  color: white;
+}
+
+.jobs-style {
+  background-color: lightgrey;
+  color: black;
+}
+
+.native-style {
+  background-color: powderblue;
+  color: black;
+}
+
+.foreign-style {
+  background-color: orange;
+  color: black;
+}
+
+.total-style {
+  background-color: green;
+  color: white;
+}
+
 .title-style a {
   text-decoration: none;
   color: maroon;
@@ -67,10 +110,24 @@
   font-weight: bold;
 }
 
-.blank_row
-{
-    height: 10px !important; /* overwrites any other rules */
-    background-color: white !important;
+
+.sysctl-style {
+  color: green;
+  font-weight: bold;
+}
+
+.alert-style {
+  color: red;
+  font-weight: bold;
+}
+
+.manual-style {
+  color: blue;
+  font-weight: bold;
+}
+
+.bold-style{
+  font-weight: bold;
 }
 
 .grey {
@@ -85,3 +142,36 @@
 }
 .clear {}
 
+/*****************************************************************/
+/*                       Tooltips styling                        */
+/*****************************************************************/
+
+[tooltip]{
+  margin:20px;
+  position:relative;
+}
+[tooltip]::before {
+    transition-delay: 0.5s;
+    content: attr(tooltip);
+    position: absolute;
+    left:50%;
+    top:-6px;
+    transform: translateX(-50%)   translateY(-100%);
+    background: rgba(0,0,0,0.7);
+    text-align: center;
+    color: #fff;
+    padding:4px 2px;
+    font-size: 12px;
+    min-width: 100px;
+    border-radius: 5px;
+    pointer-events: none;
+    padding: 4px 4px;
+    z-index:99;
+    opacity:0;
+}
+
+[tooltip]:hover::before {
+   opacity:1 !important;
+}
+
+/*****************************************************************/

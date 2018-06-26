@@ -35,12 +35,12 @@
           </colgroup>
           <thead>
             <tr>
-                <th>Jobs</th>
-                <th>Idle</th>
-                <th>Running</th>
-                <th>Completed</th>
-                <th>Held</th>
-                <th>Other</th>
+                <th class="jobs-style">Jobs</th>
+                <th class="jobs-style">Idle</th>
+                <th class="jobs-style">Running</th>
+                <th class="jobs-style">Completed</th>
+                <th class="jobs-style">Held</th>
+                <th class="jobs-style">Other</th>
 
             </tr>
             {% for cloud in job_status_list %}
@@ -96,25 +96,31 @@
           <colgroup>
             <col class="grey" />
             <col class="red" span="1" />
-            <col class="clear" span="6" />
+            <col class="clear" span="9" />
             <col class="blue" span="1" />
             <col class="clear" span="2" />
           </colgroup>
           <thead>
             <tr>
-                <th>Clouds</th>
-                <th>VMs</th>
-                <th>Unregistered</th>
-                <th>Running</th>
-                <th>Retiring</th>
-                <th>Manual</th>
-                <th>In Error</th>
-                <th>Other</th>
+                <th class="name-style">Clouds</th>
+                <th class="native-style">VMs</th>
+                <th class="native-style">Unregistered</th>
+                <th class="native-style">Running</th>
+                <th class="native-style">Retiring</th>
+                <th class="native-style">Manual</th>
+                <th class="native-style">In Error</th>
+                <th class="native-style">Other</th>
+                <th class="native-style">Slots</th>
+                <th class="native-style">Native Cores</th>
 
-                <th>Foreign</th>
+                <th class="col-spacer">&nbsp;</th>
 
-                <th>Slots</th>
-                <th>Cores</th>
+                <th class="foreign-style">Foreign VMs</th>
+                <th class="foreign-style">Foreign Cores</th>
+
+                <th class="col-spacer">&nbsp;</th>
+
+                <th class="total-style" tooltip="Total used cores over total cores on cloud.">Total Cores</th>
 
 
             </tr>
@@ -171,6 +177,19 @@
                     {% endif %}
 
 
+                    <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
+
+                    {% if cloud.cores_ctl == -1 %}
+                        <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle}}</td>
+                    {% elif cloud.cores_ctl > cloud.cores_idle %}
+                        <td class="alert-style" tooltip="Max cores set to manual control. Available cores less than user setting!">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle}}</td>
+                    {% else %}
+                        <td class="manual-style" tooltip="Max cores set to manual control.">{{cloud.cores_native}} <b>/</b> {{cloud.cores_ctl}}</td>
+                    {% endif %}
+
+                    <td class="col-spacer">&nbsp;</td>
+
+
                     {% if cloud.Foreign_VMs == 0 %}
                         <td class="zero-style">0</td>
                     {% else %}
@@ -178,16 +197,22 @@
                     {% endif %}
 
 
-                    <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
-                    <td>{{cloud.cores_used}} <b>/</b> {{cloud.cores_max}}</td>
+                    <td>{{cloud.cores_foreign}}</td>
+
+                    <td class="col-spacer">&nbsp;</td>
+                    <td>{{cloud.cores_native|add:cloud.cores_foreign}} <b>/</b> {{cloud.cores_max}}</td>
 
                 </tr>
             {% endfor %}
-            <tr class="blank_row">
-                <td colspan="11"></td>
+            <tr>
+                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td class="col-spacer">&nbsp;</td>
+                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td class="col-spacer">&nbsp;</td>
+                <td colspan="1" class="row-spacer">&nbsp;</td>
             </tr>
              <tr>
-                <td>Totals:</td>
+                <td class="bold-style">Totals:</td>
 
                 {% if cloud_total_list.VMs == 0 %}
                     <td class="zero-style">0</td>
@@ -238,14 +263,31 @@
                 {% endif %}
 
 
+                <td class="bold-style">{{cloud_total_list.slots_used}} <b>/</b> {{cloud_total_list.slots_max}}</td>
+
+
+                <td class="bold-style">{{cloud_total_list.cores_native}} <b>/</b> {{cloud_total_list.cores_ctl}}</td>
+
+
+
+                <td class="col-spacer">&nbsp;</td>
+
                 {% if cloud_total_list.Foreign_VMs == 0 %}
                     <td class="zero-style">0</td>
                 {% else %}
                     <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::foreign::">{{cloud_total_list.Foreign_VMs}}</a></td>
                 {% endif %}
 
-                <td></td>
-                <td></td>
+
+                {% if cloud_total_list.cores_foreign == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a href="#">{{cloud_total_list.cores_foreign}}</a></td>
+                {% endif %}
+
+
+                <td class="col-spacer">&nbsp;</td>
+                <td class="bold-style">{{cloud_total_list.cores_native|add:cloud_total_list.cores_foreign}} <b>/</b> {{cloud_total_list.cores_max}}</td>
             </tr>
             </tbody> 
         </table>
