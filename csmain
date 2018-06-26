@@ -145,6 +145,10 @@ def main():
                         num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
                         # This is the total wanted, but cloud may not be able to handle that request
                         num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
+                        # TODO Setup proper thorttling and configuration of it.
+                        MAX_BOOT = 5  # Temp fix to quickly get a throttle in place
+                        if num_vms_to_boot > MAX_BOOT:
+                            num_vms_to_boot = MAX_BOOT
                         log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, cloud.cloud_name)
                         try:
                             usertmp = idle_job.user.split('@')[0]
