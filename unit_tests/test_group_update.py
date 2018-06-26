@@ -64,7 +64,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV24', 'group update "invalid-unit-test" failed',
+        gvar, 1, 'GV21', 'group update must specify at least one field to update.',
         '/group/update/', form_data={'group_name': 'invalid-unit-test'}
     )
 
@@ -137,6 +137,80 @@ def main(gvar, user_secret):
         '/user/list/',
         list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
         values={'user_groups': ut_id(gvar, 'gtg4')}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/update/', form_data={
+            'group_name': ut_id(gvar, 'gtg4')
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        values={'user_groups': None}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/update/', form_data={
+            'group_name': ut_id(gvar, 'gtg4'),
+            'username.1': ut_id(gvar, 'gtu4')
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        values={'user_groups': ut_id(gvar, 'gtg4')}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/update/', form_data={
+            'group_name': ut_id(gvar, 'gtg4'),
+            'username.1': ut_id(gvar, 'gtu5')
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        values={'user_groups': None}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'gtu5')},
+        values={'user_groups': ut_id(gvar, 'gtg4,gtg5,gtg6')}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
+        '/group/update/', form_data={
+            'group_name': ut_id(gvar, 'gtg4'),
+            'username.1': ut_id(gvar, 'gtu4'),
+            'username.2': ut_id(gvar, 'gtu5')
+        }, html=True
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'gtu4')},
+        values={'user_groups': ut_id(gvar, 'gtg4')}
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/list/',
+        list='user_list', filter={'username': ut_id(gvar, 'gtu5')},
+        values={'user_groups': ut_id(gvar, 'gtg4,gtg5,gtg6')}
     )
 
 if __name__ == "__main__":
