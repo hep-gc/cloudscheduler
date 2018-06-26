@@ -43,7 +43,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/metadata-list/',
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1')},
-        values={'metadata_name': 'error'},
+        values={'metadata_name': ut_id(gvar, 'gty1'), 'group_name': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
