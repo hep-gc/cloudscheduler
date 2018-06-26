@@ -72,7 +72,7 @@ def resources_producer():
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
                     r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
-                    if unmapped is not None:
+                    if unmapped:
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.eror(unmapped)
                     r_dict["condor_host"] = condor_host

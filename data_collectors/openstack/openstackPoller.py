@@ -230,7 +230,10 @@ def vm_poller():
                         'last_updated': int(time.time())
                     }
 
-                    vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                    vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                    if unmapped:
+                        logging.error("unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
                     vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                     new_vm = Vm(**vm_dict)
                     try:
@@ -341,7 +344,10 @@ def flavorPoller():
                         'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                         'last_updated': current_cycle
                     }
-                    flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                    flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
                     new_flav = Flavor(**flav_dict)
                     db_session.merge(new_flav)
 
@@ -444,7 +450,10 @@ def imagePoller():
                     'name': image.name,
                     'last_updated': current_cycle
                 }
-                img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                if unmapped:
+                    logging.error("Unmapped attributes found during mapping, discarding:")
+                    logging.error(unmapped)
                 new_image = Image(**img_dict)
                 try:
                     db_session.merge(new_image)
@@ -533,7 +542,10 @@ def limitPoller():
             limits_dict['group_name'] = cloud.group_name
             limits_dict['cloud_name'] = cloud.cloud_name
             limits_dict['last_updated'] = int(time.time())
-            limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+            limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+            if unmapped:
+                logging.error("Unmapped attributes found during mapping, discarding:")
+                logging.error(unmapped)
             for key in limits_dict:
                 if "-1" in str(limits_dict[key]):
                     limits_dict[key] = config.no_limit_default
@@ -626,10 +638,13 @@ def networkPoller():
                     'id': network['id'],
                     'last_updated': int(time.time())
                 }
-                network_dict = map_attributes(
+                network_dict, unmapped = map_attributes(
                     src="os_networks",
                     dest="csv2",
                     attr_dict=network_dict)
+                if unmapped:
+                    logging.error("Unmapped attributes found during mapping, discarding:")
+                    logging.error(unmapped)
                 new_network = Network(**network_dict)
                 db_session.merge(new_network)
 
