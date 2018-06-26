@@ -59,7 +59,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'You have an error in your SQL syntax',
+        gvar, 1, 'UV21', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': 'invalid-unit-test'}
     )
 
@@ -72,7 +72,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, None, 'You have an error in your SQL syntax',
+        gvar, 0, 'UV21', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu6')}
     )
 
@@ -158,7 +158,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'Duplicate entry \'invalid-unit-test-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utg1')),
+        gvar, 1, 'UV22', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg1')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),
@@ -183,7 +183,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV99', 'group-option "invalid-unit-test" invalid, must be either "add" or "delete".',
+        gvar, 1, 'UV19', 'value specified for "group_option" must be one of the following options: [\'add\', \'delete\'].',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'invalid-unit-test'
@@ -191,7 +191,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'You have an error in your SQL syntax',
+        gvar, 1, 'UV21', 'must specify at least one field to update.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'add'
@@ -199,7 +199,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'You have an error in your SQL syntax',
+        gvar, 1, 'UV21', 'must specify at least one field to update.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'delete'
@@ -392,7 +392,6 @@ def main(gvar, user_secret):
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
-            'group_name': None
         }, html=True
     )
 

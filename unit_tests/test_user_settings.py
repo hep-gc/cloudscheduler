@@ -65,7 +65,6 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # TODO: why does this not update the users password?
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/', form_data={'password': new_secret},
