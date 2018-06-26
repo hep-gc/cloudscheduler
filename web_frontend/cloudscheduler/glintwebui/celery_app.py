@@ -41,14 +41,13 @@ def image_collection(self):
     term_signal = False
     num_tx = get_num_transactions()
 
+    # setup database objects
+    Base, session = get_db_base_and_session()
+    Group_Resources = Base.classes.csv2_group_resources
+    Group = Base.classes.csv2_groups
 
     # perminant for loop to monitor image states and to queue up tasks
     while True:
-        # setup database objects
-        Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
-        Group = Base.classes.csv2_groups
-
         # First check for term signal
         logger.debug("Term signal: %s", term_signal)
         if term_signal is True:
