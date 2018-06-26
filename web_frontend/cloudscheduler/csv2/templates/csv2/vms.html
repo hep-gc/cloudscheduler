@@ -23,9 +23,11 @@
 
     <div class="main-div">
       <form method="post">
+        {% csrf_token %}
         <!-- Table Setup - thead and tbody are commented out. Enable for static header
         but good luck getting the column widths to match. -->
-        <button type="submit" name="vm_option" value="retire">Retire VMs</button>
+
+        <button type="submit" formaction="/vm/list/::::/" name="vm_option" value="retire">Retire VMs</button>
         <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="test">Kill VMs</button>
 
         <div class="vm-table">
@@ -36,7 +38,7 @@
                 <th>Cloud</th>
                 <th>Project</th>
                 <th>Hostname</th>
-                <!-- <th>VM ID</th> -->
+                <th>VM ID</th>
                 <th>Status</th>
                 <th>Status Changed Time</th>
                 <th>Task</th>
@@ -58,11 +60,11 @@
             <!-- <tbody> -->
               {% for vm in vm_list %}
                 <tr>
-                  <td><input type="checkbox" name="vm_list" value={{vm.vmid}}/></td>
+                  <td><input type="checkbox" name="vm_selected" value={{vm.vmid}}/></td>
                   <td>{{vm.cloud_name}}</td>
                   <td>{{vm.project}}</td>
                   <td>{{vm.hostname}}</td>
-                  <!-- <td>{{vm.vmid}}</td> -->
+                  <td>{{vm.vmid}}</td>
                   <td>{{vm.status}}</td>
                   <td>{{vm.status_changed_time}}</td>
                   <td>{{vm.task}}</td>
