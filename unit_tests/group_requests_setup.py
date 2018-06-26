@@ -97,7 +97,6 @@ def main(gvar, user_secret):
             'cert_cn': '{} test user five'.format(ut_id(gvar, 'group')),
             'group_name.1': ut_id(gvar, 'gtg4'),
             'group_name.2': ut_id(gvar, 'gtg5'),
-            'group_name.3': ut_id(gvar, 'gtg6')
         }
     )
     

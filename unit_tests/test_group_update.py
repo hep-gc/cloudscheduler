@@ -187,7 +187,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/',
         list='user_list', filter={'username': ut_id(gvar, 'gtu5')},
-        values={'user_groups': ut_id(gvar, 'gtg4,gtg5,gtg6')}
+        values={'user_groups': ut_id(gvar, 'gtg4,gtg5')}
     )
 
     execute_csv2_request(
@@ -210,7 +210,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/user/list/',
         list='user_list', filter={'username': ut_id(gvar, 'gtu5')},
-        values={'user_groups': ut_id(gvar, 'gtg4,gtg5,gtg6')}
+        values={'user_groups': ut_id(gvar, 'gtg4,gtg5')}
     )
 
 if __name__ == "__main__":

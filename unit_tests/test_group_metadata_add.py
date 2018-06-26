@@ -34,7 +34,7 @@ def main(gvar, user_secret):
     )
     
     execute_csv2_request(
-        gvar, 1, 'GV30', 'no metadata name specified.',
+        gvar, 1, 'GV30', 'no group name specified.',
         '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
