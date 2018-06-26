@@ -28,12 +28,6 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
-        '/user/update/',
-        server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
         gvar, 1, 'UV23', 'invalid method "GET" specified.',
         '/user/update/'
     )

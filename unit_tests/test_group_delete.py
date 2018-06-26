@@ -44,7 +44,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'GV09', 'group delete request did not contain mandatory parameter "group_name".',
-        '/group/delete/', form_data={'group': ut_id(gvar, 'gtg6')},
+        '/group/delete/', form_data={'group': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 
@@ -65,7 +65,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'gtg6')),
-        '/group/delete/', form_data={'group': ut_id(gvar, 'gtg6'), 'group_name': ut_id(gvar, 'gtg6')},
+        '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg6')},
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 
