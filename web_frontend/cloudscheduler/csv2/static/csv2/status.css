@@ -175,3 +175,172 @@
 }
 
 /*****************************************************************/
+
+
+
+
+/*
+
+.container{
+  width:400px;
+  height:200px;
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  overflow: hidden;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+
+.gauge-a{
+  z-index: 1;
+  position: absolute;
+  background-color: rgba(255,255,255,.2);
+  width: 400px;
+  height: 200px;
+  top: 0%;
+  border-radius:250px 250px 0px 0px ;
+}
+.gauge-b{
+  z-index: 3;
+  position: absolute;
+  background-color: #222;
+  width: 250px;
+  height: 125px;
+  top: 75px;
+  margin-left: 75px;
+  margin-right: auto;
+  border-radius:250px 250px 0px 0px ;
+}
+.gauge-c{
+  z-index: 2;
+  position: absolute;
+  background-color: #5664F9;
+  width: 400px;
+  height: 200px;
+  top: 200px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius:0px 0px 200px 200px ;
+  transform-origin:center top;
+  transition: all 1.3s ease-in-out;
+}
+
+.container:hover .gauge-c{
+  transform:rotate(.5turn);
+}
+.container:hover .gauge-data{
+  color: rgba(255,255,255,1);
+}
+
+.gauge-data{
+  z-index: 4;
+  color: rgba(255,255,255,.2);
+  font-size: 1.5em;
+  line-height: 25px;
+  position: absolute;
+  width: 400px;
+  height: 200px;
+  top: 90px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all 1s ease-out;
+}
+
+*/
+/*******************************************************************/
+
+@grey-dark: #8d8d8d;
+@grey: #cccccc;
+@grey-light: #eeeeee;
+@red: #de2f31;
+@orange-red: #de5c2f;
+@orange: #e5a147;
+@green: #41b565;
+
+// ----------------------
+// --- MIXINS -----------
+// ----------------------
+
+.gauge__arc(@color) {
+  content: '';
+  position: absolute;
+  height: 200%;
+  width: 100%;
+  border-radius: 50%;
+  background-color: @color;
+}
+
+.gauge__meter--state(@value, @color) {
+  @animation-name: ~"gauge-rotate-@{value}";
+
+  // Animation declaration
+  @keyframes @animation-name {
+    from { transform: rotate(0.5turn) }
+    to   { transform: rotate(0.5turn + @value/200) }
+  }
+
+  // Styling rule declaration
+  .gauge__meter--@{value} {
+    animation: @animation-name 1s forwards;
+
+    &:before {
+      .gauge__arc(@color);
+    }
+  }
+}
+
+
+// -------------------------
+// --- STYLING RULES -------
+// -------------------------
+
+.gauge {
+  // setting bottom padding to 50% creates a container
+  // that is half as high as it is wide
+  padding-bottom: 50%;
+  position: relative;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+
+  // background arc
+  &:before {
+    .gauge__arc(@grey);
+  }
+
+  // cut out
+  &:after {
+    content: '';
+    background: @grey-light;
+    position: absolute;
+    top: 60%;
+    right: 30%;
+    bottom: -40%;
+    left: 30%;
+    border-radius: 50%;
+  }
+}
+
+// container for rotating gauge meter
+.gauge__meter {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform-origin: center bottom;
+}
+
+.gauge__meter--state(10, @grey-dark);
+.gauge__meter--state(25, @red);
+.gauge__meter--state(50, @orange-red);
+.gauge__meter--state(75, @orange);
+.gauge__meter--state(75, @green);
+.gauge__meter--state(90, @green);
+
+.row {
+  width: 30%;
+  margin: 1%;
+}
+

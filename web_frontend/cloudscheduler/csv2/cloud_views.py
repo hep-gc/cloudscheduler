@@ -214,10 +214,11 @@ def list(
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
-    rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
-    if rc != 0:        
-        db_close(db_ctl)
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno('CV06'), msg)})
+    if not message:
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        if rc != 0:        
+            db_close(db_ctl)
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno('CV06'), msg)})
 
     s = select([csv2_cloud_types])
     type_list = qt(db_connection.execute(s))
@@ -569,12 +570,22 @@ def status(request, group_name=None):
 
     cloud_total_list = {}
 
+
+    cloud_total_list["cores_available"] = 0
+
+
     for d in cloud_status_list:
         for key, value in d.items():
             if key in cloud_total_list:
                 cloud_total_list[key] += value
             else:
                 cloud_total_list[key] = value
+
+        if d["cores_ctl"] == -1 or d["cores_ctl"] > d["cores_idle"]:
+            cloud_total_list["cores_available"] += d["cores_idle"] 
+        else:
+            cloud_total_list["cores_available"] += d["cores_ctl"]
+    
 
 
     context = {
