@@ -4,6 +4,9 @@ EC2 API Cloud Connector Module.
 
 import boto3
 import botocore
+from libcloud.compute.types import Provider
+from libcloud.compute.providers import get_driver
+
 
 import cloudscheduler.basecloud
 
@@ -17,9 +20,12 @@ class EC2Cloud(cloudscheduler.basecloud):
         """Constructor for ec2 based clouds."""
         cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
                                                     extrayaml=extrayaml)
+        self.driver = get_driver(Provider.EC2)
+        self.conn = self.driver(resource.username, resource.password)
 
     def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
         self.log.debug("vm_create from ec2 cloud.")
+        new_vm = self.conn.create_node(name=self.generate_name(), image=None, size=None)
 
     def vm_destroy(self, vm):
         self.log.debug("vm_destroy from ec2 cloud.")

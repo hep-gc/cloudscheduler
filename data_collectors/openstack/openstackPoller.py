@@ -163,17 +163,18 @@ def terminate_vm(session, vm):
 #
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Vm = Base.classes.csv2_vms
+    Cloud = Base.classes.csv2_group_resources
+    Poll_Times = Base.classes.csv2_poll_times
+
     while True:
         try:
             logging.debug("Begining poll cycle")
-            Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            Vm = Base.classes.csv2_vms
-            Cloud = Base.classes.csv2_group_resources
-            Poll_Times = Base.classes.csv2_poll_times
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
             # Itterate over cloud list
@@ -270,17 +271,17 @@ def vm_poller():
 
 def flavorPoller():
     multiprocessing.current_process().name = "Flavor Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password +
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Flavor = Base.classes.cloud_flavors
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
         #thingdo
         try:
-            Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            Flavor = Base.classes.cloud_flavors
-            Cloud = Base.classes.csv2_group_resources
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
             logging.debug("Polling flavors")
@@ -379,17 +380,16 @@ def flavorPoller():
 
 def imagePoller():
     multiprocessing.current_process().name = "Image Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    db_session.autoflush = Fals
+    Image = Base.classes.cloud_images
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
-        #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        db_session.autoflush = False
-        Image = Base.classes.cloud_images
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         logging.debug("Polling Images")
@@ -488,16 +488,15 @@ def imagePoller():
 
 def limitPoller():
     multiprocessing.current_process().name = "Limit Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Limit = Base.classes.cloud_limits
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
-        #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Limit = Base.classes.cloud_limits
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
 
@@ -576,17 +575,17 @@ def limitPoller():
 def networkPoller():
     multiprocessing.current_process().name = "Network Poller"
     last_cycle = 0
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    db_session.autoflush = False
+    Network = Base.classes.cloud_networks
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
         #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        db_session.autoflush = False
-        Network = Base.classes.cloud_networks
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
 
@@ -679,18 +678,18 @@ def vmCleanUp():
     multiprocessing.current_process().name = "VM Cleanup"
     last_cycle = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Vm = Base.classes.csv2_vms
+    Poll_Times = Base.classes.csv2_poll_times
+    Cloud = Base.classes.csv2_group_resources
+
     while True:
         current_cycle_time = time.time()
-        #set up database objects
         logging.debug("Begining cleanup cycle")
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Vm = Base.classes.csv2_vms
-        Poll_Times = Base.classes.csv2_poll_times
-        Cloud = Base.classes.csv2_group_resources
 
         last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
         if last_cycle == 0:
@@ -783,18 +782,17 @@ def vmCleanUp():
 def keypairPoller():
     multiprocessing.current_process().name = "Keypair Poller"
     last_cycle = 0
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Keypairs = Base.classes.cloud_keypairs
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
         current_cycle_time = time.time()
-        #set up database objects
         logging.debug("Begining keypair polling cycle")
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Keypairs = Base.classes.cloud_keypairs
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         current_cycle = int(time.time())

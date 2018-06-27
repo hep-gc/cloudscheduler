@@ -51,6 +51,15 @@ def job_producer():
     # FileSystemDomian, MyType, ServerTime, TargetType
     last_poll_time = 0
     fail_count = 0
+
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    Job = Base.classes.condor_jobs
+    User_Groups = Base.classes.csv2_user_groups
+    session = Session(engine)
+
     while True:
         try:
             #
@@ -67,14 +76,6 @@ def job_producer():
                 continue
 
             fail_count = 0
-
-            Base = automap_base()
-            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            Job = Base.classes.condor_jobs
-            User_Groups = Base.classes.csv2_user_groups
-            session = Session(engine)
 
             db_user_grps = session.query(User_Groups)
             if db_user_grps:
@@ -192,16 +193,16 @@ def job_producer():
 def job_command_consumer():
     multiprocessing.current_process().name = "Cmd Consumer"
     sleep_interval = config.command_sleep_interval
+    #Make database engine
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    Job = Base.classes.condor_jobs
+    session = Session(engine)
 
     while True:
         try:
-            #Make database engine
-            Base = automap_base()
-            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            Job = Base.classes.condor_jobs
-            session = Session(engine)
             #Query database for any entries that have a command flag
             for job in session.query(Job).filter(Job.hold_job == 1):
                 #execute condor hold on the jobs returned
@@ -241,6 +242,17 @@ def job_command_consumer():
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
     fail_count = 0 
+
+    Base = automap_base()
+    local_hostname = socket.gethostname()
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    #setup database objects
+    Job = Base.classes.condor_jobs
+    archJob = Base.classes.archived_condor_jobs
+
     while True:
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its
@@ -255,15 +267,6 @@ def cleanUp():
             time.sleep(config.cleanup_sleep_interval)
             continue
         fail_count = 0
-        Base = automap_base()
-        local_hostname = socket.gethostname()
-        engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        session = Session(engine)
-        #setup database objects
-        Job = Base.classes.condor_jobs
-        archJob = Base.classes.archived_condor_jobs
 
         # Clean up job ads
         try:
@@ -276,7 +279,7 @@ def cleanUp():
             continue
 
         # this query asks for only jobs that contain the local hostname as part of their JobID
-        db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname+ "%"))
+        db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
         # loop through the condor data and make a list of GlobalJobId
         # then loop through db list checking if they are in the aforementioned list
 
