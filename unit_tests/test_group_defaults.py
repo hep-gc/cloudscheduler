@@ -103,7 +103,6 @@ def main(gvar, user_secret):
             'job_cpus': 1,
             'job_ram': 1,
             'job_disk': 1,
-            'job_scratch': 1,
             'job_swap': 1
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
