@@ -79,7 +79,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV06', 'group defaults update value specified for "job_scratch" must be a integer value.',
+        gvar, 1, 'GV06', 'request contained a bad parameter "job_scratch".',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_scratch': 'invalid-unit-test'
