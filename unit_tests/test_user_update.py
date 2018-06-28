@@ -66,7 +66,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, 'UV21', 'must specify at least one field to update.',
+        gvar, 1, 'UV21', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu6')}
     )
 
