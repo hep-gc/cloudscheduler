@@ -385,7 +385,7 @@ def imagePoller():
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     db_session = Session(engine)
-    db_session.autoflush = Fals
+    db_session.autoflush = False
     Image = Base.classes.cloud_images
     Cloud = Base.classes.csv2_group_resources
 
