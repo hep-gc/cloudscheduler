@@ -79,6 +79,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'GV##', 'specified group "invalid-unit-test" does not exist.',
+        '/group/update/', form_data={
+            'group_name': 'invalid-unit-test',
+            'condor_central_manager': 'invalid-unit-test'
+        }
+    )
+
+    execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
