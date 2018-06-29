@@ -247,6 +247,8 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         Selections = []
         for w2 in w1:
             Selections.append(w2.split(','))
+            if Selections[-1] == ['']:
+                Selections[-1] = None
     else:
         Selections = None
 
@@ -301,7 +303,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
             if gvar['command_args']['only-keys']:
                 continue
 
-            if Selections is not None and len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] != '' and column not in Selections[gvar['tables_shown']]:
+            if Selections is not None and len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] and len(Selections[gvar['tables_shown']]) > 0 and column not in Selections[gvar['tables_shown']]:
                 continue
 
             Table['keys'][column] = False
