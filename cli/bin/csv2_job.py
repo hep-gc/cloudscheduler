@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_header, show_table
+from csv2_common import check_keys, requests, show_active_user_groups, show_table
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -67,54 +67,43 @@ def list(gvar):
     job_list = _filter(gvar, response['job_list'])
 
     # Print report.
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            job_list,
-            [
-                'group_name/Group',
-                'global_job_id/Job ID',
-            ],
-            title="Jobs",
-            )
-    else:
-        show_table(
-            gvar,
-            job_list,
-            [
-                'group_name/Group',
-                'global_job_id/Job ID',
-                'cluster_id/Cluster ID',
-                'proc_id/Process ID',
-                'user/User',
-                'user_data/User Data',
-                'requirements/Requirements',
-                'target_clouds/Target Clouds',
-                'cloud_name/Cloud',
-                'instance_type/Instance Type',
-                'request_cpus/Requested CPUs',
-                'request_ram/Requested RAM {MBs}',
-                'request_disk/Requested Disk {GBs}',
-                'request_scratch/Requested Scratch (GBs)',
-                'request_swap/Requested Swap (GBs)',
-                'job_per_core/Jobs per Core',
-                'image/Image',
-                'network/Network',
-                'job_priority/Priority',
-                'job_status/Status Code',
-                'js_idle/Idle',
-                'js_running/Running',
-                'js_completed/Completed',
-                'js_held/Held',
-                'js_other/Other',
-                'keep_alive/Keep Alive (seconds)',
-                'max_price/Max Spot Price',
-                'entered_current_status/State Change Date',
-                'q_date/Queued Date',
-                'hold_job/Hold Job',
-            ],
-            title="Jobs",
-            )
+    show_table(
+        gvar,
+        job_list,
+        [
+            'group_name/Group,k',
+            'global_job_id/Job ID,k',
+            'cluster_id/Cluster ID',
+            'proc_id/Process ID',
+            'user/User',
+            'user_data/User Data',
+            'requirements/Requirements',
+            'target_clouds/Target Clouds',
+            'cloud_name/Cloud',
+            'instance_type/Instance Type',
+            'request_cpus/Requested CPUs',
+            'request_ram/Requested RAM {MBs}',
+            'request_disk/Requested Disk {GBs}',
+            'request_scratch/Requested Scratch (GBs)',
+            'request_swap/Requested Swap (GBs)',
+            'job_per_core/Jobs per Core',
+            'image/Image',
+            'network/Network',
+            'job_priority/Priority',
+            'job_status/Status Code',
+            'js_idle/Idle',
+            'js_running/Running',
+            'js_completed/Completed',
+            'js_held/Held',
+            'js_other/Other',
+            'keep_alive/Keep Alive (seconds)',
+            'max_price/Max Spot Price',
+            'entered_current_status/State Change Date',
+            'q_date/Queued Date',
+            'hold_job/Hold Job',
+        ],
+        title="Jobs",
+        )
 

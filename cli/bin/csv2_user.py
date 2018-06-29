@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -172,32 +172,22 @@ def list(gvar):
     user_list = _filter_by_user(gvar, response['user_list'])
 
     # Print report
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            user_list,
-            [
-                'username/Username',
-            ],
-            title="Users:",
-            )
-    else:
-        show_table(
-            gvar,
-            user_list,
-            [
-                'username/Username',
-                'cert_cn/Common Name',
-                'active_group/Active Group',
-                'user_groups/User Groups',
-                'available_groups/Not In Groups',
-                'is_superuser/Super User',
-                'join_date/Joined',
-            ],
-            title="Users:",
-            )
+    show_table(
+        gvar,
+        user_list,
+        [
+            'username/Username,k',
+            'cert_cn/Common Name',
+            'active_group/Active Group',
+            'user_groups/User Groups',
+            'available_groups/Not In Groups',
+            'is_superuser/Super User',
+            'join_date/Joined',
+        ],
+        title="Users:",
+        )
 
 def update(gvar):
     """

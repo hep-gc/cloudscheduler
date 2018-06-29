@@ -46,6 +46,9 @@ def list(gvar):
     # Build a queryset of the settings.
     _queryset = []
     for server in os.listdir('%s/.csv2' % gvar['home_dir']):
+        if server[0] == '.':
+            continue
+
         server_path = '%s/.csv2//%s' % (gvar['home_dir'], server)
         if os.path.isdir(server_path):
             if 'server' not in gvar['command_args'] or server == gvar['command_args']['server']:

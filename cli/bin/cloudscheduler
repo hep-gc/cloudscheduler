@@ -4,7 +4,6 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from subprocess import Popen
 from csv2_common import requests
 
 import os
@@ -133,6 +132,7 @@ def main(args):
             ('-mn',  '--metadata-name', True),
             ('-mlo', '--metadata-list-option', True),
             ('-mp',  '--metadata-priority', True),
+            ('-ocn', '--only-column-names', False),
             ('-ok',  '--only-keys', False),
             ('-r',   '--rotate', False),
             ('-s',   '--server', True),
@@ -150,7 +150,7 @@ def main(args):
             ('-upw', '--user-password', True),
             ('-vc',  '--vm-cores', True),
             ('-vd',  '--vm-disk', True),
-            ('-ved',  '--vm-ephemeral-disk', True),
+            ('-ved', '--vm-ephemeral-disk', True),
             ('-vF',  '--vm-foreign', True),
             ('-vf',  '--vm-flavor', True),
             ('-vk',  '--vm-keypair', True),
@@ -167,6 +167,7 @@ def main(args):
         'function_args': None,
         'home_dir': str(Path.home()),
         'object': None,
+        'tables_shown': 0,
         }
     
     # Retrieve arguments.
