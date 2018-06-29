@@ -193,7 +193,9 @@
                     {% if cloud.Foreign_VMs == 0 %}
                         <td class="zero-style">0</td>
                     {% else %}
-                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::foreign::">{{ cloud.Foreign_VMs }}</a></td>
+                        <!--<td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::foreign::" target="vms-overlay">{{ cloud.Foreign_VMs }}</a></td>-->
+                        <!--<td class="more-style"><a href="#popup1" data-href="{{cloud.cloud_name}}::foreign::">{{ cloud.Foreign_VMs }}</a></td>-->
+                        <td class="more-style"><a href="/vm/list/{{cloud.cloud_name}}::foreign::">{{ cloud.Foreign_VMs }}</a></td>  
                     {% endif %}
 
 
@@ -293,6 +295,15 @@
         </table>
     </div>
 </div>
+
+<div id="popup1" class="overlay">
+    <div class="popup">
+        <a class="close" href="#">&times;</a>
+        <iframe class="content" src="/vm/list/{{cloud.cloud_name}}::foreign::" name="vms-overlay"></iframe>
+    </div>
+</div>
+
+
 
 </body>
 </html>
