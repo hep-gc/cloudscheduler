@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'mathfilters'
 ]
 if config.enable_glint:
     INSTALLED_APPS.append('glintwebui.apps.GlintwebuiConfig')

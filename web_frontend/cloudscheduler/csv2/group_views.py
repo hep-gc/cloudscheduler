@@ -132,7 +132,7 @@ def add(request):
             rc, msg = manage_user_group_verification(db_ctl, tables, fields['username'], None) 
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['group_name'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group.
         table = tables['csv2_groups']
@@ -758,11 +758,16 @@ def update(request):
         if 'username' in fields:
             rc, msg = manage_user_group_verification(db_ctl, tables, fields['username'], None) 
             if rc != 0:
-                return list(request, selector=fields['username'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['group_name'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
         table = tables['csv2_groups']
-        rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(table_fields(fields, table, columns, 'update')))
+        group_updates = table_fields(fields, table, columns, 'update')
+        if len(group_updates) > 0:
+            rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
+            if rc != 0:
+                db_close(db_ctl)
+                return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV21'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -771,6 +776,10 @@ def update(request):
                     rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], users=fields['username'], option='delete')
                 else:
                     rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], users=fields['username'], option='add')
+            else:
+                if len(group_updates) < 1:
+                    return list(request, selector=fields['group_name'], response_code=1, message='%s group update must specify at least one field to update.' % lno('GV21'), active_user=active_user, user_groups=user_groups)
+
         else:
             if 'username' in fields:
                 rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], fields['username'])

@@ -35,16 +35,16 @@ def resources_producer():
     last_poll_time = 0
     condor_host = socket.gethostname()
     fail_count = 0
+    # Initialize database objects
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    Resource = Base.classes.condor_machines
+    session = Session(engine)
+
     while True:
         try:
-            # Initialize condor and database objects
-            Base = automap_base()
-            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            Resource = Base.classes.condor_machines
-            session = Session(engine)
-
             try:
                 condor_c = htcondor.Collector()
             except Exception as exc:
@@ -71,7 +71,10 @@ def resources_producer():
                     if "Start" in r_dict:
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
-                    r_dict = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.eror(unmapped)
                     r_dict["condor_host"] = condor_host
                     r_dict["hostname"] = condor_host.split(".")[0]
                     new_resource = Resource(**r_dict)
@@ -115,17 +118,16 @@ def collector_command_consumer():
     multiprocessing.current_process().name = "Cmd Consumer"
     sleep_interval = config.command_sleep_interval
     condor_host = socket.gethostname()
+    # database setup
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    Resource = Base.classes.condor_machines
+    session = Session(engine)
 
     while True:
         try:
-            # database setup
-            Base = automap_base()
-            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            Resource = Base.classes.condor_machines
-            session = Session(engine)
-
             condor_c = htcondor.Collector()
             startd_type = htcondor.AdTypes.Startd
             master_type = htcondor.AdTypes.Master
@@ -229,6 +231,16 @@ def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
     condor_host = socket.gethostname()
     fail_count = 0
+    Base = automap_base()
+    local_hostname = socket.gethostname()
+    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    #setup database objects
+    Resource = Base.classes.condor_machines
+    archResource = Base.classes.archived_condor_machines
+
     while True:
         try:
             logging.info("Commencing cleanup cycle...")
@@ -246,16 +258,6 @@ def cleanUp():
                 continue
 
             fail_count = 0
-
-            Base = automap_base()
-            local_hostname = socket.gethostname()
-            engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            session = Session(engine)
-            #setup database objects
-            Resource = Base.classes.condor_machines
-            archResource = Base.classes.archived_condor_machines
 
             # Clean up machine/resource ads
             try:

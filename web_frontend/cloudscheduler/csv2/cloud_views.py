@@ -308,17 +308,10 @@ def metadata_add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
-
-        # Verify the specified cloud exists.
-        s = select([csv2_group_resources]).where((csv2_group_resources.c.group_name == active_user.active_group) & (csv2_group_resources.c.cloud_name == fields['cloud_name']))
-        cloud_list = qt(db_connection.execute(s))
-        if len(cloud_list) < 1:
-            db_close(db_ctl)
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - cloud does not exist.' % (lno('CV19'), fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
@@ -575,11 +568,32 @@ def status(request, group_name=None):
 
     db_close(db_ctl)
 
+    cloud_total_list = {}
+
+
+    cloud_total_list["cores_available"] = 0
+
+
+    for d in cloud_status_list:
+        for key, value in d.items():
+            if key in cloud_total_list:
+                cloud_total_list[key] += value
+            else:
+                cloud_total_list[key] = value
+
+        if d["cores_ctl"] == -1 or d["cores_ctl"] > d["cores_idle"]:
+            cloud_total_list["cores_available"] += d["cores_idle"] 
+        else:
+            cloud_total_list["cores_available"] += d["cores_ctl"]
+    
+
+
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_status_list': cloud_status_list,
+            'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
             'response_code': 0,
             'message': None,

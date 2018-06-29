@@ -1,10 +1,8 @@
 
 
-
-
 .status-table th {
-  background-color: #4CAF50;
-  color: white;
+  font-weight: bold;
+  text-align: center;
 }
 
 
@@ -14,9 +12,7 @@
   text-align: center;
 }
 
-.status-table th {
-  text-align: center;
-}
+
 
 .status-table td, th {
   padding: 8px;
@@ -26,9 +22,31 @@
   width: 80px;
 }
 
+.status-table .col-spacer {
+  background-color: white;
+  border-bottom: 0px;
+  color: white;
+  width: 20px;
+}
+.status-table .col-spacer:hover {
+  background-color: white;
+  color: white;
+}
+
+.status-table .row-spacer {
+  height: 10px;
+  background-color: white;
+  color: white;
+}
+.status-table .row-spacer:hover {
+  background-color: white;
+  color: white;
+}
+
+
 
 .status-table td:hover {
-  background-color: darkgrey;
+  background-color: grey;
   opacity: 50%;
   color: white;
 }
@@ -51,7 +69,66 @@
   z-index: -1;
 }
 
+.name-style{
+  background-color: maroon;
+  color: white;
+}
 
+.jobs-style {
+  background-color: lightgrey;
+  color: black;
+}
+
+.native-style {
+  background-color: powderblue;
+  color: black;
+}
+
+.foreign-style {
+  background-color: orange;
+  color: black;
+}
+
+.total-style {
+  background-color: green;
+  color: white;
+}
+
+.title-style a {
+  text-decoration: none;
+  color: maroon;
+  font-weight: bold;
+}
+
+.zero-style {
+  color: grey;
+}
+
+.more-style a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+
+.sysctl-style {
+  color: green;
+  font-weight: bold;
+}
+
+.alert-style {
+  color: red;
+  font-weight: bold;
+}
+
+.manual-style {
+  color: blue;
+  font-weight: bold;
+}
+
+.bold-style{
+  font-weight: bold;
+}
 
 .grey {
   background-color: #eee;
@@ -65,3 +142,93 @@
 }
 .clear {}
 
+/*****************************************************************/
+/*                       Tooltips styling                        */
+/*****************************************************************/
+
+[tooltip]{
+  margin:20px;
+  position:relative;
+}
+[tooltip]::before {
+    transition-delay: 0.5s;
+    content: attr(tooltip);
+    position: absolute;
+    left:50%;
+    top:-6px;
+    transform: translateX(-50%)   translateY(-100%);
+    background: rgba(0,0,0,0.7);
+    text-align: center;
+    color: #fff;
+    padding:4px 2px;
+    font-size: 12px;
+    min-width: 100px;
+    border-radius: 5px;
+    pointer-events: none;
+    padding: 4px 4px;
+    z-index:90;
+    opacity:0;
+}
+
+[tooltip]:hover::before {
+   opacity:1 !important;
+}
+
+/*****************************************************************/
+
+
+
+
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  visibility: hidden;
+  opacity: 0;
+}
+.overlay:target {
+  visibility: visible;
+  opacity: 1;
+}
+
+.popup {
+  margin: 70px auto;
+  padding: 10px;
+  background: #fff;
+  border-radius: 5px;
+  width: 80%;
+  height: 80%;
+  position: relative;
+}
+
+
+.popup .close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
+.popup .close:hover {
+  color: #06D85F;
+}
+.popup .content {
+  width: 95%;
+  height: 100%;
+  overflow: auto;
+}
+
+@media screen and (max-width: 700px){
+  .box{
+    width: 70%;
+  }
+  .popup{
+    width: 70%;
+  }
+}

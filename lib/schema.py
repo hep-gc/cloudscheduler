@@ -133,6 +133,13 @@ cloud_images = Table('cloud_images', metadata,
   Column('last_updated', Integer)
   )
 
+cloud_keypairs = Table('cloud_keypairs', metadata,
+  Column('cloud_name', String(32), primary_key=True),
+  Column('group_name', String(20), primary_key=True),
+  Column('fingerprint', String(64), primary_key=True),
+  Column('key_name', String(32), primary_key=True)
+  )
+
 cloud_limits = Table('cloud_limits', metadata,
   Column('group_name', String(128), primary_key=True),
   Column('cloud_name', String(128), primary_key=True),
@@ -398,20 +405,30 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('user_domain_name', String(20)),
   Column('project_domain_name', String(20)),
   Column('cloud_type', String(64)),
-  Column('cores', Integer),
-  Column('ram', Integer),
+  Column('cores_max', Integer),
+  Column('cores_ctl', Integer),
+  Column('cores_used', Integer),
+  Column('cores_native', Integer),
+  Column('cores_foreign', Integer),
+  Column('cores_idle', Integer),
+  Column('ram_max', Integer),
+  Column('ram_ctl', Integer),
+  Column('ram_used', Integer),
+  Column('ram_native', Integer),
+  Column('ram_foreign', Integer),
+  Column('ram_idle', Integer),
   Column('flavor_name', String(128)),
   Column('flavor_id', String(128)),
   Column('flavor_instance_type', String(150)),
   Column('flavor_cores', Integer),
   Column('flavor_disk', Integer),
+  Column('flavor_enduring_disk', Integer),
+  Column('flavor_ephemeral_disk', Integer),
   Column('flavor_ram', Integer),
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
   Column('flavor', String(184)),
-  Column('flavor_slots', Integer),
-  Column('VMs_up', Integer),
-  Column('VMs_down', Integer)
+  Column('flavor_slots', Integer)
   )
 
 view_cloud_status = Table('view_cloud_status', metadata,
@@ -425,15 +442,18 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('VMs_in_error', Integer),
   Column('VMs_other', Integer),
   Column('Foreign_VMs', Integer),
-  Column('slots_max', Integer),
-  Column('slots_used', Integer),
-  Column('slots_percent', Float),
+  Column('cores_ctl', Integer),
   Column('cores_max', Integer),
-  Column('cores_used', Integer),
-  Column('cores_percent', Float),
+  Column('cores_native', Integer),
+  Column('cores_foreign', Integer),
+  Column('cores_idle', Integer),
+  Column('ram_ctl', Integer),
   Column('ram_max', Integer),
-  Column('ram_used', Integer),
-  Column('ram_percent', Float)
+  Column('ram_native', Integer),
+  Column('ram_foreign', Integer),
+  Column('ram_idle', Integer),
+  Column('slots_max', Integer),
+  Column('slots_used', Integer)
   )
 
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
@@ -505,7 +525,9 @@ view_group_resources = Table('view_group_resources', metadata,
   Column('personality_size_max', Integer),
   Column('security_group_rules_max', Integer),
   Column('server_group_members_max', Integer),
-  Column('server_meta_max', Integer)
+  Column('server_meta_max', Integer),
+  Column('cores_idle', Integer),
+  Column('ram_idle', Integer)
   )
 
 view_group_resources_with_metadata = Table('view_group_resources_with_metadata', metadata,
@@ -546,6 +568,8 @@ view_group_resources_with_metadata = Table('view_group_resources_with_metadata',
   Column('security_group_rules_max', Integer),
   Column('server_group_members_max', Integer),
   Column('server_meta_max', Integer),
+  Column('cores_idle', Integer),
+  Column('ram_idle', Integer),
   Column('metadata_name', String(128)),
   Column('metadata_enabled', Integer),
   Column('metadata_priority', Integer),
@@ -591,6 +615,8 @@ view_group_resources_with_metadata_names = Table('view_group_resources_with_meta
   Column('security_group_rules_max', Integer),
   Column('server_group_members_max', Integer),
   Column('server_meta_max', Integer),
+  Column('cores_idle', Integer),
+  Column('ram_idle', Integer),
   Column('metadata_names', String)
   )
 
@@ -695,6 +721,6 @@ view_vms = Table('view_vms', metadata,
   Column('disk', Integer),
   Column('ram', Integer),
   Column('swap', Integer),
-  Column('poller_status', String(16))
+  Column('poller_status', String(12))
   )
 

@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -85,13 +85,13 @@ def defaults(gvar):
         print(response['message'])
 
     # Print report
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
     show_table(
         gvar,
         response['defaults_list'],
         [
-            'group_name/Group',
+            'group_name/Group,k',
             'job_cpus/Job Cores',
             'job_disk/Job Disk (GBs)',
             'job_scratch/Job Ephemeral Disk (GBs)',
@@ -159,28 +159,18 @@ def list(gvar):
     group_list = _filter_by_group_name_and_or_metadata_name(gvar, response['group_list'])
 
     # Print report
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            group_list,
-            [
-                'group_name/Group',
+    show_table(
+        gvar,
+        group_list,
+        [
+            'group_name/Group,k',
+            'condor_central_manager/Central Manager',
+            'metadata_names/Metadata Filenames',
             ],
-            title="Groups:",
-            )
-    else:
-        show_table(
-            gvar,
-            group_list,
-            [
-                'group_name/Group',
-                'condor_central_manager/Central Manager',
-                'metadata_names/Metadata Filenames',
-                ],
-            title="Groups:",
-            )
+        title="Groups:",
+        )
 
 def update(gvar):
     """
@@ -330,31 +320,20 @@ def metadata_list(gvar):
     group_metadata_list = _filter_by_group_name_and_or_metadata_name(gvar, response['group_metadata_list'])
 
     # Print report.
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            group_metadata_list,
-            [
-                'group_name/Group',
-                'metadata_name/Metadata Filename',
-            ],
-            title="Active Group/Metadata:",
-            )
-    else:
-        show_table(
-            gvar,
-            group_metadata_list,
-            [
-                'group_name/Group',
-                'metadata_name/Metadata Filename',
-                'enabled/Enabled',
-                'priority/Priority',
-                'mime_type/MIME Type',
-            ],
-            title="Active Group/Metadata:",
-            )
+    show_table(
+        gvar,
+        group_metadata_list,
+        [
+            'group_name/Group,k',
+            'metadata_name/Metadata Filename,k',
+            'enabled/Enabled',
+            'priority/Priority',
+            'mime_type/MIME Type',
+        ],
+        title="Active Group/Metadata:",
+        )
 
 def metadata_load(gvar):
     """

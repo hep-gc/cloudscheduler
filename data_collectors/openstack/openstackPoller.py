@@ -163,17 +163,18 @@ def terminate_vm(session, vm):
 #
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Vm = Base.classes.csv2_vms
+    Cloud = Base.classes.csv2_group_resources
+    Poll_Times = Base.classes.csv2_poll_times
+
     while True:
         try:
             logging.debug("Begining poll cycle")
-            Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            Vm = Base.classes.csv2_vms
-            Cloud = Base.classes.csv2_group_resources
-            Poll_Times = Base.classes.csv2_poll_times
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
             # Itterate over cloud list
@@ -230,7 +231,10 @@ def vm_poller():
                         'last_updated': int(time.time())
                     }
 
-                    vm_dict = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                    vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                    if unmapped:
+                        logging.error("unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
                     vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
                     new_vm = Vm(**vm_dict)
                     try:
@@ -267,17 +271,17 @@ def vm_poller():
 
 def flavorPoller():
     multiprocessing.current_process().name = "Flavor Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password +
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Flavor = Base.classes.cloud_flavors
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
         #thingdo
         try:
-            Base = automap_base()
-            engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-                "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-            Base.prepare(engine, reflect=True)
-            db_session = Session(engine)
-            Flavor = Base.classes.cloud_flavors
-            Cloud = Base.classes.csv2_group_resources
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
             logging.debug("Polling flavors")
@@ -341,7 +345,10 @@ def flavorPoller():
                         'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
                         'last_updated': current_cycle
                     }
-                    flav_dict = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                    flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
                     new_flav = Flavor(**flav_dict)
                     db_session.merge(new_flav)
 
@@ -373,17 +380,16 @@ def flavorPoller():
 
 def imagePoller():
     multiprocessing.current_process().name = "Image Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    db_session.autoflush = False
+    Image = Base.classes.cloud_images
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
-        #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        db_session.autoflush = False
-        Image = Base.classes.cloud_images
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         logging.debug("Polling Images")
@@ -444,7 +450,10 @@ def imagePoller():
                     'name': image.name,
                     'last_updated': current_cycle
                 }
-                img_dict = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                if unmapped:
+                    logging.error("Unmapped attributes found during mapping, discarding:")
+                    logging.error(unmapped)
                 new_image = Image(**img_dict)
                 try:
                     db_session.merge(new_image)
@@ -479,16 +488,15 @@ def imagePoller():
 
 def limitPoller():
     multiprocessing.current_process().name = "Limit Poller"
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Limit = Base.classes.cloud_limits
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
-        #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Limit = Base.classes.cloud_limits
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
 
@@ -533,7 +541,10 @@ def limitPoller():
             limits_dict['group_name'] = cloud.group_name
             limits_dict['cloud_name'] = cloud.cloud_name
             limits_dict['last_updated'] = int(time.time())
-            limits_dict = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+            limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+            if unmapped:
+                logging.error("Unmapped attributes found during mapping, discarding:")
+                logging.error(unmapped)
             for key in limits_dict:
                 if "-1" in str(limits_dict[key]):
                     limits_dict[key] = config.no_limit_default
@@ -564,17 +575,17 @@ def limitPoller():
 def networkPoller():
     multiprocessing.current_process().name = "Network Poller"
     last_cycle = 0
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    db_session.autoflush = False
+    Network = Base.classes.cloud_networks
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
         #thingdo
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        db_session.autoflush = False
-        Network = Base.classes.cloud_networks
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
 
@@ -626,10 +637,13 @@ def networkPoller():
                     'id': network['id'],
                     'last_updated': int(time.time())
                 }
-                network_dict = map_attributes(
+                network_dict, unmapped = map_attributes(
                     src="os_networks",
                     dest="csv2",
                     attr_dict=network_dict)
+                if unmapped:
+                    logging.error("Unmapped attributes found during mapping, discarding:")
+                    logging.error(unmapped)
                 new_network = Network(**network_dict)
                 db_session.merge(new_network)
 
@@ -664,18 +678,18 @@ def vmCleanUp():
     multiprocessing.current_process().name = "VM Cleanup"
     last_cycle = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Vm = Base.classes.csv2_vms
+    Poll_Times = Base.classes.csv2_poll_times
+    Cloud = Base.classes.csv2_group_resources
+
     while True:
         current_cycle_time = time.time()
-        #set up database objects
         logging.debug("Begining cleanup cycle")
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Vm = Base.classes.csv2_vms
-        Poll_Times = Base.classes.csv2_poll_times
-        Cloud = Base.classes.csv2_group_resources
 
         last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
         if last_cycle == 0:
@@ -768,18 +782,17 @@ def vmCleanUp():
 def keypairPoller():
     multiprocessing.current_process().name = "Keypair Poller"
     last_cycle = 0
+    Base = automap_base()
+    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
+        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    Base.prepare(engine, reflect=True)
+    db_session = Session(engine)
+    Keypairs = Base.classes.cloud_keypairs
+    Cloud = Base.classes.csv2_group_resources
 
     while True:
         current_cycle_time = time.time()
-        #set up database objects
         logging.debug("Begining keypair polling cycle")
-        Base = automap_base()
-        engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-            "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-        Base.prepare(engine, reflect=True)
-        db_session = Session(engine)
-        Keypairs = Base.classes.cloud_keypairs
-        Cloud = Base.classes.csv2_group_resources
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         current_cycle = int(time.time())

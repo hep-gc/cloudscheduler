@@ -14,11 +14,16 @@ def map_attributes(src, dest, attr_dict):
     if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
         build_mapping_dictionaries()
 
+    unmapped_keys = []
     mapped_dict = {}
     for key, value in attr_dict.items():
-        mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = value
+        if key not in rowid_dict[src]:
+            unmapped_keys.append((key, value))
+        else:
+            mapped_dict[attr_list_dict[dest][rowid_dict[src][key]]] = value
 
-    return mapped_dict
+    
+    return mapped_dict, unmapped_keys
 
 def build_mapping_dictionaries():
     global rowid_dict

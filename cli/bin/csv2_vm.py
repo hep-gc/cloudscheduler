@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_header, show_table
+from csv2_common import check_keys, requests, show_active_user_groups, show_table
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -59,49 +59,37 @@ def list(gvar):
     vm_list = _filter(gvar, response['vm_list'])
 
     # Print report.
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            vm_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'vmid/VMID',
-            ],
-            title="VMs:",
-            )
-    else:
-        show_table(
-            gvar,
-            vm_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'vmid/VMID',
-                'hostname/Hostname',
-                'auth_url/Authorization URL',
-                'project/Project',
-                'status/Status',
-                'flavor_id/Flavor ID',
-                'task/Task',
-                'power_status/Power Status',
-                'terminate/Terminate',
-                'terminate_time/Terminate Time',
-                'status_changed_time/Status Change Time',
-                'last_updated/Last Updated',
-                'flavor_name/Flavor',
-                'condor_slots/Condor Slots',
-                'condor_off/Condor Off',
-                'foreign_vm/Foreign',
-                'cores/cores',
-                'disk/Disk (GBs)',
-                'ephemeral_disk/Ephemeral Disk (GBs)',
-                'ram/Ram (MBs)',
-                'swap/Swap (GBs)',
-                'poller_status/Poller Status',
-            ],
-            title="VMs:",
-            )
+    show_table(
+        gvar,
+        vm_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'hostname/Hostname,k',
+            'vmid/VMID',
+            'auth_url/Authorization URL',
+            'project/Project',
+            'status/Status',
+            'flavor_id/Flavor ID',
+            'task/Task',
+            'power_status/Power Status',
+            'terminate/Terminate',
+            'terminate_time/Terminate Time',
+            'status_changed_time/Status Change Time',
+            'last_updated/Last Updated',
+            'flavor_name/Flavor',
+            'condor_slots/Condor Slots',
+            'condor_off/Condor Off',
+            'foreign_vm/Foreign',
+            'cores/cores',
+            'disk/Disk (GBs)',
+            'ephemeral_disk/Ephemeral Disk (GBs)',
+            'ram/Ram (MBs)',
+            'swap/Swap (GBs)',
+            'poller_status/Poller Status',
+        ],
+        title="VMs:",
+        )
 

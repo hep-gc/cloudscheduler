@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_header, show_table, verify_yaml_file
+from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -126,64 +126,44 @@ def list(gvar):
     cloud_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_list'])
 
     # Print report.
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            cloud_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
+    show_table(
+        gvar,
+        cloud_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'authurl/URL',
+            'project_domain_name/Project Domain',
+            'project/Project',
+            'user_domain_name/User Domain',
+            'username/User',
+            'region/Region',
+            'cloud_type/Cloud Type',
+            'keyname/Keyname',
+            'cores_max/Cores (Max)',
+            'ram_max/RAM (Max)',
+            'cacertificate/CA Certificate',
+            'metadata_names/Metadata Filenames',
+            'instances_max/Instances (Max)',
+            'instances_used/Instances (Used)',
+            'floating_ips_max/Floating IPs (Max)',
+            'floating_ips_used/Floating IPs (Used)',
+            'security_groups_max/Security Groups (Max)',
+            'security_groups_used/Security Groups (Used)',
+            'server_groups_max/Server Groups (Max)',
+            'server_groups_used/Server Groups (Used)',
+            'image_meta_max/Image Metadata (Max)',
+            'keypairs_max/Keypairs (Max)',
+            'personality_max/Personality (Max)',
+            'personality_size_max/Personality Size (Max)',
+            'security_group_rules_max/Security Group Rules (Max)',
+            'server_group_members_max/Security Group Members (Max)',
+            'server_meta_max/Server Metadata (Max)',
             ],
-            title="Clouds:",
-            )
-    else:
-        show_table(
-            gvar,
-            cloud_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'authurl/URL',
-                'project/Project',
-                'username/User',
-                'password/Password',
-                'keyname/Keyname',
-                'cacertificate/CA Certificate',
-                'region/Region',
-                'user_domain_name/User Domain',
-                'project_domain_name/Project Domain',
-                'cloud_type/Cloud Type',
-                'metadata_names/Metadata Filenames',
-                'cores_ctl/Cores (Control)',
-                'cores_max/Cores (Max)',
-                'cores_used/Cores (Used)',
-                'cores_foreign/Foreign Cores',
-                'cores_native/Native Cores',
-                'ram_ctl/RAM (Control)',
-                'ram_max/RAM (Max)',
-                'ram_used/RAM (Used)',
-                'ram_foreign/Foreign RAM',
-                'ram_native/Native RAM',
-                'instances_max/Instances (Max)',
-                'instances_used/Instances (Used)',
-                'floating_ips_max/Floating IPs (Max)',
-                'floating_ips_used/Floating IPs (Used)',
-                'security_groups_max/Security Groups (Max)',
-                'security_groups_used/Security Groups (Used)',
-                'server_groups_max/Server Groups (Max)',
-                'server_groups_used/Server Groups (Used)',
-                'image_meta_max/Image Metadata (Max)',
-                'keypairs_max/Keypairs (Max)',
-                'personality_max/Personality (Max)',
-                'personality_size_max/Personality Size (Max)',
-                'security_group_rules_max/Security Group Rules (Max)',
-                'server_group_members_max/Security Group Members (Max)',
-                'server_meta_max/Server Metadata (Max)',
-                ],
-            title="Clouds:",
-            )
+        title="Clouds:",
+        )
 
 def status(gvar):
     """
@@ -191,7 +171,7 @@ def status(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-o', '-ok'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/status/')
@@ -200,59 +180,51 @@ def status(gvar):
     cloud_status_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_status_list'])
 
     # Print report
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
-        show_table(
-            gvar,
-            cloud_status_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-            ],
-            title="Clouds:",
-            )
-    else:
-        show_table(
-            gvar,
-            cloud_status_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'VMs',
-                'VMs_unregistered/Unregistered',
-                'VMs_running/Running',
-                'VMs_retiring/Retiring',
-                'VMs_manual/Manual',
-                'VMs_in_error/In Error',
-                'VMs_other/Other',
-                'Foreign_VMs/Foreign',
-                'slots_max/Total Slots',
-                'slots_used/Used Slots',
-                'slots_percent/% Slots Used',
-                'cores_max/Total Cores',
-                'cores_used/Used Cores',
-                'cores_percent/% Cores Used',
-                'ram_max/Total RAM',
-                'ram_used/Used RAM',
-                'ram_percent/% RAM Used',
-            ],
-            title="Cloud status:",
-            )
+    show_table(
+        gvar,
+        response['job_status_list'],
+        [
+            'group_name/Group,k',
+            'Jobs',
+            'Idle',
+            'Running',
+            'Completed',
+            'Other',
+        ],
+        title="Job status:",
+        )
 
-        show_table(
-            gvar,
-            response['job_status_list'],
-            [
-                'group_name/Group',
-                'Jobs',
-                'Idle',
-                'Running',
-                'Completed',
-                'Other',
-            ],
-            title="Job status:",
-            )
+    show_table(
+        gvar,
+        cloud_status_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'VMs/Total/VMs',
+            'VMs_unregistered/Unregistered/VMs',
+            'VMs_running/Running/VMs',
+            'VMs_retiring/Retiring/VMs',
+            'VMs_manual/Manual/VMs',
+            'VMs_in_error/In Error/VMs',
+            'VMs_other/Other/VMs',
+            'cores_max/Total/Cores',
+            'cores_ctl/Setting/Cores',
+            'cores_idle/Idle/Cores',
+            'cores_native/Used/Cores',
+            'ram_max/Total/RAM',
+            'ram_ctl/Setting/RAM',
+            'ram_idle/Idle/RAM',
+            'ram_native/Used/RAM',
+            'slots_max/Total/Slots',
+            'slots_used/Used/Slots',
+            'Foreign_VMs/VMs/Foreign',
+            'cores_foreign/Cores/Foreign',
+            'ram_foreign/RAM/Foreign',
+        ],
+        title="Cloud status:",
+        )
 
 def update(gvar):
     """
@@ -406,29 +378,18 @@ def metadata_list(gvar):
     cloud_metadata_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_metadata_list'])
 
     # Print report.
-    show_header(gvar, response)
+    show_active_user_groups(gvar, response)
 
-    if gvar['command_args']['only-keys']:
+    if 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
         show_table(
             gvar,
             cloud_metadata_list,
             [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'metadata_name/Metadata Filename',
-            ],
-            title="Clouds/Metadata:",
-            )
-    elif 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
-        show_table(
-            gvar,
-            cloud_metadata_list,
-            [
-                'group_name/Group',
-                'cloud_name/Cloud',
+                'group_name/Group,k',
+                'cloud_name/Cloud,k',
+                'metadata_name/Metadata Filename,k',
                 'type/Type',
                 'priority/priority',
-                'metadata_name/Metadata Filename',
                 ],
             title="Clouds/Metadata Merge Order:",
             )
@@ -437,9 +398,9 @@ def metadata_list(gvar):
             gvar,
             cloud_metadata_list,
             [
-                'group_name/Group',
-                'cloud_name/Cloud',
-                'metadata_name/Metadata Filename',
+                'group_name/Group,k',
+                'cloud_name/Cloud,k',
+                'metadata_name/Metadata Filename,k',
                 'enabled/Enabled',
                 'priority/Priority',
                 'mime_type/MIME Type',

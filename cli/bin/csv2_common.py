@@ -225,51 +225,120 @@ def _requests(gvar, request, form_data={}):
 
     return response
 
-def show_header(gvar, response):
+def show_active_user_groups(gvar, response):
     """
     Print the server response header.
     """
 
-    print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
+    if not gvar['user_settings']['only-column-names']:
+        print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
 
 def show_table(gvar, queryset, columns, allow_null=True, title=None):
     """
     Print a table from a SQLAlchemy query set.
     """
 
+    from subprocess import Popen, PIPE
     import json
 
-    # Check for and initialize column selections.
+    # Organize user selections.
     if 'select' in gvar['user_settings']:
-        column_selections = gvar['user_settings']['select'].split(',')
+        w1 = gvar['user_settings']['select'].split('/')
+        Selections = []
+        for w2 in w1:
+            Selections.append(w2.split(','))
+            if Selections[-1] == ['']:
+                Selections[-1] = None
     else:
-        column_selections = None
+        Selections = None
 
-    # Normalize column definitions.
-    _field_names = []
-    _column_names = []
-    
+    # Organize table definition.
+    Rotated_Table = {
+        'headers': {'key': 'Key', 'value': 'Value'},
+        'lengths': {'key': 3, 'value': 5},
+        'xref': {'key': 0, 'value': 1}
+        }
+
+    Table = {
+        'columns_common': [],
+        'columns_segment': [],
+        'headers': {},
+        'keys': {},
+        'lengths': {},
+        'super_headers': {},
+        'xref': {}
+        }
+
     if gvar['user_settings']['rotate']:
-        _column_lengths = [3, 5]
-    else:
-        _column_lengths = []
+        Table['max_key_length'] = 3
+        Table['max_value_length'] = 5
 
-    for column in columns:
-        _w = column.split('/')
-        if len(_w) < 2:
-          _w.append(_w[0])
-
-        if column_selections and _w[1] not in column_selections:
-            continue
-
-        _field_names.append(_w[0])
-        _column_names.append(_w[1])
-
-        if gvar['user_settings']['rotate']:
-            if _column_lengths[0] < len(_w[1]):
-                _column_lengths[0] = len(_w[1])
+    elif 'display_size' not in gvar:
+        p = Popen(['stty', 'size'], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode == 0:
+            ix = stdout.split()
+            gvar['display_size'] = [int(ix[0]), int(ix[1])]
         else:
-            _column_lengths.append(len(_w[1]))
+            gvar['display_size'] = [24, 80]
+
+    for column_def in columns:
+        w1 = column_def.split(',')
+        w2 = w1[0].split('/')
+        column = w2[0]
+
+        # Set default value for header.
+        if len(w2) < 2:
+            w2.append(column)
+        elif w2[1] == '':
+           w2[1] = column
+
+        # Set default value for super_header.
+        if len(w2) < 3:
+            w2.append('')
+
+        if len(w1) > 1 and w1[1] == 'k':
+            Table['keys'][column] = True
+        else:
+            if gvar['command_args']['only-keys']:
+                continue
+
+            if Selections is not None and len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] and len(Selections[gvar['tables_shown']]) > 0 and column not in Selections[gvar['tables_shown']]:
+                continue
+
+            Table['keys'][column] = False
+
+        Table['headers'][column] = w2[1]
+        Table['super_headers'][column] = w2[2]
+
+        if Table['keys'][column]:
+           Table['columns_common'].append(column)
+           if len(Table['super_headers'][column]) > len(Table['headers'][column]):
+               Table['lengths'][column] = len(Table['super_headers'][column])
+           else:
+               Table['lengths'][column] = len(Table['headers'][column])
+
+        else:
+           Table['columns_segment'].append(column)
+           if len(Table['super_headers'][column]) > len(Table['headers'][column]):
+               Table['lengths'][column] = len(Table['super_headers'][column])
+           else:
+               Table['lengths'][column] = len(Table['headers'][column])
+
+    for ix in range(len(Table['columns_common'] + Table['columns_segment'])):
+        Table['xref'][(Table['columns_common'] + Table['columns_segment'])[ix]] = ix
+
+    # If requested, print column names and return.
+    if gvar['user_settings']['only-column-names']:
+        columns = [ [], [] ]
+        for column in Table['columns_common'] + Table['columns_segment']:
+            if Table['keys'][column]:
+                columns[0].append(column)
+            else:
+                columns[1].append(column)
+        print('%s %s (%s) columns: keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown'], Table['columns_common'], Table['columns_segment']))
+        gvar['tables_shown'] += 1
+        return
 
     # Normalize the queryset.
     if isinstance(queryset, str):
@@ -278,14 +347,14 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         _qs = queryset
 
     # extract columns.
-    _list = []
+    lists = []
     for row in _qs:
         _row = []
-        for _ix in range(len(_field_names)):
-            if _field_names[_ix] in row:
-              _value = row[_field_names[_ix]]
-            elif 'fields' in row and _field_names[_ix] in row['fields']:
-              _value = row['fields'][_field_names[_ix]]
+        for column in Table['columns_common'] + Table['columns_segment']:
+            if column in row:
+              _value = row[column]
+            elif 'fields' in row and column in row['fields']:
+              _value = row['fields'][column]
             else:
               _value = '-'
 
@@ -301,54 +370,201 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
                _len = len(_value)
 
             if gvar['user_settings']['rotate']:
-                _list.append([_column_names[_ix], _value])
-                if _column_lengths[1] < _len:
-                    _column_lengths[1] = _len
+                if Table['super_headers'][column] == '':
+                    lists.append([Table['headers'][column], _value])
+                else:
+                    lists.append(['%s-%s' % (Table['super_headers'][column], Table['headers'][column]), _value])
+
+                if Rotated_Table['lengths']['key'] < len(lists[-1][0]):
+                    Rotated_Table['lengths']['key'] = len(lists[-1][0])
+
+                if Rotated_Table['lengths']['value'] < _len:
+                    Rotated_Table['lengths']['value'] = _len
+
+            elif Table['keys'][column]:
+                _row.append(_value)
+                if Table['lengths'][column] < _len:
+                    Table['lengths'][column] = _len
+
             else:
                 _row.append(_value)
-                if _column_lengths[_ix] < _len:
-                    _column_lengths[_ix] = _len
+                if Table['lengths'][column] < _len:
+                    Table['lengths'][column] = _len
 
         if gvar['user_settings']['rotate']:
-            _list.append(['', ''])
+            lists.append(['', ''])
         else:
-            _list.append(_row)
+            lists.append(_row)
 
-    _column_underscore = []
-    for _ix in range(len(_column_lengths)):
-        _column_underscore.append('-' * (_column_lengths[_ix] + 2))
-    _ruler = '+%s+' % '+'.join(_column_underscore)
-
-    if title:
-        print('\n%s' % title)
-
-    print(_ruler)
     if gvar['user_settings']['rotate']:
-        print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, ['Key', 'Value'])))
+        segments = [ {'SH': False, 'table': Rotated_Table, 'columns': ['key', 'value'], 'headers': ['Key', 'Value']} ]
+
     else:
-        print('+ %s +' % ' | '.join(_show_table_pad(_column_lengths, _column_names)))
-    print(_ruler)
+        segments = [ {'SH': False, 'table': Table, 'columns': [], 'super_headers': [],  'super_header_lengths': [], 'headers': [], 'length': 1} ]
 
-    for _row in _list:
-        if gvar['user_settings']['rotate'] and not allow_null and _row[1] == '-':
-            continue
+        if len(Table['columns_segment']) > 0:
+            for column in Table['columns_segment']:
+                # If the next column causes segment to exceed the display width, start a new segment.
+                if segments[-1]['length'] + 3 + Table['lengths'][column] > gvar['display_size'][1] - 5:
+                    _show_table_set_segment(segments[-1], None)
+                    segments.append({'SH': False, 'table': Table, 'columns': [], 'super_headers': [],  'super_header_lengths': [], 'headers': [], 'length': 1})
 
-        print('| %s |' % ' | '.join(_show_table_pad(_column_lengths, _row)))
+                # If starting a new segment, add all the common (key) columns.
+                if segments[-1]['length'] == 1:
+                    for common_column in Table['columns_common']:
+                        _show_table_set_segment(segments[-1], common_column)
+                    _show_table_set_segment(segments[-1], None)
 
-    print(_ruler)
+                # Process the current (segment) column.
+                _show_table_set_segment(segments[-1], column)
+            _show_table_set_segment(segments[-1], None)
+
+        else:
+            # The table consists of only common (key) columns; add them all.
+            for common_column in Table['columns_common']:
+                _show_table_set_segment(segments[-1], common_column)
+            _show_table_set_segment(segments[-1], None)
+
+    for ix in range(len(segments)):
+        column_underscore = []
+        for column in segments[ix]['columns']:
+            column_underscore.append('-' * (segments[ix]['table']['lengths'][column] + 2))
+        ruler = '+%s+' % '+'.join(column_underscore)
+
+        if title:
+            if len(segments) > 1:
+                print('\n%s (%s/%s)' % (title, ix+1, len(segments)))
+            else:
+                print('\n%s' % title)
+        else:
+            if len(segments) > 1:
+                print('\n (%s/%s)' % (ix+1, len(segments)))
+            else:
+                print('\n')
+
+        print(ruler)
+        if segments[ix]['SH']:
+            print('+ %s +' % ' | '.join(segments[ix]['super_headers']))
+            print('+ %s +' % ' | '.join(segments[ix]['headers']))
+        else:
+            print('+ %s +' % ' | '.join(_show_table_pad(segments[ix]['columns'], segments[ix]['table']['headers'], segments[ix]['table']['lengths'])))
+        print(ruler)
+
+        for row in lists:
+            if gvar['user_settings']['rotate'] and not allow_null and row[1] == '-':
+                continue
+
+            print('| %s |' % ' | '.join(_show_table_pad(segments[ix]['columns'], row, segments[ix]['table']['lengths'], values_xref=segments[ix]['table']['xref'])))
+
+        print(ruler)
+
     print('Rows: %s' % len(_qs))
+    gvar['tables_shown'] += 1
 
-def _show_table_pad(lens, cols):
+def _show_table_pad(columns, values, lengths, justify='left', values_xref=None):
     """
-    Pad column values with blanks; lens contains the maximum length for each column. 
+    Pad column values with blanks. The parameters have the following format:
+       o columns is a list.
+       o values is either a list or a dictionary.
+       o lengths is a dictionary.
     """
 
     padded_columns = []
 
-    for _ix in range(len(lens)):
-        padded_columns.append('%s%s' % (cols[_ix], ' ' * (lens[_ix] - len(str(cols[_ix])))))
+    for ix in range(len(columns)):
+        if isinstance(values, list):
+            if values_xref is None:
+                value = str(values[ix])
+            else:
+                value = str(values[values_xref[columns[ix]]])
+        else:
+            value = str(values[columns[ix]])
+
+        value_len = len(value)
+
+        if justify == 'left':
+            padded_columns.append('%s%s' % (value, ' ' * (lengths[columns[ix]] - value_len)))
+        elif justify == 'right':
+            padded_columns.append('%s%s' % (' ' * (lengths[columns[ix]] - value_len), value))
+        else:
+            len_lp = int((lengths[columns[ix]] - value_len)/2)
+            len_rp = lengths[columns[ix]] - len_lp - value_len
+            padded_columns.append('%s%s%s' % (' ' * len_lp, value, ' ' * len_rp))
 
     return padded_columns
+
+def _show_table_set_segment(segment, column):
+    """
+    Determine if headers are single column or multi-column, setting them appropriately
+    """
+
+    # If processing a flush request (no column), finalize segment headers and return.
+    if column is None:
+        _show_table_set_segment_super_headers(segment)
+
+    # Process new column for segment.
+    else:
+        # Process segments with super_headers.
+        if segment['SH']:
+            # Process super_header change.
+            if segment['SH_low_ix'] and segment['table']['super_headers'][column] != segment['table']['super_headers'][segment['columns'][segment['SH_low_ix']]]:
+                _show_table_set_segment_super_headers(segment)
+
+                column_ix =_show_table_set_segment_insert_new_column(segment, column)
+
+                if segment['table']['super_headers'][column] == '':
+                    segment['SH_low_ix'] = None
+                    segment['SH_hi_ix'] = None
+                else:
+                    segment['SH_low_ix'] = column_ix
+
+                if segment['table']['super_headers'][column] == '':
+                    segment['super_headers'].append(_show_table_pad([column], [''], segment['table']['lengths'], justify='centre')[0])
+                    segment['headers'].append(_show_table_pad([column], [segment['table']['headers'][column]], segment['table']['lengths'], justify='centre')[0])
+                else:
+                    segment['SH_hi_ix'] = column_ix
+
+            else:
+                column_ix =_show_table_set_segment_insert_new_column(segment, column)
+
+                if segment['table']['super_headers'][column] == '':
+                    segment['super_headers'].append(_show_table_pad([column], [''], segment['table']['lengths'], justify='centre')[0])
+                    segment['headers'].append(_show_table_pad([column], [segment['table']['headers'][column]], segment['table']['lengths'], justify='centre')[0])
+                else:
+                    segment['SH_hi_ix'] = column_ix
+
+        # Process segments without super_headers (yet).
+        else:
+            column_ix =_show_table_set_segment_insert_new_column(segment, column)
+
+            if segment['table']['super_headers'][column] == '':
+                segment['super_headers'].append(_show_table_pad([column], [''], segment['table']['lengths'], justify='centre')[0])
+                segment['headers'].append(_show_table_pad([column], [segment['table']['headers'][column]], segment['table']['lengths'], justify='centre')[0])
+            else:
+                segment['SH'] = True
+                segment['SH_low_ix'] = column_ix
+                segment['SH_hi_ix'] = column_ix
+
+def _show_table_set_segment_insert_new_column(segment, column):
+    """
+    Insert a new column into the current segment.
+    """
+
+    segment['columns'].append(column)
+    segment['length'] += 3 + segment['table']['lengths'][column]
+    return len(segment['columns']) - 1
+
+def _show_table_set_segment_super_headers(segment):
+    """
+    Set the super_headers for a segment.
+    """
+
+    if segment['SH'] and segment['SH_low_ix']:
+        column = segment['columns'][segment['SH_low_ix']]
+        segment['headers'].append('   '.join(_show_table_pad(segment['columns'][segment['SH_low_ix']:], segment['table']['headers'], segment['table']['lengths'], justify='centre')))
+        segment['super_header_lengths'].append(len(segment['headers'][-1]))
+        segment['super_headers'].append(_show_table_pad([column], segment['table']['super_headers'], {column: segment['super_header_lengths'][-1]}, justify='centre')[0])
+
 
 def verify_yaml_file(file_path):
     # Read the entire file.

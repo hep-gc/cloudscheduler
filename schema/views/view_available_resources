@@ -5,85 +5,79 @@
 create or replace view view_available_resources as
 
 select
-  grwcf.*,
-  cast(least(round(cores/flavor_cores), round(ram/flavor_ram)) as integer) as flavor_slots,
-  case when VMs_up is not NULL then VMs_up else 0 end as VMs_up,
-  case when VMs_down is not NULL then VMs_down else 0 end as VMs_down
+    grwcf.*,
+    cast(least(round(cores_idle/flavor_cores), round(ram_idle/flavor_ram)) as integer) as flavor_slots
 
 from (
     select
-      vgr.group_name,
-      vgr.cloud_name,
-      authurl,
-      project,
-      username,
-      password,
-      keyname,
-      cacertificate,
-      region,
-      user_domain_name,
-      project_domain_name,
-      cloud_type,
+        vgr.group_name,
+        vgr.cloud_name,
+        authurl,
+        project,
+        username,
+        password,
+        keyname,
+        cacertificate,
+        region,
+        user_domain_name,
+        project_domain_name,
+        cloud_type,
 
-      /*
-      ** Use case statements to determine available resources for cores and ram. 
-      */
-      case when cores_ctl=-1 then cores_max-cores_used else least(cores_max-cores_used, cores_ctl-cores_used+cores_foreign) end as cores,
-      case when ram_ctl=-1 then ram_max-ram_used else least(ram_max-ram_used, ram_ctl-ram_used+ram_foreign) end as ram,
+        cores_max,
+        cores_ctl,
+        cores_used,
+        cores_native,
+        cores_foreign,
+        cores_idle,
 
-      name as flavor_name,
-      id as flavor_id,
-      concat(vgr.cloud_name, "::", name) as flavor_instance_type,
-      cores as flavor_cores,
-      disk + ephemeral_disk as flavor_disk,
-      disk as flavor_enduring_disk,
-      ephemeral_disk as flavor_ephemeral_disk,
-      cf.ram as flavor_ram,
-      swap as flavor_swap,
+        ram_max,
+        ram_ctl,
+        ram_used,
+        ram_native,
+        ram_foreign,
+        ram_idle,
 
-      /*
-      ** Use the row_number() DB function to create flavor_priority, ranking flavors by cores, disk, ram, and swap.
-      */
-      row_number() over (partition by
+        name as flavor_name,
+        id as flavor_id,
+        concat(vgr.cloud_name, "::", name) as flavor_instance_type,
+        cf.cores as flavor_cores,
+        disk + ephemeral_disk as flavor_disk,
+        disk as flavor_enduring_disk,
+        ephemeral_disk as flavor_ephemeral_disk,
+        cf.ram as flavor_ram,
+        swap as flavor_swap,
+
+        /*
+        ** Use the row_number() DB function to create flavor_priority, ranking flavors by cores, disk, ram, and swap.
+        */
+        row_number() over (partition by
         vgr.group_name,
         vgr.cloud_name
-      order by
+        order by
         flavor_cores,
         flavor_disk,
         flavor_enduring_disk,
         flavor_ephemeral_disk,
         flavor_ram,
         flavor_swap
-      ) as flavor_priority,
+        ) as flavor_priority,
 
-      /*
-      ** User the concat() DB function to create (a unique ID for the) flavor.
-      */
-      concat(vgr.group_name, "::", vgr.cloud_name, "::", cf.name) as flavor
+        /*
+        ** User the concat() DB function to create (a unique ID for the) flavor.
+        */
+        concat(vgr.group_name, "::", vgr.cloud_name, "::", cf.name) as flavor
 
-    from view_group_resources as vgr
-    join cloud_flavors as cf on
-      vgr.group_name=cf.group_name and
-      vgr.cloud_name=cf.cloud_name
+        from view_group_resources as vgr
+        join cloud_flavors as cf on
+        vgr.group_name=cf.group_name and
+        vgr.cloud_name=cf.cloud_name
 
-    order by vgr.group_name,vgr.cloud_name,flavor_priority
-    ) as grwcf /* group_resources_with_cloud_flavors */
-left outer join (
-    select
-    concat(cv.group_name, "::", cv.cloud_name, "::", cf.name) as flavor,
-    sum(case when status="ACTIVE" and power_status=1 and task is NULL then 1 else 0 end) as VMs_up,
-    sum(case when status!="ACTIVE" or power_status!=1 or task is not NULL then 1 else 0 end) as VMs_down
-    from csv2_vms as cv
-    join cloud_flavors as cf on
-    cv.group_name=cf.group_name and
-    cv.cloud_name=cf.cloud_name and
-    flavor_id=id
-    ) as fudvc /* flavor_up_down_vm_counts */
-  on grwcf.flavor=fudvc.flavor
+        order by vgr.group_name,vgr.cloud_name,flavor_priority
+        ) as grwcf /* group_resources_with_cloud_flavors */
   
 where
-  flavor_cores<=cores and
-  flavor_ram<=ram
+  flavor_cores<=cores_idle and
+  flavor_ram<=ram_idle
 
 order by group_name,cloud_name,flavor_priority
 
