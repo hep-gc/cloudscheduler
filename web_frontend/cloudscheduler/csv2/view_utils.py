@@ -691,6 +691,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     password               - A password value to be checked and hashed
     password1              - A password value to be verified against password2, checked and hashed.
     password2              - A password value to be verified against password1, checked and hashed.
+    reject                 - Reject an otherwise valid field.
     uppercase              - Make sure the input value is all uppercase (or error).
 
     POSTed fields in the form "name.1", "name.2", etc. will be treated as array fields, 
@@ -737,6 +738,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     # Process fields parameter:
     Formats = {}
     Options = {
+        'accept_primary_keys_only': False,
         'auto_active_group': False,
         'auto_active_user': False,
         'unnamed_fields_are_bad': False,
@@ -754,6 +756,9 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     Fields = {}
     if request.method == 'POST':
         for field in sorted(request.POST):
+            if Options['accept_primary_keys_only'] and field not in primary_key_columns:
+                if not (field in Formats and Formats[field] == 'ignore'):
+                    return 1, 'request contained superfluous parameter "%s".' % field, None, None, None
             if Options['unnamed_fields_are_bad'] and field not in Formats:
                 return 1, 'request contained a unnamed/bad parameter "%s".' % field, None, None, None
 
@@ -856,6 +861,9 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                             continue
                         return 1, 'password update received a verify password but no password; both are required.', None, None, None
                     continue
+
+                elif Formats[field] == 'reject':
+                    return 1, 'request contained a rejected/bad parameter "%s".' % field, None, None, None
 
                 elif Formats[field] == 'uppercase':
                     value = request.POST[field].upper()
