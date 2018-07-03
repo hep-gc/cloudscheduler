@@ -767,7 +767,7 @@ def update(request):
             rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV21'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV21'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
