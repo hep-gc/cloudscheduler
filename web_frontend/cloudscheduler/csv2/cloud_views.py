@@ -308,10 +308,23 @@ def metadata_add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV17'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV18'), msg), active_user=active_user, user_groups=user_groups)
+
+        # Check cloud already exists.
+        table = tables['csv2_group_resources']
+        s = select([csv2_group_resources]).where(csv2_group_resources.c.group_name == active_user.active_group)
+        cloud_list = db_connection.execute(s)
+        found = False
+        for cloud in cloud_list:
+            if active_user.active_group == cloud['group_name'] and fields['cloud_name'] == cloud['cloud_name']:
+                found = True
+                break
+
+        if not found:
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno('CV18'), fields['cloud_name']), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
