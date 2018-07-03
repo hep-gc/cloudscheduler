@@ -160,7 +160,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV##', 'cloud doesn\'t exist',
+        gvar, 1, 'CV18', 'cloud name  "invalid-unit-test" does not exist.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
