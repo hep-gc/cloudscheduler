@@ -33,9 +33,9 @@ def add(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-ucn', '-un', '-upw'],
+        ['-un', '-upw'],
         [],
-        ['-gn', '-SU'],
+        ['-ucn', '-gn', '-SU'],
         key_map=KEY_MAP)
 
     # Create the user.
@@ -83,72 +83,6 @@ def delete(gvar):
         form_data = {
             'username': gvar['user_settings']['username']
             }
-        )
-    
-    if response['message']:
-        print(response['message'])
-
-def group_add(gvar):
-    """
-    Add a group to the specified user.
-    """
-
-    # Check for missing arguments or help required.
-    form_data = check_keys(
-        gvar,
-        ['-gn', '-un'],
-        [],
-        [],
-        key_map=KEY_MAP)
-
-    # Create the user.
-    response = requests(
-        gvar,
-        '/user/group_add/',
-        form_data
-        )
-    
-    if response['message']:
-        print(response['message'])
-
-def group_delete(gvar):
-    """
-    Delete a group from the specified user.
-    """
-
-    # Check for missing arguments or help required.
-    form_data = check_keys(
-        gvar,
-        ['-gn', '-un'],
-        [],
-        [],
-        key_map=KEY_MAP)
-
-    # Check that the target user exists.
-    response = requests(gvar, '/user/list/')
-    _found = False
-    for row in response['user_list']:
-      if row['username'] == gvar['user_settings']['username']:
-        _found = True
-        break
-   
-    if not _found:
-        print('Error: "%s user delete" cannot delete "%s", user doesn\'t exist.' % (gvar['command_name'], gvar['user_settings']['username']))
-        exit(1)
-
-    # Confirm user delete.
-    if not gvar['user_settings']['yes']:
-        print('Are you sure you want to delete user::group "%s::%s"? (yes|..)' % (gvar['user_settings']['username'], gvar['user_settings']['group-name']))
-        _reply = input()
-        if _reply != 'yes':
-          print('%s user::group delete "%s::%s" cancelled.' % (gvar['command_name'], gvar['user_settings']['username'], gvar['user_settings']['group-name']))
-          exit(0)
-
-    # Delete the user/group.
-    response = requests(
-        gvar,
-        '/user/group_delete/',
-        form_data
         )
     
     if response['message']:
