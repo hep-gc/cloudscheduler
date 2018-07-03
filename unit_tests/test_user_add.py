@@ -149,14 +149,14 @@ def main(gvar, user_secret):
         }
     )
 
-    # execute_csv2_request(
-    #     gvar, 1, 'UV01', 'request contained a rejected/bad parameter "active_group".',
-    #     '/user/add/', form_data={
-    #         'username': 'invalid-unit-test',
-    #         'password': user_secret,
-    #         'active_group': 'invalid-unit-test'
-    #     }
-    # )
+    execute_csv2_request(
+        gvar, 1, 'UV01', 'request contained a rejected/bad parameter "active_group".',
+        '/user/add/', form_data={
+            'username': 'invalid-unit-test',
+            'password': user_secret,
+            'active_group': 'invalid-unit-test'
+        }
+    )
 
     execute_csv2_request(
         gvar, 1, 'UV04', 'specified group "invalid-unit-test" does not exist.',
