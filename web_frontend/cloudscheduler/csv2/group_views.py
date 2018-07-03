@@ -40,7 +40,6 @@ GROUP_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'group_name':               'lowerdash',
-        'condor_central_manager':   'mandatory',
         'csrfmiddlewaretoken':      'ignore',
         'group':                    'ignore',
         'username':                 'ignore',
@@ -56,7 +55,14 @@ GROUP_KEYS = {
         'security_groups_ctl':      'reject',
         'server_group_members_ctl': 'reject',
         'floating_ips_ctl':         'reject',
+        },
+    }
 
+GROUP_KEYS_ADD = {
+    'auto_active_group': False,
+    # Named argument formats (anything else is a string).
+    'format': {
+        'condor_central_manager':   'mandatory',
         },
     }
 
@@ -135,7 +141,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups', 'csv2_group_defaults', 'csv2_user_groups', 'csv2_user,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS, GROUP_KEYS_ADD], db_ctl, ['csv2_groups', 'csv2_group_defaults', 'csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
