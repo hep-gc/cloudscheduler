@@ -39,6 +39,7 @@ VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
+        'vm_selected':         'ignore',
         'vm_option':           ['kill', 'retire', 'manctl', 'sysctl'],
 
         'csrfmiddlewaretoken': 'ignore',

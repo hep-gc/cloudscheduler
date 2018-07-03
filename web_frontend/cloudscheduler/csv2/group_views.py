@@ -39,11 +39,24 @@ GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':          'lowerdash',
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
-        'username':            'ignore',
-        'user_option':         ['add', 'delete'],
+        'group_name':               'lowerdash',
+        'condor_central_manager':   'mandatory',
+        'csrfmiddlewaretoken':      'ignore',
+        'group':                    'ignore',
+        'username':                 'ignore',
+        'user_option':              ['add', 'delete'],
+        'server_meta_ctl':          'reject',
+        'instances_ctl':            'reject',
+        'personality_ctl':          'reject',
+        'image_meta_ctl':           'reject',
+        'personality_size_ctl':     'reject',
+        'server_groups_ctl':        'reject',
+        'security_group_rules_ctl': 'reject',
+        'keypairs_ctl':             'reject',
+        'security_groups_ctl':      'reject',
+        'server_group_members_ctl': 'reject',
+        'floating_ips_ctl':         'reject',
+
         },
     }
 
@@ -51,12 +64,12 @@ GROUP_DEFAULTS_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
-        'job_cpus':            'integer',
-        'job_disk':            'integer',
-        'job_ram':             'integer',
-        'job_swap':            'integer',
+        'csrfmiddlewaretoken':      'ignore',
+        'group':                    'ignore',
+        'job_cpus':                 'integer',
+        'job_disk':                 'integer',
+        'job_ram':                  'integer',
+        'job_swap':                 'integer',
         },
     }
 
@@ -64,37 +77,37 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'enabled':             'dboolean',
-        'priority':            'integer',
-        'metadata':            'metadata',
-        'metadata_name':       'lowercase',
-        'mime_type':           ('csv2_mime_types', 'mime_type'),
+        'enabled':                  'dboolean',
+        'priority':                 'integer',
+        'metadata':                 'metadata',
+        'metadata_name':            'lowercase',
+        'mime_type':                ('csv2_mime_types', 'mime_type'),
 
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
+        'csrfmiddlewaretoken':      'ignore',
+        'group':                    'ignore',
         },
     }
 
 IGNORE_METADATA_NAME = {
     'format': {
-        'metadata_name':       'ignore',
+        'metadata_name':            'ignore',
         },
     }
 
 IGNORE_KEYS = {
     'format': {
-        'cloud_name':           'ignore',
-        'username':             'ignore',
-        'vmid':                 'ignore',
-        'id':                   'ignore',
+        'cloud_name':               'ignore',
+        'username':                 'ignore',
+        'vmid':                     'ignore',
+        'id':                       'ignore',
         },
     }
 
 LIST_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':     'ignore',
-        'group':                   'ignore',
+        'csrfmiddlewaretoken':      'ignore',
+        'group':                    'ignore',
         },
     }
 
@@ -122,7 +135,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups', 'csv2_group_defaults','csv2_user_groups', 'csv2_user,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], db_ctl, ['csv2_groups', 'csv2_group_defaults', 'csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -767,7 +780,7 @@ def update(request):
             rc, msg = db_execute(db_ctl, table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV21'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV21'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':

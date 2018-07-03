@@ -684,6 +684,8 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
                              can't start or end with a dash (or error).
+    mandatory              - The field is not a key field but must be specified and cannot be
+                             blank/empty.
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -818,6 +820,10 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                     if request.POST[field] != value:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
+                elif Formats[field] == 'mandatory':
+                    if value.strip() == '':
+                        return 1, 'value specified for "%s" must not be an empty string.' % field, None, None, None
+
                 elif Formats[field] == 'metadata':
                     filename = '%s_name' % field
                     if filename in request.POST:
@@ -891,10 +897,8 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         if Options['auto_active_user'] and 'username' not in Fields:
             Fields['username'] = active_user
 
-        for field in primary_key_columns:
-            if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
-                return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
-
+        # Process other mandatory fields and booleans.
+        other_mandatory_fields= []
         for field in Formats:
             if Formats[field] == 'boolean':
                 if request.POST.get(field):
@@ -904,6 +908,13 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                         Fields[field] = True
                 else:
                     Fields[field] = False
+
+            elif Formats[field] == 'mandatory':
+                other_mandatory_fields.append(field)
+
+        for field in primary_key_columns + other_mandatory_fields:
+            if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
+                return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 

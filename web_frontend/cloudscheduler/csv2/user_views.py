@@ -46,6 +46,7 @@ USER_GROUP_KEYS = {
         'group_name':          'ignore',
         'group_option':         ['add', 'delete'],
 
+        'active_group':        'reject',
         'join_date':           'reject',
         },
     }
@@ -91,7 +92,7 @@ def _verify_username_cert_cn(db_ctl, fields, check_username=False):
                 return 1, 'username "%s" unavailable.' % fields['username']
 
         # Check #2 Check that the cert_cn is not equal to any username or other cert_cn
-        if 'cert_cn' in fields and (fields['cert_cn'] == registered_user["username"] or fields['cert_cn'] == registered_user["cert_cn"]):
+        if 'cert_cn' in fields and fields['cert_cn'] != '' and (fields['cert_cn'] == registered_user["username"] or fields['cert_cn'] == registered_user["cert_cn"]):
             return 1, 'common name "%s" conflicts with registered user "%s".' % (fields['cert_cn'], registered_user["username"])
 
     return 0, None
