@@ -46,6 +46,7 @@ USER_GROUP_KEYS = {
         'group_name':          'ignore',
         'group_option':         ['add', 'delete'],
 
+        'active_group':        'reject',
         'join_date':           'reject',
         },
     }
