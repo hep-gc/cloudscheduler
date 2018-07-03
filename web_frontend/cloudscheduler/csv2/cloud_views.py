@@ -39,6 +39,8 @@ CLOUD_KEYS = {
     'format': {
         'cloud_name':              'lowerdash',
         'cloud_type':              ('csv2_cloud_types', 'cloud_type'),
+        'cores_ctl':               'integer',
+        'ram_ctl':                 'integer',
 
         'cores_slider':            'ignore',
         'csrfmiddlewaretoken':     'ignore',
