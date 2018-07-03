@@ -91,8 +91,6 @@ def main(args):
                 {
                     'add':              csv2_user.add,
                     'delete':           csv2_user.delete,
-                    'group-add':        csv2_user.group_add,
-                    'group-delete':     csv2_user.group_delete,
                     'list':             csv2_user.list,
                     'update':           csv2_user.update,
                     }
@@ -100,7 +98,8 @@ def main(args):
             'vm': [
                 False, # super_user?
                 {
-                    'list':         csv2_vm.list,
+                    'list':             csv2_vm.list,
+                    'update':           csv2_vm.update,
                     }
                 ]
             },
@@ -141,7 +140,7 @@ def main(args):
             ('-sel', '--select', True),
             ('-sK',  '--server-grid-key', True),
             ('-spw', '--server-password', True),
-            ('-SU',  '--super-user', False),
+            ('-SU',  '--super-user', True),
             ('-su',  '--server-user', True),
             ('-te',  '--text-editor', True),
             ('-ucn', '--user-common-name', True),
@@ -150,9 +149,9 @@ def main(args):
             ('-upw', '--user-password', True),
             ('-vc',  '--vm-cores', True),
             ('-vd',  '--vm-disk', True),
-            ('-ved', '--vm-ephemeral-disk', True),
             ('-vF',  '--vm-foreign', True),
             ('-vf',  '--vm-flavor', True),
+            ('-vh',  '--vm-hostname', True),
             ('-vk',  '--vm-keypair', True),
             ('-vo',  '--vm-option', True),
             ('-vr',  '--vm-ram', True),
