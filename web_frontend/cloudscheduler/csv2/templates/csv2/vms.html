@@ -8,9 +8,9 @@
   <!-- <meta http-equiv="refresh" content="30"> -->
   </head>
 
-  {% block navbar %}
-     {% include "csv2/navigation_bar.html" %}
-  {% endblock %}
+  <!-- {% block navbar %} -->
+     <!-- {% include "csv2/navigation_bar.html" %} -->
+  <!-- {% endblock %} -->
 
   <body class="vms-nav">
 
@@ -24,11 +24,16 @@
     <div class="main-div">
       <form method="post">
         {% csrf_token %}
-        <!-- Table Setup - thead and tbody are commented out. Enable for static header
-        but good luck getting the column widths to match. -->
 
-        <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="retire">Retire VMs</button>
-        <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="test">Kill VMs</button>
+        <!-- Hide the action buttons if the looking at foreing VMs since -->
+        {% if "foreign" not in request.path %}
+          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="retire">Retire VMs</button>
+          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="kill">Kill VMs</button>
+          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="manctl">Manual Control</button>
+          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="sysctl">System Control</button>
+
+          <p>{{ request.POST }}</p>
+        {% endif %}
 
         <div class="vm-table">
           <table>
@@ -41,11 +46,11 @@
                 <th>VM ID</th>
                 <th>Status</th>
                 <th>Status Changed Time</th>
-                <th>Task</th>
+                <!-- <th>Task</th> -->
                 <th>Flavor Name</th>
                 <th>Condor Slots</th>
                 <th>Condor Off</th>
-                <th>Foreign</th>
+                <!-- <th>Foreign</th> -->
                 <!-- <th>Cores</th> -->
                 <!-- <th>RAM</th> -->
                 <!-- <th>SWAP</th> -->
@@ -65,13 +70,13 @@
                   <td>{{vm.project}}</td>
                   <td>{{vm.hostname}}</td>
                   <td>{{vm.vmid}}</td>
-                  <td>{{vm.status}}</td>
+                  <td>{{vm.poller_status}}</td>
                   <td>{{vm.status_changed_time}}</td>
-                  <td>{{vm.task}}</td>
+                  <!-- <td>{{vm.task}}</td> -->
                   <td>{{vm.flavor_name}}</td>
                   <td>{{vm.condor_slots}}</td>
                   <td>{{vm.condor_off}}</td>
-                  <td>{{vm.foreign_vm}}</td>
+                  <!-- <td>{{vm.foreign_vm}}</td> -->
                   <!-- <td>{{vm.cores}}</td> -->
                   <!-- <td>{{vm.ram}}</td> -->
                   <!-- <td>{{vm.swap}}</td> -->
