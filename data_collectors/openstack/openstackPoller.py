@@ -273,9 +273,6 @@ def vm_poller():
             time.sleep(config.vm_sleep_interval)
 
 
-    return None
-
-
 def flavorPoller():
     multiprocessing.current_process().name = "Flavor Poller"
     Base = automap_base()
@@ -287,7 +284,6 @@ def flavorPoller():
     Cloud = Base.classes.csv2_group_resources
 
     while True:
-        #thingdo
         try:
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
@@ -358,7 +354,6 @@ def flavorPoller():
             logging.debug("End of cycle, sleeping...")
             time.sleep(config.flavor_sleep_interval)
 
-    return None
 
 def imagePoller():
     multiprocessing.current_process().name = "Image Poller"
@@ -381,7 +376,7 @@ def imagePoller():
             session = get_session(cloud)
             if session is False:
                 continue
-            # setup openstack api object
+            # setup OpenStack api object
             nova = get_nova_client(session)
 
             image_list = get_image_data(nova)
@@ -442,6 +437,7 @@ def imagePoller():
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.image_sleep_interval)
 
+
 def limitPoller():
     multiprocessing.current_process().name = "Limit Poller"
     Base = automap_base()
@@ -462,7 +458,7 @@ def limitPoller():
             session = get_session(cloud)
             if session is False:
                 continue
-            # setup openstack api objects
+            # setup OpenStack api objects
             nova = get_nova_client(session)
 
             logging.debug("Polling limits")
@@ -501,7 +497,6 @@ def limitPoller():
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.limit_sleep_interval)
 
-    return None
 
 def networkPoller():
     multiprocessing.current_process().name = "Network Poller"
@@ -516,9 +511,7 @@ def networkPoller():
     Cloud = Base.classes.csv2_group_resources
 
     while True:
-        #thingdo
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
-
 
         current_cycle = int(time.time())
         for cloud in cloud_list:
@@ -526,7 +519,7 @@ def networkPoller():
             session = get_session(cloud)
             if session is False:
                 continue
-            # setup openstack api objects
+            # setup OpenStack api objects
             neutron = get_neutron_client(session)
             net_list = get_network_data(neutron)
             if net_list is False:
@@ -572,7 +565,6 @@ def networkPoller():
         logging.debug("End of cycle, sleeping...")
         time.sleep(config.network_sleep_interval)
 
-    return None
 
 # def vmExecutor():
 # May need a process to relay commands to the VMs (peaceful shutdown//kill)
@@ -610,7 +602,7 @@ def vmCleanUp():
             time.sleep(config.vm_cleanup_interval)
             continue
 
-        # check for vms that have dissapeared since the last cycle
+        # check for vms that have disappeared since the last cycle
         logging.debug("Querying database for vms to remove...")
         vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
         for vm in vm_to_delete:
@@ -659,7 +651,7 @@ def vmCleanUp():
             logging.error("Aborting cycle...")
 
         time.sleep(config.vm_cleanup_interval)
-    return None
+
 
 def keypairPoller():
     multiprocessing.current_process().name = "Keypair Poller"
@@ -673,11 +665,9 @@ def keypairPoller():
     Cloud = Base.classes.csv2_group_resources
 
     while True:
-        current_cycle_time = time.time()
         logging.debug("Beginning key pair polling cycle")
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
-        current_cycle = int(time.time())
         for cloud in cloud_list:
             logging.info("Processing Key pairs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             session = get_session(cloud)
