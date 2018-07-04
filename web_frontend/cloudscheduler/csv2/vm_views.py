@@ -127,15 +127,6 @@ def update(request):
 
     if request.method == 'POST' and 'vm_option' in request.POST:
         if 'vm_selected' in request.POST:
-#           temp_vm_id_list =  request.POST.getlist('vm_selected')
-#           vm_id_list = []
-#           # Remove ending "/" for each element
-#           for vm_id in temp_vm_id_list:
-#               vm_id_list.append(vm_id.strip('/'))
-#           # Form csv string of ids and add it to the selector
-#           vm_ids = ','.join(vm_id_list)
-#           selector = selector + vm_ids
-
             # open the database.
             db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
