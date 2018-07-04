@@ -553,6 +553,9 @@ def qt_filter_get(columns, values, aliases=None, and_or='and'):
         if value == '':
             continue
 
+        if aliases and columns[ix] in aliases and value in aliases[columns[ix]]:
+            value = aliases[columns[ix]][value]
+
         try:
             x = float(value)
             key_value_list.append("cols['%s'] == %s" % (columns[ix], value))
