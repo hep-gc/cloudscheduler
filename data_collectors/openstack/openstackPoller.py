@@ -90,7 +90,7 @@ def get_flavor_data(nova):
     try:
         return  nova.flavors.list()
     except Exception as exc:
-        logging.error("Unable to retireve Flavor data")
+        logging.error("Unable to retrieve Flavor data")
         logging.error(exc)
         return False
 
