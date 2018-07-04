@@ -57,7 +57,7 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-vc', '-vd', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-vc', '-vd', '-vF', '-vf', '-vh', '-vk', '-vr', '-vS', '-vs'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/vm/list/%s' % _selector(gvar))
