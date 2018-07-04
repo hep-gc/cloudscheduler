@@ -34,24 +34,27 @@ import sqlalchemy.exc
 # lno: VV - error code identifier.
 
 #-------------------------------------------------------------------------------
+ALIASES = {'poller_status': {'native': ['manual', 'error', 'unregistered', 'retiring', 'running', 'other']}}
 
 VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        # 'vm_selected':         'ignore',
-        'vm_option':           ['kill', 'retire', 'manctl', 'sysctl'],
+        'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
 
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
+        'cloud_name':                                                   'ignore',
+        'csrfmiddlewaretoken':                                          'ignore',
+        'group':                                                        'ignore',
+        'hostname':                                                     'ignore',
+        'poller_status':                                                'ignore',
         },
     }
 
 LIST_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':     'ignore',
-        'group':                   'ignore',
+        'csrfmiddlewaretoken':                                          'ignore',
+        'group':                                                        'ignore',
         },
     }
 
@@ -114,7 +117,7 @@ def list(
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def update(request, selector='::::'):
+def update(request):
     """
     Update VMs.
     """
@@ -124,14 +127,14 @@ def update(request, selector='::::'):
 
     if request.method == 'POST' and 'vm_option' in request.POST:
         if 'vm_selected' in request.POST:
-            temp_vm_id_list =  request.POST.getlist('vm_selected')
-            vm_id_list = []
-            # Remove ending "/" for each element
-            for vm_id in temp_vm_id_list:
-                vm_id_list.append(vm_id.strip('/'))
-            # Form csv string of ids and add it to the selector
-            vm_ids = ','.join(vm_id_list)
-            selector = selector + vm_ids
+#           temp_vm_id_list =  request.POST.getlist('vm_selected')
+#           vm_id_list = []
+#           # Remove ending "/" for each element
+#           for vm_id in temp_vm_id_list:
+#               vm_id_list.append(vm_id.strip('/'))
+#           # Form csv string of ids and add it to the selector
+#           vm_ids = ','.join(vm_id_list)
+#           selector = selector + vm_ids
 
             # open the database.
             db_engine, db_session, db_connection, db_map = db_ctl = db_open()
@@ -163,17 +166,9 @@ def update(request, selector='::::'):
             else:
                 return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('GV41'), fields['vm_option']))
 
-            if 'vm_hostname' in fields:
-                if isinstance(fields['vm_hostname'], list):
-                    hosts = fields['vm_hostname']
-                else:
-                    hosts = fields['vm_hostname'].split(',')
-            else:
-                hosts = None
-
             # Retrieve VM information.
             s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) and (view_vms.c.foreign_vm == 0))
-            vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::')))
+            vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
             count = 0
             for vm in vm_list:

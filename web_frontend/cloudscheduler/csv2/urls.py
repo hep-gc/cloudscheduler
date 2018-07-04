@@ -43,8 +43,8 @@ urlpatterns = [
     url(r'^user/settings',                         user_views.settings,             name='user-settings'),
     url(r'^user/update',                           user_views.update,               name='user-update'),
 
-    path('vm/list/',                                vm_views.list),
+    path('vm/list/',                               vm_views.list),
     path('vm/list/<path:selector>/',               vm_views.list),
-    path('vm/update/<path:selector>/',             vm_views.update),
+    path('vm/update',                              vm_views.update),
 
 ]
