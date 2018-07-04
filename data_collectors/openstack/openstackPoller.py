@@ -174,7 +174,7 @@ def vm_poller():
 
     while True:
         try:
-            logging.debug("Begining poll cycle")
+            logging.debug("Beginning poll cycle")
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
             # Itterate over cloud list
@@ -185,7 +185,7 @@ def vm_poller():
                 try:
                     version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
                 except ValueError:
-                    logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                    logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
                     continue
                 if version == 2:
                     session = get_openstack_session(
@@ -241,12 +241,12 @@ def vm_poller():
                         db_session.merge(new_vm)
                     except Exception as exc:
                         logging.error(exc)
-                        logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
+                        logging.error("unable to merge sessions, database inconsistency or other error while processing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
                 try:        
                     db_session.commit()
                 except Exception as exc:
                     logging.error(exc)
-                    logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Unable to commit database session while processing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
                     logging.error("Aborting cycle...")
             logging.debug("Poll cycle complete, sleeping...")
             try:
@@ -292,7 +292,7 @@ def flavorPoller():
                 try:
                     version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
                 except ValueError:
-                    logging.error("Bad openstack URL, could not determine version, skipping %s" % cloud.authurl)
+                    logging.error("Bad OpenStack URL, could not determine version, skipping %s" % cloud.authurl)
                     continue
                 if version == 2:
                     session = get_openstack_session(
@@ -401,7 +401,7 @@ def imagePoller():
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
             if version == 2:
                 session = get_openstack_session(
@@ -465,7 +465,7 @@ def imagePoller():
                 db_session.commit()
             except Exception as exc:
                 logging.error(exc)
-                logging.error("Unable to commit database session while proccessing for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
+                logging.error("Unable to commit database session while processing for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
                 logging.error("Aborting poll cycle...")
                 break
             # do Image cleanup
@@ -507,7 +507,7 @@ def limitPoller():
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
             if version == 2:
                 session = get_openstack_session(
@@ -596,7 +596,7 @@ def networkPoller():
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
             if version == 2:
                 session = get_openstack_session(
@@ -689,7 +689,7 @@ def vmCleanUp():
 
     while True:
         current_cycle_time = time.time()
-        logging.debug("Begining cleanup cycle")
+        logging.debug("Beginning cleanup cycle")
 
         last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
         if last_cycle == 0:
@@ -739,9 +739,9 @@ def vmCleanUp():
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
+                logging.error("Bad OpenStack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
                 continue
-            logging.info("Creating openstack session for group:cloud - %s:%s" % (cloud.group_name, cloud.cloud_name))
+            logging.info("Creating OpenStack session for group:cloud - %s:%s" % (cloud.group_name, cloud.cloud_name))
             if version == 2:
                 session = get_openstack_session(
                     auth_url=cloud.authurl,
@@ -792,17 +792,17 @@ def keypairPoller():
 
     while True:
         current_cycle_time = time.time()
-        logging.debug("Begining keypair polling cycle")
+        logging.debug("Beginning key pair polling cycle")
         cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
 
         current_cycle = int(time.time())
         for cloud in cloud_list:
-            logging.info("Processing Keypairs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
+            logging.info("Processing Key pairs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
             authsplit = cloud.authurl.split('/')
             try:
                 version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
             except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
                 continue
             if version == 2:
                 session = get_openstack_session(
@@ -838,7 +838,7 @@ def keypairPoller():
                 cloud_keys = nova.keypairs.list()
             except Exception as exc:
                 logging.error(exc)
-                logging.error("Unable to poll keypairs from nova, skipping %s-%s" % (cloud.group_name, cloud.cloud_name))
+                logging.error("Unable to poll key pairs from nova, skipping %s-%s" % (cloud.group_name, cloud.cloud_name))
             for key in cloud_keys:
                 key_dict = {
                     "cloud_name":  cloud.cloud_name,
@@ -853,7 +853,7 @@ def keypairPoller():
                 db_session.commit()
             except Exception as exc:
                 logging.error(exc)
-                logging.error("Unable to commit database session during keypair proccessing")
+                logging.error("Unable to commit database session during key pair processing")
                 logging.error("Skipping %s - %s" % (cloud.group_name, cloud.cloud_name))
                 break
 
@@ -871,7 +871,7 @@ def keypairPoller():
                 db_session.commit()
             except Exception as exc:
                 logging.error(exc)
-                logging.error("Unable to commit database session during keypair proccessing")
+                logging.error("Unable to commit database session during keypair processing")
                 logging.error("Skipping %s - %s" % (cloud.group_name, cloud.cloud_name))
                 break
         logging.info("End of cycle, sleeping")
