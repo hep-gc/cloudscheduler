@@ -65,7 +65,7 @@
             <!-- <tbody> -->
               {% for vm in vm_list %}
                 <tr>
-                  <td><input type="checkbox" name="vm_selected" value={{vm.vmid}}/></td>
+                  <td><input type="checkbox" name="hostname.{{ forloop.counter }}" value={{vm.hostname}}></td>
                   <td>{{vm.cloud_name}}</td>
                   <td>{{vm.project}}</td>
                   <td>{{vm.hostname}}</td>
