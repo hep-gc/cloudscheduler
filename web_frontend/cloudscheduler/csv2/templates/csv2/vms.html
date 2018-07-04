@@ -8,9 +8,6 @@
   <!-- <meta http-equiv="refresh" content="30"> -->
   </head>
 
-  <!-- {% block navbar %} -->
-     <!-- {% include "csv2/navigation_bar.html" %} -->
-  <!-- {% endblock %} -->
 
   <body class="vms-nav">
 
@@ -27,17 +24,17 @@
 
         <!-- Hide the action buttons if the looking at foreing VMs since -->
         {% if "foreign" not in request.path %}
-          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="retire">Retire VMs</button>
-          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="kill">Kill VMs</button>
-          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="manctl">Manual Control</button>
-          <button type="submit" formaction="/vm/update/::::/" name="vm_option" value="sysctl">System Control</button>
+          <button type="submit" formaction="/vm/update" name="vm_option" value="retire">Retire VMs</button>
+          <button type="submit" formaction="/vm/update" name="vm_option" value="kill">Kill VMs</button>
+          <button type="submit" formaction="/vm/update" name="vm_option" value="manctl">Manual Control</button>
+          <button type="submit" formaction="/vm/update" name="vm_option" value="sysctl">System Control</button>
 
           <p>{{ request.POST }}</p>
         {% endif %}
 
         <div class="vm-table">
           <table>
-            <!-- <thead> -->
+            <thead>
               <tr>
                 <th><input id="select-all" type="checkbox"/></th>
                 <th>Cloud</th>
@@ -60,12 +57,12 @@
                 <!-- <th>Terminate Time</th> -->
                 <!-- <th>Poller Status</th> -->
               </tr>
-            <!-- </thead> -->
+            </thead>
 
-            <!-- <tbody> -->
+            <tbody>
               {% for vm in vm_list %}
                 <tr>
-                  <td><input type="checkbox" name="vm_selected" value={{vm.vmid}}/></td>
+                  <td><input type="checkbox" name="hostname.{{ forloop.counter }}" value={{vm.hostname}}></td>
                   <td>{{vm.cloud_name}}</td>
                   <td>{{vm.project}}</td>
                   <td>{{vm.hostname}}</td>
@@ -87,7 +84,7 @@
                   <!-- <td>{{vm.poller_status}}</td> -->
                 </tr>
               {% endfor %}
-            <!-- </tbody> -->
+            </tbody>
           </table>
         </form>
       </div>
