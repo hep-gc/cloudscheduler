@@ -92,7 +92,7 @@ def list(
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::')))
+    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES))
 
     # Retrieve available Clouds.
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)

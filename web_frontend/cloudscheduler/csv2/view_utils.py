@@ -509,7 +509,7 @@ def qt_filter_get(columns, values, aliases=None, and_or='and'):
           in the list have an index value corresponding to the columns argument. A value
           for a column can have one of five formats:
               1. An integer.
-              2. A string. An empty string is treated as a Null value.
+              2. A string. A string of "null" will match column is null.
               3. A string containing a comma separated list.
               4. A list.
               5. An alias ("aliases" parameter required, see below). Each alias is 
@@ -550,14 +550,17 @@ def qt_filter_get(columns, values, aliases=None, and_or='and'):
             else:
                 break
 
+        if value == '':
+            continue
+
         try:
             x = float(value)
             key_value_list.append("cols['%s'] == %s" % (columns[ix], value))
         except:
             if isinstance(value, list):
-                key_value_list.append("cols['%s'] in %s" % (columns[ix], value
-            elif value == '':
-                key_value_list.append("cols['%s'] is null")
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value))
+            elif value == 'null':
+                key_value_list.append("cols['%s'] is null" % columns[ix])
             elif ',' in value:
                 key_value_list.append("cols['%s'] in %s" % (columns[ix], value.split(',')))
             else:
