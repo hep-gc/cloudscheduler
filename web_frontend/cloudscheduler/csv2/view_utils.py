@@ -497,28 +497,71 @@ def _qt_list(secondary_dict_ptr, secondary_key_list_ptr, cols, key):
 
 #-------------------------------------------------------------------------------
 
-def qt_filter_get(columns, values, and_or='and'):
+def qt_filter_get(columns, values, aliases=None, and_or='and'):
     """
-    This function takes two lists (columns and values) or equal length and
-    returns a string that can be evaluated by view_utils.qt to filter rows
-    of a query.
-    """
+    Return an eveluation string to filter the rows of a queryset. This function takes the
+    following arguments:
+        o "columns" is a list of columns to be matched against items within the "values"
+           parameter.
 
-    if len(columns) != len(values):
-        return None
-#       raise Exception('view_utils. columns(%s) and values(%s) arguments must be of equal length.' % (len(columns), len(values)))
+        o "values" is either a list or a dictionary. If it is a dictionary, the keys are
+          column names identified by the columns parameter. If it is a list, the values 
+          in the list have an index value corresponding to the columns argument. A value
+          for a column can have one of five formats:
+              1. An integer.
+              2. A string. An empty string is treated as a Null value.
+              3. A string containing a comma separated list.
+              4. A list.
+              5. An alias ("aliases" parameter required, see below). Each alias is 
+                 replaced by its corresponding value.
+
+        o "aliases" is a structure with the following format:
+              aliases = {
+                  <column_name_1>: {
+                      <alias_1>: <value>,
+                      <alias_2>: <value>,
+                       . 
+                      },
+                  <column_name_2>: {
+                      <alias_1>: <value>,
+                      <alias_2>: <value>,
+                       . 
+                      },
+                   .
+                  }
+
+          The "value" for an alias can be any one of the first four formats. 
+
+        o "and_or" is either "and" default) or "or" and is used as the boolean operator
+          between column selections.
+    """
 
     key_value_list = []
     for ix in range(len(columns)):
-        if values[ix]:
-            try:
-                x = float(values[ix])
-                key_value_list.append("cols['%s'] == %s" % (columns[ix], values[ix]))
-            except:
-                if ',' in values[ix]:
-                  key_value_list.append("cols['%s'] in %s" % (columns[ix], values[ix].split(',')))
-                else:
-                  key_value_list.append("cols['%s'] == '%s'" % (columns[ix], values[ix]))
+        if isinstance(values, dict):
+            if columns[ix] in values:
+                value = values[columns[ix]]
+            else:
+                continue
+
+        else:
+            if ix < len(values):
+                value = values[ix]
+            else:
+                break
+
+        try:
+            x = float(value)
+            key_value_list.append("cols['%s'] == %s" % (columns[ix], value))
+        except:
+            if isinstance(value, list):
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value
+            elif value == '':
+                key_value_list.append("cols['%s'] is null")
+            elif ',' in value:
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value.split(',')))
+            else:
+              key_value_list.append("cols['%s'] == '%s'" % (columns[ix], value))
 
     if len(key_value_list) < 1:
         return None
