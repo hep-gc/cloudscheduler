@@ -696,6 +696,12 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('available', String(128))
   )
 
+view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
+  Column('status', String(7)),
+  Column('cores', Integer),
+  Column('VMs', Integer)
+  )
+
 view_vms = Table('view_vms', metadata,
   Column('group_name', String(128)),
   Column('cloud_name', String(128)),
