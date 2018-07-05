@@ -74,7 +74,7 @@ def resources_producer():
                     r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
                     if unmapped:
                         logging.error("Unmapped attributes found during mapping, discarding:")
-                        logging.eror(unmapped)
+                        logging.error(unmapped)
                     r_dict["condor_host"] = condor_host
                     r_dict["hostname"] = condor_host.split(".")[0]
                     new_resource = Resource(**r_dict)
@@ -82,10 +82,10 @@ def resources_producer():
                     session.merge(new_resource)
                 except Exception as exc:
                     logging.error("Error constructing machine dictionary for %s continuing with next resource." % resource)
-                    logging.error(type(exc).__name__ + "type error occured")
+                    logging.error(type(exc).__name__ + "type error occurred")
                     logging.error(exc)
 
-            logging.info("Commiting database session")
+            logging.info("Committing database session")
 
             try:        
                 session.commit()
@@ -153,7 +153,7 @@ def collector_command_consumer():
             logging.info("Querying database for condor commands")
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_off == 1):
                 try:
-                    logging.info("Command received: Querying condor for relevent job (%s)" % resource.name)
+                    logging.info("Command received: Querying condor for relevant job (%s)" % resource.name)
                     #condor_ad = condor_c.query(ad_type=startd_type, constraint='Name=="%s"' % resource.name)[0]
                     
                     # May not be Needed, master should shut them all down
@@ -175,7 +175,7 @@ def collector_command_consumer():
                     updated_resource = Resource(name=resource.name, condor_off=2)
                     session.merge(updated_resource)
                 except Exception as exc:
-                    logging.error("Problem proccessing %s... skipping", resource.name)
+                    logging.error("Problem processing %s... skipping", resource.name)
                     continue
 
             #query for condor_advertise commands
@@ -244,7 +244,7 @@ def cleanUp():
     while True:
         try:
             logging.info("Commencing cleanup cycle...")
-            # Setup condor classes and database connctions
+            # Setup condor classes and database connections
             # this stuff may be able to be moved outside the while loop, but i think its better to
             # re-mirror the database each time for the sake on consistency.
             try:
@@ -268,14 +268,14 @@ def cleanUp():
                 logging.error("Sleeping until next cycle...")
                 time.sleep(config.sleep_interval)
                 continue
-            #this quert asks for only resources containing reported by this collector (host)
+            #this query asks for only resources containing reported by this collector (host)
             db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
 
 
             # if a machine is found in the db but not condor we need to check if it was flagged
             # for shutdown, in that case we need to update the the entry in the vm table who was
             # running the job such that we can also destroy the VM, if there is no recovery
-            # proccess with a vm with a dead condor thread we can forgo the retire/shutdown check
+            # process with a vm with a dead condor thread we can forgo the retire/shutdown check
             # and just mark them all for termination
 
             condor_name_list = []
