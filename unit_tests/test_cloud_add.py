@@ -154,7 +154,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'server_meta_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "server_meta_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -170,7 +170,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'instances_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "instances_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -186,7 +186,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'personality_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "personality_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -202,7 +202,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'image_meta_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "image_meta_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -218,7 +218,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'personality_size_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "personality_size_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -234,7 +234,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'ram_ctl\' at row 1',
+        gvar, 1, 'CV01', 'value specified for "ram_ctl" must be a integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -250,7 +250,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'server_groups_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "server_groups_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -266,7 +266,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'security_group_rules_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "security_group_rules_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -282,7 +282,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'keypairs_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "keypairs_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -298,7 +298,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'security_groups_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "security_groups_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -314,7 +314,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'server_group_members_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "server_group_members_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -330,7 +330,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'floating_ips_ctl\' at row 1',
+        gvar, 1, 'CV01', 'bad parameter "floating_ips_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
@@ -346,7 +346,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Incorrect integer value: \'invalid-unit-test\' for column \'cores_ctl\' at row 1',
+        gvar, 1, 'CV01', 'value specified for "cores_ctl" must be a integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',

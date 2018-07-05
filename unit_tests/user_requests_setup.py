@@ -47,13 +47,19 @@ def main(gvar, user_secret):
     # group with users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'utg1')),
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'utg1')}
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'utg1'),
+            'condor_central_manager': 'user-unit-test-one.ca'
+        }
     )
 
     # group without users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'utg2')),
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'utg2')}
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'utg2'),
+            'condor_central_manager': 'user-unit-test-two.ca'
+        }
     )
 
     # unprivileged user in utg1

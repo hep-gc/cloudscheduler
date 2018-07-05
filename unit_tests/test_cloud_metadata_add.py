@@ -140,9 +140,18 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV19', 'Field \'metadata\' doesn\'t have a default value',
+        gvar, 1, 'CV18', 'cloud name  "invalid-unit-test" does not exist.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
+            'metadata_name': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV19', 'Field \'metadata\' doesn\'t have a default value',
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
