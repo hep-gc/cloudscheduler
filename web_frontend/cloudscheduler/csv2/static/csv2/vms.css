@@ -3,25 +3,41 @@
   --alternate_row_background_color: #F2F2F2;
 }
 
+.vm-div {
+  display: block;
+  overflow-y: visible;
+  overflow-x: visible;
+  height: 94%;
+  width: 90%;
+  position: fixed;
+}
+
+.vm-div form{
+  display: block;
+  height: 100%;
+}
+
+.vm-buttons {
+  display: block;
+  position: static;
+}
+
 .vm-table {
-  display: inline-block;
-  overflow-y: auto;
-  overflow-x: auto;
-  height: 90%;
-  width: 100%;
-  margin-right: 8px;
-  margin-bottom: 1rem;
-  position: relative;
+  display: block;
 }
 
 .vm-table table {
-  border: 0px;
-  padding: 0px;
-  /* table-layout: fixed; */
+  display: block;
+  width: 1220px;
+  overflow-x: auto;
 }
 
 .vm-table th, td {
   border: 2px solid white;
+}
+
+.vm-table thead {
+  display: block;
 }
 
 .vm-table th {
@@ -32,9 +48,9 @@
 }
 
 .vm-table tbody {
-  /* display: block; */
-  /* height: 100%; */
-  /* overflow-y: auto; */
+  display: block;
+  height: 94%;
+  overflow-y: auto;
 }
 
 .vm-table tbody > tr:nth-child(even) {

@@ -19,10 +19,10 @@
     {% endif %}
 
     <!-- <div class="main-div"> -->
-    <div>
+    <div class="vm-div">
       <form method="post">
         {% csrf_token %}
-
+        <div class="vm-buttons">
         <!-- Hide the action buttons if the looking at foreing VMs since -->
         {% if "foreign" not in request.path %}
           <button type="submit" formaction="/vm/update" name="vm_option" value="retire">Retire VMs</button>
@@ -32,8 +32,8 @@
 
           <!-- <p>{{ request.POST }}</p> -->
         {% endif %}
-
-        <div class="vm-table">
+        </div>
+        <div class=vm-table>
           <table>
             <thead>
               <tr>
@@ -63,13 +63,12 @@
                   <td>{{vm.condor_slots}}</td>
                   <td>{{vm.condor_slots_used}}</td>
                   <td>{{vm.cores}}</td>
-
                 </tr>
               {% endfor %}
             </tbody>
           </table>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
     <!-- Footer -->
     <div class="footer"
