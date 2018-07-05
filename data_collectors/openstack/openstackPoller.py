@@ -597,8 +597,9 @@ def vmCleanUp():
             time.sleep(config.vm_cleanup_interval)
             continue
         elif last_cycle >= last_vm_poll[0].last_poll:
-            logging.error("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller process")
-            logging.error("Skipping cycle...")
+            logging.debug("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller process")
+            logging.debug("last_cycle: %s, last_poll: %s   Skipping cycle...", last_cycle, last_vm_poll[0].last_poll)
+            #last_cycle = current_cycle_time
             time.sleep(config.vm_cleanup_interval)
             continue
 
