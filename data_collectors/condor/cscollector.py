@@ -175,6 +175,7 @@ def collector_command_consumer():
                     updated_resource = Resource(name=resource.name, condor_off=2)
                     session.merge(updated_resource)
                 except Exception as exc:
+                    logging.error(exc)
                     logging.error("Problem processing %s... skipping", resource.name)
                     continue
 
@@ -198,7 +199,7 @@ def collector_command_consumer():
                     logging.error("Unable to merge database session")
                     logging.error(exc)
                     logging.error("Aborting cycle...")
-                    master_list, startd_list = None
+                    master_list = startd_list = None
                     break
 
             #execute condor_advertise on retrieved classads
@@ -232,7 +233,6 @@ def cleanUp():
     condor_host = socket.gethostname()
     fail_count = 0
     Base = automap_base()
-    local_hostname = socket.gethostname()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
@@ -250,7 +250,7 @@ def cleanUp():
             try:
                 condor_c = htcondor.Collector()
             except Exception as exc:
-                fail_count = fail_count + 1
+                fail_count += 1
                 logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
                 logging.error(exc)
                 logging.error("Sleeping until next cycle...")
@@ -291,6 +291,7 @@ def cleanUp():
                         machine_dict = machine.__dict__
                         logging.info(machine_dict)
                         session.delete(machine)
+                        # Archive a copy for accounting history
                         del machine_dict['_sa_instance_state']
                         new_arch_machine = archResource(**machine_dict)
                         session.merge(new_arch_machine)
