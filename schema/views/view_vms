@@ -12,9 +12,9 @@ select
 
 cv.*,
 cf.name as flavor_name,
-claimed_slots as condor_slots_used,
-total_slots as condor_slots,
-cm.condor_off,
+cdp.condor_slots_used,
+cpp.condor_slots,
+cpp.condor_off,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
 cores,
 disk + ephemeral_disk as disk,
@@ -29,13 +29,13 @@ else
         case when cv.status = 'ERROR' then
             'error'
         else
-            case when cv.power_status = 1 and cv.status = 'ACTIVE' and total_slots is null then
+            case when cv.power_status = 1 and cv.status = 'ACTIVE' and condor_slots is null then
                 'unregistered'
             else
-                case when cv.power_status = 1 and cv.status = 'ACTIVE' and (cm.condor_off = 1 or cm.condor_off = 2) then
+                case when cv.power_status = 1 and cv.status = 'ACTIVE' and (cpp.condor_off = 1 or cpp.condor_off = 2) then
                     'retiring'
                 else
-                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and (cm.condor_off is null or cm.condor_off = 0) then
+                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and (cpp.condor_off is null or cpp.condor_off = 0) then
                         'running'
                     else
                         'other'
@@ -53,23 +53,33 @@ left outer join cloud_flavors as cf on
     cv.cloud_name=cf.cloud_name and
     cv.flavor_id=cf.id
 
-left outer join condor_machines as cm
-on cv.hostname=cm.hostname
+left outer join (
+    select
+
+    substring_index(machine,'.',1) as hostname,
+    total_slots as condor_slots,
+    condor_off
+
+    from condor_machines
+
+    where  slot_type="Partitionable"
+    ) as cpp /* condor_primary_partition */
+
+on cv.hostname=cpp.hostname
 
 left outer join (
     select
 
-    hostname,
-    count(state) as claimed_slots
+    substring_index(machine,'.',1) as hostname,
+    sum(case when activity="Busy" then 1 else 0 end) as condor_slots_used
 
-    from condor_machines as cm
+    from condor_machines
 
-    where  state = "claimed"
+    where  slot_type="Dynamic"
 
-    group by hostname
-    ) as ccsc /* condor_claimed_slot_count */
-on cv.hostname=ccsc.hostname
+    group by machine
+    ) as cdp /* condor_dynamic_partitions */
 
-group by cv.group_name,cv.cloud_name,cv.hostname
+on cv.hostname=cdp.hostname
 
 ;
