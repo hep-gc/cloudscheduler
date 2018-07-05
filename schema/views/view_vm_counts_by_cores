@@ -1,0 +1,28 @@
+/*
+** List counts of VMs by the number of cores.
+*/
+create or replace view view_vm_counts_by_cores as
+
+/*
+** Retrieve information.
+*/
+
+select
+
+status,
+cores,
+count(hostname) as VMs
+
+from (
+    select
+
+    case when foreign_vm=1 then 'foreign' else 'native' end as status,
+    cores,
+    hostname
+
+    from view_vms
+    ) as aview
+
+group by status,cores
+
+;
