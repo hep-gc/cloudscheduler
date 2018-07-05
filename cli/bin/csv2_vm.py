@@ -10,6 +10,7 @@ KEY_MAP = {
     '-vc':  'cores_ctl',
     '-vh':  'hostname',
     '-vk':  'keyname',
+    '-vo':  'vm_option',
     '-vr':  'ram_ctl',
     '-vS':  'poller_status',
     }
@@ -53,7 +54,7 @@ def _selector(gvar):
 
 def list(gvar):
     """
-    List clouds for the active group.
+    List VMs for the active group.
     """
 
     # Check for missing arguments or help required.
@@ -111,13 +112,13 @@ def update(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        [],
+        ['-vo'],
         [],
         ['-cn', '-vh', '-vS'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
-        print('Error: "%s cloud update" requires at least one option to modify.' % gvar['command_name'])
+        print('Error: "%s vm update" requires at least one option to modify.' % gvar['command_name'])
         exit(1)
 
     # Create the cloud.
