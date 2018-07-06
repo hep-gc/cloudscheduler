@@ -207,7 +207,7 @@ def status(gvar):
             'VMs_running/Running/VMs',
             'VMs_retiring/Retiring/VMs',
             'VMs_manual/Manual/VMs',
-            'VMs_in_error/In Error/VMs',
+            'VMs_in_error/Error/VMs',
             'VMs_other/Other/VMs',
             'cores_max/Total/Cores',
             'cores_ctl/Setting/Cores',
