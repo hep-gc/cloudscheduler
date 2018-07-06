@@ -74,7 +74,7 @@ def resources_producer():
                     r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
                     if unmapped:
                         logging.error("Unmapped attributes found during mapping, discarding:")
-                        logging.eror(unmapped)
+                        logging.error(unmapped)
                     r_dict["condor_host"] = condor_host
                     r_dict["hostname"] = condor_host.split(".")[0]
                     new_resource = Resource(**r_dict)
@@ -82,10 +82,10 @@ def resources_producer():
                     session.merge(new_resource)
                 except Exception as exc:
                     logging.error("Error constructing machine dictionary for %s continuing with next resource." % resource)
-                    logging.error(type(exc).__name__ + "type error occured")
+                    logging.error(type(exc).__name__ + "type error occurred")
                     logging.error(exc)
 
-            logging.info("Commiting database session")
+            logging.info("Committing database session")
 
             try:        
                 session.commit()
@@ -153,7 +153,7 @@ def collector_command_consumer():
             logging.info("Querying database for condor commands")
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_off == 1):
                 try:
-                    logging.info("Command received: Querying condor for relevent job (%s)" % resource.name)
+                    logging.info("Command received: Querying condor for relevant job (%s)" % resource.name)
                     #condor_ad = condor_c.query(ad_type=startd_type, constraint='Name=="%s"' % resource.name)[0]
                     
                     # May not be Needed, master should shut them all down
@@ -175,14 +175,15 @@ def collector_command_consumer():
                     updated_resource = Resource(name=resource.name, condor_off=2)
                     session.merge(updated_resource)
                 except Exception as exc:
-                    logging.error("Problem proccessing %s... skipping", resource.name)
+                    logging.error(exc)
+                    logging.error("Problem processing %s... skipping", resource.name)
                     continue
 
             #query for condor_advertise commands
             master_list = []
             startd_list = []
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_advertise == 1):
-                # get relevent classad objects from htcondor and compile a list for condor_advertise
+                # get relevant classad objects from htcondor and compile a list for condor_advertise
                 logging.info("Ad found in database flagged for condor_advertise: %s", resource.name)
                 # This is actually a little premature as we haven't executed the advertise yet
                 # There should be some logic to make sure the advertise runs before we remove the flag
@@ -198,7 +199,7 @@ def collector_command_consumer():
                     logging.error("Unable to merge database session")
                     logging.error(exc)
                     logging.error("Aborting cycle...")
-                    master_list, startd_list = None
+                    master_list = startd_list = None
                     break
 
             #execute condor_advertise on retrieved classads
@@ -232,7 +233,6 @@ def cleanUp():
     condor_host = socket.gethostname()
     fail_count = 0
     Base = automap_base()
-    local_hostname = socket.gethostname()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
@@ -244,13 +244,13 @@ def cleanUp():
     while True:
         try:
             logging.info("Commencing cleanup cycle...")
-            # Setup condor classes and database connctions
+            # Setup condor classes and database connections
             # this stuff may be able to be moved outside the while loop, but i think its better to
             # re-mirror the database each time for the sake on consistency.
             try:
                 condor_c = htcondor.Collector()
             except Exception as exc:
-                fail_count = fail_count + 1
+                fail_count += 1
                 logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
                 logging.error(exc)
                 logging.error("Sleeping until next cycle...")
@@ -268,14 +268,14 @@ def cleanUp():
                 logging.error("Sleeping until next cycle...")
                 time.sleep(config.sleep_interval)
                 continue
-            #this quert asks for only resources containing reported by this collector (host)
+            #this query asks for only resources containing reported by this collector (host)
             db_machine_list = session.query(Resource).filter(Resource.condor_host == condor_host)
 
 
             # if a machine is found in the db but not condor we need to check if it was flagged
             # for shutdown, in that case we need to update the the entry in the vm table who was
             # running the job such that we can also destroy the VM, if there is no recovery
-            # proccess with a vm with a dead condor thread we can forgo the retire/shutdown check
+            # process with a vm with a dead condor thread we can forgo the retire/shutdown check
             # and just mark them all for termination
 
             condor_name_list = []
@@ -291,6 +291,7 @@ def cleanUp():
                         machine_dict = machine.__dict__
                         logging.info(machine_dict)
                         session.delete(machine)
+                        # Archive a copy for accounting history
                         del machine_dict['_sa_instance_state']
                         new_arch_machine = archResource(**machine_dict)
                         session.merge(new_arch_machine)
