@@ -59,6 +59,7 @@
   display: block;
   table-layout: fixed;
   overflow-x: auto;
+  padding-bottom: 1px;
 }
 
 .vm-table th, td {
