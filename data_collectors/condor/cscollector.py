@@ -183,7 +183,7 @@ def collector_command_consumer():
             master_list = []
             startd_list = []
             for resource in session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_advertise == 1):
-                # get relevent classad objects from htcondor and compile a list for condor_advertise
+                # get relevant classad objects from htcondor and compile a list for condor_advertise
                 logging.info("Ad found in database flagged for condor_advertise: %s", resource.name)
                 # This is actually a little premature as we haven't executed the advertise yet
                 # There should be some logic to make sure the advertise runs before we remove the flag
