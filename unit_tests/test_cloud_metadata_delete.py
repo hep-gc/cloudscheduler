@@ -28,7 +28,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV25', 'cloud metadata_delete, invalid method "GET" specified.',
+        gvar, 1, 'CV23', 'cloud metadata_delete, invalid method "GET" specified.',
         '/cloud/metadata-delete/',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -46,25 +46,25 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV26', 'cloud metadata_delete, no cloud name specified.',
+        gvar, 1, 'CV24', 'cloud metadata_delete, no cloud name specified.',
         '/cloud/metadata-delete/', form_data={'group': ut_id(gvar, 'ctg1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV26', 'cloud metadata_delete, no cloud name specified.',
+        gvar, 1, 'CV24', 'cloud metadata_delete, no cloud name specified.',
         '/cloud/metadata-delete/', form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV26', 'cloud metadata_delete, no cloud name specified.',
+        gvar, 1, 'CV24', 'cloud metadata_delete, no cloud name specified.',
         '/cloud/metadata-delete/', form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV23', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV21', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-delete/', form_data={
             'cloud_name': 'Invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
@@ -73,7 +73,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV23', 'value specified for "metadata_name" must be all lower case.',
+        gvar, 1, 'CV21', 'value specified for "metadata_name" must be all lower case.',
         '/cloud/metadata-delete/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'Invalid-unit-test'
@@ -82,7 +82,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV24', 'the request did not match any rows.',
+        gvar, 1, 'CV22', 'the request did not match any rows.',
         '/cloud/metadata-delete/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test'

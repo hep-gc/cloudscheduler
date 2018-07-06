@@ -16,25 +16,25 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV11', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
+        gvar, 1, 'CV33', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
         '/cloud/status/',
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV11', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
+        gvar, 1, 'CV33', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
         '/cloud/status/',
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV11', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'CV33', 'cannot switch to invalid group "invalid-unit-test".',
         '/cloud/status/', form_data={'group': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV11', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
+        gvar, 1, 'CV33', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/status/', form_data={'group': ut_id(gvar, 'ctg2')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
