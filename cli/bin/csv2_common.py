@@ -242,7 +242,7 @@ def show_active_user_groups(gvar, response):
     Print the server response header.
     """
 
-    if not gvar['user_settings']['only-column-names']:
+    if not gvar['user_settings']['view-columns']:
         print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
 
 def show_table(gvar, queryset, columns, allow_null=True, title=None):
@@ -252,15 +252,36 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
 
     from subprocess import Popen, PIPE
     import json
+    import os
+    import yaml
 
-    # Organize user selections.
-    if 'select' in gvar['user_settings']:
-        w1 = gvar['user_settings']['select'].split('/')
-        Selections = []
-        for w2 in w1:
-            Selections.append(w2.split(','))
-            if Selections[-1] == ['']:
-                Selections[-1] = None
+    # Organize user views.
+    if 'views' not in gvar:
+        if os.path.exists('%s/.csv2/views.yaml' % gvar['home_dir']):
+            fd = open('%s/.csv2/views.yaml' % gvar['home_dir'])
+            gvar['views'] = yaml.load(fd.read())
+            fd.close()
+        else:
+            gvar['views'] = {}
+
+        if 'view' in gvar['user_settings']:
+            if gvar['object'] not in gvar['views']:
+                gvar['views'][gvar['object']] = {}
+
+            gvar['views'][gvar['object']][gvar['action']] = []
+
+            w1 = gvar['user_settings']['view'].split('/')
+            for w2 in w1:
+                gvar['views'][gvar['object']][gvar['action']].append(w2.split(','))
+                if gvar['views'][gvar['object']][gvar['action']][-1] == ['']:
+                    gvar['views'][gvar['object']][gvar['action']][-1] = None
+
+            fd = open('%s/.csv2/views.yaml' % gvar['home_dir'], 'w')
+            fd.write(yaml.dump(gvar['views']))
+            fd.close()
+
+    if not gvar['user_settings']['no-view'] and gvar['object'] in gvar['views'] and gvar['action'] in gvar['views'][gvar['object']]:
+        Selections = gvar['views'][gvar['object']][gvar['action']]
     else:
         Selections = None
 
@@ -312,11 +333,12 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         if len(w1) > 1 and w1[1] == 'k':
             Table['keys'][column] = True
         else:
-            if gvar['command_args']['only-keys']:
-                continue
+            if not gvar['user_settings']['view-columns']:
+                if gvar['command_args']['only-keys']:
+                    continue
 
-            if Selections is not None and len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] and len(Selections[gvar['tables_shown']]) > 0 and column not in Selections[gvar['tables_shown']]:
-                continue
+                if Selections is not None and len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] and len(Selections[gvar['tables_shown']]) > 0 and column not in Selections[gvar['tables_shown']]:
+                    continue
 
             Table['keys'][column] = False
 
@@ -341,14 +363,14 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         Table['xref'][(Table['columns_common'] + Table['columns_segment'])[ix]] = ix
 
     # If requested, print column names and return.
-    if gvar['user_settings']['only-column-names']:
+    if gvar['user_settings']['view-columns']:
         columns = [ [], [] ]
         for column in Table['columns_common'] + Table['columns_segment']:
             if Table['keys'][column]:
                 columns[0].append(column)
             else:
                 columns[1].append(column)
-        print('%s %s (%s) columns: keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown'], Table['columns_common'], Table['columns_segment']))
+        print('%s %s, table #%s columns: keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown']+1, ','.join(Table['columns_common']), ','.join(Table['columns_segment'])))
         gvar['tables_shown'] += 1
         return
 
