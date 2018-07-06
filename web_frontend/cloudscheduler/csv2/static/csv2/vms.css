@@ -7,7 +7,7 @@
   display: block;
   overflow-y: visible;
   overflow-x: visible;
-  height: 94%;
+  height: 93%;
   width: 100%;
   position: static;
 }
@@ -20,6 +20,7 @@
 .vm-buttons {
   display: block;
   margin-left:15px; /* In order to allign with the scroll bar on the left side */
+  padding-bottom: 2px;
   position: static;
 }
 
