@@ -25,10 +25,10 @@
         <div class="vm-buttons">
         <!-- Hide the action buttons if the looking at foreing VMs since -->
         {% if "foreign" not in request.path %}
-          <button type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
-          <button type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
-          <button type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
-          <button type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
+          <button class="kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
+          <button class="retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
+          <button class="control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
+          <button class="control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
 
           <!-- <p>{{ request.POST }}</p> -->
         {% endif %}
