@@ -348,6 +348,48 @@ def metadata_add(request):
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
+def metadata_collation(request):
+
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    if rc != 0:
+        db_close(db_ctl)
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV06'), msg)})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], db_ctl, [], active_user)
+    if rc != 0:        
+        db_close(db_ctl)
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV06'), msg)})
+
+    # Retrieve cloud/metadata information.
+    s = select([view_metadata_collation]).where(view_metadata_collation.c.group_name == active_user.active_group)
+    cloud_metadata_list = qt(db_connection.execute(s))
+
+    db_close(db_ctl)
+
+    # Render the page.
+    context = {
+            'active_user': active_user,
+            'active_group': active_user.active_group,
+            'user_groups': user_groups,
+            'cloud_metadata_list': cloud_metadata_list,
+            'response_code': 0,
+            'message': None,
+            'enable_glint': config.enable_glint
+        }
+
+    return render(request, 'csv2/cloud_metadata_list.html', context)
+
+#-------------------------------------------------------------------------------
+
+@requires_csrf_token
 def metadata_delete(request):
     """
     This function should recieve a post request with a payload of metadata configuration
@@ -472,18 +514,9 @@ def metadata_list(request):
         db_close(db_ctl)
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV06'), msg)})
 
-    if 'metadata_list_option' in fields:
-        merge_list = True
-    else:
-        merge_list = False
-
     # Retrieve cloud/metadata information.
-    if merge_list:
-        s = select([view_metadata_collation]).where(view_metadata_collation.c.group_name == active_user.active_group)
-        cloud_metadata_list = qt(db_connection.execute(s))
-    else:
-        s = select([csv2_group_resource_metadata]).where(csv2_group_resource_metadata.c.group_name == active_user.active_group)
-        cloud_metadata_list = qt(db_connection.execute(s))
+    s = select([csv2_group_resource_metadata]).where(csv2_group_resource_metadata.c.group_name == active_user.active_group)
+    cloud_metadata_list = qt(db_connection.execute(s))
 
     db_close(db_ctl)
 
