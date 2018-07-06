@@ -19,7 +19,7 @@
 
 .vm-buttons {
   display: block;
-  margin-left:15px; /* In order to allign with the scroll bar on the left side */
+  margin-left:16px; /* In order to allign with the scroll bar on the left side */
   padding-bottom: 2px;
   position: static;
 }
@@ -34,6 +34,7 @@
   padding: 8px 24px;
   text-align: center;
   text-decoration: none;
+  width: 197px;
 }
 
 .retire-button {
