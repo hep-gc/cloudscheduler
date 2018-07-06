@@ -21,6 +21,13 @@
 
 ## To Develop
 
-Add test files with a name of the form: `test_<object><priority>_<endpoint>[_<detail>].py`.
+Add test files with a name of the form: `test_<object>[<priority>]_<endpoint>[_<detail>].py`.
 
 Ex. `test_user3_update_groups.py`
+
+When writing tests for a new object:
+
+1. Create a setup file named `<object>_requests_setup.py`
+1. Create a cleanup file named `<object>_requests_cleanup.py`
+1. Add the object name to the `TEST_OBJECTS` list in `run_tests`
+1. Create test files

@@ -1,7 +1,7 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
@@ -12,31 +12,31 @@ def main(gvar):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/group/metadata-add/',
-        server_user='invalid-unit-test', server_pw='Abc123'
+        server_user='invalid-unit-test', server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV29', 'invalid method "GET" specified.',
         '/group/metadata-add/',
-        server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu2'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu2'), server_pw=user_secret
     )
     
     execute_csv2_request(
-        gvar, 1, 'GV30', 'no metadata name specified.',
+        gvar, 1, 'GV30', 'no group name specified.',
         '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -45,16 +45,16 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'group': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV26', 'cannot switch to invalid group "testing".',
+        gvar, 1, 'GV26', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-add/', form_data={
             'metadata_name': 'invalid-unit-test',
-            'group': 'testing'
+            'group': ut_id(gvar, 'gtg7')
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -63,7 +63,7 @@ def main(gvar):
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'Invalid-Unit-Test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -73,7 +73,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'enabled': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -84,7 +84,7 @@ def main(gvar):
             'enabled': 0,
             'mime_type': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -95,11 +95,11 @@ def main(gvar):
             'enabled': 0,
             'mime_type': 'cloud-config'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV28', 'Incorrect integer value: \'invalid-unit-test\' for column \'priority\' at row 1',
+        gvar, 1, 'GV27', 'value specified for "priority" must be a integer value.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test',
@@ -108,7 +108,7 @@ def main(gvar):
             'metadata': 'invalid-unit-test',
             'priority': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -121,7 +121,7 @@ def main(gvar):
             'metadata': 'foo: somebody said I should put a colon here: so I did',
             'priority': 1
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -134,7 +134,7 @@ def main(gvar):
             'metadata': '{"not-yaml":"yes"}',
             'priority': 1
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -147,7 +147,7 @@ def main(gvar):
             'metadata': '- example: metadata',
             'priority': 1
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -167,7 +167,7 @@ def main(gvar):
             'metadata': '{"example": "not yaml"}',
             'priority': 0
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -180,7 +180,7 @@ def main(gvar):
             'metadata': '- example: yaml',
             'priority': 1
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -188,7 +188,7 @@ def main(gvar):
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
         values={'metadata_name': ut_id(gvar, 'gty1.yaml'), 'enabled': 0, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
 if __name__ == "__main__":

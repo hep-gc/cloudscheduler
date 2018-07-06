@@ -1,7 +1,7 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
-def main(gvar):
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
@@ -12,55 +12,55 @@ def main(gvar):
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/group/metadata-update/',
-        server_user='invalid-unit-test', server_pw='Abc123'
+        server_user='invalid-unit-test', server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV40', 'invalid method "GET" specified.',
         '/group/metadata-update/',
-        server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/metadata-update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV41', 'no metadata name specified.',
+        gvar, 1, 'GV41', 'no group name specified.',
         '/group/metadata-update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV39', 'group metadata-update "{}::invalid-unit-test" failed'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV38', 'request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV37', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test', 'group': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV37', 'cannot switch to invalid group "testing".',
-        '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test', 'group': 'testing'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        gvar, 1, 'GV37', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test', 'group': ut_id(gvar, 'gtg7')},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV38', 'value specified for "metadata_name" must be all lower case.',
         '/group/metadata-update/', form_data={'metadata_name': 'Invalid-Unit-Test'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -69,7 +69,7 @@ def main(gvar):
             'metadata_name': 'invalid-unit-test',
             'enabled': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -79,7 +79,7 @@ def main(gvar):
             'enabled': 0,
             'mime_type': 'invalid-unit-test'
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -90,7 +90,7 @@ def main(gvar):
             'mime_type': 'cloud-config',
             'group': ut_id(gvar, 'gtg5')
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -98,7 +98,7 @@ def main(gvar):
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty5')},
         values={'metadata_name': ut_id(gvar, 'gty5'), 'enabled': 1, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 0, 'mime_type': 'cloud-config'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -111,7 +111,7 @@ def main(gvar):
             'priority': 10,
             'group': ut_id(gvar, 'gtg5')
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -119,7 +119,7 @@ def main(gvar):
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty5')},
         values={'metadata_name': ut_id(gvar, 'gty5'), 'enabled': 0, 'metadata': '- example: metadata', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 10, 'mime_type': 'ucernvm-config'},
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -132,7 +132,7 @@ def main(gvar):
             'priority': 10,
             'group': ut_id(gvar, 'gtg5')
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -145,7 +145,7 @@ def main(gvar):
             'priority': 10,
             'group': ut_id(gvar, 'gtg5')
         },
-        server_user=ut_id(gvar, 'gtu3'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
 if __name__ == "__main__":
