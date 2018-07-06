@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: GV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -28,38 +30,38 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV21', 'invalid method "GET" specified.',
+        gvar, 1, 'GV22', 'invalid method "GET" specified.',
         '/group/delete/'
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV10', 'request contained a bad parameter "invalid-unit-test".',
         '/group/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV08', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV09', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/delete/', form_data={'group': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'group delete request did not contain mandatory parameter "group_name".',
+        gvar, 1, 'GV10', 'group delete request did not contain mandatory parameter "group_name".',
         '/group/delete/', form_data={'group': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV20', 'group delete "invalid-unit-test" failed - the request did not match any rows.',
+        gvar, 1, 'GV21', 'group delete "invalid-unit-test" failed - the request did not match any rows.',
         '/group/delete/', form_data={'group_name': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'group delete value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV10', 'group delete value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/delete/', form_data={'group_name': 'Invalid-Unit-Test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
+        gvar, 1, 'GV10', 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
         '/group/delete/', form_data={'user_option': 'invalid-unit-test'}
     )
 

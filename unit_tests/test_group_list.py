@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: GV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -33,7 +35,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV06', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV23', 'request contained a bad parameter "invalid-unit-test".',
         '/group/list/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 

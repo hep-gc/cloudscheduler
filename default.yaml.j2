@@ -41,6 +41,8 @@ write_files:
         ###### You should not need to make changes below here ########
         HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
         ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
+        HOSTALLOW_ADMINISTRATOR = $(CONDOR_HOST)
+        ALLOW_ADMINISTRATOR = $(CONDOR_HOST)
 
         CCB_ADDRESS = $(CONDOR_HOST)
 

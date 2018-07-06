@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: UV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -22,7 +24,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV13', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
+        gvar, 1, 'UV12', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
         '/user/add/',
         server_user=ut_id(gvar, 'utu2'), server_pw=user_secret
     )
@@ -34,7 +36,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV07', 'invalid method "GET" specified.',
+        gvar, 1, 'UV06', 'invalid method "GET" specified.',
         '/user/add/'
     )
 
@@ -59,7 +61,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV05', 'Data too long for column \'username\' at row 1',
+        gvar, 1, 'UV04', 'Data too long for column \'username\' at row 1',
         '/user/add/', form_data={
             'username': 'thisisausernamethatistoolongtobei',
             'password': user_secret,
@@ -68,7 +70,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV05', 'Field \'password\' doesn\'t have a default value',
+        gvar, 1, 'UV04', 'Field \'password\' doesn\'t have a default value',
         '/user/add/', form_data={
             'username': 'invalid-unit-test'
         }
@@ -159,7 +161,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV04', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV03', 'specified group "invalid-unit-test" does not exist.',
         '/user/add/', form_data={
             'username': 'invalid-unit-test',
             'group_name': 'invalid-unit-test'
@@ -175,7 +177,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV06', 'Duplicate entry \'invalid-unit-test-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utg1')),
+        gvar, 1, 'UV05', 'Duplicate entry \'invalid-unit-test-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utg1')),
         '/user/add/', form_data={
             'username': 'invalid-unit-test',
             'password': user_secret,

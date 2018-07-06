@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: CV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -140,7 +142,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV13', 'cloud name  "invalid-unit-test" does not exist.',
+        gvar, 1, 'CV14', 'cloud name  "invalid-unit-test" does not exist.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
@@ -169,7 +171,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV13', 'cloud name  "invalid-unit-test" does not exist.',
+        gvar, 1, 'CV14', 'cloud name  "invalid-unit-test" does not exist.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',

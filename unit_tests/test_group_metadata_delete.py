@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: GV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -16,7 +18,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV34', 'invalid method "GET" specified.',
+        gvar, 1, 'GV32', 'invalid method "GET" specified.',
         '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
@@ -28,13 +30,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV35', 'no group name specified.',
+        gvar, 1, 'GV33', 'no group name specified.',
         '/group/metadata-delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV32', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV30', 'request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'invalid-unit-test': 'invalid-unit-test'
@@ -43,7 +45,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV18', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV29', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'invalid-unit-test'
@@ -52,7 +54,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV18', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV29', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': ut_id(gvar, 'gtg7')
@@ -61,7 +63,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV33', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
+        gvar, 1, 'GV31', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': ut_id(gvar, 'gtg5')

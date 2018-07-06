@@ -7,7 +7,7 @@
   display: block;
   overflow-y: visible;
   overflow-x: visible;
-  height: 94%;
+  height: 93%;
   width: 100%;
   position: static;
 }
@@ -20,7 +20,35 @@
 .vm-buttons {
   display: block;
   margin-left:15px; /* In order to allign with the scroll bar on the left side */
+  padding-bottom: 2px;
   position: static;
+}
+
+.button {
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 8px 24px;
+  text-align: center;
+  text-decoration: none;
+  width: 197px;
+}
+
+.retire-button {
+  background-color: #e7e7e7;
+  color: black;
+}
+
+.kill-button{
+  background-color: #f44336;
+  color: black;
+}
+
+.control-button{
+  background-color: #4CAF50;
 }
 
 .vm-table {
@@ -31,16 +59,17 @@
   display: block;
   table-layout: fixed;
   overflow-x: auto;
+  padding-bottom: 1px;
 }
 
 .vm-table th, td {
-  border: 0px solid white;
+  border: 1px solid white;
   padding: 5px;
 }
 
 .vm-table thead {
   display: block;
-  margin-left:13px; /* In order to allign with the scroll bar on the left side */
+  margin-left:12px; /* In order to allign with the scroll bar on the left side */
   width: 1650px;
 }
 
@@ -56,7 +85,7 @@
   display: block;
   height: 94%;
   overflow-y: auto;
-  width: 1650px;
+  width: 1660px;
 }
 
 .vm-table tbody > tr:nth-child(even) {

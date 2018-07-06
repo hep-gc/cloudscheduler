@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: GV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -16,7 +18,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV29', 'invalid method "GET" specified.',
+        gvar, 1, 'GV27', 'invalid method "GET" specified.',
         '/group/metadata-add/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
@@ -34,13 +36,13 @@ def main(gvar, user_secret):
     )
     
     execute_csv2_request(
-        gvar, 1, 'GV30', 'no group name specified.',
+        gvar, 1, 'GV28', 'no group name specified.',
         '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV26', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV24', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-add/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'invalid-unit-test'
@@ -49,7 +51,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV26', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV24', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-add/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': ut_id(gvar, 'gtg7')
@@ -58,7 +60,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV27', 'value specified for "metadata_name" must be all lower case.',
+        gvar, 1, 'GV25', 'value specified for "metadata_name" must be all lower case.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'Invalid-Unit-Test'
@@ -67,7 +69,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV27', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'GV25', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test',
@@ -77,7 +79,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV27', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'GV25', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test',
@@ -88,7 +90,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV28', 'Field \'metadata\' doesn\'t have a default value',
+        gvar, 1, 'GV26', 'Field \'metadata\' doesn\'t have a default value',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test',
@@ -99,7 +101,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV27', 'value specified for "priority" must be a integer value.',
+        gvar, 1, 'GV25', 'value specified for "priority" must be a integer value.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test',
@@ -112,7 +114,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV27', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
+        gvar, 1, 'GV25', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': 'invalid-unit-test.yaml',
@@ -158,7 +160,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV28', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gty1.yaml')),
+        gvar, 1, 'GV26', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gty1.yaml')),
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': ut_id(gvar, 'gty1.yaml'),

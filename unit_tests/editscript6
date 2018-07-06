@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sed -n -e 's/example/metadata/g
+w '"$HOME"'/.csv2/unit-test/files/'"$USER"'-clg1/'"$USER"'-clc2/metadata/'"$USER"'-clm2.yaml
+'
+exit

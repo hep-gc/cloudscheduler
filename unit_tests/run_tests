@@ -10,7 +10,7 @@ from re import sub
 
 import sys
 
-TEST_OBJECTS = ['user', 'group', 'cloud']
+TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'command_line']
 
 def get_test_list():
     test_names = []
@@ -95,7 +95,7 @@ def main():
         initialize_csv2_request(gvar, sys.argv[0])
 
     user_secret = generate_secret()
-    
+
     for obj in user_options['objects']:
         if user_options['setup']:
             exec('import {}_requests_setup'.format(obj), globals(), locals())
