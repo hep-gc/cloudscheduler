@@ -46,7 +46,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV##', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'UV13', 'request contained a bad parameter "invalid-unit-test".',
         '/user/list/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 

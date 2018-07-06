@@ -66,7 +66,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV22', 'group update must specify at least one field to update.',
+        gvar, 1, 'GV45', 'group update must specify at least one field to update.',
         '/group/update/', form_data={'group_name': 'invalid-unit-test'}
     )
 
@@ -81,7 +81,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV22', 'the request did not match any rows.',
+        gvar, 1, 'GV44', 'the request did not match any rows.',
         '/group/update/', form_data={
             'group_name': 'invalid-unit-test',
             'condor_central_manager': 'invalid-unit-test'

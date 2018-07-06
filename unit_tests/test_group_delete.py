@@ -35,7 +35,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV10', 'request contained a bad parameter "invalid-unit-test".',
         '/group/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
@@ -45,7 +45,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'group delete request did not contain mandatory parameter "group_name".',
+        gvar, 1, 'GV10', 'group delete request did not contain mandatory parameter "group_name".',
         '/group/delete/', form_data={'group': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
@@ -56,12 +56,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'group delete value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV10', 'group delete value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/delete/', form_data={'group_name': 'Invalid-Unit-Test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV09', 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
+        gvar, 1, 'GV10', 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
         '/group/delete/', form_data={'user_option': 'invalid-unit-test'}
     )
 

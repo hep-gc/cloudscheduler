@@ -230,7 +230,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'username "{}" unavailable.'.format(ut_id(gvar, 'utu10')),
+        gvar, 1, 'UV02', 'username "{}" unavailable.'.format(ut_id(gvar, 'utu10')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu10'),
             'password': user_secret,
@@ -239,7 +239,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user 10'), ut_id(gvar, 'utu10')),
+        gvar, 1, 'UV02', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user 10'), ut_id(gvar, 'utu10')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu12'),
             'password': user_secret,
@@ -248,7 +248,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu10')),
+        gvar, 1, 'UV02', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu10')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'utu12'),
             'password': user_secret,

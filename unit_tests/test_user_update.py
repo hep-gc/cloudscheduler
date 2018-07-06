@@ -55,7 +55,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV22', 'must specify at least one field to update.',
+        gvar, 1, 'UV23', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': 'invalid-unit-test'}
     )
 
@@ -68,7 +68,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV22', 'must specify at least one field to update.',
+        gvar, 1, 'UV23', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu6')}
     )
 
@@ -187,7 +187,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV22', 'must specify at least one field to update.',
+        gvar, 1, 'UV23', 'must specify at least one field to update.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'add'
@@ -195,7 +195,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV22', 'must specify at least one field to update.',
+        gvar, 1, 'UV23', 'must specify at least one field to update.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'delete'

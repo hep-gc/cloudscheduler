@@ -36,7 +36,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV32', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV30', 'request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'invalid-unit-test': 'invalid-unit-test'
@@ -45,7 +45,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV19', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV29', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': 'invalid-unit-test'
@@ -54,7 +54,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV19', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV29', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-delete/', form_data={
             'metadata_name': 'invalid-unit-test',
             'group': ut_id(gvar, 'gtg7')
