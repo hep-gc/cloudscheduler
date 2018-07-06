@@ -19,6 +19,7 @@
 
 .vm-buttons {
   display: block;
+  margin-left:15px; /* In order to allign with the scroll bar on the left side */
   position: static;
 }
 
@@ -39,6 +40,7 @@
 
 .vm-table thead {
   display: block;
+  margin-left:13px; /* In order to allign with the scroll bar on the left side */
   width: 1650px;
 }
 
@@ -49,6 +51,7 @@
 }
 
 .vm-table tbody {
+  direction: rtl;
   display: block;
   height: 94%;
   overflow-y: auto;
