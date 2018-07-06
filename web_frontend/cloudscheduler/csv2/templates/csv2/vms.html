@@ -39,9 +39,9 @@
               <tr>
                 <th style="width:25px"><input id="select-all" type="checkbox"/></th>
                 <th onclick="sortTable(8)" style="width:150px">Cloud</th>
-                <th onclick="sortTable(7)" style="width:100px">Project</th>
+                <th onclick="sortTable(7)" style="width:120px">Project</th>
                 <th onclick="sortTable(6)" style="width:450px">Hostname</th>
-                <th onclick="sortTable(5)" style="width:100px">Status</th>
+                <th onclick="sortTable(5)" style="width:120px">Status</th>
                 <th onclick="sortTable(4)" style="width:200px">Status Changed Time</th>
                 <th onclick="sortTable(3)" style="width:150px">Flavor Name</th>
                 <th onclick="sortTable(2)" style="width:100px">Slots</th>
@@ -58,9 +58,9 @@
                   <td style="width:100px">{{vm.condor_slots}}</td>
                   <td style="width:150px">{{vm.flavor_name}}</td>
                   <td style="width:200px">{{vm.status_changed_time}}</td>
-                  <td style="width:100px">{{vm.poller_status}}</td>
+                  <td style="width:120px">{{vm.poller_status}}</td>
                   <td style="width:450px">{{vm.hostname}}</td>
-                  <td style="width:100px">{{vm.project}}</td>
+                  <td style="width:120px">{{vm.project}}</td>
                   <td style="width:150px">{{vm.cloud_name}}</td>
                   <td style="width:25px"><input type="checkbox" name="hostname.{{ forloop.counter }}" value={{vm.hostname}}></td>
                 </tr>
