@@ -157,7 +157,19 @@ def _requests(gvar, request, form_data={}):
             )
 
     else:
-        print('Error: %s servers require certificates or username/password for authentication.' % gvar['command_name'])
+        print(
+            '***\n' \
+            '*** Please identify the URL (-sa | --server-address) of the server with which you wish to communicate. Servers\n' \
+            '*** require either certificate (-sC | --server-grid-cert, -sK | --server-grid-key) or username/password (-su |\n' \
+            '*** --server-user, -spw | --server-password) authentication. These options can be saved for multiple servers\n' \
+            '*** by name (there is always a "default" server) using the following command:\n' \
+            '***\n' \
+            '***     %s defaults set -s <sever_name> -sa <server_address> ...\n' \
+            '***\n' \
+            '*** Subsequently, commands will be directed to the last server selected via the (-s | --server)\n' \
+            '*** argument.\n' \
+            '***' % gvar['command_name']
+            )
         exit(1)
 
     try:
