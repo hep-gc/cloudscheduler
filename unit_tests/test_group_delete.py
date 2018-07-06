@@ -30,7 +30,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV21', 'invalid method "GET" specified.',
+        gvar, 1, 'GV22', 'invalid method "GET" specified.',
         '/group/delete/'
     )
 
@@ -40,7 +40,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV08', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV09', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/delete/', form_data={'group': 'invalid-unit-test'}
     )
 
@@ -51,7 +51,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV20', 'group delete "invalid-unit-test" failed - the request did not match any rows.',
+        gvar, 1, 'GV21', 'group delete "invalid-unit-test" failed - the request did not match any rows.',
         '/group/delete/', form_data={'group_name': 'invalid-unit-test'}
     )
 

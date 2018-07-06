@@ -12,7 +12,7 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, sys.argv[0])
     
     execute_csv2_request(
-        gvar, 1, 'GV04', 'invalid method "GET" specified.',
+        gvar, 1, 'GV05', 'invalid method "GET" specified.',
         '/group/add/'
     )
 
@@ -64,7 +64,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV02', 'Data too long for column \'group_name\' at row 1',
+        gvar, 1, 'GV03', 'Data too long for column \'group_name\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'thisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabase'),
             'condor_central_manager': 'invalid-unit-test'
@@ -72,7 +72,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV97', 'specified user "invalid-unit-test" does not exist.',
+        gvar, 1, 'GV02', 'specified user "invalid-unit-test" does not exist.',
         '/group/add/', form_data={
             'username.1': 'invalid-unit-test',
             'group_name': 'invalid-unit-test',
@@ -90,7 +90,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Duplicate entry \'invalid-unit-test\' for key \'PRIMARY\'',
+        gvar, 1, 'GV04', 'Duplicate entry \'invalid-unit-test\' for key \'PRIMARY\'',
         '/group/add/', form_data={
             'group_name': 'invalid-unit-test',
             'username.1': ut_id(gvar, 'gtu3'),
@@ -123,7 +123,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV02', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
+        gvar, 1, 'GV03', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1'), 'condor_central_manager': 'invalid-unit-test'}
     )
 
@@ -143,7 +143,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -152,7 +152,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -161,7 +161,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_disk\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_disk\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -170,7 +170,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'request contained a bad parameter "job_scratch".',
+        gvar, 1, 'GV04', 'request contained a bad parameter "job_scratch".',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -179,7 +179,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_swap\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_swap\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',

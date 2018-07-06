@@ -18,7 +18,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV40', 'invalid method "GET" specified.',
+        gvar, 1, 'GV39', 'invalid method "GET" specified.',
         '/group/metadata-update/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
@@ -30,13 +30,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV41', 'no group name specified.',
+        gvar, 1, 'GV40', 'no group name specified.',
         '/group/metadata-update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV39', 'group metadata-update "{}::invalid-unit-test" failed'.format(ut_id(gvar, 'gtg5')),
+        gvar, 1, 'GV38', 'group metadata-update "{}::invalid-unit-test" failed'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
@@ -48,13 +48,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV37', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV36', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test', 'group': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV37', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV36', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-update/', form_data={'metadata_name': 'invalid-unit-test', 'group': ut_id(gvar, 'gtg7')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
@@ -85,7 +85,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV39', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
+        gvar, 1, 'GV38', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-update/', form_data={
             'metadata_name': 'invalid-unit-test',
             'enabled': 0,
