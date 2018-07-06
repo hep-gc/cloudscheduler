@@ -46,6 +46,7 @@
 
 .vm-table th {
   background-color: var(--header_background_color);
+  cursor: pointer;
   text-align: center;
   color: white;
 }
