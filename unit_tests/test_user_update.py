@@ -24,13 +24,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV13', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
+        gvar, 1, 'UV12', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
         '/user/update/',
         server_user=ut_id(gvar, 'utu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV23', 'invalid method "GET" specified.',
+        gvar, 1, 'UV25', 'invalid method "GET" specified.',
         '/user/update/'
     )
 
@@ -55,12 +55,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'must specify at least one field to update.',
+        gvar, 1, 'UV22', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'the request did not match any rows.',
+        gvar, 1, 'UV22', 'the request did not match any rows.',
         '/user/update/', form_data={
             'username': 'invalid-unit-test',
             'password': 'invalid-unit-test'
@@ -68,7 +68,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'must specify at least one field to update.',
+        gvar, 1, 'UV22', 'must specify at least one field to update.',
         '/user/update/', form_data={'username': ut_id(gvar, 'utu6')}
     )
 
@@ -138,7 +138,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         '/user/update/', form_data={
             'username': 'invalid-unit-test',
             'group_name': 'invalid-unit-test'
@@ -154,7 +154,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV22', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg1')),
+        gvar, 1, 'UV24', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utu6'), ut_id(gvar, 'utg1')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),
@@ -163,7 +163,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV02', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu3')),
+        gvar, 1, 'UV20', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'utu3')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'cert_cn': ut_id(gvar, 'utu3')
@@ -171,7 +171,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV02', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user three'), ut_id(gvar, 'utu3')),
+        gvar, 1, 'UV20', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'user test user three'), ut_id(gvar, 'utu3')),
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'cert_cn': ut_id(gvar, 'user test user three')
@@ -187,7 +187,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'must specify at least one field to update.',
+        gvar, 1, 'UV22', 'must specify at least one field to update.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'add'
@@ -195,7 +195,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV21', 'must specify at least one field to update.',
+        gvar, 1, 'UV22', 'must specify at least one field to update.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'delete'
@@ -203,7 +203,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'add',
@@ -212,7 +212,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_option': 'delete',
@@ -221,7 +221,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),
@@ -230,7 +230,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),
@@ -240,7 +240,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         '/user/update/', form_data={
             'username': ut_id(gvar, 'utu6'),
             'group_name.1': ut_id(gvar, 'utg1'),

@@ -24,7 +24,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV13', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
+        gvar, 1, 'UV12', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
         '/user/list/',
         server_user=ut_id(gvar, 'utu2'), server_pw=user_secret
     )
@@ -36,12 +36,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV13', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'UV12', 'cannot switch to invalid group "invalid-unit-test".',
         '/user/list/', form_data={'group': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV13', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
+        gvar, 1, 'UV12', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
         '/user/list/', form_data={'group': ut_id(gvar, 'utg2')}
     )
 
