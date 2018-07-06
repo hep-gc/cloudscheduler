@@ -23,6 +23,19 @@
   position: static;
 }
 
+.retire-button {
+  background-color: #e7e7e7;
+  color: black;
+}
+
+.kill-button{
+  background-color: #f44336;
+}
+
+.control-button{
+  background-color: #008CBA;
+}
+
 .vm-table {
   display: block;
 }
