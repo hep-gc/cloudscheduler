@@ -12,7 +12,7 @@
   position: static;
 }
 
-.vm-div form{
+.vm-div form {
   display: block;
   height: 100%;
 }
@@ -37,17 +37,23 @@
   width: 197px;
 }
 
+.greyed-button {
+  background-color: #e7e7e7;
+  color: black;
+  cursor: no-drop;
+}
+
 .retire-button {
   background-color: #e7e7e7;
   color: black;
 }
 
-.kill-button{
+.kill-button {
   background-color: #f44336;
   color: black;
 }
 
-.control-button{
+.control-button {
   background-color: #4CAF50;
 }
 
