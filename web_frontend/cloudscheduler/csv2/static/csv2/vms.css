@@ -45,10 +45,10 @@
 }
 
 .vm-table th {
-  background-color: var(--header_background_color);
+  background-color: powderblue;
   cursor: pointer;
   text-align: center;
-  color: white;
+  color: black;
 }
 
 .vm-table tbody {
