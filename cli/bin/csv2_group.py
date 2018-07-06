@@ -308,7 +308,7 @@ def metadata_list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mn'])
+    check_keys(gvar, [], [], ['-g', '-ok', '-mn'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-list/')
