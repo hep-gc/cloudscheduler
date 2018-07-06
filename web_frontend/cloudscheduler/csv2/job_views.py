@@ -104,7 +104,7 @@ def list(
         rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('GV06'), msg)})
+            return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('CV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
