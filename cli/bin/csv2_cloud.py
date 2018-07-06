@@ -17,7 +17,6 @@ KEY_MAP = {
     '-g':   'group',
     '-ga':  'cacertificate',
     '-me':  'enabled',
-    '-mlo': 'metadata_list_option',
     '-mmt': 'mime_type',
     '-mn':  'metadata_name',
     '-mp':  'priority',
@@ -253,6 +252,38 @@ def update(gvar):
     if response['message']:
         print(response['message'])
 
+def metadata_collation(gvar):
+    """
+    List cloud metadata collation for the active group.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
+
+    # Retrieve data (possibly after changing the group).
+    response = requests(gvar, '/cloud/metadata-collation/')
+    if response['message']:
+        print(response['message'])
+
+    # Filter response as requested (or not).
+    cloud_metadata_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_metadata_list'])
+
+    # Print report.
+    show_active_user_groups(gvar, response)
+
+    show_table(
+        gvar,
+        cloud_metadata_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'metadata_name/Metadata Filename,k',
+            'type/Type',
+            'priority/priority',
+            ],
+        title="Clouds/Metadata Collation:",
+        )
+
 def metadata_delete(gvar):
     """
     Delete a cloud metadata file.
@@ -359,18 +390,14 @@ def metadata_edit(gvar):
 
 def metadata_list(gvar):
     """
-    List clouds for the active group.
+    List cloud metadata for the active group.
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mlo', '-mn'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mn'])
 
     # Retrieve data (possibly after changing the group).
-    if 'metadata-list-option' in gvar['user_settings']:
-        response = requests(gvar, '/cloud/metadata-list/', {'metadata_list_option': gvar['user_settings']['metadata-list-option']})
-    else:
-        response = requests(gvar, '/cloud/metadata-list/')
-    
+    response = requests(gvar, '/cloud/metadata-list/')
     if response['message']:
         print(response['message'])
 
@@ -380,33 +407,19 @@ def metadata_list(gvar):
     # Print report.
     show_active_user_groups(gvar, response)
 
-    if 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
-        show_table(
-            gvar,
-            cloud_metadata_list,
-            [
-                'group_name/Group,k',
-                'cloud_name/Cloud,k',
-                'metadata_name/Metadata Filename,k',
-                'type/Type',
-                'priority/priority',
-                ],
-            title="Clouds/Metadata Merge Order:",
-            )
-    else:
-        show_table(
-            gvar,
-            cloud_metadata_list,
-            [
-                'group_name/Group,k',
-                'cloud_name/Cloud,k',
-                'metadata_name/Metadata Filename,k',
-                'enabled/Enabled',
-                'priority/Priority',
-                'mime_type/MIME Type',
-            ],
-            title="Clouds/Metadata:",
-            )
+    show_table(
+        gvar,
+        cloud_metadata_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'metadata_name/Metadata Filename,k',
+            'enabled/Enabled',
+            'priority/Priority',
+            'mime_type/MIME Type',
+        ],
+        title="Clouds/Metadata:",
+        )
 
 def metadata_load(gvar):
     """
