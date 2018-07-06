@@ -8,8 +8,8 @@
   overflow-y: visible;
   overflow-x: visible;
   height: 94%;
-  width: 90%;
-  position: fixed;
+  width: 100%;
+  position: static;
 }
 
 .vm-div form{
@@ -28,22 +28,23 @@
 
 .vm-table table {
   display: block;
-  width: 1220px;
+  table-layout: fixed;
   overflow-x: auto;
 }
 
 .vm-table th, td {
-  border: 2px solid white;
+  border: 0px solid white;
+  padding: 5px;
 }
 
 .vm-table thead {
   display: block;
+  width: 1650px;
 }
 
 .vm-table th {
   background-color: var(--header_background_color);
   text-align: center;
-  padding: 8px;
   color: white;
 }
 
@@ -51,6 +52,7 @@
   display: block;
   height: 94%;
   overflow-y: auto;
+  width: 1650px;
 }
 
 .vm-table tbody > tr:nth-child(even) {
@@ -58,6 +60,5 @@
 }
 
 .vm-table td {
-  padding: 8px;
   text-align: center;
 }
