@@ -84,7 +84,7 @@
   direction: rtl;
   display: block;
   height: 94%;
-  overflow-y: auto;
+  overflow-y: scroll;
   width: 1660px;
 }
 
