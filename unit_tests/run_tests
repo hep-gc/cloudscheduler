@@ -3,14 +3,14 @@
 Unit tests.
 """
 
-from unit_test_common import initialize_csv2_request
+from unit_test_common import initialize_csv2_request, generate_secret
 from importlib import import_module
 from os import listdir
 from re import sub
 
 import sys
 
-TEST_OBJECTS = ['user', 'group']
+TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'command_line']
 
 def get_test_list():
     test_names = []
@@ -84,8 +84,6 @@ def main():
         for test in test_names:
             user_options['tests'].append((test, None))
         user_options['objects'] = TEST_OBJECTS
-
-    # print(user_options)
     
     hidden_gvar = {}
     initialize_csv2_request(hidden_gvar, sys.argv[0], hidden=user_options['hidden'])
@@ -95,36 +93,42 @@ def main():
         initialize_csv2_request(gvar, sys.argv[0], selections=user_options['run_all_selection'])
     else:
         initialize_csv2_request(gvar, sys.argv[0])
-    
+
+    user_secret = generate_secret()
+
     for obj in user_options['objects']:
         if user_options['setup']:
             exec('import {}_requests_setup'.format(obj), globals(), locals())
             print('Setting up {} tests...'.format(obj))
-            exec('{}_requests_setup.main(hidden_gvar)'.format(obj), globals(), locals())
-        for ((f, n), s) in user_options['tests']:
-            if s == None:
-                if n.startswith(obj):
-                    exec('import {}'.format(f), globals(), locals())
-                    print('\n*** Testing {} ***\n'.format(n))
-                    exec('{}.main(gvar)'.format(f), globals(), locals())
-            else:
-                if n.startswith(obj):
-                    exec('import {}'.format(f), globals(), locals())
-                    print('\n*** Testing {} ***\n'.format(n))
-                    exec('{}.main(s)'.format(f), globals(), locals())
+            exec('{}_requests_setup.main(hidden_gvar, user_secret)'.format(obj), globals(), locals())
+        if hidden_gvar['ut_failed'] == 0:
+            for ((f, n), s) in user_options['tests']:
+                if s == None:
+                    if n.startswith(obj):
+                        exec('import {}'.format(f), globals(), locals())
+                        print('\n*** Testing {} ***\n'.format(n))
+                        exec('{}.main(gvar, user_secret)'.format(f), globals(), locals())
+                else:
+                    if n.startswith(obj):
+                        exec('import {}'.format(f), globals(), locals())
+                        print('\n*** Testing {} ***\n'.format(n))
+                        exec('{}.main(s, user_secret)'.format(f), globals(), locals())
         if user_options['cleanup']:
             exec('import {}_requests_cleanup'.format(obj))
             print('Cleaning up {} tests...'.format(obj))
             exec('{}_requests_cleanup.main(hidden_gvar)'.format(obj), globals(), locals())
+        if hidden_gvar['ut_failed'] > 0:
+            print('Error setting up or cleaning up tests. Run with -v flag to see output.')
+            exit(hidden_gvar['ut_failed'])
     if user_options['run_all']:
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])
     
+    total_failed = 0
     for ((_, n), s) in user_options['tests']:
         print('Test {} run={}, skipped={}, failed={}.'.format(n, s['ut_count']-s['ut_skipped'], s['ut_skipped'], s['ut_failed']))
-    
-    
-
+        total_failed += s['ut_failed']
+    exit(total_failed)
 
 if __name__ == "__main__":
     main()

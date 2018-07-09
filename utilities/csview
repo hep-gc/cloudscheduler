@@ -132,14 +132,6 @@ def main(args):
         gvar['csv2_config'] = yaml.load(fd.read())
         fd.close()
 
-        gvar['config_file_path'] = '%s/etc/schema_backup.conf' % '/'.join(gvar['path_info'][:gvar['ix']+1])
-        if os.path.isfile(gvar['config_file_path']):
-            fd = open(gvar['config_file_path'])
-            gvar['backup_data'] = fd.read().split('\n')
-            fd.close()
-        else:
-           gvar['backup_data'] = []
-
         _p1 = Popen(
             [
                 'mysql',
@@ -165,8 +157,6 @@ def main(args):
         if _p2.returncode != 0:
             print('Failed to retrieve table list - %s -%s' % (stdout, stderr))
             exit(1)
-
-        print('csv2 schema-backup starting...')
 
         views = stdout.split()
         for b_view in views:

@@ -81,15 +81,23 @@ def main(argv):
                     ut_file = fd.read()
                     fd.close()
 
-                    changed = False
-                    for old_ec, new_ec in gvar['file_changes']:
-                        split_ut_file = ut_file.split(old_ec)
-                        if len(split_ut_file) > 1:
-                            changed = True
-                            ut_file = ('%s%s%s' % (new_ec[:1], gvar['delimiter'], new_ec[1:])).join(split_ut_file)
+                    related_file = False
+                    for line in ut_file.split('\n'):
+                        if line[:7] == '# lno: ':
+                            if line.split()[2] == error_prefix:
+                                related_file = True
+                                break
+                        
+                    if related_file:
+                        changed = False
+                        for old_ec, new_ec in gvar['file_changes']:
+                            split_ut_file = ut_file.split(old_ec)
+                            if len(split_ut_file) > 1:
+                                changed = True
+                                ut_file = ('%s%s%s' % (new_ec[:1], gvar['delimiter'], new_ec[1:])).join(split_ut_file)
 
-                    if changed:
-                        gvar['ut_files'][ut_file_path] = ''.join(ut_file.split(gvar['delimiter'])).split('\n')
+                        if changed:
+                            gvar['ut_files'][ut_file_path] = ''.join(ut_file.split(gvar['delimiter'])).split('\n')
 
 
             archive_a_file(gvar, gvar['file_path'])

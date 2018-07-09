@@ -27,7 +27,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
 
         failed = False
 
-        if expected_rc and expected_rc != p.returncode:
+        if (expected_rc != None) and (expected_rc != p.returncode):
             failed = True
 
         error_code = str(stdout)[9:13]
@@ -39,15 +39,17 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
 
         if failed:
             gvar['ut_failed'] += 1
-            print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
-            print('    return code=%s' % p.returncode)
-            print('    error code=%s' % error_code)
-            print('    stdout=%s' % str(stdout))
-            print('    stderr=%s\n' % str(stderr))
+            if not gvar['hidden']:
+                print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
+                print('    return code=%s' % p.returncode)
+                print('    error code=%s' % error_code)
+                print('    stdout=%s' % str(stdout))
+                print('    stderr=%s\n' % str(stderr))
 
             return 1
         else:
-            print('%03d %s OK: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
+            if not gvar['hidden']:
+                print('%03d %s OK: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), cmd, expected_rc, expected_ec, expected_text))
             return 0
     else:
         return 0
@@ -92,7 +94,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
         failed = False
 
-        if expected_rc and expected_rc != response['response_code']:
+        if (expected_rc != None) and (expected_rc != response['response_code']):
             failed = True
 
         error_code = str(response['message'])[0:4]
@@ -161,6 +163,18 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                 print('%03d %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
     else:
         return 0
+
+def generate_secret():
+    from string import ascii_letters, digits
+    from random import SystemRandom, choice
+    alphabet = ascii_letters + digits
+    while True:
+        user_secret = ''.join(SystemRandom().choice(alphabet) for _ in range(10))
+        if (any(c.islower() for c in user_secret)
+                and any(c.isupper() for c in user_secret)
+                and sum(c.isdigit() for c in user_secret) >= 3):
+            break
+    return user_secret
 
 def html_message(text):
     import re

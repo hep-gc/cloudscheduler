@@ -1,7 +1,9 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
-def main(gvar):
+# lno: GV - error code identifier.
+
+def main(gvar, user_secret):
     if not gvar:
         gvar = {}
         if len(sys.argv) > 1:
@@ -10,20 +12,20 @@ def main(gvar):
             initialize_csv2_request(gvar, sys.argv[0])
     
     execute_csv2_request(
-        gvar, 1, 'GV04', 'invalid method "GET" specified.',
+        gvar, 1, 'GV05', 'invalid method "GET" specified.',
         '/group/add/'
     )
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/group/add/',
-        server_user=ut_id(gvar, 'gtu1'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu2')),
         '/group/add/',
-        server_user=ut_id(gvar, 'gtu2'), server_pw='Abc123'
+        server_user=ut_id(gvar, 'gtu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
@@ -37,35 +39,44 @@ def main(gvar):
     )
 
     execute_csv2_request(
+        gvar, 1, 'GV01', 'request did not contain mandatory parameter "condor_central_manager".',
+        '/group/add/', form_data={'group_name': 'invalid-unit-test'}
+    )
+
+    execute_csv2_request(
         gvar, 1, 'GV01', 'request contained a bad parameter "invalid-unit-test".',
         '/group/add/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'Gtg1')}
+        '/group/add/', form_data={'group_name': 'Invalid-Unit-Test'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1-')}
+        '/group/add/', form_data={'group_name': 'invalid-unit-test-'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg!1')}
+        '/group/add/', form_data={'group_name': 'invalid!unit!test'}
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV02', 'Data too long for column \'group_name\' at row 1',
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'thisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabase')}
+        gvar, 1, 'GV03', 'Data too long for column \'group_name\' at row 1',
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'thisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabase'),
+            'condor_central_manager': 'invalid-unit-test'
+        }
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV97', '"{}" failed - specified user "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'gtg1')),
+        gvar, 1, 'GV02', 'specified user "invalid-unit-test" does not exist.',
         '/group/add/', form_data={
             'username.1': 'invalid-unit-test',
-            'group_name': ut_id(gvar, 'gtg1')
+            'group_name': 'invalid-unit-test',
+            'condor_central_manager': 'invalid-unit-test'
         }
     )
 
@@ -73,7 +84,18 @@ def main(gvar):
         gvar, 1, 'GV01', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
         '/group/add/', form_data={
             'user_option': 'invalid-unit-test',
-            'group_name': ut_id(gvar, 'gtg1')
+            'group_name': 'invalid-unit-test',
+            'condor_central_manager': 'invalid-unit-test'
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV04', 'Duplicate entry \'invalid-unit-test\' for key \'PRIMARY\'',
+        '/group/add/', form_data={
+            'group_name': 'invalid-unit-test',
+            'username.1': ut_id(gvar, 'gtu3'),
+            'username.2': ut_id(gvar, 'gtu3'),
+            'condor_central_manager': 'invalid-unit-test'
         }
     )
 
@@ -81,7 +103,8 @@ def main(gvar):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg1'),
-            'username.1': ut_id(gvar, 'gtu3')
+            'username.1': ut_id(gvar, 'gtu3'),
+            'condor_central_manager': 'group-unit-test-one.ca'
         }
     )
 
@@ -89,7 +112,7 @@ def main(gvar):
         gvar, 0, None, None,
         '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg1')},
-        values={'group_name': ut_id(gvar, 'gtg1'), 'metadata_names': None, 'condor_central_manager': None}
+        values={'group_name': ut_id(gvar, 'gtg1'), 'metadata_names': None, 'condor_central_manager': 'group-unit-test-one.ca'}
     )
 
     execute_csv2_request(
@@ -100,8 +123,8 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV02', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
-        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1')}
+        gvar, 1, 'GV03', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
+        '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1'), 'condor_central_manager': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
@@ -120,7 +143,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_cpus\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -129,7 +152,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_ram\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -138,7 +161,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_disk\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_disk\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -147,7 +170,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_scratch\' at row 1',
+        gvar, 1, 'GV04', 'request contained a bad parameter "job_scratch".',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -156,7 +179,7 @@ def main(gvar):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_swap\' at row 1',
+        gvar, 1, 'GV04', 'Incorrect integer value: \'invalid-unit-test\' for column \'job_swap\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',
@@ -172,7 +195,6 @@ def main(gvar):
             'job_cpus': 1,
             'job_ram': 1,
             'job_disk': 1,
-            'job_scratch': 1,
             'job_swap': 1
         }
     )

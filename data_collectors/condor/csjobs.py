@@ -315,28 +315,27 @@ if __name__ == '__main__':
         filename=config.log_file,
         level=config.log_level,
         format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
-    processes = []
-    # job polling proccess
-    p_job_producer = Process(target=job_producer)
-    processes.append(p_job_producer)
-    # command executer proccess
-    #p_command_consumer = Process(target=job_command_consumer)
-    #processes.append(p_command_consumer)
-    # cleanUp proccess
-    p_cleanup = Process(target=cleanUp)
-    processes.append(p_cleanup)
+
+    processes = {}
+    process_ids = {
+        'cleanup':            cleanUp,
+#       'command':            job_command_consumer,
+        'job':                job_producer,
+        }
 
     # Wait for keyboard input to exit
     try:
-        for process in processes:
-            process.start()
         while True:
-            for process in processes:
-                if not process.is_alive():
-                    logging.error("%s process died!", process.name)
-                    logging.error("Restarting %s process...", process.name)
-                    process.start()
-                time.sleep(1)
+            for process in process_ids:
+                if process not in processes or not processes[process].is_alive():
+                    if process in processes:
+                        logging.error("%s process died, restarting...", process)
+                        del(processes[process])
+                    else:
+                        logging.info("Restarting %s process", process)
+                    processes[process] = Process(target=process_ids[process])
+                    processes[process].start()
+                    time.sleep(1)
             time.sleep(10)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")

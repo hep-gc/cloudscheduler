@@ -3,38 +3,95 @@
   --alternate_row_background_color: #F2F2F2;
 }
 
-.vm-table {
-  display: inline-block;
-  overflow-y: auto;
-  overflow-x: auto;
-  height: 90%;
+.vm-div {
+  display: block;
+  height: 89%;
+  overflow-y: visible;
+  overflow-x: visible;
+  position: static;
   width: 100%;
-  margin-right: 8px;
-  margin-bottom: 1rem;
-  position: relative;
+}
+
+.vm-div form {
+  display: block;
+  height: 100%;
+}
+
+.vm-buttons {
+  display: block;
+  margin-left:15px; /* In order to allign with the scroll bar on the left side */
+  padding-bottom: 2px;
+  position: static;
+}
+
+.button {
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 8px 24px;
+  text-align: center;
+  text-decoration: none;
+  width: 197px;
+}
+
+.greyed-button {
+  background-color: #e7e7e7;
+  color: black;
+  cursor: no-drop;
+}
+
+.retire-button {
+  background-color: #4CAF50;
+}
+
+.kill-button {
+  background-color: #f44336;
+  color: black;
+}
+
+.control-button {
+  background-color: #4CAF50;
+}
+
+.vm-table {
+  display: block;
 }
 
 .vm-table table {
-  border: 0px;
-  padding: 0px;
-  /* table-layout: fixed; */
+  display: block;
+  overflow-x: scroll;
+  padding-bottom: 1px;
+  table-layout: fixed;
 }
 
 .vm-table th, td {
-  border: 2px solid white;
+  border: 1px solid white;
+  padding: 5px;
+}
+
+.vm-table thead {
+  display: block;
+  margin-left:12px; /* In order to allign with the scroll bar on the left side */
+  width: 1650px;
 }
 
 .vm-table th {
-  background-color: var(--header_background_color);
+  background-color: powderblue;
+  color: black;
+  cursor: pointer;
+  font-size: 16px;
   text-align: center;
-  padding: 8px;
-  color: white;
 }
 
 .vm-table tbody {
-  /* display: block; */
-  /* height: 100%; */
-  /* overflow-y: auto; */
+  direction: rtl;
+  display: block;
+  height: 94%;
+  overflow-y: scroll;
+  width: 1660px;
 }
 
 .vm-table tbody > tr:nth-child(even) {
@@ -42,6 +99,5 @@
 }
 
 .vm-table td {
-  padding: 8px;
   text-align: center;
 }

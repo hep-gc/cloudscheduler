@@ -34,23 +34,27 @@ import sqlalchemy.exc
 # lno: VV - error code identifier.
 
 #-------------------------------------------------------------------------------
+ALIASES = {'poller_status': {'native': ['manual', 'error', 'unregistered', 'retiring', 'running', 'other']}}
 
 VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'vm_option':           ['kill', 'retire', 'manctl', 'sysctl'],
+        'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
 
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
+        'cloud_name':                                                   'ignore',
+        'csrfmiddlewaretoken':                                          'ignore',
+        'group':                                                        'ignore',
+        'hostname':                                                     'ignore',
+        'poller_status':                                                'ignore',
         },
     }
 
 LIST_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':     'ignore',
-        'group':                   'ignore',
+        'csrfmiddlewaretoken':                                          'ignore',
+        'group':                                                        'ignore',
         },
     }
 
@@ -84,11 +88,11 @@ def list(
         rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
         if rc != 0:
             db_close(db_ctl)
-            return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('GV06'), msg)})
+            return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('VV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::')))
+    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES))
 
     # Retrieve available Clouds.
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
@@ -113,7 +117,7 @@ def list(
 #-------------------------------------------------------------------------------
 
 @requires_csrf_token
-def update(request, selector='::::'):
+def update(request):
     """
     Update VMs.
     """
@@ -122,75 +126,65 @@ def update(request, selector='::::'):
         raise PermissionDenied
 
     if request.method == 'POST' and 'vm_option' in request.POST:
-        if 'vm_selected' in request.POST:
-            # open the database.
-            db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        # open the database.
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
-            # Retrieve the active user, associated group list and optionally set the active group.
-            rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
-            if rc != 0:
-                db_close(db_ctl)
-                return list(request, response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), active_user=active_user, user_groups=user_groups)
 
-            # Validate input fields.
-            rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
-            if rc != 0:
-                db_close(db_ctl)
-                return list(request, response_code=1, message='%s cloud update %s' % (lno('VV00'), msg), active_user=active_user, user_groups=user_groups)
+        # Validate input fields.
+        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, response_code=1, message='%s cloud update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
 
+        if fields['vm_option'] == 'kill':
+            table = tables['csv2_vms']
+            verb = 'killed'
+        elif fields['vm_option'] == 'retire':
+            table = tables['condor_machines']
+            verb = 'retired'
+        elif fields['vm_option'] == 'manctl':
+            table = tables['csv2_vms']
+            verb = 'set to manual control'
+        elif fields['vm_option'] == 'sysctl':
+            table = tables['csv2_vms']
+            verb = 'set to system control'
+        else:
+            return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
+
+        # Retrieve VM information.
+        s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) and (view_vms.c.foreign_vm == 0))
+        vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+
+        count = 0
+        for vm in vm_list:
             if fields['vm_option'] == 'kill':
-                table = tables['csv2_vms']
-                verb = 'killed'
+                update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
             elif fields['vm_option'] == 'retire':
-                table = tables['condor_machines']
-                verb = 'retired'
+                update = table.update().where(table.c.hostname == vm['hostname']).values({'condor_off': 1})
             elif fields['vm_option'] == 'manctl':
-                table = tables['csv2_vms']
-                verb = 'set to manual control'
+                update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
             elif fields['vm_option'] == 'sysctl':
-                table = tables['csv2_vms']
-                verb = 'set to system control'
+                update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
+
+            # rc, msg = db_execute(db_ctl, table.update().where(table.c.vmid == vm['vmid']).values(control), allow_no_rows=True)
+            rc, msg = db_execute(db_ctl, update, allow_no_rows=True)
+            if rc == 0:
+                count += msg
             else:
-                return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('GV41'), fields['vm_option']))
+                db_close(db_ctl)
+                return list(request, response_code=1, message='%s VM update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
-            if 'vm_hostname' in fields:
-                if isinstance(fields['vm_hostname'], list):
-                    hosts = fields['vm_hostname']
-                else:
-                    hosts = fields['vm_hostname'].split(',')
-            else:
-                hosts = None
-
-            # Retrieve VM information.
-            s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) and (view_vms.c.foreign_vm == 0))
-            vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::')))
-
-            count = 0
-            for vm in vm_list:
-                if fields['vm_option'] == 'kill':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
-                elif fields['vm_option'] == 'retire':
-                    update = table.update().where(table.c.hostname == vm['hostname']).values({'condor_off': 1})
-                elif fields['vm_option'] == 'manctl':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
-                elif fields['vm_option'] == 'sysctl':
-                    update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
-
-                rc, msg = db_execute(db_ctl, table.update().where(table.c.vmid == vm['vmid']).values(control), allow_no_rows=True)
-                if rc == 0:
-                    count += msg
-                else:
-                    db_close(db_ctl)
-                    return list(request, response_code=1, message='%s VM update (%s) failed - %s' % (lno('GV41'), fields['vm_option'], msg))
-
-            db_close(db_ctl, commit=True)
-            return list(request, response_code=0, message='vm update, VMs %s=%s.' % (verb, count))
+        db_close(db_ctl, commit=True)
+        return list(request, response_code=0, message='vm update, VMs %s=%s.' % (verb, count))
 
     ### Bad request.
-        else:
-            return list(request, response_code=1, message='%s vm update, no VMs were selected to perform the operation %s.' % (lno('CV15'), request.POST['vm_option']))
     else:
         if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV15'), request.method))
+            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
         else:
-            return list(request, response_code=1, message='%s cloud update, the vm-option is required and must be one of the following: %s.' % (lno('CV15'), VM_KEYS['format']['vm_option']))
+            return list(request, response_code=1, message='%s cloud update, the vm-option is required and must be one of the following: %s.' % (lno('VV06'), VM_KEYS['format']['vm_option']))

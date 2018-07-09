@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^cloud/status',                          cloud_views.status,              name='cloud-status'),
     url(r'^cloud/update',                          cloud_views.update,              name='cloud-update'),
     url(r'^cloud/metadata-add',                    cloud_views.metadata_add,        name='cloud-metadata-add'),
+    url(r'^cloud/metadata-collation',              cloud_views.metadata_collation,  name='cloud-metadata-collation'),
     url(r'^cloud/metadata-delete',                 cloud_views.metadata_delete,     name='cloud-metadata-delete'),
     url(r'^cloud/metadata-fetch/(?P<selector>)',   cloud_views.metadata_fetch,      name='cloud-metadata-fetch'),
     url(r'^cloud/metadata-list',                   cloud_views.metadata_list,       name='cloud-metadata-list'),
@@ -43,8 +44,8 @@ urlpatterns = [
     url(r'^user/settings',                         user_views.settings,             name='user-settings'),
     url(r'^user/update',                           user_views.update,               name='user-update'),
 
-    path('vm/list/',                                vm_views.list),
+    path('vm/list/',                               vm_views.list),
     path('vm/list/<path:selector>/',               vm_views.list),
-    path('vm/update/<path:selector>/',             vm_views.update),
+    path('vm/update/',                             vm_views.update),
 
 ]

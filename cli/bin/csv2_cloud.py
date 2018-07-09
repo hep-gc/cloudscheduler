@@ -17,7 +17,6 @@ KEY_MAP = {
     '-g':   'group',
     '-ga':  'cacertificate',
     '-me':  'enabled',
-    '-mlo': 'metadata_list_option',
     '-mmt': 'mime_type',
     '-mn':  'metadata_name',
     '-mp':  'priority',
@@ -142,25 +141,25 @@ def list(gvar):
             'region/Region',
             'cloud_type/Cloud Type',
             'keyname/Keyname',
-            'cores_max/Cores (Max)',
-            'ram_max/RAM (Max)',
+            'cores_max/Cores',
+            'ram_max/RAM',
             'cacertificate/CA Certificate',
             'metadata_names/Metadata Filenames',
-            'instances_max/Instances (Max)',
-            'instances_used/Instances (Used)',
-            'floating_ips_max/Floating IPs (Max)',
-            'floating_ips_used/Floating IPs (Used)',
-            'security_groups_max/Security Groups (Max)',
-            'security_groups_used/Security Groups (Used)',
-            'server_groups_max/Server Groups (Max)',
-            'server_groups_used/Server Groups (Used)',
-            'image_meta_max/Image Metadata (Max)',
-            'keypairs_max/Keypairs (Max)',
-            'personality_max/Personality (Max)',
-            'personality_size_max/Personality Size (Max)',
-            'security_group_rules_max/Security Group Rules (Max)',
-            'server_group_members_max/Security Group Members (Max)',
-            'server_meta_max/Server Metadata (Max)',
+            'instances_max/Maximum/Instances',
+            'instances_used/Used/Instances',
+            'floating_ips_max/Maximum/Floating IPs',
+            'floating_ips_used/Used/Floating IPs',
+            'security_groups_max/Maximum/Security Groups',
+            'security_groups_used/Used/Security Groups',
+            'server_groups_max/Maximum/Server Groups',
+            'server_groups_used/Used/Server Groups',
+            'image_meta_max/Image Metadata',
+            'keypairs_max/Keypairs',
+            'personality_max/Personality',
+            'personality_size_max/Personality Size',
+            'security_group_rules_max/Security Group Rules',
+            'server_group_members_max/Security Group Members',
+            'server_meta_max/Server Metadata',
             ],
         title="Clouds:",
         )
@@ -207,7 +206,7 @@ def status(gvar):
             'VMs_running/Running/VMs',
             'VMs_retiring/Retiring/VMs',
             'VMs_manual/Manual/VMs',
-            'VMs_in_error/In Error/VMs',
+            'VMs_in_error/Error/VMs',
             'VMs_other/Other/VMs',
             'cores_max/Total/Cores',
             'cores_ctl/Setting/Cores',
@@ -252,6 +251,38 @@ def update(gvar):
     
     if response['message']:
         print(response['message'])
+
+def metadata_collation(gvar):
+    """
+    List cloud metadata collation for the active group.
+    """
+
+    # Check for missing arguments or help required.
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
+
+    # Retrieve data (possibly after changing the group).
+    response = requests(gvar, '/cloud/metadata-collation/')
+    if response['message']:
+        print(response['message'])
+
+    # Filter response as requested (or not).
+    cloud_metadata_list = _filter_by_cloud_name_and_or_metadata_name(gvar, response['cloud_metadata_list'])
+
+    # Print report.
+    show_active_user_groups(gvar, response)
+
+    show_table(
+        gvar,
+        cloud_metadata_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'metadata_name/Metadata Filename,k',
+            'type/Type',
+            'priority/priority',
+            ],
+        title="Clouds/Metadata Collation:",
+        )
 
 def metadata_delete(gvar):
     """
@@ -359,18 +390,14 @@ def metadata_edit(gvar):
 
 def metadata_list(gvar):
     """
-    List clouds for the active group.
+    List cloud metadata for the active group.
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mlo', '-mn'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mn'])
 
     # Retrieve data (possibly after changing the group).
-    if 'metadata-list-option' in gvar['user_settings']:
-        response = requests(gvar, '/cloud/metadata-list/', {'metadata_list_option': gvar['user_settings']['metadata-list-option']})
-    else:
-        response = requests(gvar, '/cloud/metadata-list/')
-    
+    response = requests(gvar, '/cloud/metadata-list/')
     if response['message']:
         print(response['message'])
 
@@ -380,33 +407,19 @@ def metadata_list(gvar):
     # Print report.
     show_active_user_groups(gvar, response)
 
-    if 'metadata-list-option' in gvar['user_settings'] and gvar['user_settings']['metadata-list-option'] == 'merge':
-        show_table(
-            gvar,
-            cloud_metadata_list,
-            [
-                'group_name/Group,k',
-                'cloud_name/Cloud,k',
-                'metadata_name/Metadata Filename,k',
-                'type/Type',
-                'priority/priority',
-                ],
-            title="Clouds/Metadata Merge Order:",
-            )
-    else:
-        show_table(
-            gvar,
-            cloud_metadata_list,
-            [
-                'group_name/Group,k',
-                'cloud_name/Cloud,k',
-                'metadata_name/Metadata Filename,k',
-                'enabled/Enabled',
-                'priority/Priority',
-                'mime_type/MIME Type',
-            ],
-            title="Clouds/Metadata:",
-            )
+    show_table(
+        gvar,
+        cloud_metadata_list,
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'metadata_name/Metadata Filename,k',
+            'enabled/Enabled',
+            'priority/Priority',
+            'mime_type/MIME Type',
+        ],
+        title="Clouds/Metadata:",
+        )
 
 def metadata_load(gvar):
     """

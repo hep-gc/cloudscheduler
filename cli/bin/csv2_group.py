@@ -205,7 +205,7 @@ def metadata_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-yn'], [], ['-g'])
+    check_keys(gvar, ['-mn'], [], ['-g'])
 
     # Check that the target groupmetadata file exists.
     response = requests(gvar, '/group/list/')
@@ -248,7 +248,7 @@ def metadata_edit(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-yn'], ['-te'], ['-g'])
+    check_keys(gvar, ['-mn'], ['-te'], ['-g'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-fetch/%s' % gvar['user_settings']['metadata-name'])
@@ -308,7 +308,7 @@ def metadata_list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-yn'])
+    check_keys(gvar, [], [], ['-g', '-ok', '-mn'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-list/')
@@ -343,9 +343,9 @@ def metadata_load(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-f', '-yn'],
+        ['-f', '-mn'],
         [],
-        ['-g', '-ye', '-ymt', '-yp'],
+        ['-g', '-me', '-mmt', '-mp'],
         key_map=KEY_MAP)
 
     if not os.path.exists(gvar['user_settings']['file-path']):
@@ -379,9 +379,9 @@ def metadata_update(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-yn'],
+        ['-mn'],
         [],
-        ['-g', '-ye', '-ymt', '-yp'],
+        ['-g', '-me', '-mmt', '-mp'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

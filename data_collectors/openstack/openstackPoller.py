@@ -33,7 +33,6 @@ from attribute_mapper.attribute_mapper import map_attributes
 # This file also polls the openstack clouds for live VM information and inserts it into the database
 
 ## UTILITY FUNCTIONS
-#
 
 def get_openstack_session(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
     authsplit = auth_url.split('/')
@@ -51,7 +50,7 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
                 tenant_name=project)
             sess = session.Session(auth=auth, verify=config.cacert)
         except Exception as exc:
-            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s:%s" % (auth_url, exc))
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
             return False
         return sess
@@ -90,7 +89,7 @@ def get_flavor_data(nova):
     try:
         return  nova.flavors.list()
     except Exception as exc:
-        logging.error("Unable to retireve Flavor data")
+        logging.error("Failed to retrieve Flavor data")
         logging.error(exc)
         return False
 
@@ -114,7 +113,7 @@ def get_limit_data(nova):
             limits[limit.name] = [limit.value]
         return limits
     except Exception as exc:
-        logging.error("Unable to retrieve Limit data")
+        logging.error("Failed to retrieve Limit data")
         logging.error(exc)
         return False
 
@@ -123,7 +122,7 @@ def get_image_data(nova):
     try:
         return nova.glance.list()
     except Exception as exc:
-        logging.error("Unable to retrieve Image data")
+        logging.error("Failed to retrieve Image data")
         logging.error(exc)
         return False
 
@@ -132,7 +131,7 @@ def get_network_data(neutron):
     try:
         return neutron.list_networks()['networks']
     except Exception as exc:
-        logging.error("Unable to retrieve Network data")
+        logging.error("Failed to retrieve Network data")
         logging.error(exc)
         return False
 
@@ -140,7 +139,7 @@ def get_vm_list(nova):
     try:
         return nova.servers.list()
     except Exception as exc:
-        logging.error("Unable to retrieve VM list")
+        logging.error("Failed to retrieve VM list")
         logging.error(exc)
         return False
 
@@ -150,16 +149,47 @@ def terminate_vm(session, vm):
         nova.servers.delete(vm.vmid)
         return True
     except Exception as exc:
-        logging.error("Unable to terminate vm: %s", vm.hostname)
+        logging.error("Failed to terminate vm: %s", vm.hostname)
         logging.error(exc)
         return False
 
 
+def get_session(cloud):
+    authsplit = cloud.authurl.split('/')
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        return False
+    if version == 2:
+        session = get_openstack_session(
+            auth_url=cloud.authurl,
+            username=cloud.username,
+            password=cloud.password,
+            project=cloud.project)
+    else:
+        session = get_openstack_session(
+            auth_url=cloud.authurl,
+            username=cloud.username,
+            password=cloud.password,
+            project=cloud.project,
+            user_domain=cloud.user_domain_name,
+            project_domain_name=cloud.project_domain_name)
+    if session is False:
+        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        if version == 2:
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s",
+                          (cloud.authurl, cloud.username, cloud.project))
+        else:
+            logging.error(
+                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
+                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
+    return session
+
 ## PROCESS FUNCTIONS
-#
 
 # This process thread will be responsible for polling the list of VMs from each registered
-# openstack cloud and reporting their state back to the database for use by cloud scheduler
+# OpenStack cloud and reporting their state back to the database for use by cloud scheduler
 #
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
@@ -167,55 +197,37 @@ def vm_poller():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
     Vm = Base.classes.csv2_vms
     Cloud = Base.classes.csv2_group_resources
     Poll_Times = Base.classes.csv2_poll_times
 
-    while True:
-        try:
-            logging.debug("Begining poll cycle")
+    try:
+        while True:
+            # This cycle should be reasonably fast such that the scheduler will always have the most
+            # up to date data during a given execution cycle.
+            logging.info("Beginning VM poller cycle")
+            db_session = Session(engine)
+            current_cycle = int(time.time())
+
+            # Iterate over cloud list
+            abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
-
-            # Itterate over cloud list
-            poll_time =  int(time.time())
             for cloud in cloud_list:
-                logging.info("Polling VMs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-                authsplit = cloud.authurl.split('/')
-                try:
-                    version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-                except ValueError:
-                    logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
-                    continue
-                if version == 2:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project)
-                else:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project,
-                        user_domain=cloud.user_domain_name,
-                        project_domain_name=cloud.project_domain_name)
-
+                logging.info("Polling VMs from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                session = get_session(cloud)
                 if session is False:
-                    logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                    if version == 2:
-                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                    else:
-                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
+
                 # setup nova object
                 nova = get_nova_client(session)
 
                 # get server list
                 vm_list = get_vm_list(nova)
                 if vm_list is False:
+                    logging.info("No VMs defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
+
                 for vm in vm_list:
                     vm_dict = {
                         'group_name': cloud.group_name,
@@ -240,34 +252,43 @@ def vm_poller():
                     try:
                         db_session.merge(new_vm)
                     except Exception as exc:
+                        logging.exception("Failed to merge VM entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, vm.name))
                         logging.error(exc)
-                        logging.error("unable to merge sessions, database incosistency or other error while proccessing vms for %s:%s:" % (cloud.group_name, cloud.cloud_name))
+                        abort_cycle = True
+                        break
+
                 try:        
                     db_session.commit()
                 except Exception as exc:
+                    logging.exception("Failed to commit VM updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
-                    logging.error("Unable to commit database session while proccessing vms for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
-                    logging.error("Aborting cycle...")
-            logging.debug("Poll cycle complete, sleeping...")
+                    abort_cycle = True
+                    break
+
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
+                continue
+
             try:
-                new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=poll_time)
+                new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=current_cycle)
                 db_session.merge(new_pt)
                 db_session.commit()
             except Exception as exc:
+                logging.exception("Failed to update VM poll time, aborting cycle...")
                 logging.error(exc)
-                logging.error("Unable to update vm poll time")
-            # This cycle should be reasonably fast such that the scheduler will always have the most
-            # up to date data during a given execution cycle.
-            time.sleep(config.vm_sleep_interval)
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Error during database automapping or general execution")
-            logging.error("Aborting cycle...")
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
+                continue
+
+            logging.info("Completed VM poller cycle")
+            db_session.close()
             time.sleep(config.vm_sleep_interval)
 
-
-    return None
-
+    except Exception as exc:
+        logging.exception("VM poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def flavorPoller():
     multiprocessing.current_process().name = "Flavor Poller"
@@ -275,53 +296,32 @@ def flavorPoller():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password +
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
     Flavor = Base.classes.cloud_flavors
     Cloud = Base.classes.csv2_group_resources
 
-    while True:
-        #thingdo
-        try:
-            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
-
-            logging.debug("Polling flavors")
+    try:
+        while True:
+            logging.info("Beginning flavor poller cycle")
+            db_session = Session(engine)
             current_cycle = int(time.time())
-            for cloud in cloud_list:
-                logging.info("Processing flavours from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-                authsplit = cloud.authurl.split('/')
-                try:
-                    version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-                except ValueError:
-                    logging.error("Bad openstack URL, could not determine version, skipping %s" % cloud.authurl)
-                    continue
-                if version == 2:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project)
-                else:
-                    session = get_openstack_session(
-                        auth_url=cloud.authurl,
-                        username=cloud.username,
-                        password=cloud.password,
-                        project=cloud.project,
-                        user_domain=cloud.user_domain_name,
-                        project_domain_name=cloud.project_domain_name)
 
+            abort_cycle = False
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+            for cloud in cloud_list:
+                logging.info("Processing flavours from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                session = get_session(cloud)
                 if session is False:
-                    logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                    if version == 2:
-                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                    else:
-                        logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
-                # setup openstack api objects
+
+                # setup OpenStack api objects
                 nova = get_nova_client(session)
 
                 flav_list = get_flavor_data(nova)
                 if flav_list is False:
+                    logging.info("No flavors defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
+
                 for flavor in flav_list:
                     if flavor.swap == "":
                         swap = 0
@@ -350,7 +350,13 @@ def flavorPoller():
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
                     new_flav = Flavor(**flav_dict)
-                    db_session.merge(new_flav)
+                    try:
+                        db_session.merge(new_flav)
+                    except Exception as exc:
+                        logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, flavor.name))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
 
                 #now remove any that were not updated
                 flav_to_delete = db_session.query(Flavor).filter(
@@ -358,25 +364,30 @@ def flavorPoller():
                     Flavor.group_name == cloud.group_name,
                     Flavor.cloud_name == cloud.cloud_name)
                 for flav in flav_to_delete:
-                    logging.info("Cleaning up flavor: %s", flav)
+                    logging.info("Cleaning up flavor: %s::%s::%s" % (cloud.group_name, cloud.cloud_name, flavor.name))
                     db_session.delete(flav)
-            try:        
-                db_session.commit()
-            except Exception as exc:
-                logging.error("Unable to commit database session")
-                logging.error(exc)
-                logging.error("Aborting cycle...")
-            logging.debug("End of cycle, sleeping...")
+
+                try:        
+                    db_session.commit()
+                except Exception as exc:
+                    logging.exception("Failed to commit flavor updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error(exc)
+                    abort_cycle = True
+                    break
+
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
+                continue
+
+            logging.info("Completed flavor poller cycle")
+            db_session.close()
             time.sleep(config.flavor_sleep_interval)
 
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Exception during database automapping or general execution")
-            logging.error("Aborting cycle...")
-            logging.debug("End of cycle, sleeping...")
-            time.sleep(config.flavor_sleep_interval)
-
-    return None
+    except Exception as exc:
+        logging.exception("Flavor poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def imagePoller():
     multiprocessing.current_process().name = "Image Poller"
@@ -384,107 +395,99 @@ def imagePoller():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
-    db_session.autoflush = False
     Image = Base.classes.cloud_images
     Cloud = Base.classes.csv2_group_resources
 
-    while True:
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+    try:
+        while True:
+            logging.info("Beginning image poller cycle")
+            db_session = Session(engine)
+            # db_session.autoflush = False
+            current_cycle = int(time.time())
 
-        logging.debug("Polling Images")
-        current_cycle = int(time.time())
-        current_cycle = int(time.time())
-        for cloud in cloud_list:
-            logging.info("Processing Images from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
-                continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
-            if session is False:
-                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
-                continue
+            abort_cycle = False
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+            for cloud in cloud_list:
+                logging.info("Processing Images from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                session = get_session(cloud)
+                if session is False:
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    continue
 
-            # setup openstack api object
-            nova = get_nova_client(session)
+                # setup OpenStack api object
+                nova = get_nova_client(session)
 
-            image_list = get_image_data(nova)
-            if image_list is False:
-                continue
-            for image in image_list:
-                if image.size == "":
-                    size = 0
-                else:
-                    size = image.size
+                image_list = get_image_data(nova)
+                if image_list is False:
+                    logging.info("No images defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    continue
 
-                img_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'container_format': image.container_format,
-                    'disk_format': image.disk_format,
-                    'min_ram': image.min_ram,
-                    'id': image.id,
-                    'size': size,
-                    'visibility': image.visibility,
-                    'min_disk': image.min_disk,
-                    'name': image.name,
-                    'last_updated': current_cycle
-                }
-                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
-                if unmapped:
-                    logging.error("Unmapped attributes found during mapping, discarding:")
-                    logging.error(unmapped)
-                new_image = Image(**img_dict)
-                try:
-                    db_session.merge(new_image)
+                for image in image_list:
+                    if image.size == "":
+                        size = 0
+                    else:
+                        size = image.size
+
+                    img_dict = {
+                        'group_name': cloud.group_name,
+                        'cloud_name': cloud.cloud_name,
+                        'container_format': image.container_format,
+                        'disk_format': image.disk_format,
+                        'min_ram': image.min_ram,
+                        'id': image.id,
+                        'size': size,
+                        'visibility': image.visibility,
+                        'min_disk': image.min_disk,
+                        'name': image.name,
+                        'last_updated': current_cycle
+                    }
+                    img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
+                    new_image = Image(**img_dict)
+                    try:
+                        db_session.merge(new_image)
+                    except Exception as exc:
+                        logging.exception("Failed to merge image entry for %s::%s::%s:" % (cloud.group_name, cloud.cloud_name, image.name))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+                if abort_cycle:
+                    break
+
+                # do Image cleanup
+                img_to_delete = db_session.query(Image).filter(
+                    Image.last_updated < current_cycle,
+                    Image.group_name == cloud.group_name,
+                    Image.cloud_name == cloud.cloud_name)
+                for img in img_to_delete:
+                    logging.info("Cleaning up image: %s::%s::%s" % (cloud.group_name, cloud.cloud_name, img.name))
+                    db_session.delete(img)
+
+                # Commit changes for the cloud.
+                try:        
+                    db_session.commit()
                 except Exception as exc:
+                    logging.exception("Failed to commit image updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
-                    logging.error("Database inconsistency, unable to merge image entry:")
-                    logging.error(img_dict)
-            try:        
-                db_session.commit()
-            except Exception as exc:
-                logging.error(exc)
-                logging.error("Unable to commit database session while proccessing for grp:cloud - %s:%s:" % (cloud.group_name, cloud.cloud_name))
-                logging.error("Aborting poll cycle...")
-                break
-            # do Image cleanup
-            img_to_delete = db_session.query(Image).filter(
-                Image.last_updated < current_cycle,
-                Image.group_name == cloud.group_name,
-                Image.cloud_name == cloud.cloud_name)
-            for img in img_to_delete:
-                logging.info("Cleaning up image: %s", img)
-                db_session.delete(img)
+                    abort_cycle = True
+                    break
 
-        try:        
-            db_session.commit()
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Unable to perform final commit of database session")
-            logging.error("Aborting cycle...")
-        logging.debug("End of cycle, sleeping...")
-        time.sleep(config.image_sleep_interval)
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
+                continue
+
+            logging.info("Completed image poller cycle")
+            db_session.close()
+            time.sleep(config.image_sleep_interval)
+
+    except Exception as exc:
+        logging.exception("Image poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def limitPoller():
     multiprocessing.current_process().name = "Limit Poller"
@@ -492,85 +495,77 @@ def limitPoller():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
     Limit = Base.classes.cloud_limits
     Cloud = Base.classes.csv2_group_resources
 
-    while True:
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+    try:
+        while True:
+            logging.info("Beginning limit poller cycle")
+            db_session = Session(engine)
+            current_cycle = int(time.time())
 
+            abort_cycle = False
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+            for cloud in cloud_list:
+                logging.info("Processing Limits from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                session = get_session(cloud)
+                if session is False:
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    continue
 
-        current_cycle = int(time.time())
-        for cloud in cloud_list:
-            logging.info("Processing Limits from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                # setup OpenStack api objects
+                nova = get_nova_client(session)
+
+                limits_dict = get_limit_data(nova)
+                if limits_dict is False:
+                    logging.info("No limits defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    continue
+
+                limits_dict['group_name'] = cloud.group_name
+                limits_dict['cloud_name'] = cloud.cloud_name
+                limits_dict['last_updated'] = int(time.time())
+                limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+                if unmapped:
+                    logging.error("Unmapped attributes found during mapping, discarding:")
+                    logging.error(unmapped)
+                for key in limits_dict:
+                    if "-1" in str(limits_dict[key]):
+                        limits_dict[key] = config.no_limit_default
+
+                new_limits = Limit(**limits_dict)
+                db_session.merge(new_limits)
+
+                #now remove any that were not updated
+                limit_to_delete = db_session.query(Limit).filter(
+                    Limit.last_updated < current_cycle,
+                    Limit.group_name == cloud.group_name,
+                    Limit.cloud_name == cloud.cloud_name)
+                for limit in limit_to_delete:
+                    logging.info("Cleaning up limit: %s::%s::%s" % (cloud.group_name, cloud.cloud_name, limit))
+                    db_session.delete(limit)
+
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.exception("Failed to commit limit updates, aborting cycle...")
+                logging.error(exc)
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
                 continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
 
-            if session is False:
-                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
                 continue
-            # setup openstack api objects
-            nova = get_nova_client(session)
 
-            logging.debug("Polling limits")
-            limits_dict = get_limit_data(nova)
-            if limits_dict is False:
-                continue
-            limits_dict['group_name'] = cloud.group_name
-            limits_dict['cloud_name'] = cloud.cloud_name
-            limits_dict['last_updated'] = int(time.time())
-            limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
-            if unmapped:
-                logging.error("Unmapped attributes found during mapping, discarding:")
-                logging.error(unmapped)
-            for key in limits_dict:
-                if "-1" in str(limits_dict[key]):
-                    limits_dict[key] = config.no_limit_default
+            logging.info("Completed limit poller cycle")
+            db_session.close()
+            time.sleep(config.limit_sleep_interval)
 
-            new_limits = Limit(**limits_dict)
-            db_session.merge(new_limits)
-
-            #now remove any that were not updated
-            limit_to_delete = db_session.query(Limit).filter(
-                Limit.last_updated < current_cycle,
-                Limit.group_name == cloud.group_name,
-                Limit.cloud_name == cloud.cloud_name)
-            for limit in limit_to_delete:
-                logging.info("Cleaning up limit %s", limit)
-                db_session.delete(limit)
-
-        try:        
-            db_session.commit()
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Unable to commit database session")
-            logging.error("Aborting cycle...")
-        logging.debug("End of cycle, sleeping...")
-        time.sleep(config.limit_sleep_interval)
-
-    return None
+    except Exception as exc:
+        logging.exception("Limit poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def networkPoller():
     multiprocessing.current_process().name = "Network Poller"
@@ -579,98 +574,86 @@ def networkPoller():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
-    db_session.autoflush = False
     Network = Base.classes.cloud_networks
     Cloud = Base.classes.csv2_group_resources
 
-    while True:
-        #thingdo
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+    try:
+        while True:
+            logging.info("Beginning network poller cycle")
+            db_session = Session(engine)
+            # db_session.autoflush = False
+            current_cycle = int(time.time())
 
+            abort_cycle = False
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+            for cloud in cloud_list:
+                logging.info("Processing networks from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                session = get_session(cloud)
+                if session is False:
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    continue
 
-        current_cycle = int(time.time())
-        for cloud in cloud_list:
-            logging.info("Processing Limits from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+                # setup OpenStack api objects
+                neutron = get_neutron_client(session)
+                net_list = get_network_data(neutron)
+                if net_list is False:
+                    logging.info("No networks defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    continue
+
+                for network in net_list:
+                    network_dict = {
+                        'group_name': cloud.group_name,
+                        'cloud_name': cloud.cloud_name,
+                        'name': network['name'],
+                        'subnets': ''.join(network['subnets']),
+                        'tenant_id': network['tenant_id'],
+                        'router:external': network['router:external'],
+                        'shared': network['shared'],
+                        'id': network['id'],
+                        'last_updated': int(time.time())
+                    }
+                    network_dict, unmapped = map_attributes(
+                        src="os_networks",
+                        dest="csv2",
+                        attr_dict=network_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
+                    new_network = Network(**network_dict)
+                    db_session.merge(new_network)
+
+                #now remove any that were not updated
+                net_to_delete = db_session.query(Network).filter(
+                    Network.last_updated <= last_cycle,
+                    Network.group_name == cloud.group_name,
+                    Network.cloud_name == cloud.cloud_name)
+                for net in net_to_delete:
+                    logging.info("Cleaning up network: %s::%s::%s" % (cloud.group_name, cloud.cloud_name, net))
+                    db_session.delete(net)
+
+            try:        
+                db_session.commit()
+                last_cycle = current_cycle
+            except Exception as exc:
+                logging.exception("Failed to commit network updates, aborting cycle...")
+                logging.error(exc)
+                db_session.close()
+                time.sleep(config.network_sleep_interval)
                 continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
 
-            if session is False:
-                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
                 continue
-            # setup openstack api objects
-            neutron = get_neutron_client(session)
-            net_list = get_network_data(neutron)
-            if net_list is False:
-                continue
-            for network in net_list:
-                network_dict = {
-                    'group_name': cloud.group_name,
-                    'cloud_name': cloud.cloud_name,
-                    'name': network['name'],
-                    'subnets': ''.join(network['subnets']),
-                    'tenant_id': network['tenant_id'],
-                    'router:external': network['router:external'],
-                    'shared': network['shared'],
-                    'id': network['id'],
-                    'last_updated': int(time.time())
-                }
-                network_dict, unmapped = map_attributes(
-                    src="os_networks",
-                    dest="csv2",
-                    attr_dict=network_dict)
-                if unmapped:
-                    logging.error("Unmapped attributes found during mapping, discarding:")
-                    logging.error(unmapped)
-                new_network = Network(**network_dict)
-                db_session.merge(new_network)
 
-            #now remove any that were not updated
-            net_to_delete = db_session.query(Network).filter(
-                Network.last_updated <= last_cycle,
-                Network.group_name == cloud.group_name,
-                Network.cloud_name == cloud.cloud_name)
-            for net in net_to_delete:
-                logging.info("Cleaning up network: %s", net)
-                db_session.delete(net)
+            logging.info("Completed network poller cycle")
+            db_session.close()
+            time.sleep(config.network_sleep_interval)
 
-        try:        
-            db_session.commit()
-            last_cycle = current_cycle
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Unable to commit database session")
-            logging.error("Aborting cycle...")
-        logging.debug("End of cycle, sleeping...")
-        time.sleep(config.network_sleep_interval)
-
-    return None
-
-# def vmExecutor():
-# May need a process to relay commands to the VMs (peaceful shutdown//kill)
-
+    except Exception as exc:
+        logging.exception("Network poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 # The VMs will need to be cleaned up more frequently and as such
 # the vm cleanup routine will have its own process on its own cycle
@@ -682,102 +665,86 @@ def vmCleanUp():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
     Vm = Base.classes.csv2_vms
     Poll_Times = Base.classes.csv2_poll_times
     Cloud = Base.classes.csv2_group_resources
 
-    while True:
-        current_cycle_time = time.time()
-        logging.debug("Begining cleanup cycle")
+    try:
+        while True:
+            logging.info("Beginning cleanup poller cycle")
+            db_session = Session(engine)
+            current_cycle_time = time.time()
 
-        last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
-        if last_cycle == 0:
-            logging.info("First cycle, sleeping for now...")
-            #first cycle- just sleep for the first while waiting for db updates.
-            last_cycle = current_cycle_time
-            time.sleep(config.vm_cleanup_interval)
-            continue
-        elif last_cycle >= last_vm_poll[0].last_poll:
-            logging.error("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller process")
-            logging.error("Skipping cycle...")
-            time.sleep(config.vm_cleanup_interval)
-            continue
-
-        # check for vms that have dissapeared since the last cycle
-        logging.debug("Querying database for vms to remove...")
-        vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
-        for vm in vm_to_delete:
-            logging.info("Cleaning up VM: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
-            db_session.delete(vm)
-
-        # need to commit the session here to remove vms that are gone before we look at which to terminate
-
-        try:        
-            db_session.commit()
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Unable to commit database session")
-            logging.error("Aborting cycle...")
-            logging.info("Sleeping...")
-            time.sleep(config.vm_cleanup_interval)
-            continue
-        db_session = Session(engine)
-
-        # check for vms that have been marked for termination
-        logging.debug("Querying database for VMs marked for termination...")
-        vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1, Vm.manual_control != 1)
-        for vm in vm_to_destroy:
-            logging.info("VM marked for termination... terminating: %s from group:cloud - %s:%s" % (vm.hostname, vm.group_name, vm.cloud_name))
-            # terminate vm
-            # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
-            logging.info("Getting cloud connection info from group resources..")
-            cloud = db_session.query(Cloud).filter(
-                Cloud.group_name == vm.group_name,
-                Cloud.cloud_name == vm.cloud_name).first()
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s URL: %s", (vm, cloud.authurl))
+            last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
+            if last_cycle == 0:
+                logging.info("First cycle, sleeping for now...")
+                #first cycle- just sleep for the first while waiting for db updates.
+                last_cycle = current_cycle_time
+                db_session.close()
+                time.sleep(config.vm_cleanup_interval)
                 continue
-            logging.info("Creating openstack session for group:cloud - %s:%s" % (cloud.group_name, cloud.cloud_name))
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
-            if session is False:
-                logging.error("Unable to setup session, unable to terminate %s", vm)
-                if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
-                else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
-            # returns true if vm terminated, false if an error occured
-            # probably wont need to use this result outside debugging as
-            # deleted VMs should be removed on the next cycle
-            logging.info("Terminating %s", (vm.hostname,))
-            result = terminate_vm(session, vm)
+            elif last_cycle >= last_vm_poll[0].last_poll:
+                logging.info("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller process")
+                logging.info("last_cycle: %s, last_poll: %s   Skipping cycle...", last_cycle, last_vm_poll[0].last_poll)
+                db_session.close()
+                time.sleep(config.vm_cleanup_interval)
+                continue
 
-        try:        
-            db_session.commit()
-            last_cycle = current_cycle_time
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Unable to commit database session")
-            logging.error("Aborting cycle...")
+            # check for vms that have disappeared since the last cycle
+            logging.info("Querying database for vms to remove...")
+            vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
+            for vm in vm_to_delete:
+                logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
+                db_session.delete(vm)
 
-        time.sleep(config.vm_cleanup_interval)
-    return None
+            # need to commit the session here to remove vms that are gone before we look at which to terminate
+            try:        
+                db_session.commit()
+            except Exception as exc:
+                logging.exception("Failed to commit VM deletions, aborting cycle...")
+                logging.error(exc)
+                db_session.close()
+                time.sleep(config.vm_cleanup_interval)
+                continue
+
+            # check for vms that have been marked for termination
+            logging.info("Querying database for VMs marked for termination...")
+            vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1, Vm.manual_control != 1)
+            for vm in vm_to_destroy:
+                logging.info("VM marked for termination... terminating: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
+                # terminate vm
+                # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
+                logging.info("Getting cloud connection info from group resources..")
+                cloud = db_session.query(Cloud).filter(
+                    Cloud.group_name == vm.group_name,
+                    Cloud.cloud_name == vm.cloud_name).first()
+                session = get_session(cloud)
+                if session is False:
+                    continue
+                # returns true if vm terminated, false if an error occurred
+                # probably wont need to use this result outside debugging as
+                # deleted VMs should be removed on the next cycle
+                logging.info("Terminating %s", (vm.hostname,))
+                result = terminate_vm(session, vm)
+
+            try:        
+                db_session.commit()
+                last_cycle = current_cycle_time
+            except Exception as exc:
+                logging.exception("Failed to commit VM terminations, aborting cycle...")
+                logging.error(exc)
+                db_session.close()
+                time.sleep(config.vm_cleanup_interval)
+                continue
+
+            logging.info("Completed cleanup poller cycle")
+            db_session.close()
+            time.sleep(config.vm_cleanup_interval)
+
+    except Exception as exc:
+        logging.exception("Cleanup poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def keypairPoller():
     multiprocessing.current_process().name = "Keypair Poller"
@@ -786,98 +753,85 @@ def keypairPoller():
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    db_session = Session(engine)
     Keypairs = Base.classes.cloud_keypairs
     Cloud = Base.classes.csv2_group_resources
 
-    while True:
-        current_cycle_time = time.time()
-        logging.debug("Begining keypair polling cycle")
-        cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+    try:
+        while True:
+            logging.info("Beginning keypair poller cycle")
+            db_session = Session(engine)
 
-        current_cycle = int(time.time())
-        for cloud in cloud_list:
-            logging.info("Processing Keypairs from group:cloud -  %s:%s" % (cloud.group_name, cloud.cloud_name))
-            authsplit = cloud.authurl.split('/')
-            try:
-                version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
-            except ValueError:
-                logging.error("Bad openstack URL, could not determine version, skipping %s", cloud.authurl)
+            abort_cycle = False
+            cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
+            for cloud in cloud_list:
+                logging.info("Processing Key pairs from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                session = get_session(cloud)
+                if session is False:
+                    logging.error("Failed to establish session with %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    continue
+
+                # setup openstack api objects
+                nova = get_nova_client(session)
+
+                #setup fingerprint list
+                fingerprint_list = []
+
+                try:
+                    # get keypairs and add them to database
+                    cloud_keys = nova.keypairs.list()
+                except Exception as exc:
+                    logging.error(exc)
+                    logging.error("Failed to poll key pairs from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    continue
+
+                for key in cloud_keys:
+                    key_dict = {
+                        "cloud_name":  cloud.cloud_name,
+                        "group_name":  cloud.group_name,
+                        "key_name":    key.name,
+                        "fingerprint": key.fingerprint
+                    }
+                    fingerprint_list.append(key.fingerprint)
+                    new_key = Keypairs(**key_dict)
+                    db_session.merge(new_key)
+
+                try:
+                    db_session.commit()
+                except Exception as exc:
+                    logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % (cloud.group_name, cloud.cloud_name))
+                    logging.error(exc)
+                    break
+
+                # now we need to check database for any keys that have been deleted
+                db_keys = db_session.query(Keypairs).filter(
+                    Keypairs.cloud_name == cloud.cloud_name,
+                    Keypairs.group_name == cloud.group_name)
+
+                for key in db_keys:
+                    #check against fingerprint list created earlier
+                    if key.fingerprint not in fingerprint_list:
+                        # delete it
+                        db_session.delete(key)
+                try:
+                    db_session.commit()
+                except Exception as exc:
+                    logging.error("Failed to commit keypair deletions for %s::%s, aborting cycle..."  % (cloud.group_name, cloud.cloud_name))
+                    logging.error(exc)
+                    break
+
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.limit_sleep_interval)
                 continue
-            if version == 2:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project)
-            else:
-                session = get_openstack_session(
-                    auth_url=cloud.authurl,
-                    username=cloud.username,
-                    password=cloud.password,
-                    project=cloud.project,
-                    user_domain=cloud.user_domain_name,
-                    project_domain_name=cloud.project_domain_name)
 
-            if session is False:
-                logging.error("Unable to setup session, skipping %s", cloud.cloud_name)
-                if version == 2:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (cloud.auth_url, cloud.username, cloud.project))
-                else:
-                    logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (cloud.auth_url, cloud.sername, cloud.project, cloud.user_domain, cloud.project_domain_name))
-                continue
+            logging.info("Completed keypair poller cycle")
+            db_session.close()
+            time.sleep(config.keypair_sleep_interval)
 
-            # setup openstack api objects
-            nova = get_nova_client(session)
-
-            #setup fingerprint list
-            fingerprint_list = []
-
-            try:
-                # get keypairs and add them to database
-                cloud_keys = nova.keypairs.list()
-            except Exception as exc:
-                logging.error(exc)
-                logging.error("Unable to poll keypairs from nova, skipping %s-%s" % (cloud.group_name, cloud.cloud_name))
-            for key in cloud_keys:
-                key_dict = {
-                    "cloud_name":  cloud.cloud_name,
-                    "group_name":  cloud.group_name,
-                    "key_name":    key.name,
-                    "fingerprint": key.fingerprint
-                }
-                fingerprint_list.append(key.fingerprint)
-                new_key = Keypairs(**key_dict)
-                db_session.merge(new_key)
-            try:
-                db_session.commit()
-            except Exception as exc:
-                logging.error(exc)
-                logging.error("Unable to commit database session during keypair proccessing")
-                logging.error("Skipping %s - %s" % (cloud.group_name, cloud.cloud_name))
-                break
-
-            # now we need to check database for any keys that have been deleted
-            db_keys = db_session.query(Keypairs).filter(
-                Keypairs.cloud_name == cloud.cloud_name,
-                Keypairs.group_name == cloud.group_name)
-
-            for key in db_keys:
-                #check against fingerprint list created earlier
-                if key.fingerprint not in fingerprint_list:
-                    # delete it
-                    db_session.delete(key)
-            try:
-                db_session.commit()
-            except Exception as exc:
-                logging.error(exc)
-                logging.error("Unable to commit database session during keypair proccessing")
-                logging.error("Skipping %s - %s" % (cloud.group_name, cloud.cloud_name))
-                break
-        logging.info("End of cycle, sleeping")
-        time.sleep(config.keypair_sleep_interval)
-
-
+    except Exception as exc:
+        logging.exception("Keypair poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 ## MAIN
 #
@@ -886,35 +840,32 @@ if __name__ == '__main__':
     logging.basicConfig(
         filename=config.poller_log_file,
         level=config.log_level,
-        format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
-    processes = []
+        format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
 
-    p_vm_poller = Process(target=vm_poller)
-    processes.append(p_vm_poller)
-    p_vm_cleanup = Process(target=vmCleanUp)
-    processes.append(p_vm_cleanup)
-    p_flavor_poller = Process(target=flavorPoller)
-    processes.append(p_flavor_poller)
-    p_image_poller = Process(target=imagePoller)
-    processes.append(p_image_poller)
-    p_limit_poller = Process(target=limitPoller)
-    processes.append(p_limit_poller)
-    p_network_poller = Process(target=networkPoller)
-    processes.append(p_network_poller)
-    p_keypair_poller = Process(target=keypairPoller)
-    processes.append(p_keypair_poller)
+    processes = {}
+    process_ids = {
+        'vm':          vm_poller,
+        'cleanup':     vmCleanUp,
+        'flavor':      flavorPoller,
+        'image':       imagePoller,
+        'limit':       limitPoller,
+        'network':     networkPoller,
+        'keypair':     keypairPoller,
+        }
 
     # Wait for keyboard input to exit
     try:
-        for process in processes:
-            process.start()
         while True:
-            for process in processes:
-                if not process.is_alive():
-                    logging.error("%s process died!", process.name)
-                    logging.error("Restarting %s process...", process.name)
-                    process.start()
-                time.sleep(1)
+            for process in process_ids:
+                if process not in processes or not processes[process].is_alive():
+                    if process in processes:
+                        logging.error("%s process died, restarting...", process)
+                        del(processes[process])
+                    else:
+                        logging.info("Restarting %s process", process)
+                    processes[process] = Process(target=process_ids[process])
+                    processes[process].start()
+                    time.sleep(1)
             time.sleep(10)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")

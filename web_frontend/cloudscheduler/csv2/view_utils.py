@@ -497,28 +497,77 @@ def _qt_list(secondary_dict_ptr, secondary_key_list_ptr, cols, key):
 
 #-------------------------------------------------------------------------------
 
-def qt_filter_get(columns, values, and_or='and'):
+def qt_filter_get(columns, values, aliases=None, and_or='and'):
     """
-    This function takes two lists (columns and values) or equal length and
-    returns a string that can be evaluated by view_utils.qt to filter rows
-    of a query.
-    """
+    Return an eveluation string to filter the rows of a queryset. This function takes the
+    following arguments:
+        o "columns" is a list of columns to be matched against items within the "values"
+           parameter.
 
-    if len(columns) != len(values):
-        return None
-#       raise Exception('view_utils. columns(%s) and values(%s) arguments must be of equal length.' % (len(columns), len(values)))
+        o "values" is either a list or a dictionary. If it is a dictionary, the keys are
+          column names identified by the columns parameter. If it is a list, the values 
+          in the list have an index value corresponding to the columns argument. A value
+          for a column can have one of five formats:
+              1. An integer.
+              2. A string. A string of "null" will match column is null.
+              3. A string containing a comma separated list.
+              4. A list.
+              5. An alias ("aliases" parameter required, see below). Each alias is 
+                 replaced by its corresponding value.
+
+        o "aliases" is a structure with the following format:
+              aliases = {
+                  <column_name_1>: {
+                      <alias_1>: <value>,
+                      <alias_2>: <value>,
+                       . 
+                      },
+                  <column_name_2>: {
+                      <alias_1>: <value>,
+                      <alias_2>: <value>,
+                       . 
+                      },
+                   .
+                  }
+
+          The "value" for an alias can be any one of the first four formats. 
+
+        o "and_or" is either "and" default) or "or" and is used as the boolean operator
+          between column selections.
+    """
 
     key_value_list = []
     for ix in range(len(columns)):
-        if values[ix]:
-            try:
-                x = float(values[ix])
-                key_value_list.append("cols['%s'] == %s" % (columns[ix], values[ix]))
-            except:
-                if ',' in values[ix]:
-                  key_value_list.append("cols['%s'] in %s" % (columns[ix], values[ix].split(',')))
-                else:
-                  key_value_list.append("cols['%s'] == '%s'" % (columns[ix], values[ix]))
+        if isinstance(values, dict):
+            if columns[ix] in values:
+                value = values[columns[ix]]
+            else:
+                continue
+
+        else:
+            if ix < len(values):
+                value = values[ix]
+            else:
+                break
+
+        if value == '':
+            continue
+
+        if aliases and columns[ix] in aliases and value in aliases[columns[ix]]:
+            value = aliases[columns[ix]][value]
+
+        try:
+            x = float(value)
+            key_value_list.append("cols['%s'] == %s" % (columns[ix], value))
+        except:
+            if isinstance(value, list):
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value))
+            elif value == 'null':
+                key_value_list.append("cols['%s'] is null" % columns[ix])
+            elif ',' in value:
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value.split(',')))
+            else:
+              key_value_list.append("cols['%s'] == '%s'" % (columns[ix], value))
 
     if len(key_value_list) < 1:
         return None
@@ -684,6 +733,8 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
                              can't start or end with a dash (or error).
+    mandatory              - The field is not a key field but must be specified and cannot be
+                             blank/empty.
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -818,6 +869,10 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                     if request.POST[field] != value:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
+                elif Formats[field] == 'mandatory':
+                    if value.strip() == '':
+                        return 1, 'value specified for "%s" must not be an empty string.' % field, None, None, None
+
                 elif Formats[field] == 'metadata':
                     filename = '%s_name' % field
                     if filename in request.POST:
@@ -891,10 +946,8 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         if Options['auto_active_user'] and 'username' not in Fields:
             Fields['username'] = active_user
 
-        for field in primary_key_columns:
-            if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
-                return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
-
+        # Process other mandatory fields and booleans.
+        other_mandatory_fields= []
         for field in Formats:
             if Formats[field] == 'boolean':
                 if request.POST.get(field):
@@ -904,6 +957,13 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                         Fields[field] = True
                 else:
                     Fields[field] = False
+
+            elif Formats[field] == 'mandatory':
+                other_mandatory_fields.append(field)
+
+        for field in primary_key_columns + other_mandatory_fields:
+            if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
+                return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 

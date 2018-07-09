@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
--- Server version	10.2.14-MariaDB
+-- Server version	10.2.12-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,30 +16,20 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_vm_status_codes`
+-- Table structure for table `cloud_keypairs`
 --
 
-DROP TABLE IF EXISTS `csv2_vm_status_codes`;
+DROP TABLE IF EXISTS `cloud_keypairs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_vm_status_codes` (
-  `power_status` int(11) DEFAULT NULL,
-  `vm_status` varchar(16) DEFAULT NULL,
-  `condor_off` tinyint(1) DEFAULT NULL,
-  `manual_control` tinyint(1) DEFAULT NULL,
-  `status` varchar(16) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `cloud_keypairs` (
+  `group_name` varchar(32) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
+  `fingerprint` varchar(64) NOT NULL,
+  `key_name` varchar(32) NOT NULL,
+  PRIMARY KEY (`cloud_name`,`group_name`,`fingerprint`,`key_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `csv2_vm_status_codes`
---
-
-LOCK TABLES `csv2_vm_status_codes` WRITE;
-/*!40000 ALTER TABLE `csv2_vm_status_codes` DISABLE KEYS */;
-INSERT INTO `csv2_vm_status_codes` VALUES (NULL,NULL,NULL,1,'manual'),(NULL,'ERROR',NULL,NULL,'error'),(1,'ACTIVE',0,0,'running'),(1,'ACTIVE',1,0,'retiring'),(1,'ACTIVE',2,0,'retiring'),(1,'ACTIVE',NULL,0,'unregistered');
-/*!40000 ALTER TABLE `csv2_vm_status_codes` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -50,4 +40,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-08 15:15:57
+-- Dump completed on 2018-07-09 10:53:09
