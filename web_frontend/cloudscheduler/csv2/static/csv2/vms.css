@@ -5,11 +5,11 @@
 
 .vm-div {
   display: block;
+  height: 89%;
   overflow-y: visible;
   overflow-x: visible;
-  height: 89%;
-  width: 100%;
   position: static;
+  width: 100%;
 }
 
 .vm-div form {
@@ -62,9 +62,9 @@
 
 .vm-table table {
   display: block;
-  table-layout: fixed;
-  overflow-x: auto;
+  overflow-x: scroll;
   padding-bottom: 1px;
+  table-layout: fixed;
 }
 
 .vm-table th, td {
