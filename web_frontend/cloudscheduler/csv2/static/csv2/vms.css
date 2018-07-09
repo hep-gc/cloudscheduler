@@ -7,7 +7,7 @@
   display: block;
   overflow-y: visible;
   overflow-x: visible;
-  height: 93%;
+  height: 89%;
   width: 100%;
   position: static;
 }
@@ -80,9 +80,10 @@
 
 .vm-table th {
   background-color: powderblue;
-  cursor: pointer;
-  text-align: center;
   color: black;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
 }
 
 .vm-table tbody {
