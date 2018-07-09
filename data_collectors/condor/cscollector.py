@@ -321,29 +321,27 @@ if __name__ == '__main__':
         filename=config.log_file,
         level=config.log_level,
         format='%(asctime)s - %(processName)-14s - %(levelname)s - %(message)s')
-    processes = []
 
-    # Condor Data Poller proccess
-    p_resource_producer = Process(target=resources_producer)
-    processes.append(p_resource_producer)
-    # Command executer proccess
-    p_command_consumer = Process(target=collector_command_consumer)
-    processes.append(p_command_consumer)
-    # Database cleanup proccess
-    p_cleanup = Process(target=cleanUp)
-    processes.append(p_cleanup)
+    processes = {}
+    process_ids = {
+        'cleanup':            cleanUp,
+        'command':            collector_command_consumer,
+        'resources':          resources_producer,
+        }
 
     # Wait for keyboard input to exit
     try:
-        for process in processes:
-            process.start()
         while True:
-            for process in processes:
-                if not process.is_alive():
-                    logging.error("%s process died!", process.name)
-                    logging.error("Restarting %s process...")
-                    process.start()
-                time.sleep(1)
+            for process in process_ids:
+                if process not in processes or not processes[process].is_alive():
+                    if process in processes:
+                        logging.error("%s process died, restarting...", process)
+                        del(processes[process])
+                    else:
+                        logging.info("Restarting %s process", process)
+                    processes[process] = Process(target=process_ids[process])
+                    processes[process].start()
+                    time.sleep(1)
             time.sleep(10)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
