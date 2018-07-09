@@ -16,28 +16,23 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_vm_status_codes`
+-- Table structure for table `csv2_group_resource_metadata`
 --
 
-DROP TABLE IF EXISTS `csv2_vm_status_codes`;
+DROP TABLE IF EXISTS `csv2_group_resource_metadata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_vm_status_codes` (
-  `status_from_poller` varchar(64) NOT NULL,
-  `status` varchar(8) NOT NULL,
-  PRIMARY KEY (`status_from_poller`)
+CREATE TABLE `csv2_group_resource_metadata` (
+  `group_name` varchar(32) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
+  `metadata_name` varchar(64) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `priority` int(11) NOT NULL DEFAULT 0,
+  `metadata` text NOT NULL,
+  `mime_type` varchar(128) NOT NULL DEFAULT 'cloud-config',
+  PRIMARY KEY (`group_name`,`cloud_name`,`metadata_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `csv2_vm_status_codes`
---
-
-LOCK TABLES `csv2_vm_status_codes` WRITE;
-/*!40000 ALTER TABLE `csv2_vm_status_codes` DISABLE KEYS */;
-INSERT INTO `csv2_vm_status_codes` VALUES ('0,0,ERROR,0','error'),('0,1,ACTIVE,0','running'),('0,1,ACTIVE,1','retiring'),('0,1,ACTIVE,2','retiring'),('0,1,ERROR,0','error');
-/*!40000 ALTER TABLE `csv2_vm_status_codes` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -48,4 +43,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-08 11:40:33
+-- Dump completed on 2018-07-09 10:53:09
