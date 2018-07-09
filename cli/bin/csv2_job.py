@@ -55,7 +55,11 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-vc', '-vco', '-vd', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs', '-vt'])
+    check_keys(
+        gvar,
+        [],
+        [],
+        ['-cn', '-g', '-ok', '-vc', '-vco', '-vd', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs', '-vt', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/job/list/')

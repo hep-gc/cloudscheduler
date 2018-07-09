@@ -35,7 +35,7 @@ def add(gvar):
         gvar,
         ['-un', '-upw'],
         [],
-        ['-ucn', '-gn', '-SU'],
+        ['-ucn', '-gn', '-SU', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     # Create the user.
@@ -54,7 +54,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-un'], [], [])
+    check_keys(gvar, ['-un'], [], ['-s', '-xA', '-h', '-H'])
 
     # Check that the target user exists.
     response = requests(gvar, '/user/list/')
@@ -94,7 +94,7 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-un', '-ok'])
+    check_keys(gvar, [], [], ['-un', '-ok', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the user).
     response = requests(gvar, '/user/list/')
@@ -133,7 +133,7 @@ def update(gvar):
         gvar,
         ['-un'],
         [],
-        ['-gn', '-go', '-SU', '-ucn', '-upw'],
+        ['-gn', '-go', '-SU', '-ucn', '-upw', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

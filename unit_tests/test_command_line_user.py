@@ -19,6 +19,26 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'user', 'invalid-unit-test']
     )
 
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'user', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'No action specified for object "user"; use -h or -H for help.',
+        ['cloudscheduler', 'user', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler user".',
+        ['cloudscheduler', 'user', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'user', '-H']
+    )
+
     #### ADD ####
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
@@ -28,6 +48,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized',
         ['cloudscheduler', 'user', 'add', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: group-option',
+        ['cloudscheduler', 'user', 'add', '-go', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'user', 'add', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'user', 'add', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler user add".',
+        ['cloudscheduler', 'user', 'add', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'user', 'add', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'user', 'add', '-xA']
     )
 
     execute_csv2_command(
@@ -61,12 +111,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV04', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV03', 'specified group "invalid-unit-test" does not exist.',
         ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV05', r'Data too long for column \'username\' at row 1',
+        gvar, 1, 'UV04', r'Data too long for column \'username\' at row 1',
         ['cloudscheduler', 'user', 'add', '-un', 'thisisausernametoolongtoinsertint', '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test']
     )
 
@@ -96,7 +146,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV06', r'Duplicate entry \'invalid-unit-test-jodiew-clg1\' for key \'PRIMARY\'',
+        gvar, 1, 'UV05', r'Duplicate entry \'invalid-unit-test-jodiew-clg1\' for key \'PRIMARY\'',
         ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', ut_id(gvar, 'clg1,clg1')]
     )
 
@@ -140,6 +190,36 @@ def main(gvar, user_secret):
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'user', 'delete', '-xx', 'yy']
     )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: group-option',
+        ['cloudscheduler', 'user', 'delete', '-go', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'user', 'delete', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'user', 'delete', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler user delete".',
+        ['cloudscheduler', 'user', 'delete', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'user', 'delete', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'user', 'delete', '-xA']
+    )
     
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
@@ -178,6 +258,36 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: group-option',
+        ['cloudscheduler', 'user', 'list', '-go', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'user', 'list', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'user', 'list', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler user list".',
+        ['cloudscheduler', 'user', 'list', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'user', 'list', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Expose API requested',
+        ['cloudscheduler', 'user', 'list', '-xA']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
         ['cloudscheduler', 'user', 'list', '-un', 'invalid-unit-test']
     )
@@ -209,12 +319,42 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: only-keys',
+        ['cloudscheduler', 'user', 'update', '-ok']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'user', 'update', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'user', 'update', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler user update".',
+        ['cloudscheduler', 'user', 'update', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'user', 'update', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'user', 'update', '-xA']
+    )
+
+    execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'user', 'update', '-g', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV21', 'the request did not match any rows.',
+        gvar, 1, 'UV22', 'the request did not match any rows.',
         ['cloudscheduler', 'user', 'update', '-un', 'invalid-unit-test']
     )
 
@@ -244,12 +384,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV02', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'clu1')),
+        gvar, 1, 'UV20', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'clu1')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-ucn', ut_id(gvar, 'clu1')]
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV02', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'command line user one'), ut_id(gvar, 'clu1')),
+        gvar, 1, 'UV20', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'command line user one'), ut_id(gvar, 'clu1')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-ucn', ut_id(gvar, 'command line user one')]
     )
 
@@ -314,7 +454,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV20', 'specified group "invalid-unit-test" does not exist.',
+        gvar, 1, 'UV21', 'specified group "invalid-unit-test" does not exist.',
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', 'invalid-unit-test']
     )
 

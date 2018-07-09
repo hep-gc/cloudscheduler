@@ -54,7 +54,7 @@ def add(gvar):
         gvar,
         ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
         [],
-        ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr'],
+        ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     # Create the cloud.
@@ -73,7 +73,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn'], [], ['-g'])
+    check_keys(gvar, ['-cn'], [], ['-g', '-s', '-xA', '-h', '-H'])
 
     # Check that the target cloud exists.
     response = requests(gvar, '/cloud/list/')
@@ -113,7 +113,7 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/list/')
@@ -170,7 +170,7 @@ def status(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-o', '-ok'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-o', '-ok', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/status/')
@@ -235,7 +235,7 @@ def update(gvar):
         gvar,
         ['-cn'],
         [],
-        ['-ca', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr'],
+        ['-ca', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
@@ -258,7 +258,7 @@ def metadata_collation(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/metadata-collation/')
@@ -290,7 +290,7 @@ def metadata_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-mn'], [], ['-g'])
+    check_keys(gvar, ['-cn', '-mn'], [], ['-g', '-s', '-xA', '-h', '-H'])
 
     # Check that the target cloud metadata file exists.
     response = requests(gvar, '/cloud/list/')
@@ -334,7 +334,7 @@ def metadata_edit(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-mn'], ['-te'], ['-g'])
+    check_keys(gvar, ['-cn', '-mn'], ['-te'], ['-g', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/metadata-fetch/%s::%s' % (gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
@@ -394,7 +394,7 @@ def metadata_list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mn'])
+    check_keys(gvar, [], [], ['-cn', '-g', '-ok', '-mn', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/metadata-list/')
@@ -431,7 +431,7 @@ def metadata_load(gvar):
         gvar,
         ['-cn', '-f', '-mn'],
         [],
-        ['-g', '-me', '-mmt', '-mp'],
+        ['-g', '-me', '-mmt', '-mp', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP
         )
 
@@ -462,7 +462,7 @@ def metadata_update(gvar):
         gvar,
         ['-cn', '-mn'],
         [],
-        ['-g', '-me', '-mmt', '-mp'],
+        ['-g', '-me', '-mmt', '-mp', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP
         )
 

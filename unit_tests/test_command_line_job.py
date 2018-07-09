@@ -19,10 +19,60 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'job', 'invalid-unit-test']
     )
 
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'job', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'No action specified for object "job"; use -h or -H for help.',
+        ['cloudscheduler', 'job', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler job".',
+        ['cloudscheduler', 'job', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'job', '-H']
+    )
+
     #### LIST ####
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'job', 'list', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: job-cores',
+        ['cloudscheduler', 'job', 'list', '-jc', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'job', 'list', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'job', 'list', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler job list".',
+        ['cloudscheduler', 'job', 'list', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'job', 'list', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Expose API requested',
+        ['cloudscheduler', 'job', 'list', '-xA']
     )
 
     execute_csv2_command(

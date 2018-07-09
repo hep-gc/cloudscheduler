@@ -47,7 +47,7 @@ def add(gvar):
         gvar,
         ['-gm', '-gn'],
         [],
-        ['-un'],
+        ['-un', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     # Create the group.
@@ -70,7 +70,7 @@ def defaults(gvar):
         gvar,
         [],
         [],
-        ['-g', '-jc', '-jd', '-jed', '-jr', '-js'],
+        ['-g', '-jc', '-jd', '-jr', '-js', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     # List the current defaults. If the form_data contains any optional fields,
@@ -107,7 +107,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-gn'], [], [])
+    check_keys(gvar, ['-gn'], [], ['-s', '-xA', '-h', '-H'])
 
     # Check that the target group exists.
     response = requests(gvar, '/group/list/')
@@ -147,7 +147,7 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-gn', '-ok'])
+    check_keys(gvar, [], [], ['-gn', '-ok', '-r', '-V', '-VC', '-NV', '-g', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/list/')
@@ -182,7 +182,7 @@ def update(gvar):
         gvar,
         ['-gn'],
         [],
-        ['-gm', '-un', '-uo'],
+        ['-gm', '-un', '-uo', '-g', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
@@ -205,7 +205,7 @@ def metadata_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], [], ['-g'])
+    check_keys(gvar, ['-mn'], [], ['-g', '-s', '-xA', '-h', '-H'])
 
     # Check that the target groupmetadata file exists.
     response = requests(gvar, '/group/list/')
@@ -248,7 +248,7 @@ def metadata_edit(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], ['-te'], ['-g'])
+    check_keys(gvar, ['-mn'], ['-te'], ['-g', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-fetch/%s' % gvar['user_settings']['metadata-name'])
@@ -308,7 +308,7 @@ def metadata_list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-g', '-ok', '-mn'])
+    check_keys(gvar, [], [], ['-g', '-ok', '-mn', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-list/')
@@ -345,7 +345,7 @@ def metadata_load(gvar):
         gvar,
         ['-f', '-mn'],
         [],
-        ['-g', '-me', '-mmt', '-mp'],
+        ['-g', '-me', '-mmt', '-mp', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     if not os.path.exists(gvar['user_settings']['file-path']):
@@ -381,7 +381,7 @@ def metadata_update(gvar):
         gvar,
         ['-mn'],
         [],
-        ['-g', '-me', '-mmt', '-mp'],
+        ['-g', '-me', '-mmt', '-mp', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

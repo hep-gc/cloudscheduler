@@ -124,7 +124,6 @@ def main(args):
             ('-h',   '--help', False),
             ('-jc',  '--job-cores', True),
             ('-jd',  '--job-disk', True),
-            ('-jed', '--job-ephemeral-disk', True),
             ('-jr',  '--job-ram', True),
             ('-js',  '--job-swap', True),
             ('-me',  '--metadata-enabled', True),

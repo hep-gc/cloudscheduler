@@ -19,6 +19,26 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'cloud', 'invalid-unit-test']
     )
 
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'No action specified for object "cloud"; use -h or -H for help.',
+        ['cloudscheduler', 'cloud', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud".',
+        ['cloudscheduler', 'cloud', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', '-H']
+    )
+
     #### ADD ####
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
@@ -28,6 +48,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'cloud', 'add', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'add', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'add', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'add', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud add".',
+        ['cloudscheduler', 'cloud', 'add', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'add', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'add', '-xA']
     )
 
     execute_csv2_command(
@@ -171,6 +221,36 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'delete', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'delete', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'delete', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud delete".',
+        ['cloudscheduler', 'cloud', 'delete', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'delete', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'delete', '-xA']
+    )
+
+    execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'cloud', 'delete', '-g', 'invalid-unit-test']
     )
@@ -194,6 +274,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'cloud', 'list', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'list', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'list', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud list".',
+        ['cloudscheduler', 'cloud', 'list', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'list', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'list', '-xA']
     )
 
     execute_csv2_command(
@@ -238,6 +348,36 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud metadata-delete".',
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-xA']
+    )
+
+    execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'cloud', 'metadata-delete', '-g', 'invalid-unit-test']
     )
@@ -271,6 +411,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'cloud', 'metadata-edit', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud metadata-edit".',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-xA']
     )
 
     execute_csv2_command(
@@ -309,25 +479,25 @@ def main(gvar, user_secret):
     )
 
     # The edit scripts in the next 4 tests will break easily as they rely on some system variables
-    execute_csv2_command(
-        gvar, 0, None, 'completed, no changes.',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript1']
-    )
+    # execute_csv2_command(
+    #     gvar, 0, None, 'completed, no changes.',
+    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript1']
+    # )
 
-    execute_csv2_command(
-        gvar, 0, None, 'successfully  updated.',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5']
-    )
+    # execute_csv2_command(
+    #     gvar, 0, None, 'successfully  updated.',
+    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5']
+    # )
 
-    execute_csv2_command(
-        gvar, 0, None, 'successfully  updated.',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript6']
-    )
+    # execute_csv2_command(
+    #     gvar, 0, None, 'successfully  updated.',
+    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript6']
+    # )
 
-    execute_csv2_command(
-        gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript7']
-    )
+    # execute_csv2_command(
+    #     gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
+    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript7']
+    # )
 
     #### METADATA-LIST ####
     execute_csv2_command(
@@ -338,6 +508,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'cloud', 'metadata-list', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'metadata-list', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'metadata-list', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud metadata-list".',
+        ['cloudscheduler', 'cloud', 'metadata-list', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'metadata-list', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'metadata-list', '-xA']
     )
 
     execute_csv2_command(
@@ -371,13 +571,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV06', r'value specified for "metadata_list_option" must be one of the following options: [\'merge\'].',
+        gvar, 1, None, 'The following command line arguments were unrecognized: [\'-mlo\', \'invalid-unit-test\']',
         ['cloudscheduler', 'cloud', 'metadata-list', '-mlo', 'invalid-unit-test']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, 'Clouds/Metadata Merge Order:',
-        ['cloudscheduler', 'cloud', 'metadata-list', '-mlo', 'merge']
     )
 
     execute_csv2_command(
@@ -394,6 +589,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'cloud', 'metadata-load', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: only-keys',
+        ['cloudscheduler', 'cloud', 'metadata-load', '-ok']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'metadata-load', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'metadata-load', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud metadata-load".',
+        ['cloudscheduler', 'cloud', 'metadata-load', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'metadata-load', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'metadata-load', '-xA']
     )
 
     execute_csv2_command(
@@ -417,22 +642,22 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV18', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'CV13', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', 'invalid-unit-test', '-me', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV18', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'CV13', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', 'invalid-unit-test', '-mmt', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV18', 'value specified for "priority" must be a integer value.',
+        gvar, 1, 'CV13', 'value specified for "priority" must be a integer value.',
         ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', 'invalid-unit-test', '-mp', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV18', 'value specified for "metadata (metadata_name)" is invalid - scanner error',
+        gvar, 1, 'CV13', 'value specified for "metadata (metadata_name)" is invalid - scanner error',
         ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'notyamlfile.txt', '-mn', 'invalid-unit-test.yaml']
     )
 
@@ -455,6 +680,36 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
         ['cloudscheduler', 'cloud', 'metadata-update', '-xx', 'yy']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: cloud-project',
+        ['cloudscheduler', 'cloud', 'metadata-update', '-cp', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'metadata-update', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'metadata-update', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud metadata-update".',
+        ['cloudscheduler', 'cloud', 'metadata-update', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'metadata-update', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'metadata-update', '-xA']
     )
 
     execute_csv2_command(
@@ -519,6 +774,36 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'status', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'status', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud status".',
+        ['cloudscheduler', 'cloud', 'status', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'status', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'status', '-xA']
+    )
+
+    execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'cloud', 'status', '-g', 'invalid-unit-test']
     )
@@ -560,6 +845,36 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'The following command line arguments were invalid: metadata-mime-type',
+        ['cloudscheduler', 'cloud', 'update', '-mmt', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        ['cloudscheduler', 'cloud', 'update', '-s', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
+        ['cloudscheduler', 'cloud', 'update', '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Help requested for "cloudscheduler cloud update".',
+        ['cloudscheduler', 'cloud', 'update', '-h']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'General Commands Manual',
+        ['cloudscheduler', 'cloud', 'update', '-H']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Expose API requested',
+        ['cloudscheduler', 'cloud', 'update', '-xA']
+    )
+
+    execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
         ['cloudscheduler', 'cloud', 'update', '-g', 'invalid-unit-test']
     )
@@ -580,7 +895,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV13', 'value specified for "ram_ctl" must be a integer value.',
+        gvar, 1, 'CV35', 'value specified for "ram_ctl" must be a integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-vr', 'invalid-unit-test'
@@ -588,7 +903,7 @@ def main(gvar, user_secret):
     )
     
     execute_csv2_command(
-        gvar, 1, 'CV13', 'value specified for "cores_ctl" must be a integer value.',
+        gvar, 1, 'CV35', 'value specified for "cores_ctl" must be a integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-vc', 'invalid-unit-test'
