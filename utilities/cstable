@@ -63,27 +63,29 @@ def main(args):
            gvar['backup_data'] = []
 
         for table in sorted(gvar['backup_data']):
-            print('Redefining table "%s".' % table)
-            table_backup_path = '%s/%s/%s' % (gvar['schema_backup_dir'], gvar['other_fqdn'], table)
-            if os.path.isfile(table_backup_path):
-                fd = open(gvar['views'][view]['path'])
-                _p1 = Popen(
-                    [
-                        'mysql',
-                        '-u%s' % gvar['csv2_config']['database']['db_user'],
-                        '-p%s' % gvar['csv2_config']['database']['db_password'],
-                        gvar['csv2_config']['database']['db_name']
-                        ],
-                    stdin=fd,
-                    stdout=PIPE,
-                    stderr=PIPE
-                    )
-                stdout, stderr = _p1.communicate()
-                if _p1.returncode != 0:
-                    print('Failed to redine view "%s" - %s' % (view, stderr.decode('utf-8')))
-                    exit(1)
-            else:
-                print('Skipping redefinition of table "%s", backup file "%s" missing.' % (table, table_backup_path))
+            if table:
+                print('Redefining table "%s".' % table)
+                table_backup_path = '%s/%s/%s' % (gvar['schema_backup_dir'], gvar['other_fqdn'], table)
+                if os.path.isfile(table_backup_path):
+                    fd = open(table_backup_path)
+                    _p1 = Popen(
+                        [
+                            'mysql',
+                            '-u%s' % gvar['csv2_config']['database']['db_user'],
+                            '-p%s' % gvar['csv2_config']['database']['db_password'],
+                            gvar['csv2_config']['database']['db_name']
+                            ],
+                        stdin=fd,
+                        stdout=PIPE,
+                        stderr=PIPE
+                        )
+                    stdout, stderr = _p1.communicate()
+                    fd.close()
+                    if _p1.returncode != 0:
+                        print('Failed to redine view "%s" - %s' % (view, stderr.decode('utf-8')))
+                        exit(1)
+                else:
+                    print('Skipping redefinition of table "%s", backup file "%s" missing.' % (table, table_backup_path))
 
 if __name__ == "__main__":
     main(sys.argv)
