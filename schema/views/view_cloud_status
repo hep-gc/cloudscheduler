@@ -7,6 +7,10 @@ select
 
 grwvs.group_name,
 grwvs.cloud_name,
+vgr.enabled,
+vgr.default_flavor,
+vgr.default_image,
+vgr.vm_keep_alive,
 cast(sum(VMs) as int) as VMs,
 cast(sum(VMs_unregistered) as int) as VMs_unregistered,
 cast(sum(VMs_running) as int) as VMs_running,

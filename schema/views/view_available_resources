@@ -12,6 +12,8 @@ from (
     select
         vgr.group_name,
         vgr.cloud_name,
+        vgr.enabled,
+        vgr.default_image,
         authurl,
         project,
         username,
@@ -70,12 +72,18 @@ from (
         from view_group_resources as vgr
         join cloud_flavors as cf on
         vgr.group_name=cf.group_name and
-        vgr.cloud_name=cf.cloud_name
+        vgr.cloud_name=cf.cloud_name and (
+            vgr.default_flavor is null or
+            vgr.default_flavor="" or
+            vgr.default_flavor=cf.name
+            )
+
 
         order by vgr.group_name,vgr.cloud_name,flavor_priority
         ) as grwcf /* group_resources_with_cloud_flavors */
   
 where
+  enabled=1 and
   flavor_cores<=cores_idle and
   flavor_ram<=ram_idle
 

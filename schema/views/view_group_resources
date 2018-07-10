@@ -26,6 +26,7 @@ from (
 
     cgr.group_name,
     cgr.cloud_name,
+    cgr.enabled,
     authurl,
     cgr.project,
     username,
@@ -83,9 +84,40 @@ from (
     ifnull(personality_size_max, 0) as personality_size_max,
     ifnull(security_group_rules_max, 0) as security_group_rules_max,
     ifnull(server_group_members_max, 0) as server_group_members_max,
-    ifnull(server_meta_max, 0) as server_meta_max
+    ifnull(server_meta_max, 0) as server_meta_max,
+
+    case when cgr.vm_flavor is null or cgr.vm_flavor='' then
+        case when cgd.vm_flavor is null or cgr.vm_flavor='' then
+            null
+        else
+            cgd.vm_flavor
+        end
+    else
+        cgr.vm_flavor
+    end as default_flavor,
+
+    case when cgr.vm_image is null or cgr.vm_image='' then
+        case when cgd.vm_image is null or cgr.vm_image='' then
+            null
+        else
+            cgd.vm_image
+        end
+    else
+        cgr.vm_image
+    end as default_image,
+
+    case when cgr.vm_keep_alive is null or cgr.vm_keep_alive=-1 then
+        case when cgd.vm_keep_alive is null or cgd.vm_keep_alive=-1 then
+            0
+        else
+            cgd.vm_keep_alive
+        end
+    else
+        cgr.vm_keep_alive
+    end as vm_keep_alive
 
     from csv2_group_resources as cgr
+    left outer join csv2_group_defaults as cgd on cgr.group_name=cgd.group_name
     left outer join cloud_limits as cl on cgr.group_name=cl.group_name and cgr.cloud_name=cl.cloud_name
     left outer join view_vms as vv on cgr.group_name=vv.group_name and cgr.cloud_name=vv.cloud_name
 
