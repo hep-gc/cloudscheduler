@@ -8,13 +8,15 @@ select
 
 vgr.*,
 metadata_name,
-enabled as metadata_enabled,
+cgrm.enabled as metadata_enabled,
 priority as metadata_priority,
 mime_type as metadata_mime_type,
 metadata
 
 from view_group_resources as vgr
-left outer join csv2_group_resource_metadata as cgrm on vgr.group_name=cgrm.group_name and vgr.cloud_name=cgrm.cloud_name
+left outer join csv2_group_resource_metadata as cgrm on
+    vgr.group_name=cgrm.group_name and
+    vgr.cloud_name=cgrm.cloud_name
 
 order by vgr.group_name,vgr.cloud_name
 
