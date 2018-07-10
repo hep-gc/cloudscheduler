@@ -16,17 +16,22 @@ from (
     select
 
     cgr.group_name,
-    cloud_name,
+    cgr.cloud_name,
     "group" as type,
     priority,
-    metadata_name
+    cgm.metadata_name
 
     from csv2_group_resources as cgr
 
     left outer join csv2_group_metadata as cgm
     on cgr.group_name=cgm.group_name
 
-    where enabled=1
+    left outer join csv2_group_resource_metadata_exceptions as cgrme on
+        cgr.group_name=cgrme.group_name and
+        cgr.cloud_name=cgrme.cloud_name and
+        cgm.metadata_name=cgrme.metadata_name
+
+    where cgm.enabled=1 and cgrme.group_name is null
 
     union all select
 
@@ -36,11 +41,11 @@ from (
     priority,
     metadata_name
 
-    from csv2_group_resource_metadata
+    from csv2_group_resource_metadata as cgrm
 
-    where enabled=1
+    where cgrm.enabled=1
     ) as gacm /*group_and_cloud_metadata */
 
-order by group_name,cloud_name,priority,metadata_name
+order by gacm.group_name,gacm.cloud_name,priority,gacm.metadata_name
 
 ;
