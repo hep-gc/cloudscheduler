@@ -14,6 +14,7 @@ from (
         vgr.cloud_name,
         vgr.enabled,
         vgr.default_image,
+        vgr.vm_keep_alive,
         authurl,
         project,
         username,
