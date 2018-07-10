@@ -54,7 +54,8 @@ def main():
             session = Session(engine)
 
             Resources = Base.classes.csv2_group_resources
-            group_resources = session.query(Resources).filter(Resources.group_name == csgroup.group_name)
+            group_resources = session.query(Resources).filter(Resources.group_name == csgroup.group_name,
+                                                              Resources.enabled == 1)
             Group_metadata = Base.classes.csv2_group_metadata
             group_yamls = session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
