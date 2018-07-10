@@ -201,6 +201,10 @@ def status(gvar):
         [
             'group_name/Group,k',
             'cloud_name/Cloud,k',
+            'enabled/Enabled/Defaults',
+            'default_flavor/Flavor/Defaults',
+            'default_Image/Image/Defaults',
+            'vm_keep_alive/Keep Alive/Defaults',
             'VMs/Total/VMs',
             'VMs_unregistered/Unregistered/VMs',
             'VMs_running/Running/VMs',
