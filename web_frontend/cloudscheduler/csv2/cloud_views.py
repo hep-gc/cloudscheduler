@@ -39,8 +39,10 @@ CLOUD_KEYS = {
     'format': {
         'cloud_name':              'lowerdash',
         'cloud_type':              ('csv2_cloud_types', 'cloud_type'),
+        'enabled':                 'dboolean',
         'cores_ctl':               'integer',
         'ram_ctl':                 'integer',
+        'vm_keep_alive':           'integer',
 
         'cores_slider':            'ignore',
         'csrfmiddlewaretoken':     'ignore',
@@ -624,10 +626,13 @@ def status(request, group_name=None):
 
     for d in cloud_status_list:
         for key, value in d.items():
-            if key in cloud_total_list:
-                cloud_total_list[key] += value
+            if isinstance(value, int) or isinstance(value, float):
+                if key in cloud_total_list:
+                    cloud_total_list[key] += value
+                else:
+                    cloud_total_list[key] = value
             else:
-                cloud_total_list[key] = value
+                cloud_total_list[key] = '-'
 
         if d["cores_ctl"] == -1 or d["cores_ctl"] > d["cores_idle"]:
             cloud_total_list["cores_available"] += d["cores_idle"] 

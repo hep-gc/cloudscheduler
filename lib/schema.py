@@ -97,17 +97,9 @@ auth_user_user_permissions = Table('auth_user_user_permissions', metadata,
   Column('permission_id', Integer)
   )
 
-cloud_defaults = Table('cloud_defaults', metadata,
-  Column('auth_url', String(128), primary_key=True),
-  Column('project', String(128), primary_key=True),
-  Column('image', String),
-  Column('flavor', String),
-  Column('network', String)
-  )
-
 cloud_flavors = Table('cloud_flavors', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('cloud_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
   Column('id', String(128), primary_key=True),
   Column('ram', Integer),
   Column('cores', Integer),
@@ -120,8 +112,8 @@ cloud_flavors = Table('cloud_flavors', metadata,
   )
 
 cloud_images = Table('cloud_images', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('cloud_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
   Column('id', String(128), primary_key=True),
   Column('container_format', String(128)),
   Column('disk_format', String(128)),
@@ -134,15 +126,15 @@ cloud_images = Table('cloud_images', metadata,
   )
 
 cloud_keypairs = Table('cloud_keypairs', metadata,
+  Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
-  Column('group_name', String(20), primary_key=True),
   Column('fingerprint', String(64), primary_key=True),
   Column('key_name', String(32), primary_key=True)
   )
 
 cloud_limits = Table('cloud_limits', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('cloud_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
   Column('server_meta_max', Integer),
   Column('instances_max', Integer),
   Column('personality_max', Integer),
@@ -166,8 +158,8 @@ cloud_limits = Table('cloud_limits', metadata,
   )
 
 cloud_networks = Table('cloud_networks', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('cloud_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
   Column('id', String(128), primary_key=True),
   Column('name', String(256)),
   Column('subnets', String(256)),
@@ -179,9 +171,9 @@ cloud_networks = Table('cloud_networks', metadata,
 
 condor_jobs = Table('condor_jobs', metadata,
   Column('global_job_id', String(128), primary_key=True),
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('target_clouds', String),
-  Column('cloud_name', String),
+  Column('cloud_name', String(32)),
   Column('job_status', Integer),
   Column('request_cpus', Integer),
   Column('request_ram', Integer),
@@ -208,7 +200,7 @@ condor_jobs = Table('condor_jobs', metadata,
 condor_machines = Table('condor_machines', metadata,
   Column('name', String(128), primary_key=True),
   Column('machine', String(256)),
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('condor_host', String(64)),
   Column('hostname', String(32)),
   Column('flavor', String(32)),
@@ -239,7 +231,7 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   )
 
 csv2_cloud_types = Table('csv2_cloud_types', metadata,
-  Column('cloud_type', String(50), primary_key=True)
+  Column('cloud_type', String(32), primary_key=True)
   )
 
 csv2_config = Table('csv2_config', metadata,
@@ -247,23 +239,21 @@ csv2_config = Table('csv2_config', metadata,
   Column('yaml', String)
   )
 
-csv2_configuration = Table('csv2_configuration', metadata,
-  Column('process_name', String(128)),
-  Column('yaml_parameters', String)
-  )
-
 csv2_group_defaults = Table('csv2_group_defaults', metadata,
-  Column('group_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
   Column('job_cpus', Integer),
   Column('job_ram', Integer),
   Column('job_disk', Integer),
   Column('job_scratch', Integer),
-  Column('job_swap', Integer)
+  Column('job_swap', Integer),
+  Column('vm_flavor', String(64)),
+  Column('vm_image', String(64)),
+  Column('vm_keep_alive', Integer)
   )
 
 csv2_group_metadata = Table('csv2_group_metadata', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('metadata_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('metadata_name', String(64), primary_key=True),
   Column('enabled', Integer),
   Column('priority', Integer),
   Column('metadata', String),
@@ -271,18 +261,25 @@ csv2_group_metadata = Table('csv2_group_metadata', metadata,
   )
 
 csv2_group_resource_metadata = Table('csv2_group_resource_metadata', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('cloud_name', String(128), primary_key=True),
-  Column('metadata_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('metadata_name', String(64), primary_key=True),
   Column('enabled', Integer),
   Column('priority', Integer),
   Column('metadata', String),
   Column('mime_type', String(128))
   )
 
+csv2_group_resource_metadata_exceptions = Table('csv2_group_resource_metadata_exceptions', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('metadata_name', String(64), primary_key=True)
+  )
+
 csv2_group_resources = Table('csv2_group_resources', metadata,
   Column('group_name', String(32), primary_key=True),
-  Column('cloud_name', String(20), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('enabled', Integer),
   Column('authurl', String(128)),
   Column('project', String(128)),
   Column('username', String(20)),
@@ -305,11 +302,14 @@ csv2_group_resources = Table('csv2_group_resources', metadata,
   Column('security_groups_ctl', Integer),
   Column('server_group_members_ctl', Integer),
   Column('floating_ips_ctl', Integer),
-  Column('cores_ctl', Integer)
+  Column('cores_ctl', Integer),
+  Column('vm_flavor', String(64)),
+  Column('vm_image', String(64)),
+  Column('vm_keep_alive', Integer)
   )
 
 csv2_groups = Table('csv2_groups', metadata,
-  Column('group_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
   Column('condor_central_manager', String)
   )
 
@@ -332,21 +332,13 @@ csv2_user = Table('csv2_user', metadata,
   )
 
 csv2_user_groups = Table('csv2_user_groups', metadata,
-  Column('username', String(128), primary_key=True),
-  Column('group_name', String(128), primary_key=True)
-  )
-
-csv2_vm_status_codes = Table('csv2_vm_status_codes', metadata,
-  Column('power_status', Integer),
-  Column('vm_status', String(16)),
-  Column('condor_off', Integer),
-  Column('manual_control', Integer),
-  Column('status', String(16))
+  Column('username', String(32), primary_key=True),
+  Column('group_name', String(32), primary_key=True)
   )
 
 csv2_vms = Table('csv2_vms', metadata,
-  Column('group_name', String(128), primary_key=True),
-  Column('cloud_name', String(128), primary_key=True),
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
   Column('vmid', String(128), primary_key=True),
   Column('auth_url', String(128)),
   Column('project', String(128)),
@@ -394,7 +386,9 @@ django_session = Table('django_session', metadata,
 
 view_available_resources = Table('view_available_resources', metadata,
   Column('group_name', String(32)),
-  Column('cloud_name', String(20)),
+  Column('cloud_name', String(32)),
+  Column('enabled', Integer),
+  Column('default_image', String(64)),
   Column('authurl', String(128)),
   Column('project', String(128)),
   Column('username', String(20)),
@@ -419,7 +413,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('ram_idle', Integer),
   Column('flavor_name', String(128)),
   Column('flavor_id', String(128)),
-  Column('flavor_instance_type', String(150)),
+  Column('flavor_instance_type', String(162)),
   Column('flavor_cores', Integer),
   Column('flavor_disk', Integer),
   Column('flavor_enduring_disk', Integer),
@@ -427,13 +421,17 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_ram', Integer),
   Column('flavor_swap', Integer),
   Column('flavor_priority', Integer),
-  Column('flavor', String(184)),
+  Column('flavor', String(196)),
   Column('flavor_slots', Integer)
   )
 
 view_cloud_status = Table('view_cloud_status', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String(128)),
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
+  Column('enabled', Integer),
+  Column('default_flavor', String(64)),
+  Column('default_image', String(64)),
+  Column('vm_keep_alive', Integer),
   Column('VMs', Integer),
   Column('VMs_unregistered', Integer),
   Column('VMs_running', Integer),
@@ -458,9 +456,9 @@ view_cloud_status = Table('view_cloud_status', metadata,
 
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
   Column('global_job_id', String(128)),
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('target_clouds', String),
-  Column('cloud_name', String),
+  Column('cloud_name', String(32)),
   Column('job_status', Integer),
   Column('request_cpus', Integer),
   Column('request_disk', Integer),
@@ -490,7 +488,8 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
 
 view_group_resources = Table('view_group_resources', metadata,
   Column('group_name', String(32)),
-  Column('cloud_name', String(20)),
+  Column('cloud_name', String(32)),
+  Column('enabled', Integer),
   Column('authurl', String(128)),
   Column('project', String(128)),
   Column('username', String(20)),
@@ -526,13 +525,16 @@ view_group_resources = Table('view_group_resources', metadata,
   Column('security_group_rules_max', Integer),
   Column('server_group_members_max', Integer),
   Column('server_meta_max', Integer),
+  Column('default_flavor', String(64)),
+  Column('default_image', String(64)),
+  Column('vm_keep_alive', Integer),
   Column('cores_idle', Integer),
   Column('ram_idle', Integer)
   )
 
 view_group_resources_with_metadata = Table('view_group_resources_with_metadata', metadata,
   Column('group_name', String(32)),
-  Column('cloud_name', String(20)),
+  Column('cloud_name', String(32)),
   Column('authurl', String(128)),
   Column('project', String(128)),
   Column('username', String(20)),
@@ -570,7 +572,7 @@ view_group_resources_with_metadata = Table('view_group_resources_with_metadata',
   Column('server_meta_max', Integer),
   Column('cores_idle', Integer),
   Column('ram_idle', Integer),
-  Column('metadata_name', String(128)),
+  Column('metadata_name', String(64)),
   Column('metadata_enabled', Integer),
   Column('metadata_priority', Integer),
   Column('metadata_mime_type', String(128)),
@@ -579,7 +581,7 @@ view_group_resources_with_metadata = Table('view_group_resources_with_metadata',
 
 view_group_resources_with_metadata_names = Table('view_group_resources_with_metadata_names', metadata,
   Column('group_name', String(32)),
-  Column('cloud_name', String(20)),
+  Column('cloud_name', String(32)),
   Column('authurl', String(128)),
   Column('project', String(128)),
   Column('username', String(20)),
@@ -621,7 +623,7 @@ view_group_resources_with_metadata_names = Table('view_group_resources_with_meta
   )
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('target_clouds', String),
   Column('request_cpus', Integer),
   Column('request_ram', Integer),
@@ -646,9 +648,9 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   )
 
 view_groups_with_metadata = Table('view_groups_with_metadata', metadata,
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('condor_central_manager', String),
-  Column('metadata_name', String(128)),
+  Column('metadata_name', String(64)),
   Column('metadata_enabled', Integer),
   Column('metadata_priority', Integer),
   Column('metadata', String),
@@ -656,13 +658,13 @@ view_groups_with_metadata = Table('view_groups_with_metadata', metadata,
   )
 
 view_groups_with_metadata_names = Table('view_groups_with_metadata_names', metadata,
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('condor_central_manager', String),
   Column('metadata_names', String)
   )
 
 view_job_status = Table('view_job_status', metadata,
-  Column('group_name', String(128)),
+  Column('group_name', String(32)),
   Column('Jobs', Integer),
   Column('Idle', Integer),
   Column('Running', Integer),
@@ -672,11 +674,11 @@ view_job_status = Table('view_job_status', metadata,
   )
 
 view_metadata_collation = Table('view_metadata_collation', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String(128)),
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
   Column('type', String(5)),
   Column('priority', Integer),
-  Column('metadata_name', String(128))
+  Column('metadata_name', String(64))
   )
 
 view_user_groups = Table('view_user_groups', metadata,
@@ -692,8 +694,8 @@ view_user_groups = Table('view_user_groups', metadata,
 
 view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('username', String(32)),
-  Column('group_name', String(128)),
-  Column('available', String(128))
+  Column('group_name', String(32)),
+  Column('available', String(32))
   )
 
 view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
@@ -703,8 +705,8 @@ view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
   )
 
 view_vms = Table('view_vms', metadata,
-  Column('group_name', String(128)),
-  Column('cloud_name', String(128)),
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
   Column('vmid', String(128)),
   Column('auth_url', String(128)),
   Column('project', String(128)),

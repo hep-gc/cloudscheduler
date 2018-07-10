@@ -76,6 +76,7 @@ GROUP_DEFAULTS_KEYS = {
         'job_disk':                 'integer',
         'job_ram':                  'integer',
         'job_swap':                 'integer',
+        'vm_keep_alive':            'integer',
         },
     }
 
