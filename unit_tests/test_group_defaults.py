@@ -99,13 +99,25 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'GV07', 'group defaults update value specified for "vm_keep_alive" must be a integer value.',
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'vm_keep_alive': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, '"{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 1,
             'job_ram': 1,
             'job_disk': 1,
-            'job_swap': 1
+            'job_swap': 1,
+            'vm_keep_alive': 1,
+            'vm_flavor': 'group-test-group-four',
+            'vm_image': 'group_test_group_four'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

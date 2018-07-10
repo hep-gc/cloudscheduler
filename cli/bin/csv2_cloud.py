@@ -6,6 +6,7 @@ import os
 
 KEY_MAP = {
     '-ca':  'authurl',
+    '-ce':  'enabled',
     '-cpw': 'password',
     '-cn':  'cloud_name',
     '-cp':  'project',
@@ -21,7 +22,10 @@ KEY_MAP = {
     '-mn':  'metadata_name',
     '-mp':  'priority',
     '-vc':  'cores_ctl',
+    '-vf':  'vm_flavor',
+    '-vi':  'vm_image',
     '-vk':  'keyname',
+    '-vka': 'vm_keep_alive',
     '-vr':  'ram_ctl',
     }
 
@@ -54,7 +58,7 @@ def add(gvar):
         gvar,
         ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
         [],
-        ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr', '-s', '-xA', '-h', '-H'],
+        ['-cP', '-cU', '-g', '-ga', '-vc', '-vk', '-vr', '-ce', '-vka', '-vi', '-vf' '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     # Create the cloud.
@@ -133,6 +137,7 @@ def list(gvar):
         [
             'group_name/Group,k',
             'cloud_name/Cloud,k',
+            'enabled/Enabled',
             'authurl/URL',
             'project_domain_name/Project Domain',
             'project/Project',
@@ -143,6 +148,9 @@ def list(gvar):
             'keyname/Keyname',
             'cores_max/Cores',
             'ram_max/RAM',
+            'vm_flavor/VM Flavor',
+            'vm_image/VM Image',
+            'vm_keep_alive/VM Keep Alive',
             'cacertificate/CA Certificate',
             'metadata_names/Metadata Filenames',
             'instances_max/Maximum/Instances',
@@ -203,7 +211,7 @@ def status(gvar):
             'cloud_name/Cloud,k',
             'enabled/Enabled/Defaults',
             'default_flavor/Flavor/Defaults',
-            'default_Image/Image/Defaults',
+            'default_image/Image/Defaults',
             'vm_keep_alive/Keep Alive/Defaults',
             'VMs/Total/VMs',
             'VMs_unregistered/Unregistered/VMs',
@@ -239,7 +247,7 @@ def update(gvar):
         gvar,
         ['-cn'],
         [],
-        ['-ca', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr', '-s', '-xA', '-h', '-H'],
+        ['-ca', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-vc', '-vk', '-vr', '-ce', '-vka', '-vi', '-vf', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

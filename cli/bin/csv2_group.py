@@ -18,6 +18,9 @@ KEY_MAP = {
     '-js':  'job_swap',
     '-un':  'username',
     '-uo':  'user_option',
+    '-vf':  'vm_flavor',
+    '-vi':  'vm_image',
+    '-vka': 'vm_keep_alive',
     }
 
 def _filter_by_group_name_and_or_metadata_name(gvar, qs):
@@ -70,7 +73,7 @@ def defaults(gvar):
         gvar,
         [],
         [],
-        ['-g', '-jc', '-jd', '-jr', '-js', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'],
+        ['-g', '-jc', '-jd', '-jr', '-js', '-vf', '-vi', '-vka', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'],
         key_map=KEY_MAP)
 
     # List the current defaults. If the form_data contains any optional fields,
@@ -92,14 +95,17 @@ def defaults(gvar):
         response['defaults_list'],
         [
             'group_name/Group,k',
-            'job_cpus/Job Cores',
-            'job_disk/Job Disk (GBs)',
-            'job_scratch/Job Ephemeral Disk (GBs)',
-            'job_ram/Job RAM (MBs)',
-            'job_swap/Job Swap (GBs)',
-            ],
-            title="Active Group Defaults:",
-        )
+            'vm_keep_alive/Keep Alive/VM',
+            'vm_flavor/Flavor/VM',
+            'vm_image/Image/VM',
+            'job_cpus/Cores/Job',
+            'job_disk/Disk (GBs)/Job',
+            'job_scratch/Ephemeral Disk (GBs)/Job',
+            'job_ram/RAM (MBs)/Job',
+            'job_swap/Swap (GBs)/Job',
+        ],
+        title="Active Group Defaults:",
+    )
 
 def delete(gvar):
     """

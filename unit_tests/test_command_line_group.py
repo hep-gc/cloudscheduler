@@ -232,8 +232,18 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, 'GV07', 'value specified for "vm_keep_alive" must be a integer value.',
+        ['cloudscheduler', 'group', 'defaults', '-vka', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'group defaults "{}" successfully updated.'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'defaults', '-jc', '1', '-jd', '1', '-jr', '1', '-js', '1']
+        ['cloudscheduler', 'group', 'defaults', '-jc', '1', '-jd', '1', '-jr', '1', '-js', '1', '-vka', '1', '-vi', 'cl-update', '-vf', 'cl-update']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'msg',
+        ['cloudscheduler', 'group', 'defaults']
     )
 
     #### DELETE ####

@@ -364,6 +364,38 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be a integer value.',
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+            'vm_keep_alive': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV01', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+            'enabled': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 1, 'CV02', 'Data too long for column \'cloud_name\' at row 1',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
@@ -388,7 +420,11 @@ def main(gvar, user_secret):
             'username': ut_id(gvar, 'ctu3'),
             'password': user_secret,
             'region': ut_id(gvar, 'ctc5-r'),
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            'vm_flavor': 'unit-test-cloud-five',
+            'vm_image': 'unit-test-cloud-five',
+            'enabled': 0,
+            'vm_keep_alive': 10
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
