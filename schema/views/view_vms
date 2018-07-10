@@ -13,6 +13,7 @@ select
 cv.*,
 cf.name as flavor_name,
 cdp.condor_slots_used,
+cpp.machine,
 cpp.condor_slots,
 cpp.condor_off,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
@@ -57,6 +58,7 @@ left outer join (
     select
 
     substring_index(machine,'.',1) as hostname,
+    machine,
     total_slots as condor_slots,
     condor_off
 
