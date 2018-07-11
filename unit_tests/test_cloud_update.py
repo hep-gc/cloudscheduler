@@ -84,10 +84,22 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV35', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'enabled': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV35', 'value specified for "vm_keep_alive" must be a integer value.',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'vm_keep_alive': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'local', 'ram_ctl': -1, 'region': 'jodiew-ctc3-r', 'username': 'jodiew-ctu3', 'project': 'unit-test-cloud-three', 'cloud_name': 'jodiew-ctc3', 'group_name': 'jodiew-ctg1'},
+        values={'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'local', 'region': 'jodiew-ctc3-r', 'username': 'jodiew-ctu3', 'project': 'unit-test-cloud-three', 'cloud_name': 'jodiew-ctc3', 'group_name': 'jodiew-ctg1'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -106,19 +118,13 @@ def main(gvar, user_secret):
             'user_domain_name': 'updated-value',
             'project_domain_name': 'updated-value',
             'cloud_type': 'local',
-            'server_meta_ctl': 5,
-            'instances_ctl': 5,
-            'personality_ctl': 5,
-            'image_meta_ctl': 5,
-            'personality_size_ctl': 5,
             'ram_ctl': 5,
             'server_groups_ctl': 5,
-            'security_group_rules_ctl': 5,
-            'keypairs_ctl': 5,
-            'security_groups_ctl': 5,
-            'server_group_members_ctl': 5,
-            'floating_ips_ctl': 5,
-            'cores_ctl': 5
+            'cores_ctl': 5,
+            'enabled': 0,
+            'vm_keep_alive': 10,
+            'vm_flavor': 'updated-value',
+            'vm_image': 'updated-value'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -138,7 +144,11 @@ def main(gvar, user_secret):
             'region': 'updated-value',
             'user_domain_name': 'updated-value',
             'project_domain_name': 'updated-value',
-            'cloud_type': 'local'
+            'cloud_type': 'local',
+            'enabled': 0,
+            'vm_keep_alive': 10,
+            'vm_flavor': 'updated-value',
+            'vm_image': 'updated-value'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

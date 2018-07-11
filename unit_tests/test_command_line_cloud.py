@@ -184,6 +184,34 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, 'CV01', 'value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', 'invalid-unit-test',
+            '-ca', 'invalid-unit-test',
+            '-cpw', 'invalid-unit-test',
+            '-cp', 'invalid-unit-test',
+            '-cr', 'invalid-unit-test',
+            '-ct', 'local',
+            '-cu', 'invalid-unit-test',
+            '-ce', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be a integer value.',
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', 'invalid-unit-test',
+            '-ca', 'invalid-unit-test',
+            '-cpw', 'invalid-unit-test',
+            '-cp', 'invalid-unit-test',
+            '-cr', 'invalid-unit-test',
+            '-ct', 'local',
+            '-cu', 'invalid-unit-test',
+            '-vka', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'clc10'),
@@ -192,7 +220,11 @@ def main(gvar, user_secret):
             '-cp', 'command-line-cloud-ten',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10')
+            '-cu', ut_id(gvar, 'clc10'),
+            '-ce', 'yes',
+            '-vka', '10',
+            '-vi', 'command-line-cloud-ten',
+            '-vf', 'command-line-cloud-ten'
         ]
     )
 
@@ -911,6 +943,22 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, 'CV35', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ce', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV35', 'value specified for "vm_keep_alive" must be a integer value.',
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-vka', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
@@ -919,7 +967,11 @@ def main(gvar, user_secret):
             '-cp', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10')
+            '-cu', ut_id(gvar, 'clc10'),
+            '-ce', 'no',
+            '-vka', '10',
+            '-vi', 'command-line-cloud-update',
+            '-vf', 'command-line-cloud-update'
         ]
     )
 

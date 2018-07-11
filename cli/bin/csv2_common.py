@@ -18,7 +18,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             required.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in op or (op == ['*'] and key[0] not in mp + rp):
             options.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
-        if key[0] in mp + rp + op:
+        if key[0] in mp + rp + op or (op == ['*'] and key[0] not in mp + rp):
             valid_keys.append(key[1][2:])
     
     # Check for invalid parameters

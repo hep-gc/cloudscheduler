@@ -16,7 +16,7 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         print('%03d %s Skipping: %s, %s, %s' % (gvar['ut_count'], _caller(), request, expected_text, expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
+def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, list=None, columns=None):
 
     from subprocess import Popen, PIPE
     from unit_test_common import _caller, _execute_selections
@@ -34,6 +34,23 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
         if expected_ec and expected_ec != error_code:
             failed = True
 
+        if list:
+            list_index = str(stdout).find(list)
+            if list_index < 0:
+                failed = True
+                list_error = 'list "{}" not found'.format(list)
+            elif columns:
+                rows = str(stdout)[list_index:].strip().split('\\n')
+                column_list = []
+                for row in rows:
+                    if row.startswith('+ '):
+                        for column_name in row[1:-1].split('|'):
+                            if column_name.strip() not in column_list:
+                                column_list.append(column_name.strip())
+                if columns != column_list:
+                    failed = True
+                    list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, column_list)
+
         if expected_text and str(stdout).find(expected_text) < 0:
             failed = True
 
@@ -44,7 +61,10 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd):
                 print('    return code=%s' % p.returncode)
                 print('    error code=%s' % error_code)
                 print('    stdout=%s' % str(stdout))
-                print('    stderr=%s\n' % str(stderr))
+                print('    stderr=%s' % str(stderr))
+                if list_error:
+                    print('\tlist_error={}'.format(list_error))
+                print('')
 
             return 1
         else:

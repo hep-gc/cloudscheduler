@@ -11,7 +11,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-s'], [], ['-y', '-h', '-H'], requires_server=False)
+    check_keys(gvar, ['-s'], [], ['-Y', '-h', '-H'], requires_server=False)
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         # Confirm settings delete.
@@ -36,7 +36,7 @@ def list(gvar):
     check_keys(gvar, [], [], ['-s', '-r', '-V', '-VC', '-NV', '-h', '-H'], requires_server=False)
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
-    _keys = ['server']
+    _keys = ['server,k']
     for _ix in range(len(gvar['command_keys'])):
         key = gvar['command_keys'][_ix][1][2:]
         if key not in _keys:
