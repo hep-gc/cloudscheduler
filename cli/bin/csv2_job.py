@@ -59,7 +59,7 @@ def list(gvar):
         gvar,
         [],
         [],
-        ['-cn', '-g', '-ok', '-vc', '-vco', '-vd', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs', '-vt', '-r', '-V', '-VC', '-NV', '-s', '-xA', '-h', '-H'])
+        ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vco', '-vd', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs', '-vt', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/job/list/')
@@ -87,16 +87,16 @@ def list(gvar):
             'target_clouds/Target Clouds',
             'cloud_name/Cloud',
             'instance_type/Instance Type',
-            'request_cpus/Requested CPUs',
-            'request_ram/Requested RAM {MBs}',
-            'request_disk/Requested Disk {GBs}',
-            'request_scratch/Requested Scratch (GBs)',
-            'request_swap/Requested Swap (GBs)',
+            'request_cpus/CPUs/Requested',
+            'request_ram/RAM {MBs}/Requested',
+            'request_disk/Disk {GBs}/Requested',
+            'request_scratch/Scratch (GBs)/Requested',
+            'request_swap/Swap (GBs)/Requested',
             'job_per_core/Jobs per Core',
             'image/Image',
             'network/Network',
-            'job_priority/Priority',
-            'job_status/Status Code',
+            'job_priority/Priority/Job',
+            'job_status/Status Code/Job',
             'js_idle/Idle',
             'js_running/Running',
             'js_completed/Completed',
