@@ -16,6 +16,8 @@ cdp.condor_slots_used,
 cpp.machine,
 cpp.my_current_time,
 cpp.entered_current_state,
+cpp.state,
+cpp.activity,
 cpp.condor_slots,
 cpp.condor_off,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
@@ -63,6 +65,8 @@ left outer join (
     machine,
     my_current_time,
     entered_current_state,
+    state,
+    activity,
     total_slots as condor_slots,
     condor_off
 
