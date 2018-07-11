@@ -46,6 +46,6 @@ from (
     where cgrm.enabled=1
     ) as gacm /*group_and_cloud_metadata */
 
-order by gacm.group_name,gacm.cloud_name,priority,gacm.metadata_name
+order by group_name,cloud_name,priority,metadata_name
 
 ;

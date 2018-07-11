@@ -27,15 +27,49 @@ from (
     cgr.group_name,
     cgr.cloud_name,
     cgr.enabled,
+    cgr.vm_flavor,
+    cgr.vm_image,
+    cgr.vm_keep_alive,
+
+    case when cgr.vm_flavor is null or cgr.vm_flavor='' then
+        case when cgd.vm_flavor is null or cgr.vm_flavor='' then
+            null
+        else
+            cgd.vm_flavor
+        end
+    else
+        cgr.vm_flavor
+    end as cascading_vm_flavor,
+
+    case when cgr.vm_image is null or cgr.vm_image='' then
+        case when cgd.vm_image is null or cgr.vm_image='' then
+            null
+        else
+            cgd.vm_image
+        end
+    else
+        cgr.vm_image
+    end as cascading_vm_image,
+
+    case when cgr.vm_keep_alive is null or cgr.vm_keep_alive=-1 then
+        case when cgd.vm_keep_alive is null or cgd.vm_keep_alive=-1 then
+            0
+        else
+            cgd.vm_keep_alive
+        end
+    else
+        cgr.vm_keep_alive
+    end as cascading_vm_keep_alive,
+
     authurl,
+    project_domain_name,
     cgr.project,
+    user_domain_name,
     username,
     password,
     keyname,
     cacertificate,
     region,
-    user_domain_name,
-    project_domain_name,
     cloud_type,
 
     case when cores_ctl=-1 then
@@ -84,37 +118,7 @@ from (
     ifnull(personality_size_max, 0) as personality_size_max,
     ifnull(security_group_rules_max, 0) as security_group_rules_max,
     ifnull(server_group_members_max, 0) as server_group_members_max,
-    ifnull(server_meta_max, 0) as server_meta_max,
-
-    case when cgr.vm_flavor is null or cgr.vm_flavor='' then
-        case when cgd.vm_flavor is null or cgr.vm_flavor='' then
-            null
-        else
-            cgd.vm_flavor
-        end
-    else
-        cgr.vm_flavor
-    end as default_flavor,
-
-    case when cgr.vm_image is null or cgr.vm_image='' then
-        case when cgd.vm_image is null or cgr.vm_image='' then
-            null
-        else
-            cgd.vm_image
-        end
-    else
-        cgr.vm_image
-    end as default_image,
-
-    case when cgr.vm_keep_alive is null or cgr.vm_keep_alive=-1 then
-        case when cgd.vm_keep_alive is null or cgd.vm_keep_alive=-1 then
-            0
-        else
-            cgd.vm_keep_alive
-        end
-    else
-        cgr.vm_keep_alive
-    end as vm_keep_alive
+    ifnull(server_meta_max, 0) as server_meta_max
 
     from csv2_group_resources as cgr
     left outer join csv2_group_defaults as cgd on cgr.group_name=cgd.group_name

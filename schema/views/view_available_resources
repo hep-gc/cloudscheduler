@@ -13,8 +13,8 @@ from (
         vgr.group_name,
         vgr.cloud_name,
         vgr.enabled,
-        vgr.default_image,
-        vgr.vm_keep_alive,
+        vgr.cascading_vm_image as default_image,
+        vgr.cascading_vm_keep_alive as keep_alive,
         authurl,
         project,
         username,
@@ -74,9 +74,9 @@ from (
         join cloud_flavors as cf on
         vgr.group_name=cf.group_name and
         vgr.cloud_name=cf.cloud_name and (
-            vgr.default_flavor is null or
-            vgr.default_flavor="" or
-            vgr.default_flavor=cf.name
+            vgr.cascading_vm_flavor is null or
+            vgr.cascading_vm_flavor="" or
+            vgr.cascading_vm_flavor=cf.name
             )
 
 
