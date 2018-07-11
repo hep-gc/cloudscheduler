@@ -212,7 +212,7 @@ def status(gvar):
             'enabled/Enabled/Defaults',
             'default_flavor/Flavor/Defaults',
             'default_image/Image/Defaults',
-            'vm_keep_alive/Keep Alive/Defaults',
+            'keep_alive/Keep Alive/Defaults',
             'VMs/Total/VMs',
             'VMs_unregistered/Unregistered/VMs',
             'VMs_running/Running/VMs',
