@@ -42,7 +42,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV27', 'value specified for "metadata_list_option" must be one of the following options: [\'merge\'].',
+        gvar, 1, 'CV27', 'request contained a bad parameter "metadata_list_option".',
         '/cloud/metadata-list/', form_data={'metadata_list_option': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -50,14 +50,6 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'CV27', 'request contained a bad parameter "invalid-unit-test".',
         '/cloud/metadata-list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 0, None, None,
-        '/cloud/metadata-list/', form_data={'metadata_list_option': 'merge'},
-        list='cloud_metadata_list', filter={'cloud_name': ut_id(gvar, 'ctc2')},
-        values={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
