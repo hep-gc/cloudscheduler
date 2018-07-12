@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
 import sys
 
+# lno: VV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
