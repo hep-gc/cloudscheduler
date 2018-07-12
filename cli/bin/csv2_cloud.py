@@ -279,8 +279,8 @@ def metadata_collation(gvar):
             'group_name/Group,k',
             'cloud_name/Cloud,k',
             'metadata_name/Metadata Filename,k',
+            'priority/Priority',
             'type/Type',
-            'priority/priority',
             ],
         title="Clouds/Metadata Collation:",
         )
