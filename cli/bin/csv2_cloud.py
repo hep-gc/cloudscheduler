@@ -77,7 +77,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn'], [], ['-g', '-H', '-h', '-s', '-xA'])
+    check_keys(gvar, ['-cn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
 
     # Check that the target cloud exists.
     response = requests(gvar, '/cloud/list/')
