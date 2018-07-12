@@ -80,5 +80,31 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
+    # Deleting group metadata that is in a clouds exceptions list should remove it from that list
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/',
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'gtc1')},
+        values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': ut_id(gvar, 'gty6')},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
+        '/group/metadata-delete/', form_data={
+            'metadata_name': ut_id(gvar, 'gty6'),
+            'group': ut_id(gvar, 'gtg5')
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/',
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'gtc1')},
+        values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': None},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
 if __name__ == "__main__":
     main(None)
