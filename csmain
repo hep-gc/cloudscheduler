@@ -71,7 +71,7 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            idle_machines = check_idle_machines(csgroup.group_name)
+            idle_machines = check_idle_machines_new(csgroup.group_name)
             new_vms = check_unregistered_machines(csgroup.group_name)
             current_flavors = count_cloud_flavors(csgroup.group_name)
 
@@ -236,6 +236,7 @@ def check_registered_condor_machines(group):
     log.debug(machines_dict)
     return machines_dict
 
+
 def check_idle_machines(group):
     """
     Query the condor machines and ones that are idle with no jobs requiring them
@@ -273,6 +274,54 @@ def check_idle_machines(group):
             if len(name_parts) >= 2:
                 machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
 
+    session.commit()
+    # Return dict of cloud names with number of idle machine classads
+    return machines_dict
+
+
+def check_idle_machines_new(group):
+    """
+    Query the condor machines and ones that are idle with no jobs requiring them
+    or that have been idle an extended period of time and set the Retire flag in db for them.
+    :return:
+    """
+    log = logging.getLogger(__name__)
+    log.debug("Check Idle Machines: %s", group)
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    machines = Base.classes.condor_machines
+    unclaimed_idle_machines = session.query(view_vms).filter(view_vms.c.state == "Unclaimed",
+                                                             view_vms.c.activity == "Idle",
+                                                             view_vms.c.group_name == group)
+    machines_dict = defaultdict(int)
+    idle_list = []
+    for machine in unclaimed_idle_machines:
+        # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 10 sec buffer for now
+        if machine.my_current_time - machine.entered_current_state > (machine.keep_alive+10) and not machine.condor_off :
+            log.debug("Setting condor off flag for machine: %s", machine.hostname)
+            #machine.condor_off = 1 Have to save the machine name and do update after
+            idle_list.append(machine.machine)
+        elif machine.condor_off and machine.condor_off == 1:
+            pass # We've set the flag - waiting on poller to deal with it.
+        elif machine.condor_off and machine.condor_off == 2:
+            pass
+            # TODO Add additional handling if machine is still here after a long period of time
+            # like reset the flag back to 1 so the poller can try the retire again.
+            # Need to check if the poller updates anything else when this happens so have something to time against.
+        else:
+            log.debug("Ignoring classad for: %s, flag: %s Inactive for only %s", machine.hostname, str(machine.condor_off),
+                      str(machine.my_current_time - machine.entered_current_state))
+            name_parts = machine.machine.split('--')
+            if len(name_parts) >= 2:
+                machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
+    if idle_list:
+        log.debug("setting condor_off on %s entries.", len(idle_list))
+        update_result = session.query(machines).filter(machines.machine.in_(to_terminate))
+        for row in update_result:
+            row.condor_off = 1
     session.commit()
     # Return dict of cloud names with number of idle machine classads
     return machines_dict
