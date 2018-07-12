@@ -335,7 +335,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'user', 'list', '-V', ''],
-        list='Users', columns=['Username', 'Super User']
+        list='Users', columns=['Username', 'Common Name', 'Active Group', 'User Groups', 'Not In Groups', 'Super User', 'Joined']
     )
 
     #### UPDATE ####
