@@ -212,6 +212,20 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, 'CV01', 'value specified for "cloud_spot_price" must be a integer value.',
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', 'invalid-unit-test',
+            '-ca', 'invalid-unit-test',
+            '-cpw', 'invalid-unit-test',
+            '-cp', 'invalid-unit-test',
+            '-cr', 'invalid-unit-test',
+            '-ct', 'local',
+            '-cu', 'invalid-unit-test',
+            '-csp', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'clc10'),
@@ -224,7 +238,8 @@ def main(gvar, user_secret):
             '-ce', 'yes',
             '-vka', '10',
             '-vi', 'command-line-cloud-ten',
-            '-vf', 'command-line-cloud-ten'
+            '-vf', 'command-line-cloud-ten',
+            '-csp', '10'
         ]
     )
 
@@ -1089,6 +1104,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, 'CV35', 'value specified for "cloud_spot_price" must be a integer value.',
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-csp', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
@@ -1101,7 +1124,8 @@ def main(gvar, user_secret):
             '-ce', 'no',
             '-vka', '10',
             '-vi', 'command-line-cloud-update',
-            '-vf', 'command-line-cloud-update'
+            '-vf', 'command-line-cloud-update',
+            '-csp', '10'
         ]
     )
 
