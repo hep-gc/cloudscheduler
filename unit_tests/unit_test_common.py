@@ -34,19 +34,22 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
         if expected_ec and expected_ec != error_code:
             failed = True
 
+        list_error = ''
         if list:
             list_index = str(stdout).find(list)
+            row_index = str(stdout).find('Rows:', list_index)
             if list_index < 0:
                 failed = True
                 list_error = 'list "{}" not found'.format(list)
             elif columns:
-                rows = str(stdout)[list_index:].strip().split('\\n')
+                rows = str(stdout)[list_index:row_index].strip().split('\\n')
                 column_list = []
                 for row in rows:
                     if row.startswith('+ '):
                         for column_name in row[1:-1].split('|'):
-                            if column_name.strip() not in column_list:
-                                column_list.append(column_name.strip())
+                            for col_name in column_name.strip().split('  '):
+                                if col_name.strip() and (col_name.strip() not in column_list):
+                                    column_list.append(col_name.strip())
                 if columns != column_list:
                     failed = True
                     list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, column_list)
