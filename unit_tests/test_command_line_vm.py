@@ -121,6 +121,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-r'],
+        list='VMs', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
         ['cloudscheduler', 'vm', 'list', '-cn', 'invalid-unit-test']
     )
