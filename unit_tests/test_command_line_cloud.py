@@ -299,7 +299,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
-        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1')]
+        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y']
     )
 
     #### LIST ####
@@ -364,8 +364,44 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'list', '-ok']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list', '-ok'],
+        list='Clouds', columns=['Group', 'Cloud']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,cacertificate,metadata_names',
+        ['cloudscheduler', 'cloud', 'list', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list', '-NV'],
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list', '-V', 'enabled,authurl'],
+        list='Clouds', columns=['Group', 'Cloud', 'Enabled', 'URL']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list'],
+        list='Clouds', columns=['Group', 'Cloud', 'Enabled', 'URL']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list', '-r'],
+        list='Clouds', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'list', '-V', ''],
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
     )
 
     #### METADATA-DELETE ####
@@ -426,12 +462,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the request did not match any rows.',
-        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', 'invalid-unit-test', '-Y']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm1')),
-        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm1')]
+        ['cloudscheduler', 'cloud', 'metadata-delete', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm1'), '-Y']
     )
 
     #### METADATA-EDIT ####
@@ -608,8 +644,44 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Clouds/Metadata:',
-        ['cloudscheduler', 'cloud', 'metadata-list', '-ok']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list', '-ok'],
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud metadata-list, table #1 columns: keys=group_name,cloud_name,metadata_name, columns=enabled,priority,mime_type',
+        ['cloudscheduler', 'cloud', 'metadata-list', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list', '-NV'],
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list', '-V', 'endabled'],
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list'],
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list', '-r'],
+        list='Clouds/Metadata', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'metadata-list', '-V', ''],
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
     )
 
     #### METADATA-LOAD ####
@@ -861,8 +933,66 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'status', '-ok']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-ok'],
+        list='Cloud status', columns=['Group', 'Cloud']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-ok'],
+        list='Job status', columns=['Group']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud status, table #1 columns: keys=group_name, columns=Jobs,Idle,Running,Completed,Other\\ncloud status, table #2 columns: keys=group_name,cloud_name, columns=enabled,default_flavor,default_image,keep_alive,VMs,VMs_unregistered,VMs_running,VMs_retiring,VMs_manual,VMs_in_error,VMs_other,cores_max,cores_ctl,cores_idle,cores_native,ram_max,ram_ctl,ram_idle,ram_native,slots_max,slots_used,Foreign_VMs,cores_foreign,ram_foreign',
+        ['cloudscheduler', 'cloud', 'status', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-NV'],
+        list='Cloud status', columns=['Defaults', 'VMs', 'Cores', 'Group', 'Cloud', 'Enabled', 'Flavor', 'Image', 'Keep Alive', 'Total', 'Unregistered', 'Running', 'Retiring', 'Manual', 'Error', 'Other', 'Setting', 'RAM', 'Slots', 'Foreign', 'Idle', 'Used']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-NV'],
+        list='Job status', columns=['Group', 'Jobs', 'Idle', 'Running', 'Completed', 'Other']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-V', 'Jobs/enabled']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status'],
+        list='Cloud status', columns=['Defaults', 'Group', 'Cloud', 'Enabled']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status'],
+        list='Job status', columns=['Group', 'Jobs']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-r'],
+        list='Cloud status', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-r'],
+        list='Job status', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'cloud', 'status', '-V', '']
     )
 
     #### UPDATE ####

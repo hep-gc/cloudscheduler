@@ -238,12 +238,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully deleted.'.format(ut_id(gvar, 'clu5')),
-        ['cloudscheduler', 'user', 'delete', '-un', ut_id(gvar, 'clu5')]
+        ['cloudscheduler', 'user', 'delete', '-un', ut_id(gvar, 'clu5'), '-Y']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully deleted.'.format(ut_id(gvar, 'clu6')),
-        ['cloudscheduler', 'user', 'delete', '-un', ut_id(gvar, 'clu6')]
+        ['cloudscheduler', 'user', 'delete', '-un', ut_id(gvar, 'clu6'), '-Y']
     )
 
     #### LIST ####
@@ -299,12 +299,43 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'user', 'list', '-ok']
+        ['cloudscheduler', 'user', 'list', '-ok'],
+        list='Users', columns=['Username']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'user list, table #1 columns: keys=username, columns=cert_cn,active_group,user_groups,available_groups,is_superuser,join_date',
+        ['cloudscheduler', 'user', 'list', '-VC']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'user', 'list']
+        ['cloudscheduler', 'user', 'list', '-NV'],
+        list='Users', columns=['Username', 'Common Name', 'Active Group', 'User Groups', 'Not In Groups', 'Super User', 'Joined']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'user', 'list', '-V', 'is_superuser'],
+        list='Users', columns=['Username', 'Super User']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'user', 'list'],
+        list='Users', columns=['Username', 'Super User']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'user', 'list', '-r'],
+        list='Users', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'user', 'list', '-V', ''],
+        list='Users', columns=['Username', 'Super User']
     )
 
     #### UPDATE ####

@@ -242,8 +242,44 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'msg',
-        ['cloudscheduler', 'group', 'defaults']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'defaults', '-ok'],
+        list='Active Group Defaults', columns=['Group']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'group defaults, table #1 columns: keys=group_name, columns=vm_flavor,vm_image,vm_keep_alive,job_cpus,job_disk,job_scratch,job_ram,job_swap',
+        ['cloudscheduler', 'group', 'defaults', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'defaults', '-NV'],
+        list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Flavor', 'Image', 'Keep Alive', 'Cores', 'Disk (GBs)', 'RAM (MBs)', 'Swap (GBs)']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'defaults', '-V', 'job_ram,vm_keep_alive'],
+        list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Keep Alive', 'RAM (MBs)']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'defaults'],
+        list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Keep Alive', 'RAM (MBs)']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'defaults', '-r'],
+        list='Active Group Defaults', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'defaults', '-V', ''],
+        list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Flavor', 'Image', 'Keep Alive', 'Cores', 'Disk (GBs)', 'RAM (MBs)', 'Swap (GBs)']
     )
 
     #### DELETE ####
@@ -304,12 +340,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'clg3')),
-        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3')]
+        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3'), '-Y']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'clg4')),
-        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg4')]
+        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg4'), '-Y']
     )
 
     #### LIST ####
@@ -374,8 +410,44 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'list', '-ok']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list', '-ok'],
+        list='Groups', columns=['Group']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'group list, table #1 columns: keys=group_name, columns=condor_central_manager,metadata_names',
+        ['cloudscheduler', 'group', 'list', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list', '-NV'],
+        list='Groups', columns=['Group', 'Central Manager', 'Metadata Filenames']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list', '-V', 'metadata_names'],
+        list='Groups', columns=['Group', 'Metadata Filenames']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list'],
+        list='Groups', columns=['Group', 'Metadata Filenames']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list', '-r'],
+        list='Groups', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'list', '-V', ''],
+        list='Groups', columns=['Group', 'Central Manager', 'Metadata Filenames']
     )
 
     #### METADATA-DELETE ####
@@ -431,12 +503,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'GV31', 'the request did not match any rows.',
-        ['cloudscheduler', 'group', 'metadata-delete', '-mn', 'invalid-unit-test']
+        ['cloudscheduler', 'group', 'metadata-delete', '-mn', 'invalid-unit-test', '-Y']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'group metadata file "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm1')),
-        ['cloudscheduler', 'group', 'metadata-delete', '-mn', ut_id(gvar, 'clm1')]
+        ['cloudscheduler', 'group', 'metadata-delete', '-mn', ut_id(gvar, 'clm1'), '-Y']
     )
 
     #### METADATA-EDIT ####
@@ -588,8 +660,44 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Active Group/Metadata:',
-        ['cloudscheduler', 'group', 'metadata-list', '-ok']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'metadata-list', '-ok'],
+        list='Active Group/Metadata', columns=['Group', 'Metadata Filename']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'group metadata-list, table #1 columns: keys=group_name,metadata_name, columns=enabled,priority,mime_type',
+        ['cloudscheduler', 'group', 'metadata-list', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'metadata-list', '-NV'],
+        list='Active Group/Metadata', columns=['Group', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'metadata-list', '-V', 'enabled'],
+        list='Active Group/Metadata', columns=['Group', 'Metadata Filename', 'Enabled']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'metadata-list'],
+        list='Active Group/Metadata', columns=['Group', 'Metadata Filename', 'Enabled']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'metadata-list', '-r'],
+        list='Active Group/Metadata', columns=['Key', 'Value']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'group', 'metadata-list', '-V', ''],
+        list='Active Group/Metadata', columns=['Group', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
     )
 
     #### METADATA-LOAD ####
