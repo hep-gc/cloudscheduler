@@ -161,5 +161,10 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'defaults', 'delete', '-s', ut_id(gvar, 'cld1'), '-Y']
     )
 
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'defaults', '-s', 'unit-test']
+    )
+
 if __name__ == "__main__":
     main(None)
