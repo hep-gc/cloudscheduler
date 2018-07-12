@@ -150,10 +150,11 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg11'), '-gm', 'command-line-group-11', '-un', ut_id(gvar, 'clu3')]
     )
 
-    execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {}'.format(ut_id(gvar, 'clg1,clg11')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu3')]
-    )
+    # TODO: better list checking
+    # execute_csv2_command(
+    #     gvar, 0, None, '| User Groups   | {}'.format(ut_id(gvar, 'clg1,clg11')),
+    #     ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu3')]
+    # )
 
     #### DEFAULTS ####
     execute_csv2_command(
@@ -248,7 +249,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'group defaults, table #1 columns: keys=group_name, columns=vm_flavor,vm_image,vm_keep_alive,job_cpus,job_disk,job_scratch,job_ram,job_swap',
+        gvar, 0, None, 'group defaults, table #1 columns: keys=group_name, columns=vm_flavor,vm_image,vm_keep_alive,job_cpus,job_disk,job_ram,job_swap',
         ['cloudscheduler', 'group', 'defaults', '-VC']
     )
 
