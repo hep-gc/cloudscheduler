@@ -11,6 +11,7 @@ KEY_MAP = {
     '-cn':  'cloud_name',
     '-cp':  'project',
     '-cr':  'region',
+    '-csp': 'spot_price',
     '-ct':  'cloud_type',
     '-cu':  'username',
     '-cP':  'project_domain_name',
@@ -58,7 +59,7 @@ def add(gvar):
         gvar,
         ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
         [],
-        ['-cP', '-cU', '-ce', '-g', '-ga',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
+        ['-ce', '-cP', '-csp', '-cU', '-g', '-ga',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
         key_map=KEY_MAP)
 
     # Create the cloud.
@@ -144,6 +145,7 @@ def list(gvar):
             'user_domain_name/User Domain',
             'username/User',
             'region/Region',
+            'spot_price/Spot Price',
             'cloud_type/Cloud Type',
             'keyname/Keyname',
             'cores_ctl/Control/Cores',
@@ -234,7 +236,7 @@ def update(gvar):
         gvar,
         ['-cn'],
         [],
-        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
+        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

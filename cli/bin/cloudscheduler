@@ -113,6 +113,7 @@ def main(args):
             ('-cP',  '--cloud-project-domain', True),
             ('-cp',  '--cloud-project', True),
             ('-cr',  '--cloud-region', True),
+            ('-csp', '--cloud-spot-price', True),
             ('-ct',  '--cloud-type', True),
             ('-cU',  '--cloud-user-domain', True),
             ('-cu',  '--cloud-user', True),
