@@ -100,7 +100,6 @@ def defaults(gvar):
             'vm_keep_alive/Keep Alive/VM',
             'job_cpus/Cores/Job',
             'job_disk/Disk (GBs)/Job',
-            'job_scratch/Ephemeral Disk (GBs)/Job',
             'job_ram/RAM (MBs)/Job',
             'job_swap/Swap (GBs)/Job',
         ],
@@ -211,7 +210,7 @@ def metadata_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], [], ['-g', '-H', '-h', '-s', '-xA'])
+    check_keys(gvar, ['-mn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
 
     # Check that the target groupmetadata file exists.
     response = requests(gvar, '/group/list/')

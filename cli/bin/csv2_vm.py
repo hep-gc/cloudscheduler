@@ -96,7 +96,6 @@ def list(gvar):
             'foreign_vm/Foreign',
             'cores/cores',
             'disk/Disk (GBs)',
-            'ephemeral_disk/Ephemeral Disk (GBs)',
             'ram/Ram (MBs)',
             'swap/Swap (GBs)',
             'poller_status/Poller Status',

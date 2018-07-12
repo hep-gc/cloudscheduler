@@ -289,7 +289,7 @@ def metadata_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-mn'], [], ['-g', '-H', '-h', '-s', '-xA'])
+    check_keys(gvar, ['-cn', '-mn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
 
     # Check that the target cloud metadata file exists.
     response = requests(gvar, '/cloud/list/')
