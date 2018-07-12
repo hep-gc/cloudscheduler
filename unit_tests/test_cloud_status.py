@@ -50,7 +50,7 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'ctc2'),
             'ram_ctl': -1,
             'default_flavor': 'NULL',
-            'vm_keep_alive': 0,
+            'keep_alive': 0,
             'default_image': None,
             'enabled': 1,
             'cores_ctl': -1,
