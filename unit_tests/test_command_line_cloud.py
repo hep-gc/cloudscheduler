@@ -214,7 +214,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "cloud_spot_price" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "spot_price" must be a integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', 'invalid-unit-test',
             '-ca', 'invalid-unit-test',
@@ -224,6 +224,34 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cu', 'invalid-unit-test',
             '-csp', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', 'invalid-unit-test',
+            '-ca', 'invalid-unit-test',
+            '-cpw', 'invalid-unit-test',
+            '-cp', 'invalid-unit-test',
+            '-cr', 'invalid-unit-test',
+            '-ct', 'local',
+            '-cu', 'invalid-unit-test',
+            '-gme', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', 'invalid-unit-test',
+            '-ca', 'invalid-unit-test',
+            '-cpw', 'invalid-unit-test',
+            '-cp', 'invalid-unit-test',
+            '-cr', 'invalid-unit-test',
+            '-ct', 'local',
+            '-cu', 'invalid-unit-test',
+            '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2'))
         ]
     )
 
@@ -241,7 +269,8 @@ def main(gvar, user_secret):
             '-vka', '10',
             '-vi', 'command-line-cloud-ten',
             '-vf', 'command-line-cloud-ten',
-            '-csp', '10'
+            '-csp', '10',
+            '-gme', ut_id(gvar, 'clm2')
         ]
     )
 
@@ -255,6 +284,20 @@ def main(gvar, user_secret):
             '-cr', 'clc10-r',
             '-ct', 'local',
             '-cu', ut_id(gvar, 'clc10')
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc11')),
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', ut_id(gvar, 'clc11'),
+            '-ca', 'command-line-cloud-11.ca',
+            '-cpw', 'command-line-cloud-11',
+            '-cp', 'command-line-cloud-11',
+            '-cr', 'clc11-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc11'),
+            '-gme', ut_id(gvar, 'clm2,clm2.yaml')
         ]
     )
 
@@ -387,14 +430,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,spot_price,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,cacertificate,metadata_names',
+        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,spot_price,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,group_exclusions,metadata_names,cacertificate',
         ['cloudscheduler', 'cloud', 'list', '-VC']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-NV'],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Metadata', 'Flavor', 'Image', 'Keep Alive', 'Group Exclusions', 'Filenames', 'CA Certificate']
     )
 
     execute_csv2_command(
@@ -418,7 +461,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-V', ''],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Metadata', 'Flavor', 'Image', 'Keep Alive', 'Group Exclusions', 'Filenames', 'CA Certificate']
     )
 
     #### METADATA-COLLATION ####
@@ -1198,10 +1241,86 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV35', 'value specified for "cloud_spot_price" must be a integer value.',
+        gvar, 1, 'CV35', 'value specified for "spot_price" must be a integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-csp', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gme', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV35', 'value specified for "metadata_option" must be one of the following options: [\\\'add\\\', \\\'delete\\\'].',
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gmo', 'invalid-unit-test'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV23', 'cloud update must specify at least one field to update.',
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gmo', 'add'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV23', 'cloud update must specify at least one field to update.',
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gmo', 'delete'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gme', 'invalid-unit-test',
+            '-gmo', 'add'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gme', 'invalid-unit-test',
+            '-gmo', 'delete'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2'))
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
+            '-gmo', 'add'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
+            '-gmo', 'delete'
         ]
     )
 
@@ -1219,10 +1338,84 @@ def main(gvar, user_secret):
             '-vka', '10',
             '-vi', 'command-line-cloud-update',
             '-vf', 'command-line-cloud-update',
-            '-csp', '10'
+            '-csp', '10',
+            '-gme', ut_id(gvar, 'clm2')
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ca', 'command-line-cloud-update.ca',
+            '-cpw', 'command-line-cloud-update',
+            '-cp', 'command-line-cloud-update',
+            '-cr', 'clc10-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc10'),
+            '-gme', ut_id(gvar, 'clm2.yaml,clm3')
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ca', 'command-line-cloud-update.ca',
+            '-cpw', 'command-line-cloud-update',
+            '-cp', 'command-line-cloud-update',
+            '-cr', 'clc10-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc10'),
+            '-gme', ut_id(gvar, 'clm2.yaml'),
+            '-gmo', 'delete'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ca', 'command-line-cloud-update.ca',
+            '-cpw', 'command-line-cloud-update',
+            '-cp', 'command-line-cloud-update',
+            '-cr', 'clc10-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc10'),
+            '-gme', ut_id(gvar, 'clm2,clm3'),
+            '-gmo', 'delete'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ca', 'command-line-cloud-update.ca',
+            '-cpw', 'command-line-cloud-update',
+            '-cp', 'command-line-cloud-update',
+            '-cr', 'clc10-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc10'),
+            '-gme', ut_id(gvar, 'clm2'),
+            '-gmo', 'add'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ca', 'command-line-cloud-update.ca',
+            '-cpw', 'command-line-cloud-update',
+            '-cp', 'command-line-cloud-update',
+            '-cr', 'clc10-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc10'),
+            '-gme', ut_id(gvar, 'clm2.yaml,clm3'),
+            '-gmo', 'add'
         ]
     )
 
 if __name__ == "__main__":
     main(None)
-

@@ -18,6 +18,8 @@ KEY_MAP = {
     '-cU':  'user_domain_name',
     '-g':   'group',
     '-ga':  'cacertificate',
+    '-gme': 'metadata_name',
+    '-gmo': 'metadata_option',
     '-me':  'enabled',
     '-mmt': 'mime_type',
     '-mn':  'metadata_name',
@@ -59,7 +61,7 @@ def add(gvar):
         gvar,
         ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
         [],
-        ['-ce', '-cP', '-csp', '-cU', '-g', '-ga',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
+        ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
         key_map=KEY_MAP)
 
     # Create the cloud.
@@ -155,8 +157,9 @@ def list(gvar):
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
+            'group_exclusions/Group Exclusions/Metadata',
+            'metadata_names/Filenames/Metadata',
             'cacertificate/CA Certificate',
-            'metadata_names/Metadata Filenames',
             ],
         title="Clouds:",
         )
@@ -236,7 +239,7 @@ def update(gvar):
         gvar,
         ['-cn'],
         [],
-        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
+        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

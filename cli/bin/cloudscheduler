@@ -120,6 +120,8 @@ def main(args):
             ('-f',   '--file-path', True),
             ('-g',   '--group', True),
             ('-gm',  '--group-manager', True),
+            ('-gme', '--group-metadata-exclusion', True),
+            ('-gmo', '--group-metadata-option', True),
             ('-gn',  '--group-name', True),
             ('-go',  '--group-option', True),
             ('-H',   '--long-help', False),

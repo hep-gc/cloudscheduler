@@ -190,6 +190,15 @@ def main(gvar, user_secret):
         }
     )
 
+    execute_csv2_request(
+        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm3')),
+        '/group/metadata-add/', form_data={
+            'group': ut_id(gvar, 'clg1'),
+            'metadata_name': ut_id(gvar, 'clm3'),
+            'metadata': '- example: yaml'
+        }
+    )
+
     # cloud metadata to be deleted
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm1')),
