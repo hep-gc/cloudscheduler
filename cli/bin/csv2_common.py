@@ -574,6 +574,9 @@ def _show_table_set_segment(segment, column):
                     segment['super_headers'].append(_show_table_pad([column], [''], segment['table']['lengths'], justify='centre')[0])
                     segment['headers'].append(_show_table_pad([column], [segment['table']['headers'][column]], segment['table']['lengths'], justify='centre')[0])
                 else:
+                    if not segment['SH_low_ix']:
+                        segment['SH_low_ix'] = column_ix
+
                     segment['SH_hi_ix'] = column_ix
 
         # Process segments without super_headers (yet).
