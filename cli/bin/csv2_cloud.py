@@ -157,9 +157,9 @@ def list(gvar):
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
+            'cacertificate/CA Certificate',
             'group_exclusions/Group Exclusions/Metadata',
             'metadata_names/Filenames/Metadata',
-            'cacertificate/CA Certificate',
             ],
         title="Clouds:",
         )
