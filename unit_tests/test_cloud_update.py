@@ -96,10 +96,72 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV35', 'value specified for "spot_price" must be a integer value.',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'spot_price': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_name': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV35', 'value specified for "metadata_option" must be one of the following options: [\'add\', \'delete\'].',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_option': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV23', 'cloud update must specify at least one field to update',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_option': 'add'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV23', 'cloud update must specify at least one field to update',
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_option': 'delete'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'add'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'delete'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
-        values={'authurl': 'unit-test-cloud-three.ca', 'project_domain_name': 'Default', 'cloud_type': 'local', 'region': 'jodiew-ctc3-r', 'username': 'jodiew-ctu3', 'project': 'unit-test-cloud-three', 'cloud_name': 'jodiew-ctc3', 'group_name': 'jodiew-ctg1'},
+        values={
+            'user_domain_name': 'Default',
+            'project': 'unit-test-cloud-three',
+            'vm_image': None,
+            'username': ut_id(gvar, 'ctu3'),
+            'cores_ctl': -1,
+            'vm_flavor': 'NULL',
+            'vm_keep_alive': None,
+            'group_exclusions': None,
+            'cloud_type': 'local',
+            'spot_price': None,
+            'authurl': 'unit-test-cloud-three.ca',
+            'keyname': None,
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'project_domain_name': 'Default',
+            'cacertificate': None,
+            'ram_ctl': -1,
+            'group_name': ut_id(gvar, 'ctg1'),
+            'enabled': 1,
+            'region': ut_id(gvar, 'ctc3-r')
+        },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -119,12 +181,13 @@ def main(gvar, user_secret):
             'project_domain_name': 'updated-value',
             'cloud_type': 'local',
             'ram_ctl': 5,
-            'server_groups_ctl': 5,
             'cores_ctl': 5,
             'enabled': 0,
             'vm_keep_alive': 10,
             'vm_flavor': 'updated-value',
-            'vm_image': 'updated-value'
+            'vm_image': 'updated-value',
+            'spot_price': 1,
+            'metadata_name': ut_id(gvar, 'cty1')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -148,7 +211,128 @@ def main(gvar, user_secret):
             'enabled': 0,
             'vm_keep_alive': 10,
             'vm_flavor': 'updated-value',
-            'vm_image': 'updated-value'
+            'vm_image': 'updated-value',
+            'spot_price': 1,
+            'group_exclusions': ut_id(gvar, 'cty1')
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'metadata_option': 'delete'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        values={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group_name': ut_id(gvar, 'ctg1'),
+            'group_exclusions': None
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+    
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name.1': ut_id(gvar, 'cty1'),
+            'metadata_name.2': ut_id(gvar, 'cty2'),
+            'metadata_name.3': ut_id(gvar, 'cty3')
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        values={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group_name': ut_id(gvar, 'ctg1'),
+            'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name.1': ut_id(gvar, 'cty1'),
+            'metadata_name.2': ut_id(gvar, 'cty2'),
+            'metadata_name.3': ut_id(gvar, 'cty3'),
+            'metadata_option': 'delete'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        values={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group_name': ut_id(gvar, 'ctg1'),
+            'group_exclusions': None
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name': ut_id(gvar, 'cty3'),
+            'metadata_option': 'add'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        values={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group_name': ut_id(gvar, 'ctg1'),
+            'group_exclusions': ut_id(gvar, 'cty3')
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name.1': ut_id(gvar, 'cty2'),
+            'metadata_name.2': ut_id(gvar, 'cty1'),
+            'metadata_option': 'add'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},
+        values={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group_name': ut_id(gvar, 'ctg1'),
+            'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
