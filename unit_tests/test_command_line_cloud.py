@@ -387,14 +387,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,cacertificate,metadata_names',
+        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,spot_price,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,cacertificate,metadata_names',
         ['cloudscheduler', 'cloud', 'list', '-VC']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-NV'],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
     )
 
     execute_csv2_command(
@@ -418,7 +418,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-V', ''],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Flavor', 'Image', 'Keep Alive', 'CA Certificate', 'Metadata Filenames']
     )
 
     #### METADATA-COLLATION ####
