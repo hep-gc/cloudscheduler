@@ -9,7 +9,7 @@ from os import listdir, path
 from re import sub
 from sys import argv
 
-TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'command_line']
+TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'cli']
 
 def get_test_list(ut_path):
     test_names = []

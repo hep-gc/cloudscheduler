@@ -1,6 +1,6 @@
 from unit_test_common import execute_csv2_command, execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
 import sys
-import command_line_requests_cleanup
+import cli_requests_cleanup
 
 def main(gvar, user_secret):
     if not gvar:
@@ -12,7 +12,7 @@ def main(gvar, user_secret):
     if not user_secret:
         user_secret = generate_secret()
     
-    command_line_requests_cleanup.main(gvar)
+    cli_requests_cleanup.main(gvar)
 
     # unprivileged user in no groups
     execute_csv2_request(
