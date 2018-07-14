@@ -144,35 +144,32 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                     print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
                     print('\tNo list "{}" in response.\n'.format(list))
             if list and filter and values and list in response:
-                failed = False
-                if len(response[list]) > 0:
-                    # Will only work for a single value in filter!!
+                found = False
+                for row in response[list]:
+                    match = True
                     for key in filter:
-                        filtered_list = [row for row in response[list] if key in row.keys() and row[key] == filter[key]]
-                    if len(filtered_list) > 0:
-                        for row in filtered_list:
-                            for key in values:
-                                if key not in row.keys():
-                                    failed = True
-                                    if not gvar['hidden']:
-                                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                                        print('\trow=%s' % row)
-                                        print('\tValue key "{}" not present in row.\n'.format(key))
-                                elif row[key] != values[key]:
-                                    failed = True
-                                    if not gvar['hidden']:
-                                        print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                                        print('\trow=%s\n' % row)
-                    else:
-                        failed = True
-                        if not gvar['hidden']:
-                            print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                            print('\tFilter didn\'t match any rows\n')
-                else:
+                        if (key not in row.keys()) or (filter[key] != row[key]):
+                            match = False
+                            break
+
+                    if match:
+                        found = True
+                        failed = False
+                        for key in values:
+                            if (key not in row.keys()) or (values[key] != row[key]):
+                                failed = True
+                                if not gvar['hidden']:
+                                    print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                    print('\trow=%s' % row)
+                                break
+                        if not failed:
+                            break
+
+                if not found:
                     failed = True
                     if not gvar['hidden']:
                         print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                        print('\tResponse list "{}" is empty.\n'.format(list))
+                        print('\tFilter didn\'t match any rows\n')
 
                 if failed:
                     gvar['ut_failed'] += 1
