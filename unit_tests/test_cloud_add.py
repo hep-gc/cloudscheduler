@@ -411,7 +411,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Data too long for column \'cloud_name\' at row 1',
+        gvar, 1, 'CV01', 'value specified for "spot_price" must be a integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': 'invalid-unit-test',
