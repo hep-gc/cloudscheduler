@@ -339,6 +339,8 @@ if __name__ == '__main__':
             time.sleep(10)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+    except Exception as ex:
+        logging.exception("Process Died: %s", ex)
 
     for process in processes:
         try:
