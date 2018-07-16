@@ -159,8 +159,8 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                             if (key not in row.keys()) or (values[key] != row[key]):
                                 failed = True
                                 if not gvar['hidden']:
-                                    print('\n%03d %s Failed: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
-                                    print('\trow=%s' % row)
+                                    print('\n%03d %s Row Check: %s, %s, %s, %s' % (gvar['ut_count'], _caller(), request, list, filter, values))
+                                    print('\trow=%s\n' % row)
                                 break
                         if not failed:
                             break

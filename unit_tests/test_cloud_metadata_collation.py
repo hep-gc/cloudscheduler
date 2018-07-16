@@ -50,8 +50,24 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/metadata-collation/',
-        list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc1'), 'group_name': ut_id(gvar, 'ctg1')},
-        values={'type': 'group', 'priority': 0},
+        list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
+        values={'type': 'group'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/metadata-collation/',
+        list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc3'), 'group_name': ut_id(gvar, 'ctg1')},
+        values={'type': 'group'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/metadata-collation/',
+        list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
+        values={'type': 'cloud'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
