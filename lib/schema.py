@@ -27,7 +27,9 @@ archived_condor_jobs = Table('archived_condor_jobs', metadata,
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job', Integer)
+  Column('hold_job', Integer),
+  Column('hold_job_reason', String(64)),
+  Column('held_reason', String(64))
   )
 
 archived_condor_machines = Table('archived_condor_machines', metadata,
