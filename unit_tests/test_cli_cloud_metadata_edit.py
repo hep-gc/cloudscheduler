@@ -87,25 +87,25 @@ def main(gvar, user_secret):
     )
 
     # The edit scripts in the next 4 tests will break easily as they rely on some system variables
-    # execute_csv2_command(
-    #     gvar, 0, None, 'completed, no changes.',
-    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript1']
-    # )
+    execute_csv2_command(
+        gvar, 0, None, 'completed, no changes.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5']
+    )
 
-    # execute_csv2_command(
-    #     gvar, 0, None, 'successfully  updated.',
-    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5']
-    # )
+    execute_csv2_command(
+        gvar, 0, None, 'successfully  updated.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript6']
+    )
 
-    # execute_csv2_command(
-    #     gvar, 0, None, 'successfully  updated.',
-    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript6']
-    # )
+    execute_csv2_command(
+        gvar, 0, None, 'successfully  updated.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript7']
+    )
 
-    # execute_csv2_command(
-    #     gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
-    #     ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript7']
-    # )
+    execute_csv2_command(
+        gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript8']
+    )
 
 if __name__ == "__main__":
     main(None)
