@@ -99,6 +99,7 @@ def list(gvar):
             'ram/Ram (MBs)',
             'swap/Swap (GBs)',
             'poller_status/Poller Status',
+            'manual_control/Manual_Control',
         ],
         title="VMs:",
         )
