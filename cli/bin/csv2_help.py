@@ -79,7 +79,7 @@ def help(gvar, mandatory=None, required=None, options=None, requires_server=True
     elif gvar['user_settings']['long-help']:
         # Determine man page and call display routine.
         if not gvar['object']:
-            _long_help(gvar, 'csv2', 'csv2.1')
+            _long_help(gvar, 'cloudscheduler', 'cloudscheduler.1')
 
         elif gvar['object'] not in gvar['actions']:
             print('Long help requested for "cloudscheduler %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
@@ -87,7 +87,7 @@ def help(gvar, mandatory=None, required=None, options=None, requires_server=True
                 print('  %s' % obj)
 
         elif not gvar['action']:
-            _long_help(gvar, 'csv2 %s' % gvar['object'], 'csv2_%s.1' % gvar['object'])
+            _long_help(gvar, 'cloudscheduler %s' % gvar['object'], 'cloudscheduler_%s.1' % gvar['object'])
 
         elif gvar['action'] not in gvar['actions'][gvar['object']][1]:
             print('Long help requested for "cloudscheduler %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
@@ -95,7 +95,7 @@ def help(gvar, mandatory=None, required=None, options=None, requires_server=True
                 print('  %s' % action)
 
         else:
-            _long_help(gvar, 'csv2 %s %s' % (gvar['object'], gvar['action']), 'csv2_%s_%s.1' % (gvar['object'], gvar['action']))
+            _long_help(gvar, 'cloudscheduler %s %s' % (gvar['object'], gvar['action']), 'cloudscheduler_%s_%s.1' % (gvar['object'], gvar['action']))
 
     # No help requested, return to caller.
     else:
