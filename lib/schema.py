@@ -194,7 +194,8 @@ condor_jobs = Table('condor_jobs', metadata,
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job', Integer)
+  Column('hold_job_reason', String(50)),
+  Column('held_reason', String(64))
   )
 
 condor_machines = Table('condor_machines', metadata,
@@ -260,6 +261,12 @@ csv2_group_metadata = Table('csv2_group_metadata', metadata,
   Column('mime_type', String(128))
   )
 
+csv2_group_metadata_exclusions = Table('csv2_group_metadata_exclusions', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('metadata_name', String(64), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True)
+  )
+
 csv2_group_resource_metadata = Table('csv2_group_resource_metadata', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
@@ -268,12 +275,6 @@ csv2_group_resource_metadata = Table('csv2_group_resource_metadata', metadata,
   Column('priority', Integer),
   Column('metadata', String),
   Column('mime_type', String(128))
-  )
-
-csv2_group_resource_metadata_exceptions = Table('csv2_group_resource_metadata_exceptions', metadata,
-  Column('group_name', String(32), primary_key=True),
-  Column('cloud_name', String(32), primary_key=True),
-  Column('metadata_name', String(64), primary_key=True)
   )
 
 csv2_group_resources = Table('csv2_group_resources', metadata,
@@ -303,6 +304,7 @@ csv2_group_resources = Table('csv2_group_resources', metadata,
   Column('server_group_members_ctl', Integer),
   Column('floating_ips_ctl', Integer),
   Column('cores_ctl', Integer),
+  Column('spot_price', Integer),
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer)
@@ -389,6 +391,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('enabled', Integer),
+  Column('spot_price', Integer),
   Column('default_image', String(64)),
   Column('keep_alive', Integer),
   Column('authurl', String(128)),
@@ -480,7 +483,8 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job', Integer),
+  Column('hold_job_reason', String(50)),
+  Column('held_reason', String(64)),
   Column('js_idle', Integer),
   Column('js_running', Integer),
   Column('js_completed', Integer),
@@ -492,6 +496,7 @@ view_group_resources = Table('view_group_resources', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('enabled', Integer),
+  Column('spot_price', Integer),
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
@@ -541,6 +546,7 @@ view_group_resources_with_metadata = Table('view_group_resources_with_metadata',
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('enabled', Integer),
+  Column('spot_price', Integer),
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
@@ -595,6 +601,7 @@ view_group_resources_with_metadata_names = Table('view_group_resources_with_meta
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('enabled', Integer),
+  Column('spot_price', Integer),
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
@@ -638,6 +645,7 @@ view_group_resources_with_metadata_names = Table('view_group_resources_with_meta
   Column('server_meta_max', Integer),
   Column('cores_idle', Integer),
   Column('ram_idle', Integer),
+  Column('group_exclusions', String),
   Column('metadata_names', String)
   )
 
