@@ -55,7 +55,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'CV17', 'cloud metadata_add, no cloud name specified.',
-        '/cloud/metadata-add/', form_data={'metadata_name': 'invalid-unit-test'},
+        '/cloud/metadata-add/', form_data={'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -69,7 +69,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'cloud metadata-add request contained a bad parameter "invalid-unit-test".',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'invalid-unit-test': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
@@ -79,7 +79,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'Invalid-unit-test',
-            'metadata_name': 'invalid-unit-test'
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -88,7 +88,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test-',
-            'metadata_name': 'invalid-unit-test'
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -97,7 +97,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test!',
-            'metadata_name': 'invalid-unit-test'
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -115,7 +115,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'enabled': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
@@ -125,7 +125,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'mime_type': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
@@ -145,7 +145,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV14', 'cloud name  "invalid-unit-test" does not exist.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test'
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -154,7 +154,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV15', 'Field \'metadata\' doesn\'t have a default value',
         '/cloud/metadata-add/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
-            'metadata_name': 'invalid-unit-test'
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -163,7 +163,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV13', 'value specified for "priority" must be a integer value.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'metadata': 'invalid-unit-test',
             'priority': 'invalid-unit-test'
         },
@@ -174,7 +174,7 @@ def main(gvar, user_secret):
         gvar, 1, 'CV14', 'cloud name  "invalid-unit-test" does not exist.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),
             'metadata': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret

@@ -72,7 +72,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV04', 'Field \'password\' doesn\'t have a default value',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test'
+            'username': ut_id(gvar, 'user-invalid-unit-test')
         }
     )
 
@@ -86,7 +86,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'value specified for a password is less than 6 characters.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': 'test'
         }
     )
@@ -94,7 +94,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': 'invalid'
         }
     )
@@ -102,7 +102,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'password update received a password but no verify password; both are required.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'test'
         }
     )
@@ -110,7 +110,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'password update received a verify password but no password; both are required.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password2': 'test'
         }
     )
@@ -118,7 +118,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'value specified for a password is less than 6 characters.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'test',
             'password2': 'test'
         }
@@ -127,7 +127,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'invalid',
             'password2': 'invalid'
         }
@@ -136,7 +136,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'values specified for passwords do not match.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password1': 'Abc123',
             'password2': '321cbA'
         }
@@ -145,7 +145,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'request contained a rejected/bad parameter "join_date".',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': user_secret,
             'join_date': 'invalid-unit-test'
         }
@@ -154,7 +154,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'request contained a rejected/bad parameter "active_group".',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': user_secret,
             'active_group': 'invalid-unit-test'
         }
@@ -163,7 +163,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV03', 'specified group "invalid-unit-test" does not exist.',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'group_name': 'invalid-unit-test'
         }
     )
@@ -171,15 +171,15 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'UV01', 'request contained a bad parameter "condor_central_manager".',
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test'
         }
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV05', 'Duplicate entry \'invalid-unit-test-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'utg1')),
+        gvar, 1, 'UV05', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'user-invalid-unit-test'), ut_id(gvar, 'utg1')),
         '/user/add/', form_data={
-            'username': 'invalid-unit-test',
+            'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': user_secret,
             'group_name.1': ut_id(gvar, 'utg1'),
             'group_name.2': ut_id(gvar, 'utg1')
