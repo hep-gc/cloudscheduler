@@ -190,5 +190,4 @@ def update(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
+        return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
