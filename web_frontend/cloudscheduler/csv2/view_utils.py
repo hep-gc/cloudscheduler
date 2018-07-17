@@ -742,8 +742,6 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
                              can't start or end with a dash (or error).
-    mandatory              - The field is not a key field but must be specified and cannot be
-                             blank/empty.
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -797,6 +795,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
 
     # Process fields parameter:
     Formats = {}
+    Mandatory = []
     Options = {
         'accept_primary_keys_only': False,
         'auto_active_group': False,
@@ -809,6 +808,11 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
             if option == 'format':
                 for field in option_set[option]:
                     Formats[field] = option_set[option][field]
+            elif option == 'mandatory':
+                if isinstance(option_set[option], list):
+                    Mandatory += option_set[option]
+                else:
+                    Mandatory.append(option_set[option])
             else:
                 Options[option] = option_set[option]
 
@@ -955,8 +959,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         if Options['auto_active_user'] and 'username' not in Fields:
             Fields['username'] = active_user
 
-        # Process other mandatory fields and booleans.
-        other_mandatory_fields= []
+        # Process booleans fields.
         for field in Formats:
             if Formats[field] == 'boolean':
                 if request.POST.get(field):
@@ -967,10 +970,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                 else:
                     Fields[field] = False
 
-            elif Formats[field] == 'mandatory':
-                other_mandatory_fields.append(field)
-
-        for field in primary_key_columns + other_mandatory_fields:
+        for field in primary_key_columns + Mandatory:
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 
