@@ -90,7 +90,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV04', 'Duplicate entry \'invalid-unit-test\' for key \'PRIMARY\'',
+        gvar, 1, 'GV02', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'group-invalid-unit-test'), ut_id(gvar, 'gtu3')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
             'username.1': ut_id(gvar, 'gtu3'),

@@ -427,7 +427,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV03', '"{}" failed - specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV03', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'ctg1')),
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
@@ -443,7 +443,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV03', '"{}" failed - specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV03', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'ctg1')),
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
@@ -460,7 +460,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV02', 'Duplicate entry \'{}-{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'cty1')),
+        gvar, 1, 'CV03', 'cloud add, "{}" failed - metadata name "{}" was specified twice.'.format(ut_id(gvar, 'cloud-invalid-unit-test'), ut_id(gvar, 'cty1')),
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),

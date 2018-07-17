@@ -177,7 +177,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV05', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'user-invalid-unit-test'), ut_id(gvar, 'utg1')),
+        gvar, 1, 'UV03', 'user add, "{}" failed - group "{}" was specified twice.'.format(ut_id(gvar, 'user-invalid-unit-test'), ut_id(gvar, 'utg1')),
         '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
             'password': user_secret,

@@ -102,7 +102,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
         '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -126,13 +126,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
         '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'add'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctc3')),
         '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'metadata_name': 'invalid-unit-test', 'metadata_option': 'delete'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
