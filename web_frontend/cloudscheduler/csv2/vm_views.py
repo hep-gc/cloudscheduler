@@ -145,7 +145,7 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS, MANDATORY_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
             db_close(db_ctl)
-            return list(request, response_code=1, message='%s cloud update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
             table = tables['csv2_vms']
@@ -183,11 +183,11 @@ def update(request):
                 count += msg
             else:
                 db_close(db_ctl)
-                return list(request, response_code=1, message='%s VM update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
+                return list(request, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
         db_close(db_ctl, commit=True)
         return list(request, response_code=0, message='vm update, VMs %s=%s.' % (verb, count))
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
+        return list(request, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method))
