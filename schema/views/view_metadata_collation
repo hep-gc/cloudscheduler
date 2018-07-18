@@ -26,12 +26,12 @@ from (
     left outer join csv2_group_metadata as cgm
     on cgr.group_name=cgm.group_name
 
-    left outer join csv2_group_resource_metadata_exceptions as cgrme on
-        cgr.group_name=cgrme.group_name and
-        cgr.cloud_name=cgrme.cloud_name and
-        cgm.metadata_name=cgrme.metadata_name
+    left outer join csv2_group_metadata_exclusions as cgme on
+        cgr.group_name=cgme.group_name and
+        cgm.metadata_name=cgme.metadata_name and
+        cgr.cloud_name=cgme.cloud_name
 
-    where cgm.enabled=1 and cgrme.group_name is null
+    where cgm.enabled=1 and cgme.group_name is null
 
     union all select
 
