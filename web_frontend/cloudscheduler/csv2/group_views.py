@@ -96,6 +96,9 @@ METADATA_KEYS = {
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         },
+    'mandatory': [
+        'metadata_name',
+        ],
     }
 
 IGNORE_METADATA_NAME = {
@@ -543,7 +546,7 @@ def metadata_add(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'metadata_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -571,10 +574,7 @@ def metadata_add(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
-        else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, no group name specified.' % lno('GV28')})
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -587,7 +587,7 @@ def metadata_delete(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'metadata_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -632,10 +632,7 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
-        else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, no group name specified.' % lno('GV33')})
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -732,7 +729,7 @@ def metadata_update(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'metadata_name' in request.POST:
+    if request.method == 'POST':
 
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
@@ -764,10 +761,7 @@ def metadata_update(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
-        else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, no group name specified.' % lno('GV40')})
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
 
 #-------------------------------------------------------------------------------
 
