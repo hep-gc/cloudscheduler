@@ -36,8 +36,17 @@ def main(gvar, user_secret):
     )
     
     execute_csv2_request(
-        gvar, 1, 'GV28', 'no group name specified.',
-        '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        gvar, 1, 'GV28', 'no metadata name specified.',
+        '/group/metadata-add/', form_data={'enabled': 1},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV25', 'group metadata-add request contained a bad parameter "invalid-unit-test".',
+        '/group/metadata-add/', form_data={
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
+            'invalid-unit-test': 'invalid-unit-test'
+        },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

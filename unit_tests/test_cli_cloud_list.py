@@ -78,7 +78,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,spot_price,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,cacertificate,group_exclusions,metadata_names',
+        gvar, 0, None, 'cloud list, table #1 columns: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,spot_price,cloud_type,keyname,cores_ctl,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,cacertificate,group_exclusions,metadata_names',
         ['cloudscheduler', 'cloud', 'list', '-VC']
     )
 

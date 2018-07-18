@@ -84,7 +84,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test']
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test')]
     )
 
     execute_csv2_command(
@@ -99,12 +99,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'UV01', 'value specified for a password is less than 6 characters.',
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'test', '-ucn', 'invalid-unit-test']
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'test', '-ucn', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'UV01', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid', '-ucn', 'invalid-unit-test']
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid', '-ucn', 'invalid-unit-test']
     )
 
     execute_csv2_command(
@@ -114,7 +114,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'UV03', 'specified group "invalid-unit-test" does not exist.',
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', 'invalid-unit-test']
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', 'invalid-unit-test']
     )
 
     execute_csv2_command(
@@ -124,7 +124,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-g', 'invalid-unit-test']
     )
 
     execute_csv2_command(
@@ -139,17 +139,17 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'UV02', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'clu1')),
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', ut_id(gvar, 'clu1')]
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid-unit-test', '-ucn', ut_id(gvar, 'clu1')]
     )
 
     execute_csv2_command(
         gvar, 1, 'UV02', 'common name "{}" conflicts with registered user "{}".'.format(ut_id(gvar, 'command line user one'), ut_id(gvar, 'clu1')),
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', ut_id(gvar, 'command line user one')]
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid-unit-test', '-ucn', ut_id(gvar, 'command line user one')]
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV05', r'Duplicate entry \'invalid-unit-test-jodiew-clg1\' for key \'PRIMARY\'',
-        ['cloudscheduler', 'user', 'add', '-un', 'invalid-unit-test', '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', ut_id(gvar, 'clg1,clg1')]
+        gvar, 1, 'UV03', 'user add, "jodiew-cli-invalid-unit-test" failed - group "jodiew-clg1" was specified twice.'.format(ut_id(gvar, 'cli-invalid-unit-test'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', ut_id(gvar, 'clg1,clg1')]
     )
 
     execute_csv2_command(
@@ -291,7 +291,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'Rows: 0',
-        ['cloudscheduler', 'user', 'list', '-un', 'invalid-unit-test']
+        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'cli-invalid-unit-test')]
     )
 
     execute_csv2_command(
@@ -387,8 +387,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV22', 'the request did not match any rows.',
+        gvar, 1, None, '"cloudscheduler user update" requires at least one option to update.',
         ['cloudscheduler', 'user', 'update', '-un', 'invalid-unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 1, 'UV22', 'the request did not match any rows.',
+        ['cloudscheduler', 'user', 'update', '-un', 'invalid-unit-test', '-SU', 'yes']
     )
 
     execute_csv2_command(
@@ -412,11 +417,6 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, '| Common Name   |  ',
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
-
-    execute_csv2_command(
         gvar, 1, 'UV20', 'common name "{0}" conflicts with registered user "{0}".'.format(ut_id(gvar, 'clu1')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-ucn', ut_id(gvar, 'clu1')]
     )
@@ -429,11 +429,6 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-ucn', ut_id(gvar, 'command line user update')]
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, '| Common Name   | {} '.format(ut_id(gvar, 'command line user update')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
     )
 
     execute_csv2_command(
@@ -452,18 +447,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, '| Super User    | 1',
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
-
-    execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-SU', 'false']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, '| Super User    | 0',
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
     )
 
     execute_csv2_command(
@@ -472,17 +457,18 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'nothing to update',
+        gvar, 1, 'UV23', 'user update must specify at least one field to update.',
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-go', 'add']
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'nothing to update',
+        gvar, 1, 'UV23', 'user update must specify at least one field to update.',
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-go', 'delete']
     )
 
+    # TODO: is this expected?
     execute_csv2_command(
-        gvar, 1, None, 'nothing to update',
+        gvar, 0, None, 'user "{}" successfully updated.',
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', '']
     )
 
@@ -492,7 +478,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV22', r'Duplicate entry \'jodiew-clu7-jodiew-clg1\' for key \'PRIMARY\'',
+        gvar, 1, 'UV21', 'user update, "jodiew-clu7" failed - group "jodiew-clg1" was specified twice.'.format(ut_id(gvar, 'clu7'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg1')]
     )
 
@@ -501,10 +487,6 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1')]
     )
 
-    execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {} '.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
 
     execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
@@ -512,18 +494,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, '| User Groups   | None ',
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
-
-    execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1'), '-go', 'add']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {} '.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
     )
 
     execute_csv2_command(
@@ -532,18 +504,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {} '.format(ut_id(gvar, 'clg1,clg2')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
-
-    execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg2'), '-go', 'delete']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, '| User Groups   | None ',
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
     )
 
     execute_csv2_command(
@@ -552,28 +514,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {} '.format(ut_id(gvar, 'clg1,clg2')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
-
-    execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1')]
     )
 
     execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {} '.format(ut_id(gvar, 'clg1,clg2')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
-    )
-
-    execute_csv2_command(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1'), '-go', 'add']
-    )
-
-    execute_csv2_command(
-        gvar, 0, None, '| User Groups   | {} '.format(ut_id(gvar, 'clg1,clg2')),
-        ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu7')]
     )
 
 if __name__ == "__main__":

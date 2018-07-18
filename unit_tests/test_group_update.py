@@ -153,7 +153,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'username': None
+            'username': ''
         }, html=True
     )
 

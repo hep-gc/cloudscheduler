@@ -63,27 +63,27 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'The specified metadata file "invalid-unit-test" does not exist.',
-        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', 'invalid-unit-test', '-f', 'invalid-unit-test', '-mn', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', 'invalid-unit-test', '-f', 'invalid-unit-test', '-mn', ut_id(gvar, 'cli-invalid-unit-test')]
     )
 
     execute_csv2_command(
         gvar, 1, None, 'cloud name  "invalid-unit-test" does not exist.',
-        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', 'invalid-unit-test', '-f', 'ut.yaml', '-mn', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', 'invalid-unit-test', '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test')]
     )
 
     execute_csv2_command(
         gvar, 1, 'CV13', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
-        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', 'invalid-unit-test', '-me', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-me', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'CV13', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
-        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', 'invalid-unit-test', '-mmt', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-mmt', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'CV13', 'value specified for "priority" must be a integer value.',
-        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', 'invalid-unit-test', '-mp', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-load', '-cn', ut_id(gvar, 'clc2'), '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-mp', 'invalid-unit-test']
     )
 
     execute_csv2_command(

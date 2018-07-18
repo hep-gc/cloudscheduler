@@ -94,7 +94,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'add', '-gn', 'invalid-unit-test']
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test')]
     )
 
     execute_csv2_command(
@@ -109,7 +109,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'GV01', 'value specified for "condor_central_manager" must not be an empty string.',
-        ['cloudscheduler', 'group', 'add', '-gn', 'invalid-unit-test', '-gm', '']
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-gm', '']
     )
 
     execute_csv2_command(
@@ -139,24 +139,18 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'GV02', 'specified user "invalid-unit-test" does not exist.',
-        ['cloudscheduler', 'group', 'add', '-gn', 'invalid-unit-test', '-gm', 'invalid-unit-test', '-un', 'invalid-unit-test']
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-gm', 'invalid-unit-test', '-un', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV04', r'Duplicate entry \'invalid-unit-test\' for key \'PRIMARY\'',
-        ['cloudscheduler', 'group', 'add', '-gn', 'invalid-unit-test', '-gm', 'invalid-unit-test', '-un', ut_id(gvar, 'clu3,clu3')]
+        gvar, 1, 'GV02', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'cli-invalid-unit-test'), ut_id(gvar, 'clu3')),
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-gm', 'invalid-unit-test', '-un', ut_id(gvar, 'clu3,clu3')]
     )
 
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg11')),
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg11'), '-gm', 'command-line-group-11', '-un', ut_id(gvar, 'clu3')]
     )
-
-    # TODO: better list checking
-    # execute_csv2_command(
-    #     gvar, 0, None, '| User Groups   | {}'.format(ut_id(gvar, 'clg1,clg11')),
-    #     ['cloudscheduler', 'user', 'list', '-un', ut_id(gvar, 'clu3')]
-    # )
 
 if __name__ == "__main__":
     main(None)

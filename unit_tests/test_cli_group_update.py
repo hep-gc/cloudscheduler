@@ -92,7 +92,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'duplicate entry',
+        gvar, 1, 'GV43', 'group add, "jodiew-clg1" failed - user "jodiew-clu3" was specified twice.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3')),
         ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-un', ut_id(gvar, 'clu3,clu3')]
     )
 

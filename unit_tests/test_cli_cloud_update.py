@@ -112,7 +112,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', 'invalid-unit-test'
@@ -144,7 +144,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', 'invalid-unit-test',
@@ -153,7 +153,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', 'invalid-unit-test',
@@ -162,7 +162,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2'))
@@ -170,7 +170,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
@@ -179,7 +179,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clg1')),
+        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
