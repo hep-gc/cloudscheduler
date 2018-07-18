@@ -6,13 +6,14 @@ create or replace view view_available_resources as
 
 select
     grwcf.*,
-    cast(least(round(cores_idle/flavor_cores), round(ram_idle/flavor_ram)) as integer) as flavor_slots
+    cast(least(cores_idle div flavor_cores, ram_idle div flavor_ram) as integer) as flavor_slots
 
 from (
     select
         vgr.group_name,
         vgr.cloud_name,
         vgr.enabled,
+        vgr.spot_price,
         vgr.cascading_vm_image as default_image,
         vgr.cascading_vm_keep_alive as keep_alive,
         authurl,
