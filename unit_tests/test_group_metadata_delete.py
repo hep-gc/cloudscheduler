@@ -30,8 +30,8 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV33', 'no metadata name specified.',
-        '/group/metadata-delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        gvar, 1, 'GV30', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
+        '/group/metadata-delete/', form_data={'group': ut_id(gvar, 'gtg5')},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

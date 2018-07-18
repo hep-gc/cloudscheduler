@@ -36,7 +36,7 @@ def main(gvar, user_secret):
     )
     
     execute_csv2_request(
-        gvar, 1, 'GV28', 'no metadata name specified.',
+        gvar, 1, 'GV25', 'group metadata-add request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-add/', form_data={'enabled': 1},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

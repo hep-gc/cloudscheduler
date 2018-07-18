@@ -36,7 +36,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV06', 'the vm-option is required and must be one of the following: [\'kill\', \'retire\', \'manctl\', \'sysctl\'].',
+        gvar, 1, 'VV02', 'vm update request contained a bad parameter "invalid-unit-test".',
         '/vm/update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
@@ -48,21 +48,68 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'VV02', 'vm update request did not contain mandatory parameter "vm_option".',
+        '/vm/update/', form_data={'group': ut_id(gvar, 'vtg1')},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'vtg2')),
         '/vm/update/', form_data={'group': ut_id(gvar, 'vtg2')},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV06', "the vm-option is required and must be one of the following: ['kill', 'retire', 'manctl', 'sysctl'].",
-        '/vm/update/', form_data={'group': ut_id(gvar, 'vtg1'), 'vm-option': 'invalid-unit-test'},
+        gvar, 1, 'VV02', "vm update value specified for \"vm_option\" must be one of the following options: ['kill', 'manctl', 'retire', 'sysctl'].",
+        '/vm/update/', form_data={'group': ut_id(gvar, 'vtg1'), 'vm_option': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
-    # TODO: come back to this later, I don't think the functionality is there yet
     execute_csv2_request(
-        gvar, 1, 'VV06', "the vm-option is required and must be one of the following: ['kill', 'retire', 'manctl', 'sysctl'].",
-        '/vm/update/', form_data={'vm-option': 'sysctl', 'invalid-unit-test': 'invalid-unit-test'},
+        gvar, 0, None, "vm update, VMs set to system control=0.",
+        '/vm/update/', form_data={'vm_option': 'sysctl'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, "vm update, VMs killed=0.",
+        '/vm/update/', form_data={'vm_option': 'kill'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, "vm update, VMs set to manual control=0.",
+        '/vm/update/', form_data={'vm_option': 'manctl'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, "vm update, VMs retired=0.",
+        '/vm/update/', form_data={'vm_option': 'retire'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'VV02', "vm update value specified for \"poller_status\" must be one of the following options: ['error', 'manual', 'native', 'other', 'retiring', 'running', 'unregistered'].",
+        '/vm/update/', form_data={'vm_option': 'sysctl', 'poller_status': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, "vm update, VMs set to system control=0.",
+        '/vm/update/', form_data={'vm_option': 'sysctl', 'poller_status': 'error'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, "vm update, VMs set to system control=0.",
+        '/vm/update/', form_data={'vm_option': 'sysctl', 'cloud_name': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, "vm update, VMs set to system control=0.",
+        '/vm/update/', form_data={'vm_option': 'sysctl', 'hostname': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 

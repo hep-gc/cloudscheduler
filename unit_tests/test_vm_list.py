@@ -59,11 +59,5 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
-    execute_csv2_request(
-        gvar, 1, 'VV##', '???',
-        '/vm/list/invalid-unit-test::invalid-unit-test::invalid-unit-test',
-        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
-    )
-
 if __name__ == "__main__":
     main(None)

@@ -397,7 +397,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV##', 'nothing to update',
+        gvar, 1, None, '"cloudscheduler user update" requires at least one option to update.',
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7')]
     )
 
@@ -468,7 +468,7 @@ def main(gvar, user_secret):
 
     # TODO: is this expected?
     execute_csv2_command(
-        gvar, 0, None, 'user "{}" successfully updated.',
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'clu7')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', '']
     )
 

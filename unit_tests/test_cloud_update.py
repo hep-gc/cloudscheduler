@@ -37,7 +37,13 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'CV38', 'no cloud name specified.',
-        '/cloud/update/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/cloud/update/', form_data={'cloud_type': 'local'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV38', 'no cloud name specified.',
+        '/cloud/update/', form_data={'cloud_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

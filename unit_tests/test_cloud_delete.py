@@ -37,7 +37,13 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'CV10', 'no cloud name specified.',
-        '/cloud/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        '/cloud/delete/', form_data={'group': ut_id(gvar, 'ctg1')},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV10', 'no cloud name specified.',
+        '/cloud/delete/', form_data={'cloud_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

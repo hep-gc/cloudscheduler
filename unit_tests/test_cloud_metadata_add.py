@@ -48,19 +48,19 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV17', 'cloud metadata_add, no cloud name specified.',
+        gvar, 1, 'CV13', 'cloud metadata-add request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-add/', form_data={'group': ut_id(gvar, 'ctg1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV17', 'cloud metadata_add, no cloud name specified.',
+        gvar, 1, 'CV13', 'cloud metadata-add request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-add/', form_data={'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV17', 'cloud metadata_add, no cloud name specified.',
+        gvar, 1, 'CV13', 'cloud metadata-add request did not contain mandatory parameter "metadata_name".',
         '/cloud/metadata-add/', form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
