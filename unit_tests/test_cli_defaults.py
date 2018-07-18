@@ -95,14 +95,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'defaults list, table #1 columns: keys=server, columns=cloud-address,cloud-enabled,cloud-name,cloud-password,cloud-project,cloud-project-domain,cloud-region,cloud-type,cloud-user,cloud-user-domain,expose-API,file-path,group,group-manager,group-name,group-option,help,job-cores,job-disk,job-ram,job-swap,long-help,metadata-enabled,metadata-mime-type,metadata-name,metadata-priority,no-view,only-keys,rotate,server,server-address,server-grid-cert,server-grid-key,server-password,server-user,super-user,text-editor,user-common-name,user-password,user_option,username,view,view-columns,vm-cores,vm-disk,vm-flavor,vm-foreign,vm-hostname,vm-image,vm-keep-alive,vm-keypair,vm-option,vm-ram,vm-status,vm-swap,yes',
+        gvar, 0, None, 'defaults list, table #1 columns: keys=server, columns=cloud-address,cloud-enabled,cloud-name,cloud-password,cloud-project,cloud-project-domain,cloud-region,cloud-spot-price,cloud-type,cloud-user,cloud-user-domain,expose-API,file-path,group,group-manager,group-metadata-exclusion,group-metadata-option,group-name,group-option,help,job-cores,job-disk,job-ram,job-swap,long-help,metadata-enabled,metadata-mime-type,metadata-name,metadata-priority,no-view,only-keys,rotate,server,server-address,server-grid-cert,server-grid-key,server-password,server-user,super-user,text-editor,user-common-name,user-password,user_option,username,view,view-columns,vm-cores,vm-disk,vm-flavor,vm-foreign,vm-hostname,vm-image,vm-keep-alive,vm-keypair,vm-option,vm-ram,vm-status,vm-swap,yes',
         ['cloudscheduler', 'defaults', 'list', '-VC']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'defaults', 'list', '-NV'],
-        list='Defaults', columns=['server', 'cloud-address', 'cloud-enabled', 'cloud-name', 'cloud-password', 'cloud-project', 'cloud-project-domain', 'cloud-region', 'cloud-type', 'cloud-user', 'cloud-user-domain', 'expose-API', 'file-path', 'group', 'group-manager', 'group-name', 'group-option', 'help', 'job-cores', 'job-disk', 'job-ram', 'job-swap', 'long-help', 'metadata-enabled', 'metadata-mime-type', 'metadata-name', 'metadata-priority', 'no-view', 'only-keys', 'rotate', 'server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user', 'super-user', 'text-editor', 'user-common-name', 'user-password', 'user_option', 'username', 'view', 'view-columns', 'vm-cores', 'vm-disk', 'vm-flavor', 'vm-foreign', 'vm-hostname', 'vm-image', 'vm-keep-alive', 'vm-keypair', 'vm-option', 'vm-ram', 'vm-status', 'vm-swap', 'yes']
+        list='Defaults', columns=['server', 'cloud-address', 'cloud-enabled', 'cloud-name', 'cloud-password', 'cloud-project', 'cloud-project-domain', 'cloud-region', 'cloud-spot-price', 'cloud-type', 'cloud-user', 'cloud-user-domain', 'expose-API', 'file-path', 'group', 'group-manager', 'group-name', 'group-option', 'help', 'job-cores', 'job-disk', 'job-ram', 'job-swap', 'long-help', 'metadata-enabled', 'metadata-mime-type', 'metadata-name', 'metadata-priority', 'no-view', 'only-keys', 'rotate', 'server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user', 'super-user', 'text-editor', 'user-common-name', 'user-password', 'user_option', 'username', 'view', 'view-columns', 'vm-cores', 'vm-disk', 'vm-flavor', 'vm-foreign', 'vm-hostname', 'vm-image', 'vm-keep-alive', 'vm-keypair', 'vm-option', 'vm-ram', 'vm-status', 'vm-swap', 'yes']
     )
 
     execute_csv2_command(
@@ -120,7 +120,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'defaults', 'list', '-V', ''],
-        list='Defaults', columns=['server', 'cloud-address', 'cloud-enabled', 'cloud-name', 'cloud-password', 'cloud-project', 'cloud-project-domain', 'cloud-region', 'cloud-type', 'cloud-user', 'cloud-user-domain', 'expose-API', 'file-path', 'group', 'group-manager', 'group-name', 'group-option', 'help', 'job-cores', 'job-disk', 'job-ram', 'job-swap', 'long-help', 'metadata-enabled', 'metadata-mime-type', 'metadata-name', 'metadata-priority', 'no-view', 'only-keys', 'rotate', 'server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user', 'super-user', 'text-editor', 'user-common-name', 'user-password', 'user_option', 'username', 'view', 'view-columns', 'vm-cores', 'vm-disk', 'vm-flavor', 'vm-foreign', 'vm-hostname', 'vm-image', 'vm-keep-alive', 'vm-keypair', 'vm-option', 'vm-ram', 'vm-status', 'vm-swap', 'yes']
+        list='Defaults', columns=['server', 'cloud-address', 'cloud-enabled', 'cloud-name', 'cloud-password', 'cloud-project', 'cloud-project-domain', 'cloud-region', 'cloud-spot-price', 'cloud-type', 'cloud-user', 'cloud-user-domain', 'expose-API', 'file-path', 'group', 'group-manager', 'group-name', 'group-option', 'help', 'job-cores', 'job-disk', 'job-ram', 'job-swap', 'long-help', 'metadata-enabled', 'metadata-mime-type', 'metadata-name', 'metadata-priority', 'no-view', 'only-keys', 'rotate', 'server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user', 'super-user', 'text-editor', 'user-common-name', 'user-password', 'user_option', 'username', 'view', 'view-columns', 'vm-cores', 'vm-disk', 'vm-flavor', 'vm-foreign', 'vm-hostname', 'vm-image', 'vm-keep-alive', 'vm-keypair', 'vm-option', 'vm-ram', 'vm-status', 'vm-swap', 'yes']
     )
 
     execute_csv2_command(
@@ -162,7 +162,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, None,
+        gvar, None, None, None,
         ['cloudscheduler', 'defaults', '-s', 'unit-test']
     )
 

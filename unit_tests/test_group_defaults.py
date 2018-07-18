@@ -81,7 +81,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'request contained a bad parameter "job_scratch".',
+        gvar, 1, 'GV07', 'request contained a rejected/bad parameter "job_scratch".',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_scratch': 'invalid-unit-test'

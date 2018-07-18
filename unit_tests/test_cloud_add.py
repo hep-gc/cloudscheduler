@@ -411,6 +411,72 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV01', 'value specified for "spot_price" must be a integer value.',
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+            'spot_price': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV03', '"invalid-unit-test" failed - specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+            'metadata_name': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV03', '"invalid-unit-test" failed - specified metadata "{}::invalid-unit-test" does not exist.'.format(ut_id(gvar, 'ctg1')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+            'metadata_name.1': ut_id(gvar, 'cty1'),
+            'metadata_name.2': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV02', 'Duplicate entry \'{}-invalid-unit-test-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty1')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': 'invalid-unit-test',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+            'metadata_name.1': ut_id(gvar, 'cty1'),
+            'metadata_name.2': ut_id(gvar, 'cty1'),
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc5')),
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
@@ -424,7 +490,61 @@ def main(gvar, user_secret):
             'vm_flavor': 'unit-test-cloud-five',
             'vm_image': 'unit-test-cloud-five',
             'enabled': 0,
-            'vm_keep_alive': 10
+            'vm_keep_alive': 10,
+            'metadata_name': ut_id(gvar, 'cty1'),
+            'spot_price': 10
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/',
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc5')},
+        values={
+            'group_name': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gvar, 'ctc5'),
+            'authurl': 'unit-test-cloud-five.ca',
+            'project': 'unit-test-cloud-five',
+            'username': ut_id(gvar, 'ctu3'),
+            'region': ut_id(gvar, 'ctc5-r'),
+            'cloud_type': 'local',
+            'vm_flavor': 'unit-test-cloud-five',
+            'vm_image': 'unit-test-cloud-five',
+            'enabled': 0,
+            'vm_keep_alive': 10,
+            'group_exclusions': ut_id(gvar, 'cty1'),
+            'spot_price': 10
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc6')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gvar, 'ctc6'),
+            'authurl': 'unit-test-cloud-five.ca',
+            'project': 'unit-test-cloud-five',
+            'username': ut_id(gvar, 'ctu3'),
+            'password': user_secret,
+            'region': ut_id(gvar, 'ctc5-r'),
+            'cloud_type': 'local',
+            'metadata_name.1': ut_id(gvar, 'cty1'),
+            'metadata_name.2': ut_id(gvar, 'cty2'),
+            'metadata_name.3': ut_id(gvar, 'cty3')
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/list/',
+        list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc6')},
+        values={
+            'group_name': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gvar, 'ctc6'),
+            'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

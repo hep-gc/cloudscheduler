@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
 import sys
 
+# lno: VV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -86,13 +88,44 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'vm', 'list']
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-ok'],
+        list='VMs', columns=['Group', 'Cloud', 'Hostname']
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'vm', 'list', '-ok']
+        gvar, 0, None, 'vm list, table #1 columns: keys=group_name,cloud_name,hostname, columns=vmid,auth_url,project,status,flavor_id,task,power_status,terminate,terminate_time,status_changed_time,last_updated,flavor_name,condor_slots,condor_off,foreign_vm,cores,disk,ram,swap,poller_status',
+        ['cloudscheduler', 'vm', 'list', '-VC']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-NV'],
+        list='VMs', columns=['Group', 'Cloud', 'Hostname', 'VMID', 'Authorization URL', 'Project', 'Status', 'Flavor ID', 'Task', 'Power Status', 'Terminate', 'Terminate Time', 'Status Change Time', 'Last Updated', 'Flavor', 'Condor Slots', 'Condor Off', 'Foreign', 'cores', 'Disk (GBs)', 'Ram (MBs)', 'Swap (GBs)', 'Poller Status']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-V', 'project,task'],
+        list='VMs', columns=['Group', 'Cloud', 'Hostname', 'Project', 'Task']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list'],
+        list='VMs', columns=['Group', 'Cloud', 'Hostname', 'Project', 'Task']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-V', ''],
+        list='VMs', columns=['Group', 'Cloud', 'Hostname', 'VMID', 'Authorization URL', 'Project', 'Status', 'Flavor ID', 'Task', 'Power Status', 'Terminate', 'Terminate Time', 'Status Change Time', 'Last Updated', 'Flavor', 'Condor Slots', 'Condor Off', 'Foreign', 'cores', 'Disk (GBs)', 'Ram (MBs)', 'Swap (GBs)', 'Poller Status']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-r'],
+        list='VMs', columns=['Key', 'Value']
     )
 
     execute_csv2_command(

@@ -170,7 +170,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV04', 'request contained a bad parameter "job_scratch".',
+        gvar, 1, 'GV01', 'request contained a rejected/bad parameter "job_scratch".',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'condor_central_manager': 'unit-test-group-three.ca',

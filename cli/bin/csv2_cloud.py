@@ -11,12 +11,15 @@ KEY_MAP = {
     '-cn':  'cloud_name',
     '-cp':  'project',
     '-cr':  'region',
+    '-csp': 'spot_price',
     '-ct':  'cloud_type',
     '-cu':  'username',
     '-cP':  'project_domain_name',
     '-cU':  'user_domain_name',
     '-g':   'group',
     '-ga':  'cacertificate',
+    '-gme': 'metadata_name',
+    '-gmo': 'metadata_option',
     '-me':  'enabled',
     '-mmt': 'mime_type',
     '-mn':  'metadata_name',
@@ -58,7 +61,7 @@ def add(gvar):
         gvar,
         ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
         [],
-        ['-cP', '-cU', '-ce', '-g', '-ga',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
+        ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
         key_map=KEY_MAP)
 
     # Create the cloud.
@@ -144,6 +147,7 @@ def list(gvar):
             'user_domain_name/User Domain',
             'username/User',
             'region/Region',
+            'spot_price/Spot Price',
             'cloud_type/Cloud Type',
             'keyname/Keyname',
             'cores_ctl/Control/Cores',
@@ -154,7 +158,8 @@ def list(gvar):
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
             'cacertificate/CA Certificate',
-            'metadata_names/Metadata Filenames',
+            'group_exclusions/Group Exclusions/Metadata',
+            'metadata_names/Filenames/Metadata',
             ],
         title="Clouds:",
         )
@@ -234,7 +239,7 @@ def update(gvar):
         gvar,
         ['-cn'],
         [],
-        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-ct', '-cU', '-cu', '-g', '-ga', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
+        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
@@ -277,8 +282,8 @@ def metadata_collation(gvar):
             'group_name/Group,k',
             'cloud_name/Cloud,k',
             'metadata_name/Metadata Filename,k',
+            'priority/Priority',
             'type/Type',
-            'priority/priority',
             ],
         title="Clouds/Metadata Collation:",
         )

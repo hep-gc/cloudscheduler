@@ -74,6 +74,19 @@ def db_open():
 
 #-------------------------------------------------------------------------------
 
+def diff_lists(list1,list2, option=None):
+    """
+    if option equal 'and', return a list of items which are in both list1
+    and list2. Otherwise, return a list of items in list1 but not in list2.
+    """
+
+    if option and option == 'and':
+        return [x for x in list1 if x in list2] 
+    else:
+        return [x for x in list1 if x not in list2] 
+
+#-------------------------------------------------------------------------------
+
 # Returns the current authorized user from metadata
 def getAuthUser(request):
     return request.META.get('REMOTE_USER')
@@ -146,7 +159,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
 
     if not option or option == 'add':
         # Get the list of users specified that are not already in the group.
-        add_users = _manage_user_group_list_diff(user_list, db_users)
+        add_users = diff_lists(user_list, db_users)
 
         # Add the missing users.
         for user in add_users:
@@ -156,7 +169,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
 
     if not option:
         # Get the list of users that the group currently has but were not specified.
-        remove_users = _manage_user_group_list_diff(db_users, user_list)
+        remove_users = diff_lists(db_users, user_list)
         
         # Remove the extraneous users.
         for user in remove_users:
@@ -166,7 +179,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
 
     elif option == 'delete':
         # Get the list of users that the group currently has and were specified.
-        remove_users = _manage_user_group_list_diff(user_list, db_users, option='and')
+        remove_users = diff_lists(user_list, db_users, option='and')
         
         # Remove the extraneous users.
         for user in remove_users:
@@ -211,7 +224,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
 
     if not option or option == 'add':
         # Get the list of groups specified that the user doesn't already have.
-        add_groups = _manage_user_group_list_diff(group_list, db_groups)
+        add_groups = diff_lists(group_list, db_groups)
 
         # Add the missing groups.
         for group in add_groups:
@@ -221,7 +234,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
 
     if not option:
         # Get the list of groups that the user currently has but were not specified.
-        remove_groups = _manage_user_group_list_diff(db_groups, group_list)
+        remove_groups = diff_lists(db_groups, group_list)
         
         # Remove the extraneous groups.
         for group in remove_groups:
@@ -231,7 +244,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
 
     elif option == 'delete':
         # Get the list of groups that the user currently has and were specified.
-        remove_groups = _manage_user_group_list_diff(group_list, db_groups, option='and')
+        remove_groups = diff_lists(group_list, db_groups, option='and')
         
         # Remove the extraneous groups.
         for group in remove_groups:
@@ -243,22 +256,9 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
 
 #-------------------------------------------------------------------------------
 
-def _manage_user_group_list_diff(list1,list2, option=None):
-    """
-    if option equal 'and', return a list of items which are in both list1
-    and list2. Otherwise, return a list of items in list1 but not in list2.
-    """
-
-    if option and option == 'and':
-        return [x for x in list1 if x in list2] 
-    else:
-        return [x for x in list1 if x not in list2] 
-
-#-------------------------------------------------------------------------------
-
 def manage_user_group_verification(db_ctl, tables, users, groups):
     """
-    Make sure the specified users and groups exit.
+    Make sure the specified users and groups exist.
     """
 
     from sqlalchemy.sql import select
@@ -279,12 +279,17 @@ def manage_user_group_verification(db_ctl, tables, users, groups):
 
         valid_users = {}
         for row in db_user_list:
-            valid_users[row['username']] = True
+            valid_users[row['username']] = False
 
         # Check the list of specified users.
         for user in user_list:
             if user not in valid_users:
                 return 1, 'specified user "%s" does not exist' % user
+            elif valid_users[user]:
+                return 1, 'user "%s" was specified twice' % user
+            else:
+                valid_users[user] = True
+
 
     if groups:
         # if there is only one group, make it a list anyway
@@ -300,12 +305,16 @@ def manage_user_group_verification(db_ctl, tables, users, groups):
 
         valid_groups = {}
         for row in db_group_list:
-            valid_groups[row['group_name']] = True
+            valid_groups[row['group_name']] = False
 
         # Check the list of specified groups.
         for group in group_list:
             if group not in valid_groups:
                 return 1, 'specified group "%s" does not exist' % group
+            elif valid_groups[group]:
+                return 1, 'group "%s" was specified twice' % group
+            else:
+                valid_groups[group] = True
 
     return 0, None
 
@@ -733,8 +742,6 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
                              can't start or end with a dash (or error).
-    mandatory              - The field is not a key field but must be specified and cannot be
-                             blank/empty.
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
                              pre-defined patterns (eg. ends with ".yaml"), the string will be 
@@ -788,6 +795,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
 
     # Process fields parameter:
     Formats = {}
+    Mandatory = []
     Options = {
         'accept_primary_keys_only': False,
         'auto_active_group': False,
@@ -800,6 +808,11 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
             if option == 'format':
                 for field in option_set[option]:
                     Formats[field] = option_set[option][field]
+            elif option == 'mandatory':
+                if isinstance(option_set[option], list):
+                    Mandatory += option_set[option]
+                else:
+                    Mandatory.append(option_set[option])
             else:
                 Options[option] = option_set[option]
 
@@ -946,8 +959,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         if Options['auto_active_user'] and 'username' not in Fields:
             Fields['username'] = active_user
 
-        # Process other mandatory fields and booleans.
-        other_mandatory_fields= []
+        # Process booleans fields.
         for field in Formats:
             if Formats[field] == 'boolean':
                 if request.POST.get(field):
@@ -958,10 +970,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                 else:
                     Fields[field] = False
 
-            elif Formats[field] == 'mandatory':
-                other_mandatory_fields.append(field)
-
-        for field in primary_key_columns + other_mandatory_fields:
+        for field in primary_key_columns + Mandatory:
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
 

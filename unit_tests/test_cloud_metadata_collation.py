@@ -13,51 +13,61 @@ def main(gvar, user_secret):
     
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
-        '/cloud/metadata-list/',
+        '/cloud/metadata-collation/',
         server_user='invalid-unit-test', server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/metadata-list/',
+        '/cloud/metadata-collation/',
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/metadata-list/',
+        '/cloud/metadata-collation/',
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-list/', form_data={'group': 'invalid-unit-test'},
+        '/cloud/metadata-collation/', form_data={'group': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-list/', form_data={'group': ut_id(gvar, 'ctg2')},
+        '/cloud/metadata-collation/', form_data={'group': ut_id(gvar, 'ctg2')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV27', 'request contained a bad parameter "metadata_list_option".',
-        '/cloud/metadata-list/', form_data={'metadata_list_option': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, 'CV27', 'request contained a bad parameter "invalid-unit-test".',
-        '/cloud/metadata-list/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        gvar, 1, 'CV19', 'request contained a bad parameter "invalid-unit-test".',
+        '/cloud/metadata-collation/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
-        '/cloud/metadata-list/',
+        '/cloud/metadata-collation/',
         list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
-        values={'metadata': '- example: yes', 'enabled': 1, 'mime_type': 'cloud-config', 'priority': 0},
+        values={'type': 'group'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/metadata-collation/',
+        list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc3'), 'group_name': ut_id(gvar, 'ctg1')},
+        values={'type': 'group'},
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/cloud/metadata-collation/',
+        list='cloud_metadata_list', filter={'metadata_name': ut_id(gvar, 'cty1'), 'cloud_name': ut_id(gvar, 'ctc2'), 'group_name': ut_id(gvar, 'ctg1')},
+        values={'type': 'cloud'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

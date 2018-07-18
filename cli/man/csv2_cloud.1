@@ -1,0 +1,63 @@
+.so ../man/_header.so
+.
+.
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.
+
+.
+.SY csv2
+.B cloud
+.B <action>
+.B [ <mandatory_parameters_and_options> ]
+.
+.YS
+.
+.
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.
+The \fBcsv2 cloud\fP command adds, deletes, lists, modifies, and shows the status of cloud resources
+for clouds within the current group.
+For each group, one or more cloud resources, both commercial and private, can be 
+defined.
+Defining cloud resouces for a group allows cloudscheduler to manage those resources
+for the group, starting and stopping Virtual Machines (VMs) as required by the group's
+job queue.
+The cloud object and actions are available to all users.
+
+.
+.\" --------------------------------------------------------------------
+.SH ACTIONS
+.\" --------------------------------------------------------------------
+.P
+For information on the parameters associated with each \fBcloud\fP action, refer
+to the documentation for that action (eg. csv2 cloud <action> -H).
+The following actions are available for the \fBcloud\fP object:
+.
+.TP
+.BI add
+Adds a new cloud definition to the current group.
+A group may one or more cloud definitions.
+
+.
+.TP
+.BI delete
+Removes a cloud definition from the current group.
+
+.
+.TP
+.BI list
+Lists all the cloud definitions and settings for the current group.
+
+.
+.TP
+.BI modify
+Modifies the setting for the specified cloud within the current group.
+
+.
+.TP
+.BI status
+Lists the status of Virtual Machines (VMs) and jobs for each cloud within the current group.

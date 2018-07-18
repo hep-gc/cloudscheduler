@@ -44,7 +44,7 @@ USER_GROUP_KEYS = {
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         'group_name':          'ignore',
-        'group_option':         ['add', 'delete'],
+        'group_option':        ['add', 'delete'],
 
         'active_group':        'reject',
         'join_date':           'reject',
@@ -150,7 +150,6 @@ def add(request):
         if 'group_name' in fields:
             rc, msg = manage_user_groups(db_ctl, tables, fields['username'], fields['group_name'])
 
-        db_connection.close()
         if rc == 0:
             db_close(db_ctl, commit=True)
             return list(request, selector=fields['username'], response_code=0, message='user "%s" successfully added.' % (fields['username']), active_user=active_user, user_groups=user_groups)
@@ -430,6 +429,11 @@ def update(request):
             if rc != 0:
                 db_close(db_ctl)
                 return list(request, selector=fields['username'], response_code=1, message='%s user update, "%s" failed - %s.' % (lno('UV22'), fields['username'], msg), active_user=active_user, user_groups=user_groups)
+        else:
+            if 'group_name' not in fields:
+                db_close(db_ctl)
+                return list(request, selector=fields['username'], response_code=1, message='%s user update must specify at least one field to update.' % lno('UV23'), active_user=active_user, user_groups=user_groups)
+            
 
         # Update user_groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -438,9 +442,6 @@ def update(request):
                     rc, msg = manage_user_groups(db_ctl, tables, fields['username'], groups=fields['group_name'], option='delete')
                 else:
                     rc, msg = manage_user_groups(db_ctl, tables, fields['username'], groups=fields['group_name'], option='add')
-            else:
-                if len(user_updates) < 1:
-                    return list(request, selector=fields['username'], response_code=1, message='%s user update must specify at least one field to update.' % lno('UV23'), active_user=active_user, user_groups=user_groups)
 
         else:
             if 'group_name' in fields:
@@ -448,7 +449,6 @@ def update(request):
             else:
                 rc, msg = manage_user_groups(db_ctl, tables, fields['username'], None)
 
-        db_connection.close()
         if rc == 0:
             db_close(db_ctl, commit=True)
             return list(request, selector=fields['username'], response_code=0, message='user "%s" successfully updated.' % (fields['username']), active_user=active_user, user_groups=user_groups)

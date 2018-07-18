@@ -182,5 +182,26 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    # group metadata for metadata exceptions in test_cloud_add and test_cloud_update
+    execute_csv2_request(
+        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty2')),
+        '/group/metadata-add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name': ut_id(gvar, 'cty2'),
+            'metadata': '- example: yaml'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty3')),
+        '/group/metadata-add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'metadata_name': ut_id(gvar, 'cty3'),
+            'metadata': '- example: yaml'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
 if __name__ == "__main__":
     main(None)

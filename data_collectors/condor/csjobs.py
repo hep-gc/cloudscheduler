@@ -204,19 +204,21 @@ def job_command_consumer():
     while True:
         try:
             #Query database for any entries that have a command flag
-            for job in session.query(Job).filter(Job.hold_job == 1):
+            for job in session.query(Job).filter(Job.hold_job_reason != None):
                 #execute condor hold on the jobs returned
                 logging.info("Holding %s", job.global_job_id)
                 try:
                     s = htcondor.Schedd()
                     local_job_id = job.global_job_id.split('#')[1]
                     s.edit([local_job_id,], "JobStatus", "5")
+                    s.edit([local_job_id,], "HoldReason", job.hold_job_reason)
                     # update job so that it is held, need to finalize encoding here.
                     job.job_status = 5
                     # Null/0 normal, 1 means needs to be held, 2 means job has been held
-                    job.hold_job = 2
+                    job.hold_job_reason = None
                     session.merge(job)
-                except:
+                except Exception as ex:
+                    logging.exception(ex)
                     logging.error("Failed to hold job %s", job.global_job_id)
                     continue
             #commit updates enteries
@@ -252,11 +254,12 @@ def cleanUp():
     #setup database objects
     Job = Base.classes.condor_jobs
     archJob = Base.classes.archived_condor_jobs
-
+    logging.info("entering main cleanup loop")
     while True:
         # Setup condor classes and database connctions
         # this stuff may be able to be moved outside the while loop, but i think its
         # better to re-mirror the database each time for the sake on consistency.
+        logging.info("query schedd")
         try:
             condor_s = htcondor.Schedd()
         except Exception as exc:
@@ -267,7 +270,8 @@ def cleanUp():
             time.sleep(config.cleanup_sleep_interval)
             continue
         fail_count = 0
-
+        
+        logging.info("query jobs.")
         # Clean up job ads
         try:
             condor_job_list = condor_s.query()
@@ -277,37 +281,55 @@ def cleanUp():
             logging.error("Sleeping until next cycle...")
             time.sleep(config.cleanup_sleep_interval)
             continue
-
+        logging.info("query db jobs")
+        try:
         # this query asks for only jobs that contain the local hostname as part of their JobID
-        db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
+            db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
+        except Exception as ex:
+            logging.exception(ex)
         # loop through the condor data and make a list of GlobalJobId
         # then loop through db list checking if they are in the aforementioned list
-
+        logging.info("iterate classads")
         condor_name_list = []
         for ad in condor_job_list:
             ad_dict = dict(ad)
             condor_name_list.append(ad_dict['GlobalJobId'])
+        logging.info("iterate jobs in db")
         for job in db_job_list:
             if job.global_job_id not in condor_name_list:
                 #job is missing from condor, clean it up
                 logging.info("Found Job missing from condor: %s, cleaning up.", job.global_job_id)
                 job_dict = job.__dict__
-                logging.info(job_dict)
-                session.delete(job)
+                #logging.info(job_dict)
+                logging.info('delete job')
+                try: 
+                    session.delete(job)
+                except Exception as ex:
+                    logging.exception(ex)
                 # metadata not relevent to the job ad, must trim to init with kwargs
-                job_dict.pop('_sa_instance_state', None)
-                new_arch_job = archJob(**job_dict)
+                logging.info("pop from dict")
+                try:
+                    job_dict.pop('_sa_instance_state', None)
+                except:
+                    logging.exception("pop fail")
+                logging.info("new job")
+                try:
+                    new_arch_job = archJob(**job_dict)
+                except Exception as ex:
+                    logging.exception(ex)
+                logging.info("merge it")
                 try:
                     session.merge(new_arch_job)
                 except Exception as exc:
                     logging.error("Unable to merge deleted job add, skipping for this cycle")
-
+        logging.info("commit")
         try:        
             session.commit()
         except Exception as exc:
             logging.error("Unable to commit database session")
             logging.error(exc)
             logging.error("Aborting cycle...")
+        logging.info("sleep cycle")
         time.sleep(config.cleanup_sleep_interval)
 
 if __name__ == '__main__':
@@ -319,7 +341,7 @@ if __name__ == '__main__':
     processes = {}
     process_ids = {
         'cleanup':            cleanUp,
-#       'command':            job_command_consumer,
+        'command':            job_command_consumer,
         'job':                job_producer,
         }
 
@@ -339,6 +361,8 @@ if __name__ == '__main__':
             time.sleep(10)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+    except Exception as ex:
+        logging.exception("Process Died: %s", ex)
 
     for process in processes:
         try:
