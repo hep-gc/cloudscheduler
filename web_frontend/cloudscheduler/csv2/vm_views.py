@@ -40,13 +40,13 @@ VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
+        'poller_status':                                                ['foreign', 'native', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
         'hostname':                                                     'ignore',
-        'poller_status':                                                'ignore',
         },
     }
 
@@ -56,6 +56,12 @@ LIST_KEYS = {
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
         },
+    }
+
+MANDATORY_KEYS = {
+    'mandatory': [
+        'vm_option',
+        ]
     }
 
 #-------------------------------------------------------------------------------
@@ -125,7 +131,7 @@ def update(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'vm_option' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -136,7 +142,7 @@ def update(request):
             return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS, MANDATORY_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
             db_close(db_ctl)
             return list(request, response_code=1, message='%s cloud update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
@@ -184,7 +190,4 @@ def update(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud update, the vm-option is required and must be one of the following: %s.' % (lno('VV06'), VM_KEYS['format']['vm_option']))
+        return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
