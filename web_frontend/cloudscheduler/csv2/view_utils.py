@@ -320,7 +320,7 @@ def manage_user_group_verification(db_ctl, tables, users, groups):
 
 #-------------------------------------------------------------------------------
 
-def qt(query, keys=None, prune=[], filter=None):
+def qt(query, keys=None, prune=[], filter=None, convert=None):
     """
     Query Transform takes a list of dictionaries (eg. the result of an SqlAlchemy query)
     and transforms it into a standard python list (repeatably iterable). In the process,
@@ -425,13 +425,15 @@ def qt(query, keys=None, prune=[], filter=None):
             
             for col in cols:
                 if col in keys['secondary'] and cols[col]:
-                    secondary_dict_ptr[col] = cols[col]
+#                   secondary_dict_ptr[col] = cols[col]
+                    secondary_dict_ptr[col] = _qt_convert(convert, cols, col)
             
             if add_row:
                 new_row = {}
                 for col in cols:
                     if col not in keys['secondary'] + prune:
-                        new_row[col] = cols[col]
+#                       new_row[col] = cols[col]
+                        new_row[col] = _qt_convert(convert, cols, col)
 
 
                 primary_list.append(new_row)
@@ -440,7 +442,8 @@ def qt(query, keys=None, prune=[], filter=None):
             new_row = {}
             for col in cols:
                 if col not in prune:
-                  new_row[col] = cols[col]
+#                 new_row[col] = cols[col]
+                  new_row[col] = _qt_convert(convert, cols, col)
 
             primary_list.append(new_row)
 
@@ -487,6 +490,22 @@ def _qt(add_row, secondary_dict_ptr, cols, key):
             return True, secondary_dict_ptr[cols[key]]
     else:
         return add_row, secondary_dict_ptr
+
+#-------------------------------------------------------------------------------
+
+def _qt_convert(convert, cols, key):
+    """
+    This sub-function is called by view_utils.qt to convert the specified columns 
+    to their output format.
+    """
+
+    import time
+
+    if convert and key in convert:
+        if convert[key] == 'datetime':
+            return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cols[key]))
+
+    return cols[key]
 
 #-------------------------------------------------------------------------------
 
