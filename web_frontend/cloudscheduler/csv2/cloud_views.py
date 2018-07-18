@@ -65,6 +65,9 @@ CLOUD_KEYS = {
         'server_group_members_ctl':             'reject',
         'floating_ips_ctl':                     'reject',
         },
+    'mandatory': [
+        'cloud_name',
+        ],
     }
 
 METADATA_KEYS = {
@@ -81,6 +84,10 @@ METADATA_KEYS = {
         'csrfmiddlewaretoken':                  'ignore',
         'group':                                'ignore',
         },
+    'mandatory': [
+        'cloud_name',
+        'metadata_name',
+        ],
     }
 
 IGNORE_METADATA_NAME = {
@@ -245,7 +252,7 @@ def add(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'cloud_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -288,10 +295,7 @@ def add(request):
                     
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno('CV03'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud add, no cloud name specified.' % lno('CV04'))
+        return list(request, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno('CV03'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -305,7 +309,7 @@ def delete(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'cloud_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -350,10 +354,7 @@ def delete(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno('CV09'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud delete, no cloud name specified.' % lno('CV10'))
+        return list(request, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno('CV09'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -463,10 +464,7 @@ def metadata_add(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and \
-        'cloud_name' in request.POST and \
-        'metadata_name' in request.POST:
-
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -507,10 +505,7 @@ def metadata_add(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno('CV16'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud metadata_add, no cloud name specified.' % lno('CV17'))
+        return list(request, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno('CV16'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -566,10 +561,7 @@ def metadata_delete(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and \
-        'cloud_name' in request.POST and \
-        'metadata_name' in request.POST:
-
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -604,10 +596,7 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno('CV23'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud metadata_delete, no cloud name specified.' % lno('CV24'))
+        return list(request, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno('CV23'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -712,10 +701,7 @@ def metadata_update(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and \
-        'cloud_name' in request.POST and \
-        'metadata_name' in request.POST:
-
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -747,10 +733,7 @@ def metadata_update(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud metadata_update, no cloud name specified.' % lno('CV32'))
+        return list(request, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -832,7 +815,7 @@ def update(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'cloud_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -891,8 +874,5 @@ def update(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV37'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud update, no cloud name specified.' % lno('CV38'))
+        return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV37'), request.method))
 
