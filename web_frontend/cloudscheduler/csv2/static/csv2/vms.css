@@ -27,6 +27,7 @@
 .button {
   border: none;
   border-radius: 8px;
+  box-shadow: 0 -17px 6px 0 rgba(0,0,0,0.2) inset;
   color: white;
   cursor: pointer;
   display: inline-block;
