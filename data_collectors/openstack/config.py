@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 poller_log_file = "/var/log/cloudscheduler/openstackpoller.log"
+main_short_interval = 1
+main_long_interval = 10
 vm_sleep_interval = 60
 vm_cleanup_interval = 120
 network_sleep_interval = 300

@@ -865,10 +865,14 @@ if __name__ == '__main__':
                         logging.info("Restarting %s process", process)
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
-                    time.sleep(1)
-            time.sleep(10)
+                    time.sleep(config.main_short_interval)
+            time.sleep(config.main_long_interval)
+
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+
+    except Exception as ex:
+        logging.exception("Process Died: %s", ex)
 
     for process in processes:
         try:
