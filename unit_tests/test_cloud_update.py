@@ -36,13 +36,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV38', 'no cloud name specified.',
+        gvar, 1, 'CV35', 'cloud update request did not contain mandatory parameter "cloud_name".',
         '/cloud/update/', form_data={'cloud_type': 'local'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV38', 'no cloud name specified.',
+        gvar, 1, 'CV35', 'cloud update request contained a bad parameter "invalid-unit-test".',
         '/cloud/update/', form_data={'cloud_name': 'invalid-unit-test', 'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

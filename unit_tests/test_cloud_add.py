@@ -36,13 +36,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV04', 'no cloud name specified.',
+        gvar, 1, 'CV01', 'cloud add request did not contain mandatory parameter "cloud_name".',
         '/cloud/add/', form_data={'group': ut_id(gvar, 'ctg1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV04', 'no cloud name specified.',
+        gvar, 1, 'CV01', 'cloud add request contained a bad parameter "invalid-unit-test".',
         '/cloud/add/', form_data={'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'), 'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
