@@ -9,6 +9,7 @@ import job_config as config
 from attribute_mapper.attribute_mapper import map_attributes
 
 import htcondor
+import classad
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -23,7 +24,7 @@ def trim_keys(dict_to_trim, key_list):
     keys_to_trim = []
     key_list.append("group_name")
     for key in dict_to_trim:
-        if key not in key_list:
+        if key not in key_list or isinstance(dict_to_trim[key], classad._classad.Value):
             keys_to_trim.append(key)
     for key in keys_to_trim:
         dict_to_trim.pop(key, None)
