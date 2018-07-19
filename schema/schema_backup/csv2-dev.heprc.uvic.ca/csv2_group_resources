@@ -49,6 +49,7 @@ CREATE TABLE `csv2_group_resources` (
   `server_group_members_ctl` int(11) DEFAULT NULL,
   `floating_ips_ctl` int(11) DEFAULT NULL,
   `cores_ctl` int(11) DEFAULT -1,
+  `spot_price` int(11) DEFAULT NULL,
   `vm_flavor` varchar(64) DEFAULT 'NULL',
   `vm_image` varchar(64) DEFAULT NULL,
   `vm_keep_alive` int(11) DEFAULT NULL,
@@ -65,4 +66,4 @@ CREATE TABLE `csv2_group_resources` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-10 10:28:24
+-- Dump completed on 2018-07-19 13:03:56
