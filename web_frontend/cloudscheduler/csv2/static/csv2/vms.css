@@ -38,6 +38,10 @@
   width: 197px;
 }
 
+.button-shadow:hover {
+  box-shadow: 0 17px 6px 0 rgba(0,0,0,0.2) inset;
+}
+
 .greyed-button {
   opacity: 0.4;
   cursor: not-allowed;
