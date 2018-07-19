@@ -16,45 +16,18 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_group_resources`
+-- Table structure for table `csv2_group_metadata_exclusions`
 --
 
-DROP TABLE IF EXISTS `csv2_group_resources`;
+DROP TABLE IF EXISTS `csv2_group_metadata_exclusions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_group_resources` (
+CREATE TABLE `csv2_group_metadata_exclusions` (
   `group_name` varchar(32) NOT NULL,
+  `metadata_name` varchar(64) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
-  `enabled` tinyint(1) NOT NULL DEFAULT 1,
-  `authurl` varchar(128) NOT NULL,
-  `project` varchar(128) NOT NULL,
-  `username` varchar(20) NOT NULL,
-  `password` text NOT NULL,
-  `keyname` varchar(20) DEFAULT NULL,
-  `cacertificate` text DEFAULT NULL,
-  `region` varchar(20) NOT NULL,
-  `user_domain_name` varchar(20) NOT NULL DEFAULT 'Default',
-  `project_domain_name` varchar(20) NOT NULL DEFAULT 'Default',
-  `cloud_type` varchar(64) NOT NULL,
-  `server_meta_ctl` int(11) DEFAULT NULL,
-  `instances_ctl` int(11) DEFAULT NULL,
-  `personality_ctl` int(11) DEFAULT NULL,
-  `image_meta_ctl` int(11) DEFAULT NULL,
-  `personality_size_ctl` int(11) DEFAULT NULL,
-  `ram_ctl` int(11) DEFAULT -1,
-  `server_groups_ctl` int(11) DEFAULT NULL,
-  `security_group_rules_ctl` int(11) DEFAULT NULL,
-  `keypairs_ctl` int(11) DEFAULT NULL,
-  `security_groups_ctl` int(11) DEFAULT NULL,
-  `server_group_members_ctl` int(11) DEFAULT NULL,
-  `floating_ips_ctl` int(11) DEFAULT NULL,
-  `cores_ctl` int(11) DEFAULT -1,
-  `spot_price` int(11) DEFAULT NULL,
-  `vm_flavor` varchar(64) DEFAULT NULL,
-  `vm_image` varchar(64) DEFAULT NULL,
-  `vm_keep_alive` int(11) DEFAULT NULL,
-  PRIMARY KEY (`group_name`,`cloud_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`group_name`,`cloud_name`,`metadata_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -66,4 +39,4 @@ CREATE TABLE `csv2_group_resources` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-19 13:37:53
+-- Dump completed on 2018-07-19 13:03:56
