@@ -601,7 +601,7 @@ def metadata_delete(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV30'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno('GV30'), msg)})
 
         # Delete the csv2_group_metadata_exclusions.
         table = tables['csv2_group_metadata_exclusions']
@@ -744,7 +744,7 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV37'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
