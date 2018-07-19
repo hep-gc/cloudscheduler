@@ -40,9 +40,7 @@ def build_user_group_dict(db_list):
 
 def job_producer():
     multiprocessing.current_process().name = "Poller"
-
-    sleep_interval = config.collection_interval
-    job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId",
+    job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "HoldReason",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
@@ -58,47 +56,49 @@ def job_producer():
     Base.prepare(engine, reflect=True)
     Job = Base.classes.condor_jobs
     User_Groups = Base.classes.csv2_user_groups
-    session = Session(engine)
 
-    while True:
-        try:
+    try:
+        while True:
             #
             # Setup - initialize condor and database objects and build user-group list
             #
+            logging.info("Beginning job poller cycle")
             try:
-                condor_s = htcondor.Schedd()
+                condor_session = htcondor.Schedd()
             except Exception as exc:
-                fail_count = fail_count + 1
-                logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
+                fail_count += 1
+                logging.exception("Unable to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                logging.error("Sleeping until next cycle...")
-                time.sleep(sleep_interval)
+                time.sleep(config.collection_interval)
                 continue
 
             fail_count = 0
 
-            db_user_grps = session.query(User_Groups)
+            db_session = Session(engine)
+            new_poll_time = int(time.time())
+
+            db_user_grps = db_session.query(User_Groups)
             if db_user_grps:
                 user_group_dict = build_user_group_dict(list(db_user_grps))
             else:
                 user_group_dict = {}
-
-            new_poll_time = time.time()
 
             #
             # Part 1 - Get new jobs
             #
             if last_poll_time == 0:
                 #first poll since starting up, get everything
-                job_list = condor_s.query(attr_list=job_attributes)
+                job_list = condor_session.query(attr_list=job_attributes)
             else:
                 #regular polling cycle: Get all new jobs
                 # constraint='JobStatus=?=1 && QDate>=' + last_poll_time, attr_list=job_attributes
-                job_list = condor_s.query(
+                job_list = condor_session.query(
                     constraint='QDate>=%d' % last_poll_time,
                     attr_list=job_attributes)
 
             #Process job data & Insert/update jobs in Database
+            abort_cycle = False
+            uncommitted_updates = False
             for job_ad in job_list:
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
@@ -120,6 +120,7 @@ def job_producer():
 
                 job_dict = trim_keys(job_dict, job_attributes)
                 job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
+                logging.info(job_dict)
                 if unmapped:
                     logging.error("attribute mapper found unmapped variables:")
                     logging.error(unmapped)
@@ -127,32 +128,42 @@ def job_producer():
                 logging.info("Adding job %s", job_dict["global_job_id"])
                 new_job = Job(**job_dict)
                 try:
-                    session.merge(new_job)
+                    db_session.merge(new_job)
+                    uncommitted_updates = True
                 except Exception as exc:
-                    logging.error("Unable to merge job:")
+                    logging.exception("Failed to merge job entry, aborting cycle...")
                     logging.error(exc)
-                    logging.error("Skipping for this cycle...")
-            try:        
-                session.commit()
-            except Exception as exc:
-                logging.error("Unable to commit database session")
-                logging.error(exc)
-                logging.error("Aborting cycle...")
-                time.sleep(sleep_interval)
+                    abort_cycle = True
+                    break
+
+            if abort_cycle:
+                del condor_session
+                db_session.close()
+                time.sleep(config.collection_interval)
                 continue
 
+            if uncommitted_updates:
+                try:
+                    db_session.commit()
+                except Exception as exc:
+                    logging.exception("Unable to commit new jobs, aborting cycle...")
+                    logging.error(exc)
+                    del condor_session
+                    db_session.close()
+                    time.sleep(config.collection_interval)
+                    continue
 
-            session = Session(engine)
             #
             # Part 2 - Detect any job status changes
             #
             if last_poll_time != 0:
                 # get all jobs who've had status changes since last poll excluding
                 # brand new jobs since they would have been updated above
-                status_changed_job_list = condor_s.query(
+                status_changed_job_list = condor_session.query(
                     constraint='EnteredCurrentStatus>=%d && QDate<=%d' % (last_poll_time, last_poll_time),
                     attr_list=job_attributes)
 
+                uncommitted_updates = False
                 for job_ad in status_changed_job_list:
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
@@ -162,175 +173,229 @@ def job_producer():
                     if unmapped:
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)
-                            
+
                     new_job = Job(**job_dict)
                     try:
-                        session.merge(new_job)
+                        db_session.merge(new_job)
+                        uncommitted_updates = True
                     except Exception as exc:
-                        logging.error("Unable to merge updated job ads:")
+                        logging.exception("Unable to merge job changes, aborting cycle...")
                         logging.error(exc)
-                        logging.error("setting new_poll_time to last_poll_time to repeat cycle")
-                        new_poll_time = last_poll_time
-                try:        
-                    session.commit()
-                    last_poll_time = new_poll_time
-                except Exception as exc:
-                    logging.error("Unable to commit database session")
-                    logging.error(exc)
-                    logging.error("Aborting cycle...")
+                        abort_cycle = True
+                        break
 
-            time.sleep(sleep_interval)
+                if abort_cycle:
+                    del condor_session
+                    db_session.close()
+                    time.sleep(config.collection_interval)
+                    continue
 
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Failure contacting condor...")
-            time.sleep(sleep_interval)
+                if uncommitted_updates:
+                    try:
+                        db_session.commit()
+                    except Exception as exc:
+                        logging.exception("Unable to commit job changes, aborting cycle...")
+                        logging.error(exc)
+                        del condor_session
+                        db_session.close()
+                        time.sleep(config.collection_interval)
+                        continue
 
-        except(SystemExit, KeyboardInterrupt):
-            return
+            logging.info("Completed job poller cycle")
+            last_poll_time = new_poll_time
+            del condor_session
+            db_session.close()
+            time.sleep(config.collection_interval)
 
+    except Exception as exc:
+        logging.exception("Job poller while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def job_command_consumer():
     multiprocessing.current_process().name = "Cmd Consumer"
-    sleep_interval = config.command_sleep_interval
     #Make database engine
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     Job = Base.classes.condor_jobs
-    session = Session(engine)
 
-    while True:
-        try:
-            #Query database for any entries that have a command flag
-            for job in session.query(Job).filter(Job.hold_job_reason != None):
-                #execute condor hold on the jobs returned
-                logging.info("Holding %s", job.global_job_id)
-                try:
-                    s = htcondor.Schedd()
-                    local_job_id = job.global_job_id.split('#')[1]
-                    s.edit([local_job_id,], "JobStatus", "5")
-                    s.edit([local_job_id,], "HoldReason", job.hold_job_reason)
-                    # update job so that it is held, need to finalize encoding here.
-                    job.job_status = 5
-                    # Null/0 normal, 1 means needs to be held, 2 means job has been held
-                    job.hold_job_reason = None
-                    session.merge(job)
-                except Exception as ex:
-                    logging.exception(ex)
-                    logging.error("Failed to hold job %s", job.global_job_id)
-                    continue
-            #commit updates enteries
-            try:        
-                session.commit()
+    try:
+        while True:
+            logging.info("Beginning command consumer cycle")
+            try:
+                condor_session = htcondor.Schedd()
             except Exception as exc:
-                logging.error("Unable to commit database session")
+                fail_count += 1
+                logging.exception("Unable to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                logging.error("Aborting cycle...")
+                time.sleep(config.command_sleep_interval)
+                continue
 
-            logging.debug("No more jobs to hold, begining sleep interval...")
-            time.sleep(sleep_interval)
+            fail_count = 0
 
-        except Exception as exc:
-            logging.error("Failure connecting to database or executing condor command,"
-                          " begining sleep interval...")
-            logging.error(exc)
-            time.sleep(sleep_interval)
+            db_session = Session(engine)
 
-        except(SystemExit, KeyboardInterrupt):
-            return
+            #Query database for any entries that have a command flag
+            abort_cycle = False
+            uncommitted_updates = False
+            for job in db_session.query(Job).filter(Job.hold_job_reason != None):
+                logging.info("Holding job %s, reason=%s" % (job.global_job_id, job.hold_job_reason))
+                local_job_id = job.global_job_id.split('#')[1]
+                try:
+                    condor_session.edit([local_job_id,], "JobStatus", "5")
+                    condor_session.edit([local_job_id,], "HoldReason", '"%s"' % job.hold_job_reason)
+
+                    job.job_status = 5
+                    job.hold_job_reason = None
+                    db_session.merge(job)
+                    uncommitted_updates = True
+                except Exception as exc:
+                    logging.exception("Failed to hold job, aborting cycle...")
+                    logging.error(exc)
+                    abort_cycle = True
+                    break
+
+            if abort_cycle:
+                del condor_session
+                db_session.close()
+                time.sleep(config.command_sleep_interval)
+                continue
+
+            if uncommitted_updates:
+                try:
+                    db_session.commit()
+                except Exception as exc:
+                    logging.exception("Unable to commit job changes, aborting cycle...")
+                    logging.error(exc)
+                    del condor_session
+                    db_session.close()
+                    time.sleep(config.command_sleep_interval)
+                    continue
+
+            logging.info("Completed command consumer cycle")
+            del condor_session
+            db_session.close()
+            time.sleep(config.command_sleep_interval)
+
+    except Exception as exc:
+        logging.exception("Job poller while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
 
 def cleanUp():
     multiprocessing.current_process().name = "Cleanup"
-    fail_count = 0 
+    fail_count = 0
 
     Base = automap_base()
     local_hostname = socket.gethostname()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
-    session = Session(engine)
     #setup database objects
     Job = Base.classes.condor_jobs
     archJob = Base.classes.archived_condor_jobs
     logging.info("entering main cleanup loop")
-    while True:
-        # Setup condor classes and database connctions
-        # this stuff may be able to be moved outside the while loop, but i think its
-        # better to re-mirror the database each time for the sake on consistency.
-        logging.info("query schedd")
-        try:
-            condor_s = htcondor.Schedd()
-        except Exception as exc:
-            fail_count = fail_count + 1
-            logging.error("Unable to locate condor daemon, Failed %s times:" % fail_count)
-            logging.error(exc)
-            logging.error("Sleeping until next cycle...")
-            time.sleep(config.cleanup_sleep_interval)
-            continue
-        fail_count = 0
-        
-        logging.info("query jobs.")
-        # Clean up job ads
-        try:
-            condor_job_list = condor_s.query()
-        except Exception as exc:
-            logging.error(exc)
-            logging.error("Unable to query condor job list, aborting cycle...")
-            logging.error("Sleeping until next cycle...")
-            time.sleep(config.cleanup_sleep_interval)
-            continue
-        logging.info("query db jobs")
-        try:
-        # this query asks for only jobs that contain the local hostname as part of their JobID
-            db_job_list = session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
-        except Exception as ex:
-            logging.exception(ex)
-        # loop through the condor data and make a list of GlobalJobId
-        # then loop through db list checking if they are in the aforementioned list
-        logging.info("iterate classads")
-        condor_name_list = []
-        for ad in condor_job_list:
-            ad_dict = dict(ad)
-            condor_name_list.append(ad_dict['GlobalJobId'])
-        logging.info("iterate jobs in db")
-        for job in db_job_list:
-            if job.global_job_id not in condor_name_list:
-                #job is missing from condor, clean it up
-                logging.info("Found Job missing from condor: %s, cleaning up.", job.global_job_id)
-                job_dict = job.__dict__
-                #logging.info(job_dict)
-                logging.info('delete job')
-                try: 
-                    session.delete(job)
-                except Exception as ex:
-                    logging.exception(ex)
-                # metadata not relevent to the job ad, must trim to init with kwargs
-                logging.info("pop from dict")
+
+    try:
+        while True:
+            logging.info("Beginning job cleanup cycle")
+            # Setup condor classes and database connctions
+            # this stuff may be able to be moved outside the while loop, but i think its
+            # better to re-mirror the database each time for the sake on consistency.
+            logging.info("query schedd")
+            try:
+                condor_session = htcondor.Schedd()
+            except Exception as exc:
+                fail_count += 1
+                logging.exception("Unable to locate condor daemon, failures=%s, sleeping...:" % fail_count)
+                logging.error(exc)
+                time.sleep(config.cleanup_sleep_interval)
+                continue
+
+            fail_count = 0
+
+            db_session = Session(engine)
+
+            # Retrieve all valid job IDs from condor.
+            try:
+                condor_job_list = condor_session.xquery()
+            except Exception as exc:
+                logging.exception("Unable to query condor job list, aborting cycle...")
+                logging.error(exc)
+                del condor_session
+                db_session.close()
+                time.sleep(config.cleanup_sleep_interval)
+                continue
+
+            condor_job_ids = {}
+            for ad in condor_job_list:
+                condor_job_ids[dict(ad)['GlobalJobId']] = True
+
+            # From the DB, retrieve jobs that contain the local hostname as part of their JobID
+            try:
+                db_job_list = db_session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
+            except Exception as ex:
+                logging.exception("Unable to query DB job list, aborting cycle...")
+                logging.error(exc)
+                del condor_session
+                db_session.close()
+                time.sleep(config.cleanup_sleep_interval)
+                continue
+
+            # Scan DB job list for items to delete.
+            abort_cycle = False
+            uncommitted_updates = False
+            for job in db_job_list:
+                if job.global_job_id not in condor_job_ids:
+                    logging.info("DB Job missing from condor, archiving and deleting job %s.", job.global_job_id)
+                    job_dict = job.__dict__.pop('_sa_instance_state', 'default')
+                    try:
+                        db_session.merge(archJob(**job_dict))
+                        uncommitted_updates = True
+                    except Exception as exc:
+                        logging.exception("Unable to archive completed job, aborting cycle...")
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+                    try:
+                        db_session.delete(job)
+                        uncommitted_updates = True
+                    except Exception as exc:
+                        logging.exception("Unable to delete completed job, aborting cycle...")
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+            if abort_cycle:
+                del condor_session
+                db_session.close()
+                time.sleep(config.cleanup_sleep_interval)
+                continue
+
+            if uncommitted_updates:
                 try:
-                    job_dict.pop('_sa_instance_state', None)
-                except:
-                    logging.exception("pop fail")
-                logging.info("new job")
-                try:
-                    new_arch_job = archJob(**job_dict)
-                except Exception as ex:
-                    logging.exception(ex)
-                logging.info("merge it")
-                try:
-                    session.merge(new_arch_job)
+                    db_session.commit()
                 except Exception as exc:
-                    logging.error("Unable to merge deleted job add, skipping for this cycle")
-        logging.info("commit")
-        try:        
-            session.commit()
-        except Exception as exc:
-            logging.error("Unable to commit database session")
-            logging.error(exc)
-            logging.error("Aborting cycle...")
-        logging.info("sleep cycle")
-        time.sleep(config.cleanup_sleep_interval)
+                    logging.exception("Unable to commit achives and deletions, aborting cycle...")
+                    logging.error(exc)
+                    del condor_session
+                    db_session.close()
+                    time.sleep(config.cleanup_sleep_interval)
+                    continue
+
+            logging.info("Completed job cleanup cycle")
+            del condor_session
+            db_session.close()
+            time.sleep(config.cleanup_sleep_interval)
+
+    except Exception as exc:
+        logging.exception("Job cleanup while loop exception, process terminating...")
+        logging.error(exc)
+        db_session.close()
+
 
 if __name__ == '__main__':
     logging.basicConfig(
@@ -352,15 +417,17 @@ if __name__ == '__main__':
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
                         logging.error("%s process died, restarting...", process)
-                        del(processes[process])
+                        del processes[process]
                     else:
                         logging.info("Restarting %s process", process)
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
-                    time.sleep(1)
-            time.sleep(10)
+                    time.sleep(config.main_short_interval)
+            time.sleep(config.main_long_interval)
+
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
 
