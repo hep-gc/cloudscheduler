@@ -4,7 +4,7 @@
   missingok
   compress
   copytruncate
-  create 0644 cloudscheduler cloudscheduler
+  create 0664 cloudscheduler cloudscheduler
 }
 
 /var/log/cloudscheduler/cscollector.log {
@@ -13,7 +13,7 @@
   missingok
   compress
   copytruncate
-  create 0644 cloudscheduler cloudscheduler
+  create 0664 cloudscheduler cloudscheduler
 }
 
 /var/log/cloudscheduler/openstackpoller.log {

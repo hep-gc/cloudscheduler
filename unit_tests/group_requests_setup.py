@@ -129,17 +129,44 @@ def main(gvar, user_secret):
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
+
+    # metadata to be deleted in a cloud exception
+    execute_csv2_request(
+        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
+        '/group/metadata-add/', form_data={
+            'group': ut_id(gvar, 'gtg5'),
+            'metadata_name': ut_id(gvar, 'gty6'),
+            'metadata': '- example: yaml'
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
     
     # unprivileged user to be added to groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu4')),
-            '/user/add/', form_data={
-                'username': ut_id(gvar, 'gtu4'),
-                'password1': user_secret,
-                'password2': user_secret,
-                'cert_cn': '{} test user four'.format(ut_id(gvar, 'group'))
-            }
-        )
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'gtu4'),
+            'password1': user_secret,
+            'password2': user_secret,
+            'cert_cn': '{} test user four'.format(ut_id(gvar, 'group'))
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'gtg5'),
+            'cloud_name': ut_id(gvar, 'gtc1'),
+            'authurl': 'group-test-cloud-one.ca',
+            'project': 'group-test-cloud-one',
+            'username': ut_id(gvar, 'gtu3'),
+            'password': user_secret,
+            'region': ut_id(gvar, 'gtc1-r'),
+            'cloud_type': 'local',
+            'metadata_name': ut_id(gvar, 'gty6')
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
 
 if __name__ == "__main__":
     main(None)

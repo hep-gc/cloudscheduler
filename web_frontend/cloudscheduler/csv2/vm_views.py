@@ -40,13 +40,13 @@ VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
+        'poller_status':                                                ['native', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
         'hostname':                                                     'ignore',
-        'poller_status':                                                'ignore',
         },
     }
 
@@ -56,6 +56,12 @@ LIST_KEYS = {
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
         },
+    }
+
+MANDATORY_KEYS = {
+    'mandatory': [
+        'vm_option',
+        ]
     }
 
 #-------------------------------------------------------------------------------
@@ -92,7 +98,7 @@ def list(
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES))
+    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={'status_changed_time': 'datetime', 'last_updated': 'datetime'})
 
     # Retrieve available Clouds.
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
@@ -125,7 +131,7 @@ def update(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'vm_option' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -136,10 +142,10 @@ def update(request):
             return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS, MANDATORY_KEYS], db_ctl, ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
             db_close(db_ctl)
-            return list(request, response_code=1, message='%s cloud update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
             table = tables['csv2_vms']
@@ -177,14 +183,11 @@ def update(request):
                 count += msg
             else:
                 db_close(db_ctl)
-                return list(request, response_code=1, message='%s VM update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
+                return list(request, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
         db_close(db_ctl, commit=True)
         return list(request, response_code=0, message='vm update, VMs %s=%s.' % (verb, count))
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('VV05'), request.method))
-        else:
-            return list(request, response_code=1, message='%s cloud update, the vm-option is required and must be one of the following: %s.' % (lno('VV06'), VM_KEYS['format']['vm_option']))
+        return list(request, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method))

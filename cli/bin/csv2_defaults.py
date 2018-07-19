@@ -11,7 +11,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-s'], [], ['-y'], requires_server=False)
+    check_keys(gvar, ['-s'], [], ['-H', '-h', '-Y'], requires_server=False)
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         # Confirm settings delete.
@@ -33,10 +33,10 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-s'], requires_server=False)
+    check_keys(gvar, [], [], ['-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC'], requires_server=False)
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
-    _keys = ['server']
+    _keys = ['server,k']
     for _ix in range(len(gvar['command_keys'])):
         key = gvar['command_keys'][_ix][1][2:]
         if key not in _keys:
@@ -64,7 +64,7 @@ def list(gvar):
                 _queryset.append({'fields': _settings})
 
     # Display results.
-    show_table(gvar, _queryset, _keys, allow_null=False)
+    show_table(gvar, _queryset, _keys, allow_null=False, title='Defaults:')
 
 def set(gvar):
     """

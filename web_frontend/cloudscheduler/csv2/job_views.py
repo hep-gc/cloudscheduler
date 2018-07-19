@@ -108,7 +108,7 @@ def list(
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
-    job_list = qt(db_connection.execute(s))
+    job_list = qt(db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
 
     db_close(db_ctl)
 

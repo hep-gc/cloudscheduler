@@ -7,12 +7,36 @@ create or replace view view_group_resources_with_metadata_names as
 select
 
 vgr.*,
-group_concat(metadata_name order by metadata_name) as metadata_names
+group_exclusions,
+metadata_names
 
 from view_group_resources as vgr
-left outer join csv2_group_resource_metadata as cgrm on vgr.group_name=cgrm.group_name and vgr.cloud_name=cgrm.cloud_name
+left outer join (
+    select
+    
+    group_name,
+    cloud_name,
+    group_concat(metadata_name) as group_exclusions
+    
+    from csv2_group_metadata_exclusions as cgme
+    group by group_name,cloud_name
+    ) gme /* group metadata exceptions */
 
-group by vgr.group_name,vgr.cloud_name
+    on vgr.group_name=gme.group_name and vgr.cloud_name=gme.cloud_name
+
+left outer join (
+    select
+    
+    group_name,
+    cloud_name,
+    group_concat(metadata_name) as metadata_names
+    
+    from csv2_group_resource_metadata
+    group by group_name,cloud_name
+    ) as grm /* group resource metadata */
+
+    on vgr.group_name=grm.group_name and vgr.cloud_name=grm.cloud_name
+
 
 order by vgr.group_name,vgr.cloud_name
 

@@ -44,6 +44,17 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/status/',
+        list='cloud_status_list', filter={'cloud_name': ut_id(gvar, 'ctc2')},
+        values={
+            'group_name': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gvar, 'ctc2'),
+            'ram_ctl': -1,
+            'default_flavor': 'NULL',
+            'keep_alive': 0,
+            'default_image': None,
+            'enabled': 1,
+            'cores_ctl': -1,
+        },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

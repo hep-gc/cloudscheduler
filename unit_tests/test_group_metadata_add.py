@@ -36,15 +36,24 @@ def main(gvar, user_secret):
     )
     
     execute_csv2_request(
-        gvar, 1, 'GV28', 'no group name specified.',
-        '/group/metadata-add/', form_data={'invalid-unit-test': 'invalid-unit-test'},
+        gvar, 1, 'GV25', 'group metadata-add request did not contain mandatory parameter "metadata_name".',
+        '/group/metadata-add/', form_data={'enabled': 1},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV25', 'group metadata-add request contained a bad parameter "invalid-unit-test".',
+        '/group/metadata-add/', form_data={
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
+            'invalid-unit-test': 'invalid-unit-test'
+        },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV24', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-add/', form_data={
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'group': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
@@ -53,7 +62,7 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 1, 'GV24', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-add/', form_data={
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'group': ut_id(gvar, 'gtg7')
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
@@ -72,7 +81,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV25', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
@@ -82,7 +91,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV25', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 0,
             'mime_type': 'invalid-unit-test'
         },
@@ -93,7 +102,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV26', 'Field \'metadata\' doesn\'t have a default value',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 0,
             'mime_type': 'cloud-config'
         },
@@ -104,7 +113,7 @@ def main(gvar, user_secret):
         gvar, 1, 'GV25', 'value specified for "priority" must be a integer value.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
-            'metadata_name': 'invalid-unit-test',
+            'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 0,
             'mime_type': 'cloud-config',
             'metadata': 'invalid-unit-test',

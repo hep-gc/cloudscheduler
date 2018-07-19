@@ -9,6 +9,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
     mandatory = []
     required = []
     options = []
+    valid_keys = []
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
@@ -17,6 +18,14 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             required.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in op or (op == ['*'] and key[0] not in mp + rp):
             options.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
+        if key[0] in mp + rp + op or (op == ['*'] and key[0] not in mp + rp):
+            valid_keys.append(key[1][2:])
+    
+    # Check for invalid parameters
+    for key in gvar['command_args']:
+        if gvar['command_args'][key] and (key not in valid_keys):
+            print('Error: The following command line arguments were invalid: {}'.format(key))
+            exit(1)
 
     # Check if help requested.
     csv2_help.help(gvar, mandatory=mandatory, required=required,  options=options, requires_server=requires_server)
@@ -565,6 +574,9 @@ def _show_table_set_segment(segment, column):
                     segment['super_headers'].append(_show_table_pad([column], [''], segment['table']['lengths'], justify='centre')[0])
                     segment['headers'].append(_show_table_pad([column], [segment['table']['headers'][column]], segment['table']['lengths'], justify='centre')[0])
                 else:
+                    if not segment['SH_low_ix']:
+                        segment['SH_low_ix'] = column_ix
+
                     segment['SH_hi_ix'] = column_ix
 
         # Process segments without super_headers (yet).

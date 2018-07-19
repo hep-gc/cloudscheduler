@@ -39,22 +39,23 @@ GROUP_KEYS = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'group_name':               'lowerdash',
-        'csrfmiddlewaretoken':      'ignore',
-        'group':                    'ignore',
-        'username':                 'ignore',
-        'user_option':              ['add', 'delete'],
-        'server_meta_ctl':          'reject',
-        'instances_ctl':            'reject',
-        'personality_ctl':          'reject',
-        'image_meta_ctl':           'reject',
-        'personality_size_ctl':     'reject',
-        'server_groups_ctl':        'reject',
-        'security_group_rules_ctl': 'reject',
-        'keypairs_ctl':             'reject',
-        'security_groups_ctl':      'reject',
-        'server_group_members_ctl': 'reject',
-        'floating_ips_ctl':         'reject',
+        'group_name':                                 'lowerdash',
+        'csrfmiddlewaretoken':                        'ignore',
+        'group':                                      'ignore',
+        'username':                                   'ignore',
+        'user_option':                                ['add', 'delete'],
+        'server_meta_ctl':                            'reject',
+        'instances_ctl':                              'reject',
+        'personality_ctl':                            'reject',
+        'image_meta_ctl':                             'reject',
+        'job_scratch':                                'reject',
+        'personality_size_ctl':                       'reject',
+        'server_groups_ctl':                          'reject',
+        'security_group_rules_ctl':                   'reject',
+        'keypairs_ctl':                               'reject',
+        'security_groups_ctl':                        'reject',
+        'server_group_members_ctl':                   'reject',
+        'floating_ips_ctl':                           'reject',
         },
     }
 
@@ -62,7 +63,7 @@ GROUP_KEYS_ADD = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
     'format': {
-        'condor_central_manager':   'mandatory',
+        'condor_central_manager':                     'mandatory',
         },
     }
 
@@ -70,12 +71,15 @@ GROUP_DEFAULTS_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':      'ignore',
-        'group':                    'ignore',
-        'job_cpus':                 'integer',
-        'job_disk':                 'integer',
-        'job_ram':                  'integer',
-        'job_swap':                 'integer',
+        'csrfmiddlewaretoken':                        'ignore',
+        'group':                                      'ignore',
+        'job_cpus':                                   'integer',
+        'job_disk':                                   'integer',
+        'job_ram':                                    'integer',
+        'job_swap':                                   'integer',
+        'vm_keep_alive':                              'integer',
+
+        'job_scratch':                                'reject',
         },
     }
 
@@ -83,37 +87,40 @@ METADATA_KEYS = {
     # Should the active_group be automatically inserted into the primary keys.
     'auto_active_group': True,
     'format': {
-        'enabled':                  'dboolean',
-        'priority':                 'integer',
-        'metadata':                 'metadata',
-        'metadata_name':            'lowercase',
-        'mime_type':                ('csv2_mime_types', 'mime_type'),
+        'enabled':                                    'dboolean',
+        'priority':                                   'integer',
+        'metadata':                                   'metadata',
+        'metadata_name':                              'lowercase',
+        'mime_type':                                  ('csv2_mime_types', 'mime_type'),
 
-        'csrfmiddlewaretoken':      'ignore',
-        'group':                    'ignore',
+        'csrfmiddlewaretoken':                        'ignore',
+        'group':                                      'ignore',
         },
+    'mandatory': [
+        'metadata_name',
+        ],
     }
 
 IGNORE_METADATA_NAME = {
     'format': {
-        'metadata_name':            'ignore',
+        'metadata_name':                              'ignore',
         },
     }
 
 IGNORE_KEYS = {
     'format': {
-        'cloud_name':               'ignore',
-        'username':                 'ignore',
-        'vmid':                     'ignore',
-        'id':                       'ignore',
+        'cloud_name':                                 'ignore',
+        'username':                                   'ignore',
+        'vmid':                                       'ignore',
+        'id':                                         'ignore',
         },
     }
 
 LIST_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':      'ignore',
-        'group':                    'ignore',
+        'csrfmiddlewaretoken':                        'ignore',
+        'group':                                      'ignore',
         },
     }
 
@@ -270,6 +277,7 @@ def delete(request):
                 'csv2_group_defaults',
                 'csv2_group_resources',
                 'csv2_group_resource_metadata',
+                'csv2_group_metadata_exclusions',
                 'csv2_user_groups',
                 'csv2_vms',
                 'cloud_networks',
@@ -319,8 +327,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
-
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_group_resource_metadata.
         table = tables['csv2_group_resource_metadata']
@@ -331,7 +338,18 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group resource metadata delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # Delete the csv2_group_metadata_exclusions.
+        table = tables['csv2_group_metadata_exclusions']
+        rc, msg = db_execute(
+            db_ctl,
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s delete group metadata exclusions for group "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_user_groups.
         table = tables['csv2_user_groups']
@@ -342,7 +360,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group users delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_vms.
         table = tables['csv2_vms']
@@ -353,7 +371,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
@@ -364,7 +382,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_limits.
         table = tables['cloud_limits']
@@ -375,7 +393,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group limits delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_images.
         table = tables['cloud_images']
@@ -386,7 +404,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV19'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group images delete "%s" failed - %s.' % (lno('GV19'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_flavors.
         table = tables['cloud_flavors']
@@ -397,7 +415,7 @@ def delete(request):
             )
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV20'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group flavors delete "%s" failed - %s.' % (lno('GV20'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group.
         table = tables['csv2_groups']
@@ -528,7 +546,7 @@ def metadata_add(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'metadata_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -556,10 +574,7 @@ def metadata_add(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
-        else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, no group name specified.' % lno('GV28')})
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -572,7 +587,7 @@ def metadata_delete(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'metadata_name' in request.POST:
+    if request.method == 'POST':
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
@@ -583,10 +598,21 @@ def metadata_delete(request):
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg)})
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV30'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno('GV30'), msg)})
+
+        # Delete the csv2_group_metadata_exclusions.
+        table = tables['csv2_group_metadata_exclusions']
+        rc, msg = db_execute(
+            db_ctl,
+            table.delete((table.c.group_name==fields['group_name']) & (table.c.metadata_name==fields['metadata_name'])),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            db_close(db_ctl)
+            return list(request, selector=fields['group_name'], response_code=1, message='%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno('GV14'), fields['group_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group metadata file.
         table = tables['csv2_group_metadata']
@@ -606,10 +632,7 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
-        else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, no group name specified.' % lno('GV33')})
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -706,7 +729,7 @@ def metadata_update(request):
     if not verifyUser(request):
         raise PermissionDenied
 
-    if request.method == 'POST' and 'metadata_name' in request.POST:
+    if request.method == 'POST':
 
         # open the database.
         db_engine, db_session, db_connection, db_map = db_ctl = db_open()
@@ -721,7 +744,7 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV37'), msg)})
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
@@ -738,10 +761,7 @@ def metadata_update(request):
 
     ### Bad request.
     else:
-        if request.method != 'POST':
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
-        else:
-            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, no group name specified.' % lno('GV40')})
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -787,6 +807,11 @@ def update(request):
             if rc != 0:
                 db_close(db_ctl)
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV44'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+        else:
+            if 'username' not in fields:
+                db_close(db_ctl)
+                return list(request, selector=fields['group_name'], response_code=1, message='%s group update must specify at least one field to update.' % lno('GV45'), active_user=active_user, user_groups=user_groups)
+
 
         # Update user groups.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -795,9 +820,6 @@ def update(request):
                     rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], users=fields['username'], option='delete')
                 else:
                     rc, msg = manage_group_users(db_ctl, tables, fields['group_name'], users=fields['username'], option='add')
-            else:
-                if len(group_updates) < 1:
-                    return list(request, selector=fields['group_name'], response_code=1, message='%s group update must specify at least one field to update.' % lno('GV45'), active_user=active_user, user_groups=user_groups)
 
         else:
             if 'username' in fields:

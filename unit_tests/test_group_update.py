@@ -112,7 +112,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV46', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtu4'), ut_id(gvar, 'gtg4')),
+        gvar, 1, 'GV43', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),
@@ -152,7 +152,8 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
-            'group_name': ut_id(gvar, 'gtg4')
+            'group_name': ut_id(gvar, 'gtg4'),
+            'username': ''
         }, html=True
     )
 

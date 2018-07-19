@@ -18,6 +18,9 @@ KEY_MAP = {
     '-js':  'job_swap',
     '-un':  'username',
     '-uo':  'user_option',
+    '-vf':  'vm_flavor',
+    '-vi':  'vm_image',
+    '-vka': 'vm_keep_alive',
     }
 
 def _filter_by_group_name_and_or_metadata_name(gvar, qs):
@@ -47,7 +50,7 @@ def add(gvar):
         gvar,
         ['-gm', '-gn'],
         [],
-        ['-un'],
+        ['-g', '-H', '-h', '-s', '-un', '-xA'],
         key_map=KEY_MAP)
 
     # Create the group.
@@ -70,7 +73,7 @@ def defaults(gvar):
         gvar,
         [],
         [],
-        ['-g', '-jc', '-jd', '-jed', '-jr', '-js'],
+        ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-xA'],
         key_map=KEY_MAP)
 
     # List the current defaults. If the form_data contains any optional fields,
@@ -92,14 +95,16 @@ def defaults(gvar):
         response['defaults_list'],
         [
             'group_name/Group,k',
-            'job_cpus/Job Cores',
-            'job_disk/Job Disk (GBs)',
-            'job_scratch/Job Ephemeral Disk (GBs)',
-            'job_ram/Job RAM (MBs)',
-            'job_swap/Job Swap (GBs)',
-            ],
-            title="Active Group Defaults:",
-        )
+            'vm_flavor/Flavor/VM',
+            'vm_image/Image/VM',
+            'vm_keep_alive/Keep Alive/VM',
+            'job_cpus/Cores/Job',
+            'job_disk/Disk (GBs)/Job',
+            'job_ram/RAM (MBs)/Job',
+            'job_swap/Swap (GBs)/Job',
+        ],
+        title="Active Group Defaults:",
+    )
 
 def delete(gvar):
     """
@@ -107,7 +112,7 @@ def delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-gn'], [], [])
+    check_keys(gvar, ['-gn'], [], ['-H', '-h','-s', '-xA', '-Y'])
 
     # Check that the target group exists.
     response = requests(gvar, '/group/list/')
@@ -147,7 +152,7 @@ def list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-gn', '-ok'])
+    check_keys(gvar, [], [], ['-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/list/')
@@ -182,7 +187,7 @@ def update(gvar):
         gvar,
         ['-gn'],
         [],
-        ['-gm', '-un', '-uo'],
+        ['-g', '-gm', '-H', '-h', '-s', '-un', '-uo', '-xA'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
@@ -205,7 +210,7 @@ def metadata_delete(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], [], ['-g'])
+    check_keys(gvar, ['-mn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
 
     # Check that the target groupmetadata file exists.
     response = requests(gvar, '/group/list/')
@@ -248,7 +253,7 @@ def metadata_edit(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], ['-te'], ['-g'])
+    check_keys(gvar, ['-mn'], ['-te'], ['-g', '-H', '-h', '-s', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-fetch/%s' % gvar['user_settings']['metadata-name'])
@@ -308,7 +313,7 @@ def metadata_list(gvar):
     """
 
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-g', '-ok', '-mn'])
+    check_keys(gvar, [], [], ['-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-list/')
@@ -345,7 +350,7 @@ def metadata_load(gvar):
         gvar,
         ['-f', '-mn'],
         [],
-        ['-g', '-me', '-mmt', '-mp'],
+        ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA'],
         key_map=KEY_MAP)
 
     if not os.path.exists(gvar['user_settings']['file-path']):
@@ -381,7 +386,7 @@ def metadata_update(gvar):
         gvar,
         ['-mn'],
         [],
-        ['-g', '-me', '-mmt', '-mp'],
+        ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA'],
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

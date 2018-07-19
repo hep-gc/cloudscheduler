@@ -5,22 +5,26 @@ Unit tests.
 
 from unit_test_common import initialize_csv2_request, generate_secret
 from importlib import import_module
-from os import listdir
+from os import listdir, path
 from re import sub
+from sys import argv
 
-import sys
+TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'cli']
 
-TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'command_line']
-
-def get_test_list():
+def get_test_list(ut_path):
     test_names = []
-    for f in sorted(listdir('.')):
+    for f in sorted(listdir(ut_path)):
         if f.startswith('test_'):
             test_names.append((f[:-3],sub(r'\d', '', f[5:-3])))
     return test_names
 
 def main():
-    test_names = get_test_list()
+    # Find the path to the unit test directory
+    cmd_path = path.realpath(argv[0]).split('/')
+    clo_index = cmd_path.index('cloudscheduler')
+    ut_path = '{}/unit_tests'.format('/'.join(cmd_path[:clo_index+1]))
+    
+    test_names = get_test_list(ut_path)
     user_options = {
         'setup': True,
         'cleanup': True,
@@ -30,8 +34,8 @@ def main():
         'objects': []
     }
 
-    if len(sys.argv) > 1:
-        for arg in sys.argv[1:]:
+    if len(argv) > 1:
+        for arg in argv[1:]:
             if arg == '-h' or arg == '--help':
                     print('Options:')
                     print('-ss | --skip-setup\tFlag to specify if unit test setup should be skipped')
@@ -63,7 +67,7 @@ def main():
                     filtered_tests = [test for test in test_names if test[1].startswith(obj)]
                     for test in filtered_tests:
                         option = (test, {})
-                        initialize_csv2_request(option[1], sys.argv[0], selections=selection)
+                        initialize_csv2_request(option[1], argv[0], selections=selection)
                         user_options['tests'].append(option)
                     if obj not in user_options['objects']:
                         user_options['objects'].append(obj)
@@ -74,7 +78,7 @@ def main():
                         exit()
                     else:
                         option = (test_names[test_found[0]], {})
-                        initialize_csv2_request(option[1], sys.argv[0], selections=selection)
+                        initialize_csv2_request(option[1], argv[0], selections=selection)
                         user_options['tests'].append(option)
                         for o in TEST_OBJECTS:
                             if obj.startswith(o) and o not in user_options['objects']:
@@ -86,13 +90,13 @@ def main():
         user_options['objects'] = TEST_OBJECTS
     
     hidden_gvar = {}
-    initialize_csv2_request(hidden_gvar, sys.argv[0], hidden=user_options['hidden'])
+    initialize_csv2_request(hidden_gvar, argv[0], hidden=user_options['hidden'])
     
     gvar = {}
     if 'run_all_selection' in user_options.keys():
-        initialize_csv2_request(gvar, sys.argv[0], selections=user_options['run_all_selection'])
+        initialize_csv2_request(gvar, argv[0], selections=user_options['run_all_selection'])
     else:
-        initialize_csv2_request(gvar, sys.argv[0])
+        initialize_csv2_request(gvar, argv[0])
 
     user_secret = generate_secret()
 

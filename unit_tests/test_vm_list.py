@@ -1,6 +1,8 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
 import sys
 
+# lno: VV - error code identifier.
+
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
@@ -54,12 +56,6 @@ def main(gvar, user_secret):
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/',
-        server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, 'VV##', '???',
-        '/vm/list/invalid-unit-test::invalid-unit-test::invalid-unit-test',
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
