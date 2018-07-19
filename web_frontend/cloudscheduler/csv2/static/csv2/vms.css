@@ -39,9 +39,8 @@
 }
 
 .greyed-button {
-  background-color: #e7e7e7;
-  color: black;
-  cursor: no-drop;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .retire-button {
