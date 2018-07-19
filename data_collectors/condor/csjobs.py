@@ -121,7 +121,7 @@ def job_producer():
 
                 job_dict = trim_keys(job_dict, job_attributes)
                 job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
-                logging.info(job_dict)
+                logging.debug(job_dict)
                 if unmapped:
                     logging.error("attribute mapper found unmapped variables:")
                     logging.error(unmapped)
