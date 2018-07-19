@@ -210,7 +210,8 @@ def verify_idle_jobs(group):
     session = Session(engine)
 
     idle_jobs_for_group = session.query(view_condor_jobs_group_defaults_applied).filter(
-        view_condor_jobs_group_defaults_applied.c.group_name == group)
+        view_condor_jobs_group_defaults_applied.c.group_name == group,
+        view_condor_jobs_group_defaults_applied.c.job_status == 1)
     bad_jobs = {}
     for job in idle_jobs_for_group:
         if not job.image:
