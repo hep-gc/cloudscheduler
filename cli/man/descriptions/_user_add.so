@@ -1,4 +1,3 @@
-.P
 The \fBcloudscheduler user add\fR action adds users to csv2 servers.
 This action is only available to privileged users.
 A \fIusername\fR and \fIpassword\fR is required to create a user, but authentication can be done with a X509 certificate specified by \fIuser_common_name\fR.

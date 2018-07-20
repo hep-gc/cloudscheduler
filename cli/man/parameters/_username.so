@@ -1,4 +1,0 @@
-.TP
-.BI "\-un, \-\-username <" "username" ">"
-The username of the new user.
-\fIusername\fR must be lowercase letters.

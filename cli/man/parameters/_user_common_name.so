@@ -1,4 +1,4 @@
 .TP
-.BI "\-ucn, \-\-user-common-name <" "name" ">"
+\fB\-ucn \fIname\fR, \fB\-\-user-common-name \fIname\fR
 Common name of the users X509 certificate.
 Cannot conflict with any other users username or common name.

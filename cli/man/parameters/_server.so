@@ -1,3 +1,4 @@
 .TP
-.BI "\-s, \-\-server <" "server" ">"
-Name of the server default set to use to do the command.
+\fB\-s \fIserver\fR, \fB\-\-server \fIserver\fR
+The name of the target server.
+There must be an entry in the \fBcloudscheduler defaults\fR that matches \fIserver\fR and it must have an authentication method.

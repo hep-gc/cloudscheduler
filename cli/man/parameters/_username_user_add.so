@@ -1,0 +1,4 @@
+.TP
+\fB\-un \fIusername\fR, \fB\-\-username \fIusername\fR
+The username of the user to be added.
+The value for \fIusername\fR must not contain uppercase letters or conflict with another users username or common name.
