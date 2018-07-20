@@ -77,7 +77,6 @@ def resources_producer():
                     logging.error(unmapped)
 
                 r_dict["condor_host"] = condor_host
-                r_dict["hostname"] = condor_host.split(".")[0]
 
                 logging.info("Adding/updating machine %s", r_dict["name"])
                 new_resource = Resource(**r_dict)
