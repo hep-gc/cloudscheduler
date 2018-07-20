@@ -1,6 +1,7 @@
 import multiprocessing
 from multiprocessing import Process
 import time
+import copy
 import logging
 import socket
 import re
@@ -351,9 +352,12 @@ def cleanUp():
             for job in db_job_list:
                 if job.global_job_id not in condor_job_ids:
                     logging.info("DB Job missing from condor, archiving and deleting job %s.", job.global_job_id)
-                    job_dict = job.__dict__.pop('_sa_instance_state', 'default')
+                    job_temp = copy.deepcopy(job.__dict__)
+                    job_temp.pop('_sa_instance_state', 'default')
+                    
+                    logging.info(job_temp.keys())
                     try:
-                        db_session.merge(archJob(**job_dict))
+                        db_session.merge(archJob(**job_temp))
                         uncommitted_updates = True
                     except Exception as exc:
                         logging.exception("Unable to archive completed job, aborting cycle...")
