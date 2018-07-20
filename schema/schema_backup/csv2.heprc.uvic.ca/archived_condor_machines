@@ -42,7 +42,7 @@ CREATE TABLE `archived_condor_machines` (
   `total_slots` int(11) DEFAULT NULL,
   `condor_off` int(2) DEFAULT NULL,
   `remove_classads_request_count` int(11) NOT NULL DEFAULT 0,
-  `remove_classad_sent_count` int(11) NOT NULL DEFAULT 0,
+  `remove_classads_sent_count` int(11) NOT NULL DEFAULT 0,
   `retire_request_count` int(11) NOT NULL DEFAULT 0,
   `retire_sent_count` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`)
@@ -58,4 +58,4 @@ CREATE TABLE `archived_condor_machines` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-20 14:46:54
+-- Dump completed on 2018-07-20 14:50:18

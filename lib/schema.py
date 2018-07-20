@@ -51,7 +51,7 @@ archived_condor_machines = Table('archived_condor_machines', metadata,
   Column('total_slots', Integer),
   Column('condor_off', Integer),
   Column('remove_classads_request_count', Integer),
-  Column('remove_classad_sent_count', Integer),
+  Column('remove_classads_sent_count', Integer),
   Column('retire_request_count', Integer),
   Column('retire_sent_count', Integer)
   )
