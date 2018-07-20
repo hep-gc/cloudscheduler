@@ -842,6 +842,8 @@ if __name__ == '__main__':
         level=config.log_level,
         format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
 
+    logging.info("**************************** starting openstack VM poller *********************************")
+
     processes = {}
     process_ids = {
         'vm':          vm_poller,
