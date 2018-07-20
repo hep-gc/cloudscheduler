@@ -1,0 +1,4 @@
+.TP
+.B \-H, \-\-long-help
+Requests the man page style help for the current command.
+Long help can be requested for the \fBcloudscheduler\fP command, a specific object, or a specific object/action.

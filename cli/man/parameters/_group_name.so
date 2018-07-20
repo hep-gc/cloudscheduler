@@ -1,0 +1,3 @@
+.TP
+.BI "\-gn, \-\-group-name <" "group(s)" ">"
+The groups to add the new user to, where \fIgroup(s)\fR is a comma seperated list of existing group names.

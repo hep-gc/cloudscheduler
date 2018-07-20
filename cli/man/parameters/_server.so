@@ -1,0 +1,3 @@
+.TP
+.BI "\-s, \-\-server <" "server" ">"
+Name of the server default set to use to do the command.

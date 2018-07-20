@@ -34,5 +34,3 @@ Front-Cover Texts, and with no Back-Cover Texts.
 .
 .TH cloudscheduler 1 "28 February 2018" "cloudscheduler version 2"
 .SH NAME
-\fBcloudscheduler\fP \- command line interface to cloudscheduler version 2 (csv2) servers.
-.
