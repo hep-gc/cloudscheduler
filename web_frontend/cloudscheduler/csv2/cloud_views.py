@@ -569,7 +569,7 @@ def metadata_delete(request):
         rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s %S' % (lno('CV20'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV20'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)

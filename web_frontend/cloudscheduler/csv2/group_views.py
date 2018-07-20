@@ -62,9 +62,9 @@ GROUP_KEYS = {
 GROUP_KEYS_ADD = {
     'auto_active_group': False,
     # Named argument formats (anything else is a string).
-    'format': {
-        'condor_central_manager':                     'mandatory',
-        },
+    'mandatory': [
+        'condor_central_manager',
+        ],
     }
 
 GROUP_DEFAULTS_KEYS = {

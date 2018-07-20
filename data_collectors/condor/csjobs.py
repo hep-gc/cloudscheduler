@@ -1,6 +1,7 @@
 import multiprocessing
 from multiprocessing import Process
 import time
+import copy
 import logging
 import socket
 import re
@@ -68,7 +69,7 @@ def job_producer():
                 condor_session = htcondor.Schedd()
             except Exception as exc:
                 fail_count += 1
-                logging.exception("Unable to locate condor daemon, failures=%s, sleeping...:" % fail_count)
+                logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
                 time.sleep(config.collection_interval)
                 continue
@@ -147,7 +148,7 @@ def job_producer():
                 try:
                     db_session.commit()
                 except Exception as exc:
-                    logging.exception("Unable to commit new jobs, aborting cycle...")
+                    logging.exception("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
                     del condor_session
                     db_session.close()
@@ -180,7 +181,7 @@ def job_producer():
                         db_session.merge(new_job)
                         uncommitted_updates = True
                     except Exception as exc:
-                        logging.exception("Unable to merge job changes, aborting cycle...")
+                        logging.exception("Failed to merge job changes, aborting cycle...")
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -195,7 +196,7 @@ def job_producer():
                     try:
                         db_session.commit()
                     except Exception as exc:
-                        logging.exception("Unable to commit job changes, aborting cycle...")
+                        logging.exception("Failed to commit job changes, aborting cycle...")
                         logging.error(exc)
                         del condor_session
                         db_session.close()
@@ -209,8 +210,9 @@ def job_producer():
             time.sleep(config.collection_interval)
 
     except Exception as exc:
-        logging.exception("Job poller while loop exception, process terminating...")
+        logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
+        del condor_session
         db_session.close()
 
 def job_command_consumer():
@@ -229,7 +231,7 @@ def job_command_consumer():
                 condor_session = htcondor.Schedd()
             except Exception as exc:
                 fail_count += 1
-                logging.exception("Unable to locate condor daemon, failures=%s, sleeping...:" % fail_count)
+                logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
                 time.sleep(config.command_sleep_interval)
                 continue
@@ -268,7 +270,7 @@ def job_command_consumer():
                 try:
                     db_session.commit()
                 except Exception as exc:
-                    logging.exception("Unable to commit job changes, aborting cycle...")
+                    logging.exception("Failed to commit job changes, aborting cycle...")
                     logging.error(exc)
                     del condor_session
                     db_session.close()
@@ -283,6 +285,7 @@ def job_command_consumer():
     except Exception as exc:
         logging.exception("Job poller while loop exception, process terminating...")
         logging.error(exc)
+        del condor_session
         db_session.close()
 
 def cleanUp():
@@ -310,7 +313,7 @@ def cleanUp():
                 condor_session = htcondor.Schedd()
             except Exception as exc:
                 fail_count += 1
-                logging.exception("Unable to locate condor daemon, failures=%s, sleeping...:" % fail_count)
+                logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
                 time.sleep(config.cleanup_sleep_interval)
                 continue
@@ -323,7 +326,7 @@ def cleanUp():
             try:
                 condor_job_list = condor_session.xquery()
             except Exception as exc:
-                logging.exception("Unable to query condor job list, aborting cycle...")
+                logging.exception("Failed to query condor job list, aborting cycle...")
                 logging.error(exc)
                 del condor_session
                 db_session.close()
@@ -338,7 +341,7 @@ def cleanUp():
             try:
                 db_job_list = db_session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
             except Exception as ex:
-                logging.exception("Unable to query DB job list, aborting cycle...")
+                logging.exception("Failed to query DB job list, aborting cycle...")
                 logging.error(exc)
                 del condor_session
                 db_session.close()
@@ -350,13 +353,16 @@ def cleanUp():
             uncommitted_updates = False
             for job in db_job_list:
                 if job.global_job_id not in condor_job_ids:
-                    logging.info("DB Job missing from condor, archiving and deleting job %s.", job.global_job_id)
-                    job_dict = job.__dict__.pop('_sa_instance_state', 'default')
+                    logging.info("DB job missing from condor, archiving and deleting job %s.", job.global_job_id)
+                    job_temp = copy.deepcopy(job.__dict__)
+                    job_temp.pop('_sa_instance_state', 'default')
+                    
+                    logging.debug(job_temp.keys())
                     try:
-                        db_session.merge(archJob(**job_dict))
+                        db_session.merge(archJob(**job_temp))
                         uncommitted_updates = True
                     except Exception as exc:
-                        logging.exception("Unable to archive completed job, aborting cycle...")
+                        logging.exception("Failed to archive completed job, aborting cycle...")
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -365,7 +371,7 @@ def cleanUp():
                         db_session.delete(job)
                         uncommitted_updates = True
                     except Exception as exc:
-                        logging.exception("Unable to delete completed job, aborting cycle...")
+                        logging.exception("Failed to delete completed job, aborting cycle...")
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -380,7 +386,7 @@ def cleanUp():
                 try:
                     db_session.commit()
                 except Exception as exc:
-                    logging.exception("Unable to commit achives and deletions, aborting cycle...")
+                    logging.exception("Failed to commit achives and deletions, aborting cycle...")
                     logging.error(exc)
                     del condor_session
                     db_session.close()
@@ -395,6 +401,7 @@ def cleanUp():
     except Exception as exc:
         logging.exception("Job cleanup while loop exception, process terminating...")
         logging.error(exc)
+        del condor_session
         db_session.close()
 
 
@@ -403,6 +410,8 @@ if __name__ == '__main__':
         filename=config.log_file,
         level=config.log_level,
         format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+
+    logging.info("**************************** starting csjobs *********************************")
 
     processes = {}
     process_ids = {

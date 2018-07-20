@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+main_short_interval = 1
+main_long_interval = 10
 collection_interval = 15
 command_sleep_interval = 10
 cleanup_sleep_interval = 120

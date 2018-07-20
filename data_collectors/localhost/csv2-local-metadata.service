@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=cloudscheduler
-ExecStart=/usr/bin/python /opt/cloudscheduler/data_collectors/localhost/localhostPoller.py
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/localhost/localhostPoller.py
 Restart=on-abort
 
 

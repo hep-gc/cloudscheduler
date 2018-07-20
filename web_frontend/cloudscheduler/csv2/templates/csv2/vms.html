@@ -26,18 +26,18 @@
 
         {% if "foreign" not in request.path %}
           <div class="vm-buttons">
-            <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
-            <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
-            <button class="button retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
-            <button class="button kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
+            <button class="button button-shadow control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
+            <button class="button button-shadow control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
+            <button class="button button-shadow retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
+            <button class="button button-shadow kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
           </div>
         {% else %}
         <!-- Grey-out the action buttons if looking at foreing VMs -->
           <div class="vm-buttons">
-            <button class="button greyed-button" disabled>Manual Control</button>
-            <button class="button greyed-button" disabled>System Control</button>
-            <button class="button greyed-button" disabled>Retire VMs</button>
-            <button class="button greyed-button" disabled>Kill VMs</button>
+            <button class="button greyed-button button-shadow control-button" disabled>Manual Control</button>
+            <button class="button greyed-button button-shadow control-button" disabled>System Control</button>
+            <button class="button greyed-button button-shadow retire-button" disabled>Retire VMs</button>
+            <button class="button greyed-button button-shadow kill-button" disabled>Kill VMs</button>
           </div>
         {% endif %}
 

@@ -349,7 +349,7 @@ def check_idle_machines_new(group):
                 machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
     if idle_list:
         log.debug("setting condor_off on %s entries.", len(idle_list))
-        update_result = session.query(machines).filter(machines.machine.in_(to_terminate))
+        update_result = session.query(machines).filter(machines.machine.in_(idle_list))
         for row in update_result:
             row.condor_off = 1
     session.commit()

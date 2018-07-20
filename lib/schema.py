@@ -27,7 +27,6 @@ archived_condor_jobs = Table('archived_condor_jobs', metadata,
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job', Integer),
   Column('hold_job_reason', String(64)),
   Column('held_reason', String(64))
   )
@@ -36,7 +35,6 @@ archived_condor_machines = Table('archived_condor_machines', metadata,
   Column('name', String(128), primary_key=True),
   Column('machine', String(256)),
   Column('condor_host', String(64)),
-  Column('hostname', String(32)),
   Column('flavor', String(32)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
@@ -196,7 +194,7 @@ condor_jobs = Table('condor_jobs', metadata,
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job_reason', String(50)),
+  Column('hold_job_reason', String(64)),
   Column('held_reason', String(64))
   )
 
@@ -205,7 +203,6 @@ condor_machines = Table('condor_machines', metadata,
   Column('machine', String(256)),
   Column('group_name', String(32)),
   Column('condor_host', String(64)),
-  Column('hostname', String(32)),
   Column('flavor', String(32)),
   Column('job_id', String(128)),
   Column('global_job_id', String(128)),
@@ -220,7 +217,10 @@ condor_machines = Table('condor_machines', metadata,
   Column('slot_type', String(128)),
   Column('total_slots', Integer),
   Column('condor_off', Integer),
-  Column('condor_advertise', Integer)
+  Column('remove_classads_request_count', Integer),
+  Column('remove_classads_sent_count', Integer),
+  Column('retire_request_count', Integer),
+  Column('retire_sent_count', Integer)
   )
 
 csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
@@ -485,7 +485,7 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job_reason', String(50)),
+  Column('hold_job_reason', String(64)),
   Column('held_reason', String(64)),
   Column('js_idle', Integer),
   Column('js_running', Integer),
