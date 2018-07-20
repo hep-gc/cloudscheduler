@@ -50,7 +50,10 @@ archived_condor_machines = Table('archived_condor_machines', metadata,
   Column('slot_type', String(128)),
   Column('total_slots', Integer),
   Column('condor_off', Integer),
-  Column('condor_advertise', Integer)
+  Column('remove_classads_request_count', Integer),
+  Column('remove_classad_sent_count', Integer),
+  Column('retire_request_count', Integer),
+  Column('retire_sent_count', Integer)
   )
 
 auth_group = Table('auth_group', metadata,
