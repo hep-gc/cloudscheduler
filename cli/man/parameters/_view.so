@@ -1,0 +1,5 @@
+.TP
+\fB\-V '\fIcolumn\fR[,...][/...]\fB'\fR, \fB\-\-view '\fIcolumn\fR[,...][/...]\fB'\fR
+Only display the columns listed in \fIcolumn\fR.
+For lists with multiple tables, put a \fB/\fR between the \fIcolumn\fR lists of different tables.
+To see the columns for this list use the \fB-VC\fR command.

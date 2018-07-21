@@ -1,0 +1,3 @@
+.TP
+\fB\-VC\fR, \fB\-\-view-columns\fR
+View the columns of the tables associated with this list.

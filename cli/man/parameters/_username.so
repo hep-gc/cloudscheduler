@@ -1,0 +1,3 @@
+.TP
+\fB\-un \fIusername\fR, \fB\-\-username \fIusername\fR
+Only the row for the user matching \fIusername\fR is displayed.

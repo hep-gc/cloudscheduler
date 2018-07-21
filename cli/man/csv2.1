@@ -40,14 +40,13 @@ A default value can be saved in the \fBsettings\fP but overridden on the command
 .\" --------------------------------------------------------------------
 .SH OBJECTS
 .\" --------------------------------------------------------------------
-.P
 The first two positional arguments to the \fBcloudscheduler\fP command are  an \fBobject\fP 
 and an \fBaction\fP to be perfomed.
 For information about the actions associated with a particular object, refer
 to the documentation for that object (eg. cloudscheduler <object> -H).
 The following is a list and brief description of the available objects:
 .TP
-.BI cloud
+.B cloud
 This object adds, deletes, creates, lists, modifies, and shows the status of clouds 
 within a group.
 For each group, one or more cloud resources, both commercial and private, can be 
@@ -57,32 +56,32 @@ for the group, starting and stopping Virtual Machines as required by the group's
 job queue.
 The cloud object and actions are available to all users.
 .TP
-.BI defaults
-This object manipulates groups of settings within a user's \fB~/.csv2\fP directory,
+.B defaults
+This object manipulates groups of settings within a user's \fB~/.csv2\fR directory,
 and provides actions to save, list, update, and delete settings for multiple servers.
 A sub-directory is created for each server, and within that sub-directory, a single 
-\fBsettings.yaml\fP file contains the default value for each parameter for that server.
+\fBsettings.yaml\fR file contains the default value for each parameter for that server.
 The settings object and actions are available to all users.
 .TP
-.BI group
-This object creates, lists, updates, and deletes groups on \fBcloudscheduler\fp servers.
+.B group
+This object creates, lists, updates, and deletes groups on \fBcloudscheduler\fR servers.
 A group on a cloudscheduler server is analogous to a project on an OpenStack cloud and 
 may have multiple users, anyone of whom may control the cloud resources
 for the group.
 The group object and actions are only available to privileged users.
 .TP
-.BI helpers
+.B helpers
 This object provides functions to aid in the use of this command, eg. action
 "generate_bash_completion_script" writes a bash script to standard out which can
 be installed in "/etc/bash_completion.d/cloudscheduler" and will provde command 
 parameter tab completion.
 .TP
-.BI job
+.B job
 .TP
-.BI user
+.B user
 .so ../man/description/_user.so
 .TP
-.BI vm
+.B vm
 .\" --------------------------------------------------------------------
 .SH GLOBAL OPTIONS
 .\" --------------------------------------------------------------------
@@ -92,60 +91,61 @@ The following global options are applicable to all \fBcloudscheduler\fP commands
 .SS Authentication Options
 .\" --------------------------------------------------------------------
 The following options are used to address the cloudscheduler server and to identify the user to the server:
-.TP
-.OP \-sa\ \:|\ --server-address <URL>
-Specifies the HTTPS protocol location of the cloudscheduler server. The default URL is https://localhost.
-.TP
-.OP \-sC\ \:|\ --server-grid-cert <path_to_grid_certificate_file>
-Specifies the location of an x509 grid certificate used to identify the user to the cloudscheduler server.
-There is no default.
-If specified, the user must also specify the 
-.OP \-k key
-option, in which case certificate authentication will be used and the
-.OP \-u user
-and the
-.OP \-p password
-options will be ignored.
-.TP
-.OP \-sK\ \:|\ --server-grid-key <path_to_grid_certificate_key_file>
-Specifies the location of an x509 grid certificate key used to identify the user to the cloudscheduler server.
-There is no default.
-If specified, the user must also specify the 
-.OP \-c cert
-option, in which case certificate authentication will be used and the
-.OP \-u user
-and the
-.OP \-p password
-options will be ignored.
-.TP
-.OP \-su\ \:|\ --server-user <username>
-Specifies the user ID to use when authenticating with the cloudscheduler server.
-There is no default.
-If specified, the user must also specify the 
-.OP \-p password
-option, or a password promp will be issued.
-This option, together with the
-.OP \-p password
-option will be ignored if certificate authentication is being used.
-.TP
-.OP \-spw\ \:|\ --server-password <password>
-Specifies the password to use when authenticating with the cloudscheduler server.
-If user/password authentication is being used and no password is provided, a password prompt will be issued.
-This option, together with the
-.OP \-u user
-option will be ignored if certificate authentication is being used.
-.TP
-In summary, the user must provide either of the following when communicating with a cloudscheduler server:
-.RS
-.TP
-.BI *
-[ \fB\:-sa\fP \fI<URL>\fP ], [ \fB\:-sC\fP \fI<path_to_grid_certificate_file>\fP ], and [ \fB\:-sK\fP \fI<path_to_grid_certificate_key_file>\fP ], or
-.TP
-.BI *
-[ \fB\:-sa\fP \fI<URL>\fP ], [ \fB\:-su\fP \fI<username>\fP ], and [ \fB\:-spw\fP \fI<password>\fP ]
-.RE
-.TP
-However, if the [ \fB\-S\fP \fIurl\fP ] option is omitted, a default URL of https://localhost will be used.
+.so ../man/parameters/_server.so
+.\" .TP
+.\" .OP \-sa\ \:|\ --server-address <URL>
+.\" Specifies the HTTPS protocol location of the cloudscheduler server. The default URL is https://localhost.
+.\" .TP
+.\" .OP \-sC\ \:|\ --server-grid-cert <path_to_grid_certificate_file>
+.\" Specifies the location of an x509 grid certificate used to identify the user to the cloudscheduler server.
+.\" There is no default.
+.\" If specified, the user must also specify the 
+.\" .OP \-k key
+.\" option, in which case certificate authentication will be used and the
+.\" .OP \-u user
+.\" and the
+.\" .OP \-p password
+.\" options will be ignored.
+.\" .TP
+.\" .OP \-sK\ \:|\ --server-grid-key <path_to_grid_certificate_key_file>
+.\" Specifies the location of an x509 grid certificate key used to identify the user to the cloudscheduler server.
+.\" There is no default.
+.\" If specified, the user must also specify the 
+.\" .OP \-c cert
+.\" option, in which case certificate authentication will be used and the
+.\" .OP \-u user
+.\" and the
+.\" .OP \-p password
+.\" options will be ignored.
+.\" .TP
+.\" .OP \-su\ \:|\ --server-user <username>
+.\" Specifies the user ID to use when authenticating with the cloudscheduler server.
+.\" There is no default.
+.\" If specified, the user must also specify the 
+.\" .OP \-p password
+.\" option, or a password promp will be issued.
+.\" This option, together with the
+.\" .OP \-p password
+.\" option will be ignored if certificate authentication is being used.
+.\" .TP
+.\" .OP \-spw\ \:|\ --server-password <password>
+.\" Specifies the password to use when authenticating with the cloudscheduler server.
+.\" If user/password authentication is being used and no password is provided, a password prompt will be issued.
+.\" This option, together with the
+.\" .OP \-u user
+.\" option will be ignored if certificate authentication is being used.
+.\" .TP
+.\" In summary, the user must provide either of the following when communicating with a cloudscheduler server:
+.\" .RS
+.\" .TP
+.\" .BI *
+.\" [ \fB\:-sa\fP \fI<URL>\fP ], [ \fB\:-sC\fP \fI<path_to_grid_certificate_file>\fP ], and [ \fB\:-sK\fP \fI<path_to_grid_certificate_key_file>\fP ], or
+.\" .TP
+.\" .BI *
+.\" [ \fB\:-sa\fP \fI<URL>\fP ], [ \fB\:-su\fP \fI<username>\fP ], and [ \fB\:-spw\fP \fI<password>\fP ]
+.\" .RE
+.\" .TP
+.\" However, if the [ \fB\-S\fP \fIurl\fP ] option is omitted, a default URL of https://localhost will be used.
 .\" --------------------------------------------------------------------
 .SS Information Options
 .\" --------------------------------------------------------------------
