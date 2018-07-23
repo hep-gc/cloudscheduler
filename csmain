@@ -75,6 +75,7 @@ def main():
             idle_machines = check_idle_machines_new(csgroup.group_name)
             new_vms = check_unregistered_machines(csgroup.group_name)
             current_flavors = count_cloud_flavors(csgroup.group_name)
+            log.debug("Current flavors: %s", current_flavors)
             verify_jobs = verify_idle_jobs(csgroup.group_name)
 
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
