@@ -1,0 +1,3 @@
+.TP
+\fB\-cP \fIdomain\fR, \fB\-\-cloud-project-domain \fIdomain\fR
+The project domain for the cloud provider.

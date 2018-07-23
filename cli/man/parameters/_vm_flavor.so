@@ -1,0 +1,4 @@
+.TP
+\fB\-vf \fIflavor\fR[, ...], \fB\-\-vm-flavor \fIflavor\fR[, ...]
+The flavors to be used for VMs started on this cloud.
+If \fIflavor\fR is not specified the flavor of started VMs will be calculated from the job requirements.

@@ -47,14 +47,7 @@ to the documentation for that object (eg. cloudscheduler <object> -H).
 The following is a list and brief description of the available objects:
 .TP
 .B cloud
-This object adds, deletes, creates, lists, modifies, and shows the status of clouds 
-within a group.
-For each group, one or more cloud resources, both commercial and private, can be 
-defined.
-Defining cloud resouces for a group allows cloudscheduler to manage those resources
-for the group, starting and stopping Virtual Machines as required by the group's
-job queue.
-The cloud object and actions are available to all users.
+.so ../man/descriptions/_cloud.so
 .TP
 .B defaults
 This object manipulates groups of settings within a user's \fB~/.csv2\fR directory,
@@ -79,7 +72,7 @@ parameter tab completion.
 .B job
 .TP
 .B user
-.so ../man/description/_user.so
+.so ../man/descriptions/_user.so
 .TP
 .B vm
 .\" --------------------------------------------------------------------

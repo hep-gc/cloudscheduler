@@ -1,0 +1,3 @@
+.TP
+\fB\-csp \fIprice\fR, \fB\-\-cloud-spot-price \fIprice\fR
+The maximum spot price to pay when bidding on spot instances.

@@ -1,0 +1,3 @@
+.TP
+\fB\-ca \fIaddress\fR, \fB\-\-cloud-address \fIaddress\fR
+The URL address of the cloud provider (eg. AWS EC2, OpenStack).

@@ -1,0 +1,4 @@
+.TP
+\fB\-gme \fIfile\fR[,...], \fB\-\-group-metadata-exclusion \fIfile\fR[,...]
+The value of \fIfile\fR is a list of metadata filenames that exist in the clouds group.
+If a metadata filename is listed in \fIfile\fR then it will not be used when starting VMs on the specified cloud.

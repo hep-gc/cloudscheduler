@@ -1,4 +1,3 @@
 This object adds, deletes, lists, and updates users on \fBcloudscheduler\fR servers.
-Each user will be assigned to one or more groups, and will be able to manipulate
-the resources for the groups to which they are assigned.
+Each user can be assigned to groups, and will be able to manipulate the resources for the groups to which they are assigned.
 The user object and actions are only available to privileged users.

@@ -1,0 +1,8 @@
+This object adds, deletes, lists, modifies, and shows the status of cloud resources
+for clouds within the current group.
+For each group, one or more cloud resources, both commercial and private, can be 
+defined.
+Defining cloud resouces for a group allows cloudscheduler to manage those resources
+for the group, starting and stopping Virtual Machines (VMs) as required by the group's
+job queue.
+The cloud object and actions are available to all users.
