@@ -14,6 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+from lib.schema import view_redundant_machines
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -183,13 +184,13 @@ def collector_command_consumer():
 
             # Query database for machines to be retired.
             uncommitted_updates = False
-            for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_count > Resource.retire_sent_count):
+            for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
                 logging.info("Retiring machine %s" % resource.name)
                 try:
                     condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
                     master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
-                    resource.retire_sent_count += 1
+                    resource.retired_time = int(time.time())
                     db_session.merge(resource)
                     uncommitted_updates = True
                 except Exception as exc:
@@ -218,8 +219,8 @@ def collector_command_consumer():
             # Query database for machines with no associated VM.
             master_list = []
             startd_list = []
-            uncommitted_updates = False
-            for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.remove_classads_request_count > Resource.remove_classads_sent_count):
+            redundant_machine_list = db_session.query(view_redundant_machines).filter(view_redundant_machines.c.condor_host == condor_host)
+            for resource in redundant_machine_list:
                 logging.info("Removing classads for machine %s" % resource.name)
                 try:
                     condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
@@ -227,12 +228,8 @@ def collector_command_consumer():
 
                     condor_classad = condor_session.query(startd_type, 'Name=="%s"' % resource.name)[0]
                     startd_list.append(condor_classad)
-
-                    resource.remove_classads_sent_count += 1
-                    db_session.merge(resource)
-                    uncommitted_updates = True
                 except Exception as exc:
-                    logging.exception("Failed to merge machine classad removal, aborting cycle...")
+                    logging.exception("Failed to retrieve machine classads, aborting cycle...")
                     logging.error(exc)
                     abort_cycle = True
                     break
@@ -243,25 +240,14 @@ def collector_command_consumer():
                 time.sleep(config.command_sleep_interval)
                 continue
 
-            if uncommitted_updates:
-                # Execute condor_advertise to remove classads.
-                if startd_list:
-                    startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
-                    logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
+            # Execute condor_advertise to remove classads.
+            if startd_list:
+                startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
+                logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
 
-                if master_list:
-                    master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
-                    logging.info("condor_advertise result for master ads: %s", master_advertise_result)
-
-                try:
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit machine classad removal, aborting cycle...")
-                    logging.error(exc)
-                    del condor_session
-                    db_session.close()
-                    time.sleep(config.command_sleep_interval)
-                    continue
+            if master_list:
+                master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
+                logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
             logging.info("Completed command consumer cycle")
             del condor_session
