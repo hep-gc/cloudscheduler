@@ -89,6 +89,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'GV42', 'group update parameter "condor_central_manager" contains an empty string which is specifically disallowed.',
+        '/group/update/', form_data={
+            'group_name': ut_id(gvar, 'gtg4'),
+            'condor_central_manager': ''
+        }
+    )
+
+    execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),

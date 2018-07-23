@@ -144,6 +144,56 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV35', 'parameter "authurl" contains an empty string which is specifically disallowed.',
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'authurl': '',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV35', 'parameter "project" contains an empty string which is specifically disallowed.',
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'project': '',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV35', 'parameter "username" contains an empty string which is specifically disallowed.',
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'username': '',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV35', 'parameter "password" contains an empty string which is specifically disallowed.',
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'password': '',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV35', 'parameter "region" contains an empty string which is specifically disallowed.',
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'region': '',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, None,
         '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg1')},
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'ctc3')},

@@ -143,6 +143,14 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'UV01', 'empty string',
+        '/user/add/', form_data={
+            'username': '',
+            'password': user_secret
+        }
+    )
+
+    execute_csv2_request(
         gvar, 1, 'UV01', 'request contained a rejected/bad parameter "join_date".',
         '/user/add/', form_data={
             'username': ut_id(gvar, 'user-invalid-unit-test'),
