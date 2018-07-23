@@ -50,10 +50,8 @@ archived_condor_machines = Table('archived_condor_machines', metadata,
   Column('slot_type', String(128)),
   Column('total_slots', Integer),
   Column('condor_off', Integer),
-  Column('remove_classads_request_count', Integer),
-  Column('remove_classads_sent_count', Integer),
-  Column('retire_request_count', Integer),
-  Column('retire_sent_count', Integer)
+  Column('retire_request_time', Integer),
+  Column('retired_time', Integer)
   )
 
 auth_group = Table('auth_group', metadata,
@@ -221,10 +219,8 @@ condor_machines = Table('condor_machines', metadata,
   Column('slot_type', String(128)),
   Column('total_slots', Integer),
   Column('condor_off', Integer),
-  Column('remove_classads_request_count', Integer),
-  Column('remove_classads_sent_count', Integer),
-  Column('retire_request_count', Integer),
-  Column('retire_sent_count', Integer)
+  Column('retire_request_time', Integer),
+  Column('retired_time', Integer)
   )
 
 csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
@@ -712,6 +708,15 @@ view_metadata_collation = Table('view_metadata_collation', metadata,
   Column('type', String(5)),
   Column('priority', Integer),
   Column('metadata_name', String(64))
+  )
+
+view_redundant_machines = Table('view_redundant_machines', metadata,
+  Column('group_name', String(32)),
+  Column('hostname', String(256)),
+  Column('condor_host', String(64)),
+  Column('name', String(128)),
+  Column('entered_current_state', Integer),
+  Column('cloud_name', String(32))
   )
 
 view_user_groups = Table('view_user_groups', metadata,
