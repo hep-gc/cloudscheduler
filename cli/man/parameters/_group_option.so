@@ -1,0 +1,6 @@
+.TP
+\fB\-go \fR[\fBadd \fR| \fBdelete\fR], \fB\-\-group-option \fR[\fBadd \fR| \fBdelete\fR]
+Use with \fB\-gn\fR to \fBadd\fR or \fBdelete\fR the user from groups.
+If this command is not specified the default behavoir is \fBadd\fR.
+If \fBadd\fR is specified then the user will be added to those groups.
+If \fBdelete\fR is specified then the user will be removed from those groups.

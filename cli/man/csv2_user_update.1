@@ -1,37 +1,55 @@
 .so ../man/_header.so
-\fBcloudscheduler user list\fP \- list users from cloudscheduler version 2 (csv2) servers
+\fBcloudscheduler user update\fP \- update users on cloudscheduler version 2 (csv2) servers
 .\" --------------------------------------------------------------------
 .SH SYNOPSIS
 .\" --------------------------------------------------------------------
 .SY cloudscheduler
 .B user
-.B list
+.B update
+.BI "-un " "username"
 .RI "[" "options" " ...]"
 .YS
 .\" --------------------------------------------------------------------
 .SH DESCRIPTION
 .\" --------------------------------------------------------------------
-.so ../man/descriptions/_user_list.so
+.so ../man/descriptions/_user_update.so
 .\" --------------------------------------------------------------------
 .SH OPTIONS
 .\" --------------------------------------------------------------------
+.\" mandatory parameters:
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_username_user_update.so
 .\" optional parameters:
 .so ../man/_options.so
 .so ../man/parameters/_group.so
+.so ../man/parameters/_group_name_user_update.so
+.so ../man/parameters/_group_option.so
 .so ../man/parameters/_long_help.so
 .so ../man/parameters/_help.so
 .so ../man/parameters/_server.so
-.so ../man/parameters/_username_list.so
+.so ../man/parameters/_super_user.so
+.so ../man/parameters/_user_common_name.so
+.so ../man/parameters/_user_password.so
 .so ../man/parameters/_expose_api.so
-.\" table options:
-.so ../man/_table_options.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
-Viewing the user list filtered by username:
+Updating a user to be a super user:
 .P
 .EX
-\fI#sh\fR cloudscheduler user list -un example
+\fI#sh\fR cloudscheduler user update -un example -SU yes
+.EE
+.P
+Adding a user to groups:
+.P
+.EX
+\fI#sh\fR cloudscheduler user update -un example -gn group1,group2
+.EE
+.P
+Removing the user from a group:
+.P
+.EX
+\fI#sh\fR cloudscheduler user update -un example -gn group1 -go delete
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO
@@ -40,4 +58,4 @@ Viewing the user list filtered by username:
 .BR csv2_user (1)
 .BR csv2_user_add (1)
 .BR csv2_user_delete (1)
-.BR csv2_user_update (1)
+.BR csv2_user_list (1)

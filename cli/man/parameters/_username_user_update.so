@@ -1,0 +1,4 @@
+.TP
+\fB\-un \fIusername\fR, \fB\-\-username \fIusername\fR
+The \fIusername\fR of the user to be updated.
+Must exist on the server.
