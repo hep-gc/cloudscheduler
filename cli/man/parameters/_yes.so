@@ -1,0 +1,4 @@
+.TP
+.BR "\-Y" ", " "\-\-yes"
+Specify this option to automatically accept the deletion.
+If not specified a prompt will appear asking if the user is sure they would like to delete the object.

@@ -1,0 +1,4 @@
+.TP
+\fB\-ok\fR, \fB\-\-only-keys\fR
+Only displays the values of the keys in this list.
+No other columns are displayed.

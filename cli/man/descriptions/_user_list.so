@@ -1,0 +1,3 @@
+The \fBcloudscheduler user list\fR action lists the users from csv2 servers.
+This action is only available to privileged users.
+The list is displayed in a table and there are several options that change the format of the displayed table.

@@ -1,0 +1,3 @@
+.TP
+.BR "\-xA" ", " "\-\-expose-API"
+Requests trace messages detailing the API calls and responses issued and received by the \fBcloudscheduler\fP command.

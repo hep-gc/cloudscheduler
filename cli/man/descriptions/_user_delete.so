@@ -1,0 +1,3 @@
+The \fBcloudscheduler user delete\fR action deletes users from csv2 servers.
+The deleted user will be removed from all groups and will no longer be able to access the csv2 server.
+This action is only available to privileged users.

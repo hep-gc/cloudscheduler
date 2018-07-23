@@ -1,0 +1,4 @@
+.TP
+\fB\-r\fR, \fB\-\-rotate\fR
+Rotate the listed table to only have a \fBKey\fR and a \fBValue\fR column.
+Used to improve readability of tables with many columns.

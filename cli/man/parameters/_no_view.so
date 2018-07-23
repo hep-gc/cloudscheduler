@@ -1,0 +1,4 @@
+.TP
+\fB\-NV\fR, \fB\-\-no-view\fR
+Removes any views set by the \fB-V\fR parameter for this list.
+All columns present in the list will be displayed.

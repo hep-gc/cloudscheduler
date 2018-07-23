@@ -1,0 +1,3 @@
+.TP
+\fB\-g \fIgroup\fR, \fB\-\-group \fIgroup\fR
+Change the current users active group to \fIgroup\fR. The \fIgroup\fR must exist and the current user must be in \fIgroup\fR.

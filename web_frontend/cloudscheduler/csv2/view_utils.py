@@ -992,6 +992,8 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         for field in primary_key_columns + Mandatory:
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
+            elif field in Fields and Fields[field] == '':
+                return 1, 'mandatory parameter "%s" contains an empty string.' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 
