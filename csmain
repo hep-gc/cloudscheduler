@@ -243,7 +243,7 @@ def count_cloud_flavors(group):
                            csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
     base.prepare(engine, reflect=True)
     session = Session(engine)
-    group_vms = session.query(view_vms).filter(view_vms.c.group_name == group)
+    group_vms = session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0)
     vm_cloud_flavors = defaultdict(lambda: defaultdict(int))
     for vm in group_vms:
         vm_cloud_flavors[vm.cloud_name][vm.flavor_name] += 1
