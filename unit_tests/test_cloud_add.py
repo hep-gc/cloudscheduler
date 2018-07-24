@@ -162,6 +162,96 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV01', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': '',
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV01', "Field 'authurl' doesn't have a default value",
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'authurl': '',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV01', "Field 'project' doesn't have a default value",
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'authurl': 'invalid-unit-test',
+            'project': '',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV01', "Field 'username' doesn't have a default value",
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': '',
+            'password': 'invalid-unit-test',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV01', "Field 'password' doesn't have a default value",
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': '',
+            'region': 'invalid-unit-test',
+            'cloud_type': 'local',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV01', "Field 'region' doesn't have a default value",
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'authurl': 'invalid-unit-test',
+            'project': 'invalid-unit-test',
+            'username': 'invalid-unit-test',
+            'password': 'invalid-unit-test',
+            'region': '',
+            'cloud_type': 'local',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 1, 'CV01', 'bad parameter "server_meta_ctl"',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),

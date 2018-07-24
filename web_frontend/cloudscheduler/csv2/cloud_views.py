@@ -68,6 +68,13 @@ CLOUD_KEYS = {
     'mandatory': [
         'cloud_name',
         ],
+    'not_empty': [
+        'authurl',
+        'project',
+        'username',
+        'password',
+        'region',
+        ],
     }
 
 METADATA_KEYS = {
