@@ -815,6 +815,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     # Process fields parameter:
     Formats = {}
     Mandatory = []
+    NotEmpty = []
     Options = {
         'accept_primary_keys_only': False,
         'auto_active_group': False,
@@ -832,6 +833,11 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                     Mandatory += option_set[option]
                 else:
                     Mandatory.append(option_set[option])
+            elif option == 'not_empty':
+                if isinstance(option_set[option], list):
+                    NotEmpty += option_set[option]
+                else:
+                    NotEmpty.append(option_set[option])
             else:
                 Options[option] = option_set[option]
 
@@ -992,8 +998,11 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
         for field in primary_key_columns + Mandatory:
             if field not in Fields and (field not in Formats or  Formats[field] != 'ignore'):
                 return 1, 'request did not contain mandatory parameter "%s".' % field, None, None, None
-            elif field in Fields and Fields[field] == '':
-                return 1, 'mandatory parameter "%s" contains an empty string.' % field, None, None, None
+
+        if NotEmpty:
+            for field in Fields:
+                if field in NotEmpty and Fields[field] == '':
+                    return 1, 'parameter "%s" contains an empty string which is specifically disallowed.' % field, None, None, None
 
     return 0, None, Fields, Tables, Columns
 
