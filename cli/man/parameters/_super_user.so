@@ -1,3 +1,4 @@
 .TP
 \fB\-SU \fIoption\fR, \fB\-\-super-user \fIoption\fR
 Specify if the user is a privileged user. \fIoption\fR can be any of yes, no, true, false, 1, or 0.
+Default: 0

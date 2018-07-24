@@ -1,0 +1,5 @@
+.TP
+\fB\-me \fIoption\fR, \fB\-\-metadata-enabled \fIoption\fR
+Sets if this metadata is to be applied to VMs started in this cloud.
+The value for \fIoption\fR must be one of \fBtrue\fR, \fBfalse\fR, \fByes\fR, \fBno\fR, \fB1\fR, or \fB0\fR.
+Default: 1

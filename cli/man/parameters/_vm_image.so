@@ -2,3 +2,4 @@
 \fB\-vi \fIimage\fR, \fB\-\-vm-image \fIimage\fR
 The images to be used for VMs started on this cloud.
 If \fIimage\fR is not specified the flavor of started VMs will be calculated from the job requirements.
+Default: None

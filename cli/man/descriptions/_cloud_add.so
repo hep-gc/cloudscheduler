@@ -1,3 +1,2 @@
-Adds a new cloud definition to the active group.
+Adds a new cloud definition to the current group.
 A group may have multiple cloud definitions.
-This action is available to any user.

@@ -1,18 +1,20 @@
 .so ../man/_header.so
-\fBcloudscheduler cloud delete\fP \- delete cloud definitions from cloudscheduler version 2 (csv2) servers
+\fBcloudscheduler cloud metadata-load\fP \- add cloud metadata files to cloudscheduler version 2 (csv2) servers
 .\" --------------------------------------------------------------------
 .SH SYNOPSIS
 .\" --------------------------------------------------------------------
 .SY cloudscheduler
 .B cloud
-.B delete
-.BI "\-cn " "name"
+.B metadata-load
+.BI "\-cn " "cloud"
+.BI "\-f " "file"
+.BI "\-mn " "name"
 .RI "[" "options" " ...]"
 .YS
 .\" --------------------------------------------------------------------
 .SH DESCRIPTION
 .\" --------------------------------------------------------------------
-.so ../man/descriptions/_cloud_delete.so
+.so ../man/descriptions/_cloud_metadata_load.so
 .\" --------------------------------------------------------------------
 .SH OPTIONS
 .\" --------------------------------------------------------------------
@@ -21,6 +23,8 @@
 .\" --------------------------------------------------------------------
 .so ../man/_mandatory_parameters.so
 .so ../man/parameters/_cloud_name.so
+.so ../man/parameters/_file_path.so
+.so ../man/parameters/_metadata_name.so
 .\" --------------------------------------------------------------------
 .SS Optional
 .\" --------------------------------------------------------------------
@@ -28,16 +32,18 @@
 .so ../man/parameters/_group.so
 .so ../man/parameters/_long_help.so
 .so ../man/parameters/_help.so
+.so ../man/parameters/_metadata_enabled.so
+.so ../man/parameters/_metadata_mime_type.so
+.so ../man/parameters/_metadata_priority.so
 .so ../man/parameters/_server.so
 .so ../man/parameters/_expose_api.so
-.so ../man/parameters/_yes.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
-Deleting the cloud "example":
+Adding the cloud metadata file "example":
 .P
 .EX
-\fI#sh\fR cloudscheduler cloud delete -cn example -Y
+\fI#sh\fR cloudscheduler cloud metadata-load -cn example -f /<path>/myfile.yaml -mn example.yaml
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO
@@ -45,12 +51,12 @@ Deleting the cloud "example":
 .BR csv2 (1)
 .BR csv2_cloud (1)
 .BR csv2_cloud_add (1)
+.BR csv2_cloud_delete (1)
 .BR csv2_cloud_list (1)
 .BR csv2_cloud_metadata_collation (1)
 .BR csv2_cloud_metadata_delete (1)
 .BR csv2_cloud_metadata_edit (1)
 .BR csv2_cloud_metadata_list (1)
-.BR csv2_cloud_metadata_load (1)
 .BR csv2_cloud_metadata_update (1)
 .BR csv2_cloud_status (1)
 .BR csv2_cloud_update (1)

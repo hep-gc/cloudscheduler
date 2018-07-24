@@ -4,3 +4,4 @@ The maximum allowed ram allocated to VMs at a time.
 Set to \fB\-1\fR to automatically use the quota value.
 Setting \fIram\fR to \fB0\fR is equivalent to disabling the cloud.
 The value for \fIram\fR must be an integer value.
+Default: -1
