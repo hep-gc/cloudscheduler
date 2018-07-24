@@ -72,7 +72,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={
             'group_name': '',
             'condor_central_manager': 'invalid-unit-test'
@@ -81,7 +81,7 @@ def main(gvar, user_secret):
 
 
     execute_csv2_request(
-        gvar, 1, 'GV03', 'parameter "condor_central_manager" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV01', 'parameter "condor_central_manager" contains an empty string which is specifically disallowed.',
         '/group/add/', form_data={
             'group_name': 'invalid-unit-test',
             'condor_central_manager': ''

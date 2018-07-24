@@ -92,7 +92,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'must specify at least one field to update.',
+        gvar, 1, 'GV42', 'group update parameter "condor_central_manager" contains an empty string which is specifically disallowed.',
         ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-gm', '']
     )
 
