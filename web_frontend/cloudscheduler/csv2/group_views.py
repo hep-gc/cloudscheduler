@@ -57,6 +57,9 @@ GROUP_KEYS = {
         'server_group_members_ctl':                   'reject',
         'floating_ips_ctl':                           'reject',
         },
+    'not_empty': [
+        'condor_central_manager',
+        ],
     }
 
 GROUP_KEYS_ADD = {
