@@ -49,6 +49,9 @@ USER_GROUP_KEYS = {
         'active_group':        'reject',
         'join_date':           'reject',
         },
+    'not_empty': [
+        'username',
+        ],
     }
 
 UNPRIVILEGED_USER_KEYS = {
