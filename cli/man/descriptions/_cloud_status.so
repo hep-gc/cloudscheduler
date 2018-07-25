@@ -1,1 +1,2 @@
 Lists the status of Virtual Machines (VMs) and jobs for each cloud within the current group.
+Any user may view the cloud status, provided they are in the group that they are viewing the cloud status for.
