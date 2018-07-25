@@ -1,1 +1,2 @@
 Remove metadata files from a cloud in the current group.
+Any user may delete cloud metadata files, provided they are in the group that the cloud is defined in.

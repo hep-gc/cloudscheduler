@@ -1,1 +1,2 @@
-Add a local file to a cloud in the current group.
+Add a local file as cloud metadata to a cloud in the current group.
+Any user may add cloud metadata to a cloud definition, provided they are in the group that the cloud they are adding metadata to is in.
