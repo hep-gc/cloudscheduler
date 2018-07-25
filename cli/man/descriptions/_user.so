@@ -2,6 +2,8 @@ This object adds, deletes, lists, and updates users on \fBcloudscheduler\fR serv
 Each user can be assigned to groups, and will be able to manipulate the resources for the groups to which they are assigned.
 The user object and actions are only available to privileged users.
 .P
+.RS
 An unprivileged user will only be able to manage the defaults, metadata, clouds, jobs, and VMs that are in groups that they are a part of.
 They will also be able to change their password.
 A privileged user, in addition to everything an unprivileged user can do, can also manage users and groups.
+.RE
