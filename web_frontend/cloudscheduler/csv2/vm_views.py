@@ -24,6 +24,7 @@ from .view_utils import \
     verifyUser
 from collections import defaultdict
 import bcrypt
+import time
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
@@ -163,7 +164,7 @@ def update(request):
             return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
 
         # Retrieve VM information.
-        s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) and (view_vms.c.foreign_vm == 0))
+        s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) & (view_vms.c.foreign_vm == 0))
         vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
         count = 0
@@ -171,7 +172,7 @@ def update(request):
             if fields['vm_option'] == 'kill':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
             elif fields['vm_option'] == 'retire':
-                update = table.update().where(table.c.hostname == vm['hostname']).values({'condor_off': 1})
+                update = table.update().where(table.c.hostname == vm['hostname']).values({'retire_request_time': int(time.time())})
             elif fields['vm_option'] == 'manctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
             elif fields['vm_option'] == 'sysctl':
