@@ -1,0 +1,2 @@
+The \fBcloudscheduler group defaults\fR action modifies and displays group defaults from csv2 servers.
+This action is available to any user, provided they are in the group that the defaults belong to.

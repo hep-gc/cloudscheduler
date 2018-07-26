@@ -1,3 +1,4 @@
 .TP
-\fB\-gn\fI group\fR[,...], \fB\-\-group-name \fIgroup\fR[,...]
-The groups to add the user to, where \fIgroup\fR is a comma seperated list of existing group names.
+\fB\-gn \fIname\fR, \fB\-\-group-name \fIname\fR
+The group name and primary identifier.
+The value for \fIname\fR must be all lower case, numeric digits, and dashes but cannot start or end with dashes.

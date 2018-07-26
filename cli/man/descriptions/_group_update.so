@@ -1,0 +1,3 @@
+The \fBcloudscheduler group update\fR action modifies groups on csv2 servers.
+This action is only available to privileged users.
+

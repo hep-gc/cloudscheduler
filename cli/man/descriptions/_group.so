@@ -2,4 +2,4 @@ This object creates, lists, updates, and deletes groups on \fBcloudscheduler\fR 
 A group on a cloudscheduler server is analogous to a project on an OpenStack cloud and 
 may have multiple users, anyone of whom may control the cloud resources
 for the group.
-The group object and actions are only available to privileged users.
+The group object and actions are only available to privileged users, except group defaults and metadata actions, which unprivileged users can modify for groups they are a part of.

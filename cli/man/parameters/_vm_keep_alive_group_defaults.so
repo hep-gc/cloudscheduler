@@ -1,5 +1,5 @@
 .TP
 \fB\-vka \fItime\fR, \fB\-\-vm-keep-alive \fItime\fR
 The number of second the VM will be left idle before being terminated if no jobs are started on it.
-If \fItime\fR is not specified here, but is specified in the \fBgroup defaults\fR that value will be used.
+The value in \fItime\fR will only be used if no value is specified for \fBvm-keep-alive\fR on the \fBcloud\fR.
 Default: None
