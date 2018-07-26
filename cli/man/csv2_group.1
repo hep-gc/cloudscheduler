@@ -1,0 +1,65 @@
+.so ../man/_header.so
+\fBcloudscheduler group\fR \- manage groups on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY csv2
+.B group
+.I action
+.I mandatory_parameters
+.RI "[" "options " "...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_group.so
+.\" --------------------------------------------------------------------
+.SH ACTIONS
+.\" --------------------------------------------------------------------
+For information on the parameters associated with each \fBgroup\fR action, refer
+to the documentation for that action (eg. csv2 group <action> -H).
+The following actions are available for the \fBgroup\fR object:
+.TP
+.B add
+.so ../man/descriptions/_group_add.so
+.TP
+.B defaults
+.so ../man/descriptions/_group_defaults.so
+.TP
+.B delete
+.so ../man/descriptions/_group_delete.so
+.TP
+.B list
+.so ../man/descriptions/_group_list.so
+.TP
+.B metadata-delete
+.so ../man/descriptions/_group_metadata_delete.so
+.TP
+.B metadata-edit
+.so ../man/descriptions/_group_metadata_edit.so
+.TP
+.B metadata-list
+.so ../man/descriptions/_group_metadata_list.so
+.TP
+.B metadata-load
+.so ../man/descriptions/_group_metadata_load.so
+.TP
+.B metadata-update
+.so ../man/descriptions/_group_metadata_update.so
+.TP
+.B update
+.so ../man/descriptions/_group_update.so
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_group_add (1)
+.BR csv2_group_defaults (1)
+.BR csv2_group_delete (1)
+.BR csv2_group_list (1)
+.BR csv2_group_metadata_delete (1)
+.BR csv2_group_metadata_edit (1)
+.BR csv2_group_metadata_list (1)
+.BR csv2_group_metadata_load (1)
+.BR csv2_group_metadata_update (1)
+.BR csv2_group_update (1)

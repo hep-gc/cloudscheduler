@@ -1,0 +1,2 @@
+The \fBcloudscheduler group add\fR action adds groups to csv2 servers.
+This action is only available to privileged users.

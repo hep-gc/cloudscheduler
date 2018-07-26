@@ -1,2 +1,3 @@
 Removes a cloud definition from the current group.
 Any user may delete a cloud definition, provided they are in the group that they are deleteing the cloud definition from.
+***PLANNED: If a cloud has running jobs or VMs the delete will fail.***

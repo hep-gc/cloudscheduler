@@ -1,0 +1,5 @@
+.TP
+\fB\-js \fIswap\fR, \fB\-\-job-swap \fIswap\fR
+The number of GBs of swap to allocate to jobs started in the current group.
+The value for \fIswap\fR must be an integer value.
+Default: 0

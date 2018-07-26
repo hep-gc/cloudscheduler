@@ -1,4 +1,4 @@
 .TP
 .BR "\-h" ", " "\-\-help"
 Requests short help for the current command.
-Help can be requested for the \fBcloudscheduler\fP command, a specific object, or a specific object/action.
+Help can be requested for the \fBcloudscheduler\fR command, a specific object, or a specific object/action.

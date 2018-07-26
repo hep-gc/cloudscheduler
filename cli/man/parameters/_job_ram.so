@@ -1,0 +1,5 @@
+.TP
+\fB\-jr \fIram\fR, \fB\-\-job-ram \fIram\fR
+The numder of MBs of ram to allocate to jobs in the current group.
+The value for \fIram\fR must be an integer value.
+Default: 1000

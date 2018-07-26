@@ -1,0 +1,5 @@
+.TP
+\fB\-jc \fIcores\fR, \fB\-\-job-cores \fIcores\fR
+The number of VM cores allocated to jobs started in the current group.
+The value for \fIcores\fR must be an integer value.
+Default: 1

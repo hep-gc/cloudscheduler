@@ -173,7 +173,8 @@ def main():
                                                num=int(num_vms_to_boot),
                                                flavor=cloud.flavor,  #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
                                                job=idle_job,
-                                               template_dict=template_dict)
+                                               template_dict=template_dict,
+                                               keep_alive=cloud.keep_alive)
                             runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
                             log.debug('done booting on cloud %s', cloud_match.cloud_name)
                             if runnable_job_count < 0:  # Still need more
@@ -356,7 +357,7 @@ def check_idle_machines(group):
         # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 60 sec buffer for now
         if int(time.time()) - machine.idle_time > max([machine.keep_alive, 300]) and not machine.retire_request_time :
             log.debug("Setting condor off flag for machine: %s", machine.hostname)
-            idle_list.append(machine.machine)
+            idle_list.append(machine.machine)  # TODO Also capture info needed to update cvs2_vms table with a 'retired' flag of sorts
         else:
             log.debug("Ignoring classad for: %s, Inactive for only %s", machine.hostname,
                       str(int(time.time()) - machine.idle_time))
@@ -368,6 +369,7 @@ def check_idle_machines(group):
         update_result = session.query(machines).filter(machines.machine.in_(idle_list))
         for row in update_result:
             row.retire_request_time = int(time.time())
+        # TODO Update csv2_vms table with a retired flag on that vm
     session.commit()
     # Return dict of cloud names with number of idle machine classads
     return machines_dict
@@ -388,7 +390,7 @@ def check_unregistered_machines(group):
     vms = Base.classes.csv2_vms
     clouds = Base.classes.csv2_group_resources
     group_clouds = session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group).filter(~exists().
+    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
                                                                                              where(machines.machine.contains(view_vms.c.hostname)))
 
     cloud_names = []
@@ -408,6 +410,7 @@ def check_unregistered_machines(group):
                 if int(time.time()) - vm.status_changed_time > 2400 and not vm.terminate: # not registered after some period of time - TODO make configurable.
                     to_terminate.append(vm.vmid)
                     log.debug("Set terminate flag on vm: %s", vm.hostname)
+                # TODO Check the retired flag and if set terminate right away
                 else:
                     log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
                               str(int(time.time()) - vm.status_changed_time), vm.terminate)

@@ -1,0 +1,7 @@
+.TP
+\fB\-vf \fIflavor\fR[, ...], \fB\-\-vm-flavor \fIflavor\fR[, ...]
+The flavors to be used for VMs started on clouds in this group.
+Where \fIflavor\fR is a list of comma seperated VM flavor names that can be used.
+The value in \fIflavor\fR will only be used if no value is specified for \fBvm-flavor\fR on the \fBcloud\fR.
+If \fIflavor\fR is not specified in the group or cloud the flavor of started VMs will be calculated from the job requirements.
+Default: None

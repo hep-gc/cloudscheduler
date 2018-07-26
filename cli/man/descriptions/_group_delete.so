@@ -1,0 +1,4 @@
+The \fBcloudscheduler group delete\fR action deletes groups from csv2 servers.
+This action is only available to privileged users.
+All objects(group defaults, group metadata, cloud definitions, cloud metadata, jobs, and VMs) associated with the group will be deleted as well.
+***PLANNED: If a group has running jobs or VMs the delete will fail.***
