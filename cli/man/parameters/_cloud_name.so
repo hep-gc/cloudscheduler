@@ -1,0 +1,4 @@
+.TP
+\fB\-cn \fIname\fR, \fB\-\-cloud-name \fIname\fR
+The cloud name and primary identifier.
+The value for \fIname\fR must be all lower case, numeric digits, and dashes but cannot start or end with dashes.

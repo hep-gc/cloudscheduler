@@ -1,0 +1,3 @@
+.TP
+\fB\-te \fIeditor\fR, \fB\-\-text-editor \fIeditor\fR
+The text editor or script to use to edit the metadata file.

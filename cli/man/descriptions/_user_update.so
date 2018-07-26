@@ -1,3 +1,4 @@
 The \fBcloudscheduler user update\fR action updates users on csv2 servers.
 This action is only available to privileged users.
 The \fIusername\fR of the existing user and at least one field to update is required.
+The \fB\-gn\fR and \fB\-go\fR parameters are used to manage what groups a user is in.

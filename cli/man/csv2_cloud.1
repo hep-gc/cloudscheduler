@@ -1,62 +1,69 @@
 .so ../man/_header.so
-\fBcloudscheduler cloud\fP \- command line interface to cloudscheduler version 2 (csv2) servers.
+\fBcloudscheduler cloud\fP \- manage clouds on cloudscheduler version 2 (csv2) servers
 .\" --------------------------------------------------------------------
 .SH SYNOPSIS
 .\" --------------------------------------------------------------------
-.
-
-.
 .SY csv2
 .B cloud
-.B <action>
-.B [ <mandatory_parameters_and_options> ]
-.
+.I action
+.I mandatory_parameters
+.RI "[" "options " "...]"
 .YS
-.
-.
 .\" --------------------------------------------------------------------
 .SH DESCRIPTION
 .\" --------------------------------------------------------------------
-.
-The \fBcsv2 cloud\fP command adds, deletes, lists, modifies, and shows the status of cloud resources
-for clouds within the current group.
-For each group, one or more cloud resources, both commercial and private, can be 
-defined.
-Defining cloud resouces for a group allows cloudscheduler to manage those resources
-for the group, starting and stopping Virtual Machines (VMs) as required by the group's
-job queue.
-The cloud object and actions are available to all users.
-
-.
+.so ../man/descriptions/_cloud.so
 .\" --------------------------------------------------------------------
 .SH ACTIONS
 .\" --------------------------------------------------------------------
-.P
 For information on the parameters associated with each \fBcloud\fP action, refer
 to the documentation for that action (eg. csv2 cloud <action> -H).
 The following actions are available for the \fBcloud\fP object:
-.
 .TP
-.BI add
-Adds a new cloud definition to the current group.
-A group may one or more cloud definitions.
-
-.
+.B add
+.so ../man/descriptions/_cloud_add.so
 .TP
-.BI delete
-Removes a cloud definition from the current group.
-
-.
+.B delete
+.so ../man/descriptions/_cloud_delete.so
 .TP
-.BI list
-Lists all the cloud definitions and settings for the current group.
-
-.
+.B list
+.so ../man/descriptions/_cloud_list.so
 .TP
-.BI modify
-Modifies the setting for the specified cloud within the current group.
-
-.
+.B metadata-collation
+.so ../man/descriptions/_cloud_metadata_collation.so
+.TP
+.B metadata-delete
+.so ../man/descriptions/_cloud_metadata_delete.so
+.TP
+.B metadata-edit
+.so ../man/descriptions/_cloud_metadata_edit.so
+.TP
+.B metadata-list
+.so ../man/descriptions/_cloud_metadata_list.so
+.TP
+.B metadata-load
+.so ../man/descriptions/_cloud_metadata_load.so
+.TP
+.B metadata-update
+.so ../man/descriptions/_cloud_metadata_update.so
 .TP
 .BI status
-Lists the status of Virtual Machines (VMs) and jobs for each cloud within the current group.
+.so ../man/descriptions/_cloud_status.so
+.TP
+.B update
+.so ../man/descriptions/_cloud_update.so
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_cloud_add (1)
+.BR csv2_cloud_delete (1)
+.BR csv2_cloud_list (1)
+.BR csv2_cloud_metadata_collation (1)
+.BR csv2_cloud_metadata_delete (1)
+.BR csv2_cloud_metadata_edit (1)
+.BR csv2_cloud_metadata_list (1)
+.BR csv2_cloud_metadata_load (1)
+.BR csv2_cloud_metadata_update (1)
+.BR csv2_cloud_status (1)
+.BR csv2_cloud_update (1)

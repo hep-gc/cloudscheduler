@@ -1,0 +1,4 @@
+.TP
+\fB\-f \fIfile\fR, \fB\-\-file-path \fIfile\fR
+The file to be added as a metadata file.
+The value of \fIfile\fR should be an absolute path to the file to be added.

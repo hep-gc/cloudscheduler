@@ -1,0 +1,5 @@
+.TP
+\fB\-cU \fIdomain\fR, \fB\-\-cloud-user-domain \fIdomain\fR
+The user's domain for the cloud provider.
+See OpenStack documentation for more information.
+Default: Default

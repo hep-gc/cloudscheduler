@@ -80,7 +80,7 @@
 .vm-table thead {
   display: block;
   margin-left:12px; /* In order to allign with the scroll bar on the left side */
-  width: 1650px;
+  width: 1670px;
 }
 
 .vm-table th {
@@ -97,7 +97,7 @@
   display: block;
   height: 94%;
   overflow-y: scroll;
-  width: 1660px;
+  width: 1680px;
 }
 
 .vm-table tbody > tr:nth-child(even) {

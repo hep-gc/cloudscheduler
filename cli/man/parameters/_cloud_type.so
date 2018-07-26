@@ -1,0 +1,3 @@
+.TP
+\fB\-ct \fItype\fR, \fB\-\-cloud-type \fItype\fR
+The type of cloud provider. Must be one of \fBamazon\fR, \fBazure\fR, \fBgoogle\fR, \fBlocal\fR, \fBopennebula\fR, or \fBopenstack\fR.

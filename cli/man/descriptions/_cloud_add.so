@@ -1,0 +1,3 @@
+Adds a new cloud definition to the current group.
+A group may have multiple cloud definitions.
+Any user may add a cloud definition, provided they are in the group that they are adding the cloud definition to.

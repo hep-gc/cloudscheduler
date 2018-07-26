@@ -1,0 +1,3 @@
+.TP
+\fB\-cr \fIregion\fR, \fB\-\-cloud-region \fIregion\fR
+The region for the cloud provider.

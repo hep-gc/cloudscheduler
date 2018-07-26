@@ -1,0 +1,3 @@
+Collate the list of metadata from the group with the metadata list of a specific cloud.
+This list is all the metadata that will be applied to a VM started on that cloud.
+Any user may collate a clouds metadata, provided that they are in the group that they are collating the metadata for.

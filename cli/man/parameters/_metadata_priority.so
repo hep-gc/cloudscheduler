@@ -1,0 +1,6 @@
+.TP
+\fB\-mp \fIpriority\fR, \fB\-\-metadata-priority \fIpriority\fR
+The priority of the metadata file.
+Specifes the order in which metadata files are sent to VMs.
+The value of \fIpriority\fR must be an integer.
+Default: 0
