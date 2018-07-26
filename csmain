@@ -390,7 +390,7 @@ def check_unregistered_machines(group):
     vms = Base.classes.csv2_vms
     clouds = Base.classes.csv2_group_resources
     group_clouds = session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group).filter(~exists().
+    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
                                                                                              where(machines.machine.contains(view_vms.c.hostname)))
 
     cloud_names = []
