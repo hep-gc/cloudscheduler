@@ -39,10 +39,10 @@ else
             case when cv.power_status = 1 and cv.status = 'ACTIVE' and condor_slots is null then
                 'unregistered'
             else
-                case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time is not null then
+                case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time != 0 then
                     'retiring'
                 else
-                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time is null then
+                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time = 0 then
                         'running'
                     else
                         'other'
