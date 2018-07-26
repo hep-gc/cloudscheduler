@@ -147,42 +147,8 @@ def collector_command_consumer():
             master_type = htcondor.AdTypes.Master
             startd_type = htcondor.AdTypes.Startd
 
-            # Query database for machines to be retired (old method).
-            abort_cycle = False
-            uncommitted_updates = False
-            for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.condor_off == 1):
-                logging.info("Retiring machine %s" % resource.name)
-                try:
-                    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
-                    master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-
-                    resource.condor_off = 2
-                    db_session.merge(resource)
-                    uncommitted_updates = True
-                except Exception as exc:
-                    logging.exception("Failed to merge retire machine (old method), aborting cycle...")
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
-
-            if abort_cycle:
-                del condor_session
-                db_session.close()
-                time.sleep(config.command_sleep_interval)
-                continue
-
-            if uncommitted_updates:
-                try:
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit retire machine (old method), aborting cycle...")
-                    logging.error(exc)
-                    del condor_session
-                    db_session.close()
-                    time.sleep(config.command_sleep_interval)
-                    continue
-
             # Query database for machines to be retired.
+            abort_cycle = False
             uncommitted_updates = False
             for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
                 logging.info("Retiring machine %s" % resource.name)

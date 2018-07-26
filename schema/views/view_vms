@@ -1,6 +1,6 @@
 /*
 ** List all VMs together with foreign indicator, poller status, condor slot counts
-** (used/total), condor_off, cores, disk, ram, and swap.
+** (used/total), cores, disk, ram, swap, and condor retire controls.
 */
 create or replace view view_vms as
 
@@ -19,7 +19,6 @@ cpp.entered_current_state,
 cpp.state,
 cpp.activity,
 cpp.condor_slots,
-cpp.condor_off,
 cpp.idle_time,
 cpp.retire_request_time,
 cpp.retired_time,
@@ -40,10 +39,10 @@ else
             case when cv.power_status = 1 and cv.status = 'ACTIVE' and condor_slots is null then
                 'unregistered'
             else
-                case when cv.power_status = 1 and cv.status = 'ACTIVE' and (cpp.condor_off = 1 or cpp.condor_off = 2 or cpp.retire_request_time is not null) then
+                case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time is not null then
                     'retiring'
                 else
-                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time is null and (cpp.condor_off is null or cpp.condor_off = 0) then
+                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time is null then
                         'running'
                     else
                         'other'
@@ -71,7 +70,6 @@ left outer join (
     state,
     activity,
     total_slots as condor_slots,
-    condor_off,
     idle_time,
     retire_request_time,
     retired_time
