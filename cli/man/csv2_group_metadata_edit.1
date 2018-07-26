@@ -1,54 +1,54 @@
 .so ../man/_header.so
-\fBcloudscheduler cloud list\fR \- list cloud definitions from cloudscheduler version 2 (csv2) servers
+\fBcloudscheduler group metadata-edit\fR \- edit group metadata files from cloudscheduler version 2 (csv2) servers
 .\" --------------------------------------------------------------------
 .SH SYNOPSIS
 .\" --------------------------------------------------------------------
 .SY cloudscheduler
-.B cloud
-.B list
+.B group
+.B metadata-edit
+.BI \-mn " name"
 .RI "[" "options" " ...]"
 .YS
 .\" --------------------------------------------------------------------
 .SH DESCRIPTION
 .\" --------------------------------------------------------------------
-.so ../man/descriptions/_cloud_list.so
+.so ../man/descriptions/_group_metadata_edit.so
 .\" --------------------------------------------------------------------
 .SH OPTIONS
 .\" --------------------------------------------------------------------
 .\" --------------------------------------------------------------------
-.SS Optional
+.SS Mandatory
 .\" --------------------------------------------------------------------
-.so ../man/_options.so
-.so ../man/parameters/_cloud_name.so
-.so ../man/parameters/_group.so
-.so ../man/parameters/_long_help.so
-.so ../man/parameters/_help.so
-.so ../man/parameters/_server.so
-.so ../man/parameters/_expose_api.so
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_metadata_name.so
 .\" --------------------------------------------------------------------
-.SS Table
+.SS Required
 .\" --------------------------------------------------------------------
-.so ../man/_table_options.so
+.so ../man/_required_parameters.so
+.so ../man/parameters/_text_editor.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
-Listing the cloud "example":
+Editing the group metadata file "example":
 .P
 .EX
-\fI#sh\fR cloudscheduler cloud list -ca example.ca
+\fI#sh\fR cloudscheduler group metadata-edit -mn example -te vim
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO
 .\" --------------------------------------------------------------------
 .BR csv2 (1)
-.BR csv2_cloud (1)
-.BR csv2_cloud_add (1)
-.BR csv2_cloud_delete (1)
-.BR csv2_cloud_metadata_collation (1)
-.BR csv2_cloud_metadata_delete (1)
-.BR csv2_cloud_metadata_edit (1)
-.BR csv2_cloud_metadata_list (1)
-.BR csv2_cloud_metadata_load (1)
-.BR csv2_cloud_metadata_update (1)
-.BR csv2_cloud_status (1)
-.BR csv2_cloud_update (1)
+.BR csv2_group (1)
+.BR csv2_group_add (1)
+.BR csv2_group_defaults (1)
+.BR csv2_group_delete (1)
+.BR csv2_group_list (1)
+.BR csv2_group_metadata_delete (1)
+.BR csv2_group_metadata_list (1)
+.BR csv2_group_metadata_load (1)
+.BR csv2_group_metadata_update (1)
+.BR csv2_group_update (1)

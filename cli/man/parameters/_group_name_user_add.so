@@ -1,0 +1,3 @@
+.TP
+\fB\-gn\fI group\fR[,...], \fB\-\-group-name \fIgroup\fR[,...]
+The groups to add the user to, where \fIgroup\fR is a comma seperated list of existing group names.

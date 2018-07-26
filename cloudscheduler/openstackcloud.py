@@ -60,7 +60,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.default_flavor = defaultflavor
         self.default_network = defaultnetwork
 
-    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None):
+    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, keep_alive=0):
         """
         Try to boot VMs on OpenStack.
         :param group_yaml_list: yaml from the group owning cloud
@@ -194,6 +194,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                     'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time()),
                     'status_changed_time': int(time.time()),
+                    'keep_alive': keep_alive
                 }
                 new_vm = Vms(**vm_dict)
                 db_session.merge(new_vm)

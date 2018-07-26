@@ -1,0 +1,2 @@
+The \fBcloudscheduler group metadata-edit\fR edits group metadata files from csv2 servers.
+This action is available to all users, provided they are in the group the metadata belongs to.

@@ -1,0 +1,3 @@
+.TP
+\fB\-un\fI user\fR[,...], \fB\-\-username \fIuser\fR[,...]
+The users to add to the group, where \fIuser\fR is a comma seperated list of existing usernames.

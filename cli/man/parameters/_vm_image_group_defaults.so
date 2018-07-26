@@ -1,0 +1,7 @@
+.TP
+\fB\-vi \fIimage\fR, \fB\-\-vm-image \fIimage\fR
+The images to be used for VMs started on this groups clouds.
+Where \fIimage\fR is a list of comma seperated VM image names that can be used.
+The value in \fIimage\fR will only be used if no value is specified for \fBvm-image\fR on the \fBcloud\fR.
+If \fIimage\fR is not specified in the group or cloud the image of started VMs will be calculated from the job requirements.
+Default: None
