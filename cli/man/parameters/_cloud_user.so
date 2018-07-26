@@ -1,0 +1,4 @@
+.TP
+\fB\-cu \fIuser\fR, \fB\-\-cloud-user \fIuser\fR
+The username or ID for the cloud provider.
+For AWS EC2 this is the Management Console or IAM credentials and for OpenStack this is the dashboard credentials.

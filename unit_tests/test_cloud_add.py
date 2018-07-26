@@ -177,10 +177,10 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', "Field 'authurl' doesn't have a default value",
+        gvar, 1, 'CV01', 'cloud add parameter "authurl" contains an empty string which is specifically disallowed.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': '',
             'project': 'invalid-unit-test',
             'username': 'invalid-unit-test',
@@ -192,10 +192,10 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', "Field 'project' doesn't have a default value",
+        gvar, 1, 'CV01', 'cloud add parameter "project" contains an empty string which is specifically disallowed.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
             'project': '',
             'username': 'invalid-unit-test',
@@ -207,10 +207,10 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', "Field 'username' doesn't have a default value",
+        gvar, 1, 'CV01', 'cloud add parameter "username" contains an empty string which is specifically disallowed.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
             'username': '',
@@ -222,10 +222,10 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', "Field 'password' doesn't have a default value",
+        gvar, 1, 'CV01', 'cloud add parameter "password" contains an empty string which is specifically disallowed.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
             'username': 'invalid-unit-test',
@@ -237,10 +237,10 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', "Field 'region' doesn't have a default value",
+        gvar, 1, 'CV01', 'cloud add parameter "region" contains an empty string which is specifically disallowed.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
-            'cloud_name': ut_id(gar, 'cloud-invalid-unit-test'),
+            'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
             'authurl': 'invalid-unit-test',
             'project': 'invalid-unit-test',
             'username': 'invalid-unit-test',

@@ -1,0 +1,4 @@
+Edit a cloud metadata file in the current group.
+The metadata file is fetched from the server and edited locally.
+On successfully saving changes the server copy is updated to match the changed file.
+Any user may edit a cloud metadata file, provided they are in the group that the cloud is defined in.

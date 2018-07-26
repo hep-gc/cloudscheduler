@@ -1,0 +1,6 @@
+.TP
+\fB\-gmo \fR[\fBadd \fR| \fBdelete\fR], \fB\-\-group-metadata-option \fR[\fBadd \fR| \fBdelete\fR]
+Use with \fB\-gme\fR to \fBadd\fR or \fBdelete\fR the metadata file from the exclusion list.
+If this command is not specified the default behavoir is \fBadd\fR.
+If \fBadd\fR is specified then the metadata file will be added to the clouds exclusion list.
+If \fBdelete\fR is specified then the metadata file will be removed from the clouds exclusion list.

@@ -964,8 +964,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                         return 1, 'value specified for "%s" must be all upper case.' % field, None, None, None
 
             if field_alias in all_columns:
-                if value or field_alias != 'password':
-                    Fields[field_alias] = value
+                Fields[field_alias] = value
             else: 
                 array_field = field.split('.')
                 if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):

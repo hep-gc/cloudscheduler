@@ -72,11 +72,13 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            idle_machines = check_idle_machines_new(csgroup.group_name)
+            verify_idle_jobs(csgroup.group_name)
+            check_idle_time(csgroup.group_name)
+            check_idle_time_unset(csgroup.group_name)
+            idle_machines = check_idle_machines(csgroup.group_name)
             new_vms = check_unregistered_machines(csgroup.group_name)
             current_flavors = count_cloud_flavors(csgroup.group_name)
             log.debug("Current flavors: %s", current_flavors)
-            verify_jobs = verify_idle_jobs(csgroup.group_name)
 
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
@@ -270,6 +272,68 @@ def check_registered_condor_machines(group):
     return machines_dict
 
 
+def check_idle_time(group):
+    """
+    Determine idle start time of machines to use with keep_alive
+    :param group:
+    :return:
+    """
+    # Query for classads that are unclaimed idle with no child slots(total_slots==1) and have no time set
+    # set their time
+    # query all the ones that have their time set
+    # if state changed to something other than unclaimed / idle then unset time(idle_time)
+    # if it has child slots unset time (idle_time)
+    # if no reason to unset time then check how long it's been compared to the keep alive time
+    # if keep alive exceeded set retire flags/time (retire_request_time)
+    log = logging.getLogger(__name__)
+    log.debug("Check Idle Machines for Keep Alive: %s", group)
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    machines = Base.classes.condor_machines
+    unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed",
+                                                             machines.activity == "Idle",
+                                                             machines.group_name == group,
+                                                             machines.idle_time == None,
+                                                             machines.total_slots == 1)
+    for machine in unclaimed_idle_machines:
+        machine.idle_time = int(time.time())
+        log.debug("%s detected doing nothing - set idle_time.", machine.machine)
+    session.commit()
+
+
+def check_idle_time_unset(group):
+    """
+    Determine idle start time of machines to use with keep_alive
+    :param group:
+    :return:
+    """
+    # Query for classads that are unclaimed idle with no child slots(total_slots==1) and have no time set
+    # set their time
+    # query all the ones that have their time set
+    # if state changed to something other than unclaimed / idle then unset time(idle_time)
+    # if it has child slots unset time (idle_time)
+    # if no reason to unset time then check how long it's been compared to the keep alive time
+    # if keep alive exceeded set retire flags/time (retire_request_time)
+    log = logging.getLogger(__name__)
+    log.debug("Unset the idle time if needed: %s", group)
+    Base = automap_base()
+    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
+                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
+    Base.prepare(engine, reflect=True)
+    session = Session(engine)
+    machines = Base.classes.condor_machines
+    unclaimed_idle_machines = session.query(machines).filter(machines.group_name == group,
+                                                             machines.idle_time != None)
+    for machine in unclaimed_idle_machines:
+        if machine.total_slots != 1 or machine.state != "Unclaimed" or machine.activity != "Idle":
+            log.debug("%s detected change - unset idle_time.", machine.machine)
+            machine.idle_time = None
+    session.commit()
+
+
 def check_idle_machines(group):
     """
     Query the condor machines and ones that are idle with no jobs requiring them
@@ -284,69 +348,26 @@ def check_idle_machines(group):
     Base.prepare(engine, reflect=True)
     session = Session(engine)
     machines = Base.classes.condor_machines
-    unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed",
-                                                             machines.activity == "Idle",
-                                                             machines.group_name == group)
-    machines_dict = defaultdict(int)
-    for machine in unclaimed_idle_machines:
-        # TODO Make sure this line is behaving as intended and not catching every machine after 30 minutes irregardless of activity
-        if machine.my_current_time - machine.entered_current_state > 1800 and not machine.condor_off : # TODO make configurable setting for now ~30minutes
-            log.debug("Setting condor off flag for machine: %s", machine.name)
-            machine.condor_off = 1
-        elif machine.condor_off and machine.condor_off == 1:
-            pass # We've set the flag - waiting on poller to deal with it.
-        elif machine.condor_off and machine.condor_off == 2:
-            pass
-            # TODO Add additional handling if machine is still here after a long period of time
-            # like reset the flag back to 1 so the poller can try the retire again.
-            # Need to check if the poller updates anything else when this happens so have something to time against.
-        else:
-            log.debug("Ignoring classad for: %s, flag: %s Inactive for only %s", machine.name, str(machine.condor_off),
-                      str(machine.my_current_time - machine.entered_current_state))
-            name_parts = machine.machine.split('--')
-            if len(name_parts) >= 2:
-                machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
-
-    session.commit()
-    # Return dict of cloud names with number of idle machine classads
-    return machines_dict
-
-
-def check_idle_machines_new(group):
-    """
-    Query the condor machines and ones that are idle with no jobs requiring them
-    or that have been idle an extended period of time and set the Retire flag in db for them.
-    :return:
-    """
-    log = logging.getLogger(__name__)
-    log.debug("Check Idle Machines: %s", group)
-    Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    Base.prepare(engine, reflect=True)
-    session = Session(engine)
-    machines = Base.classes.condor_machines
-    unclaimed_idle_machines = session.query(view_vms).filter(view_vms.c.state == "Unclaimed",
-                                                             view_vms.c.activity == "Idle",
+    unclaimed_idle_machines = session.query(view_vms).filter(view_vms.c.idle_time != None,
                                                              view_vms.c.group_name == group)
     machines_dict = defaultdict(int)
     idle_list = []
     for machine in unclaimed_idle_machines:
-        # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 10 sec buffer for now
-        if machine.my_current_time - machine.entered_current_state > (machine.keep_alive+10) and not machine.condor_off :
+        # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 60 sec buffer for now
+        if int(time.time()) - machine.idle_time > (machine.keep_alive+60) and not machine.condor_off :
             log.debug("Setting condor off flag for machine: %s", machine.hostname)
             #machine.condor_off = 1 Have to save the machine name and do update after
             idle_list.append(machine.machine)
-        elif machine.condor_off and machine.condor_off == 1:
+        elif machine.condor_off == 1:
             pass # We've set the flag - waiting on poller to deal with it.
-        elif machine.condor_off and machine.condor_off == 2:
+        elif machine.condor_off == 2:
             pass
             # TODO Add additional handling if machine is still here after a long period of time
             # like reset the flag back to 1 so the poller can try the retire again.
             # Need to check if the poller updates anything else when this happens so have something to time against.
         else:
             log.debug("Ignoring classad for: %s, flag: %s Inactive for only %s", machine.hostname, str(machine.condor_off),
-                      str(machine.my_current_time - machine.entered_current_state))
+                      str(int(time.time()) - machine.idle_time))
             name_parts = machine.machine.split('--')
             if len(name_parts) >= 2:
                 machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
@@ -355,6 +376,7 @@ def check_idle_machines_new(group):
         update_result = session.query(machines).filter(machines.machine.in_(idle_list))
         for row in update_result:
             row.condor_off = 1
+            row.retire_request_time = int(time.time())
     session.commit()
     # Return dict of cloud names with number of idle machine classads
     return machines_dict

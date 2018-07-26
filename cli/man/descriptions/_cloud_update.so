@@ -1,0 +1,2 @@
+Modifies the cloud definitions within the current group.
+Any user may update a cloud definition, provided they are in the group that they are modifing the cloud definition for.

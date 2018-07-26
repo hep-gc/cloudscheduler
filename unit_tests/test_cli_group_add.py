@@ -108,7 +108,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV01', 'value specified for "condor_central_manager" must not be an empty string.',
+        gvar, 1, 'GV01', 'group add parameter "condor_central_manager" contains an empty string which is specifically disallowed.',
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-gm', '']
     )
 

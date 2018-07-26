@@ -1,0 +1,4 @@
+This object provides functions to aid in the use of this command, eg. action
+"generate_bash_completion_script" writes a bash script to standard out which can
+be installed in "/etc/bash_completion.d/cloudscheduler" and will provde command 
+parameter tab completion.

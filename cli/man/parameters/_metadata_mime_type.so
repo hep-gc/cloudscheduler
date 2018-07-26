@@ -1,0 +1,4 @@
+.TP
+\fB\-mmt \fItype\fR, \fB\-\-metadata-mime-type \fItype\fR
+Value specified for \fItype\fR must be one of the following options: \fBcloud-config\fR or \fBucernvm-config\fR.
+Default: cloud-config

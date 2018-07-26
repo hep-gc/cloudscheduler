@@ -1,22 +1,23 @@
 .so ../man/_header.so
-\fBcloudscheduler\fP \- command line interface to cloudscheduler version 2 (csv2) servers.
+\fBcloudscheduler\fR \- command line interface to cloudscheduler version 2 (csv2) servers.
 .\" --------------------------------------------------------------------
 .SH SYNOPSIS
 .\" --------------------------------------------------------------------
-The general format of the \fBcloudscheduler\fP command is as follows:
+The general format of the \fBcloudscheduler\fR command is as follows:
 .SY cloudscheduler
-.B <object>
-.B <action>
-.B [ <mandatory_parameters_and_options> ]
+.I object
+.I action
+.I mandatory_parameters
+.RI "[" "options" " ...]"
 .YS
 .\" --------------------------------------------------------------------
 .SH DESCRIPTION
 .\" --------------------------------------------------------------------
 .P
-The \fBcloudscheduler\fP command line interface makes RESTful requests to cloudscheduler servers to retrieve
+The \fBcloudscheduler\fR command line interface makes RESTful requests to cloudscheduler servers to retrieve
 information and control batch processing on clouds.
 It is an alternative to the web browser interface, providing the same functionality, and like
-the wed browser interface can talk to any number of servers.
+the web browser interface can talk to any number of servers.
 .P
 CSV2 servers require authentication.
 One of two methods of authentication must be used when communicating with servers;
@@ -24,132 +25,72 @@ either username and password credentials, or an X509 certificate may be used.
 Accounts and associated credentials are set up by any privileged user, but any user can
 change their own password.
 .P
-The \fBcloudscheduler\fP command provides the \fBdefaults\fP object together with its' associated
+The \fBcloudscheduler\fR command provides the \fBdefaults\fR object together with its' associated
 actions to manage default values for servers on a server by server basis.
 Server location (URL), credential parameters, mandatory parameters, and other options 
 are grouped under a "server" name.
 The "default" server is always and automatically defined.
 .P
 Parameters come in two flavours, keyword/value and boolean.
-Keyword parameters have no default value, whereas boolean values default to \fBFalse\fP.
+Keyword parameters have no default value, whereas boolean values default to \fBFalse\fR.
 When a group of settings is saved for a server, it will contain all the boolean values, but
 only those keywords that have been explicitly set.
-Specifying a boolean keyword more than once will toggle its' value from \fBFalse\fp to
-\fBTrue\fP and back to \fBFalse\fP, etc.
-A default value can be saved in the \fBsettings\fP but overridden on the command line.
+Specifying a boolean keyword more than once will toggle its' value from \fBFalse\fR to
+\fBTrue\fR and back to \fBFalse\fR, etc.
+A default value can be saved in the \fBsettings\fR but overridden on the command line.
 .\" --------------------------------------------------------------------
 .SH OBJECTS
 .\" --------------------------------------------------------------------
-The first two positional arguments to the \fBcloudscheduler\fP command are  an \fBobject\fP 
-and an \fBaction\fP to be perfomed.
+The first two positional arguments to the \fBcloudscheduler\fR command are  an \fBobject\fR 
+and an \fBaction\fR to be perfomed.
 For information about the actions associated with a particular object, refer
 to the documentation for that object (eg. cloudscheduler <object> -H).
 The following is a list and brief description of the available objects:
 .TP
 .B cloud
-This object adds, deletes, creates, lists, modifies, and shows the status of clouds 
-within a group.
-For each group, one or more cloud resources, both commercial and private, can be 
-defined.
-Defining cloud resouces for a group allows cloudscheduler to manage those resources
-for the group, starting and stopping Virtual Machines as required by the group's
-job queue.
-The cloud object and actions are available to all users.
+.so ../man/descriptions/_cloud.so
 .TP
 .B defaults
-This object manipulates groups of settings within a user's \fB~/.csv2\fR directory,
-and provides actions to save, list, update, and delete settings for multiple servers.
-A sub-directory is created for each server, and within that sub-directory, a single 
-\fBsettings.yaml\fR file contains the default value for each parameter for that server.
-The settings object and actions are available to all users.
+.so ../man/descriptions/_defaults.so
 .TP
 .B group
-This object creates, lists, updates, and deletes groups on \fBcloudscheduler\fR servers.
-A group on a cloudscheduler server is analogous to a project on an OpenStack cloud and 
-may have multiple users, anyone of whom may control the cloud resources
-for the group.
-The group object and actions are only available to privileged users.
+.so ../man/descriptions/_group.so
 .TP
 .B helpers
-This object provides functions to aid in the use of this command, eg. action
-"generate_bash_completion_script" writes a bash script to standard out which can
-be installed in "/etc/bash_completion.d/cloudscheduler" and will provde command 
-parameter tab completion.
+.so ../man/descriptions/_helpers.so
 .TP
 .B job
+.so ../man/descriptions/_job.so
 .TP
 .B user
-.so ../man/description/_user.so
+.so ../man/descriptions/_user.so
 .TP
 .B vm
+.so ../man/descriptions/_vm.so
 .\" --------------------------------------------------------------------
 .SH GLOBAL OPTIONS
 .\" --------------------------------------------------------------------
 .P
-The following global options are applicable to all \fBcloudscheduler\fP commands:
+The following global options are applicable to all \fBcloudscheduler\fR commands:
 .\" --------------------------------------------------------------------
 .SS Authentication Options
 .\" --------------------------------------------------------------------
 The following options are used to address the cloudscheduler server and to identify the user to the server:
 .so ../man/parameters/_server.so
-.\" .TP
-.\" .OP \-sa\ \:|\ --server-address <URL>
-.\" Specifies the HTTPS protocol location of the cloudscheduler server. The default URL is https://localhost.
-.\" .TP
-.\" .OP \-sC\ \:|\ --server-grid-cert <path_to_grid_certificate_file>
-.\" Specifies the location of an x509 grid certificate used to identify the user to the cloudscheduler server.
-.\" There is no default.
-.\" If specified, the user must also specify the 
-.\" .OP \-k key
-.\" option, in which case certificate authentication will be used and the
-.\" .OP \-u user
-.\" and the
-.\" .OP \-p password
-.\" options will be ignored.
-.\" .TP
-.\" .OP \-sK\ \:|\ --server-grid-key <path_to_grid_certificate_key_file>
-.\" Specifies the location of an x509 grid certificate key used to identify the user to the cloudscheduler server.
-.\" There is no default.
-.\" If specified, the user must also specify the 
-.\" .OP \-c cert
-.\" option, in which case certificate authentication will be used and the
-.\" .OP \-u user
-.\" and the
-.\" .OP \-p password
-.\" options will be ignored.
-.\" .TP
-.\" .OP \-su\ \:|\ --server-user <username>
-.\" Specifies the user ID to use when authenticating with the cloudscheduler server.
-.\" There is no default.
-.\" If specified, the user must also specify the 
-.\" .OP \-p password
-.\" option, or a password promp will be issued.
-.\" This option, together with the
-.\" .OP \-p password
-.\" option will be ignored if certificate authentication is being used.
-.\" .TP
-.\" .OP \-spw\ \:|\ --server-password <password>
-.\" Specifies the password to use when authenticating with the cloudscheduler server.
-.\" If user/password authentication is being used and no password is provided, a password prompt will be issued.
-.\" This option, together with the
-.\" .OP \-u user
-.\" option will be ignored if certificate authentication is being used.
-.\" .TP
-.\" In summary, the user must provide either of the following when communicating with a cloudscheduler server:
-.\" .RS
-.\" .TP
-.\" .BI *
-.\" [ \fB\:-sa\fP \fI<URL>\fP ], [ \fB\:-sC\fP \fI<path_to_grid_certificate_file>\fP ], and [ \fB\:-sK\fP \fI<path_to_grid_certificate_key_file>\fP ], or
-.\" .TP
-.\" .BI *
-.\" [ \fB\:-sa\fP \fI<URL>\fP ], [ \fB\:-su\fP \fI<username>\fP ], and [ \fB\:-spw\fP \fI<password>\fP ]
-.\" .RE
-.\" .TP
-.\" However, if the [ \fB\-S\fP \fIurl\fP ] option is omitted, a default URL of https://localhost will be used.
 .\" --------------------------------------------------------------------
 .SS Information Options
 .\" --------------------------------------------------------------------
-The following options are used to display the \fBcloudscheduler\fP command line interface and API documentation:
+The following options are used to display the \fBcloudscheduler\fR command line interface and API documentation:
 .so ../man/parameters/_help.so
 .so ../man/parameters/_long_help.so
 .so ../man/parameters/_expose_api.so
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2_cloud (1)
+.BR csv2_defaults (1)
+.BR csv2_group (1)
+.BR csv2_helpers (1)
+.BR csv2_job (1)
+.BR csv2_user (1)
+.BR csv2_vm (1)

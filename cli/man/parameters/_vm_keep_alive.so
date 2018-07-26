@@ -1,0 +1,4 @@
+.TP
+\fB\-vka \fItime\fR, \fB\-\-vm-keep-alive \fItime\fR
+The number of second the VM will be left idle before being terminated if no jobs are started on it.
+Default: None
