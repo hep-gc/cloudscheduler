@@ -78,7 +78,7 @@ def main():
             idle_machines = check_idle_machines(csgroup.group_name)
             new_vms = check_unregistered_machines(csgroup.group_name)
             current_flavors = count_cloud_flavors(csgroup.group_name)
-            log.debug("Current flavors: %s", current_flavors)
+            log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
 
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
@@ -286,7 +286,7 @@ def check_idle_time(group):
     # if no reason to unset time then check how long it's been compared to the keep alive time
     # if keep alive exceeded set retire flags/time (retire_request_time)
     log = logging.getLogger(__name__)
-    log.debug("Check Idle Machines for Keep Alive: %s", group)
+    log.debug("Check Idle Machines for Keep Alive time for: %s", group)
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                            csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
@@ -318,7 +318,7 @@ def check_idle_time_unset(group):
     # if no reason to unset time then check how long it's been compared to the keep alive time
     # if keep alive exceeded set retire flags/time (retire_request_time)
     log = logging.getLogger(__name__)
-    log.debug("Unset the idle time if needed: %s", group)
+    log.debug("Unset the idle time if needed for: %s", group)
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                            csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
@@ -341,7 +341,7 @@ def check_idle_machines(group):
     :return:
     """
     log = logging.getLogger(__name__)
-    log.debug("Check Idle Machines: %s", group)
+    log.debug("Checking %s Idle Machines.", group)
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
                            csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
@@ -354,28 +354,19 @@ def check_idle_machines(group):
     idle_list = []
     for machine in unclaimed_idle_machines:
         # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 60 sec buffer for now
-        if int(time.time()) - machine.idle_time > (machine.keep_alive+60) and not machine.condor_off :
+        if int(time.time()) - machine.idle_time > (machine.keep_alive+60) and not machine.retire_request_time :
             log.debug("Setting condor off flag for machine: %s", machine.hostname)
-            #machine.condor_off = 1 Have to save the machine name and do update after
             idle_list.append(machine.machine)
-        elif machine.condor_off == 1:
-            pass # We've set the flag - waiting on poller to deal with it.
-        elif machine.condor_off == 2:
-            pass
-            # TODO Add additional handling if machine is still here after a long period of time
-            # like reset the flag back to 1 so the poller can try the retire again.
-            # Need to check if the poller updates anything else when this happens so have something to time against.
         else:
-            log.debug("Ignoring classad for: %s, flag: %s Inactive for only %s", machine.hostname, str(machine.condor_off),
+            log.debug("Ignoring classad for: %s, Inactive for only %s", machine.hostname,
                       str(int(time.time()) - machine.idle_time))
             name_parts = machine.machine.split('--')
             if len(name_parts) >= 2:
                 machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
     if idle_list:
-        log.debug("setting condor_off on %s entries.", len(idle_list))
+        log.debug("setting retire_request_time on %s entries.", len(idle_list))
         update_result = session.query(machines).filter(machines.machine.in_(idle_list))
         for row in update_result:
-            row.condor_off = 1
             row.retire_request_time = int(time.time())
     session.commit()
     # Return dict of cloud names with number of idle machine classads
@@ -406,7 +397,7 @@ def check_unregistered_machines(group):
     non_cs_vm = []
     new_vms = defaultdict(list)
     to_terminate = []
-    log.debug("VMs that are unregistered with condor collector:")
+    log.debug("%s VMs that are unregistered with condor collector:", group)
     for vm in unregistered_vms:
         try:
             hostname_split = vm.hostname.split('--')
@@ -416,21 +407,22 @@ def check_unregistered_machines(group):
             if cname in cloud_names: # name prefix matches a valid cloud name
                 if int(time.time()) - vm.status_changed_time > 2400 and not vm.terminate: # not registered after some period of time - TODO make configurable.
                     to_terminate.append(vm.vmid)
-                    log.debug("Set terminate flag on vm:%s", vm.hostname)
+                    log.debug("Set terminate flag on vm: %s", vm.hostname)
                 else:
-                    log.debug("%s only been unregistered for: %s time.", vm.hostname, str(int(time.time()) - vm.status_changed_time))
+                    log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
+                              str(int(time.time()) - vm.status_changed_time), vm.terminate)
                     new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_name))
             else:
                 non_cs_vm.append(vm.hostname)
         except Exception as ex:
-            log.exception("Problem going through unregistered VMs: %s", ex)
+            log.exception("Problem going through %s unregistered VMs: %s", group, ex)
     if to_terminate:
         log.debug((len(to_terminate)))
         log.debug(to_terminate)
         update_result = session.query(vms).filter(vms.vmid.in_(to_terminate))
         for vm in update_result:
             vm.terminate = 1
-    log.debug("Done checking unregistered VMs.")
+    log.debug("Done checking %s unregistered VMs.", group)
     session.commit()
     return new_vms
 
