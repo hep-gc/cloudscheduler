@@ -148,6 +148,7 @@ def collector_command_consumer():
             startd_type = htcondor.AdTypes.Startd
 
             # Query database for machines to be retired.
+            abort_cycle = False
             uncommitted_updates = False
             for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
                 logging.info("Retiring machine %s" % resource.name)
