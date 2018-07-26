@@ -34,6 +34,13 @@ from attribute_mapper.attribute_mapper import map_attributes
 
 ## UTILITY FUNCTIONS
 
+def foreign(vm):
+    native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
+    if vm.hostname[:len(native_id)] == native_id:
+        return false
+    else:
+        return True
+
 def get_openstack_session(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
     authsplit = auth_url.split('/')
     try:
@@ -711,6 +718,10 @@ def vmCleanUp():
             logging.info("Querying database for VMs marked for termination...")
             vm_to_destroy = db_session.query(Vm).filter(Vm.terminate == 1, Vm.manual_control != 1)
             for vm in vm_to_destroy:
+                if foreign(vm):
+                    logging.info("skipping foreign VM %s marked for termination... - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
+                    continue
+
                 logging.info("VM marked for termination... terminating: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
                 # terminate vm
                 # need to get cloud data from csv2_group_resources using group_name + cloud_name from vm
