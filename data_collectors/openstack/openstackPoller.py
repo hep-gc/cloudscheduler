@@ -37,7 +37,7 @@ from attribute_mapper.attribute_mapper import map_attributes
 def foreign(vm):
     native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
     if vm.hostname[:len(native_id)] == native_id:
-        return false
+        return False
     else:
         return True
 
