@@ -20,6 +20,9 @@ cpp.state,
 cpp.activity,
 cpp.condor_slots,
 cpp.condor_off,
+cpp.idle_time,
+cpp.retire_request_time,
+cpp.retired_time,
 case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
 cores,
 disk + ephemeral_disk as disk,
@@ -68,7 +71,10 @@ left outer join (
     state,
     activity,
     total_slots as condor_slots,
-    condor_off
+    condor_off,
+    idle_time,
+    retire_request_time,
+    retired_time
 
     from condor_machines
 
