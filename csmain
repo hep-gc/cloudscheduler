@@ -354,7 +354,7 @@ def check_idle_machines(group):
     idle_list = []
     for machine in unclaimed_idle_machines:
         # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 60 sec buffer for now
-        if int(time.time()) - machine.idle_time > (machine.keep_alive+60) and not machine.retire_request_time :
+        if int(time.time()) - machine.idle_time > max([machine.keep_alive, 300]) and not machine.retire_request_time :
             log.debug("Setting condor off flag for machine: %s", machine.hostname)
             idle_list.append(machine.machine)
         else:
