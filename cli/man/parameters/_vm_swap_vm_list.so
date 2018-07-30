@@ -1,0 +1,5 @@
+.TP
+\fB\-vs \fIswap\fR, \fB\-\-vm-swap \fIswap\fR
+The number of GBs of swap the VM is allocated.
+Filters the VM list to only VMs with \fIswap\fR.
+\fIswap\fR must be a number.

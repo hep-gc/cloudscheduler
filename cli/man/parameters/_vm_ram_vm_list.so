@@ -1,0 +1,5 @@
+.TP
+\fB\-vr \fIram\fR, \fB\-\-vm-ram \fIram\fR
+The number of MBs of ram the VM is allocated.
+Filters the VM list to only VMs with \fIram\fR.
+\fIram\fR must be a number.

@@ -1,0 +1,4 @@
+.TP
+\fB\-vf \fIflavor\fR, \fB\-\-vm-flavor \fIflavor\fR
+The name of the flavor the VM is running.
+Filters the VM list to only VMs with \fIflavor\fR.

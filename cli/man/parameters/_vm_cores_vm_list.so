@@ -1,0 +1,5 @@
+.TP
+\fB\-vc \fIcores\fR, \fB\-\-vm-cores \fIcores\fR
+The number of cores the VM is allocated.
+Filter the VM list to only VMs with \fIcores\fR.
+\fIcores\fR must be an integer.

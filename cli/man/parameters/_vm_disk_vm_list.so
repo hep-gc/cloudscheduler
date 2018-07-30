@@ -1,0 +1,5 @@
+.TP
+\fB\-vd \fIdisk\fR, \fB\-\-vm-disk \fIdisk\fR
+The number of GBs of disk the VM is allocated.
+Filters the VM list to only VMs with \fIdisk\fR.
+\fIdisk\fR must be a number.

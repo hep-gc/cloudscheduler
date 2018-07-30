@@ -1,0 +1,2 @@
+This object lists jobs on \fBcloudscheduler\fR servers.
+The job object and actions are available to any users, provided they are in the group that the jobs belong to.

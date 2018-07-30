@@ -1,0 +1,4 @@
+.TP
+\fB\-vk \fIkeypair\fR, \fB\-\-vm-keypair \fIkeypair\fR
+The keypair associated with the VM.
+Filters the VM list to only VMs with \fIkeypair\fR.
