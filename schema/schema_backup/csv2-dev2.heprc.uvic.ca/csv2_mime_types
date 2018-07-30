@@ -1,4 +1,4 @@
--- MySQL dump 10.16  Distrib 10.2.14-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.2.16-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
@@ -16,23 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `project_job_defaults`
+-- Table structure for table `csv2_mime_types`
 --
 
-DROP TABLE IF EXISTS `project_job_defaults`;
+DROP TABLE IF EXISTS `csv2_mime_types`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `project_job_defaults` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `image_name` text NOT NULL,
-  `flavor` text NOT NULL,
-  `cpu_cores` int(11) NOT NULL,
-  `memory` int(11) NOT NULL,
-  `storage` int(11) NOT NULL,
-  `job_yaml_files` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `csv2_mime_types` (
+  `mime_type` varchar(32) NOT NULL,
+  PRIMARY KEY (`mime_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `csv2_mime_types`
+--
+
+LOCK TABLES `csv2_mime_types` WRITE;
+/*!40000 ALTER TABLE `csv2_mime_types` DISABLE KEYS */;
+INSERT INTO `csv2_mime_types` VALUES ('cloud-config'),('ucernvm-config');
+/*!40000 ALTER TABLE `csv2_mime_types` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -43,4 +47,4 @@ CREATE TABLE `project_job_defaults` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-20 11:13:37
+-- Dump completed on 2018-07-30 12:45:36

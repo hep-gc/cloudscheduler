@@ -1,4 +1,4 @@
--- MySQL dump 10.16  Distrib 10.2.14-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.2.16-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
@@ -24,7 +24,8 @@ DROP TABLE IF EXISTS `csv2_group_resources`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `csv2_group_resources` (
   `group_name` varchar(32) NOT NULL,
-  `cloud_name` varchar(20) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
   `authurl` varchar(128) NOT NULL,
   `project` varchar(128) NOT NULL,
   `username` varchar(20) NOT NULL,
@@ -48,6 +49,10 @@ CREATE TABLE `csv2_group_resources` (
   `server_group_members_ctl` int(11) DEFAULT NULL,
   `floating_ips_ctl` int(11) DEFAULT NULL,
   `cores_ctl` int(11) DEFAULT -1,
+  `spot_price` int(11) DEFAULT NULL,
+  `vm_flavor` varchar(64) DEFAULT NULL,
+  `vm_image` varchar(64) DEFAULT NULL,
+  `vm_keep_alive` int(11) DEFAULT NULL,
   PRIMARY KEY (`group_name`,`cloud_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -61,4 +66,4 @@ CREATE TABLE `csv2_group_resources` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-20 11:13:37
+-- Dump completed on 2018-07-30 12:57:15
