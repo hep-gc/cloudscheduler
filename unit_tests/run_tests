@@ -62,7 +62,7 @@ def main():
                 else:
                     obj = arg
                     selection = None
-                if obj in TEST_OBJECTS:
+                if obj in TEST_OBJECTS + ['db']:
                     user_options['run_all'] = False
                     filtered_tests = [test for test in test_names if test[1].startswith(obj)]
                     for test in filtered_tests:
@@ -80,7 +80,7 @@ def main():
                         option = (test_names[test_found[0]], {})
                         initialize_csv2_request(option[1], argv[0], selections=selection)
                         user_options['tests'].append(option)
-                        for o in TEST_OBJECTS:
+                        for o in TEST_OBJECTS + ['db']:
                             if obj.startswith(o) and o not in user_options['objects']:
                                 user_options['objects'].append(o)
     
