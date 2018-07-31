@@ -19,6 +19,21 @@
 ./run_tests [999] -ss -sc
 ```
 
+## Running the Database Interaction Tests
+
+These tests are set to only run when specified:
+
+```
+./run_tests db
+```
+
+For a successful test run, the following must be done first:
+
+1. Stop all csv2 services. `systemctl stop 'csv2*'`
+1. Restart the mariadb service. `systemctl restart mariadb`
+1. Load the test vm data into the database. `mysql -ucsv2 -p csv2 < /opt/cloudscheduler/unit-tests/csv2_vm_dump.sql`
+1. Run the tests. `./run_tests db`
+
 ## To Develop
 
 Add test files with a name of the form: `test_<object>[<priority>]_<endpoint>[_<detail>].py`.
