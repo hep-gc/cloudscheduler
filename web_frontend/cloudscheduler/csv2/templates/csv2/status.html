@@ -18,6 +18,8 @@
         setTimeout(function() {
             location.reload();
         },time);
+
+        document.getElementById('vms-iframe').src='';
     }
 
     function pass_url(url) {
@@ -321,10 +323,9 @@
             </tr>
             </tbody> 
         </table>
+        {{ service_list }}
+
     </div>
-    
-
-
 </div>
 
 
@@ -338,6 +339,7 @@
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
+
 
 
 <script type="text/javascript">

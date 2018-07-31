@@ -29,6 +29,7 @@ from sqlalchemy import exists
 from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
+import subprocess
 
 # lno: CV - error code identifier.
 
@@ -795,6 +796,33 @@ def status(request, group_name=None):
             cloud_total_list["cores_available"] += d["cores_ctl"]
     
 
+    # Determine the csv2 service statuses and put them in a list
+    service_list = {}
+
+    status_msg = subprocess.check_output("service csv2-main status | grep 'Active'", shell=True)
+    if b'running' in status_msg:
+        service_list["csv2-main"] = 1
+    else:
+        service_list["csv2-main"] = status_msg
+
+    status_msg = subprocess.check_output("service csv2-metadata status | grep 'Active'", shell=True)
+    if b'running' in status_msg:
+        service_list["csv2-metadata"] = 1
+    else:
+        service_list["csv2-metadata"] = status_msg
+
+    status_msg = subprocess.check_output("service csv2-jobs status | grep 'Active'", shell=True)
+    if b'running' in status_msg:
+        service_list["csv2-jobs"] = 1
+    else:
+        service_list["csv2-jobs"] = status_msg
+
+    status_msg = subprocess.check_output("service csv2-collector status | grep 'Active'", shell=True)
+    if b'running' in status_msg:
+        service_list["csv2-collector"] = 1
+    else:
+        service_list["csv2-collector"] = status_msg
+
 
     context = {
             'active_user': active_user,
@@ -803,6 +831,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
+            'service_list' : service_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
