@@ -323,12 +323,86 @@
             </tr>
             </tbody> 
         </table>
-        {{ service_list }}
-
     </div>
+
+    <br>
+
+
 </div>
 
 
+<div class="system-table">
+    <table class="system-services">
+      <!--<colgroup>
+        <col class="red" span="1" />
+        <col class="clear" span="5" />
+
+      </colgroup>-->
+      <thead>
+        <tr>
+            <th colspan="4">CS system services</th>
+            <th class="col-spacer">&nbsp;</th>
+            <th colspan="3">CS system resources</th>
+        </tr>
+
+            <tr>
+
+                {% if system_list.main == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.main }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                {% if system_list.metadata == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.metadata }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                {% if system_list.jobs == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.jobs }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                {% if system_list.collector == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.collector }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                <td class="col-spacer">&nbsp;</td>
+
+                <td tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
+
+                <td tooltip="{{ system_list.ram }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
+ 
+                <td tooltip="{{ system_list.disk }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
+
+            </tr>
+            <tr>
+                <td>main</td>
+                <td>metadata</td>
+                <td>jobs</td>
+                <td>collector</td>
+
+                <td class="col-spacer">&nbsp;</td>
+
+
+                <td>LOAD</td>
+                <td>RAM</td>
+                <td>DISK</td>
+            </tr>
+
+
+
+        </tbody> 
+    </table>
+</div>
 
 
 

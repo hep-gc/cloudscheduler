@@ -257,3 +257,38 @@
     width: 70%;
   }
 }
+
+
+
+
+
+
+.system-services {
+  position: absolute;
+
+  bottom: 0;
+
+  padding: 1rem;
+  text-align: center;
+
+}
+
+.system-services th {
+  text-align: center;
+}
+
+.green-dot {
+  height: 25px;
+  width: 25px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.red-dot {
+  height: 25px;
+  width: 25px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+}

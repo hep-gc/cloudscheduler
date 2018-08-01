@@ -797,31 +797,43 @@ def status(request, group_name=None):
     
 
     # Determine the csv2 service statuses and put them in a list
-    service_list = {}
+    system_list = {}
 
-    status_msg = subprocess.check_output("service csv2-main status | grep 'Active'", shell=True)
-    if b'running' in status_msg:
-        service_list["csv2-main"] = 1
+    status_msg = subprocess.check_output("service csv2-main status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    if 'running' in status_msg:
+        system_list["main"] = 1
     else:
-        service_list["csv2-main"] = status_msg
+        system_list["main"] = status_msg.replace('Active:', '')
 
-    status_msg = subprocess.check_output("service csv2-metadata status | grep 'Active'", shell=True)
-    if b'running' in status_msg:
-        service_list["csv2-metadata"] = 1
+    status_msg = subprocess.check_output("service csv2-metadata status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    if 'running' in status_msg:
+        system_list["metadata"] = 1
     else:
-        service_list["csv2-metadata"] = status_msg
+        system_list["metadata"] = status_msg.replace('Active:', '')
 
-    status_msg = subprocess.check_output("service csv2-jobs status | grep 'Active'", shell=True)
-    if b'running' in status_msg:
-        service_list["csv2-jobs"] = 1
+    status_msg = subprocess.check_output("service csv2-jobs status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    if 'running' in status_msg:
+        system_list["jobs"] = 1
     else:
-        service_list["csv2-jobs"] = status_msg
+        system_list["jobs"] = status_msg.replace('Active:', '')
 
-    status_msg = subprocess.check_output("service csv2-collector status | grep 'Active'", shell=True)
-    if b'running' in status_msg:
-        service_list["csv2-collector"] = 1
+    status_msg = subprocess.check_output("service csv2-collector status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    if 'running' in status_msg:
+        system_list["collector"] = 1
     else:
-        service_list["csv2-collector"] = status_msg
+        system_list["collector"] = status_msg.replace('Active:', '')
+
+
+    # Determine the system load, RAM and disk usage
+    sys_load = subprocess.check_output("cat /proc/loadavg | sed 's/|/ /' | awk '{print $1}'", shell=True).decode("utf-8", "ignore")
+    sys_cores = subprocess.check_output("nproc", shell=True).decode("utf-8", "ignore")
+    system_list["load"] = 100*(float(sys_load)/float(sys_cores))
+
+    ram_used = subprocess.check_output("free -m | awk 'NR == 2 {printf \"%.0f\", $3*100.0/$2 }'", shell=True).decode("utf-8", "ignore")
+    system_list["ram"] = ram_used
+
+    disk_used = subprocess.check_output("df -k . | awk 'NR == 2 {printf \"%.0f\", $3*100/$2 }'", shell=True).decode("utf-8", "ignore")
+    system_list["disk"] = disk_used
 
 
     context = {
@@ -831,7 +843,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
-            'service_list' : service_list,
+            'system_list' : system_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
