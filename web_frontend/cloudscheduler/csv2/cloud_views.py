@@ -29,7 +29,7 @@ from sqlalchemy import exists
 from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
-import subprocess
+#import subprocess
 import os
 import psutil
 
@@ -801,47 +801,54 @@ def status(request, group_name=None):
     # Determine the csv2 service statuses and put them in a list
     system_list = {}
 
-    status_msg = subprocess.check_output("service csv2-main status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+
+    status_msg = os.popen("service csv2-main status | grep 'Active'").read()
     if 'running' in status_msg:
         system_list["main"] = 1
     else:
         system_list["main"] = status_msg.replace('Active:', '')
 
-    status_msg = subprocess.check_output("service csv2-metadata status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    status_msg = os.popen("service csv2-metadata status | grep 'Active'").read()
     if 'running' in status_msg:
         system_list["metadata"] = 1
     else:
         system_list["metadata"] = status_msg.replace('Active:', '')
 
-    status_msg = subprocess.check_output("service csv2-jobs status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    status_msg = os.popen("service csv2-jobs status | grep 'Active'").read()
     if 'running' in status_msg:
         system_list["jobs"] = 1
     else:
         system_list["jobs"] = status_msg.replace('Active:', '')
 
-    status_msg = subprocess.check_output("service csv2-collector status | grep 'Active'", shell=True).decode("utf-8", "ignore")
+    status_msg = os.popen("service csv2-collector status | grep 'Active'").read()
     if 'running' in status_msg:
         system_list["collector"] = 1
     else:
         system_list["collector"] = status_msg.replace('Active:', '')
 
 
-    # Determine the system load, RAM and disk usage
-    #sys_load = subprocess.check_output("cat /proc/loadavg | sed 's/|/ /' | awk '{print $1}'", shell=True).decode("utf-8", "ignore")
-    #sys_cores = subprocess.check_output("nproc", shell=True).decode("utf-8", "ignore")
-    #system_list["load"] = 100*(float(sys_load)/float(sys_cores))
-    system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
-    #system_list["load_2"] = psutil.cpu_percent(interval=1)
+    status_msg = os.popen("service mariadb status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["db"] = 1
+    else:
+        system_list["db"] = status_msg.replace('Active:', '')
 
-    #ram_used = subprocess.check_output("free -m | awk 'NR == 2 {printf \"%.0f\", $3*100.0/$2 }'", shell=True).decode("utf-8", "ignore")
-    #system_list["ram"] = ram_used
+
+    status_msg = os.popen("service condor status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["condor"] = 1
+    else:
+        system_list["condor"] = status_msg.replace('Active:', '')
+
+
+    # Determine the system load, RAM and disk usage
+
+    system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+
     system_list["ram"] = psutil.virtual_memory()[2]
     system_list["ram_size"] = round(psutil.virtual_memory()[0]/1000000000 , 1)
     system_list["ram_used"] = round(psutil.virtual_memory()[3]/1000000000 , 1)
 
-
-    #disk_used = subprocess.check_output("df -k . | awk 'NR == 2 {printf \"%.0f\", $3*100/$2 }'", shell=True).decode("utf-8", "ignore")
-    #system_list["disk"] = disk_used
     system_list["disk"] = round(100*(psutil.disk_usage('/')[1] / psutil.disk_usage('/')[0]),1)
     system_list["disk_size"] = round(psutil.disk_usage('/')[0]/1000000000 , 1)
     system_list["disk_used"] = round(psutil.disk_usage('/')[1]/1000000000 , 1)

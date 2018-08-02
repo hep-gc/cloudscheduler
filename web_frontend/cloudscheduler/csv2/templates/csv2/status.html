@@ -333,17 +333,17 @@
 
 <div class="system-table">
     <table class="system-services">
-      <!--<colgroup>
+        <!--<colgroup>
         <col class="red" span="1" />
         <col class="clear" span="5" />
 
-      </colgroup>-->
-      <thead>
-        <tr>
-            <th colspan="4">CS system services</th>
-            <th class="col-spacer">&nbsp;</th>
-            <th colspan="3">CS system resources</th>
-        </tr>
+        </colgroup>-->
+        <thead>
+            <tr>
+                <th colspan="6">CS system services</th>
+                <th class="col-spacer">&nbsp;</th>
+                <th colspan="3">CS system resources</th>
+            </tr>
 
             <tr>
 
@@ -353,6 +353,11 @@
                     <td tooltip="{{ system_list.main }}"><span class="red-dot"></span></td>
                 {% endif %}
 
+                {% if system_list.db == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.db }}"><span class="red-dot"></span></td>
+                {% endif %}
 
                 {% if system_list.metadata == 1 %}
                     <td tooltip="running"><span class="green-dot"></span></td>
@@ -375,6 +380,13 @@
                 {% endif %}
 
 
+                {% if system_list.condor == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.condor }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
                 <td class="col-spacer">&nbsp;</td>
 
                 <td tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
@@ -386,9 +398,11 @@
             </tr>
             <tr>
                 <td>main</td>
+                <td>database</td>
                 <td>metadata</td>
                 <td>jobs</td>
                 <td>collector</td>
+                <td>condor</td>
 
                 <td class="col-spacer">&nbsp;</td>
 

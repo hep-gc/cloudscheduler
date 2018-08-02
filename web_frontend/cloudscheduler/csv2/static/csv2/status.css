@@ -265,16 +265,25 @@
 
 .system-services {
   position: absolute;
-
   bottom: 0;
-
   padding: 1rem;
   text-align: center;
-
+  font-weight: bold;
 }
 
 .system-services th {
   text-align: center;
+}
+
+.system-services td {
+  width: 50px;
+}
+
+.system-services .col-spacer {
+  background-color: white;
+  border-bottom: 0px;
+  color: white;
+  width: 20px;
 }
 
 .green-dot {
