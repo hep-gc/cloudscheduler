@@ -167,14 +167,23 @@ def main():
                                          'cs_condor_host': csgroup.condor_central_manager}
                         log.debug(template_dict)
                         try:
-                            if cm_group.clouds[cloud_match.cloud_name].enabled:
-                                cm_group.clouds[cloud_match.cloud_name]\
+                            if cm_group.clouds[cloud.cloud_name].enabled:
+                                use_image = None
+                                if idle_job.image:
+                                    use_image = None
+                                elif cloud.default_image:
+                                    use_image = cloud.default_image
+                                else:
+                                    pass  # TODO group defaults vm_image - looks like it already fills in though.
+
+                                cm_group.clouds[cloud.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
                                                num=int(num_vms_to_boot),
                                                flavor=cloud.flavor,  #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
                                                job=idle_job,
                                                template_dict=template_dict,
-                                               keep_alive=cloud.keep_alive)
+                                               keep_alive=cloud.keep_alive,
+                                               image = use_image)
                             runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
                             log.debug('done booting on cloud %s', cloud_match.cloud_name)
                             if runnable_job_count < 0:  # Still need more
