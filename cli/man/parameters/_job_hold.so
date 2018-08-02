@@ -1,0 +1,5 @@
+.TP
+\fB\-jh \fIoption\fR, \fB\-\-job-hold \fIoption\fR
+If the job is held or not.
+Filters the job list to only jobs with a held value that matches \fIoption\fR.
+The value of \fIoption\fR must be \fB1\fR or \fB0\fR.

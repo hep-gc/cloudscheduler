@@ -1,0 +1,4 @@
+.TP
+\fB\-jR \fIrequirements\fR, \fB\-\-job-requirements \fIrequirements\fR
+The jobs requirements.
+Filters the job list to only jobs that match \fIrequirements\fR.

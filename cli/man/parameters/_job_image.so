@@ -1,0 +1,4 @@
+.TP
+\fB\-ji \fIimage\fR, \fB\-\-job-image \fIimage\fR
+The name of the image the job is using.
+Filters the job list to only jobs that using \fIimage\R.

@@ -1,0 +1,4 @@
+.TP
+\fB\-jrc \fIcpus\fR, \fB\-\-job-request-cpus \fIcpus\fR
+The requested number of cpus for the job.
+Filters the job list to only jobs that match \fIcpus\fR.
