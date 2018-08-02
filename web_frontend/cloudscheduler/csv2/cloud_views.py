@@ -30,6 +30,8 @@ from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
 import subprocess
+import os
+import psutil
 
 # lno: CV - error code identifier.
 
@@ -825,16 +827,24 @@ def status(request, group_name=None):
 
 
     # Determine the system load, RAM and disk usage
-    sys_load = subprocess.check_output("cat /proc/loadavg | sed 's/|/ /' | awk '{print $1}'", shell=True).decode("utf-8", "ignore")
-    sys_cores = subprocess.check_output("nproc", shell=True).decode("utf-8", "ignore")
-    system_list["load"] = 100*(float(sys_load)/float(sys_cores))
+    #sys_load = subprocess.check_output("cat /proc/loadavg | sed 's/|/ /' | awk '{print $1}'", shell=True).decode("utf-8", "ignore")
+    #sys_cores = subprocess.check_output("nproc", shell=True).decode("utf-8", "ignore")
+    #system_list["load"] = 100*(float(sys_load)/float(sys_cores))
+    system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+    #system_list["load_2"] = psutil.cpu_percent(interval=1)
 
-    ram_used = subprocess.check_output("free -m | awk 'NR == 2 {printf \"%.0f\", $3*100.0/$2 }'", shell=True).decode("utf-8", "ignore")
-    system_list["ram"] = ram_used
+    #ram_used = subprocess.check_output("free -m | awk 'NR == 2 {printf \"%.0f\", $3*100.0/$2 }'", shell=True).decode("utf-8", "ignore")
+    #system_list["ram"] = ram_used
+    system_list["ram"] = psutil.virtual_memory()[2]
+    system_list["ram_size"] = round(psutil.virtual_memory()[0]/1000000000 , 1)
+    system_list["ram_used"] = round(psutil.virtual_memory()[3]/1000000000 , 1)
 
-    disk_used = subprocess.check_output("df -k . | awk 'NR == 2 {printf \"%.0f\", $3*100/$2 }'", shell=True).decode("utf-8", "ignore")
-    system_list["disk"] = disk_used
 
+    #disk_used = subprocess.check_output("df -k . | awk 'NR == 2 {printf \"%.0f\", $3*100/$2 }'", shell=True).decode("utf-8", "ignore")
+    #system_list["disk"] = disk_used
+    system_list["disk"] = round(100*(psutil.disk_usage('/')[1] / psutil.disk_usage('/')[0]),1)
+    system_list["disk_size"] = round(psutil.disk_usage('/')[0]/1000000000 , 1)
+    system_list["disk_used"] = round(psutil.disk_usage('/')[1]/1000000000 , 1)
 
     context = {
             'active_user': active_user,

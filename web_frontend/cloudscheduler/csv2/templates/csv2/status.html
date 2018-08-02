@@ -379,9 +379,9 @@
 
                 <td tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
 
-                <td tooltip="{{ system_list.ram }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
+                <td tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
  
-                <td tooltip="{{ system_list.disk }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
+                <td tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
 
             </tr>
             <tr>
