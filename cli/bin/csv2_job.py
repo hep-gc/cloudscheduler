@@ -5,11 +5,7 @@ import filecmp
 import os
 
 KEY_MAP = {
-    '-cn':  'cloud_name',
     '-g':   'group',
-    '-vc':  'cores_ctl',
-    '-vk':  'keyname',
-    '-vr':  'ram_ctl',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -22,29 +18,29 @@ def _filter(gvar, qs):
     for _ix in range(len(qs)-1, -1, -1):
         if 'cloud-name' in gvar['command_args'] and qs[_ix]['cloud_name'] != gvar['command_args']['cloud-name']:
             del(qs[_ix])
+        elif 'job-id' in gvar['command_args'] and qs[_ix]['global_job_id'] != gvar['command_args']['job-id']:
+            del(qs[_ix])
         elif 'job-target-clouds' in gvar['command_args'] and qs[_ix]['target_clouds'] != gvar['command_args']['job-target-clouds']:
             del(qs[_ix])
         elif 'job-status' in gvar['command_args'] and str(qs[_ix]['job_status']) != gvar['command_args']['job-status']:
             del(qs[_ix])
-        elif 'job-request-cpus' in gvar['command_args'] and str(qs[_ix]['job_request_cpus']) != gvar['command_args']['job-request-cpus']:
+        elif 'job-request-cpus' in gvar['command_args'] and str(qs[_ix]['request_cpus']) != gvar['command_args']['job-request-cpus']:
             del(qs[_ix])
-        elif 'job-request-ram' in gvar['command_args'] and str(qs[_ix]['job_request_ram']) != gvar['command_args']['job-request-ram']:
+        elif 'job-request-ram' in gvar['command_args'] and str(qs[_ix]['request_ram']) != gvar['command_args']['job-request-ram']:
             del(qs[_ix])
-        elif 'job-request-disk' in gvar['command_args'] and str(qs[_ix]['job_request_disk']) != gvar['command_args']['job-request-disk']:
+        elif 'job-request-disk' in gvar['command_args'] and str(qs[_ix]['request_disk']) != gvar['command_args']['job-request-disk']:
             del(qs[_ix])
-        elif 'job-request-ephemeral-disk' in gvar['command_args'] and str(qs[_ix]['job_request_ephemeral_disk']) != gvar['command_args']['job-request-ephemeral-disk']:
+        elif 'job-request-swap' in gvar['command_args'] and str(qs[_ix]['request_swap']) != gvar['command_args']['job-request-swap']:
             del(qs[_ix])
-        elif 'job-request-swap' in gvar['command_args'] and str(qs[_ix]['job_request_swap']) != gvar['command_args']['job-request-swap']:
-            del(qs[_ix])
-        elif 'job-requirements' in gvar['command_args'] and qs[_ix]['job_requirements'] != gvar['command_args']['job-requirements']:
+        elif 'job-requirements' in gvar['command_args'] and qs[_ix]['requirements'] != gvar['command_args']['job-requirements']:
             del(qs[_ix])
         elif 'job-priority' in gvar['command_args'] and str(qs[_ix]['job_priority']) != gvar['command_args']['job-priority']:
             del(qs[_ix])
-        elif 'job-user' in gvar['command_args'] and qs[_ix]['job_user'] != gvar['command_args']['job-user']:
+        elif 'job-user' in gvar['command_args'] and qs[_ix]['user'] != gvar['command_args']['job-user']:
             del(qs[_ix])
-        elif 'job-image' in gvar['command_args'] and qs[_ix]['job_image'] != gvar['command_args']['job-image']:
+        elif 'job-image' in gvar['command_args'] and qs[_ix]['image'] != gvar['command_args']['job-image']:
             del(qs[_ix])
-        elif 'job-hold' in gvar['command_args'] and str(qs[_ix]['job_hold']) != gvar['command_args']['job-hold']:
+        elif 'job-hold' in gvar['command_args'] and str(qs[_ix]['js_held']) != gvar['command_args']['job-hold']:
             del(qs[_ix])
 
     return qs
@@ -59,7 +55,7 @@ def list(gvar):
         gvar,
         [],
         [],
-        ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vco', '-vd', '-vF', '-vf', '-vk', '-vr', '-vS', '-vs', '-vt', '-xA'])
+        ['-cn', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jtc', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/job/list/')
@@ -90,7 +86,6 @@ def list(gvar):
             'request_cpus/CPUs/Requested',
             'request_ram/RAM {MBs}/Requested',
             'request_disk/Disk {GBs}/Requested',
-            'request_scratch/Scratch (GBs)/Requested',
             'request_swap/Swap (GBs)/Requested',
             'job_per_core/Jobs per Core',
             'image/Image',
