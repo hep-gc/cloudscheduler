@@ -31,6 +31,13 @@ INSERT INTO `csv2_vms` VALUES
         ('vm-test-group','vm-test-cloud','vmid6','vm-test-authurl','vm-test-project','foreign-cloud--vmid6',0,'ACTIVE','4',NULL,1,0,0,NULL,1532980098,1532985482);
 /*!40000 ALTER TABLE `csv2_vms` ENABLE KEYS */;
 UNLOCK TABLES;
+LOCK TABLES `condor_jobs` WRITE;
+/*!40000 ALTER TABLE `condor_jobs` DISABLE KEYS */;
+DELETE FROM `condor_jobs` WHERE group_name = 'vm-test-group';
+INSERT INTO `condor_jobs` VALUES
+        ('csv2-dev2.heprc.uvic.ca#1.0#1','vm-test-group',NULL,NULL,5,1,2000,15000000,NULL,5000000,'group_name is "vm-test-group"',10,1,0,'jodiew@csv2-dev2.heprc.uvic.ca',NULL,'vm-test-instance',NULL,0,NULL,NULL,NULL,1532028374,1532028374,NULL,'vm-testing');
+/*!40000 ALTER TABLE `condor_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
