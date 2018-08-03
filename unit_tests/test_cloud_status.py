@@ -49,7 +49,7 @@ def main(gvar, user_secret):
             'group_name': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'ctc2'),
             'ram_ctl': -1,
-            'default_flavor': 'NULL',
+            'default_flavor': None,
             'keep_alive': 0,
             'default_image': None,
             'enabled': 1,
