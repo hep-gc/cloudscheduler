@@ -10,29 +10,33 @@ def help(gvar, mandatory=None, required=None, options=None, requires_server=True
     # If help requested, display the help for the current command.
     if gvar['user_settings']['help']:
         if not gvar['object']:
+            print('Usage: cloudscheduler <object> <action> [<options>]')
             print('Help requested for "cloudscheduler". One of the following objects must be specified:')
             for obj in sorted(gvar['actions']):
                 if gvar['super_user'] or not gvar['actions'][obj][0]:
                     print('  %s' % obj)
 
         elif gvar['object'] not in gvar['actions']:
+            print('Usage: cloudscheduler <object> <actions> [<options>]')
             print('Help requested for "cloudscheduler %s". The specified object is invalid. One of the following must be specified:' % gvar['object'])
             for obj in sorted(gvar['actions']):
                 if gvar['super_user'] or not gvar['actions'][obj][0]:
                     print('  %s' % obj)
 
         elif not gvar['action']:
+            print('Usage: cloudscheduler {} <action> [<options>]'.format(gvar['object']))
             print('Help requested for "cloudscheduler %s". One of the following actions must be specified:' % gvar['object'])
             for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
         elif gvar['action'] not in gvar['actions'][gvar['object']][1]:
+            print('Usage: cloudscheduler {} <action> [<options>]'.format(gvar['object']))
             print('Help requested for "cloudscheduler %s %s". The specified action is invalid. One of the following must be specified:' % (gvar['object'], gvar['action']))
             for action in sorted(gvar['actions'][gvar['object']][1]):
                 print('  %s' % action)
 
         else:
-#           if requires_server:
+            print('Usage: cloudscheduler {} {} [<options>]'.format(gvar['object'], gvar['action']))
             if requires_server and 'server-address' not in gvar['user_settings']:
                 print('*')
                 print('* The "cloudscheduler %s %s" command sends requests to a cloudscheduler server and requires the server' % (gvar['object'], gvar['action']))
