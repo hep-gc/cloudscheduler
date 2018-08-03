@@ -203,7 +203,7 @@ def main(gvar, user_secret):
             'vm_image': None,
             'username': ut_id(gvar, 'ctu3'),
             'cores_ctl': -1,
-            'vm_flavor': 'NULL',
+            'vm_flavor': None,
             'vm_keep_alive': None,
             'group_exclusions': None,
             'cloud_type': 'local',
