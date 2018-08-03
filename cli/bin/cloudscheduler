@@ -159,7 +159,7 @@ def main(args):
             ('-te',  '--text-editor', True),
             ('-ucn', '--user-common-name', True),
             ('-un',  '--username', True),
-            ('-uo',  '--user_option', True),
+            ('-uo',  '--user-option', True),
             ('-upw', '--user-password', True),
             ('-V',   '--view', True),
             ('-VC',  '--view-columns', False),
