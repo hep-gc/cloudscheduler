@@ -826,13 +826,11 @@ def status(request, group_name=None):
     else:
         system_list["collector"] = status_msg.replace('Active:', '')
 
-
     status_msg = os.popen("service mariadb status | grep 'Active'").read()
     if 'running' in status_msg:
         system_list["db"] = 1
     else:
         system_list["db"] = status_msg.replace('Active:', '')
-
 
     status_msg = os.popen("service condor status | grep 'Active'").read()
     if 'running' in status_msg:

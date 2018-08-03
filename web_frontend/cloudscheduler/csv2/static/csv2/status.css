@@ -94,6 +94,15 @@
   z-index: -1;
 }
 
+
+.status-table td td {
+  border-bottom: 0px;
+  padding: 1px;
+
+}
+
+
+
 .name-style{
   background-color: maroon;
   color: white;
