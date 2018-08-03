@@ -115,10 +115,6 @@ def update(gvar):
         ['-cn', '-g', '-H', '-h', '-s', '-vh', '-vS', '-xA'],
         key_map=KEY_MAP)
 
-    if len(form_data) < 2:
-        print('Error: "%s vm update" requires at least one option to modify.' % gvar['command_name'])
-        exit(1)
-
     # Create the cloud.
     response = requests(
         gvar,

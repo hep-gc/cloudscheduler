@@ -32,6 +32,7 @@ For a successful test run, the following must be done first:
 1. Stop all csv2 services. `systemctl stop 'csv2*'`
 1. Restart the mariadb service. `systemctl restart mariadb`
 1. Load the test vm data into the database. `mysql -ucsv2 -p csv2 < /opt/cloudscheduler/unit-tests/csv2_vm_dump.sql`
+1. Restart the web server. `systemctl restart httpd`
 1. Run the tests. `./run_tests db`
 
 ## To Develop
