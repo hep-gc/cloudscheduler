@@ -148,7 +148,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV03', 'user add, "jodiew-cli-invalid-unit-test" failed - group "jodiew-clg1" was specified twice.'.format(ut_id(gvar, 'cli-invalid-unit-test'), ut_id(gvar, 'clg1')),
+        gvar, 1, 'UV03', 'user add, "{}" failed - group "{}" was specified twice.'.format(ut_id(gvar, 'cli-invalid-unit-test'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'user', 'add', '-un', ut_id(gvar, 'cli-invalid-unit-test'), '-upw', 'invalid-unit-test', '-ucn', 'invalid-unit-test', '-gn', ut_id(gvar, 'clg1,clg1')]
     )
 
@@ -478,7 +478,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV21', 'user update, "jodiew-clu7" failed - group "jodiew-clg1" was specified twice.'.format(ut_id(gvar, 'clu7'), ut_id(gvar, 'clg1')),
+        gvar, 1, 'UV21', 'user update, "{}" failed - group "{}" was specified twice.'.format(ut_id(gvar, 'clu7'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'user', 'update', '-un', ut_id(gvar, 'clu7'), '-gn', ut_id(gvar, 'clg1,clg1')]
     )
 
