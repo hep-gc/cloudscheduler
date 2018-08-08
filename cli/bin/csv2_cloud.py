@@ -59,7 +59,7 @@ def add(gvar):
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-ca', '-cpw', '-cn', '-cp', '-cr', '-ct', '-cu'],
+        ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu'],
         [],
         ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
         key_map=KEY_MAP)
