@@ -206,8 +206,8 @@
                     <td class="col-spacer">&nbsp;</td>
 
 
-                    <!--<td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>-->
-                    <td class="slots-table">
+                    <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
+                    <!--<td class="slots-table">
                         <table>
                             <tr class="red">
                                 <td>2 w/ 8c</td>
@@ -216,7 +216,7 @@
                                 <td>3 w/ 2c</td>
                             </tr>
                         </table>
-                    </td>
+                    </td>-->
 
                     {% if cloud.cores_ctl == -1 %}
                         <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle}}</td>
