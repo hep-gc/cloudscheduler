@@ -38,6 +38,15 @@ INSERT INTO `condor_jobs` VALUES
         ('csv2-dev2.heprc.uvic.ca#1.0#1','vm-test-group',NULL,NULL,5,1,2000,15000000,NULL,5000000,'group_name is "vm-test-group"',10,1,0,'jodiew@csv2-dev2.heprc.uvic.ca',NULL,'vm-test-instance',NULL,0,NULL,NULL,NULL,1532028374,1532028374,NULL,'vm-testing');
 /*!40000 ALTER TABLE `condor_jobs` ENABLE KEYS */;
 UNLOCK TABLES;
+LOCK TABLES `condor_machines` WRITE;
+/*!40000 ALTER TABLE `condor_machines` DISABLE KEYS */;
+DELETE FROM `condor_machines` WHERE group_name = 'vm-test-group';
+INSERT INTO `condor_machines` VALUES
+        ('vm-test-machine1','vm-test-group--vm-test-cloud--vmid1.ca','vm-test-group',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,NULL,NULL,'Partitionable',NULL,NULL,0,0),
+        ('vm-test-machine2','vm-test-group--vm-test-cloud--vmid2.ca','vm-test-group',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,NULL,NULL,'Partitionable',NULL,NULL,0,0),
+        ('vm-test-machine3','vm-test-group--vm-test-cloud--vmid3.ca','vm-test-group',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,NULL,NULL,'Partitionable',NULL,NULL,0,0);
+/*!40000 ALTER TABLE `condor_machines` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
