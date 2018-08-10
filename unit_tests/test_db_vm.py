@@ -15,42 +15,42 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid1'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid2'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid3'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid4'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid5'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid6'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     # Setting Manual Control
@@ -88,42 +88,42 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid1'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '5', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '5', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid2'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid3'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 1, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'manual', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid4'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid5'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid6'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     # Setting System Control
@@ -161,42 +161,42 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid1'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid2'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid3'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': 0, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid4'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid5'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid6'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     # Setting Retire
@@ -234,21 +234,21 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid4'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid5'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid6'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
 
@@ -287,42 +287,42 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid1'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 1, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'group_name': 'vm-test-group', 'terminate': 1, 'flavor_id': '5', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid1', 'vmid': 'vmid1', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid2'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 1, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'group_name': 'vm-test-group', 'terminate': 1, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid2', 'vmid': 'vmid2', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid3'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 1, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'group_name': 'vm-test-group', 'terminate': 1, 'flavor_id': '4', 'poller_status': 'unregistered', 'foreign_vm': 0, 'hostname': 'vm-test-group--vm-test-cloud--vmid3', 'vmid': 'vmid3', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid4'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid4', 'vmid': 'vmid4', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid5'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid5', 'vmid': 'vmid5', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
     execute_csv2_request(
         gvar, 0, None, None,
         '/vm/list/', form_data={'group': 'vm-test-group'},
         list='vm_list', filter={'group_name': 'vm-test-group', 'cloud_name': 'vm-test-cloud', 'vmid': 'vmid6'},
-        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'terminate_time': None, 'retired_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
+        values={'power_status': 1, 'auth_url': 'vm-test-authurl', 'manual_control': 0, 'project': 'vm-test-project', 'status': 'ACTIVE', 'retire_request_time': None, 'group_name': 'vm-test-group', 'terminate': 0, 'flavor_id': '4', 'poller_status': 'foreign', 'foreign_vm': 1, 'hostname': 'foreign-cloud--vmid6', 'vmid': 'vmid6', 'keep_alive':0, 'cloud_name': 'vm-test-cloud'}
     )
 
 if __name__ == "__main__":
