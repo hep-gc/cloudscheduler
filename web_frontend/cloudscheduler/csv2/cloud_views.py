@@ -648,14 +648,14 @@ def metadata_fetch(request, selector=None):
                         }
                 
                     db_close(db_ctl)
-                    return render(request, 'csv2/clouds.html', context)
+                    return render(request, 'csv2/editor.html', context)
              
     db_close(db_ctl)
 
     if id:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
+      return render(request, 'csv2/editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
     else:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
+      return render(request, 'csv2/editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -697,7 +697,7 @@ def metadata_list(request):
             'enable_glint': config.enable_glint
         }
 
-    return render(request, 'csv2/cloud_metadata_list.html', context)
+    return render(request, 'csv2/metadata.html', context)
 
 #-------------------------------------------------------------------------------
 
