@@ -2,18 +2,12 @@
 <head>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "csv2/metadata.css" %}">
-
     <title>{{ metadata_name }}</title>
 
 
 </head>
 
 <body class="meta-fetch">
-
-
-
-
-
 
     <form name="{{ cloud_name }}-{{ metadata_name }}" action="/cloud/meta-update/" method="post">
     {% csrf_token %}
@@ -22,19 +16,21 @@
         <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
         <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
 
-
         <div id="editor">
         <input type="submit" value="Update">
 
         <textarea name="metadata">{{ metadata }}</textarea></div>
 
-
-        
-
     </form>
 
 
-    
+    <div class="footer" id="message">
+        {% if response_code == 1 %}
+            <tr><td><b>Error: {{ message }}</b></td></tr>
+        {% elif message is not None %}
+            <tr><td>{{ message }}</td></tr>
+        {% endif %}
+    </div>
 
     <script type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
     <script>
@@ -61,6 +57,10 @@
             textarea.value = editor.getValue()
         }, true)
 
+
+      setTimeout(function(){ 
+          document.getElementById("message").innerHTML = "";
+      }, 5000);
 
     </script>
 
