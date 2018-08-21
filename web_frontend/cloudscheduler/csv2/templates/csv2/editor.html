@@ -7,9 +7,9 @@
     <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
 </head>
 
-<body class="meta-fetch">
+<body class="metadata-fetch">
 
-    <form name="{{ cloud_name }}-{{ metadata_name }}" action="/cloud/meta-update/" method="post">
+    <form name="{{ cloud_name }}-{{ metadata_name }}" action="/cloud/metadata-update/" method="post">
     {% csrf_token %}
     
         <input type="hidden" name="group_name" value="{{ group_name }}">

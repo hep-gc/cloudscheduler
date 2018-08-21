@@ -340,7 +340,7 @@ def delete(request):
         rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
         if rc != 0:
             db_close(db_ctl)
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud meta-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete any metadata exclusions files for the cloud.
         table = tables['csv2_group_metadata_exclusions']
@@ -488,7 +488,7 @@ def metadata_add(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s cloud meta-add %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # Check cloud already exists.
         table = tables['csv2_group_resources']
@@ -501,7 +501,7 @@ def metadata_add(request):
                 break
 
         if not found:
-            return list(request, selector='-', response_code=1, message='%s cloud meta-add failed, cloud name  "%s" does not exist.' % (lno('CV14'), fields['cloud_name']), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno('CV14'), fields['cloud_name']), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
@@ -511,7 +511,7 @@ def metadata_add(request):
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
             db_close(db_ctl)
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud meta-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -532,13 +532,13 @@ def metadata_collation(request):
     rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
         db_close(db_ctl)
-        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud meta-list, %s' % (lno('CV18'), msg)})
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV18'), msg)})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], db_ctl, [], active_user)
     if rc != 0:        
         db_close(db_ctl)
-        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud meta-list, %s' % (lno('CV19'), msg)})
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV19'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([view_metadata_collation]).where(view_metadata_collation.c.group_name == active_user.active_group)
@@ -585,7 +585,7 @@ def metadata_delete(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s cloud meta-delete %s' % (lno('CV21'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-delete %s' % (lno('CV21'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
@@ -602,7 +602,7 @@ def metadata_delete(request):
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
             db_close(db_ctl)
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud meta-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
@@ -672,17 +672,28 @@ def metadata_list(request):
     rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
     if rc != 0:
         db_close(db_ctl)
-        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud meta-list, %s' % (lno('CV26'), msg)})
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV26'), msg)})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], db_ctl, [], active_user)
     if rc != 0:        
         db_close(db_ctl)
-        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud meta-list, %s' % (lno('CV27'), msg)})
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV27'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([csv2_group_resource_metadata]).where(csv2_group_resource_metadata.c.group_name == active_user.active_group)
     cloud_metadata_list = qt(db_connection.execute(s))
+    
+
+
+    # Retrieve group/metadata information.
+    s = select([view_groups_with_metadata_names]).where(view_groups_with_metadata_names.c.group_name == active_user.active_group)
+    group_metadata_names = qt(db_connection.execute(s))
+
+    # Retrieve cloud/metadata information.
+    s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
+    cloud_metadata_names = qt(db_connection.execute(s))
+
 
     db_close(db_ctl)
 
@@ -692,12 +703,14 @@ def metadata_list(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_metadata_list': cloud_metadata_list,
+            'group_metadata_names': group_metadata_names,
+            'cloud_metadata_names': cloud_metadata_names,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
         }
 
-    return render(request, 'csv2/metadata.html', context)
+    return render(request, 'csv2/metadata-list.html', context)
 
 #-------------------------------------------------------------------------------
 
@@ -725,7 +738,7 @@ def metadata_update(request):
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
         if rc != 0:        
             db_close(db_ctl)
-            return list(request, selector='-', response_code=1, message='%s cloud meta-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, selector='-', response_code=1, message='%s cloud metadata-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
@@ -750,7 +763,7 @@ def metadata_update(request):
             return render(request, 'csv2/editor.html',context)
         else:
             db_close(db_ctl)
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud meta-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
     else:
