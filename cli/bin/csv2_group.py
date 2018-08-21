@@ -45,12 +45,19 @@ def add(gvar):
     Add a group to the active group.
     """
 
+    mandatory = ['-gm', '-gn']
+    required = []
+    optional = ['-g', '-H', '-h', '-s', '-un', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-gm', '-gn'],
-        [],
-        ['-g', '-H', '-h', '-s', '-un', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     # Create the group.
@@ -68,12 +75,19 @@ def defaults(gvar):
     Modify the specified group defaults.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        [],
-        [],
-        ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     # List the current defaults. If the form_data contains any optional fields,
@@ -111,8 +125,15 @@ def delete(gvar):
     Delete a group from the active group.
     """
 
+    mandatory = ['-gn']
+    required = []
+    optional = ['-H', '-h','-s', '-xA', '-Y']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-gn'], [], ['-H', '-h','-s', '-xA', '-Y'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Check that the target group exists.
     response = requests(gvar, '/group/list/')
@@ -151,8 +172,15 @@ def list(gvar):
     List groups.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/list/')
@@ -182,12 +210,19 @@ def update(gvar):
     Modify the specified group.
     """
 
+    mandatory = ['-gn']
+    required = []
+    optional = ['-g', '-gm', '-H', '-h', '-s', '-un', '-uo', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-gn'],
-        [],
-        ['-g', '-gm', '-H', '-h', '-s', '-un', '-uo', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
@@ -209,8 +244,15 @@ def metadata_delete(gvar):
     Delete a group metadata file.
     """
 
+    mandatory = ['-mn']
+    required = []
+    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Check that the target groupmetadata file exists.
     response = requests(gvar, '/group/list/')
@@ -252,8 +294,15 @@ def metadata_edit(gvar):
     Edit the specified group metadata file.
     """
 
+    mandatory = ['-mn']
+    required = ['-te']
+    optional = ['-g', '-H', '-h', '-s', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-mn'], ['-te'], ['-g', '-H', '-h', '-s', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-fetch/%s' % gvar['user_settings']['metadata-name'])
@@ -312,8 +361,15 @@ def metadata_list(gvar):
     List clouds for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/group/metadata-list/')
@@ -345,12 +401,19 @@ def metadata_load(gvar):
     Load a new group metadata file.
     """
 
+    mandatory = ['-f', '-mn']
+    required = []
+    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-f', '-mn'],
-        [],
-        ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     if not os.path.exists(gvar['user_settings']['file-path']):
@@ -381,12 +444,19 @@ def metadata_update(gvar):
     Update metadata fiel information.
     """
 
+    mandatory = ['-mn']
+    required = []
+    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-mn'],
-        [],
-        ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

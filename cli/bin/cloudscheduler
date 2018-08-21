@@ -79,7 +79,6 @@ def main(args):
                 False, # super_user?
                 {
                     'generate_bash_completion_script':    csv2_helpers.generate_bash_completion_script,
-                    'get_option_list':                    csv2_helpers.get_option_list,
                     }
                 ],
             'job': [
@@ -186,6 +185,7 @@ def main(args):
         'home_dir': str(Path.home()),
         'object': None,
         'tables_shown': 0,
+        'retrieve_options': False,
         }
     
     # Retrieve arguments.

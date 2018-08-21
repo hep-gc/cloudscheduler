@@ -50,12 +50,19 @@ def list(gvar):
     List clouds for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jtc', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     check_keys(
         gvar,
-        [],
-        [],
-        ['-cn', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jtc', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
+        mandatory,
+        required,
+        optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/job/list/')

@@ -56,8 +56,15 @@ def list(gvar):
     List VMs for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vd', '-vF', '-vf', '-vh', '-vr', '-vS', '-vs', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vc', '-vd', '-vF', '-vf', '-vh', '-vr', '-vS', '-vs', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/vm/list/%s' % _selector(gvar))
@@ -107,12 +114,19 @@ def update(gvar):
     Modify a VM in the active group.
     """
 
+    mandatory = ['-vo']
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-s', '-vh', '-vS', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-vo'],
-        [],
-        ['-cn', '-g', '-H', '-h', '-s', '-vh', '-vS', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     # Create the cloud.

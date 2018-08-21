@@ -30,12 +30,19 @@ def add(gvar):
     Add a user.
     """
 
+    mandatory = ['-un', '-upw']
+    required = []
+    optional = ['-g', '-gn', '-H', '-h', '-SU', '-s', '-ucn', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-un', '-upw'],
-        [],
-        ['-g', '-gn', '-H', '-h', '-SU', '-s', '-ucn', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     # Create the user.
@@ -53,8 +60,15 @@ def delete(gvar):
     Delete a user.
     """
 
+    mandatory = ['-un']
+    required = []
+    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-un'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Check that the target user exists.
     response = requests(gvar, '/user/list/')
@@ -93,8 +107,15 @@ def list(gvar):
     List users.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-un', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-un', '-V', '-VC', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the user).
     response = requests(gvar, '/user/list/')
@@ -128,12 +149,19 @@ def update(gvar):
     Modify the specified user.
     """
 
+    mandatory = ['-un']
+    required = []
+    optional = ['-g', '-gn', '-go', '-H', '-h', '-SU', '-s', '-ucn', '-upw', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-un'],
-        [],
-        ['-g', '-gn', '-go', '-H', '-h', '-SU', '-s', '-ucn', '-upw', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     if len(form_data) < 2:

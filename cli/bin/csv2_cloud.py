@@ -56,12 +56,19 @@ def add(gvar):
     Add a cloud to the active group.
     """
 
+    mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
+    required = []
+    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu'],
-        [],
-        ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     # Create the cloud.
@@ -79,8 +86,15 @@ def delete(gvar):
     Delete a cloud from the active group.
     """
 
+    mandatory = ['-cn']
+    required = []
+    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Check that the target cloud exists.
     response = requests(gvar, '/cloud/list/')
@@ -119,8 +133,15 @@ def list(gvar):
     List clouds for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/list/')
@@ -172,8 +193,15 @@ def status(gvar):
     List cloud status for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/status/')
@@ -237,12 +265,19 @@ def update(gvar):
     Modify a cloud in the active group.
     """
 
+    mandatory = ['-cn']
+    required = []
+    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-cn'],
-        [],
-        ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP)
 
     if len(form_data) < 2:
@@ -264,8 +299,15 @@ def metadata_collation(gvar):
     List cloud metadata collation for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/metadata-collation/')
@@ -296,8 +338,15 @@ def metadata_delete(gvar):
     Delete a cloud metadata file.
     """
 
+    mandatory = ['-cn', '-mn']
+    required = []
+    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-mn'], [], ['-g', '-H', '-h', '-s', '-xA', '-Y'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Check that the target cloud metadata file exists.
     response = requests(gvar, '/cloud/list/')
@@ -340,8 +389,15 @@ def metadata_edit(gvar):
     Edit the specified cloud metadata file.
     """
 
+    mandatory = ['-cn', '-mn']
+    required = ['-te']
+    optional = ['-g', '-H', '-h', '-s', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-cn', '-mn'], ['-te'], ['-g', '-H', '-h', '-s', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/metadata-fetch/%s::%s' % (gvar['user_settings']['cloud-name'], gvar['user_settings']['metadata-name']))
@@ -400,8 +456,15 @@ def metadata_list(gvar):
     List cloud metadata for the active group.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-cn', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-cn', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA'])
+    check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
     response = requests(gvar, '/cloud/metadata-list/')
@@ -433,12 +496,19 @@ def metadata_load(gvar):
     Load a new cloud metadata file.
     """
 
+    mandatory = ['-cn', '-f', '-mn']
+    required = []
+    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-cn', '-f', '-mn'],
-        [],
-        ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP
         )
 
@@ -464,12 +534,19 @@ def metadata_update(gvar):
     Modify a cloud in the active group.
     """
 
+    mandatory = ['-cn', '-mn']
+    required = []
+    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
     form_data = check_keys(
         gvar,
-        ['-cn', '-mn'],
-        [],
-        ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA'],
+        mandatory,
+        required,
+        optional,
         key_map=KEY_MAP
         )
 
