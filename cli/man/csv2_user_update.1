@@ -37,20 +37,21 @@
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Updating a user to be a super user:
-.P
 .EX
 $ cloudscheduler user update -un example -SU yes
 .EE
-.P
+.TP
+2.
 Adding a user to groups:
-.P
 .EX
 $ cloudscheduler user update -un example -gn group1,group2
 .EE
-.P
+.TP
+3.
 Removing the user from a group:
-.P
 .EX
 $ cloudscheduler user update -un example -gn group1 -go delete
 .EE

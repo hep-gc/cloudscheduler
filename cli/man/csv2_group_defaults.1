@@ -37,14 +37,15 @@
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Viewing defaults for the group "example":
-.P
 .EX
 $ cloudscheduler group defaults -g example
 .EE
-.P
+.TP
+2.
 Updating the default for the group "example":
-.P
 .EX
 $ cloudscheduler group defaults -g example -jc 2 -jd 10 -jr 2000 -js 1 -vf 'flavor-name1,flavor-name2' -vi 'image-name1,image-name2' -vka 60
 .EE

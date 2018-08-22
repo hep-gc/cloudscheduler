@@ -35,14 +35,15 @@
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Kill all native vms in the current group:
-.P
 .EX
 $ cloudscheduler vm update -vo kill
 .EE
-.P
+.TP
+2.
 Change all vms in an error state on the cloud "example" to be under manual control:
-.P
 .EX
 $ cloudscheduler vm update -vo manctl -cn example -vS error
 .EE

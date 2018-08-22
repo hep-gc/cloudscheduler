@@ -50,20 +50,21 @@
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Updating the cloud "example":
-.P
 .EX
 $ cloudscheduler cloud update -cn example -ca updated.ca -ce false
 .EE
-.P
+.TP
+2.
 Updating the cloud "example" to exclude a group metadata file:
-.P
 .EX
 $ cloudscheduler cloud update -cn example -gme group-metadata1 -gmo add
 .EE
-.P
+.TP
+3.
 Updating the cloud "example" to not exclude a group metadata file:
-.P
 .EX
 $ cloudscheduler cloud update -cn example -gme group-metadata1 -gmo delete
 .EE

@@ -35,20 +35,21 @@
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Updating the group "example":
-.P
 .EX
 $ cloudscheduler group update -gn example -gm example.ca
 .EE
-.P
+.TP
+2.
 Adding users to the group "example":
-.P
 .EX
 $ cloudscheduler group update -gn example -un user1,user2
 .EE
-.P
+.TP
+3.
 Removing users from the group "example":
-.P
 .EX
 $ cloudscheduler group update -gn example -un user1,user2 -uo delete
 .EE
