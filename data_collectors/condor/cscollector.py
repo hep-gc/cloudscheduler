@@ -42,6 +42,7 @@ def resources_producer():
         "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     Resource = Base.classes.condor_machines
+    last_poll_time = 0
 
     try:
         while True:
@@ -58,15 +59,31 @@ def resources_producer():
             fail_count = 0
 
             db_session = Session(engine)
-            ad_type = htcondor.AdTypes.Startd
+            new_poll_time = int(time.time())
 
-            condor_resources = condor_session.query(
-                ad_type=ad_type,
-                constraint=True,
-                projection=resource_attributes)
+#           ad_type = htcondor.AdTypes.Startd
+#           condor_resources = condor_session.query(
+#               ad_type=ad_type,
+#               constraint=True,
+#               projection=resource_attributes)
+
+            # Retrieve machines.
+            if last_poll_time == 0:
+                # First poll since starting up, get everything
+                condor_resources = condor_session.query(
+                    ad_type=htcondor.AdTypes.Startd,
+                    attrs=resource_attributes
+                    )
+            else:
+                # Regular polling cycle, get updated machines.
+                condor_resources = condor_session.query(
+                    ad_type=htcondor.AdTypes.Startd,
+                    constraint='EnteredCurrentActivity>=%d' % last_poll_time,
+                    attrs=resource_attributes
+                    )
 
             abort_cycle = False
-            uncommitted_updates = False
+            uncommitted_updates = 0
             for resource in condor_resources:
                 r_dict = dict(resource)
                 if "Start" in r_dict:
@@ -83,7 +100,7 @@ def resources_producer():
                 new_resource = Resource(**r_dict)
                 try:
                     db_session.merge(new_resource)
-                    uncommitted_updates = True
+                    uncommitted_updates += 1
                 except Exception as exc:
                     logging.exception("Failed to merge machine entry, aborting cycle...")
                     logging.error(exc)
@@ -96,9 +113,10 @@ def resources_producer():
                 time.sleep(config.collection_interval)
                 continue
 
-            if uncommitted_updates:
+            if uncommitted_updates > 0:
                 try:
                     db_session.commit()
+                    logging.info("Machine updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
@@ -108,6 +126,7 @@ def resources_producer():
                     continue
 
             logging.info("Completed machine poller cycle")
+            last_poll_time = new_poll_time
             del condor_session
             db_session.close()
             time.sleep(config.collection_interval)
