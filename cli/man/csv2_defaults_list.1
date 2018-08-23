@@ -35,15 +35,32 @@
 .\" --------------------------------------------------------------------
 .TP
 1.
-Listing all server defaults:
+Listing all server defaults(not all columns shown):
 .EX
 $ cloudscheduler defaults list
+
+Defaults:
++------------+----------------------+-------------+
++ server     | server-address       | server-user +
++------------+----------------------+-------------+
+| default    | https://default.com/ | example     |
+| example    | https://example.com/ | example     |
++------------+----------------------+-------------+
+Rows: 2
 .EE
 .TP
 2.
 Listing the defaults for server "example":
 .EX
 $ cloudscheduler defaults list -s example
+
+Defaults:
++------------+----------------------+-------------+
++ server     | server-address       | server-user +
++------------+----------------------+-------------+
+| example    | https://example.com/ | example     |
++------------+----------------------+-------------+
+Rows: 1
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

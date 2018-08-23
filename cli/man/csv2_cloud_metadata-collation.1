@@ -35,7 +35,19 @@
 1.
 List all metadata that would be applied to VMs on the cloud "example":
 .EX
-$ cloudscheduler cloud metadata_collation -cn example
+$ cloudscheduler cloud metadata-collation -cn example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Clouds/Metadata Collation:
++---------+---------+-------------------+-------------+-------+
++ Group   | Cloud   | Metadata Filename | Priority    | Type  +
++---------+---------+-------------------+-------------+-------+
+| example | example | example.yaml      | 0           | group |
+| example | example | example1.json     | 0           | cloud |
+| example | testing | example.yaml      | 0           | group |
+| example | testing | example2.json     | 0           | cloud |
++---------+---------+-------------------+-------------+-------+
+Rows: 4
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

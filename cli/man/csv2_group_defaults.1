@@ -42,12 +42,33 @@
 Viewing defaults for the group "example":
 .EX
 $ cloudscheduler group defaults -g example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Active Group Defaults:
++---------+--------+-------+------------+-------------+-------------+-------------+-------------+
++         |             VM              |                          Job                          +
++  Group  | Flavor   Image   Keep Alive |    Cores      Disk (GBs)     RAM (MBs)    Swap (GBs)  +
++---------+--------+-------+------------+-------------+-------------+-------------+-------------+
+| example | None   | None  | None       | 1           | 5           | 1000        | 0           |
++---------+--------+-------+------------+-------------+-------------+-------------+-------------+
+Rows: 1
 .EE
 .TP
 2.
 Updating the default for the group "example":
 .EX
 $ cloudscheduler group defaults -g example -jc 2 -jd 10 -jr 2000 -js 1 -vf 'flavor-name1,flavor-name2' -vi 'image-name1,image-name2' -vka 60
+group defaults "example" successfully updated.
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Active Group Defaults:
++---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
++         |                                VM                                 |                          Job                          +
++  Group  |          Flavor                      Image            Keep Alive  |    Cores      Disk (GBs)     RAM (MBs)    Swap (GBs)  +
++---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
+| example | flavor-name1,flavor-name2 | image-name1,image-name2 | 60          | 2           | 10          | 2000        | 1           |
++---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
+Rows: 1
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

@@ -35,13 +35,32 @@
 1.
 Listing group metadata for the group "example":
 .EX
-$ cloudscheduler group metadata-list -g example
+$ cloudscheduler group metadata-list
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Active Group/Metadata:
++---------+-------------------+---------+----------+--------------+
++ Group   | Metadata Filename | Enabled | Priority | MIME Type    +
++---------+-------------------+---------+----------+--------------+
+| example | example.yaml      | 1       | 0        | cloud-config |
+| example | testing.yaml      | 0       | 5        | cloud-config |
++---------+-------------------+---------+----------+--------------+
+Rows: 2
 .EE
 .TP
 2.
 Listing group metadata "example":
 .EX
-$ cloudscheduler group metadata-list -g example -mn example
+$ cloudscheduler group metadata-list -mn example.yaml
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Active Group/Metadata:
++---------+-------------------+---------+----------+--------------+
++ Group   | Metadata Filename | Enabled | Priority | MIME Type    +
++---------+-------------------+---------+----------+--------------+
+| example | example.yaml      | 1       | 0        | cloud-config |
++---------+-------------------+---------+----------+--------------+
+Rows: 1
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO
@@ -57,4 +76,3 @@ $ cloudscheduler group metadata-list -g example -mn example
 .BR csv2_group_metadata_load (1)
 .BR csv2_group_metadata_update (1)
 .BR csv2_group_update (1)
-

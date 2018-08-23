@@ -37,16 +37,23 @@
 .\" --------------------------------------------------------------------
 .TP
 1.
-Kill all native vms in the current group:
+Retire all native VMs in the current group:
 .EX
-$ cloudscheduler vm update -vo kill
+$ cloudscheduler vm update -vo retire
+vm update, VMs retired=10.
 .EE
 .TP
 2.
-Change all vms in an error state on the cloud "example" to be under manual control:
+Change all VMs in an error state on the cloud "example" to be under manual control:
 .EX
 $ cloudscheduler vm update -vo manctl -cn example -vS error
+vm update, VMs set to manual control=5.
 .EE
+.TP
+3.
+Kill a specific VM:
+$ cloudscheduler vm update -vo kill -vh example-vm
+vm update, VMs killed=1.
 .\" --------------------------------------------------------------------
 .SH SEE ALSO
 .\" --------------------------------------------------------------------

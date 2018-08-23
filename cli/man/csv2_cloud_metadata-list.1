@@ -37,6 +37,15 @@
 Listing the cloud metadata for the cloud "example":
 .EX
 $ cloudscheduler cloud metadata-list -cn example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Clouds/Metadata:
++---------+---------+-------------------+---------+----------+--------------+
++ Group   | Cloud   | Metadata Filename | Enabled | Priority | MIME Type    +
++---------+---------+-------------------+---------+----------+--------------+
+| example | example | example.yaml      | 1       | 0        | cloud-config |
++---------+---------+-------------------+---------+----------+--------------+
+Rows: 1
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO
