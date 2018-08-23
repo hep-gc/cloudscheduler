@@ -85,22 +85,22 @@ def job_producer():
             else:
                 user_group_dict = {}
 
-            #
-            # Part 1 - Get new jobs
-            #
+            # Retrieve jobs.
             if last_poll_time == 0:
-                #first poll since starting up, get everything
-                job_list = condor_session.query(attr_list=job_attributes)
-            else:
-                #regular polling cycle: Get all new jobs
-                # constraint='JobStatus=?=1 && QDate>=' + last_poll_time, attr_list=job_attributes
+                # First poll since starting up, get everything
                 job_list = condor_session.query(
-                    constraint='QDate>=%d' % last_poll_time,
-                    attr_list=job_attributes)
+                    attr_list=job_attributes
+                    )
+            else:
+                # Regular polling cycle, get updated jobs.
+                job_list = condor_session.query(
+                    constraint='EnteredCurrentStatus>=%d' % last_poll_time,
+                    attr_list=job_attributes
+                    )
 
-            #Process job data & Insert/update jobs in Database
+            # Process job data & insert/update jobs in Database
             abort_cycle = False
-            uncommitted_updates = False
+            uncommitted_updates = 0
             for job_ad in job_list:
                 job_dict = dict(job_ad)
                 if "Requirements" in job_dict:
@@ -113,9 +113,6 @@ def job_producer():
                     except Exception as exc:
                         logging.error("No group name found in requirements expression... setting default.")
                         job_dict['group_name'] = config.default_job_group
-
-                # Else there is no requirements and is likely not a job submitted for csv2
-                # Set the default job group and continue
                 else:
                     logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
                     job_dict['group_name'] = config.default_job_group
@@ -131,7 +128,7 @@ def job_producer():
                 new_job = Job(**job_dict)
                 try:
                     db_session.merge(new_job)
-                    uncommitted_updates = True
+                    uncommitted_updates += 1
                 except Exception as exc:
                     logging.exception("Failed to merge job entry, aborting cycle...")
                     logging.error(exc)
@@ -144,9 +141,10 @@ def job_producer():
                 time.sleep(config.collection_interval)
                 continue
 
-            if uncommitted_updates:
+            if uncommitted_updates > 0:
                 try:
                     db_session.commit()
+                    logging.info("Job updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
                     logging.exception("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
@@ -154,54 +152,6 @@ def job_producer():
                     db_session.close()
                     time.sleep(config.collection_interval)
                     continue
-
-            #
-            # Part 2 - Detect any job status changes
-            #
-            if last_poll_time != 0:
-                # get all jobs who've had status changes since last poll excluding
-                # brand new jobs since they would have been updated above
-                status_changed_job_list = condor_session.query(
-                    constraint='EnteredCurrentStatus>=%d && QDate<=%d' % (last_poll_time, last_poll_time),
-                    attr_list=job_attributes)
-
-                uncommitted_updates = False
-                for job_ad in status_changed_job_list:
-                    job_dict = dict(job_ad)
-                    if "Requirements" in job_dict:
-                        job_dict['Requirements'] = str(job_dict['Requirements'])
-                    job_dict = trim_keys(job_dict, job_attributes)
-                    job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
-                    if unmapped:
-                        logging.error("attribute mapper found unmapped variables:")
-                        logging.error(unmapped)
-
-                    new_job = Job(**job_dict)
-                    try:
-                        db_session.merge(new_job)
-                        uncommitted_updates = True
-                    except Exception as exc:
-                        logging.exception("Failed to merge job changes, aborting cycle...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-
-                if abort_cycle:
-                    del condor_session
-                    db_session.close()
-                    time.sleep(config.collection_interval)
-                    continue
-
-                if uncommitted_updates:
-                    try:
-                        db_session.commit()
-                    except Exception as exc:
-                        logging.exception("Failed to commit job changes, aborting cycle...")
-                        logging.error(exc)
-                        del condor_session
-                        db_session.close()
-                        time.sleep(config.collection_interval)
-                        continue
 
             logging.info("Completed job poller cycle")
             last_poll_time = new_poll_time
