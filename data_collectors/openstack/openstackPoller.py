@@ -109,7 +109,7 @@ def save_inventory_group_and_cloud(inventory, group_name, cloud_name):
 
 def save_inventory_item(inventory, group_name, cloud_name, item, update_time):
     inventory[group_name][cloud_name][item] = True
-    return parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s') 
+    return int(parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s'))
 
 # Returns a tuple of quotas (novaquotas, cinderquotas)
 def get_quota_data(nova, cinder, project):
