@@ -41,6 +41,26 @@ def foreign(vm):
     else:
         return True
 
+def get_cinder_client(session):
+    cinder = cinclient.Client("2", session=session)
+    return cinder
+
+def get_flavor_data(nova):
+    try:
+        return  nova.flavors.list()
+    except Exception as exc:
+        logging.error("Failed to retrieve Flavor data")
+        logging.error(exc)
+        return False
+
+def get_neutron_client(session):
+    neutron = neuclient.Client(session=session)
+    return neutron
+
+def get_nova_client(session):
+    nova = novaclient.Client("2", session=session)
+    return nova
+
 def get_openstack_session(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
     authsplit = auth_url.split('/')
     try:
@@ -78,27 +98,18 @@ def get_openstack_session(auth_url, username, password, project, user_domain="De
             return False
         return sess
 
-def get_nova_client(session):
-    nova = novaclient.Client("2", session=session)
-    return nova
+def save_inventory_group_and_cloud(inventory, group_name, cloud_name):
+    if group_name not in inventory:
+        inventory[group_name] = {}
 
-def get_neutron_client(session):
-    neutron = neuclient.Client(session=session)
-    return neutron
+    if cloud_name not in inventory[group_name]:
+        inventory[group_name][cloud_name] = {}
 
-def get_cinder_client(session):
-    cinder = cinclient.Client("2", session=session)
-    return cinder
+    return
 
-
-
-def get_flavor_data(nova):
-    try:
-        return  nova.flavors.list()
-    except Exception as exc:
-        logging.error("Failed to retrieve Flavor data")
-        logging.error(exc)
-        return False
+def save_inventory_item(inventory, group_name, cloud_name, item, update_time):
+    inventory[group_name][cloud_name][item] = True
+    return parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s') 
 
 # Returns a tuple of quotas (novaquotas, cinderquotas)
 def get_quota_data(nova, cinder, project):
@@ -206,7 +217,7 @@ def vm_poller():
     Base.prepare(engine, reflect=True)
     Vm = Base.classes.csv2_vms
     Cloud = Base.classes.csv2_group_resources
-    Poll_Times = Base.classes.csv2_poll_times
+    last_poll_time = 0
 
     try:
         while True:
@@ -214,9 +225,10 @@ def vm_poller():
             # up to date data during a given execution cycle.
             logging.info("Beginning VM poller cycle")
             db_session = Session(engine)
-            current_cycle = int(time.time())
+            new_poll_time = int(time.time())
 
-            # Iterate over cloud list
+            # For each OpenStack cloud, retrieve and process VMs.
+            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -227,15 +239,22 @@ def vm_poller():
                     continue
 
                 # setup nova object
+                save_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
                 nova = get_nova_client(session)
 
                 # get server list
                 vm_list = get_vm_list(nova)
                 if vm_list is False:
                     logging.info("No VMs defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    del nova
                     continue
 
+                uncommitted_updates = 0
                 for vm in vm_list:
+                    vm_update_time = save_inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
+                    if vm_update_time < last_poll_time:
+                        continue
+
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
@@ -254,41 +273,68 @@ def vm_poller():
                     if unmapped:
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
-                    vm_dict['status_changed_time'] = parser.parse(vm.updated).astimezone(tz.tzlocal()).strftime('%s') 
+
+                    vm_dict['status_changed_time'] = vm_update_time
                     new_vm = Vm(**vm_dict)
                     try:
                         db_session.merge(new_vm)
+                        uncommitted_updates += 1
                     except Exception as exc:
                         logging.exception("Failed to merge VM entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, vm.name))
                         logging.error(exc)
                         abort_cycle = True
                         break
 
-                try:        
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit VM updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
-                    logging.error(exc)
-                    abort_cycle = True
+                del nova
+                if abort_cycle:
                     break
 
+                if uncommitted_updates > 0:
+                    try:        
+                        db_session.commit()
+                        logging.info("VM updates committed: %d" % uncommitted_updates)
+                    except Exception as exc:
+                        logging.exception("Failed to commit VM updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
             if abort_cycle:
+                del inventory
                 db_session.close()
                 time.sleep(config.limit_sleep_interval)
                 continue
 
-            try:
-                new_pt = Poll_Times(process_id="vm_poller_" + str(socket.getfqdn()), last_poll=current_cycle)
-                db_session.merge(new_pt)
-                db_session.commit()
-            except Exception as exc:
-                logging.exception("Failed to update VM poll time, aborting cycle...")
-                logging.error(exc)
-                db_session.close()
-                time.sleep(config.limit_sleep_interval)
-                continue
+            # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
+            for group_name in inventory:
+                for cloud_name in inventory[group_name]:
+                    obsolete_vms = db_session.query(Vm).filter(
+                        Vm.group_name == group_name,
+                        Vm.cloud_name == cloud_name
+                        )
+
+                    uncommitted_updates = 0
+                    for vm in obsolete_vms:
+                        if vm.name not in inventory[group_name][cloud_name]:
+                            logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
+                            try:
+                                db_session.delete(vm)
+                                uncommitted_updates += 1
+                            except Exception as exc:
+                                logging.exception("Failed to delete VM.")
+                                logging.error(exc)
+
+                    if uncommitted_updates > 0:
+                        try:        
+                            db_session.commit()
+                            logging.info("VM deletions committed: %d" % uncommitted_updates)
+                        except Exception as exc:
+                            logging.exception("Failed to commit VM deletions (%d) for %s::%s." % (uncommitted_updates, cloud.group_name, cloud.cloud_name))
+                            logging.error(exc)
 
             logging.info("Completed VM poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.vm_sleep_interval)
 
@@ -310,7 +356,7 @@ def flavorPoller():
         while True:
             logging.info("Beginning flavor poller cycle")
             db_session = Session(engine)
-            current_cycle = int(time.time())
+            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
@@ -350,7 +396,7 @@ def flavorPoller():
                         'disk': disk,
                         'ephemeral_disk': flavor.ephemeral,
                         'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
-                        'last_updated': current_cycle
+                        'last_updated': new_poll_time
                     }
                     flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
                     if unmapped:
@@ -367,7 +413,7 @@ def flavorPoller():
 
                 #now remove any that were not updated
                 flav_to_delete = db_session.query(Flavor).filter(
-                    Flavor.last_updated < current_cycle,
+                    Flavor.last_updated < new_poll_time,
                     Flavor.group_name == cloud.group_name,
                     Flavor.cloud_name == cloud.cloud_name)
                 for flav in flav_to_delete:
@@ -410,7 +456,7 @@ def imagePoller():
             logging.info("Beginning image poller cycle")
             db_session = Session(engine)
             # db_session.autoflush = False
-            current_cycle = int(time.time())
+            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
@@ -446,7 +492,7 @@ def imagePoller():
                         'visibility': image.visibility,
                         'min_disk': image.min_disk,
                         'name': image.name,
-                        'last_updated': current_cycle
+                        'last_updated': new_poll_time
                     }
                     img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
                     if unmapped:
@@ -466,7 +512,7 @@ def imagePoller():
 
                 # do Image cleanup
                 img_to_delete = db_session.query(Image).filter(
-                    Image.last_updated < current_cycle,
+                    Image.last_updated < new_poll_time,
                     Image.group_name == cloud.group_name,
                     Image.cloud_name == cloud.cloud_name)
                 for img in img_to_delete:
@@ -509,7 +555,7 @@ def limitPoller():
         while True:
             logging.info("Beginning limit poller cycle")
             db_session = Session(engine)
-            current_cycle = int(time.time())
+            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
@@ -544,7 +590,7 @@ def limitPoller():
 
                 #now remove any that were not updated
                 limit_to_delete = db_session.query(Limit).filter(
-                    Limit.last_updated < current_cycle,
+                    Limit.last_updated < new_poll_time,
                     Limit.group_name == cloud.group_name,
                     Limit.cloud_name == cloud.cloud_name)
                 for limit in limit_to_delete:
@@ -576,7 +622,7 @@ def limitPoller():
 
 def networkPoller():
     multiprocessing.current_process().name = "Network Poller"
-    last_cycle = 0
+    last_poll_time = 0
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
@@ -589,7 +635,7 @@ def networkPoller():
             logging.info("Beginning network poller cycle")
             db_session = Session(engine)
             # db_session.autoflush = False
-            current_cycle = int(time.time())
+            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
@@ -631,7 +677,7 @@ def networkPoller():
 
                 #now remove any that were not updated
                 net_to_delete = db_session.query(Network).filter(
-                    Network.last_updated <= last_cycle,
+                    Network.last_updated <= last_poll_time,
                     Network.group_name == cloud.group_name,
                     Network.cloud_name == cloud.cloud_name)
                 for net in net_to_delete:
@@ -640,7 +686,7 @@ def networkPoller():
 
             try:        
                 db_session.commit()
-                last_cycle = current_cycle
+                last_poll_time = new_poll_time
             except Exception as exc:
                 logging.exception("Failed to commit network updates, aborting cycle...")
                 logging.error(exc)
@@ -666,53 +712,20 @@ def networkPoller():
 # the vm cleanup routine will have its own process on its own cycle
 def vmCleanUp():
     multiprocessing.current_process().name = "VM Cleanup"
-    last_cycle = 0
+    last_poll_time = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     Base.prepare(engine, reflect=True)
     Vm = Base.classes.csv2_vms
-    Poll_Times = Base.classes.csv2_poll_times
     Cloud = Base.classes.csv2_group_resources
 
     try:
         while True:
             logging.info("Beginning cleanup poller cycle")
             db_session = Session(engine)
-            current_cycle_time = time.time()
-
-            last_vm_poll = db_session.query(Poll_Times).filter(Poll_Times.process_id == vm_poller_id)
-            if last_cycle == 0:
-                logging.info("First cycle, sleeping for now...")
-                #first cycle- just sleep for the first while waiting for db updates.
-                last_cycle = current_cycle_time
-                db_session.close()
-                time.sleep(config.vm_cleanup_interval)
-                continue
-            elif last_cycle >= last_vm_poll[0].last_poll:
-                logging.info("vm poller hasn't been run since last cleanup, there may be a problem with the vm poller process")
-                logging.info("last_cycle: %s, last_poll: %s   Skipping cycle...", last_cycle, last_vm_poll[0].last_poll)
-                db_session.close()
-                time.sleep(config.vm_cleanup_interval)
-                continue
-
-            # check for vms that have disappeared since the last cycle
-            logging.info("Querying database for vms to remove...")
-            vm_to_delete = db_session.query(Vm).filter(Vm.last_updated <= last_cycle)
-            for vm in vm_to_delete:
-                logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
-                db_session.delete(vm)
-
-            # need to commit the session here to remove vms that are gone before we look at which to terminate
-            try:        
-                db_session.commit()
-            except Exception as exc:
-                logging.exception("Failed to commit VM deletions, aborting cycle...")
-                logging.error(exc)
-                db_session.close()
-                time.sleep(config.vm_cleanup_interval)
-                continue
+            new_poll_time_time = time.time()
 
             # check for vms that have been marked for termination
             logging.info("Querying database for VMs marked for termination...")
@@ -740,7 +753,7 @@ def vmCleanUp():
 
             try:        
                 db_session.commit()
-                last_cycle = current_cycle_time
+                last_poll_time = new_poll_time_time
             except Exception as exc:
                 logging.exception("Failed to commit VM terminations, aborting cycle...")
                 logging.error(exc)
@@ -759,7 +772,7 @@ def vmCleanUp():
 
 def keypairPoller():
     multiprocessing.current_process().name = "Keypair Poller"
-    last_cycle = 0
+    last_poll_time = 0
     Base = automap_base()
     engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
