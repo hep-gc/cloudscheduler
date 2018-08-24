@@ -315,7 +315,7 @@ def vm_poller():
 
                     uncommitted_updates = 0
                     for vm in obsolete_vms:
-                        if vm.name not in inventory[group_name][cloud_name]:
+                        if vm.hostname not in inventory[group_name][cloud_name]:
                             logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
                             try:
                                 db_session.delete(vm)
