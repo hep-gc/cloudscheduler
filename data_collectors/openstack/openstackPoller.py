@@ -334,31 +334,6 @@ def vm_poller():
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
             delete_obsolete_items('VM', inventory, db_session, Vm, 'hostname')
-#           for group_name in inventory:
-#               for cloud_name in inventory[group_name]:
-#                   obsolete_vms = db_session.query(Vm).filter(
-#                       Vm.group_name == group_name,
-#                       Vm.cloud_name == cloud_name
-#                       )
-
-#                   uncommitted_updates = 0
-#                   for vm in obsolete_vms:
-#                       if vm.hostname not in inventory[group_name][cloud_name]:
-#                           logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
-#                           try:
-#                               db_session.delete(vm)
-#                               uncommitted_updates += 1
-#                           except Exception as exc:
-#                               logging.exception("Failed to delete VM.")
-#                               logging.error(exc)
-
-#                   if uncommitted_updates > 0:
-#                       try:        
-#                           db_session.commit()
-#                           logging.info("VM deletions committed: %d" % uncommitted_updates)
-#                       except Exception as exc:
-#                           logging.exception("Failed to commit VM deletions (%d) for %s::%s." % (uncommitted_updates, cloud.group_name, cloud.cloud_name))
-#                           logging.error(exc)
 
             logging.info("Completed VM poller cycle")
             last_poll_time = new_poll_time
