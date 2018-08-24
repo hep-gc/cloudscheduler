@@ -72,14 +72,14 @@ def resources_producer():
                 # First poll since starting up, get everything
                 condor_resources = condor_session.query(
                     ad_type=htcondor.AdTypes.Startd,
-                    attrs=resource_attributes
+                    projection=resource_attributes
                     )
             else:
                 # Regular polling cycle, get updated machines.
                 condor_resources = condor_session.query(
                     ad_type=htcondor.AdTypes.Startd,
                     constraint='EnteredCurrentActivity>=%d' % last_poll_time,
-                    attrs=resource_attributes
+                    projection=resource_attributes
                     )
 
             abort_cycle = False
