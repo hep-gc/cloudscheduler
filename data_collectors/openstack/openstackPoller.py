@@ -387,6 +387,7 @@ def flavorPoller():
             db_session = Session(engine)
             new_poll_time = int(time.time())
 
+            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -490,6 +491,7 @@ def imagePoller():
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
+            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -592,6 +594,7 @@ def limitPoller():
             db_session = Session(engine)
             new_poll_time = int(time.time())
 
+            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -675,6 +678,7 @@ def networkPoller():
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
+            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -829,6 +833,7 @@ def keypairPoller():
             db_session = Session(engine)
             new_poll_time = int(time.time())
 
+            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
             for cloud in cloud_list:
