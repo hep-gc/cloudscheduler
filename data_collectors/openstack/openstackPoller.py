@@ -44,7 +44,7 @@ def delete_obsolete_items(type, inventory, db_session, base_class, item_key):
 
             uncommitted_updates = 0
             for item in obsolete_items:
-                if item.item_key not in inventory[group_name][cloud_name]:
+                if item[item_key] not in inventory[group_name][cloud_name]:
                     logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.item_key, item.group_name, item.cloud_name))
                     try:
                         db_session.delete(item)
