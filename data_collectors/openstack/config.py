@@ -10,13 +10,13 @@ poller_log_file = "/var/log/cloudscheduler/openstackpoller.log"
 main_short_interval = 1
 main_long_interval = 10
 vm_sleep_interval = 60
-vm_cleanup_interval = 120
+vm_cleanup_interval = 10
 network_sleep_interval = 300
 image_sleep_interval = 300
 limit_sleep_interval = 300
 no_limit_default = 999999999
 flavor_sleep_interval = 300
-keypair_sleep_interval = 600
+keypair_sleep_interval = 300
 
 cacert = "/etc/ssl/certs/CABundle.crt"
 log_level = 20 #INFO
