@@ -34,6 +34,33 @@ from attribute_mapper.attribute_mapper import map_attributes
 
 ## UTILITY FUNCTIONS
 
+def delete_obsolete_items(type, inventory, db_session, base_class, item_key):
+    for group_name in inventory:
+        for cloud_name in inventory[group_name]:
+            obsolete_items = db_session.query(base_class).filter(
+                base_class.group_name == group_name,
+                base_class.cloud_name == cloud_name
+                )
+
+            uncommitted_updates = 0
+            for item in obsolete_items:
+                if item.item_key not in inventory[group_name][cloud_name]:
+                    logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.item_key, item.group_name, item.cloud_name))
+                    try:
+                        db_session.delete(item)
+                        uncommitted_updates += 1
+                    except Exception as exc:
+                        logging.exception("Failed to delete %s." % type)
+                        logging.error(exc)
+
+            if uncommitted_updates > 0:
+                try:        
+                    db_session.commit()
+                    logging.info("%s deletions committed: %d" % (type, uncommitted_updates))
+                except Exception as exc:
+                    logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, cloud.group_name, cloud.cloud_name))
+                    logging.error(exc)
+
 def foreign(vm):
     native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
     if vm.hostname[:len(native_id)] == native_id:
@@ -306,31 +333,32 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            for group_name in inventory:
-                for cloud_name in inventory[group_name]:
-                    obsolete_vms = db_session.query(Vm).filter(
-                        Vm.group_name == group_name,
-                        Vm.cloud_name == cloud_name
-                        )
+            delete_obsolete_items('VM', inventory, db_session, Vm, 'hostname')
+#           for group_name in inventory:
+#               for cloud_name in inventory[group_name]:
+#                   obsolete_vms = db_session.query(Vm).filter(
+#                       Vm.group_name == group_name,
+#                       Vm.cloud_name == cloud_name
+#                       )
 
-                    uncommitted_updates = 0
-                    for vm in obsolete_vms:
-                        if vm.hostname not in inventory[group_name][cloud_name]:
-                            logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
-                            try:
-                                db_session.delete(vm)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to delete VM.")
-                                logging.error(exc)
+#                   uncommitted_updates = 0
+#                   for vm in obsolete_vms:
+#                       if vm.hostname not in inventory[group_name][cloud_name]:
+#                           logging.info("Cleaning up VM: %s from group:cloud - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
+#                           try:
+#                               db_session.delete(vm)
+#                               uncommitted_updates += 1
+#                           except Exception as exc:
+#                               logging.exception("Failed to delete VM.")
+#                               logging.error(exc)
 
-                    if uncommitted_updates > 0:
-                        try:        
-                            db_session.commit()
-                            logging.info("VM deletions committed: %d" % uncommitted_updates)
-                        except Exception as exc:
-                            logging.exception("Failed to commit VM deletions (%d) for %s::%s." % (uncommitted_updates, cloud.group_name, cloud.cloud_name))
-                            logging.error(exc)
+#                   if uncommitted_updates > 0:
+#                       try:        
+#                           db_session.commit()
+#                           logging.info("VM deletions committed: %d" % uncommitted_updates)
+#                       except Exception as exc:
+#                           logging.exception("Failed to commit VM deletions (%d) for %s::%s." % (uncommitted_updates, cloud.group_name, cloud.cloud_name))
+#                           logging.error(exc)
 
             logging.info("Completed VM poller cycle")
             last_poll_time = new_poll_time
@@ -351,6 +379,7 @@ def flavorPoller():
     Base.prepare(engine, reflect=True)
     Flavor = Base.classes.cloud_flavors
     Cloud = Base.classes.csv2_group_resources
+    last_poll_time = 0
 
     try:
         while True:
@@ -434,6 +463,8 @@ def flavorPoller():
                 continue
 
             logging.info("Completed flavor poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.flavor_sleep_interval)
 
@@ -450,6 +481,7 @@ def imagePoller():
     Base.prepare(engine, reflect=True)
     Image = Base.classes.cloud_images
     Cloud = Base.classes.csv2_group_resources
+    last_poll_time = 0
 
     try:
         while True:
@@ -534,6 +566,8 @@ def imagePoller():
                 continue
 
             logging.info("Completed image poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.image_sleep_interval)
 
@@ -550,6 +584,7 @@ def limitPoller():
     Base.prepare(engine, reflect=True)
     Limit = Base.classes.cloud_limits
     Cloud = Base.classes.csv2_group_resources
+    last_poll_time = 0
 
     try:
         while True:
@@ -612,6 +647,8 @@ def limitPoller():
                 continue
 
             logging.info("Completed limit poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.limit_sleep_interval)
 
@@ -629,6 +666,7 @@ def networkPoller():
     Base.prepare(engine, reflect=True)
     Network = Base.classes.cloud_networks
     Cloud = Base.classes.csv2_group_resources
+    last_poll_time = 0
 
     try:
         while True:
@@ -700,6 +738,8 @@ def networkPoller():
                 continue
 
             logging.info("Completed network poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.network_sleep_interval)
 
@@ -725,7 +765,7 @@ def vmCleanUp():
         while True:
             logging.info("Beginning cleanup poller cycle")
             db_session = Session(engine)
-            new_poll_time_time = time.time()
+            new_poll_time = int(time.time())
 
             # check for vms that have been marked for termination
             logging.info("Querying database for VMs marked for termination...")
@@ -753,7 +793,7 @@ def vmCleanUp():
 
             try:        
                 db_session.commit()
-                last_poll_time = new_poll_time_time
+                last_poll_time = new_poll_time
             except Exception as exc:
                 logging.exception("Failed to commit VM terminations, aborting cycle...")
                 logging.error(exc)
@@ -762,6 +802,8 @@ def vmCleanUp():
                 continue
 
             logging.info("Completed cleanup poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.vm_cleanup_interval)
 
@@ -779,11 +821,13 @@ def keypairPoller():
     Base.prepare(engine, reflect=True)
     Keypairs = Base.classes.cloud_keypairs
     Cloud = Base.classes.csv2_group_resources
+    last_poll_time = 0
 
     try:
         while True:
             logging.info("Beginning keypair poller cycle")
             db_session = Session(engine)
+            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(Cloud).filter(Cloud.cloud_type == "openstack")
@@ -849,6 +893,8 @@ def keypairPoller():
                 continue
 
             logging.info("Completed keypair poller cycle")
+            last_poll_time = new_poll_time
+            del inventory
             db_session.close()
             time.sleep(config.keypair_sleep_interval)
 
