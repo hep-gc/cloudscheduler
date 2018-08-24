@@ -79,7 +79,7 @@ def get_option_list(gvar):
             options[object][action] = []
             short_options = gvar['actions'][object][1][action](gvar)
             for key in gvar['command_keys']:
-                if key[0] in short_options:
+                if (key[0] in short_options) or ('*' in short_options):
                     options[object][action].append(key[1])
     
     gvar['retrieve_options'] = False
