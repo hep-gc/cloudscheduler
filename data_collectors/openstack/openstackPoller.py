@@ -807,7 +807,6 @@ def vmCleanUp():
 
             logging.info("Completed cleanup poller cycle")
             last_poll_time = new_poll_time
-            del inventory
             db_session.close()
             time.sleep(config.vm_cleanup_interval)
 
