@@ -422,7 +422,6 @@ def list(
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata',
                     ]
                 },
             prune=['password']    
@@ -832,11 +831,11 @@ def status(request, group_name=None):
     else:
         system_list["main"] = status_msg.replace('Active:', '')
 
-    status_msg = os.popen("service csv2-metadata status | grep 'Active'").read()
+    status_msg = os.popen("service csv2-openstack status | grep 'Active'").read()
     if 'running' in status_msg:
-        system_list["metadata"] = 1
+        system_list["openstack"] = 1
     else:
-        system_list["metadata"] = status_msg.replace('Active:', '')
+        system_list["openstack"] = status_msg.replace('Active:', '')
 
     status_msg = os.popen("service csv2-jobs status | grep 'Active'").read()
     if 'running' in status_msg:

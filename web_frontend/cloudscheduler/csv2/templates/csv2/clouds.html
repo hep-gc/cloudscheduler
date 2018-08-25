@@ -4,6 +4,7 @@
 {% endblock %}
 
 <head>
+{% load template_utils %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
@@ -13,6 +14,10 @@
         if (cloud_name.length > 0) {
             document.location.hash = cloud_name;
         }
+    }
+
+    function pass_url(url) {
+        document.getElementById('editor-iframe').src=url;
     }
 </script>
 
@@ -25,67 +30,107 @@
         <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
-                <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
-                    {% csrf_token %}
-                    <table>
-                        <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
-                        <tr class="highlight1"><td><label for="authurl">URL</label></td>
-                        <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="project">Project</label></td>
-                        <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="username">Username</label></td>
-                        <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="password">Password</label></td>
-                        <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
-                        <tr class="highlight1"><td><label for="keyname">Key pair name</label></td>
-                        <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="cacertificate">CA certificate</label></td>
-                        <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="region">Region</label></td>
-                        <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="user_domain_name">User domain name</label></td>
-                        <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                        <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
-                        <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-                        <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
-                        <td><select name="cloud_type" id=""/>
-                        {% for type in type_list %}
-                            {% if cloud.cloud_type == type.cloud_type %}
-                                <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
-                            {% else %}
-                                <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
-                            {% endif %}
+                <div class="tab">
+                    <input id="settings-{{cloud.cloud_name}}" type="checkbox" name="tabs">
+                    <label for="settings-{{cloud.cloud_name}}">Settings</label>
+                    <div class="tab-content">
+
+                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
+                            {% csrf_token %}
+                            <table>
+                                <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+                                <tr class="highlight1"><td><label for="authurl">URL</label></td>
+                                <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="project">Project</label></td>
+                                <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="username">Username</label></td>
+                                <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="password">Password</label></td>
+                                <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
+                                <tr class="highlight1"><td><label for="keyname">Key pair name</label></td>
+                                <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="cacertificate">CA certificate</label></td>
+                                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="region">Region</label></td>
+                                <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="user_domain_name">User domain name</label></td>
+                                <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                                <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
+                                <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
+                                <td><select name="cloud_type" id=""/>
+                                {% for type in type_list %}
+                                    {% if cloud.cloud_type == type.cloud_type %}
+                                        <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                    {% else %}
+                                        <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                    {% endif %}
+                                {% endfor %}
+
+                                <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
+                                <td>
+                                    <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" onchange="cores_ctl.value=cores_slider.value" />
+                                    <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" onchange="cores_slider.value=cores_ctl.value" />
+                                    / {{cloud.cores_max}}
+                                </td>
+                                <!--<td>
+                                    {% if cloud.cores_ctl == -1 %}
+                                    Using Quota
+                                    {% endif %}
+                                </td>--></tr>
+
+                                <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
+                                <td>
+                                    <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" onchange="ram_ctl.value=ram_slider.value" />
+                                    <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" onchange="ram_slider.value=ram_ctl.value" />
+                                    / {{cloud.ram_max}}
+                                </td>
+                                <!--<td>
+                                    {% if cloud.ram_ctl == -1 %}
+                                    Using Quota
+                                    {% endif %}
+                                </td>--></tr>
+
+                                <tr><td><input type="submit" value="Update Cloud" /></td>
+                                <td><a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a></td></tr>
+                            </table>
+                        </form>
+                    </div>
+
+
+                </div>
+
+
+
+                <div class="tab">
+                    <input id="metadata-{{cloud.cloud_name}}" type="checkbox" name="tabs">
+                    <label for="metadata-{{cloud.cloud_name}}">Metadata</label>
+                    <div class="tab-content">
+
+
+                        {% for key, value in metadata_dict.items %}
+
+
+                            {% for meta in value|keyvalue:cloud.cloud_name %}
+
+                            <div id="{{meta}}"> 
+
+                                <a class="menu-link" onclick="pass_url('/cloud/metadata-fetch/{{cloud.cloud_name}}::{{meta}}')" href="#{{meta}}">{{meta}}</a>
+                                
+                                
+                            </div>    
+                            {% endfor %}
                         {% endfor %}
 
-                        <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
-                        <td>
-                            <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" onchange="cores_ctl.value=cores_slider.value" />
-                            <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" onchange="cores_slider.value=cores_ctl.value" />
-                            / {{cloud.cores_max}}
-                        </td>
-                        <td>
-                            {% if cloud.cores_ctl == -1 %}
-                            Using Quota
-                            {% endif %}
-                        </td></tr>
+                        <p>Add Metadata</p>
+                    </div>
 
-                        <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
-                        <td>
-                            <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" onchange="ram_ctl.value=ram_slider.value" />
-                            <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" onchange="ram_slider.value=ram_ctl.value" />
-                            / {{cloud.ram_max}}
-                        </td>
-                        <td>
-                            {% if cloud.ram_ctl == -1 %}
-                            Using Quota
-                            {% endif %}
-                        </td></tr>
 
-                        <tr><td><input type="submit" value="Update Cloud" /></td>
-                        <td><a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a></td></tr>
-                    </table>
-                </form> 
+                </div>
+
+
             </div>
 
         </div>
@@ -129,19 +174,26 @@
         </div>
     </div>
 
-{% for cloud in cloud_list %}
-<div id="delete-{{cloud.cloud_name}}" class="modalDialog">
-    <div>
-        <a href="#{{cloud.cloud_name}}" title="Close" class="close">X</a>
-        <form name="{{cloud.cloud_name}}" action="/cloud/delete/" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
-            <input type="submit" value="Delete {{cloud.cloud_name}}" />
-        </form>
+    {% for cloud in cloud_list %}
+    <div id="delete-{{cloud.cloud_name}}" class="modalDialog">
+        <div>
+            <a href="#{{cloud.cloud_name}}" title="Close" class="close">X</a>
+            <form name="{{cloud.cloud_name}}" action="/cloud/delete/" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+                <input type="submit" value="Delete {{cloud.cloud_name}}" />
+            </form>
+        </div>
     </div>
-</div>
-{% endfor %}
+    {% endfor %}
 
+
+</div>
+
+<div id="iframe-div">
+    <div id="i-wrap">
+        <iframe id="editor-iframe" class="iframe-content" src=""></iframe>
+    </div>
 </div>
 
 <div class="footer"
@@ -151,5 +203,7 @@
         <tr><td>{{ message }}</td></tr>
     {% endif %}
 </div>
+
+
 
 </body>
