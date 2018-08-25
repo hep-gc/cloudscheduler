@@ -1,2 +1,2 @@
-This object lists and updates virtual machines(VMs) on \fBcloudscheduler\fR servers.
-The vm object and actions are available to any user, provided the user is in the group that the VMs belong to.
+The \fBvm\fR object lists and updates virtual machines(VMs) on csv2 servers.
+The \fBvm\fR object and actions are available to any user, provided the user is in the group that the VMs belong to.

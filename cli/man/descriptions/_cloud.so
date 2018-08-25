@@ -1,8 +1,5 @@
-This object adds, deletes, lists, modifies, and shows the status of cloud resources
-for clouds within the current group.
-For each group, one or more cloud resources, both commercial and private, can be 
-defined.
-Defining cloud resouces for a group allows cloudscheduler to manage those resources
-for the group, starting and stopping Virtual Machines (VMs) as required by the group's
-job queue.
+The \fBcloud\fR object adds, deletes, lists, modifies, and shows the status of clouds within the current group.
+For each group, one or more clouds, both commercial and private, can be defined.
+Defining a cloud allows cloudscheduler to manage the virtual machines(VMs) and condor job queue associated with that cloud.
+Each cloud has an associated list of metadata files that can be modified using the \fBmetadata-\fR actions.
 The cloud object and actions are available to all users, provided they are in the group the cloud definitions belong to.
