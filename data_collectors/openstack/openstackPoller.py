@@ -192,13 +192,13 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
        hash_list.append(str(item_dict[hash_item]))
        hash_object.update(str(item_dict[hash_item]).encode('utf-8'))
 
-    new_hash = hash_object.hexdigest()
-    logging.info(">>>>>>>>>>>>>>>> %s,%s" % (new_hash ','.join(hash_list))
+    new_hash = "%s,%s" % (hash_object.hexdigest(), ','.join(hash_list))
+    logging.info(">>>>>>>>>>>>>>>> %s" % new_hash)
     logging.info("<<<<<<<<<<<<<<<< %s" % inventory[group_name][cloud_name][item]['hash'])
     if new_hash == inventory[group_name][cloud_name][item]['hash']:
         return True
 
-    inventory[group_name][cloud_name][item]['hash'] = '%s,%s' % (new_hash, ','.join(hash_list)
+    inventory[group_name][cloud_name][item]['hash'] = new_hash
     return False
 
 ## Poller functions.
