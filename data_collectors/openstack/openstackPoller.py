@@ -183,13 +183,11 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
 
     inventory[group_name][cloud_name][item]['poll_time'] = poll_time
 
-    hash_list = []
     hash_object = hashlib.new('md5')
     for hash_item in sorted(item_dict):
        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
            continue
        
-       hash_list.append(str(item_dict[hash_item]))
        hash_object.update(str(item_dict[hash_item]).encode('utf-8'))
 
     new_hash = hash_object.hexdigest()
