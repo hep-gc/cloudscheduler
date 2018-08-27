@@ -744,7 +744,7 @@ def network_poller():
                         abort_cycle = True
                         break
 
-                del nova
+                del neutron
                 if abort_cycle:
                     break
 
