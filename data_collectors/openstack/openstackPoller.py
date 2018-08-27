@@ -324,7 +324,7 @@ def flavor_poller():
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if _inventory_item_hash(inventory, group_name, cloud_name, flavor.name, flav_dict, new_poll_time):
+                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, flavor.name, flav_dict, new_poll_time):
                         continue
 
                     new_flav = FLAVOR(**flav_dict)
@@ -534,7 +534,7 @@ def keypair_poller():
                     }
                     fingerprint_list.append(key.fingerprint)
 
-                    if _inventory_item_hash(inventory, group_name, cloud_name, key.name, key_dict, new_poll_time):
+                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, key.name, key_dict, new_poll_time):
                         continue
 
                     new_key = KEYPAIR(**key_dict)
@@ -629,7 +629,7 @@ def limit_poller():
                     logging.error("Unmapped attributes found during mapping, discarding:")
                     logging.error(unmapped)
 
-                if _inventory_item_hash(inventory, group_name, cloud_name, '-', limits_dict, new_poll_time):
+                if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time):
                     continue
 
                 for limit in limits_dict:
@@ -726,7 +726,7 @@ def network_poller():
                         'last_updated': int(time.time())
                     }
 
-                    if _inventory_item_hash(inventory, group_name, cloud_name, network['name'], network_dict, new_poll_time):
+                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
                         continue
 
                     network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
