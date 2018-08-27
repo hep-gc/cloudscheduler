@@ -284,7 +284,7 @@ def flavor_poller():
                 try:
                     flav_list =  nova.flavors.list()
                 except Exception as exc:
-                    logging.exception("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
                     continue
 
@@ -404,7 +404,7 @@ def image_poller():
                 try:
                     image_list =  nova.glance.list()
                 except Exception as exc:
-                    logging.exception("Failed to retrieve image data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve image data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
                     continue
 
@@ -521,7 +521,7 @@ def keypair_poller():
                     # get keypairs and add them to database
                     cloud_keys = nova.keypairs.list()
                 except Exception as exc:
-                    logging.exception("Failed to poll key pairs from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to poll key pairs from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
                     continue
 
@@ -612,7 +612,7 @@ def limit_poller():
                     for limit in limit_list:
                         limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
-                    logging.exception("Failed to retrieve limits from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
                     continue
 
@@ -705,7 +705,7 @@ def network_poller():
                 try:
                     net_list = neutron.list_networks()['networks']
                 except Exception as exc:
-                    logging.exception("Failed to retrieve networks from neutron, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve networks from neutron, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
                     continue
 
@@ -813,7 +813,7 @@ def vm_poller():
                 try:
                     vm_list = nova.servers.list()
                 except Exception as exc:
-                    logging.exception("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
                     continue
 
