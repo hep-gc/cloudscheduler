@@ -731,7 +731,7 @@ def network_poller():
 
                     ### debugging
                     for hash_item in network_dict:
-                        logging.info('>>>>>>>>>>>>>>>> %s, %s, %s' % (cloud.group_name, cloud.cloud_name, hash_item))
+                        logging.info('>>>>>>>>>>>>>>>> %s, %s, %s, %s' % (cloud.group_name, cloud.cloud_name, hash_item, network_dict[hash_item]))
 
                     if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
                         continue
