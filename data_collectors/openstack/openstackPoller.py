@@ -568,7 +568,7 @@ def keypair_poller():
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-            _delete_obsolete_items('Keypair', inventory, db_session, KEYPAIR, 'name', poll_time=new_poll_time)
+            _delete_obsolete_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
 
             logging.info("Completed keypair poller cycle")
             db_session.close()
