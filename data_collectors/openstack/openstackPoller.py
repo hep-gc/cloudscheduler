@@ -185,7 +185,7 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
 
     hash_list = []
     hash_object = hashlib.new('md5')
-    for hash_item in item_dict:
+    for hash_item in sorted(item_dict):
        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
            continue
        
