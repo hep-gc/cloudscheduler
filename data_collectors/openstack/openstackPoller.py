@@ -525,6 +525,7 @@ def keypair_poller():
                     logging.error(exc)
                     continue
 
+                uncommitted_updates = 0
                 for key in cloud_keys:
                     key_dict = {
                         "cloud_name":  cloud.cloud_name,
@@ -596,6 +597,7 @@ def limit_poller():
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            uncommitted_updates = 0
             for cloud in cloud_list:
                 logging.info("Processing Limits from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
                 session = _get_openstack_session(cloud)
@@ -713,6 +715,7 @@ def network_poller():
                     logging.info("No networks defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
 
+                uncommitted_updates = 0
                 for network in net_list:
                     network_dict = {
                         'group_name': cloud.group_name,
