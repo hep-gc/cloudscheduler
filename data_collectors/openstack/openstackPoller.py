@@ -188,6 +188,7 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
            continue
        
+       logging.info("<<<<<<<<<<<<<<<<<<<<<<<< %s" % hash_item)
        hash_object.update(str(item_dict[hash_item]).encode('utf-8'))
 
     new_hash = hash_object.hexdigest()
