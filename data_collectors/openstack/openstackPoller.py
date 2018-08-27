@@ -690,13 +690,13 @@ def network_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
+        inventory = {}
         while True:
             logging.info("Beginning network poller cycle")
             db_session = Session(engine)
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
-            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
