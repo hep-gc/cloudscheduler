@@ -183,19 +183,22 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
 
     inventory[group_name][cloud_name][item]['poll_time'] = poll_time
 
+    hash_list = []
     hash_object = hashlib.new('md5')
     for hash_item in item_dict:
        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
            continue
        
-       logging.info("<<<<<<<<<<<<<<<<<<<<<<<< %s" % hash_item)
+       hash_list.append(str(item_dict[hash_item]))
        hash_object.update(str(item_dict[hash_item]).encode('utf-8'))
 
     new_hash = hash_object.hexdigest()
+    logging.info(">>>>>>>>>>>>>>>> %s,%s" % (new_hash ','.join(hash_list))
+    logging.info("<<<<<<<<<<<<<<<< %s" % inventory[group_name][cloud_name][item]['hash'])
     if new_hash == inventory[group_name][cloud_name][item]['hash']:
         return True
 
-    inventory[group_name][cloud_name][item]['hash'] = new_hash
+    inventory[group_name][cloud_name][item]['hash'] = '%s,%s' % (new_hash, ','.join(hash_list)
     return False
 
 ## Poller functions.
@@ -729,10 +732,6 @@ def network_poller():
                         'id': network['id'],
                         'last_updated': int(time.time())
                     }
-
-                    ### debugging
-                    for hash_item in network_dict:
-                        logging.info('>>>>>>>>>>>>>>>> %s, %s, %s, %s' % (cloud.group_name, cloud.cloud_name, hash_item, network_dict[hash_item]))
 
                     if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
                         continue
