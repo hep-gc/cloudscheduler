@@ -63,6 +63,8 @@ left outer join cloud_flavors as cf on
 left outer join (
     select
 
+    substring_index(machine,'--',1) as group_name,
+    substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
     substring_index(machine,'.',1) as hostname,
     machine,
     my_current_time,
@@ -79,11 +81,16 @@ left outer join (
     where  slot_type="Partitionable"
     ) as cpp /* condor_primary_partition */
 
-on cv.hostname=cpp.hostname
+on
+    cv.group_name=cpp.group_name and
+    cv.cloud_name=cpp.cloud_name and
+    cv.hostname=cpp.hostname
 
 left outer join (
     select
 
+    substring_index(machine,'--',1) as group_name,
+    substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
     substring_index(machine,'.',1) as hostname,
     sum(case when activity="Busy" then 1 else 0 end) as condor_slots_used
 
@@ -94,6 +101,9 @@ left outer join (
     group by machine
     ) as cdp /* condor_dynamic_partitions */
 
-on cv.hostname=cdp.hostname
+on
+    cv.group_name=cpp.group_name and
+    cv.cloud_name=cpp.cloud_name and
+    cv.hostname=cpp.hostname
 
 ;
