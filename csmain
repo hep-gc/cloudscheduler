@@ -73,7 +73,7 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            verify_idle_jobs(csgroup.group_name)
+            #verify_idle_jobs(csgroup.group_name)
             check_idle_time(csgroup.group_name)
             check_idle_time_unset(csgroup.group_name)
             idle_machines = check_idle_machines(csgroup.group_name)
