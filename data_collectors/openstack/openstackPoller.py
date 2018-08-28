@@ -13,6 +13,7 @@ import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.sql import func
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -788,6 +789,11 @@ def vm_poller():
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
     last_poll_time = 0
+    
+    # TEST.
+    qry = session.query(func.max(VM.last_updated).label("test_update"))
+    res = qry.one()
+    logging.info("TEST >>>>>>>>>>>>>>>>>>>>>>>> %s" % res.test_update)
 
     try:
         while True:
@@ -843,7 +849,7 @@ def vm_poller():
                         'flavor_id': vm.flavor["id"],
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                         'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
-                        'last_updated': int(time.time())
+                        'last_updated': new_poll_time
                     }
 
                     vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
