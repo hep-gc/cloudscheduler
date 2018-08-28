@@ -163,6 +163,21 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             return False
         return sess
 
+def _initialize_last_poll_time(engine, time_column):
+    try:
+        db_session = Session(engine)
+        db_query = db_session.query(func.max(time_column).label("timestamp"))
+        db_response = db_query.one()
+        last_poll_time = db_response.timestamp
+        del db_session
+    except Exception as exc:
+        logging.error("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+        logging.error(exc)
+        last_poll_time = 0
+
+    logging.info("Setting last_poll_time: %s" % db_response.timestamp)
+    return last_poll_time
+
 def _inventory_group_and_cloud(inventory, group_name, cloud_name):
     if group_name not in inventory:
         inventory[group_name] = {}
@@ -378,7 +393,7 @@ def image_poller():
     Base.prepare(engine, reflect=True)
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
+    last_poll_time = _initialize_last_poll_time(engine, IMAGE.last_updated)
 
     try:
         while True:
@@ -788,13 +803,8 @@ def vm_poller():
     Base.prepare(engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
+    last_poll_time = _initialize_last_poll_time(engine, VM.last_updated)
     
-    # TEST.
-    qry = session.query(func.max(VM.last_updated).label("test_update"))
-    res = qry.one()
-    logging.info("TEST >>>>>>>>>>>>>>>>>>>>>>>> %s" % res.test_update)
-
     try:
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
