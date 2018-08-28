@@ -1,0 +1,33 @@
+.so ../man/_header.so
+\fBcloudscheduler vm\fR \- manage VMs on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B vm
+.I action
+.I mandatory_parameters
+.RI "[" "options " "...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_vm.so
+.\" --------------------------------------------------------------------
+.SH ACTIONS
+.\" --------------------------------------------------------------------
+For information on the parameters associated with each \fBvm\fR action, refer
+to the documentation for that action (\fBcloudscheduler vm \fIaction\fB -H\fR).
+The following actions are available for the \fBvm\fR object:
+.TP
+.B list
+.so ../man/descriptions/_vm_list.so
+.TP
+.B update
+.so ../man/descriptions/_vm_update.so
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_vm_list (1)
+.BR csv2_vm_update (1)

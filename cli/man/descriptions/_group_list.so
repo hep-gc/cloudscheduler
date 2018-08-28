@@ -1,2 +1,4 @@
 The \fBcloudscheduler group list\fR action displays groups from csv2 servers.
+Any metadata filename lists in this table are in alphabetic order, to see the priority ordering use the command:
+\fBcloudscheduler group metadata-list\fF or \fBcloudscheduler cloud metadata-collation\fR.
 This action is only available to privileged users.

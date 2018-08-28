@@ -1,0 +1,76 @@
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/metadata.css" %}">
+
+
+<script type="text/javascript">
+    function pass_url(url) {
+        document.getElementById('editor-iframe').src=url;
+    }
+</script>
+</head>
+
+<body class="clouds-meta-nav">
+
+<div class="main-div">
+
+    <div class="menu">
+        <!--https://codepen.io/nathanlong/pen/mBrvn-->
+        <!--
+        {% for meta in cloud_metadata_names %}
+
+            
+            <div id="{{meta.cloud_name}}"> 
+
+                <a class="menu-link" href="#{{meta.cloud_name}}">{{meta.cloud_name}}</a>
+
+                <div class="menu-target">
+
+                    {{ meta.metadata_names }}
+                    {% for name in meta.metadata_names %}
+                        
+                        <a class="menu-link" onclick="pass_url('/cloud/metadata-fetch/{{meta.cloud_name}}::{{name}}')" href="#{{meta.cloud_name}}-{{name}}">{{ name }}</a>
+
+                    {% endfor %}
+
+                </div>
+                
+            </div>    
+
+        {% endfor %}
+
+
+        -->
+
+
+        
+        {% for meta in cloud_metadata_list %}
+
+            
+            <div id="{{meta.cloud_name}}-{{meta.metadata_name}}"> 
+
+                <a class="menu-link" onclick="pass_url('/cloud/metadata-fetch/{{meta.cloud_name}}::{{meta.metadata_name}}')" href="#{{meta.cloud_name}}-{{meta.metadata_name}}">{{meta.cloud_name}}-{{meta.metadata_name}}</a>
+
+                <div class="menu-target">
+
+                    
+                </div>
+                
+            </div>    
+
+        {% endfor %}
+        
+    </div>
+
+    <iframe id="editor-iframe" class="iframe-content" src=""></iframe>
+
+</body>
+</html>
+
+

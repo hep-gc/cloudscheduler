@@ -1,0 +1,6 @@
+.TP
+\fB\-su \fIusername\fR, \fB\-\-server-user \fIusername\fR
+Specifies the user ID to use when authenticating with the cloudscheduler server.
+There is no default.
+If specified, the user must also specify the \fB\-spw\fR option, or a password promp will be issued.
+This option, together with the \fB\-spw\fR option will be ignored if certificate authentication is being used.

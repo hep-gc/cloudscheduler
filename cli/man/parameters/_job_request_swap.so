@@ -1,0 +1,4 @@
+.TP
+\fB\-jrs \fIswap\fR, \fB\-\-job-request-swap \fIswap\fR
+The requested number of GBs of swap for the job.
+Filters the job list to only jobs that match \fIswap\fR.

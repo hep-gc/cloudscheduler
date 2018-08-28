@@ -25,7 +25,6 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
     OpenStack Connector class for cloudscheduler
     """
     def __init__(self, resource=None, vms=None, defaultsecuritygroup=None,
-                 defaultimage=None, defaultflavor=None,
                  defaultnetwork=None, extrayaml=None,):
 
         """
@@ -33,8 +32,6 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
 
         :param resource: resource row from db
         :param defaultsecuritygroup:
-        :param defaultimage:
-        :param defaultflavor:
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
@@ -56,11 +53,11 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             raise Exception
 
         self.default_securitygroup = defaultsecuritygroup
-        self.default_image = defaultimage
-        self.default_flavor = defaultflavor
+        self.default_image = resource.vm_image
+        self.default_flavor = resource.vm_flavor
         self.default_network = defaultnetwork
 
-    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, keep_alive=0):
+    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, keep_alive=0, image=None):
         """
         Try to boot VMs on OpenStack.
         :param group_yaml_list: yaml from the group owning cloud
@@ -108,6 +105,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                 imageobj = nova.glance.find_image(image_dict[self.name])
             elif self.default_image:
                 imageobj = nova.glance.find_image(self.default_image)
+            elif image:
+                imageobj = nova.glance.find_image(image)
             else:
                 imageobj = nova.glance.find_image(csconfig.config.default_image)
         except novaclient.exceptions.EndpointNotFound:

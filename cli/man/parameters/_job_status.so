@@ -1,0 +1,10 @@
+.TP
+\fB\-jS \fIstatus\fR, \fB\-\-job-status \fIstatus\fR
+The status code of the job.
+Filters the job list to only jobs that match \fIstatus\fR.
+The value of \fIstatus\fR must be an integer between 1 and 5.
+\fB1\fR - ******
+\fB2\fR - ******
+\fB3\fR - ******
+\fB4\fR - ******
+\fB5\fR - the job is held.

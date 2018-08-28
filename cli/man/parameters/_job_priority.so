@@ -1,0 +1,5 @@
+.TP
+\fB\-jp \fIpriority\fR, \fB\-\-job-priority \fIpriority\fR
+The priority of the job.
+Filters the job list to only jobs that have \fIpriority\fR.
+The value of \fIpriority\fR must be an integer.

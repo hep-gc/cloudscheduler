@@ -10,8 +10,7 @@ vgr.*,
 metadata_name,
 cgrm.enabled as metadata_enabled,
 priority as metadata_priority,
-mime_type as metadata_mime_type,
-metadata
+mime_type as metadata_mime_type
 
 from view_group_resources as vgr
 left outer join csv2_group_resource_metadata as cgrm on

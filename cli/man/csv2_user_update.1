@@ -25,35 +25,38 @@
 .SS Optional
 .\" --------------------------------------------------------------------
 .so ../man/_options.so
-.so ../man/parameters/_group.so
 .so ../man/parameters/_group_name_user_update.so
 .so ../man/parameters/_group_option.so
-.so ../man/parameters/_long_help.so
-.so ../man/parameters/_help.so
-.so ../man/parameters/_server.so
 .so ../man/parameters/_super_user.so
 .so ../man/parameters/_user_common_name.so
 .so ../man/parameters/_user_password.so
-.so ../man/parameters/_expose_api.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Updating a user to be a super user:
-.P
 .EX
-\fI#sh\fR cloudscheduler user update -un example -SU yes
+$ cloudscheduler user update -un example -SU yes
+user "example" successfully updated.
 .EE
-.P
+.TP
+2.
 Adding a user to groups:
-.P
 .EX
-\fI#sh\fR cloudscheduler user update -un example -gn group1,group2
+$ cloudscheduler user update -un example -gn group1,group2
+user "example" successfully updated.
 .EE
-.P
+.TP
+3.
 Removing the user from a group:
-.P
 .EX
-\fI#sh\fR cloudscheduler user update -un example -gn group1 -go delete
+$ cloudscheduler user update -un example -gn group1 -go delete
+user "example" successfully updated.
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

@@ -172,7 +172,7 @@ def update(request):
             if fields['vm_option'] == 'kill':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
             elif fields['vm_option'] == 'retire':
-                update = table.update().where(table.c.hostname == vm['hostname']).values({'retire_request_time': int(time.time())})
+                update = table.update().where(table.c.machine.like(f"%{vm['hostname']}%")).values({'retire_request_time': int(time.time())})
             elif fields['vm_option'] == 'manctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
             elif fields['vm_option'] == 'sysctl':

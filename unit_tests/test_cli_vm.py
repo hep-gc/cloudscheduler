@@ -94,7 +94,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm list, table #1 columns: keys=group_name,cloud_name,hostname, columns=vmid,auth_url,project,status,flavor_id,task,power_status,terminate,terminate_time,status_changed_time,last_updated,flavor_name,condor_slots,condor_off,foreign_vm,cores,disk,ram,swap,poller_status',
+        gvar, 0, None, 'vm list, table #1 columns: keys=group_name,cloud_name,hostname, columns=vmid,auth_url,project,status,flavor_id,task,power_status,terminate,terminate_time,status_changed_time,last_updated,flavor_name,condor_slots,foreign_vm,cores,disk,ram,swap,poller_status,manual_control',
         ['cloudscheduler', 'vm', 'list', '-VC']
     )
 
@@ -159,7 +159,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Rows: 0',
+        gvar, 1, None, 'Error: The following command line arguments were invalid: vm-keypair',
         ['cloudscheduler', 'vm', 'list', '-vk', 'invalid-unit-test']
     )
 

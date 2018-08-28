@@ -41,25 +41,26 @@
 .so ../man/parameters/_cloud_project_domain.so
 .so ../man/parameters/_cloud_spot_price.so
 .so ../man/parameters/_cloud_user_domain.so
-.so ../man/parameters/_group.so
 .so ../man/parameters/_group_metadata_exclusion.so
-.so ../man/parameters/_long_help.so
-.so ../man/parameters/_help.so
-.so ../man/parameters/_server.so
 .so ../man/parameters/_vm_cores.so
 .so ../man/parameters/_vm_flavor.so
 .so ../man/parameters/_vm_image.so
 .so ../man/parameters/_vm_keypair.so
 .so ../man/parameters/_vm_keep_alive.so
 .so ../man/parameters/_vm_ram.so
-.so ../man/parameters/_expose_api.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Adding the cloud "example":
-.P
 .EX
-\fI#sh\fR cloudscheduler cloud add -ca example.ca -cn example -cpw example -cp example -cr example -ct amazon -cu example
+$ cloudscheduler cloud add -ca example.ca -cn example -cpw example -cp example -cr example -ct amazon -cu example
+cloud "example::example" successfully added.
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

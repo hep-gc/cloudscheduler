@@ -1,0 +1,4 @@
+.TP
+\fB\-ju \fIuser\fR, \fB\-\-job-user \fIuser\fR
+The user for the job.
+Filters the job list to only jobs that match \fIuser\fR.

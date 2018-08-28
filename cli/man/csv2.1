@@ -37,14 +37,14 @@ When a group of settings is saved for a server, it will contain all the boolean 
 only those keywords that have been explicitly set.
 Specifying a boolean keyword more than once will toggle its' value from \fBFalse\fR to
 \fBTrue\fR and back to \fBFalse\fR, etc.
-A default value can be saved in the \fBsettings\fR but overridden on the command line.
+A default value can be saved in the \fBdefaults\fR but overridden on the command line.
 .\" --------------------------------------------------------------------
 .SH OBJECTS
 .\" --------------------------------------------------------------------
 The first two positional arguments to the \fBcloudscheduler\fR command are  an \fBobject\fR 
 and an \fBaction\fR to be perfomed.
 For information about the actions associated with a particular object, refer
-to the documentation for that object (eg. cloudscheduler <object> -H).
+to the documentation for that object (eg. \fBcloudscheduler \fIobject\fB -H\fR).
 The following is a list and brief description of the available objects:
 .TP
 .B cloud
@@ -63,7 +63,9 @@ The following is a list and brief description of the available objects:
 .so ../man/descriptions/_job.so
 .TP
 .B user
+.RS
 .so ../man/descriptions/_user.so
+.RE
 .TP
 .B vm
 .so ../man/descriptions/_vm.so
@@ -75,7 +77,8 @@ The following global options are applicable to all \fBcloudscheduler\fR commands
 .\" --------------------------------------------------------------------
 .SS Authentication Options
 .\" --------------------------------------------------------------------
-The following options are used to address the cloudscheduler server and to identify the user to the server:
+The following options are used to address the cloudscheduler server and to identify the user's current group to the server:
+.so ../man/parameters/_group.so
 .so ../man/parameters/_server.so
 .\" --------------------------------------------------------------------
 .SS Information Options

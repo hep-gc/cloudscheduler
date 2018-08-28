@@ -1,0 +1,3 @@
+The \fBcloudscheduler defaults set\fR action adds a default for a csv2 server if the server name specified by \fB\-s\fR doesn't already exist in the defaults list.
+If the server name specified by \fB\-s\fR does exist in the defaults list then that default set is modified by any other options specified.
+This action is available to any user.

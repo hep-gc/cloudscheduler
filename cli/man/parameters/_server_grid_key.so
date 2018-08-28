@@ -1,0 +1,5 @@
+.TP
+\fB\-sK \fIkey\fR, \fB\-\-server-grid-key \fIkey\fR
+Specifies the location of an x509 grid certificate key used to identify the user to the cloudscheduler server.
+There is no default.
+If specified, the user must also specify the \fB\-sC\fR option, in which case certificate authentication will be used and the \fB\-su\fR and the \fB\-spw\fR options will be ignored.

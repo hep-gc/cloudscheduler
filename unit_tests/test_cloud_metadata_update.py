@@ -200,5 +200,35 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
+        '/cloud/metadata-update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty3.yaml'),
+            'priority': 1
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
+        '/cloud/metadata-update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty3.yaml'),
+            'mime_type': 'ucernvm-config'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
+        '/cloud/metadata-update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': ut_id(gvar, 'cty3.yaml'),
+            'enabled': 'false'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
 if __name__ == "__main__":
     main(None)

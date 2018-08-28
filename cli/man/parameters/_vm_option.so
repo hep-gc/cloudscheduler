@@ -1,0 +1,8 @@
+.TP
+\fB\-vo \fIoption\fR, \fB\-\-vm-option \fIoption\fR
+What action should be done to selected VMs.
+The value for \fIoption\fR must be one of: \fBkill\fR, \fBretire\fR, \fBmanctl\fR, or \fBsysctl\fR.
+If \fIoption\fR is \fBkill\fR the selected VMs will be killed if they are also under system control.
+If \fIoption\fR is \fBretire\fR the selected VMs will be retired if they are also under system control.
+If \fIoption\fR is \fBmanctl\fR the selected VMs will be removed from system control and the csv2 server will not interact with them.
+If \fIoption\fR is \fBsysctl\fR the selected VMs will be placed under system control and the csv2 server will manage them.

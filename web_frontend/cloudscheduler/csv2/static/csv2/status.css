@@ -94,6 +94,15 @@
   z-index: -1;
 }
 
+
+.status-table td td {
+  border-bottom: 0px;
+  padding: 1px;
+
+}
+
+
+
 .name-style{
   background-color: maroon;
   color: white;
@@ -256,4 +265,48 @@
   .popup{
     width: 70%;
   }
+}
+
+
+
+
+
+
+.system-services {
+  position: absolute;
+  bottom: 0;
+  padding: 1rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+.system-services th {
+  text-align: center;
+}
+
+.system-services td {
+  width: 50px;
+}
+
+.system-services .col-spacer {
+  background-color: white;
+  border-bottom: 0px;
+  color: white;
+  width: 20px;
+}
+
+.green-dot {
+  height: 25px;
+  width: 25px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.red-dot {
+  height: 25px;
+  width: 25px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
 }

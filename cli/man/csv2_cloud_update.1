@@ -35,38 +35,41 @@
 .so ../man/parameters/_cloud_type.so
 .so ../man/parameters/_cloud_user_domain.so
 .so ../man/parameters/_cloud_user.so
-.so ../man/parameters/_group.so
 .so ../man/parameters/_group_metadata_exclusion.so
 .so ../man/parameters/_group_metadata_option.so
-.so ../man/parameters/_long_help.so
-.so ../man/parameters/_help.so
-.so ../man/parameters/_server.so
 .so ../man/parameters/_vm_cores.so
 .so ../man/parameters/_vm_flavor.so
 .so ../man/parameters/_vm_image.so
 .so ../man/parameters/_vm_keypair.so
 .so ../man/parameters/_vm_keep_alive.so
 .so ../man/parameters/_vm_ram.so
-.so ../man/parameters/_expose_api.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 Updating the cloud "example":
-.P
 .EX
-\fI#sh\fR cloudscheduler cloud update -cn example -ca updated.ca -ce false
+$ cloudscheduler cloud update -cn example -ca updated.ca -ce false
+cloud "example::example" successfully updated.
 .EE
-.P
+.TP
+2.
 Updating the cloud "example" to exclude a group metadata file:
-.P
 .EX
-\fI#sh\fR cloudscheduler cloud update -cn example -gme group-metadata1 -gmo add
+$ cloudscheduler cloud update -cn example -gme group-metadata1 -gmo add
+cloud "example::example" successfully updated.
 .EE
-.P
+.TP
+3.
 Updating the cloud "example" to not exclude a group metadata file:
-.P
 .EX
-\fI#sh\fR cloudscheduler cloud update -cn example -gme group-metadata1 -gmo delete
+$ cloudscheduler cloud update -cn example -gme group-metadata1 -gmo delete
+cloud "example::example" successfully updated.
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

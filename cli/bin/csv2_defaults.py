@@ -10,8 +10,15 @@ def delete(gvar):
     Delete settings.
     """
 
+    mandatory = ['-s']
+    required = []
+    optional = ['-H', '-h', '-Y']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-s'], [], ['-H', '-h', '-Y'], requires_server=False)
+    check_keys(gvar, mandatory, required, optional, requires_server=False)
 
     if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         # Confirm settings delete.
@@ -32,8 +39,15 @@ def list(gvar):
     List settings.
     """
 
+    mandatory = []
+    required = []
+    optional = ['-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, [], [], ['-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC'], requires_server=False)
+    check_keys(gvar, mandatory, required, optional, requires_server=False)
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
     _keys = ['server,k']
@@ -71,8 +85,15 @@ def set(gvar):
     Modify settings.
     """
 
+    mandatory = ['-s']
+    required = []
+    optional = ['*']
+
+    if gvar['retrieve_options']:
+        return mandatory + required + optional
+
     # Check for missing arguments or help required.
-    check_keys(gvar, ['-s'], [], ['*'], requires_server=False)
+    check_keys(gvar, mandatory, required, optional, requires_server=False)
 
     # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):

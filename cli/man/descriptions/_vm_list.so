@@ -1,0 +1,2 @@
+The \fBcloudscheduler vm list\fR action displays VMs from the current group on csv2 servers.
+This action is available to any user, provided they are in the group that the VMs belong to.

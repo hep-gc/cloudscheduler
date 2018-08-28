@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import copy
+import math
 import time
 import logging
 from collections import defaultdict
@@ -72,7 +73,7 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            verify_idle_jobs(csgroup.group_name)
+            #verify_idle_jobs(csgroup.group_name)
             check_idle_time(csgroup.group_name)
             check_idle_time_unset(csgroup.group_name)
             idle_machines = check_idle_machines(csgroup.group_name)
@@ -143,7 +144,11 @@ def main():
                     else:
                         clouds_matching_new = session.query(view_available_resources).filter(
                             view_available_resources.c.flavor.in_(flavor_list))
+
+                    cloud_booted_on = set()
                     for cloud in clouds_matching_new:
+                        if cloud.cloud_name in cloud_booted_on:
+                            continue
                         log.debug("Taking a look at booting on: %s", cloud.cloud_name)
                         log.debug("num jobs per flavor: %s", num_jobs_per_flavor_possible)
                         # Need to redo this calculation for each cloud / flavor because it may change
@@ -151,6 +156,7 @@ def main():
                         log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
                         # This is the total wanted, but cloud may not be able to handle that request
                         num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
+                        num_vms_to_boot = math.ceil(num_vms_to_boot)
                         log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
                         # TODO Setup proper throttling and configuration of it.
                         MAX_BOOT = 5  # Temp fix to quickly get a throttle in place
@@ -167,16 +173,26 @@ def main():
                                          'cs_condor_host': csgroup.condor_central_manager}
                         log.debug(template_dict)
                         try:
-                            if cm_group.clouds[cloud_match.cloud_name].enabled:
-                                cm_group.clouds[cloud_match.cloud_name]\
+                            if cm_group.clouds[cloud.cloud_name].enabled:
+                                use_image = None
+                                if idle_job.image:
+                                    use_image = None
+                                elif cloud.default_image:
+                                    use_image = cloud.default_image
+                                else:
+                                    pass  # TODO group defaults vm_image - looks like it already fills in though.
+
+                                cm_group.clouds[cloud.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
                                                num=int(num_vms_to_boot),
                                                flavor=cloud.flavor,  #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
                                                job=idle_job,
                                                template_dict=template_dict,
-                                               keep_alive=cloud.keep_alive)
-                            runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
-                            log.debug('done booting on cloud %s', cloud_match.cloud_name)
+                                               keep_alive=cloud.keep_alive,
+                                               image = use_image)
+                                runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
+                                log.debug('done booting on cloud %s', cloud.cloud_name)
+                                cloud_booted_on.add(cloud.cloud_name)
                             if runnable_job_count < 0:  # Still need more
                                 log.debug("Runnable total still negative after booting VMs, try to boot more on another cloud if possible.")
                                 continue
@@ -186,7 +202,7 @@ def main():
 
                         except Exception as ex:
                             # lets try to disable or dump this cloud for now
-                            log.exception("Disable cloud %s due to exception(later).", cloud_match.cloud_name)
+                            log.exception("Disable cloud %s due to exception(later).", cloud.cloud_name)
                             #cm_group.clouds[cloud_match.cloud_name].enabled = False
                             # TODO Need logic for re-enable before stopping things and forgetting about them.
                     else:

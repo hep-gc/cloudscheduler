@@ -29,6 +29,9 @@ from sqlalchemy import exists
 from sqlalchemy.sql import select
 from lib.schema import *
 import sqlalchemy.exc
+#import subprocess
+import os
+import psutil
 
 # lno: CV - error code identifier.
 
@@ -419,7 +422,6 @@ def list(
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata',
                     ]
                 },
             prune=['password']    
@@ -645,14 +647,14 @@ def metadata_fetch(request, selector=None):
                         }
                 
                     db_close(db_ctl)
-                    return render(request, 'csv2/clouds.html', context)
+                    return render(request, 'csv2/editor.html', context)
              
     db_close(db_ctl)
 
     if id:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
+      return render(request, 'csv2/editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
     else:
-      return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
+      return render(request, 'csv2/editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -680,6 +682,17 @@ def metadata_list(request):
     # Retrieve cloud/metadata information.
     s = select([csv2_group_resource_metadata]).where(csv2_group_resource_metadata.c.group_name == active_user.active_group)
     cloud_metadata_list = qt(db_connection.execute(s))
+    
+
+
+    # Retrieve group/metadata information.
+    s = select([view_groups_with_metadata_names]).where(view_groups_with_metadata_names.c.group_name == active_user.active_group)
+    group_metadata_names = qt(db_connection.execute(s))
+
+    # Retrieve cloud/metadata information.
+    s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
+    cloud_metadata_names = qt(db_connection.execute(s))
+
 
     db_close(db_ctl)
 
@@ -689,12 +702,14 @@ def metadata_list(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_metadata_list': cloud_metadata_list,
+            'group_metadata_names': group_metadata_names,
+            'cloud_metadata_names': cloud_metadata_names,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
         }
 
-    return render(request, 'csv2/cloud_metadata_list.html', context)
+    return render(request, 'csv2/metadata-list.html', context)
 
 #-------------------------------------------------------------------------------
 
@@ -733,7 +748,18 @@ def metadata_update(request):
             ).values(table_fields(fields, table, columns, 'update')))
         if rc == 0:
             db_close(db_ctl, commit=True)
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+            #return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+            message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+            context = {
+                    'group_name': fields['group_name'],
+                    'cloud_name': fields['cloud_name'],
+                    'metadata': fields['metadata'],
+                    'response_code': 0,
+                    'message': message,
+                }
+
+            return render(request, 'csv2/editor.html',context)
         else:
             db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
@@ -795,6 +821,58 @@ def status(request, group_name=None):
             cloud_total_list["cores_available"] += d["cores_ctl"]
     
 
+    # Determine the csv2 service statuses and put them in a list
+    system_list = {}
+
+
+    status_msg = os.popen("service csv2-main status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["main"] = 1
+    else:
+        system_list["main"] = status_msg.replace('Active:', '')
+
+    status_msg = os.popen("service csv2-openstack status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["openstack"] = 1
+    else:
+        system_list["openstack"] = status_msg.replace('Active:', '')
+
+    status_msg = os.popen("service csv2-jobs status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["jobs"] = 1
+    else:
+        system_list["jobs"] = status_msg.replace('Active:', '')
+
+    status_msg = os.popen("service csv2-collector status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["collector"] = 1
+    else:
+        system_list["collector"] = status_msg.replace('Active:', '')
+
+    status_msg = os.popen("service mariadb status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["db"] = 1
+    else:
+        system_list["db"] = status_msg.replace('Active:', '')
+
+    status_msg = os.popen("service condor status | grep 'Active'").read()
+    if 'running' in status_msg:
+        system_list["condor"] = 1
+    else:
+        system_list["condor"] = status_msg.replace('Active:', '')
+
+
+    # Determine the system load, RAM and disk usage
+
+    system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+
+    system_list["ram"] = psutil.virtual_memory()[2]
+    system_list["ram_size"] = round(psutil.virtual_memory()[0]/1000000000 , 1)
+    system_list["ram_used"] = round(psutil.virtual_memory()[3]/1000000000 , 1)
+
+    system_list["disk"] = round(100*(psutil.disk_usage('/')[1] / psutil.disk_usage('/')[0]),1)
+    system_list["disk_size"] = round(psutil.disk_usage('/')[0]/1000000000 , 1)
+    system_list["disk_used"] = round(psutil.disk_usage('/')[1]/1000000000 , 1)
 
     context = {
             'active_user': active_user,
@@ -803,6 +881,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
+            'system_list' : system_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint

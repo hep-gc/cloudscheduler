@@ -1,4 +1,4 @@
--- MySQL dump 10.16  Distrib 10.2.14-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.2.16-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
@@ -23,8 +23,8 @@ DROP TABLE IF EXISTS `cloud_flavors`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `cloud_flavors` (
-  `group_name` varchar(128) NOT NULL,
-  `cloud_name` varchar(128) NOT NULL,
+  `group_name` varchar(32) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
   `id` varchar(128) NOT NULL,
   `ram` int(11) NOT NULL,
   `cores` int(11) NOT NULL,
@@ -47,4 +47,4 @@ CREATE TABLE `cloud_flavors` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-06-20 11:13:36
+-- Dump completed on 2018-07-30 12:45:36

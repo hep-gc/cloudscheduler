@@ -1,5 +1,5 @@
-This object manipulates groups of settings within a user's \fB~/.csv2\fR directory,
-and provides actions to save, list, update, and delete settings for multiple servers.
+The \fBdefaults\fR object manipulates groups of defaults within a user's \fB~/.csv2\fR directory,
+and provides actions to set, delete, and list defaults for multiple servers.
 A sub-directory is created for each server, and within that sub-directory, a single 
 \fBsettings.yaml\fR file contains the default value for each parameter for that server.
-The settings object and actions are available to all users.
+The defaults object and actions are available to all users.

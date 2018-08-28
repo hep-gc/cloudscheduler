@@ -250,10 +250,26 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu6'),
+            'cert_cn': ut_id(gvar, 'user-test-user-six')
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu6')),
+        '/user/update/', form_data={
+            'username': ut_id(gvar, 'utu6'),
+            'cert_cn': ut_id(gvar, 'user-test-user-six')
+        }
+    )
+
+    execute_csv2_request(
         gvar, 0, None, None,
         '/user/list/',
         list='user_list', filter={'username': ut_id(gvar, 'utu6')},
-        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None}
+        values={'username': ut_id(gvar, 'utu6'), 'user_groups': None, 'cert_cn': ut_id(gvar, 'user-test-user-six')}
     )
 
     execute_csv2_request(

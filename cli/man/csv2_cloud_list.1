@@ -20,22 +20,98 @@
 .\" --------------------------------------------------------------------
 .so ../man/_options.so
 .so ../man/parameters/_cloud_name.so
-.so ../man/parameters/_group.so
-.so ../man/parameters/_long_help.so
-.so ../man/parameters/_help.so
-.so ../man/parameters/_server.so
-.so ../man/parameters/_expose_api.so
 .\" --------------------------------------------------------------------
 .SS Table
 .\" --------------------------------------------------------------------
 .so ../man/_table_options.so
 .\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
-Listing the cloud "example":
-.P
+.TP
+1.
+Listing all clouds in the current group:
 .EX
-\fI#sh\fR cloudscheduler cloud list -ca example.ca
+$ cloudscheduler cloud list
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Clouds: (1/4)
++---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
++ Group   | Cloud   | Enabled     | URL         | Project Domain | Project | User Domain | User    | Region  | Spot Price +
++---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+| example | example | 1           | example.com | Default        | example | Default     | example | example | None       |
+| example | testing | 1           | testing.com | Default        | example | Default     | example | example | None       |
++---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+
+Clouds: (2/4)
++---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
++         |         |            |         |           Cores           |            RAM            | Cloud Default +
++  Group  |  Cloud  | Cloud Type | Keyname |   Control         Max     |   Control         Max     |    Flavor     +
++---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
+| example | example | local      | None    | -1          | 0           | -1          | 0           | None          |
+| example | testing | local      | None    | -1          | 0           | -1          | 0           | None          |
++---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
+
+Clouds: (3/4)
++---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
++         |         |         Cloud Default         |                     Cascading Default                     +
++  Group  |  Cloud  |     Image        Keep Alive   |      Flavor               Image            Keep Alive     +
++---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
+| example | example | None          | None          | cl-update         | cl-update         | 1                 |
+| example | testing | None          | None          | cl-update         | cl-update         | 1                 |
++---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
+
+Clouds: (4/4)
++---------+---------+----------------+------------------+-----------+
++         |         |                |           Metadata           +
++  Group  |  Cloud  | CA Certificate | Group Exclusions   Filenames +
++---------+---------+----------------+------------------+-----------+
+| example | example | None           | None             | None      |
+| example | testing | None           | None             | None      |
++---------+---------+----------------+------------------+-----------+
+Rows: 2
+.EE
+.TP
+2.
+Listing the cloud "example":
+.EX
+$ cloudscheduler cloud list -cn example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Clouds: (1/4)
++---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
++ Group   | Cloud   | Enabled     | URL         | Project Domain | Project | User Domain | User    | Region  | Spot Price +
++---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+| example | example | 1           | example.com | Default        | example | Default     | example | example | None       |
++---------+---------+-------------+-------------+----------------+---------+-------------+---------+---------+------------+
+
+Clouds: (2/4)
++---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
++         |         |            |         |           Cores           |            RAM            | Cloud Default +
++  Group  |  Cloud  | Cloud Type | Keyname |   Control         Max     |   Control         Max     |    Flavor     +
++---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
+| example | example | local      | None    | -1          | 0           | -1          | 0           | None          |
++---------+---------+------------+---------+-------------+-------------+-------------+-------------+---------------+
+
+Clouds: (3/4)
++---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
++         |         |         Cloud Default         |                     Cascading Default                     +
++  Group  |  Cloud  |     Image        Keep Alive   |      Flavor               Image            Keep Alive     +
++---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
+| example | example | None          | None          | cl-update         | cl-update         | 1                 |
++---------+---------+---------------+---------------+-------------------+-------------------+-------------------+
+
+Clouds: (4/4)
++---------+---------+----------------+------------------+-----------+
++         |         |                |           Metadata           +
++  Group  |  Cloud  | CA Certificate | Group Exclusions   Filenames +
++---------+---------+----------------+------------------+-----------+
+| example | example | None           | None             | None      |
++---------+---------+----------------+------------------+-----------+
+Rows: 1
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

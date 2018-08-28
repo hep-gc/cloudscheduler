@@ -1,0 +1,71 @@
+.so ../man/_header.so
+\fBcloudscheduler defaults list\fR \- list defaults for cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B defaults
+.B list
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_defaults_list.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_server_defaults.so
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/parameters/_global_parameters.so
+.so ../man/parameters/_long_help.so
+.so ../man/parameters/_help.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Listing all server defaults(not all columns shown):
+.EX
+$ cloudscheduler defaults list
+
+Defaults:
++------------+----------------------+-------------+
++ server     | server-address       | server-user +
++------------+----------------------+-------------+
+| default    | https://default.com/ | example     |
+| example    | https://example.com/ | example     |
++------------+----------------------+-------------+
+Rows: 2
+.EE
+.TP
+2.
+Listing the defaults for server "example":
+.EX
+$ cloudscheduler defaults list -s example
+
+Defaults:
++------------+----------------------+-------------+
++ server     | server-address       | server-user +
++------------+----------------------+-------------+
+| example    | https://example.com/ | example     |
++------------+----------------------+-------------+
+Rows: 1
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_defaults (1)
+.BR csv2_defaults_delete (1)
+.BR csv2_defaults_set (1)

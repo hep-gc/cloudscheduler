@@ -1,0 +1,4 @@
+.TP
+\fB\-jrr \fIram\fR, \fB\-\-job-request-ram \fIram\fR
+The requested number of MBs of ram for the job.
+Filters the job list to only jobs that match \fIram\fR.

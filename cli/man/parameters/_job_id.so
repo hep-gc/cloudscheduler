@@ -1,0 +1,4 @@
+.TP
+\fB\-jI \fIid\fR, \fB\-\-job-id \fIid\fR
+The id and primary key of the job.
+Filters the job list to only the job that matches \fIid\fR.

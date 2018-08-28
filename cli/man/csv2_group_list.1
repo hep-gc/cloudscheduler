@@ -31,16 +31,36 @@
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
+.TP
+1.
 List all groups on the server:
-.P
 .EX
-\fI#sh\fR cloudscheduler group list
+$ cloudscheduler group list
+Server: default, Active User: example, Active Group: example, User's Groups: ['examle', 'testing']
+
+Groups:
++---------+-----------------+---------------------------+
++ Group   | Central Manager | Metadata Filenames        +
++---------+-----------------+---------------------------+
+| example | example.ca      | None                      |
+| testing | testing.ca      | example.yaml,testing.json |
++---------+-----------------+---------------------------+
+Rows: 2
 .EE
-.P
+.TP
+2.
 List a specific group "example":
-.P
 .EX
-\fI#sh\fR cloudscheduler group list -gn example
+$ cloudscheduler group list -gn example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Groups:
++---------+-----------------+--------------------+
++ Group   | Central Manager | Metadata Filenames +
++---------+-----------------+--------------------+
+| example | example.ca      | None               |
++---------+-----------------+--------------------+
+Rows: 1
 .EE
 .\" --------------------------------------------------------------------
 .SH SEE ALSO

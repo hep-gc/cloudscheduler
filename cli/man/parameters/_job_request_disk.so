@@ -1,0 +1,4 @@
+.TP
+\fB\-jrd \fIdisk\fR, \fB\-\-job-request-disk \fIdisk\fR
+The requested number of GBs of disk for the job.
+Filters the job list to only jobs that match \fIdisk\fR.

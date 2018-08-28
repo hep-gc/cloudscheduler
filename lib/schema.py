@@ -595,8 +595,7 @@ view_group_resources_with_metadata = Table('view_group_resources_with_metadata',
   Column('metadata_name', String(64)),
   Column('metadata_enabled', Integer),
   Column('metadata_priority', Integer),
-  Column('metadata_mime_type', String(128)),
-  Column('metadata', String)
+  Column('metadata_mime_type', String(128))
   )
 
 view_group_resources_with_metadata_names = Table('view_group_resources_with_metadata_names', metadata,

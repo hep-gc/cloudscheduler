@@ -1,0 +1,64 @@
+.so ../man/_header.so
+\fBcloudscheduler cloud metadata-list\fR \- list cloud metadata on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B cloud
+.B metadata-list
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_cloud_metadata_list.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_cloud_name.so
+.so ../man/parameters/_metadata_name.so
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Listing the cloud metadata for the cloud "example":
+.EX
+$ cloudscheduler cloud metadata-list -cn example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Clouds/Metadata:
++---------+---------+-------------------+---------+----------+--------------+
++ Group   | Cloud   | Metadata Filename | Enabled | Priority | MIME Type    +
++---------+---------+-------------------+---------+----------+--------------+
+| example | example | example.yaml      | 1       | 0        | cloud-config |
++---------+---------+-------------------+---------+----------+--------------+
+Rows: 1
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_cloud (1)
+.BR csv2_cloud_add (1)
+.BR csv2_cloud_delete (1)
+.BR csv2_cloud_list (1)
+.BR csv2_cloud_metadata_collation (1)
+.BR csv2_cloud_metadata_delete (1)
+.BR csv2_cloud_metadata_edit (1)
+.BR csv2_cloud_metadata_load (1)
+.BR csv2_cloud_metadata_update (1)
+.BR csv2_cloud_status (1)
+.BR csv2_cloud_update (1)

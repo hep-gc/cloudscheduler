@@ -1,0 +1,3 @@
+.TP
+\fB\-s \fIserver\fR, \fB\-\-server \fIserver\fR
+The name of the server default.

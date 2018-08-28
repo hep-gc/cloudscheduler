@@ -1,0 +1,5 @@
+.TP
+\fB\-vS \fIstatus\fR, \fB\-\-vm-status \fIstatus\fR
+The status of the VM.
+Filters the VM list to only VMs with \fIstatus\fR.
+The value of \fIstatus\fR must be one of: foreign, manual, error, unregistered, retiring, running, or other.

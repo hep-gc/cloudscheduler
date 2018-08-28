@@ -1,0 +1,50 @@
+.so ../man/_header.so
+\fBcloudscheduler defaults set\fR \- create and modify defaults for cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B defaults
+.B set
+.BI \-s " server"
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_defaults_set.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_server_defaults.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+Any parameter that is not mandatory may have a default set. See \fBcloudscheduler defaults set -h\fR for the full list of parameters.
+.P
+The parameters specifically for server defaults are:
+.so ../man/parameters/_server_address.so
+.so ../man/parameters/_server_grid_cert.so
+.so ../man/parameters/_server_grid_key.so
+.so ../man/parameters/_server_password.so
+.so ../man/parameters/_server_user.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Set the server address for default "example":
+.EX
+$ cloudscheduler defaults set -s example -sa https://www.example.com/
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_defaults (1)
+.BR csv2_defaults_delete (1)
+.BR csv2_defaults_list (1)

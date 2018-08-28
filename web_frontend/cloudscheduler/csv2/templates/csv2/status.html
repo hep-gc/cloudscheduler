@@ -18,6 +18,8 @@
         setTimeout(function() {
             location.reload();
         },time);
+
+        document.getElementById('vms-iframe').src='';
     }
 
     function pass_url(url) {
@@ -205,6 +207,16 @@
 
 
                     <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
+                    <!--<td class="slots-table">
+                        <table>
+                            <tr class="red">
+                                <td>2 w/ 8c</td>
+                            </tr>
+                            <tr class="blue">
+                                <td>3 w/ 2c</td>
+                            </tr>
+                        </table>
+                    </td>-->
 
                     {% if cloud.cores_ctl == -1 %}
                         <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle}}</td>
@@ -322,12 +334,99 @@
             </tbody> 
         </table>
     </div>
-    
+
+    <br>
 
 
 </div>
 
 
+<div class="system-table">
+    <table class="system-services">
+        <!--<colgroup>
+        <col class="red" span="1" />
+        <col class="clear" span="5" />
+
+        </colgroup>-->
+        <thead>
+            <tr>
+                <th colspan="6">CS system services</th>
+                <th class="col-spacer">&nbsp;</th>
+                <th colspan="3">CS system resources</th>
+            </tr>
+
+            <tr>
+
+                {% if system_list.main == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.main }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+                {% if system_list.db == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.db }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+                {% if system_list.openstack == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.openstack }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                {% if system_list.jobs == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.jobs }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                {% if system_list.collector == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.collector }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                {% if system_list.condor == 1 %}
+                    <td tooltip="running"><span class="green-dot"></span></td>
+                {% else %}
+                    <td tooltip="{{ system_list.condor }}"><span class="red-dot"></span></td>
+                {% endif %}
+
+
+                <td class="col-spacer">&nbsp;</td>
+
+                <td tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
+
+                <td tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
+ 
+                <td tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
+
+            </tr>
+            <tr>
+                <td>main</td>
+                <td>database</td>
+                <td>openstack</td>
+                <td>jobs</td>
+                <td>collector</td>
+                <td>condor</td>
+
+                <td class="col-spacer">&nbsp;</td>
+
+
+                <td>LOAD</td>
+                <td>RAM</td>
+                <td>DISK</td>
+            </tr>
+
+
+
+        </tbody> 
+    </table>
+</div>
 
 
 
@@ -338,6 +437,7 @@
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
+
 
 
 <script type="text/javascript">

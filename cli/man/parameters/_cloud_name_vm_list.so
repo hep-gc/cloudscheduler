@@ -1,0 +1,4 @@
+.TP
+\fB\-cn \fIcloud\fR, \fB\-\-cloud-name \fIcloud\fR
+The name of a cloud definition that exists on the csv2 server.
+Filters the VM list to only VMs that are running on \fIcloud\fR.

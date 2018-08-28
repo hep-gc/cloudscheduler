@@ -87,57 +87,6 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1')]
     )
 
-    # TODO: what is the expected return for these?
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-cn', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vc', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vd', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 1, None, 'The following command line arguments were unrecognized: [\'-ved\', \'invalid-unit-test\']',
-    #     ['cloudscheduler', 'job', 'list', '-ved', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vF', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vf', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vk', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vr', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vS', 'invalid-unit-test']
-    # )
-
-    # execute_csv2_command(
-    #     gvar, 0, None, 'Rows: 0',
-    #     ['cloudscheduler', 'job', 'list', '-vs', 'invalid-unit-test']
-    # )
-
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'job', 'list', '-ok'],
@@ -145,7 +94,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'job list, table #1 columns: keys=group_name,global_job_id, columns=cluster_id,proc_id,user,user_data,requirements,target_clouds,cloud_name,instance_type,request_cpus,request_ram,request_disk,request_scratch,request_swap,job_per_core,image,network,job_priority,job_status,js_idle,js_running,js_completed,js_held,js_other,keep_alive,max_price,entered_current_status,q_date,hold_job',
+        gvar, 0, None, 'job list, table #1 columns: keys=group_name,global_job_id, columns=cluster_id,proc_id,user,user_data,requirements,target_clouds,cloud_name,instance_type,request_cpus,request_ram,request_disk,request_swap,job_per_core,image,network,job_priority,job_status,js_idle,js_running,js_completed,js_held,js_other,keep_alive,max_price,entered_current_status,q_date,held_reason',
         ['cloudscheduler', 'job', 'list', '-VC']
     )
 

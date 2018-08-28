@@ -25,20 +25,19 @@
 .SS Optional
 .\" --------------------------------------------------------------------
 .so ../man/_options.so
-.so ../man/parameters/_group.so
-.so ../man/parameters/_long_help.so
-.so ../man/parameters/_help.so
-.so ../man/parameters/_server.so
-.so ../man/parameters/_expose_api.so
 .so ../man/parameters/_yes.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
 .\" --------------------------------------------------------------------
 .SH EXAMPLES
 .\" --------------------------------------------------------------------
-.P
+.TP
+1.
 Deleting the user "example":
-.P
 .EX
-.IR "sh#" " cloudscheduler user delete -un example"
+$ cloudscheduler user delete -un example
 Are you sure you want to delete user "example"? (yes|..)
 yes
 user "example" successfully deleted.

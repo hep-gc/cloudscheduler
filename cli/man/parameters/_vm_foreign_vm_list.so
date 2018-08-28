@@ -1,0 +1,4 @@
+.TP
+\fB\-vF \fIoption\fR, \fB\-\-vm-foreign \fIoption\fR
+If the VM is \fBforeign\fR (not controlled by the csv2 server).
+The value of \fIoption\fR must be \fB1\fR or \fB0\fR.
