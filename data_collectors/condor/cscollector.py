@@ -179,7 +179,7 @@ def collector_command_consumer():
                     db_session.merge(resource)
                     uncommitted_updates = True
                 except Exception as exc:
-                    logging.exception("Failed to merge retire machine, aborting cycle...")
+                    logging.exception("Failed to retire machine, aborting cycle...")
                     logging.error(exc)
                     abort_cycle = True
                     break
