@@ -207,21 +207,9 @@
 
 
                     <td>{{cloud.slots_used}} <b>/</b> {{cloud.slots_max}}</td>
-                    <!--<td class="slots-table">
-                        <table>
-                            <tr class="red">
-                                <td>2 w/ 8c</td>
-                            </tr>
-                            <tr class="blue">
-                                <td>3 w/ 2c</td>
-                            </tr>
-                        </table>
-                    </td>-->
 
                     {% if cloud.cores_ctl == -1 %}
-                        <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle}}</td>
-                    {% elif cloud.cores_ctl > cloud.cores_idle %}
-                        <td class="alert-style" tooltip="Max cores set to manual control. Available cores less than user setting!">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle}}</td>
+                        <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_native}} <b>/</b> {{cloud.cores_idle | addition:cloud.cores_native}}</td>
                     {% else %}
                         <td class="manual-style" tooltip="Max cores set to manual control.">{{cloud.cores_native}} <b>/</b> {{cloud.cores_ctl}}</td>
                     {% endif %}
