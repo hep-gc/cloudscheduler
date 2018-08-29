@@ -6,9 +6,11 @@ import datetime
 import logging
 import socket
 import time
+import sys
+import os
 from dateutil import tz, parser
 
-import config
+import csv2_config
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -140,7 +142,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.cacert)
+            sess = session.Session(auth=auth, verify=config.cacerts)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -156,17 +158,17 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 project_name=project,
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name)
-            sess = session.Session(auth=auth, verify=config.cacert)
+            sess = session.Session(auth=auth, verify=config.cacerts)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
             return False
         return sess
 
-def _initialize_inventory_item_hash(engine, items, item_key):
+def _initialize_inventory_item_hash(db_engine, items, item_key):
     inventory = {}
     try:
-        db_session = Session(engine)
+        db_session = Session(db_engine)
         rows = db_session.query(items)
         for row in rows:
             group_name = row.group_name
@@ -196,24 +198,20 @@ def _initialize_inventory_item_hash(engine, items, item_key):
                 hash_object.update(hash_list[-1].encode('utf-8'))
 
 
-            if config.debug_hash:
+            if config.log_level < 20:
                 inventory[group_name][cloud_name][hash_name]['hash'] = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
             else:
                 inventory[group_name][cloud_name][hash_name]['hash'] = hash_object.hexdigest()
 
-        del db_session
-        if config.debug_hash:
-            logging.info("Retrieved inventory from the database: %s" % inventory)
-        else:
-            logging.info("Retrieved inventory from the database.")
+        logging.info("Retrieved inventory from the database.")
     except Exception as exc:
         logging.error("Unable to initialize inventory from the database, setting empty dictionary.")
 
     return inventory
 
-def _initialize_last_poll_time(engine, time_column):
+def _initialize_last_poll_time(db_engine, time_column):
     try:
-        db_session = Session(engine)
+        db_session = Session(db_engine)
         db_query = db_session.query(func.max(time_column).label("timestamp"))
         db_response = db_query.one()
         last_poll_time = db_response.timestamp
@@ -261,7 +259,7 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
             hash_list.append('%s=%s' % (hash_item, str(item_dict[hash_item])))
         hash_object.update(hash_list[-1].encode('utf-8'))
 
-        if config.debug_hash:
+        if config.log_level < 20:
             new_hash = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
         else:
             new_hash = hash_object.hexdigest()
@@ -269,9 +267,8 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
     if new_hash == inventory[group_name][cloud_name][item]['hash']:
         return True
 
-    if config.debug_hash:
-        logging.info(">>>>>>>>>>>>>>>>>>> debug_hash: %s" % inventory[group_name][cloud_name][item]['hash'])
-        logging.info("<<<<<<<<<<<<<<<<<<< debug_hash: %s" % new_hash)
+    logging.debug("inventory_item_hash(old): %s" % inventory[group_name][cloud_name][item]['hash'])
+    logging.debug("inventory_item_hash(new): %s" % new_hash)
 
     inventory[group_name][cloud_name][item]['hash'] = new_hash
     return False
@@ -284,16 +281,23 @@ def command_poller():
     last_poll_time = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
 
     try:
         while True:
             logging.info("Beginning command poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             # Retrieve list of VMs to be terminated.
@@ -323,7 +327,7 @@ def command_poller():
             logging.info("Completed command poller cycle")
             last_poll_time = new_poll_time
             db_session.close()
-            time.sleep(config.vm_cleanup_interval)
+            time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Command poller cycle while loop exception, process terminating...")
@@ -333,17 +337,24 @@ def command_poller():
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password +
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     FLAVOR = Base.classes.cloud_flavors
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(engine, FLAVOR, 'name')
+        inventory = _initialize_inventory_item_hash(db_engine, FLAVOR, 'name')
         while True:
             logging.info("Beginning flavor poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             abort_cycle = False
@@ -431,7 +442,7 @@ def flavor_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_flavor)
                 continue
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
@@ -439,7 +450,7 @@ def flavor_poller():
 
             logging.info("Completed flavor poller cycle")
             db_session.close()
-            time.sleep(config.flavor_sleep_interval)
+            time.sleep(config.sleep_interval_flavor)
 
     except Exception as exc:
         logging.exception("Flavor poller cycle while loop exception, process terminating...")
@@ -449,17 +460,24 @@ def flavor_poller():
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = _initialize_last_poll_time(engine, IMAGE.last_updated)
+    last_poll_time = _initialize_last_poll_time(db_engine, IMAGE.last_updated)
 
     try:
         while True:
             logging.info("Beginning image poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
@@ -545,7 +563,7 @@ def image_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_image)
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
@@ -555,7 +573,7 @@ def image_poller():
             last_poll_time = new_poll_time
             del inventory
             db_session.close()
-            time.sleep(config.image_sleep_interval)
+            time.sleep(config.sleep_interval_image)
 
     except Exception as exc:
         logging.exception("Image poller cycle while loop exception, process terminating...")
@@ -566,17 +584,24 @@ def image_poller():
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     KEYPAIR = Base.classes.cloud_keypairs
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(engine, KEYPAIR, 'key_name')
+        inventory = _initialize_inventory_item_hash(db_engine, KEYPAIR, 'key_name')
         while True:
             logging.info("Beginning keypair poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             abort_cycle = False
@@ -641,7 +666,7 @@ def keypair_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_keypair)
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
@@ -649,7 +674,7 @@ def keypair_poller():
 
             logging.info("Completed keypair poller cycle")
             db_session.close()
-            time.sleep(config.keypair_sleep_interval)
+            time.sleep(config.sleep_interval_keypair)
 
     except Exception as exc:
         logging.exception("Keypair poller cycle while loop exception, process terminating...")
@@ -659,17 +684,24 @@ def keypair_poller():
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     LIMIT = Base.classes.cloud_limits
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(engine, LIMIT, '-')
+        inventory = _initialize_inventory_item_hash(db_engine, LIMIT, '-')
         while True:
             logging.info("Beginning limit poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             abort_cycle = False
@@ -728,7 +760,7 @@ def limit_poller():
             del nova
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_limit)
                 continue
 
             if uncommitted_updates > 0:
@@ -746,7 +778,7 @@ def limit_poller():
 
             logging.info("Completed limit poller cycle")
             db_session.close()
-            time.sleep(config.limit_sleep_interval)
+            time.sleep(config.sleep_interval_limit)
 
     except Exception as exc:
         logging.exception("Limit poller cycle while loop exception, process terminating...")
@@ -756,17 +788,24 @@ def limit_poller():
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     NETWORK = Base.classes.cloud_networks
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(engine, NETWORK, 'name')
+        inventory = _initialize_inventory_item_hash(db_engine, NETWORK, 'name')
         while True:
             logging.info("Beginning network poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
@@ -840,7 +879,7 @@ def network_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.network_sleep_interval)
+                time.sleep(config.sleep_interval_network)
                 continue
 
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
@@ -848,7 +887,7 @@ def network_poller():
 
             logging.info("Completed network poller cycle")
             db_session.close()
-            time.sleep(config.network_sleep_interval)
+            time.sleep(config.sleep_interval_network)
 
     except Exception as exc:
         logging.exception("Network poller cycle while loop exception, process terminating...")
@@ -859,19 +898,26 @@ def network_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = _initialize_last_poll_time(engine, VM.last_updated)
+    last_poll_time = _initialize_last_poll_time(db_engine, VM.last_updated)
     
     try:
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.info("Beginning VM poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             # For each OpenStack cloud, retrieve and process VMs.
@@ -956,7 +1002,7 @@ def vm_poller():
             if abort_cycle:
                 del inventory
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_vm)
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
@@ -966,7 +1012,7 @@ def vm_poller():
             last_poll_time = new_poll_time
             del inventory
             db_session.close()
-            time.sleep(config.vm_sleep_interval)
+            time.sleep(config.sleep_interval_vm)
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
@@ -976,13 +1022,13 @@ def vm_poller():
 ## Main.
 
 if __name__ == '__main__':
+    config = csv2_config.Config(os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
-        filename=config.poller_log_file,
+        filename=config.log_file,
         level=config.log_level,
         format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
 
-    config.debug_hash = False
     logging.info("**************************** starting openstack VM poller *********************************")
 
     processes = {}
@@ -1008,8 +1054,8 @@ if __name__ == '__main__':
                         logging.info("Restarting %s process", process)
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
-                    time.sleep(config.main_short_interval)
-            time.sleep(config.main_long_interval)
+                    time.sleep(config.sleep_interval_main_short)
+            time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
