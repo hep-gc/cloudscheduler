@@ -163,6 +163,54 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             return False
         return sess
 
+def _initialize_inventory_item_hash(engine, items, item_key):
+    inventory = {}
+    try:
+        db_session = Session(engine)
+        rows = db_session.query(items)
+        for row in rows:
+            group_name = row.group_name
+            cloud_name = row.cloud_name
+
+            if item_key == '-':
+                hash_name = '-'
+            else:
+                hash_name = row.__dict__[item_key]
+
+            if group_name not in inventory:
+                inventory[group_name] = {}
+
+            if cloud_name not in inventory[group_name]:
+                inventory[group_name][cloud_name] = {}
+
+            if hash_name not in inventory[group_name][cloud_name]:
+                inventory[group_name][cloud_name][hash_name] = {'poll_time': 0}
+
+            hash_list = []
+            hash_object = hashlib.new('md5')
+            for item in sorted(row.__dict__):
+                if item == '_sa_instance_state' or item == 'group_name' or item == 'cloud_name' or item == 'last_updated':
+                    continue
+               
+                hash_list.append('%s=%s' % (item, str(row.__dict__[item])))
+                hash_object.update(hash_list[-1].encode('utf-8'))
+
+
+            if config.debug_hash:
+                inventory[group_name][cloud_name][hash_name]['hash'] = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
+            else:
+                inventory[group_name][cloud_name][hash_name]['hash'] = hash_object.hexdigest()
+
+        del db_session
+        if config.debug_hash:
+            logging.info("Retrieved inventory from the database: %s" % inventory)
+        else:
+            logging.info("Retrieved inventory from the database.")
+    except Exception as exc:
+        logging.error("Unable to initialize inventory from the database, setting empty dictionary.")
+
+    return inventory
+
 def _initialize_last_poll_time(engine, time_column):
     try:
         db_session = Session(engine)
@@ -199,16 +247,31 @@ def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, pol
 
     inventory[group_name][cloud_name][item]['poll_time'] = poll_time
 
+    hash_list = []
     hash_object = hashlib.new('md5')
     for hash_item in sorted(item_dict):
-       if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
-           continue
+        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
+            continue
        
-       hash_object.update(str(item_dict[hash_item]).encode('utf-8'))
+        if isinstance(item_dict[hash_item], bool):
+            hash_list.append('%s=%s' % (hash_item, str(int(item_dict[hash_item]))))
+        elif isinstance(item_dict[hash_item], list):
+            hash_list.append('%s=%s' % (hash_item, str(item_dict[hash_item][0])))
+        else:
+            hash_list.append('%s=%s' % (hash_item, str(item_dict[hash_item])))
+        hash_object.update(hash_list[-1].encode('utf-8'))
 
-    new_hash = hash_object.hexdigest()
+        if config.debug_hash:
+            new_hash = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
+        else:
+            new_hash = hash_object.hexdigest()
+
     if new_hash == inventory[group_name][cloud_name][item]['hash']:
         return True
+
+    if config.debug_hash:
+        logging.info(">>>>>>>>>>>>>>>>>>> debug_hash: %s" % inventory[group_name][cloud_name][item]['hash'])
+        logging.info("<<<<<<<<<<<<<<<<<<< debug_hash: %s" % new_hash)
 
     inventory[group_name][cloud_name][item]['hash'] = new_hash
     return False
@@ -275,10 +338,9 @@ def flavor_poller():
     Base.prepare(engine, reflect=True)
     FLAVOR = Base.classes.cloud_flavors
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
 
     try:
-        inventory = {}
+        inventory = _initialize_inventory_item_hash(engine, FLAVOR, 'name')
         while True:
             logging.info("Beginning flavor poller cycle")
             db_session = Session(engine)
@@ -376,7 +438,6 @@ def flavor_poller():
             _delete_obsolete_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
 
             logging.info("Completed flavor poller cycle")
-            last_poll_time = new_poll_time
             db_session.close()
             time.sleep(config.flavor_sleep_interval)
 
@@ -512,7 +573,7 @@ def keypair_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = {}
+        inventory = _initialize_inventory_item_hash(engine, KEYPAIR, 'key_name')
         while True:
             logging.info("Beginning keypair poller cycle")
             db_session = Session(engine)
@@ -605,7 +666,7 @@ def limit_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = {}
+        inventory = _initialize_inventory_item_hash(engine, LIMIT, '-')
         while True:
             logging.info("Beginning limit poller cycle")
             db_session = Session(engine)
@@ -702,7 +763,7 @@ def network_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = {}
+        inventory = _initialize_inventory_item_hash(engine, NETWORK, 'name')
         while True:
             logging.info("Beginning network poller cycle")
             db_session = Session(engine)
@@ -745,13 +806,13 @@ def network_poller():
                         'last_updated': int(time.time())
                     }
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
-                        continue
-
                     network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
                     if unmapped:
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
+
+                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
+                        continue
 
                     new_network = NETWORK(**network_dict)
                     try:
@@ -921,6 +982,7 @@ if __name__ == '__main__':
         level=config.log_level,
         format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
 
+    config.debug_hash = False
     logging.info("**************************** starting openstack VM poller *********************************")
 
     processes = {}
