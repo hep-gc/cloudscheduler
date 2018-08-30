@@ -4,15 +4,18 @@ import time
 import copy
 import logging
 import socket
+import os
+import sys
 
-import collector_config as config
-from attribute_mapper.attribute_mapper import map_attributes
+import csv2_config
 
 import htcondor
 import classad
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
+
+from attribute_mapper.attribute_mapper import map_attributes
 
 from lib.schema import view_redundant_machines
 
@@ -28,7 +31,7 @@ def trim_keys(dict_to_trim, key_list):
         dict_to_trim.pop(key, None)
     return dict_to_trim
 
-def resources_producer():
+def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
@@ -38,9 +41,16 @@ def resources_producer():
     fail_count = 0
     # Initialize database objects
     Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     Resource = Base.classes.condor_machines
     last_poll_time = 0
 
@@ -53,19 +63,13 @@ def resources_producer():
                 fail_count += 1
                 logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                time.sleep(config.collection_interval)
+                time.sleep(config.sleep_interval_machine)
                 continue
 
             fail_count = 0
 
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
-
-#           ad_type = htcondor.AdTypes.Startd
-#           condor_resources = condor_session.query(
-#               ad_type=ad_type,
-#               constraint=True,
-#               projection=resource_attributes)
 
             # Retrieve machines.
             if last_poll_time == 0:
@@ -110,7 +114,7 @@ def resources_producer():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.collection_interval)
+                time.sleep(config.sleep_interval_machine)
                 continue
 
             if uncommitted_updates > 0:
@@ -122,14 +126,14 @@ def resources_producer():
                     logging.error(exc)
                     del condor_session
                     db_session.close()
-                    time.sleep(config.collection_interval)
+                    time.sleep(config.sleep_interval_machine)
                     continue
 
             logging.info("Completed machine poller cycle")
             last_poll_time = new_poll_time
             del condor_session
             db_session.close()
-            time.sleep(config.collection_interval)
+            time.sleep(config.sleep_interval_machine)
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
@@ -137,16 +141,23 @@ def resources_producer():
         del condor_session
         db_session.close()
 
-def collector_command_consumer():
-    multiprocessing.current_process().name = "Cmd Consumer"
+def command_poller():
+    multiprocessing.current_process().name = "Command Poller"
     condor_host = socket.gethostname()
     # database setup
     Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     Resource = Base.classes.condor_machines
-    session = Session(engine)
+    session = Session(db_engine)
 
     try:
         while True:
@@ -157,12 +168,12 @@ def collector_command_consumer():
                 fail_count += 1
                 logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                time.sleep(config.command_sleep_interval)
+                time.sleep(config.sleep_interval_command)
                 continue
 
             fail_count = 0
 
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             master_type = htcondor.AdTypes.Master
             startd_type = htcondor.AdTypes.Startd
 
@@ -187,7 +198,7 @@ def collector_command_consumer():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.command_sleep_interval)
+                time.sleep(config.sleep_interval_command)
                 continue
 
             if uncommitted_updates:
@@ -198,7 +209,7 @@ def collector_command_consumer():
                     logging.error(exc)
                     del condor_session
                     db_session.close()
-                    time.sleep(config.command_sleep_interval)
+                    time.sleep(config.sleep_interval_command)
                     continue
 
             # Query database for machines with no associated VM.
@@ -222,7 +233,7 @@ def collector_command_consumer():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.command_sleep_interval)
+                time.sleep(config.sleep_interval_command)
                 continue
 
             # Execute condor_advertise to remove classads.
@@ -237,7 +248,7 @@ def collector_command_consumer():
             logging.info("Completed command consumer cycle")
             del condor_session
             db_session.close()
-            time.sleep(config.command_sleep_interval)
+            time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
@@ -246,15 +257,22 @@ def collector_command_consumer():
         db_session.close()
 
 
-def cleanUp():
-    multiprocessing.current_process().name = "Cleanup"
+def cleanup_poller():
+    multiprocessing.current_process().name = "Cleanup Poller"
     condor_host = socket.gethostname()
     fail_count = 0
     Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
-    session = Session(engine)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
+    session = Session(db_engine)
     #setup database objects
     Resource = Base.classes.condor_machines
     archResource = Base.classes.archived_condor_machines
@@ -272,12 +290,12 @@ def cleanUp():
                 logging.error("Failed to locate condor daemon, Failed %s times:" % fail_count)
                 logging.error(exc)
                 logging.error("Sleeping until next cycle...")
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             fail_count = 0
 
-            db_session = Session(engine)
+            db_session = Session(db_engine)
 
             # Retrieve all valid machine IDs from condor.
             try:
@@ -287,7 +305,7 @@ def cleanUp():
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             condor_machine_ids = {}
@@ -302,7 +320,7 @@ def cleanUp():
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             # Scan DB machine list for items to delete.
@@ -336,7 +354,7 @@ def cleanUp():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             if uncommitted_updates:
@@ -347,13 +365,13 @@ def cleanUp():
                     logging.error(exc)
                     del condor_session
                     db_session.close()
-                    time.sleep(config.cleanup_sleep_interval)
+                    time.sleep(config.sleep_interval_cleanup)
                     continue
 
             logging.info("Completed machine cleanup cycle")
             del condor_session
             db_session.close()
-            time.sleep(config.cleanup_sleep_interval)
+            time.sleep(config.sleep_interval_cleanup)
 
     except Exception as exc:
         logging.exception("Machine cleanup while loop exception, process terminating...")
@@ -363,6 +381,7 @@ def cleanUp():
 
 
 if __name__ == '__main__':
+    config = csv2_config.Config(os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
         filename=config.log_file,
@@ -373,15 +392,15 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'cleanup':            cleanUp,
-        'command':            collector_command_consumer,
-        'machine':            resources_producer,
+        'cleanup':            cleanup_poller,
+        'command':            command_poller,
+        'machine':            machine_poller,
         }
 
     # Wait for keyboard input to exit
     try:
         while True:
-            for process in process_ids:
+            for process in sorted(process_ids):
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
                         logging.error("%s process died, restarting...", process)
@@ -390,8 +409,8 @@ if __name__ == '__main__':
                         logging.info("Restarting %s process", process)
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
-                    time.sleep(config.main_short_interval)
-            time.sleep(config.main_long_interval)
+                    time.sleep(config.sleep_interval_main_short)
+            time.sleep(config.sleep_interval_main_long)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
 
