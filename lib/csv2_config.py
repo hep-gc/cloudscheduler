@@ -62,6 +62,8 @@ class Config:
                 self.__dict__[row.config_key] = float(row.value)
             elif row.type == 'int':
                 self.__dict__[row.config_key] = int(row.value)
+            elif row.type == 'null':
+                self.__dict__[row.config_key] = None
             else:
                 self.__dict__[row.config_key] = row.value
 
