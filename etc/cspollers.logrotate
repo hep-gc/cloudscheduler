@@ -1,0 +1,26 @@
+/var/log/cloudscheduler/csjobs.log {
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0664 cloudscheduler cloudscheduler
+}
+
+/var/log/cloudscheduler/cscollector.log {
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0664 cloudscheduler cloudscheduler
+}
+
+/var/log/cloudscheduler/openstackpoller.log {
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
