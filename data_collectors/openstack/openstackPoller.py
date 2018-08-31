@@ -1,8 +1,5 @@
 import multiprocessing
 from multiprocessing import Process
-import datetime
-import hashlib
-import datetime
 import logging
 import socket
 import time
@@ -10,7 +7,16 @@ import sys
 import os
 from dateutil import tz, parser
 
-import csv2_config
+from cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.poller_functions import \
+    delete_obsolete_database_items, \
+    foreign, \
+    get_inventory_item_hash_from_database, \
+    get_last_poll_time_from_database, \
+    set_inventory_group_and_cloud, \
+    set_inventory_item, \
+    test_and_set_inventory_item_hash
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -24,9 +30,6 @@ from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
 
-from attribute_mapper.attribute_mapper import map_attributes
-
-
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
 #
@@ -39,54 +42,6 @@ from attribute_mapper.attribute_mapper import map_attributes
 # This file also polls the openstack clouds for live VM information and inserts it into the database
 
 ## Poller sub-functions.
-
-def _delete_obsolete_items(type, inventory, db_session, base_class, item_key, poll_time=None):
-    for group_name in inventory:
-        for cloud_name in inventory[group_name]:
-            obsolete_items = db_session.query(base_class).filter(
-                base_class.group_name == group_name,
-                base_class.cloud_name == cloud_name
-                )
-
-            uncommitted_updates = 0
-            for item in obsolete_items:
-                if item_key == '-' and poll_time:
-                    if inventory[group_name][cloud_name]['-']['poll_time'] >= poll_time:
-                        continue
-                    else:
-                        del inventory[group_name][cloud_name]
-                else:
-                    if poll_time:
-                        if item.__dict__[item_key] in inventory[group_name][cloud_name] and inventory[group_name][cloud_name][item.__dict__[item_key]]['poll_time'] >= poll_time:
-                            continue
-                        else:
-                            del inventory[group_name][cloud_name][item.__dict__[item_key]]
-                    else:
-                        if item.__dict__[item_key] in inventory[group_name][cloud_name]:
-                            continue
-
-                logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[item_key], item.group_name, item.cloud_name))
-                try:
-                    db_session.delete(item)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to delete %s." % type)
-                    logging.error(exc)
-
-            if uncommitted_updates > 0:
-                try:        
-                    db_session.commit()
-                    logging.info("%s deletions committed: %d" % (type, uncommitted_updates))
-                except Exception as exc:
-                    logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, cloud.group_name, cloud.cloud_name))
-                    logging.error(exc)
-
-def _foreign(vm):
-    native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
-    if vm.hostname[:len(native_id)] == native_id:
-        return False
-    else:
-        return True
 
 def _get_neutron_client(session):
     neutron = neuclient.Client(session=session)
@@ -165,114 +120,6 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             return False
         return sess
 
-def _initialize_inventory_item_hash(db_engine, items, item_key):
-    inventory = {}
-    try:
-        db_session = Session(db_engine)
-        rows = db_session.query(items)
-        for row in rows:
-            group_name = row.group_name
-            cloud_name = row.cloud_name
-
-            if item_key == '-':
-                hash_name = '-'
-            else:
-                hash_name = row.__dict__[item_key]
-
-            if group_name not in inventory:
-                inventory[group_name] = {}
-
-            if cloud_name not in inventory[group_name]:
-                inventory[group_name][cloud_name] = {}
-
-            if hash_name not in inventory[group_name][cloud_name]:
-                inventory[group_name][cloud_name][hash_name] = {'poll_time': 0}
-
-            hash_list = []
-            hash_object = hashlib.new('md5')
-            for item in sorted(row.__dict__):
-                if item == '_sa_instance_state' or item == 'group_name' or item == 'cloud_name' or item == 'last_updated':
-                    continue
-               
-                hash_list.append('%s=%s' % (item, str(row.__dict__[item])))
-                hash_object.update(hash_list[-1].encode('utf-8'))
-
-
-            if config.log_level < 20:
-                inventory[group_name][cloud_name][hash_name]['hash'] = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
-            else:
-                inventory[group_name][cloud_name][hash_name]['hash'] = hash_object.hexdigest()
-
-        logging.info("Retrieved inventory from the database.")
-    except Exception as exc:
-        logging.error("Unable to initialize inventory from the database, setting empty dictionary.")
-
-    return inventory
-
-def _initialize_last_poll_time(db_engine, time_column):
-    try:
-        db_session = Session(db_engine)
-        db_query = db_session.query(func.max(time_column).label("timestamp"))
-        db_response = db_query.one()
-        last_poll_time = db_response.timestamp
-        del db_session
-    except Exception as exc:
-        logging.error("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
-        logging.error(exc)
-        last_poll_time = 0
-
-    logging.info("Setting last_poll_time: %s" % db_response.timestamp)
-    return last_poll_time
-
-def _inventory_group_and_cloud(inventory, group_name, cloud_name):
-    if group_name not in inventory:
-        inventory[group_name] = {}
-
-    if cloud_name not in inventory[group_name]:
-        inventory[group_name][cloud_name] = {}
-
-    return
-
-def _inventory_item(inventory, group_name, cloud_name, item, update_time):
-    inventory[group_name][cloud_name][item] = True
-    return int(parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s'))
-
-def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, poll_time):
-    _inventory_group_and_cloud(inventory, group_name, cloud_name)
-
-    if item not in inventory[group_name][cloud_name]:
-        inventory[group_name][cloud_name][item] = {'hash': None}
-
-    inventory[group_name][cloud_name][item]['poll_time'] = poll_time
-
-    hash_list = []
-    hash_object = hashlib.new('md5')
-    for hash_item in sorted(item_dict):
-        if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
-            continue
-       
-        if isinstance(item_dict[hash_item], bool):
-            hash_list.append('%s=%s' % (hash_item, str(int(item_dict[hash_item]))))
-        elif isinstance(item_dict[hash_item], list):
-            hash_list.append('%s=%s' % (hash_item, str(item_dict[hash_item][0])))
-        else:
-            hash_list.append('%s=%s' % (hash_item, str(item_dict[hash_item])))
-        hash_object.update(hash_list[-1].encode('utf-8'))
-
-        if config.log_level < 20:
-            new_hash = '%s,%s' % (hash_object.hexdigest(), ','.join(hash_list))
-        else:
-            new_hash = hash_object.hexdigest()
-
-    if new_hash == inventory[group_name][cloud_name][item]['hash']:
-        return True
-
-    logging.debug("inventory_item_hash(old): %s" % inventory[group_name][cloud_name][item]['hash'])
-    logging.debug("inventory_item_hash(new): %s" % new_hash)
-
-    inventory[group_name][cloud_name][item]['hash'] = new_hash
-    return False
-
 ## Poller functions.
 
 # Process VM commands.
@@ -303,7 +150,7 @@ def command_poller():
             # Retrieve list of VMs to be terminated.
             vm_to_destroy = db_session.query(VM).filter(VM.terminate == 1, VM.manual_control != 1)
             for vm in vm_to_destroy:
-                if _foreign(vm):
+                if foreign(vm):
                     logging.info("skipping foreign VM %s marked for termination... - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
                     continue
 
@@ -351,7 +198,7 @@ def flavor_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(db_engine, FLAVOR, 'name')
+        inventory = get_inventory_item_hash_from_database(db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning flavor poller cycle")
             db_session = Session(db_engine)
@@ -413,7 +260,7 @@ def flavor_poller():
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, flavor.name, flav_dict, new_poll_time):
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, flavor.name, flav_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     new_flav = FLAVOR(**flav_dict)
@@ -446,7 +293,7 @@ def flavor_poller():
                 continue
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            _delete_obsolete_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
 
             logging.info("Completed flavor poller cycle")
             db_session.close()
@@ -472,7 +319,7 @@ def image_poller():
     Base.prepare(db_engine, reflect=True)
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = _initialize_last_poll_time(db_engine, IMAGE.last_updated)
+    last_poll_time = get_last_poll_time_from_database(db_engine, IMAGE.last_updated)
 
     try:
         while True:
@@ -492,7 +339,7 @@ def image_poller():
                     continue
 
                 # setup OpenStack api object
-                _inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
+                set_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
                 nova = _get_nova_client(session)
 
                 # Retrieve all images for this cloud.
@@ -509,7 +356,7 @@ def image_poller():
 
                 uncommitted_updates = 0
                 for image in image_list:
-                    image_update_time = _inventory_item(inventory, cloud.group_name, cloud.cloud_name, image.name, image.updated_at)
+                    image_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, image.name, image.updated_at)
                     if image_update_time < last_poll_time:
                         continue
 
@@ -567,7 +414,7 @@ def image_poller():
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-            _delete_obsolete_items('Image', inventory, db_session, IMAGE, 'name')
+            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'name')
 
             logging.info("Completed image poller cycle")
             last_poll_time = new_poll_time
@@ -598,7 +445,7 @@ def keypair_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(db_engine, KEYPAIR, 'key_name')
+        inventory = get_inventory_item_hash_from_database(db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning keypair poller cycle")
             db_session = Session(db_engine)
@@ -637,7 +484,7 @@ def keypair_poller():
                     }
                     fingerprint_list.append(key.fingerprint)
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, key.name, key_dict, new_poll_time):
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, key.name, key_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     new_key = KEYPAIR(**key_dict)
@@ -670,7 +517,7 @@ def keypair_poller():
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-            _delete_obsolete_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
 
             logging.info("Completed keypair poller cycle")
             db_session.close()
@@ -698,7 +545,7 @@ def limit_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(db_engine, LIMIT, '-')
+        inventory = get_inventory_item_hash_from_database(db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning limit poller cycle")
             db_session = Session(db_engine)
@@ -740,7 +587,7 @@ def limit_poller():
                     logging.error("Unmapped attributes found during mapping, discarding:")
                     logging.error(unmapped)
 
-                if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time):
+                if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
                     continue
 
                 for limit in limits_dict:
@@ -774,7 +621,7 @@ def limit_poller():
                     break
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            _delete_obsolete_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
+            delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
 
             logging.info("Completed limit poller cycle")
             db_session.close()
@@ -802,7 +649,7 @@ def network_poller():
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = _initialize_inventory_item_hash(db_engine, NETWORK, 'name')
+        inventory = get_inventory_item_hash_from_database(db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning network poller cycle")
             db_session = Session(db_engine)
@@ -850,7 +697,7 @@ def network_poller():
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     new_network = NETWORK(**network_dict)
@@ -883,7 +730,7 @@ def network_poller():
                 continue
 
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-            _delete_obsolete_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
 
             logging.info("Completed network poller cycle")
             db_session.close()
@@ -910,7 +757,7 @@ def vm_poller():
     Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = _initialize_last_poll_time(db_engine, VM.last_updated)
+    last_poll_time = get_last_poll_time_from_database(db_engine, VM.last_updated)
     
     try:
         while True:
@@ -932,7 +779,7 @@ def vm_poller():
                     continue
 
                 # setup nova object
-                _inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
+                set_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
                 nova = _get_nova_client(session)
 
                 # Retrieve VM list for this cloud.
@@ -951,7 +798,7 @@ def vm_poller():
                 # Process VM list for this cloud.
                 uncommitted_updates = 0
                 for vm in vm_list:
-                    vm_update_time = _inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
+                    vm_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
                     if vm_update_time < last_poll_time:
                         continue
 
@@ -1006,7 +853,7 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            _delete_obsolete_items('VM', inventory, db_session, VM, 'hostname')
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname')
 
             logging.info("Completed VM poller cycle")
             last_poll_time = new_poll_time
@@ -1022,7 +869,7 @@ def vm_poller():
 ## Main.
 
 if __name__ == '__main__':
-    config = csv2_config.Config(os.path.basename(sys.argv[0]))
+    config = Config(os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
         filename=config.log_file,
