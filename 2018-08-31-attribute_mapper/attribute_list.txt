@@ -1,0 +1,152 @@
+General
+   group_name
+   cloud_name
+
+Flavors
+   name
+   id
+   ram
+   vcpus
+   swap
+   disk
+   is_public
+   last_updated
+
+Images
+   id
+   container_format
+   disk_format
+   name
+   size
+   visibility
+   min_disk
+   min_ram
+   last_updated
+
+Limits
+   maxServerMeta
+   maxTotalInstances
+   maxPersonality
+   maxImageMeta
+   maxPersonalitySize
+   maxTotalRAMSize
+   maxServerGroups
+   maxSecurityGroupRules
+   maxTotalKeypairs
+   maxSecurityGroups
+   maxServerGroupMembers
+   maxTotalFloatingIps
+   maxTotalCores
+   totalServerGroupsUsed
+   totalInstancesUsed
+   totalRAMUsed
+   totalSecurityGroupsUsed
+   totalFloatingIpsUsed
+   totalCoresUsed
+   last_updated
+
+Networks
+   id
+   name
+   subnets
+   tenant_id
+   router:external
+   shared
+   last_updated
+
+Condor Jobs
+   GlobalJobId
+   TargetClouds
+   JobStatus
+   RequestMemory
+   RequestDisk
+   Requirements
+   JobPrio
+   ClusterId
+   ProcId
+   User
+   VMImage
+   VMInstanceType
+   VMNetwork
+   VMKeepAlive
+   VMMaximumPrice
+   VMUserData
+   VMJobPerCore
+   EnteredCurrentStatus
+   QDate
+   hold_job
+
+Condor Machines
+   Name
+   Machine
+   JobId
+   GlobalJobId
+   MyAddress
+   State
+   Activity
+   VMType
+   MycurrentTime    **TYPO?**
+   EnteredCurrentState
+   Start
+   RemoteOwner
+   SlotType
+   TotalSlots
+   condor_off
+   condor_advertise
+
+csv2_groups
+   condor_central_manager
+
+csv2_group_resources
+   authurl
+   project
+   username
+   password
+   keyname
+   cacertificate
+   region
+   userdomainname
+   projectdomainname
+   extrayaml
+   cloud_type
+   ~~~~~~~~~~~ Below to be changed to match limits ~~~~~~~~~~~~
+   backups
+   backup_gigabytes
+   cores
+   gigabytes
+   instances
+   key_pairs
+   ram
+   security_groups
+   snapshots
+   volumes
+   per_volume_gigabytes
+
+csv2 group resource yaml
+   yaml_name
+   enabled
+   yaml
+
+csv2 group yaml
+   yaml_name
+   enabled
+   yaml
+
+csv2 user
+   username
+   cert_dn
+   password
+   is_superuser
+   join_date
+   active_group
+   
+csv2 vms
+   vmid
+   auth_url
+   project
+   hostname
+   status
+   flavor_id
+   terminate
+   terminate_time
+   last_updated
