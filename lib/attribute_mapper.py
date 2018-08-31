@@ -1,6 +1,5 @@
-#import attribute_mapper.config as config
+from cloudscheduler.lib.csv2_config import Config
 
-from . import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -28,6 +27,8 @@ def map_attributes(src, dest, attr_dict):
 def build_mapping_dictionaries():
     global rowid_dict
     global attr_list_dict
+
+    config = Config('db_only')
 
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
