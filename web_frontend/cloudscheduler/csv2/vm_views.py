@@ -29,7 +29,7 @@ import time
 from sqlalchemy import exists
 from sqlalchemy.sql import select
 from sqlalchemy.sql import and_
-from lib.schema import *
+from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
 # lno: VV - error code identifier.

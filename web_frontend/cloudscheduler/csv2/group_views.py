@@ -28,7 +28,7 @@ import bcrypt
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
-from lib.schema import *
+from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
 # lno: GV - error code identifier.

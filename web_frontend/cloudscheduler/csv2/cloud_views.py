@@ -27,7 +27,7 @@ import bcrypt
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
-from lib.schema import *
+from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 #import subprocess
 import os
@@ -843,11 +843,11 @@ def status(request, group_name=None):
     else:
         system_list["jobs"] = status_msg.replace('Active:', '')
 
-    status_msg = os.popen("service csv2-collector status | grep 'Active'").read()
+    status_msg = os.popen("service csv2-machines status | grep 'Active'").read()
     if 'running' in status_msg:
-        system_list["collector"] = 1
+        system_list["machines"] = 1
     else:
-        system_list["collector"] = status_msg.replace('Active:', '')
+        system_list["machines"] = status_msg.replace('Active:', '')
 
     status_msg = os.popen("service mariadb status | grep 'Active'").read()
     if 'running' in status_msg:

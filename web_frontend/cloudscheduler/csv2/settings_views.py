@@ -1,6 +1,6 @@
 from django.views.decorators.csrf import requires_csrf_token
 from .view_utils import db_open, getSuperUserStatus, render, set_user_groups
-from lib.schema import *
+from cloudscheduler.lib.schema import *
 
 from .view_utils import \
     db_close

@@ -779,7 +779,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     from .view_utils import _validate_fields_pw_check
     from sqlalchemy import Table, MetaData
     from sqlalchemy.sql import select
-    import lib.schema
+    import cloudscheduler.lib.schema
     import re
 
     db_engine, db_session, db_connection, db_map = db_ctl
@@ -858,7 +858,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                 if isinstance(Formats[field], (list, tuple)):
                     if isinstance(Formats[field], tuple):
                         options = []
-                        s = select([lib.schema.__dict__[Formats[field][0]]])
+                        s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]])
                         for row in db_connection.execute(s):
                            if Formats[field][1] in row:
                               options.append(row[Formats[field][1]])
