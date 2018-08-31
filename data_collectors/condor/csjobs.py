@@ -8,7 +8,8 @@ import re
 import os
 import sys
 
-import csv2_config
+from cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.csv2_config import Config
 
 import htcondor
 import classad
@@ -16,7 +17,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
-from attribute_mapper.attribute_mapper import map_attributes
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -41,7 +41,7 @@ def build_user_group_dict(db_list):
     return user_group_dict
 
 def job_poller():
-    multiprocessing.current_process().name = "Poller"
+    multiprocessing.current_process().name = "Job Poller"
     job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "HoldReason",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
@@ -166,7 +166,7 @@ def job_poller():
         db_session.close()
 
 def command_poller():
-    multiprocessing.current_process().name = "Cmd Consumer"
+    multiprocessing.current_process().name = "Command Poller"
     #Make database engine
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
@@ -239,7 +239,7 @@ def command_poller():
         db_session.close()
 
 def cleanup_poller():
-    multiprocessing.current_process().name = "Cleanup"
+    multiprocessing.current_process().name = "Cleanup Poller"
     fail_count = 0
 
     Base = automap_base()
@@ -356,7 +356,7 @@ def cleanup_poller():
 
 
 if __name__ == '__main__':
-    config = csv2_config.Config(os.path.basename(sys.argv[0]))
+    config = Config(os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
         filename=config.log_file,
