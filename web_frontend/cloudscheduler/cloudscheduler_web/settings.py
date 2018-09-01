@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-from csv2 import config
+from cloudscheduler.lib.csv2_config import Config
+config = Config('web_frontend')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,7 +54,7 @@ LOGGING = {
         'applogfile': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': config.log_file_path,
+            'filename': config.log_file,
             'maxBytes': 1024*1024*15, # 15MB
             'backupCount': 10,
             'formatter': 'simple'

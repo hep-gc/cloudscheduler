@@ -50,7 +50,9 @@ def db_open():
     Provide a database connection and mapping.
     """
 
-    from csv2 import config
+    from cloudscheduler.lib.csv2_config import Config
+    config = Config('db_only')
+
     from sqlalchemy import create_engine
     from sqlalchemy.orm import Session
     from sqlalchemy.ext.automap import automap_base
