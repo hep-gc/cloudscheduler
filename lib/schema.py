@@ -242,6 +242,13 @@ csv2_config = Table('csv2_config', metadata,
   Column('yaml', String)
   )
 
+csv2_configuration = Table('csv2_configuration', metadata,
+  Column('category', String(32), primary_key=True),
+  Column('config_key', String(32), primary_key=True),
+  Column('type', String(16)),
+  Column('value', String(128))
+  )
+
 csv2_group_defaults = Table('csv2_group_defaults', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('job_cpus', Integer),
