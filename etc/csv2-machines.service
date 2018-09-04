@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=condor
-ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/cscollector.py
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/csmachines.py
 Restart=on-abort
 
 

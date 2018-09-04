@@ -5,7 +5,9 @@ from django.core.exceptions import PermissionDenied
 
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
-from . import config
+
+from cloudscheduler.lib.csv2_config import Config
+config = Config('web_frontend')
 
 from .view_utils import \
     db_close, \
@@ -26,7 +28,7 @@ import bcrypt
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
-from lib.schema import *
+from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
 # lno: JV - error code identifier.

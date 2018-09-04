@@ -1,18 +1,27 @@
 import multiprocessing
 from multiprocessing import Process
-import datetime
-import hashlib
-import datetime
 import logging
 import socket
 import time
+import sys
+import os
 from dateutil import tz, parser
 
-import config
+from cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.poller_functions import \
+    delete_obsolete_database_items, \
+    foreign, \
+    get_inventory_item_hash_from_database, \
+    get_last_poll_time_from_database, \
+    set_inventory_group_and_cloud, \
+    set_inventory_item, \
+    test_and_set_inventory_item_hash
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.sql import func
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -20,9 +29,6 @@ from keystoneauth1 import exceptions
 from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
-
-from attribute_mapper.attribute_mapper import map_attributes
-
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
@@ -36,54 +42,6 @@ from attribute_mapper.attribute_mapper import map_attributes
 # This file also polls the openstack clouds for live VM information and inserts it into the database
 
 ## Poller sub-functions.
-
-def _delete_obsolete_items(type, inventory, db_session, base_class, item_key, poll_time=None):
-    for group_name in inventory:
-        for cloud_name in inventory[group_name]:
-            obsolete_items = db_session.query(base_class).filter(
-                base_class.group_name == group_name,
-                base_class.cloud_name == cloud_name
-                )
-
-            uncommitted_updates = 0
-            for item in obsolete_items:
-                if item_key == '-' and poll_time:
-                    if inventory[group_name][cloud_name]['-']['poll_time'] >= poll_time:
-                        continue
-                    else:
-                        del inventory[group_name][cloud_name]
-                else:
-                    if poll_time:
-                        if item.__dict__[item_key] in inventory[group_name][cloud_name] and inventory[group_name][cloud_name][item.__dict__[item_key]]['poll_time'] >= poll_time:
-                            continue
-                        else:
-                            del inventory[group_name][cloud_name][item.__dict__[item_key]]
-                    else:
-                        if item.__dict__[item_key] in inventory[group_name][cloud_name]:
-                            continue
-
-                logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[item_key], item.group_name, item.cloud_name))
-                try:
-                    db_session.delete(item)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to delete %s." % type)
-                    logging.error(exc)
-
-            if uncommitted_updates > 0:
-                try:        
-                    db_session.commit()
-                    logging.info("%s deletions committed: %d" % (type, uncommitted_updates))
-                except Exception as exc:
-                    logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, cloud.group_name, cloud.cloud_name))
-                    logging.error(exc)
-
-def _foreign(vm):
-    native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
-    if vm.hostname[:len(native_id)] == native_id:
-        return False
-    else:
-        return True
 
 def _get_neutron_client(session):
     neutron = neuclient.Client(session=session)
@@ -139,7 +97,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.cacert)
+            sess = session.Session(auth=auth, verify=config.cacerts)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -155,47 +113,12 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 project_name=project,
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name)
-            sess = session.Session(auth=auth, verify=config.cacert)
+            sess = session.Session(auth=auth, verify=config.cacerts)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
             return False
         return sess
-
-def _inventory_group_and_cloud(inventory, group_name, cloud_name):
-    if group_name not in inventory:
-        inventory[group_name] = {}
-
-    if cloud_name not in inventory[group_name]:
-        inventory[group_name][cloud_name] = {}
-
-    return
-
-def _inventory_item(inventory, group_name, cloud_name, item, update_time):
-    inventory[group_name][cloud_name][item] = True
-    return int(parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s'))
-
-def _inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, poll_time):
-    _inventory_group_and_cloud(inventory, group_name, cloud_name)
-
-    if item not in inventory[group_name][cloud_name]:
-        inventory[group_name][cloud_name][item] = {'hash': None}
-
-    inventory[group_name][cloud_name][item]['poll_time'] = poll_time
-
-    hash_object = hashlib.new('md5')
-    for hash_item in sorted(item_dict):
-       if hash_item == 'group_name' or hash_item == 'cloud_name' or hash_item == 'last_updated':
-           continue
-       
-       hash_object.update(str(item_dict[hash_item]).encode('utf-8'))
-
-    new_hash = hash_object.hexdigest()
-    if new_hash == inventory[group_name][cloud_name][item]['hash']:
-        return True
-
-    inventory[group_name][cloud_name][item]['hash'] = new_hash
-    return False
 
 ## Poller functions.
 
@@ -205,22 +128,29 @@ def command_poller():
     last_poll_time = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
 
     try:
         while True:
             logging.info("Beginning command poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             # Retrieve list of VMs to be terminated.
             vm_to_destroy = db_session.query(VM).filter(VM.terminate == 1, VM.manual_control != 1)
             for vm in vm_to_destroy:
-                if _foreign(vm):
+                if foreign(vm):
                     logging.info("skipping foreign VM %s marked for termination... - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
                     continue
 
@@ -244,7 +174,7 @@ def command_poller():
             logging.info("Completed command poller cycle")
             last_poll_time = new_poll_time
             db_session.close()
-            time.sleep(config.vm_cleanup_interval)
+            time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Command poller cycle while loop exception, process terminating...")
@@ -254,18 +184,24 @@ def command_poller():
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password +
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     FLAVOR = Base.classes.cloud_flavors
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
 
     try:
-        inventory = {}
+        inventory = get_inventory_item_hash_from_database(db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning flavor poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             abort_cycle = False
@@ -324,7 +260,7 @@ def flavor_poller():
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, flavor.name, flav_dict, new_poll_time):
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, flavor.name, flav_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     new_flav = FLAVOR(**flav_dict)
@@ -353,16 +289,15 @@ def flavor_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_flavor)
                 continue
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            _delete_obsolete_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
 
             logging.info("Completed flavor poller cycle")
-            last_poll_time = new_poll_time
             db_session.close()
-            time.sleep(config.flavor_sleep_interval)
+            time.sleep(config.sleep_interval_flavor)
 
     except Exception as exc:
         logging.exception("Flavor poller cycle while loop exception, process terminating...")
@@ -372,17 +307,24 @@ def flavor_poller():
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
+    last_poll_time = get_last_poll_time_from_database(db_engine, IMAGE.last_updated)
 
     try:
         while True:
             logging.info("Beginning image poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
@@ -397,7 +339,7 @@ def image_poller():
                     continue
 
                 # setup OpenStack api object
-                _inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
+                set_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
                 nova = _get_nova_client(session)
 
                 # Retrieve all images for this cloud.
@@ -414,7 +356,7 @@ def image_poller():
 
                 uncommitted_updates = 0
                 for image in image_list:
-                    image_update_time = _inventory_item(inventory, cloud.group_name, cloud.cloud_name, image.name, image.updated_at)
+                    image_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, image.name, image.updated_at)
                     if image_update_time < last_poll_time:
                         continue
 
@@ -468,17 +410,17 @@ def image_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_image)
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-            _delete_obsolete_items('Image', inventory, db_session, IMAGE, 'name')
+            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'name')
 
             logging.info("Completed image poller cycle")
             last_poll_time = new_poll_time
             del inventory
             db_session.close()
-            time.sleep(config.image_sleep_interval)
+            time.sleep(config.sleep_interval_image)
 
     except Exception as exc:
         logging.exception("Image poller cycle while loop exception, process terminating...")
@@ -489,17 +431,24 @@ def image_poller():
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     KEYPAIR = Base.classes.cloud_keypairs
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = {}
+        inventory = get_inventory_item_hash_from_database(db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning keypair poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             abort_cycle = False
@@ -535,7 +484,7 @@ def keypair_poller():
                     }
                     fingerprint_list.append(key.fingerprint)
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, key.name, key_dict, new_poll_time):
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, key.name, key_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     new_key = KEYPAIR(**key_dict)
@@ -564,15 +513,15 @@ def keypair_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_keypair)
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-            _delete_obsolete_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
 
             logging.info("Completed keypair poller cycle")
             db_session.close()
-            time.sleep(config.keypair_sleep_interval)
+            time.sleep(config.sleep_interval_keypair)
 
     except Exception as exc:
         logging.exception("Keypair poller cycle while loop exception, process terminating...")
@@ -582,17 +531,24 @@ def keypair_poller():
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     LIMIT = Base.classes.cloud_limits
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = {}
+        inventory = get_inventory_item_hash_from_database(db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning limit poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             abort_cycle = False
@@ -631,7 +587,7 @@ def limit_poller():
                     logging.error("Unmapped attributes found during mapping, discarding:")
                     logging.error(unmapped)
 
-                if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time):
+                if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
                     continue
 
                 for limit in limits_dict:
@@ -651,7 +607,7 @@ def limit_poller():
             del nova
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_limit)
                 continue
 
             if uncommitted_updates > 0:
@@ -665,11 +621,11 @@ def limit_poller():
                     break
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            _delete_obsolete_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
+            delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
 
             logging.info("Completed limit poller cycle")
             db_session.close()
-            time.sleep(config.limit_sleep_interval)
+            time.sleep(config.sleep_interval_limit)
 
     except Exception as exc:
         logging.exception("Limit poller cycle while loop exception, process terminating...")
@@ -679,17 +635,24 @@ def limit_poller():
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     NETWORK = Base.classes.cloud_networks
     CLOUD = Base.classes.csv2_group_resources
 
     try:
-        inventory = {}
+        inventory = get_inventory_item_hash_from_database(db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning network poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
@@ -729,13 +692,13 @@ def network_poller():
                         'last_updated': int(time.time())
                     }
 
-                    if _inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time):
-                        continue
-
                     network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
                     if unmapped:
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
+
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
 
                     new_network = NETWORK(**network_dict)
                     try:
@@ -763,15 +726,15 @@ def network_poller():
 
             if abort_cycle:
                 db_session.close()
-                time.sleep(config.network_sleep_interval)
+                time.sleep(config.sleep_interval_network)
                 continue
 
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-            _delete_obsolete_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
 
             logging.info("Completed network poller cycle")
             db_session.close()
-            time.sleep(config.network_sleep_interval)
+            time.sleep(config.sleep_interval_network)
 
     except Exception as exc:
         logging.exception("Network poller cycle while loop exception, process terminating...")
@@ -782,19 +745,26 @@ def network_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
     Base = automap_base()
-    engine = create_engine("mysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    db_engine = create_engine(
+        'mysql://%s:%s@%s:%s/%s' % (
+            config.db_user,
+            config.db_password,
+            config.db_host,
+            str(config.db_port),
+            config.db_name
+            )
+        )
+    Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
-
+    last_poll_time = get_last_poll_time_from_database(db_engine, VM.last_updated)
+    
     try:
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.info("Beginning VM poller cycle")
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
             # For each OpenStack cloud, retrieve and process VMs.
@@ -809,7 +779,7 @@ def vm_poller():
                     continue
 
                 # setup nova object
-                _inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
+                set_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
                 nova = _get_nova_client(session)
 
                 # Retrieve VM list for this cloud.
@@ -828,7 +798,7 @@ def vm_poller():
                 # Process VM list for this cloud.
                 uncommitted_updates = 0
                 for vm in vm_list:
-                    vm_update_time = _inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
+                    vm_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
                     if vm_update_time < last_poll_time:
                         continue
 
@@ -843,7 +813,7 @@ def vm_poller():
                         'flavor_id': vm.flavor["id"],
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                         'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
-                        'last_updated': int(time.time())
+                        'last_updated': new_poll_time
                     }
 
                     vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
@@ -879,17 +849,17 @@ def vm_poller():
             if abort_cycle:
                 del inventory
                 db_session.close()
-                time.sleep(config.limit_sleep_interval)
+                time.sleep(config.sleep_interval_vm)
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            _delete_obsolete_items('VM', inventory, db_session, VM, 'hostname')
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname')
 
             logging.info("Completed VM poller cycle")
             last_poll_time = new_poll_time
             del inventory
             db_session.close()
-            time.sleep(config.vm_sleep_interval)
+            time.sleep(config.sleep_interval_vm)
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
@@ -899,9 +869,10 @@ def vm_poller():
 ## Main.
 
 if __name__ == '__main__':
+    config = Config(os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
-        filename=config.poller_log_file,
+        filename=config.log_file,
         level=config.log_level,
         format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
 
@@ -930,8 +901,8 @@ if __name__ == '__main__':
                         logging.info("Restarting %s process", process)
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
-                    time.sleep(config.main_short_interval)
-            time.sleep(config.main_long_interval)
+                    time.sleep(config.sleep_interval_main_short)
+            time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")

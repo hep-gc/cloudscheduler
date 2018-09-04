@@ -371,10 +371,10 @@
                 {% endif %}
 
 
-                {% if system_list.collector == 1 %}
+                {% if system_list.machines == 1 %}
                     <td tooltip="running"><span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.collector }}"><span class="red-dot"></span></td>
+                    <td tooltip="{{ system_list.machines }}"><span class="red-dot"></span></td>
                 {% endif %}
 
 
@@ -399,7 +399,7 @@
                 <td>database</td>
                 <td>openstack</td>
                 <td>jobs</td>
-                <td>collector</td>
+                <td>machines</td>
                 <td>condor</td>
 
                 <td class="col-spacer">&nbsp;</td>

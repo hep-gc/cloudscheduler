@@ -5,17 +5,17 @@ import copy
 import logging
 import socket
 import re
+import os
+import sys
 
-import job_config as config
-from attribute_mapper.attribute_mapper import map_attributes
+from cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.csv2_config import Config
 
 import htcondor
 import classad
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
-
-
 
 
 # condor likes to return extra keys not defined in the projection
@@ -40,8 +40,8 @@ def build_user_group_dict(db_list):
             user_group_dict[entry.username] = [entry.group_name]
     return user_group_dict
 
-def job_producer():
-    multiprocessing.current_process().name = "Poller"
+def job_poller():
+    multiprocessing.current_process().name = "Job Poller"
     job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "HoldReason",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
@@ -71,7 +71,7 @@ def job_producer():
                 fail_count += 1
                 logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                time.sleep(config.collection_interval)
+                time.sleep(config.sleep_interval_job)
                 continue
 
             fail_count = 0
@@ -138,7 +138,7 @@ def job_producer():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.collection_interval)
+                time.sleep(config.sleep_interval_job)
                 continue
 
             if uncommitted_updates > 0:
@@ -150,14 +150,14 @@ def job_producer():
                     logging.error(exc)
                     del condor_session
                     db_session.close()
-                    time.sleep(config.collection_interval)
+                    time.sleep(config.sleep_interval_job)
                     continue
 
             logging.info("Completed job poller cycle")
             last_poll_time = new_poll_time
             del condor_session
             db_session.close()
-            time.sleep(config.collection_interval)
+            time.sleep(config.sleep_interval_job)
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
@@ -165,8 +165,8 @@ def job_producer():
         del condor_session
         db_session.close()
 
-def job_command_consumer():
-    multiprocessing.current_process().name = "Cmd Consumer"
+def command_poller():
+    multiprocessing.current_process().name = "Command Poller"
     #Make database engine
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
@@ -183,7 +183,7 @@ def job_command_consumer():
                 fail_count += 1
                 logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                time.sleep(config.command_sleep_interval)
+                time.sleep(config.sleep_interval_command)
                 continue
 
             fail_count = 0
@@ -213,7 +213,7 @@ def job_command_consumer():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.command_sleep_interval)
+                time.sleep(config.sleep_interval_command)
                 continue
 
             if uncommitted_updates:
@@ -224,13 +224,13 @@ def job_command_consumer():
                     logging.error(exc)
                     del condor_session
                     db_session.close()
-                    time.sleep(config.command_sleep_interval)
+                    time.sleep(config.sleep_interval_command)
                     continue
 
             logging.info("Completed command consumer cycle")
             del condor_session
             db_session.close()
-            time.sleep(config.command_sleep_interval)
+            time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Job poller while loop exception, process terminating...")
@@ -238,8 +238,8 @@ def job_command_consumer():
         del condor_session
         db_session.close()
 
-def cleanUp():
-    multiprocessing.current_process().name = "Cleanup"
+def cleanup_poller():
+    multiprocessing.current_process().name = "Cleanup Poller"
     fail_count = 0
 
     Base = automap_base()
@@ -265,7 +265,7 @@ def cleanUp():
                 fail_count += 1
                 logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
                 logging.error(exc)
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             fail_count = 0
@@ -280,7 +280,7 @@ def cleanUp():
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             condor_job_ids = {}
@@ -295,7 +295,7 @@ def cleanUp():
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             # Scan DB job list for items to delete.
@@ -329,7 +329,7 @@ def cleanUp():
             if abort_cycle:
                 del condor_session
                 db_session.close()
-                time.sleep(config.cleanup_sleep_interval)
+                time.sleep(config.sleep_interval_cleanup)
                 continue
 
             if uncommitted_updates:
@@ -340,13 +340,13 @@ def cleanUp():
                     logging.error(exc)
                     del condor_session
                     db_session.close()
-                    time.sleep(config.cleanup_sleep_interval)
+                    time.sleep(config.sleep_interval_cleanup)
                     continue
 
             logging.info("Completed job cleanup cycle")
             del condor_session
             db_session.close()
-            time.sleep(config.cleanup_sleep_interval)
+            time.sleep(config.sleep_interval_cleanup)
 
     except Exception as exc:
         logging.exception("Job cleanup while loop exception, process terminating...")
@@ -356,6 +356,8 @@ def cleanUp():
 
 
 if __name__ == '__main__':
+    config = Config(os.path.basename(sys.argv[0]))
+
     logging.basicConfig(
         filename=config.log_file,
         level=config.log_level,
@@ -365,9 +367,9 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'cleanup':            cleanUp,
-        'command':            job_command_consumer,
-        'job':                job_producer,
+        'cleanup':            cleanup_poller,
+        'command':            command_poller,
+        'job':                job_poller,
         }
 
     # Wait for keyboard input to exit
@@ -382,8 +384,8 @@ if __name__ == '__main__':
                         logging.info("Restarting %s process", process)
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
-                    time.sleep(config.main_short_interval)
-            time.sleep(config.main_long_interval)
+                    time.sleep(config.sleep_interval_main_short)
+            time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
