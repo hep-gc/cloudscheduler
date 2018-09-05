@@ -31,7 +31,7 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         if item.__dict__[base_class_key] in inventory[group_name][cloud_name] and inventory[group_name][cloud_name][item.__dict__[base_class_key]]['poll_time'] >= poll_time:
                             continue
                         else:
-                            inventory_deletions.append([group_name, cloud_name, item.__dict__[base_class_key])
+                            inventory_deletions.append([group_name, cloud_name, item.__dict__[base_class_key]])
                     else:
                         if item.__dict__[base_class_key] in inventory[group_name][cloud_name]:
                             continue
