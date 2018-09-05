@@ -798,9 +798,11 @@ def vm_poller():
                 # Process VM list for this cloud.
                 uncommitted_updates = 0
                 for vm in vm_list:
+                    logging.debug('vm >>>: %s, %s, %s' % (cloud.group_name, cloud.cloud_name, vm.name))
                     vm_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
                     if vm_update_time < last_poll_time:
                         continue
+                    logging.debug('vm <<<: %s, %s, %s' % (cloud.group_name, cloud.cloud_name, vm.name))
 
                     vm_dict = {
                         'group_name': cloud.group_name,

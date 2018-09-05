@@ -102,8 +102,8 @@ left outer join (
     ) as cdp /* condor_dynamic_partitions */
 
 on
-    cv.group_name=cpp.group_name and
-    cv.cloud_name=cpp.cloud_name and
-    cv.hostname=cpp.hostname
+    cv.group_name=cdp.group_name and
+    cv.cloud_name=cdp.cloud_name and
+    cv.hostname=cdp.hostname
 
 ;

@@ -64,10 +64,10 @@
 
 #iframe-div {
   position: absolute;
-  width:1000;
-  bottom: 0;
-  left:650;
   top:60;
+  bottom: 0;
+  left:700;
+  right:10;
   margin:0;
 }
 
