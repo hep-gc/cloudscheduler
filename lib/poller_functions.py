@@ -11,6 +11,7 @@ from sqlalchemy.sql import func
 ## Poller functions.
 
 def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None):
+    inventory_deletions = []
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
             obsolete_items = db_session.query(base_class).filter(
@@ -24,13 +25,13 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                     if inventory[group_name][cloud_name]['-']['poll_time'] >= poll_time:
                         continue
                     else:
-                        del inventory[group_name][cloud_name]
+                        inventory_deletions.append([group_name, cloud_name, '-'])
                 else:
                     if poll_time:
                         if item.__dict__[base_class_key] in inventory[group_name][cloud_name] and inventory[group_name][cloud_name][item.__dict__[base_class_key]]['poll_time'] >= poll_time:
                             continue
                         else:
-                            del inventory[group_name][cloud_name][item.__dict__[base_class_key]]
+                            inventory_deletions.append([group_name, cloud_name, item.__dict__[base_class_key])
                     else:
                         if item.__dict__[base_class_key] in inventory[group_name][cloud_name]:
                             continue
@@ -54,6 +55,9 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                 except Exception as exc:
                     logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
+
+        for group_name, cloud_name, item in inventory_deletions:
+            del inventory[group_name][cloud_name][item]
 
 def foreign(vm):
     native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
