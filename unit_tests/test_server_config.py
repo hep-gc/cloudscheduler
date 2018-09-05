@@ -1,4 +1,4 @@
-from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
+from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id #pylint: disable=E0401
 import sys
 
 # lno: SV - error code identifier.
@@ -92,16 +92,56 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, None, None,
+        gvar, 1, 'SV01', 'server config update request did not contain mandatory parameter "config_key".',
         '/server/config/', form_data={'category': 'web_frontend', 'value': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 0, None, None,
+        gvar, 1, 'SV01', 'server config update request did not contain mandatory parameter "category".',
         '/server/config/', form_data={'config_key': 'log_file', 'value': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
 
+    execute_csv2_request(
+        gvar, 1, 'SV01', 'server config update request did not contain mandatory parameter "value".',
+        '/server/config/', form_data={'category': 'web_frontend', 'config_key': 'log_file'},
+        server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'SV00', 'server config update failed - the request did not match any rows',
+        '/server/config/', form_data={'category': 'web_frontend', 'config_key': 'cacerts', 'value': 'invalid-unit-test'},
+        server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'server config successfully updated',
+        '/server/config/', form_data={'category': 'web_frontend', 'config_key': 'log_file', 'value': '/var/log/cloudscheduler/csv2_web_update.log'},
+        server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/server/config/',
+        list='config_list', filter={'category': 'web_frontend', 'config_key': 'log_file'},
+        values={'type': 'str', 'value': '/var/log/cloudscheduler/csv2_web_update.log'},
+        server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'server config successfully update',
+        '/server/config/', form_data={'category': 'web_frontend', 'config_key': 'log_file', 'value': '/var/log/cloudscheduler/csv2_web.log'},
+        server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/server/config/',
+        list='config_list', filter={'category': 'web_frontend', 'config_key': 'log_file'},
+        values={'type': 'str', 'value': '/var/log/cloudscheduler/csv2_web.log'},
+        server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
+    )
+
 if __name__ == "__main__":
-    main(None)
+    main(None, None)
