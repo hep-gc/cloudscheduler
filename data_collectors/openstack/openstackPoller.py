@@ -319,7 +319,7 @@ def image_poller():
     Base.prepare(db_engine, reflect=True)
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = get_last_poll_time_from_database(db_engine, IMAGE.last_updated)
+    last_poll_time = 0
 
     try:
         while True:
@@ -757,7 +757,7 @@ def vm_poller():
     Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = get_last_poll_time_from_database(db_engine, VM.last_updated)
+    last_poll_time = 0
     
     try:
         while True:
@@ -799,10 +799,8 @@ def vm_poller():
                 uncommitted_updates = 0
                 for vm in vm_list:
                     vm_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
-                    logging.info('vm >>>: %s, %s, %s, %s, %s' % (cloud.group_name, cloud.cloud_name, vm.name, vm_update_time, last_poll_time))
                     if vm_update_time < last_poll_time:
                         continue
-                    logging.info('vm <<<: %s, %s, %s' % (cloud.group_name, cloud.cloud_name, vm.name))
 
                     vm_dict = {
                         'group_name': cloud.group_name,
