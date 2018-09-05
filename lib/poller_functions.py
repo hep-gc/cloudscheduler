@@ -35,7 +35,11 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                         if item.__dict__[base_class_key] in inventory[group_name][cloud_name]:
                             continue
 
-                logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[base_class_key], item.group_name, item.cloud_name))
+                if cloud_name in item:
+                    logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[base_class_key], item.group_name, item.cloud_name))
+                else:
+                    logging.info("Cleaning up %s: %s from group - %s" % (type, item.__dict__[base_class_key], item.group_name))
+
                 try:
                     db_session.delete(item)
                     uncommitted_updates += 1
