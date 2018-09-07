@@ -42,13 +42,31 @@ CONFIG_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'csrfmiddlewaretoken':  'ignore',
-        'group':                'ignore',
-        'category':             ('csv2_configuration', 'category'),
-        'config_key':           ('csv2_configuration', 'config_key'),
+        'category':                     ('csv2_configuration', 'category'),
+        'cacerts':                      'ignore',
+        'config_key':                   'reject',
+        'csrfmiddlewaretoken':          'ignore',
+        'default_job_group':            'ignore',
+        'enable_glint':                 ['True', 'False'],
+        'group':                        'ignore',
+        'log_file':                     'ignore',
+        'log_level':                    'integer',
+        'no_limit_default':             'integer',
+        'sleep_interval_cleanup':       'integer',
+        'sleep_interval_command':       'integer',
+        'sleep_interval_flavor':        'integer',
+        'sleep_interval_image':         'integer',
+        'sleep_interval_job':           'integer',
+        'sleep_interval_keypair':       'integer',
+        'sleep_interval_limit':         'integer',
+        'sleep_interval_machine':       'integer',
+        'sleep_interval_main_long':     'integer',
+        'sleep_interval_main_short':    'integer',
+        'type':                         'reject',
+        'value':                        'reject',
     },
     'mandatory': [
-        'value',
+        'category',
     ],
 }
 
@@ -73,16 +91,28 @@ def config(request):
     if rc == 0:
         if (request.method == 'POST') and ((not 'group' in request.POST) or len(request.POST) > 2):
                 # Validate input fields.
-                rc, msg, fields, tables, columns = validate_fields(request, [CONFIG_KEYS], db_ctl, ['csv2_configuration'], active_user)
+                rc, msg, fields, tables, columns = validate_fields(request, [CONFIG_KEYS], db_ctl, ['csv2_configuration,n'], active_user)
                 if rc == 0:
                     # Update the server configuration.
                     table = tables['csv2_configuration']
-                    rc, msg = db_execute(db_ctl, table.update().where((table.c.category==request.POST['category']) & (table.c.config_key==request.POST['config_key'])).values(table_fields(fields, table, columns, 'update')))
-                    if rc == 0:
-                        db_session.commit()
-                        message = 'server config successfully updated'
+                    category = fields['category']
+                    
+                    # Remove unwanted fields
+                    fields.pop('category')
+                    fields.pop('csrfmiddlewaretoken')
+                    fields.pop('group_name')
+
+                    if len(fields) == 0:
+                        message = '{} server config must specify at least one field to update.'.format(lno('SV99'))
                     else:
-                        message = '{} server config update failed - {}'.format(lno('SV00'), msg)
+                        for field in fields:
+                            rc, msg = db_execute(db_ctl, table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
+                            if rc != 0:
+                                message = '{} server config update failed - {}'.format(lno('SV00'), msg)
+                                break
+                        if rc == 0:
+                            db_session.commit()
+                            message = 'server config successfully updated'
                 else:
                     message = '{} server config update {}'.format(lno('SV01'), msg)
     else:
