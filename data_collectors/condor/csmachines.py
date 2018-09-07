@@ -10,6 +10,11 @@ import sys
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.csv2_config import Config
 from cloudscheduler.lib.schema import view_redundant_machines
+from cloudscheduler.lib.poller_functions import \
+    delete_obsolete_database_items, \
+    get_inventory_item_hash_from_database, \
+    test_and_set_inventory_item_hash, \
+    build_inventory_for_condor
 
 import htcondor
 import classad
@@ -50,12 +55,20 @@ def machine_poller():
             )
         )
     Base.prepare(db_engine, reflect=True)
-    Resource = Base.classes.condor_machines
+    RESOURCE = Base.classes.condor_machines
+    CLOUDS = Base.classes.csv2_group_resources
+
     last_poll_time = 0
+    inventory = {}
+    #delete_interval = config.delete_interval
+    delete_cycle = False
+    cycle_count = 0
 
     try:
+        inventory = get_inventory_item_hash_from_database(db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning machine poller cycle")
+
             try:
                 condor_session = htcondor.Collector()
             except Exception as exc:
@@ -70,8 +83,15 @@ def machine_poller():
             db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
+            if delete_cycle:
+                # we need to initialize all group-cloud combos or the delete function can miss some targets
+                inventory = get_inventory_item_hash_from_database(db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
+                build_inventory_for_condor(inventory, db_session, CLOUDS)
+
             # Retrieve machines.
-            if last_poll_time == 0:
+
+            # this frist conditional block will be used every delete round, need new flag variable here
+            if last_poll_time == 0 or delete_cycle:
                 # First poll since starting up, get everything
                 condor_resources = condor_session.query(
                     ad_type=htcondor.AdTypes.Startd,
@@ -99,8 +119,12 @@ def machine_poller():
 
                 r_dict["condor_host"] = condor_host
 
+                # Check if this item has changed relative to the local cache, skip it if it's unchanged
+                if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], "-", r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    continue
+
                 logging.info("Adding/updating machine %s", r_dict["name"])
-                new_resource = Resource(**r_dict)
+                new_resource = RESOURCE(**r_dict)
                 try:
                     db_session.merge(new_resource)
                     uncommitted_updates += 1
@@ -128,10 +152,20 @@ def machine_poller():
                     time.sleep(config.sleep_interval_machine)
                     continue
 
+            if delete_cycle:
+                # Check for deletes
+                logging.info("Delete Cycle - checking for consistency")
+                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
+                delete_cycle = False
+
             logging.info("Completed machine poller cycle")
             last_poll_time = new_poll_time
             del condor_session
             db_session.close()
+            cycle_count = cycle_count + 1
+            if cycle_count > config.delete_cycle_interval:
+                delete_cycle = True
+                cycle_count = 0
             time.sleep(config.sleep_interval_machine)
 
     except Exception as exc:
@@ -391,7 +425,7 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'cleanup':            cleanup_poller,
+#        'cleanup':            cleanup_poller,
         'command':            command_poller,
         'machine':            machine_poller,
         }
