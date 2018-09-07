@@ -862,7 +862,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                         options = []
                         s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]])
                         for row in db_connection.execute(s):
-                           if Formats[field][1] in row:
+                           if Formats[field][1] in row and (not row[Formats[field][1]] in options):
                               options.append(row[Formats[field][1]])
                     else:
                         options = Formats[field]

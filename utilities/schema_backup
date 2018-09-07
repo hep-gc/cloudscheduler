@@ -73,7 +73,7 @@ def backup(gvar, table, data=False):
             stderr=PIPE
             )
         stdout, stderr = _p2.communicate()
-        if stderr != '':
+        if _p2.returncode != 0:
             print('Failed to compare table definition for: %s' % table)
             exit(1)
     else:
@@ -91,7 +91,7 @@ def backup(gvar, table, data=False):
             stderr=PIPE
             )
         stdout, stderr = _p1.communicate()
-        if stderr != '':
+        if _p1.returncode != 0:
             print('Failed to update table definition for: %s - %s' % (table, stderr))
             exit(1)
 
@@ -139,14 +139,14 @@ def main(args):
     _p2 = Popen(
         [
             'awk',
-            '!/Tables_in_csv2/ {print $1}'
+            '!/Tables_in_/ {print $1}'
             ],
         stdin=_p1.stdout,
         stdout=PIPE,
         stderr=PIPE
         )
     stdout, stderr = _p2.communicate()
-    if stderr != '':
+    if _p2.returncode != 0:
         print('Failed to retrieve table list.')
         exit(1)
 
