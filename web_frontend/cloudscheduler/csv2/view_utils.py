@@ -904,7 +904,7 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
                     try:
                         integer = int(value)
                     except:
-                        return 1, 'value specified for "%s" must be a integer value.' % field, None, None, None
+                        return 1, 'value specified for "%s" must be an integer value.' % field, None, None, None
 
                 elif Formats[field] == 'lowerdash':
                     if len(request.POST[field]) > 0 and re.match("^[a-z0-9\-]*$", request.POST[field]) and request.POST[field][0] != '-' and request.POST[field][-1] != '-':
