@@ -804,9 +804,6 @@ def status(request, group_name=None):
     cloud_total_list = {}
 
 
-    cloud_total_list["cores_available"] = 0
-
-
     for d in cloud_status_list:
         for key, value in d.items():
             if isinstance(value, int) or isinstance(value, float):
@@ -817,11 +814,6 @@ def status(request, group_name=None):
             else:
                 cloud_total_list[key] = '-'
 
-        if d["cores_ctl"] == -1 or d["cores_ctl"] > d["cores_idle"]:
-            cloud_total_list["cores_available"] += d["cores_idle"] 
-        else:
-            cloud_total_list["cores_available"] += d["cores_ctl"]
-    
 
     # Determine the csv2 service statuses and put them in a list
     system_list = {}
