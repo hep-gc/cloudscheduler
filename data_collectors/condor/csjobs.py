@@ -58,8 +58,9 @@ def job_poller():
     fail_count = 0
     inventory = {}
     #delete_interval = config.delete_interval
-    delete_cycle = False
+    delete_cycle = True
     cycle_count = 0
+    condor_inventory_built = False
 
     Base = automap_base()
     db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
@@ -90,10 +91,10 @@ def job_poller():
             db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
-            if delete_cycle:
-                # we need to initialize all group-cloud combos or the delete function can miss some targets
-                inventory = get_inventory_item_hash_from_database(db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
+            if not condor_inventory_built:
                 build_inventory_for_condor(inventory, db_session, CLOUDS)
+                condor_inventory_built = True
+                
 
             db_user_grps = db_session.query(USER_GROUPS)
             if db_user_grps:
@@ -102,17 +103,10 @@ def job_poller():
                 user_group_dict = {}
 
             # Retrieve jobs.
-            if last_poll_time == 0 or delete_cycle:
-                # First poll since starting up, get everything
-                job_list = condor_session.query(
-                    attr_list=job_attributes
-                    )
-            else:
-                # Regular polling cycle, get updated jobs.
-                job_list = condor_session.query(
-                    constraint='EnteredCurrentStatus>=%d' % last_poll_time,
-                    attr_list=job_attributes
-                    )
+            job_list = condor_session.query(
+                attr_list=job_attributes
+                )
+
 
             # Process job data & insert/update jobs in Database
             abort_cycle = False
@@ -141,7 +135,7 @@ def job_poller():
                     logging.error(unmapped)
 
                 # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.log_level<20)):
                     continue
 
                 logging.info("Adding job %s", job_dict["global_job_id"])
@@ -185,7 +179,7 @@ def job_poller():
             del condor_session
             db_session.close()
             cycle_count = cycle_count + 1
-            if cycle_count > config.delete_cycle_interval:
+            if cycle_count >= config.delete_cycle_interval:
                 delete_cycle = True
                 cycle_count = 0
             time.sleep(config.sleep_interval_job)

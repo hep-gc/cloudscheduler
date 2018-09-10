@@ -62,6 +62,7 @@ def machine_poller():
     inventory = {}
     #delete_interval = config.delete_interval
     delete_cycle = False
+    condor_inventory_built = False
     cycle_count = 0
 
     try:
@@ -83,27 +84,16 @@ def machine_poller():
             db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
-            if delete_cycle:
-                # we need to initialize all group-cloud combos or the delete function can miss some targets
-                inventory = get_inventory_item_hash_from_database(db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
+            if not condor_inventory_built:
                 build_inventory_for_condor(inventory, db_session, CLOUDS)
+                condor_inventory_built = True
 
             # Retrieve machines.
-
-            # this frist conditional block will be used every delete round, need new flag variable here
-            if last_poll_time == 0 or delete_cycle:
-                # First poll since starting up, get everything
-                condor_resources = condor_session.query(
-                    ad_type=htcondor.AdTypes.Startd,
-                    projection=resource_attributes
-                    )
-            else:
-                # Regular polling cycle, get updated machines.
-                condor_resources = condor_session.query(
-                    ad_type=htcondor.AdTypes.Startd,
-                    constraint='EnteredCurrentActivity>=%d' % last_poll_time,
-                    projection=resource_attributes
-                    )
+            condor_resources = condor_session.query(
+                ad_type=htcondor.AdTypes.Startd,
+                constraint='EnteredCurrentActivity>=%d' % last_poll_time,
+                projection=resource_attributes
+                )
 
             abort_cycle = False
             uncommitted_updates = 0
