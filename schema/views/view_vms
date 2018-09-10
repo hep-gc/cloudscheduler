@@ -12,13 +12,13 @@ select
 
 cv.*,
 cf.name as flavor_name,
+cpp.condor_slots,
 cdp.condor_slots_used,
 cpp.machine,
 cpp.my_current_time,
 cpp.entered_current_state,
 cpp.state,
 cpp.activity,
-cpp.condor_slots,
 cpp.idle_time,
 cpp.retire_request_time,
 cpp.retired_time,
@@ -36,7 +36,7 @@ else
         case when cv.status = 'ERROR' then
             'error'
         else
-            case when cv.power_status = 1 and cv.status = 'ACTIVE' and condor_slots is null then
+            case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.condor_slots is null then
                 'unregistered'
             else
                 case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time != 0 then
