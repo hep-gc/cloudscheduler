@@ -1,9 +1,24 @@
+.editor-bar ul {
+	list-style: none;
+}
+
+#update {
+	float: left;
+
+}
+
+#delete {
+	float: right;
+}
+
+#metadata-name {
+	text-align: center;
+}
 
 
 
-
-#editor { 
-
+#editor-table {
+	width: 100%;
 }
 
 .editor-footer {
