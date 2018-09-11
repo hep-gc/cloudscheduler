@@ -819,37 +819,37 @@ def status(request, group_name=None):
     system_list = {}
 
 
-    system_list["main_msg"] = os.popen("service csv2-main status | grep 'Active'").read()
+    system_list["main_msg"] = os.popen("service csv2-main status | grep 'Active' | cut -c12-").read()
     if 'running' in system_list["main_msg"]:
         system_list["main"] = 1
     else:
         system_list["main"] = 0
 
-    system_list["openstack_msg"] = os.popen("service csv2-openstack status | grep 'Active'").read()
+    system_list["openstack_msg"] = os.popen("service csv2-openstack status | grep 'Active' | cut -c12-").read()
     if 'running' in system_list["openstack_msg"]:
         system_list["openstack"] = 1
     else:
         system_list["openstack"] = 0
 
-    system_list["jobs_msg"] = os.popen("service csv2-jobs status | grep 'Active'").read()
+    system_list["jobs_msg"] = os.popen("service csv2-jobs status | grep 'Active' | cut -c12-").read()
     if 'running' in system_list["jobs_msg"]:
         system_list["jobs"] = 1
     else:
         system_list["jobs"] = 0
 
-    system_list["machines_msg"] = os.popen("service csv2-machines status | grep 'Active'").read()
+    system_list["machines_msg"] = os.popen("service csv2-machines status | grep 'Active' | cut -c12-").read()
     if 'running' in system_list["machines_msg"]:
         system_list["machines"] = 1
     else:
         system_list["machines"] = 0
 
-    system_list["db_msg"] = os.popen("service mariadb status | grep 'Active'").read()
+    system_list["db_msg"] = os.popen("service mariadb status | grep 'Active' | cut -c12-").read()
     if 'running' in system_list["db_msg"]:
         system_list["db"] = 1
     else:
         system_list["db"] = 0
 
-    system_list["condor_msg"] = os.popen("service condor status | grep 'Active'").read()
+    system_list["condor_msg"] = os.popen("service condor status | grep 'Active' | cut -c12-").read()
     if 'running' in system_list["condor_msg"]:
         system_list["condor"] = 1
     else:
