@@ -660,6 +660,14 @@ def render(request, template, context):
 
 #-------------------------------------------------------------------------------
 
+def service_msg(service_name):
+    
+    import os
+
+    return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read()    
+
+#-------------------------------------------------------------------------------
+
 def set_user_groups(request, db_ctl):
 
     db_engine, db_session, db_connection, db_map = db_ctl
