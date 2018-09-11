@@ -103,9 +103,26 @@ def job_poller():
                 user_group_dict = {}
 
             # Retrieve jobs.
-            job_list = condor_session.query(
-                attr_list=job_attributes
-                )
+            logging.debug("getting job list from condor")
+            query_time = time.time()
+            try:
+                job_list = condor_session.query(
+                    attr_list=job_attributes
+                    )
+            except Exception as exc:
+                logging.error("Failed to get jobs from condor queue, aborting cycle")
+                logging.error(exc)
+                del condor_session
+                db_session.close()
+                time.sleep(config.sleep_interval_job)
+                continue
+
+            query_time = time.time() - query_time
+
+            logging.error("Condor query time: %s" % query_time)
+            logging.error("Query size: %s" % len(job_list))
+            logging.error("Job List Type:")
+            logging.error(type(job_list))
 
 
             # Process job data & insert/update jobs in Database

@@ -89,11 +89,18 @@ def machine_poller():
                 condor_inventory_built = True
 
             # Retrieve machines.
-            condor_resources = condor_session.query(
-                ad_type=htcondor.AdTypes.Startd,
-                constraint='EnteredCurrentActivity>=%d' % last_poll_time,
-                projection=resource_attributes
-                )
+            try:
+                condor_resources = condor_session.query(
+                    ad_type=htcondor.AdTypes.Startd,
+                    projection=resource_attributes
+                     )
+            except Exception as exc:
+                logging.error("Failed to get machines from condor queue, aborting cycle")
+                logging.error(exc)
+                del condor_session
+                db_session.close()
+                time.sleep(config.sleep_interval_job)
+                continue
 
             abort_cycle = False
             uncommitted_updates = 0
