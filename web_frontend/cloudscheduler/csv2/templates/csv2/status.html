@@ -340,48 +340,50 @@
             <tr>
                 <th colspan="6">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
-                <th colspan="3">CS system resources</th>
+                <th colspan="4">CS system resources</th>
             </tr>
 
             <tr>
-
+                <td tooltip="{{ system_list.main_msg }}">
                 {% if system_list.main == 1 %}
-                    <td tooltip="running"><span class="green-dot"></span></td>
+                    <span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.main }}"><span class="red-dot"></span></td>
+                    <span class="red-dot"></span></td>
                 {% endif %}
 
+                <td tooltip="{{ system_list.db_msg }}">
                 {% if system_list.db == 1 %}
-                    <td tooltip="running"><span class="green-dot"></span></td>
+                    <span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.db }}"><span class="red-dot"></span></td>
+                    <span class="red-dot"></span></td>
                 {% endif %}
 
+                <td tooltip="{{ system_list.openstack_msg }}">
                 {% if system_list.openstack == 1 %}
-                    <td tooltip="running"><span class="green-dot"></span></td>
+                    <span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.openstack }}"><span class="red-dot"></span></td>
+                    <span class="red-dot"></span></td>
                 {% endif %}
 
-
+                <td tooltip="{{ system_list.jobs_msg }}">
                 {% if system_list.jobs == 1 %}
-                    <td tooltip="running"><span class="green-dot"></span></td>
+                    <span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.jobs }}"><span class="red-dot"></span></td>
+                    <span class="red-dot"></span></td>
                 {% endif %}
 
-
+                <td tooltip="{{ system_list.machines_msg }}">
                 {% if system_list.machines == 1 %}
-                    <td tooltip="running"><span class="green-dot"></span></td>
+                    <span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.machines }}"><span class="red-dot"></span></td>
+                    <span class="red-dot"></span></td>
                 {% endif %}
 
-
+                <td tooltip="{{ system_list.condor_msg }}">
                 {% if system_list.condor == 1 %}
-                    <td tooltip="running"><span class="green-dot"></span></td>
+                    <span class="green-dot"></span></td>
                 {% else %}
-                    <td tooltip="{{ system_list.condor }}"><span class="red-dot"></span></td>
+                    <span class="red-dot"></span></td>
                 {% endif %}
 
 
@@ -391,6 +393,8 @@
 
                 <td tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
  
+                <td tooltip="{{ system_list.swap_used }} / {{ system_list.swap_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.swap }}"></meter></td>
+
                 <td tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
 
             </tr>
@@ -407,6 +411,7 @@
 
                 <td>LOAD</td>
                 <td>RAM</td>
+                <td>SWAP</td>
                 <td>DISK</td>
             </tr>
 
