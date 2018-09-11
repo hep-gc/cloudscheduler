@@ -805,6 +805,7 @@ def status(request, group_name=None):
     cloud_total_list = {}
 
 
+    # tabulate the totals for all clouds
     for d in cloud_status_list:
         for key, value in d.items():
             if isinstance(value, int) or isinstance(value, float):
@@ -815,6 +816,16 @@ def status(request, group_name=None):
             else:
                 cloud_total_list[key] = '-'
 
+    if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
+        cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
+    else:
+        cloud_total_list['cores_all_busy'] = 0
+
+
+    if 'cores_native' in cloud_total_list and 'cores_foreign' in cloud_total_list:
+        cloud_total_list['cores_all'] = cloud_total_list['cores_native'] + cloud_total_list['cores_foreign']
+    else:
+        cloud_total_list['cores_all'] = 0
 
     # Determine the csv2 service statuses and put them in a list
     system_list = {}
