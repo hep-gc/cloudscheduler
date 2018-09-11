@@ -119,11 +119,6 @@ def job_poller():
 
             query_time = time.time() - query_time
 
-            logging.error("Condor query time: %s" % query_time)
-            logging.error("Query size: %s" % len(job_list))
-            logging.error("Job List Type:")
-            logging.error(type(job_list))
-
 
             # Process job data & insert/update jobs in Database
             abort_cycle = False
