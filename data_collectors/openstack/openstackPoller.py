@@ -13,10 +13,10 @@ from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
     get_inventory_item_hash_from_database, \
+    test_and_set_inventory_item_hash
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
-    test_and_set_inventory_item_hash
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
