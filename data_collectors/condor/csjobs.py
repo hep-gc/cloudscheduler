@@ -10,6 +10,11 @@ import sys
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.poller_functions import \
+    delete_obsolete_database_items, \
+    get_inventory_item_hash_from_database, \
+    test_and_set_inventory_item_hash, \
+    build_inventory_for_condor
 
 import htcondor
 import classad
@@ -51,15 +56,22 @@ def job_poller():
     # FileSystemDomian, MyType, ServerTime, TargetType
     last_poll_time = 0
     fail_count = 0
+    inventory = {}
+    #delete_interval = config.delete_interval
+    delete_cycle = True
+    cycle_count = 0
+    condor_inventory_built = False
 
     Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+    db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
-    Job = Base.classes.condor_jobs
-    User_Groups = Base.classes.csv2_user_groups
+    Base.prepare(db_engine, reflect=True)
+    JOB = Base.classes.condor_jobs
+    USER_GROUPS = Base.classes.csv2_user_groups
+    CLOUDS = Base.classes.csv2_group_resources
 
     try:
+        inventory = get_inventory_item_hash_from_database(db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
         while True:
             #
             # Setup - initialize condor and database objects and build user-group list
@@ -76,27 +88,42 @@ def job_poller():
 
             fail_count = 0
 
-            db_session = Session(engine)
+            db_session = Session(db_engine)
             new_poll_time = int(time.time())
 
-            db_user_grps = db_session.query(User_Groups)
+            if not condor_inventory_built:
+                build_inventory_for_condor(inventory, db_session, CLOUDS)
+                condor_inventory_built = True
+                
+
+            db_user_grps = db_session.query(USER_GROUPS)
             if db_user_grps:
                 user_group_dict = build_user_group_dict(list(db_user_grps))
             else:
                 user_group_dict = {}
 
             # Retrieve jobs.
-            if last_poll_time == 0:
-                # First poll since starting up, get everything
+            logging.debug("getting job list from condor")
+            query_time = time.time()
+            try:
                 job_list = condor_session.query(
                     attr_list=job_attributes
                     )
-            else:
-                # Regular polling cycle, get updated jobs.
-                job_list = condor_session.query(
-                    constraint='EnteredCurrentStatus>=%d' % last_poll_time,
-                    attr_list=job_attributes
-                    )
+            except Exception as exc:
+                logging.error("Failed to get jobs from condor queue, aborting cycle")
+                logging.error(exc)
+                del condor_session
+                db_session.close()
+                time.sleep(config.sleep_interval_job)
+                continue
+
+            query_time = time.time() - query_time
+
+            logging.error("Condor query time: %s" % query_time)
+            logging.error("Query size: %s" % len(job_list))
+            logging.error("Job List Type:")
+            logging.error(type(job_list))
+
 
             # Process job data & insert/update jobs in Database
             abort_cycle = False
@@ -124,8 +151,12 @@ def job_poller():
                     logging.error("attribute mapper found unmapped variables:")
                     logging.error(unmapped)
 
+                # Check if this item has changed relative to the local cache, skip it if it's unchanged
+                if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    continue
+
                 logging.info("Adding job %s", job_dict["global_job_id"])
-                new_job = Job(**job_dict)
+                new_job = JOB(**job_dict)
                 try:
                     db_session.merge(new_job)
                     uncommitted_updates += 1
@@ -153,10 +184,21 @@ def job_poller():
                     time.sleep(config.sleep_interval_job)
                     continue
 
+            if delete_cycle:
+                # Check for deletes
+                logging.info("Delete Cycle - checking for consistency")
+                delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time)
+                delete_cycle = False
+
+
             logging.info("Completed job poller cycle")
             last_poll_time = new_poll_time
             del condor_session
             db_session.close()
+            cycle_count = cycle_count + 1
+            if cycle_count >= config.delete_cycle_interval:
+                delete_cycle = True
+                cycle_count = 0
             time.sleep(config.sleep_interval_job)
 
     except Exception as exc:
@@ -169,9 +211,9 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
     #Make database engine
     Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+    db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
         "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
+    Base.prepare(db_engine, reflect=True)
     Job = Base.classes.condor_jobs
 
     try:
@@ -188,7 +230,7 @@ def command_poller():
 
             fail_count = 0
 
-            db_session = Session(engine)
+            db_session = Session(db_engine)
 
             #Query database for any entries that have a command flag
             abort_cycle = False
@@ -367,7 +409,7 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'cleanup':            cleanup_poller,
+        #'cleanup':            cleanup_poller,
         'command':            command_poller,
         'job':                job_poller,
         }

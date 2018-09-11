@@ -15,11 +15,16 @@
         <input type="hidden" name="group_name" value="{{ group_name }}">
         <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
         <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+        
+        <nav class="editor-bar">
+            <ul>
+                <li><input type="submit" id="update" value="Update"></li>
+                <li><h3 id="metadata-name">{{ metadata_name }}</h3></li>
+                <li><input type="submit" id="delete" value="Delete"></li>
+            </ul>
+        </nav>
 
-        <div id="editor">
-        <input type="submit" value="Update">
-
-        <textarea name="metadata">{{ metadata }}</textarea></div>
+        <textarea name="metadata">{{ metadata }}</textarea>
 
     </form>
 

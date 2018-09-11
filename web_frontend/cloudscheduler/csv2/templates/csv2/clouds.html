@@ -16,8 +16,12 @@
         }
     }
 
-    function pass_url(url) {
-        document.getElementById('editor-iframe').src=url;
+    function pass_url(cloudname , metaname) {
+
+        var url='/cloud/metadata-fetch/'+cloudname+'::'+metaname
+        var frame='editor-'+cloudname+'-'+metaname
+
+        document.getElementById(frame).src=url;
     }
 </script>
 
@@ -32,7 +36,7 @@
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="checkbox" name="tabs">
+                    <input id="settings-{{cloud.cloud_name}}" type="checkbox" name="tabs" checked>
                     <label for="settings-{{cloud.cloud_name}}">Settings</label>
                     <div class="tab-content">
 
@@ -99,13 +103,12 @@
                         </form>
                     </div>
 
-
                 </div>
 
 
 
                 <div class="tab">
-                    <input id="metadata-{{cloud.cloud_name}}" type="checkbox" name="tabs">
+                    <input id="metadata-{{cloud.cloud_name}}" type="checkbox" name="tabs" checked>
                     <label for="metadata-{{cloud.cloud_name}}">Metadata</label>
                     <div class="tab-content">
 
@@ -115,12 +118,17 @@
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
-                            <div id="{{meta}}"> 
+                            <div id="{{cloud.cloud_name}}-{{meta}}"> 
 
-                                <a class="menu-link" onclick="pass_url('/cloud/metadata-fetch/{{cloud.cloud_name}}::{{meta}}')" href="#{{meta}}">{{meta}}</a>
+                                <a class="menu-link" onclick="pass_url({{cloud.cloud_name}}, {{meta}})" href="#{{cloud.cloud_name}}-{{meta}}">{{meta}}</a>
                                 
-                                
-                            </div>    
+                            </div>
+
+                            <div class="iframe-div">
+                                <div class="i-wrap">
+                                    <iframe id="editor-{{cloud.cloud_name}}-{{meta}}" class="iframe-content" src=""></iframe>
+                                </div>
+                            </div>
                             {% endfor %}
                         {% endfor %}
 
@@ -190,9 +198,9 @@
 
 </div>
 
-<div id="iframe-div">
-    <div id="i-wrap">
-        <iframe id="editor-iframe" class="iframe-content" src=""></iframe>
+<div class="iframe-div">
+    <div class="i-wrap">
+        <iframe id="editor-otter-default" class="iframe-content" src=""></iframe>
     </div>
 </div>
 

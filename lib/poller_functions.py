@@ -9,15 +9,24 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 ## Poller functions.
+def build_inventory_for_condor(inventory, db_session, group_resources_class):
+    cloud_list = db_session.query(group_resources_class)
+    for cloud in cloud_list:
+        set_inventory_group_and_cloud(inventory, cloud.group_name, "-",)
 
 def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None):
     inventory_deletions = []
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
-            obsolete_items = db_session.query(base_class).filter(
-                base_class.group_name == group_name,
-                base_class.cloud_name == cloud_name
-                )
+            if cloud_name == '-':
+                obsolete_items = db_session.query(base_class).filter(
+                    base_class.group_name == group_name
+                    )
+            else:
+                obsolete_items = db_session.query(base_class).filter(
+                    base_class.group_name == group_name,
+                    base_class.cloud_name == cloud_name
+                    )
 
             uncommitted_updates = 0
             for item in obsolete_items:
@@ -39,7 +48,7 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                 if base_class_key == '-':
                     logging.info("Cleaning up %s: from group:cloud - %s::%s" % (type, item.group_name, item.cloud_name))
                 else:
-                    logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[base_class_key], item.group_name, item.cloud_name))
+                    logging.info("Cleaning up %s: %s from group:cloud - %s::%s" % (type, item.__dict__[base_class_key], item.group_name, cloud_name))
 
                 try:
                     db_session.delete(item)
@@ -56,8 +65,8 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                     logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, cloud.group_name, cloud.cloud_name))
                     logging.error(exc)
 
-        for group_name, cloud_name, item in inventory_deletions:
-            del inventory[group_name][cloud_name][item]
+    for item in inventory_deletions:
+        del inventory[item[0]][item[1]][item[2]]
 
 def foreign(vm):
     native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)
@@ -72,8 +81,13 @@ def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key,
         db_session = Session(db_engine)
         rows = db_session.query(base_class)
         for row in rows:
-            group_name = row.group_name
-            cloud_name = row.cloud_name
+            try:
+                group_name = row.group_name
+                cloud_name = row.cloud_name
+            except AttributeError:
+                # machines and jobs have no cloud name attribute
+                group_name = row.group_name
+                cloud_name = "-"
 
             if base_class_key == '-':
                 hash_name = '-'

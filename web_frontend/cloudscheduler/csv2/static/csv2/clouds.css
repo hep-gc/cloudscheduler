@@ -62,7 +62,7 @@
 }
 
 
-#iframe-div {
+.iframe-div {
   position: absolute;
   top:60;
   bottom: 0;
@@ -71,7 +71,7 @@
   margin:0;
 }
 
-#i-wrap {
+.i-wrap {
   width:100%;
   margin:0;
 }

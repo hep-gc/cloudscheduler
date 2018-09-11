@@ -13,9 +13,9 @@ from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
     get_inventory_item_hash_from_database, \
-    get_last_poll_time_from_database, \
-    set_inventory_group_and_cloud, \
-    set_inventory_item, \
+#   get_last_poll_time_from_database, \
+#   set_inventory_group_and_cloud, \
+#   set_inventory_item, \
     test_and_set_inventory_item_hash
 
 from sqlalchemy import create_engine
@@ -319,16 +319,15 @@ def image_poller():
     Base.prepare(db_engine, reflect=True)
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
 
     try:
+        inventory = get_inventory_item_hash_from_database(db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning image poller cycle")
             db_session = Session(db_engine)
             # db_session.autoflush = False
             new_poll_time = int(time.time())
 
-            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -338,11 +337,8 @@ def image_poller():
                     logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
 
-                # setup OpenStack api object
-                set_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
-                nova = _get_nova_client(session)
-
                 # Retrieve all images for this cloud.
+                nova = _get_nova_client(session)
                 try:
                     image_list =  nova.glance.list()
                 except Exception as exc:
@@ -356,10 +352,6 @@ def image_poller():
 
                 uncommitted_updates = 0
                 for image in image_list:
-                    image_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, image.name, image.updated_at)
-                    if image_update_time < last_poll_time:
-                        continue
-
                     if image.size == "":
                         size = 0
                     else:
@@ -383,6 +375,9 @@ def image_poller():
                     if unmapped:
                         logging.error("Unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
+
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
 
                     new_image = IMAGE(**img_dict)
                     try:
@@ -414,11 +409,9 @@ def image_poller():
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'name')
+            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id')
 
             logging.info("Completed image poller cycle")
-            last_poll_time = new_poll_time
-            del inventory
             db_session.close()
             time.sleep(config.sleep_interval_image)
 
@@ -757,9 +750,9 @@ def vm_poller():
     Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
-    last_poll_time = 0
     
     try:
+        inventory = get_inventory_item_hash_from_database(db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -768,7 +761,6 @@ def vm_poller():
             new_poll_time = int(time.time())
 
             # For each OpenStack cloud, retrieve and process VMs.
-            inventory = {}
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
@@ -778,11 +770,8 @@ def vm_poller():
                     logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
                     continue
 
-                # setup nova object
-                set_inventory_group_and_cloud(inventory, cloud.group_name, cloud.cloud_name,)
-                nova = _get_nova_client(session)
-
                 # Retrieve VM list for this cloud.
+                nova = _get_nova_client(session)
                 try:
                     vm_list = nova.servers.list()
                 except Exception as exc:
@@ -798,10 +787,6 @@ def vm_poller():
                 # Process VM list for this cloud.
                 uncommitted_updates = 0
                 for vm in vm_list:
-                    vm_update_time = set_inventory_item(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm.updated)
-                    if vm_update_time < last_poll_time:
-                        continue
-
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
@@ -821,7 +806,10 @@ def vm_poller():
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    vm_dict['status_changed_time'] = vm_update_time
+                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
+
+                    vm_dict['status_changed_time'] = new_poll_time
                     new_vm = VM(**vm_dict)
                     try:
                         db_session.merge(new_vm)
@@ -847,7 +835,6 @@ def vm_poller():
                         break
 
             if abort_cycle:
-                del inventory
                 db_session.close()
                 time.sleep(config.sleep_interval_vm)
                 continue
@@ -856,8 +843,6 @@ def vm_poller():
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname')
 
             logging.info("Completed VM poller cycle")
-            last_poll_time = new_poll_time
-            del inventory
             db_session.close()
             time.sleep(config.sleep_interval_vm)
 
