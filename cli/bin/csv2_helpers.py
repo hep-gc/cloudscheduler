@@ -9,8 +9,10 @@ def generate_bash_completion_script(gvar):
     options = get_option_list(gvar)
 
     arguments = {
+        '-cc|--config-category': '-W "csjobs.py csmachines.py openstackPoller.py web_frontend"',
         '-ce|--cloud-enabled': '-W "true false yes no 1 0"',
         '-ct|--cloud-type': '-W "amazon azure google local opennebula openstack"',
+        '-eg|--enable-glint': '-W "True False"',
         '-f|--file-path': '-f',
         '-gmo|--group-metadata-option': '-W "add delete"',
         '-go|--group-option': '-W "add delete"',
