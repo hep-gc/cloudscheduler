@@ -1,6 +1,7 @@
 from dateutil import tz, parser
 import hashlib
 import logging
+import time
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.csv2_config import Config
@@ -9,6 +10,35 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 ## Poller functions.
+
+def start_cycle(new_poll_time, start_time):
+    logging.info("Beginning poller cycle")
+    start_time = time.time()
+    new_poll_time = int(start_time)
+    return new_poll_time, start_time
+
+# This function helps maintain a moving average of cycle time and if the cycle times are
+# exceeding the configured sleep time it lengthens the sleep to the average cycle time
+def wait_cycle(start_time, poll_time_history, config_sleep_time):
+    cycle_length = time.time() - start_time
+    poll_time_history.append(cycle_length)
+    if len(poll_time_history) > 5:
+        poll_time_history.pop(0)
+
+    avg_cycle_length = 0
+    for poll_time in poll_time_history:
+        avg_cycle_length = avg_cycle_length + poll_time
+    avg_cycle_length = avg_cycle_length/len(poll_time_history)
+
+    if avg_cycle_length > config_sleep_time:
+        logging.info("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, avg_cycle_length))
+        time.sleep(avg_cycle_length)
+    else:
+        logging.info("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, config_sleep_time))
+        time.sleep(config_sleep_time)
+    return
+
+
 def build_inventory_for_condor(inventory, db_session, group_resources_class):
     cloud_list = db_session.query(group_resources_class)
     for cloud in cloud_list:
@@ -66,7 +96,13 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                     logging.error(exc)
 
     for item in inventory_deletions:
-        del inventory[item[0]][item[1]][item[2]]
+        try:
+            del inventory[item[0]][item[1]][item[2]]
+        except KeyError as exc:
+            logging.error("Error attempting to delete obsolete enteries from inventory:")
+            logging.error(exc)
+            logging.error("Item: %s" % item)
+            logging.error(inventory[item[0]][item[1]])
 
 def foreign(vm):
     native_id = '%s--%s--' % (vm.group_name, vm.cloud_name)

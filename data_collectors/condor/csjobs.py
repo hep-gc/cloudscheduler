@@ -14,7 +14,9 @@ from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
-    build_inventory_for_condor
+    build_inventory_for_condor, \
+    start_cycle, \
+    wait_cycle
 
 import htcondor
 import classad
@@ -54,7 +56,9 @@ def job_poller():
                       "EnteredCurrentStatus", "QDate"]
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
-    last_poll_time = 0
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
     fail_count = 0
     inventory = {}
     #delete_interval = config.delete_interval
@@ -76,7 +80,8 @@ def job_poller():
             #
             # Setup - initialize condor and database objects and build user-group list
             #
-            logging.info("Beginning job poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+
             try:
                 condor_session = htcondor.Schedd()
             except Exception as exc:
@@ -89,12 +94,10 @@ def job_poller():
             fail_count = 0
 
             db_session = Session(db_engine)
-            new_poll_time = int(time.time())
-
+        
             if not condor_inventory_built:
                 build_inventory_for_condor(inventory, db_session, CLOUDS)
                 condor_inventory_built = True
-                
 
             db_user_grps = db_session.query(USER_GROUPS)
             if db_user_grps:
@@ -104,7 +107,6 @@ def job_poller():
 
             # Retrieve jobs.
             logging.debug("getting job list from condor")
-            query_time = time.time()
             try:
                 job_list = condor_session.query(
                     attr_list=job_attributes
@@ -117,7 +119,6 @@ def job_poller():
                 time.sleep(config.sleep_interval_job)
                 continue
 
-            query_time = time.time() - query_time
 
 
             # Process job data & insert/update jobs in Database
@@ -185,16 +186,14 @@ def job_poller():
                 delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time)
                 delete_cycle = False
 
-
-            logging.info("Completed job poller cycle")
-            last_poll_time = new_poll_time
             del condor_session
             db_session.close()
             cycle_count = cycle_count + 1
             if cycle_count >= config.delete_cycle_interval:
                 delete_cycle = True
                 cycle_count = 0
-            time.sleep(config.sleep_interval_job)
+
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_job)
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
