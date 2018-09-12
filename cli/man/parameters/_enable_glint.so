@@ -1,0 +1,3 @@
+.TP
+\fB\-eg \fIoption\fR, \fB\-\-enable-glint \fIoption\fR
+\fIoption\fR must be \fBTrue\fR or \fBFalse\fR.

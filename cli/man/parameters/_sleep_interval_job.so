@@ -1,0 +1,3 @@
+.TP
+\fB\-sij \fIinterval\fR, \fB\-\-sleep-interval-job \fIinterval\fR
+\fIinterval\fR must be an integer.

@@ -1,0 +1,90 @@
+.so ../man/_header.so
+\fBcloudscheduler server config\fR \- modify and view configuration of cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B server
+.B config
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_server_config.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_config_category.so
+.so ../man/parameters/_delete_cycle_interval.so
+.so ../man/parameters/_default_job_group.so
+.so ../man/parameters/_enable_glint.so
+.so ../man/parameters/_log_file.so
+.so ../man/parameters/_log_level.so
+.so ../man/parameters/_no_limit_default.so
+.so ../man/parameters/_server_cacerts.so
+.so ../man/parameters/_sleep_interval_cleanup.so
+.so ../man/parameters/_sleep_interval_command.so
+.so ../man/parameters/_sleep_interval_flavor.so
+.so ../man/parameters/_sleep_interval_image.so
+.so ../man/parameters/_sleep_interval_job.so
+.so ../man/parameters/_sleep_interval_keypair.so
+.so ../man/parameters/_sleep_interval_limit.so
+.so ../man/parameters/_sleep_interval_machine.so
+.so ../man/parameters/_sleep_interval_network.so
+.so ../man/parameters/_sleep_interval_vm.so
+.so ../man/parameters/_sleep_interval_main_long.so
+.so ../man/parameters/_sleep_interval_main_short.so
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Viewing server configuration:
+.EX
+$ cloudscheduler server config
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Server Configuration:
++--------------+--------------+------+--------------------------------------+
++ Category     | Config Key   | Type | Value                                +
++--------------+--------------+------+--------------------------------------+
+| web_frontend | enable_glint | bool | False                                |
+| web_frontend | log_file     | str  | /var/log/cloudscheduler/csv2_web.log |
++--------------+--------------+------+--------------------------------------+
+Rows: 2
+.EE
+.TP
+2.
+Updating the config for the server:
+.EX
+$ cloudscheduler server config -cc web_frontend -eg True -lf /var/log/cloudscheduler/csv2_web_updated.log
+server config successfully updated.
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Server Configuration:
++--------------+--------------+------+----------------------------------------------+
++ Category     | Config Key   | Type | Value                                        +
++--------------+--------------+------+----------------------------------------------+
+| web_frontend | enable_glint | bool | True                                         |
+| web_frontend | log_file     | str  | /var/log/cloudscheduler/csv2_web_updated.log |
++--------------+--------------+------+----------------------------------------------+
+Rows: 2
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_server (1)

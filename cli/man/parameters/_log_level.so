@@ -1,0 +1,3 @@
+.TP
+\fB\-ll \fIlevel\fR, \fB\-\-log-level \fIlevel\fR
+\fIlevel\fR must be an integer.

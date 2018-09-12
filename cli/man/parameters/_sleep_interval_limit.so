@@ -1,0 +1,3 @@
+.TP
+\fB\-sil \fIinterval\fR, \fB\-\-sleep-interval-limit \fIinterval\fR
+\fIinterval\fR must be an integer.

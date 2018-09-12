@@ -1,0 +1,3 @@
+.TP
+\fB\-sml \fIinterval\fR, \fB\-\-sleep-interval-main-long \fIinterval\fR
+\fIinterval\fR must be an integer.

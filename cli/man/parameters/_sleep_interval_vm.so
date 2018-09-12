@@ -1,0 +1,3 @@
+.TP
+\fB\-siv \fIinterval\fR, \fB\-\-sleep-interval-vm \fIinterval\fR
+\fIinterval\fR must be an integer.

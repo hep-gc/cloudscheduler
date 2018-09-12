@@ -1,0 +1,3 @@
+.TP
+\fB\-sik \fIinterval\fR, \fB\-\-sleep-interval-keypair \fIinterval\fR
+\fIinterval\fR must be an integer.

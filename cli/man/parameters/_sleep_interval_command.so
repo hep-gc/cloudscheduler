@@ -1,0 +1,3 @@
+.TP
+\fB\-siC \fIinterval\fR, \fB\-\-sleep-interval-command \fIinterval\fR
+\fIinterval\fR must be an integer.
