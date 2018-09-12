@@ -14,7 +14,9 @@ from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
-    build_inventory_for_condor
+    build_inventory_for_condor, \
+    start_cycle, \
+    wait_cycle
 
 import htcondor
 import classad
@@ -58,7 +60,9 @@ def machine_poller():
     RESOURCE = Base.classes.condor_machines
     CLOUDS = Base.classes.csv2_group_resources
 
-    last_poll_time = 0
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
     inventory = {}
     #delete_interval = config.delete_interval
     delete_cycle = False
@@ -68,7 +72,7 @@ def machine_poller():
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning machine poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             try:
                 condor_session = htcondor.Collector()
@@ -154,16 +158,14 @@ def machine_poller():
                 logging.info("Delete Cycle - checking for consistency")
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
-
-            logging.info("Completed machine poller cycle")
-            last_poll_time = new_poll_time
             del condor_session
             db_session.close()
             cycle_count = cycle_count + 1
             if cycle_count > config.delete_cycle_interval:
                 delete_cycle = True
                 cycle_count = 0
-            time.sleep(config.sleep_interval_machine)
+            
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_machine)
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
