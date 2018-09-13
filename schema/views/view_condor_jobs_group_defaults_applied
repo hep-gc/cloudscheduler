@@ -9,7 +9,6 @@ select
   global_job_id,
   cj.group_name,
   target_clouds,
-  cloud_name,
   job_status,
   case when request_cpus is NULL or request_cpus<0 then case when job_cpus is NULL then 0 else job_cpus end else request_cpus end as request_cpus,
   case when request_disk is NULL or request_disk<0 then case when job_disk is NULL then 0 else job_disk end else request_disk / (1024 * 1024) end as request_disk,
