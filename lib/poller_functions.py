@@ -46,6 +46,7 @@ def build_inventory_for_condor(inventory, db_session, group_resources_class):
 
 def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None):
     inventory_deletions = []
+    logging.info("Delete Cycle - checking database for consistency")
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
             if cloud_name == '-':

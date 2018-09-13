@@ -156,7 +156,6 @@ def machine_poller():
 
             if delete_cycle:
                 # Check for deletes
-                logging.info("Delete Cycle - checking for consistency")
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
             del condor_session
