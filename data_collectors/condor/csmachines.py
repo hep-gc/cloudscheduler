@@ -14,7 +14,9 @@ from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
-    build_inventory_for_condor
+    build_inventory_for_condor, \
+    start_cycle, \
+    wait_cycle
 
 import htcondor
 import classad
@@ -58,7 +60,9 @@ def machine_poller():
     RESOURCE = Base.classes.condor_machines
     CLOUDS = Base.classes.csv2_group_resources
 
-    last_poll_time = 0
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
     inventory = {}
     #delete_interval = config.delete_interval
     delete_cycle = False
@@ -68,7 +72,7 @@ def machine_poller():
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning machine poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             try:
                 condor_session = htcondor.Collector()
@@ -95,12 +99,13 @@ def machine_poller():
                     projection=resource_attributes
                      )
             except Exception as exc:
-                logging.error("Failed to get machines from condor queue, aborting cycle")
+                # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
+                # instead of simpyl handling the error and trying again
+                logging.error("Failed to get machines from condor queue, aborting poller")
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.sleep_interval_job)
-                continue
+                exit(1)
 
             abort_cycle = False
             uncommitted_updates = 0
@@ -154,16 +159,14 @@ def machine_poller():
                 logging.info("Delete Cycle - checking for consistency")
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
-
-            logging.info("Completed machine poller cycle")
-            last_poll_time = new_poll_time
             del condor_session
             db_session.close()
             cycle_count = cycle_count + 1
             if cycle_count > config.delete_cycle_interval:
                 delete_cycle = True
                 cycle_count = 0
-            time.sleep(config.sleep_interval_machine)
+            
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_machine)
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
@@ -220,10 +223,9 @@ def command_poller():
                     db_session.merge(resource)
                     uncommitted_updates = True
                 except Exception as exc:
-                    logging.exception("Failed to retire machine, aborting cycle...")
+                    logging.exception("Failed to retire machine, rebooting command poller...")
                     logging.error(exc)
-                    abort_cycle = True
-                    break
+                    exit(1)
 
             if abort_cycle:
                 del condor_session
@@ -287,129 +289,6 @@ def command_poller():
         db_session.close()
 
 
-def cleanup_poller():
-    multiprocessing.current_process().name = "Cleanup Poller"
-    condor_host = socket.gethostname()
-    fail_count = 0
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    session = Session(db_engine)
-    #setup database objects
-    Resource = Base.classes.condor_machines
-    archResource = Base.classes.archived_condor_machines
-
-    try:
-        while True:
-            logging.info("Beginning machine cleanup cycle")
-            # Setup condor classes and database connections
-            # this stuff may be able to be moved outside the while loop, but i think its better to
-            # re-mirror the database each time for the sake on consistency.
-            try:
-                condor_session = htcondor.Collector()
-            except Exception as exc:
-                fail_count += 1
-                logging.error("Failed to locate condor daemon, Failed %s times:" % fail_count)
-                logging.error(exc)
-                logging.error("Sleeping until next cycle...")
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            fail_count = 0
-
-            db_session = Session(db_engine)
-
-            # Retrieve all valid machine IDs from condor.
-            try:
-                condor_machine_list = condor_session.query()
-            except Exception as exc:
-                logging.exception("Failed to query condor machine list, aborting cycle...")
-                logging.error(exc)
-                del condor_session
-                db_session.close()
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            condor_machine_ids = {}
-            for ad in condor_machine_list:
-                condor_machine_ids[dict(ad)['Name']] = True
-
-            # From the DB, retrieve machines that whose condor_host is the hostname for this collector.
-            try:
-                db_machine_list = db_session.query(Resource).filter(Resource.condor_host == condor_host)
-            except Exception as ex:
-                logging.exception("Failed to query DB machine list, aborting cycle...")
-                logging.error(exc)
-                del condor_session
-                db_session.close()
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            # Scan DB machine list for items to delete.
-            abort_cycle = False
-            uncommitted_updates = False
-            for machine in db_machine_list:
-                if machine.name not in condor_machine_ids:
-                    logging.info("DB machine missing from condor, archiving and deleting machine %s.", machine.name)
-                    machine_temp = copy.deepcopy(machine.__dict__)
-                    machine_temp.pop('_sa_instance_state', 'default')
-
-                    logging.debug(machine_temp.keys())
-                    try:
-                        db_session.merge(archResource(**machine_temp))
-                        uncommitted_updates = True
-                    except Exception as exc:
-                        logging.exception("Failed to archive completed machine, aborting cycle...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-
-                    try:
-                        db_session.delete(machine)
-                        uncommitted_updates = True
-                    except Exception as exc:
-                        logging.exception("Failed to delete completed machine, aborting cycle...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-
-            if abort_cycle:
-                del condor_session
-                db_session.close()
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            if uncommitted_updates:
-                try:
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit achives and deletions, aborting cycle...")
-                    logging.error(exc)
-                    del condor_session
-                    db_session.close()
-                    time.sleep(config.sleep_interval_cleanup)
-                    continue
-
-            logging.info("Completed machine cleanup cycle")
-            del condor_session
-            db_session.close()
-            time.sleep(config.sleep_interval_cleanup)
-
-    except Exception as exc:
-        logging.exception("Machine cleanup while loop exception, process terminating...")
-        logging.error(exc)
-        del condor_session
-        db_session.close()
-
-
 if __name__ == '__main__':
     config = Config(os.path.basename(sys.argv[0]))
 
@@ -422,7 +301,6 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-#        'cleanup':            cleanup_poller,
         'command':            command_poller,
         'machine':            machine_poller,
         }

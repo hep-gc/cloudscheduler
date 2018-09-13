@@ -20,6 +20,7 @@ from .view_utils import \
     lno, \
     qt, \
     render, \
+    service_msg, \
     set_user_groups, \
     table_fields, \
     validate_fields, \
@@ -804,6 +805,7 @@ def status(request, group_name=None):
     cloud_total_list = {}
 
 
+    # tabulate the totals for all clouds
     for d in cloud_status_list:
         for key, value in d.items():
             if isinstance(value, int) or isinstance(value, float):
@@ -814,59 +816,73 @@ def status(request, group_name=None):
             else:
                 cloud_total_list[key] = '-'
 
+    if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
+        cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
+    else:
+        cloud_total_list['cores_all_busy'] = 0
+
+
+    if 'cores_native' in cloud_total_list and 'cores_foreign' in cloud_total_list:
+        cloud_total_list['cores_all'] = cloud_total_list['cores_native'] + cloud_total_list['cores_foreign']
+    else:
+        cloud_total_list['cores_all'] = 0
 
     # Determine the csv2 service statuses and put them in a list
     system_list = {}
 
 
-    status_msg = os.popen("service csv2-main status | grep 'Active'").read()
-    if 'running' in status_msg:
+    system_list["main_msg"] = service_msg("csv2-main")
+    if 'running' in system_list["main_msg"]:
         system_list["main"] = 1
     else:
-        system_list["main"] = status_msg.replace('Active:', '')
+        system_list["main"] = 0
 
-    status_msg = os.popen("service csv2-openstack status | grep 'Active'").read()
-    if 'running' in status_msg:
+    system_list["openstack_msg"] = service_msg("csv2-openstack")
+    if 'running' in system_list["openstack_msg"]:
         system_list["openstack"] = 1
     else:
-        system_list["openstack"] = status_msg.replace('Active:', '')
+        system_list["openstack"] = 0
 
-    status_msg = os.popen("service csv2-jobs status | grep 'Active'").read()
-    if 'running' in status_msg:
+    system_list["jobs_msg"] = service_msg("csv2-jobs")
+    if 'running' in system_list["jobs_msg"]:
         system_list["jobs"] = 1
     else:
-        system_list["jobs"] = status_msg.replace('Active:', '')
+        system_list["jobs"] = 0
 
-    status_msg = os.popen("service csv2-machines status | grep 'Active'").read()
-    if 'running' in status_msg:
+    system_list["machines_msg"] = service_msg("csv2-machines")
+    if 'running' in system_list["machines_msg"]:
         system_list["machines"] = 1
     else:
-        system_list["machines"] = status_msg.replace('Active:', '')
+        system_list["machines"] = 0
 
-    status_msg = os.popen("service mariadb status | grep 'Active'").read()
-    if 'running' in status_msg:
+    system_list["db_msg"] = service_msg("mariadb")
+    if 'running' in system_list["db_msg"]:
         system_list["db"] = 1
     else:
-        system_list["db"] = status_msg.replace('Active:', '')
+        system_list["db"] = 0
 
-    status_msg = os.popen("service condor status | grep 'Active'").read()
-    if 'running' in status_msg:
+    system_list["condor_msg"] = service_msg("condor")
+    if 'running' in system_list["condor_msg"]:
         system_list["condor"] = 1
     else:
-        system_list["condor"] = status_msg.replace('Active:', '')
-
+        system_list["condor"] = 0
 
     # Determine the system load, RAM and disk usage
 
     system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
 
-    system_list["ram"] = psutil.virtual_memory()[2]
-    system_list["ram_size"] = round(psutil.virtual_memory()[0]/1000000000 , 1)
-    system_list["ram_used"] = round(psutil.virtual_memory()[3]/1000000000 , 1)
+    system_list["ram"] = psutil.virtual_memory().percent
+    system_list["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
+    system_list["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
 
-    system_list["disk"] = round(100*(psutil.disk_usage('/')[1] / psutil.disk_usage('/')[0]),1)
-    system_list["disk_size"] = round(psutil.disk_usage('/')[0]/1000000000 , 1)
-    system_list["disk_used"] = round(psutil.disk_usage('/')[1]/1000000000 , 1)
+    system_list["swap"] = psutil.swap_memory().percent
+    system_list["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
+    system_list["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
+
+
+    system_list["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
+    system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
+    system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
     context = {
             'active_user': active_user,
@@ -882,6 +898,7 @@ def status(request, group_name=None):
         }
 
     return render(request, 'csv2/status.html', context)
+
 
 #-------------------------------------------------------------------------------
 

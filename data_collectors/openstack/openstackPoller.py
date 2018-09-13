@@ -785,6 +785,8 @@ def vm_poller():
                     continue
 
                 # Process VM list for this cloud.
+                # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
+                # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                 uncommitted_updates = 0
                 for vm in vm_list:
                     vm_dict = {
@@ -809,7 +811,6 @@ def vm_poller():
                     if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
-                    vm_dict['status_changed_time'] = new_poll_time
                     new_vm = VM(**vm_dict)
                     try:
                         db_session.merge(new_vm)
