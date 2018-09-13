@@ -26,7 +26,6 @@ CREATE TABLE `condor_jobs` (
   `global_job_id` varchar(128) NOT NULL,
   `group_name` varchar(32) DEFAULT NULL,
   `target_clouds` text DEFAULT NULL,
-  `cloud_name` varchar(32) DEFAULT NULL,
   `job_status` int(11) DEFAULT NULL,
   `request_cpus` int(11) NOT NULL,
   `request_ram` int(11) DEFAULT NULL,
@@ -62,4 +61,4 @@ CREATE TABLE `condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-19 13:33:10
+-- Dump completed on 2018-09-13 11:46:16
