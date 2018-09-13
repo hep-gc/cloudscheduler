@@ -223,10 +223,9 @@ def command_poller():
                     db_session.merge(resource)
                     uncommitted_updates = True
                 except Exception as exc:
-                    logging.exception("Failed to retire machine, aborting cycle...")
+                    logging.exception("Failed to retire machine, rebooting command poller...")
                     logging.error(exc)
-                    abort_cycle = True
-                    break
+                    exit(1)
 
             if abort_cycle:
                 del condor_session
