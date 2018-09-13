@@ -274,122 +274,6 @@ def command_poller():
         del condor_session
         db_session.close()
 
-def cleanup_poller():
-    multiprocessing.current_process().name = "Cleanup Poller"
-    fail_count = 0
-
-    Base = automap_base()
-    local_hostname = socket.gethostname()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(engine, reflect=True)
-    #setup database objects
-    Job = Base.classes.condor_jobs
-    archJob = Base.classes.archived_condor_jobs
-    logging.info("entering main cleanup loop")
-
-    try:
-        while True:
-            logging.info("Beginning job cleanup cycle")
-            # Setup condor classes and database connctions
-            # this stuff may be able to be moved outside the while loop, but i think its
-            # better to re-mirror the database each time for the sake on consistency.
-            logging.info("query schedd")
-            try:
-                condor_session = htcondor.Schedd()
-            except Exception as exc:
-                fail_count += 1
-                logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
-                logging.error(exc)
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            fail_count = 0
-
-            db_session = Session(engine)
-
-            # Retrieve all valid job IDs from condor.
-            try:
-                condor_job_list = condor_session.xquery()
-            except Exception as exc:
-                logging.exception("Failed to query condor job list, aborting cycle...")
-                logging.error(exc)
-                del condor_session
-                db_session.close()
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            condor_job_ids = {}
-            for ad in condor_job_list:
-                condor_job_ids[dict(ad)['GlobalJobId']] = True
-
-            # From the DB, retrieve jobs that contain the local hostname as part of their JobID
-            try:
-                db_job_list = db_session.query(Job).filter(Job.global_job_id.like("%" + local_hostname + "%"))
-            except Exception as ex:
-                logging.exception("Failed to query DB job list, aborting cycle...")
-                logging.error(exc)
-                del condor_session
-                db_session.close()
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            # Scan DB job list for items to delete.
-            abort_cycle = False
-            uncommitted_updates = False
-            for job in db_job_list:
-                if job.global_job_id not in condor_job_ids:
-                    logging.info("DB job missing from condor, archiving and deleting job %s.", job.global_job_id)
-                    job_temp = copy.deepcopy(job.__dict__)
-                    job_temp.pop('_sa_instance_state', 'default')
-                    
-                    logging.debug(job_temp.keys())
-                    try:
-                        db_session.merge(archJob(**job_temp))
-                        uncommitted_updates = True
-                    except Exception as exc:
-                        logging.exception("Failed to archive completed job, aborting cycle...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-
-                    try:
-                        db_session.delete(job)
-                        uncommitted_updates = True
-                    except Exception as exc:
-                        logging.exception("Failed to delete completed job, aborting cycle...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
-
-            if abort_cycle:
-                del condor_session
-                db_session.close()
-                time.sleep(config.sleep_interval_cleanup)
-                continue
-
-            if uncommitted_updates:
-                try:
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit achives and deletions, aborting cycle...")
-                    logging.error(exc)
-                    del condor_session
-                    db_session.close()
-                    time.sleep(config.sleep_interval_cleanup)
-                    continue
-
-            logging.info("Completed job cleanup cycle")
-            del condor_session
-            db_session.close()
-            time.sleep(config.sleep_interval_cleanup)
-
-    except Exception as exc:
-        logging.exception("Job cleanup while loop exception, process terminating...")
-        logging.error(exc)
-        del condor_session
-        db_session.close()
-
 
 if __name__ == '__main__':
     config = Config(os.path.basename(sys.argv[0]))
@@ -403,7 +287,6 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        #'cleanup':            cleanup_poller,
         'command':            command_poller,
         'job':                job_poller,
         }
