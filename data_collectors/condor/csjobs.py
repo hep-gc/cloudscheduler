@@ -112,12 +112,13 @@ def job_poller():
                     attr_list=job_attributes
                     )
             except Exception as exc:
-                logging.error("Failed to get jobs from condor queue, aborting cycle")
+                # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
+                # instead of simpyl handling the error and trying again
+                logging.error("Failed to get jobs from condor queue, aborting job poller")
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.sleep_interval_job)
-                continue
+                exit(1)
 
 
 
@@ -241,10 +242,9 @@ def command_poller():
                     db_session.merge(job)
                     uncommitted_updates = True
                 except Exception as exc:
-                    logging.exception("Failed to hold job, aborting cycle...")
+                    logging.exception("Failed to hold job, rebooting command poller...")
                     logging.error(exc)
-                    abort_cycle = True
-                    break
+                    exit(1)
 
             if abort_cycle:
                 del condor_session
