@@ -99,12 +99,13 @@ def machine_poller():
                     projection=resource_attributes
                      )
             except Exception as exc:
-                logging.error("Failed to get machines from condor queue, aborting cycle")
+                # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
+                # instead of simpyl handling the error and trying again
+                logging.error("Failed to get machines from condor queue, aborting poller")
                 logging.error(exc)
                 del condor_session
                 db_session.close()
-                time.sleep(config.sleep_interval_job)
-                continue
+                exit(1)
 
             abort_cycle = False
             uncommitted_updates = 0
