@@ -10,22 +10,26 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
 
 <script type="text/javascript">
-    function show_cloud(cloud_name){
-        if (cloud_name.length > 0) {
-            document.location.hash = cloud_name;
-        }
-    }
+
+    var visited = {};
 
     function pass_url(cloudname , metaname) {
 
         var url='/cloud/metadata-fetch/'+cloudname+'::'+metaname
         var frame='editor-'+cloudname+'-'+metaname
 
-        document.getElementById(frame).src=url;
-        //document.getElementById('editor-default').src='google.ca';
-        console.log(url)
-        console.log(frame)
+        if (!visited[frame]){
+            document.getElementById(frame).src=url;
+            visited[frame]=1;
+        }
     }
+
+    function show_cloud(cloud_name){
+        if (cloud_name.length > 0) {
+            document.location.hash = cloud_name;
+        }
+    }
+
 </script>
 
 </head>
