@@ -423,13 +423,13 @@ def check_unregistered_machines(group):
                 continue
             cname = hostname_split[1]
             if cname in cloud_names: # name prefix matches a valid cloud name
-                if int(time.time()) - vm.status_changed_time > 2400 and not vm.terminate: # not registered after some period of time - TODO make configurable.
+                if int(time.time()) - vm.last_updated > 2400 and not vm.terminate: # not registered after some period of time - TODO make configurable.
                     to_terminate.append(vm.vmid)
                     log.debug("Set terminate flag on vm: %s", vm.hostname)
                 # TODO Check the retired flag and if set terminate right away
                 else:
                     log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
-                              str(int(time.time()) - vm.status_changed_time), vm.terminate)
+                              str(int(time.time()) - vm.last_updated), vm.terminate)
                     new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_name))
             else:
                 non_cs_vm.append(vm.hostname)
