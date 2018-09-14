@@ -183,7 +183,6 @@ def job_poller():
 
             if delete_cycle:
                 # Check for deletes
-                logging.info("Delete Cycle - checking for consistency")
                 delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time)
                 delete_cycle = False
 

@@ -13,7 +13,9 @@ from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
     get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash
+    test_and_set_inventory_item_hash, \
+    start_cycle, \
+    wait_cycle
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -141,12 +143,16 @@ def command_poller():
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         while True:
             logging.info("Beginning command poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
-            new_poll_time = int(time.time())
-
+            
             # Retrieve list of VMs to be terminated.
             vm_to_destroy = db_session.query(VM).filter(VM.terminate == 1, VM.manual_control != 1)
             for vm in vm_to_destroy:
@@ -171,10 +177,9 @@ def command_poller():
                     logging.exception("Failed to terminate VM: %s", vm.hostname)
                     logging.error(exc)
 
-            logging.info("Completed command poller cycle")
             last_poll_time = new_poll_time
             db_session.close()
-            time.sleep(config.sleep_interval_command)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Command poller cycle while loop exception, process terminating...")
@@ -197,12 +202,16 @@ def flavor_poller():
     FLAVOR = Base.classes.cloud_flavors
     CLOUD = Base.classes.csv2_group_resources
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning flavor poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
-            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -295,9 +304,8 @@ def flavor_poller():
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
             delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
 
-            logging.info("Completed flavor poller cycle")
             db_session.close()
-            time.sleep(config.sleep_interval_flavor)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_flavor)
 
     except Exception as exc:
         logging.exception("Flavor poller cycle while loop exception, process terminating...")
@@ -320,13 +328,17 @@ def image_poller():
     IMAGE = Base.classes.cloud_images
     CLOUD = Base.classes.csv2_group_resources
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning image poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
             # db_session.autoflush = False
-            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -411,9 +423,9 @@ def image_poller():
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
             delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id')
 
-            logging.info("Completed image poller cycle")
             db_session.close()
-            time.sleep(config.sleep_interval_image)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_image)
+
 
     except Exception as exc:
         logging.exception("Image poller cycle while loop exception, process terminating...")
@@ -437,12 +449,16 @@ def keypair_poller():
     KEYPAIR = Base.classes.cloud_keypairs
     CLOUD = Base.classes.csv2_group_resources
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning keypair poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
-            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -512,9 +528,8 @@ def keypair_poller():
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
             delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
 
-            logging.info("Completed keypair poller cycle")
             db_session.close()
-            time.sleep(config.sleep_interval_keypair)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_keypair)
 
     except Exception as exc:
         logging.exception("Keypair poller cycle while loop exception, process terminating...")
@@ -537,12 +552,16 @@ def limit_poller():
     LIMIT = Base.classes.cloud_limits
     CLOUD = Base.classes.csv2_group_resources
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning limit poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
-            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -616,9 +635,8 @@ def limit_poller():
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
             delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
 
-            logging.info("Completed limit poller cycle")
             db_session.close()
-            time.sleep(config.sleep_interval_limit)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_limit)
 
     except Exception as exc:
         logging.exception("Limit poller cycle while loop exception, process terminating...")
@@ -641,13 +659,17 @@ def network_poller():
     NETWORK = Base.classes.cloud_networks
     CLOUD = Base.classes.csv2_group_resources
 
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning network poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
             # db_session.autoflush = False
-            new_poll_time = int(time.time())
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -725,9 +747,8 @@ def network_poller():
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
             delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
 
-            logging.info("Completed network poller cycle")
             db_session.close()
-            time.sleep(config.sleep_interval_network)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_network)
 
     except Exception as exc:
         logging.exception("Network poller cycle while loop exception, process terminating...")
@@ -750,6 +771,10 @@ def vm_poller():
     Base.prepare(db_engine, reflect=True)
     VM = Base.classes.csv2_vms
     CLOUD = Base.classes.csv2_group_resources
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
     
     try:
         inventory = get_inventory_item_hash_from_database(db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
@@ -757,8 +782,8 @@ def vm_poller():
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.info("Beginning VM poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             db_session = Session(db_engine)
-            new_poll_time = int(time.time())
 
             # For each OpenStack cloud, retrieve and process VMs.
             abort_cycle = False
@@ -845,7 +870,7 @@ def vm_poller():
 
             logging.info("Completed VM poller cycle")
             db_session.close()
-            time.sleep(config.sleep_interval_vm)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_vm)
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
