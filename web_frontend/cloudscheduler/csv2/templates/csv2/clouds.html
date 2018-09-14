@@ -22,6 +22,9 @@
         var frame='editor-'+cloudname+'-'+metaname
 
         document.getElementById(frame).src=url;
+        //document.getElementById('editor-default').src='google.ca';
+        console.log(url)
+        console.log(frame)
     }
 </script>
 
@@ -118,17 +121,18 @@
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
-                            <div id="{{cloud.cloud_name}}-{{meta}}"> 
+                                <div class="tab2">
+                                    <input id="metadata-{{cloud.cloud_name}}-{{meta}}" type="radio" name="tabs2" onclick="pass_url('{{cloud.cloud_name}}', '{{meta}}')">
+                                    <label for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
+                                    <div class="tab2-content">
 
-                                <a class="menu-link" onclick="pass_url({{cloud.cloud_name}}, {{meta}})" href="#{{cloud.cloud_name}}-{{meta}}">{{meta}}</a>
-                                
-                            </div>
+                                        <iframe id="editor-{{cloud.cloud_name}}-{{meta}}" class="iframe-content" src=""></iframe>
 
-                            <div class="iframe-div">
-                                <div class="i-wrap">
-                                    <iframe id="editor-{{cloud.cloud_name}}-{{meta}}" class="iframe-content" src="">test</iframe>
+                                    </div>
+
                                 </div>
-                            </div>
+
+
                             {% endfor %}
                         {% endfor %}
 
@@ -200,7 +204,7 @@
 <!--
 <div class="iframe-div">
     <div class="i-wrap">
-        <iframe id="editor-otter-default" class="iframe-content" src=""></iframe>
+        <iframe id="editor-default" class="iframe-content" src=""></iframe>
     </div>
 </div>
 -->
