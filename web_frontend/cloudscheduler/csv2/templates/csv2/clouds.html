@@ -140,7 +140,17 @@
                             {% endfor %}
                         {% endfor %}
 
-                        <p>Add Metadata</p>
+                        <div class="tab2">
+                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="pass_url('{{cloud.cloud_name}}', '')">
+                            <label for="metadata-{{cloud.cloud_name}}-add">+</label>
+                            <div class="tab2-content">
+
+                                <iframe id="editor-{{cloud.cloud_name}}-add" class="iframe-content" src=""></iframe>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
 

@@ -108,9 +108,7 @@ iframe {
   max-height: 0;
   overflow: hidden;
 }
-.blue .tab2-content {
-  background: #3498db;
-}
+
 .tab2-content p {
   margin: 1em;
 }
