@@ -866,7 +866,7 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname')
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time)
 
             logging.info("Completed VM poller cycle")
             db_session.close()
