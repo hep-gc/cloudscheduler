@@ -10,19 +10,26 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
 
 <script type="text/javascript">
-    function show_cloud(cloud_name){
-        if (cloud_name.length > 0) {
-            document.location.hash = cloud_name;
-        }
-    }
+
+    var visited = {};
 
     function pass_url(cloudname , metaname) {
 
         var url='/cloud/metadata-fetch/'+cloudname+'::'+metaname
         var frame='editor-'+cloudname+'-'+metaname
 
-        document.getElementById(frame).src=url;
+        if (!visited[frame]){
+            document.getElementById(frame).src=url;
+            visited[frame]=1;
+        }
     }
+
+    function show_cloud(cloud_name){
+        if (cloud_name.length > 0) {
+            document.location.hash = cloud_name;
+        }
+    }
+
 </script>
 
 </head>
@@ -118,21 +125,32 @@
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
-                            <div id="{{cloud.cloud_name}}-{{meta}}"> 
+                                <div class="tab2">
+                                    <input id="metadata-{{cloud.cloud_name}}-{{meta}}" type="radio" name="tabs2" onclick="pass_url('{{cloud.cloud_name}}', '{{meta}}')">
+                                    <label for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
+                                    <div class="tab2-content">
 
-                                <a class="menu-link" onclick="pass_url({{cloud.cloud_name}}, {{meta}})" href="#{{cloud.cloud_name}}-{{meta}}">{{meta}}</a>
-                                
-                            </div>
+                                        <iframe id="editor-{{cloud.cloud_name}}-{{meta}}" class="iframe-content" src=""></iframe>
 
-                            <div class="iframe-div">
-                                <div class="i-wrap">
-                                    <iframe id="editor-{{cloud.cloud_name}}-{{meta}}" class="iframe-content" src="">test</iframe>
+                                    </div>
+
                                 </div>
-                            </div>
+
+
                             {% endfor %}
                         {% endfor %}
 
-                        <p>Add Metadata</p>
+                        <div class="tab2">
+                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="pass_url('{{cloud.cloud_name}}', '')">
+                            <label for="metadata-{{cloud.cloud_name}}-add">+</label>
+                            <div class="tab2-content">
+
+                                <iframe id="editor-{{cloud.cloud_name}}-add" class="iframe-content" src=""></iframe>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
 
@@ -200,7 +218,7 @@
 <!--
 <div class="iframe-div">
     <div class="i-wrap">
-        <iframe id="editor-otter-default" class="iframe-content" src=""></iframe>
+        <iframe id="editor-default" class="iframe-content" src=""></iframe>
     </div>
 </div>
 -->

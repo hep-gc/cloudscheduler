@@ -62,23 +62,76 @@
 }
 
 
-.iframe-div {
-  position: absolute;
-  top:60;
-  bottom: 0;
-  left:700;
-  right:10;
-  margin:0;
-}
 
-.i-wrap {
-  width:100%;
-  margin:0;
-}
 
 iframe {
   z-index: 1;
   width: 100%;
-  height: 90%;
-  border: 1;
+  height: 95%;
+  border: 0;
+}
+
+
+
+
+
+
+/* Acordeon styles */
+.tab2 {
+  position: relative;
+  margin-bottom: 1px;
+  width: 100%;
+
+  overflow: hidden;
+}
+.tab2 > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.tab2 > label {
+  position: relative;
+  display: block;
+  padding: 0 0 0 1em;
+  background: orange;
+  font-weight: bold;
+  line-height: 3;
+  cursor: pointer;
+}
+
+.tab2-content {
+  position: fixed;
+  top:60;
+  bottom:0;
+  left:700;
+  right:10;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.tab2-content p {
+  margin: 1em;
+}
+/* :checked */
+.tab2 input:checked ~ .tab2-content {
+  max-height: 100vh;
+}
+/* Icon */
+.tab2 > label::after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 3em;
+  height: 3em;
+  line-height: 3;
+  text-align: center;
+
+}
+.tab2 > input[type=checkbox] + label::after {
+  content: "+";
+}
+
+.tab2 > input[type=checkbox]:checked + label::after {
+  content: "-";
 }
