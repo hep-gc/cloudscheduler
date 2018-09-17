@@ -62,6 +62,8 @@ CONFIG_KEYS = {
         'sleep_interval_machine':       'integer',
         'sleep_interval_main_long':     'integer',
         'sleep_interval_main_short':    'integer',
+        'sleep_interval_network':       'integer',
+        'sleep_interval_vm':            'integer',
         'type':                         'reject',
         'value':                        'reject',
     },
