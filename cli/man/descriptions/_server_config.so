@@ -1,1 +1,3 @@
-**placeholder**
+The \fBcloudscheduler server config\fR action modifies and lists configuration values of csv2 servers.
+This action is only available to privileged users.
+***CAUTION: Modifing these values can cause server errors***
