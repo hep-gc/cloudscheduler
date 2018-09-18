@@ -19,37 +19,31 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu1')),
-        '/cloud/metadata-fetch/',
+        '/cloud/metadata-fetch/invalid-unit-test::invalid-unit-test/',
         server_user=ut_id(gvar, 'ctu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'ctu2')),
-        '/cloud/metadata-fetch/',
+        '/cloud/metadata-fetch/invalid-unit-test::invalid-unit-test/',
         server_user=ut_id(gvar, 'ctu2'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-fetch/', form_data={'group': 'invalid-unit-test'},
+        '/cloud/metadata-fetch/invalid-unit-test::invalid-unit-test/', form_data={'group': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-fetch/', form_data={'group': ut_id(gvar, 'ctg2')},
-        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
-    )
-
-    execute_csv2_request(
-        gvar, 1, None, 'cloud metadata_fetch, metadata file id omitted.',
-        '/cloud/metadata-fetch/',
+        '/cloud/metadata-fetch/invalid-unit-test::invalid-unit-test/', form_data={'group': ut_id(gvar, 'ctg2')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'received an invalid metadata file id "{}::invalid-unit-test::invalid-unit-test".'.format(ut_id(gvar, 'ctg1')),
-        '/cloud/metadata-fetch/invalid-unit-test::invalid-unit-test',
+        '/cloud/metadata-fetch/invalid-unit-test::invalid-unit-test/',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

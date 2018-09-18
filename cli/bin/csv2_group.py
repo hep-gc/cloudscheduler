@@ -305,7 +305,7 @@ def metadata_edit(gvar):
     check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/group/metadata-fetch/%s' % gvar['user_settings']['metadata-name'])
+    response = requests(gvar, '/group/metadata-fetch/%s/' % gvar['user_settings']['metadata-name'])
 
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/metadata' % (
