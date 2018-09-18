@@ -62,12 +62,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV07', 'value specified for "job_cpus" must be a integer value.',
+        gvar, 1, 'GV07', 'value specified for "job_cpus" must be an integer value.',
         ['cloudscheduler', 'group', 'defaults', '-jc', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV07', 'value specified for "job_disk" must be a integer value.',
+        gvar, 1, 'GV07', 'value specified for "job_disk" must be an integer value.',
         ['cloudscheduler', 'group', 'defaults', '-jd', 'invalid-unit-test']
     )
 
@@ -77,17 +77,17 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV07', 'value specified for "job_ram" must be a integer value.',
+        gvar, 1, 'GV07', 'value specified for "job_ram" must be an integer value.',
         ['cloudscheduler', 'group', 'defaults', '-jr', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV07', 'value specified for "job_swap" must be a integer value.',
+        gvar, 1, 'GV07', 'value specified for "job_swap" must be an integer value.',
         ['cloudscheduler', 'group', 'defaults', '-js', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV07', 'value specified for "vm_keep_alive" must be a integer value.',
+        gvar, 1, 'GV07', 'value specified for "vm_keep_alive" must be an integer value.',
         ['cloudscheduler', 'group', 'defaults', '-vka', 'invalid-unit-test']
     )
 

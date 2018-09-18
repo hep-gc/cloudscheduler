@@ -110,7 +110,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV25', 'value specified for "priority" must be a integer value.',
+        gvar, 1, 'GV25', 'value specified for "priority" must be an integer value.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),

@@ -171,7 +171,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "priority" must be a integer value.',
+        gvar, 1, 'CV29', 'value specified for "priority" must be an integer value.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),

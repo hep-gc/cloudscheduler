@@ -160,7 +160,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV13', 'value specified for "priority" must be a integer value.',
+        gvar, 1, 'CV13', 'value specified for "priority" must be an integer value.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': ut_id(gvar, 'cloud-md-invalid-unit-test'),

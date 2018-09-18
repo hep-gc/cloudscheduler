@@ -96,13 +96,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV35', 'value specified for "vm_keep_alive" must be a integer value.',
+        gvar, 1, 'CV35', 'value specified for "vm_keep_alive" must be an integer value.',
         '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'vm_keep_alive': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV35', 'value specified for "spot_price" must be a integer value.',
+        gvar, 1, 'CV35', 'value specified for "spot_price" must be an integer value.',
         '/cloud/update/', form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'group': ut_id(gvar, 'ctg1'), 'spot_price': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
