@@ -1,7 +1,7 @@
 
 <head>
     {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static "csv2/metadata.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
     <title>{{ metadata_name }}</title>
 
     <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
@@ -16,15 +16,20 @@
         <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
         <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
         
-        <nav class="editor-bar">
+        <span class="editor-bar">
+            <input type="submit" id="update" value="Update">
+            <h3 id="metadata-name">{{ metadata_name }}</h3>
+            <input type="submit" id="delete" value="Delete">
+        </span>
+        <!--<nav class="editor-bar">
             <ul>
                 <li><input type="submit" id="update" value="Update"></li>
                 <li><h3 id="metadata-name">{{ metadata_name }}</h3></li>
                 <li><input type="submit" id="delete" value="Delete"></li>
             </ul>
-        </nav>
-
-        <textarea name="metadata">{{ metadata }}</textarea>
+        </nav>-->
+        <br>
+        <textarea name="metadata" id="meta-editor">{{ metadata }}</textarea>
 
     </form>
 
@@ -37,36 +42,10 @@
         {% endif %}
     </div>
 
+    <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
-    <script>
-
-
-        // find the textarea
-        var textarea = document.querySelector("form textarea[name=metadata]");
-
-        // create ace editor 
-        var editor = ace.edit()
-        editor.container.style.height = "95%"
-        editor.session.setValue(textarea.value)
-        editor.setTheme("ace/theme/dracula");
-        editor.getSession().setMode("ace/mode/yaml");
-
-        // replace textarea with ace
-        textarea.parentNode.insertBefore(editor.container, textarea)
-        textarea.style.display = "none"
-        // find the parent form and add submit event listener
-        var form = textarea
-        while (form && form.localName != "form") form = form.parentNode
-        form.addEventListener("submit", function() {
-            // update value of textarea to match value in ace
-            textarea.value = editor.getValue()
-        }, true)
-
-
-      setTimeout(function(){ 
-          document.getElementById("message").innerHTML = "";
-      }, 5000);
-
+    <script type="text/javascript">
+        createEditor("meta-editor")
     </script>
 
 </body>

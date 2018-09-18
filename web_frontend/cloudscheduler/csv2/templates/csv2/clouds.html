@@ -6,14 +6,16 @@
 <head>
 {% load template_utils %}
 {% load static %}
+
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
 
 <script type="text/javascript">
 
     var visited = {};
 
-    function pass_url(cloudname , metaname) {
+    function meta_fetch(cloudname , metaname) {
 
         var url='/cloud/metadata-fetch/'+cloudname+'::'+metaname
         var frame='editor-'+cloudname+'-'+metaname
@@ -24,6 +26,15 @@
         }
     }
 
+    function meta_new(cloudname) {
+
+        var url='/cloud/metadata-new/'+cloudname
+        var frame='editor-'+cloudname+'-add'
+
+        document.getElementById(frame).src=url;
+    }
+
+
     function show_cloud(cloud_name){
         if (cloud_name.length > 0) {
             document.location.hash = cloud_name;
@@ -31,6 +42,8 @@
     }
 
 </script>
+
+<script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
 
 </head>
 <body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}')">
@@ -126,7 +139,7 @@
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
                                 <div class="tab2">
-                                    <input id="metadata-{{cloud.cloud_name}}-{{meta}}" type="radio" name="tabs2" onclick="pass_url('{{cloud.cloud_name}}', '{{meta}}')">
+                                    <input id="metadata-{{cloud.cloud_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
                                     <label for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
                                     <div class="tab2-content">
 
@@ -141,11 +154,26 @@
                         {% endfor %}
 
                         <div class="tab2">
-                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="pass_url('{{cloud.cloud_name}}', '')">
+                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{cloud.cloud_name}}')">
                             <label for="metadata-{{cloud.cloud_name}}-add">+</label>
                             <div class="tab2-content">
 
-                                <iframe id="editor-{{cloud.cloud_name}}-add" class="iframe-content" src=""></iframe>
+
+                                <form name="{{ cloud.cloud_name }}-add" action="/cloud/metadata-add/" method="post">
+                                {% csrf_token %}
+                                
+                                    <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                    <input type="hidden" name="cloud_name" value="{{ cloud.cloud_name }}">
+
+                                    <label for="metadata_name">METADATA name</label>
+                                    <input type="text" name="metadata_name" value="">
+                                    <input type="submit" id="update" value="Update">
+                                    <br>
+                                    <textarea name="metadata" id="{{cloud.cloud_name}}editor"></textarea>
+
+                                </form>
+
+                                <!--<iframe id="editor-{{cloud.cloud_name}}-add" class="iframe-content" src=""></iframe>-->
 
                             </div>
 
@@ -230,6 +258,12 @@
     {% endif %}
 </div>
 
+<script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
+<script>
+    {% for cloud in cloud_list %}
+        createEditor("{{cloud.cloud_name}}editor")
+    {% endfor %}
+</script>
 
 </body>
