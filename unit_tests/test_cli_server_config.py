@@ -62,27 +62,27 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'SV01', 'server config update value specified for "category" must be one of the following options:',
+        gvar, 1, 'SV02', 'server config update value specified for "category" must be one of the following options:',
         ['cloudscheduler', 'server', 'config', '-cc', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'SV99', 'server config must specify at least one field to update.',
+        gvar, 1, 'SV00', 'server config must specify at least one field to update.',
         ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend']
     )
 
     execute_csv2_command(
-        gvar, 1, 'SV00', 'server config update failed - the request did not match any rows',
+        gvar, 1, 'SV01', 'server config update failed - the request did not match any rows',
         ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-sc', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'SV01', 'server config update value specified for "log_level" must be an integer value.',
+        gvar, 1, 'SV02', 'server config update value specified for "log_level" must be an integer value.',
         ['cloudscheduler', 'server', 'config', '-cc', 'csjobs.py', '-ll', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'SV01', r'server config update value specified for "enable_glint" must be one of the following options: [\'False\', \'True\'].',
+        gvar, 1, 'SV02', r'server config update value specified for "enable_glint" must be one of the following options: [\'False\', \'True\'].',
         ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-eg', 'invalid-unit-test']
     )
 

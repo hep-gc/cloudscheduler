@@ -105,20 +105,20 @@ def config(request):
                     fields.pop('group_name')
 
                     if len(fields) == 0:
-                        message = '{} server config must specify at least one field to update.'.format(lno('SV99'))
+                        message = '{} server config must specify at least one field to update.'.format(lno('SV00'))
                     else:
                         for field in fields:
                             rc, msg = db_execute(db_ctl, table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
                             if rc != 0:
-                                message = '{} server config update failed - {}'.format(lno('SV00'), msg)
+                                message = '{} server config update failed - {}'.format(lno('SV01'), msg)
                                 break
                         if rc == 0:
                             db_session.commit()
                             message = 'server config successfully updated'
                 else:
-                    message = '{} server config update {}'.format(lno('SV01'), msg)
+                    message = '{} server config update {}'.format(lno('SV02'), msg)
     else:
-        message='{} {}'.format(lno('SV02'), msg)
+        message='{} {}'.format(lno('SV03'), msg)
 
     if message and message[:2] == 'SV':
         config_list = []
