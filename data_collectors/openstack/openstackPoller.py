@@ -216,10 +216,12 @@ def flavor_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
-                logging.info("Processing flavours from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                group_name = cloud.group_name
+                cloud_name = cloud.cloud_name
+                logging.info("Processing flavours from group:cloud -  %s::%s" % (group_name, cloud_name))
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # setup OpenStack api objects
@@ -229,12 +231,12 @@ def flavor_poller():
                 try:
                     flav_list =  nova.flavors.list()
                 except Exception as exc:
-                    logging.error("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     logging.error(exc)
                     continue
 
                 if flav_list is False:
-                    logging.info("No flavors defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.info("No flavors defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # Process flavours for this cloud.
@@ -277,7 +279,7 @@ def flavor_poller():
                         db_session.merge(new_flav)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, flavor.name))
+                        logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, flavor.name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -291,7 +293,7 @@ def flavor_poller():
                         db_session.commit()
                         logging.info("Flavor updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit flavor updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
+                        logging.exception("Failed to commit flavor updates for %s::%s, aborting cycle..." % (group_name, cloud_name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -343,10 +345,12 @@ def image_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
-                logging.info("Processing Images from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                group_name = cloud.group_name
+                cloud_name = cloud.cloud_name
+                logging.info("Processing Images from group:cloud -  %s::%s" % (group_name, cloud_name))
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # Retrieve all images for this cloud.
@@ -354,12 +358,12 @@ def image_poller():
                 try:
                     image_list =  nova.glance.list()
                 except Exception as exc:
-                    logging.error("Failed to retrieve image data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve image data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     logging.error(exc)
                     continue
 
                 if image_list is False:
-                    logging.info("No images defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.info("No images defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 uncommitted_updates = 0
@@ -396,7 +400,7 @@ def image_poller():
                         db_session.merge(new_image)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge image entry for %s::%s::%s:" % (cloud.group_name, cloud.cloud_name, image.name))
+                        logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_name, cloud_name, image.name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -410,7 +414,7 @@ def image_poller():
                         db_session.commit()
                         logging.info("Image updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit image updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
+                        logging.exception("Failed to commit image updates for %s::%s, aborting cycle..." % (group_name, cloud_name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -463,10 +467,12 @@ def keypair_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
-                logging.info("Processing Key pairs from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                group_name = cloud.group_name
+                cloud_name = cloud.cloud_name
+                logging.info("Processing Key pairs from group:cloud -  %s::%s" % (group_name, cloud_name))
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to establish session with %s::%s" % (group_name, cloud_name))
                     continue
 
                 # setup openstack api objects
@@ -479,7 +485,7 @@ def keypair_poller():
                     # get keypairs and add them to database
                     cloud_keys = nova.keypairs.list()
                 except Exception as exc:
-                    logging.error("Failed to poll key pairs from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to poll key pairs from nova, skipping %s::%s" % (group_name, cloud_name))
                     logging.error(exc)
                     continue
 
@@ -501,7 +507,7 @@ def keypair_poller():
                         db_session.merge(new_key)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge keypair entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, key.name))
+                        logging.exception("Failed to merge keypair entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, key.name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -515,7 +521,7 @@ def keypair_poller():
                         db_session.commit()
                         logging.info("Keypair updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % (cloud.group_name, cloud.cloud_name))
+                        logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % (group_name, cloud_name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -567,10 +573,12 @@ def limit_poller():
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             uncommitted_updates = 0
             for cloud in cloud_list:
-                logging.info("Processing Limits from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                group_name = cloud.group_name
+                cloud_name = cloud.cloud_name
+                logging.info("Processing Limits from group:cloud -  %s::%s" % (group_name, cloud_name))
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # Retrieve limit list for the current cloud.
@@ -582,12 +590,12 @@ def limit_poller():
                     for limit in limit_list:
                         limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
-                    logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (group_name, cloud_name))
                     logging.error(exc)
                     continue
 
                 if limits_dict is False:
-                    logging.info("No limits defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.info("No limits defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # Process limit list for the current cloud.
@@ -611,7 +619,7 @@ def limit_poller():
                     db_session.merge(new_limits)
                     uncommitted_updates += 1
                 except Exception as exc:
-                    logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
+                    logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_name, cloud_name))
                     logging.error(exc)
                     abort_cycle = True
                     break
@@ -627,7 +635,7 @@ def limit_poller():
                     db_session.commit()
                     logging.info("Limit updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
-                    logging.error("Failed to commit new limits for %s::%s, aborting cycle..."  % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to commit new limits for %s::%s, aborting cycle..."  % (group_name, cloud_name))
                     logging.error(exc)
                     abort_cycle = True
                     break
@@ -674,10 +682,12 @@ def network_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
-                logging.info("Processing networks from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                group_name = cloud.group_name
+                cloud_name = cloud.cloud_name
+                logging.info("Processing networks from group:cloud -  %s::%s" % (group_name, cloud_name))
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # Retrieve network list.
@@ -685,12 +695,12 @@ def network_poller():
                 try:
                     net_list = neutron.list_networks()['networks']
                 except Exception as exc:
-                    logging.error("Failed to retrieve networks from neutron, skipping %s::%s" % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve networks from neutron, skipping %s::%s" % (group_name, cloud_name))
                     logging.error(exc)
                     continue
 
                 if net_list is False:
-                    logging.info("No networks defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.info("No networks defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 uncommitted_updates = 0
@@ -720,7 +730,7 @@ def network_poller():
                         db_session.merge(new_network)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, network['name']))
+                        logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, network['name']))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -734,7 +744,7 @@ def network_poller():
                         db_session.commit()
                         logging.info("Network updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new networks for %s::%s, aborting cycle..."  % (cloud.group_name, cloud.cloud_name))
+                        logging.error("Failed to commit new networks for %s::%s, aborting cycle..."  % (group_name, cloud_name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -789,10 +799,12 @@ def vm_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             for cloud in cloud_list:
-                logging.info("Polling VMs from group:cloud -  %s::%s" % (cloud.group_name, cloud.cloud_name))
+                group_name = cloud.group_name
+                cloud_name = cloud.cloud_name
+                logging.info("Polling VMs from group:cloud -  %s::%s" % (group_name, cloud_name))
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     continue
 
                 # Retrieve VM list for this cloud.
@@ -800,12 +812,12 @@ def vm_poller():
                 try:
                     vm_list = nova.servers.list()
                 except Exception as exc:
-                    logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     logging.error(exc)
                     continue
 
                 if vm_list is False:
-                    logging.info("No VMs defined for %s::%s, skipping this cloud..." % (cloud.group_name, cloud.cloud_name))
+                    logging.info("No VMs defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                     del nova
                     continue
 
@@ -841,7 +853,7 @@ def vm_poller():
                         db_session.merge(new_vm)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge VM entry for %s::%s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name, vm.name))
+                        logging.exception("Failed to merge VM entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, vm.name))
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -855,7 +867,7 @@ def vm_poller():
                         db_session.commit()
                         logging.info("VM updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit VM updates for %s::%s, aborting cycle..." % (cloud.group_name, cloud.cloud_name))
+                        logging.exception("Failed to commit VM updates for %s::%s, aborting cycle..." % (group_name, cloud_name))
                         logging.error(exc)
                         abort_cycle = True
                         break
