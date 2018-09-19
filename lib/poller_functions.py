@@ -49,7 +49,13 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
     logging.info("Delete Cycle - checking database for consistency")
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
-            if cloud_name == '-':
+            if type == 'VM':
+                obsolete_items = db_session.query(base_class).filter(
+                    base_class.group_name == group_name,
+                    base_class.cloud_name == cloud_name,
+                    base_class.last_updated < poll_time
+                    )
+            elif cloud_name == '-':
                 obsolete_items = db_session.query(base_class).filter(
                     base_class.group_name == group_name
                     )
