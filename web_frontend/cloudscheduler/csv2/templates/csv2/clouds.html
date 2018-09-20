@@ -173,8 +173,6 @@
 
                                 </form>
 
-                                <!--<iframe id="editor-{{cloud.cloud_name}}-add" class="iframe-content" src=""></iframe>-->
-
                             </div>
 
                         </div>
@@ -243,13 +241,7 @@
 
 
 </div>
-<!--
-<div class="iframe-div">
-    <div class="i-wrap">
-        <iframe id="editor-default" class="iframe-content" src=""></iframe>
-    </div>
-</div>
--->
+
 <div class="footer"
     {% if response_code == 1 %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
@@ -261,9 +253,11 @@
 <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
 <script>
+    /*
     {% for cloud in cloud_list %}
         createEditor("{{cloud.cloud_name}}editor")
     {% endfor %}
+    */
 </script>
 
 </body>

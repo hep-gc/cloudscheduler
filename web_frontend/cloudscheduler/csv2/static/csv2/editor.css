@@ -1,26 +1,32 @@
-.editor-bar {
-  display: inline;
+
+
+
+.editor-bar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
-/*
-#update {
-	float: left;
-
+.editor-bar li {
+    float: left;
 }
 
-#delete {
+.editor-bar li a {
+    display: block;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+}
+
+
+
+#right {
 	float: right;
 }
 
-#metadata-name {
-	text-align: center;
-}
-*/
 
 
-#editor-table {
-	width: 100%;
-}
 
 .editor-footer {
   position: absolute;
