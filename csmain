@@ -87,6 +87,7 @@ def main():
                 view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
                 view_groups_of_idle_jobs.c.job_priority)
             log.debug('---------------got idle jobs--------------')
+            cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
             for idle_job in idle_jobs_for_group:
                 if idle_job.idle == 0:
                     continue
@@ -145,7 +146,6 @@ def main():
                         clouds_matching_new = session.query(view_available_resources).filter(
                             view_available_resources.c.flavor.in_(flavor_list))
 
-                    cloud_booted_on = set()
                     for cloud in clouds_matching_new:
                         if cloud.cloud_name in cloud_booted_on:
                             continue
