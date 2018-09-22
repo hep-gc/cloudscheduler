@@ -1,0 +1,50 @@
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
+    <title>{{ metadata_name }}</title>
+
+    <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
+</head>
+
+<body class="metadata-fetch">
+
+    <h3 id="metadata-name">{{ metadata_name }}</h3>
+    <form name="{{ metadata_name }}" action="/group/metadata-update/" method="post">
+    {% csrf_token %}
+    
+        <input type="hidden" name="group_name" value="{{ group_name }}">
+        <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+        
+        <input type="submit" id="right" value="Update">
+
+        <br>
+        <textarea name="metadata" id="meta-editor">{{ metadata }}</textarea>
+
+    </form>
+
+    <form name="{{ metadata_name }}-delete" action="/group/metadata-delete/" method="post">
+    {% csrf_token %}
+    
+        <input type="hidden" name="group_name" value="{{ group_name }}">
+        <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+        <input type="submit" id="right" value="Delete" onclick="parent.location.reload()">
+
+    </form>
+
+
+    <div class="editor-footer" id="message">
+        {% if response_code == 1 %}
+            <tr><td><b>Error: {{ message }}</b></td></tr>
+        {% elif message is not None %}
+            <tr><td>{{ message }}</td></tr>
+        {% endif %}
+    </div>
+
+    <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
+
+    <script type="text/javascript">
+        createEditor("meta-editor")
+    </script>
+
+</body>

@@ -493,7 +493,7 @@ def list(
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    'metadata',
+                    #'metadata',
                     ]
                 },
             prune=['password']    
@@ -535,7 +535,8 @@ def list(
             'current_group': current_group,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': getSuperUserStatus(request)
         }
 
     return render(request, 'csv2/groups.html', context)
@@ -674,7 +675,7 @@ def metadata_fetch(request, selector=None):
                     }
             
                 db_close(db_ctl)
-                return render(request, 'csv2/groups.html', context)
+                return render(request, 'csv2/group_editor.html', context)
          
         db_close(db_ctl)
         return render(request, 'csv2/groups.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
@@ -759,7 +760,18 @@ def metadata_update(request):
             ).values(table_fields(fields, table, columns, 'update')))
         if rc == 0:
             db_close(db_ctl, commit=True)
-            return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully  updated.' % (active_user.active_group, fields['metadata_name'])})
+            #return render(request, 'csv2/groups.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully  updated.' % (active_user.active_group, fields['metadata_name'])})
+        
+            message='group metadata file "%s::%s" successfully  updated.' % (fields['group_name'], fields['metadata_name'])
+            context = {
+                    'group_name': fields['group_name'],
+                    'metadata': fields['metadata'],
+                    'response_code': 0,
+                    'message': message,
+                }
+
+            return render(request, 'csv2/group_editor.html',context)
+
         else:
             db_close(db_ctl)
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV38'), active_user.active_group, fields['metadata_name'], msg)})
