@@ -111,7 +111,7 @@ def requests(gvar, request, form_data={}):
             response = _requests(gvar, '/settings/prepare/')
     
         response = _requests(gvar,
-                '/settings/prepare',
+                '/settings/prepare/',
                 form_data = {
                     'group': gvar['user_settings']['group'],
                     }       

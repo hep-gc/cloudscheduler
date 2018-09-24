@@ -158,7 +158,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "cores_ctl" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "cores_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
@@ -172,7 +172,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "ram_ctl" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "ram_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
@@ -200,7 +200,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
@@ -214,7 +214,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "spot_price" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "spot_price" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',

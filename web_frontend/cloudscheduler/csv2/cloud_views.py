@@ -750,19 +750,31 @@ def metadata_update(request):
             (table.c.metadata_name==fields['metadata_name']) \
             ).values(table_fields(fields, table, columns, 'update')))
         if rc == 0:
+            if not 'metadata' in fields.keys():
+                s = table.select(
+                    (table.c.group_name==fields['group_name']) & \
+                    (table.c.cloud_name==fields['cloud_name']) & \
+                    (table.c.metadata_name==fields['metadata_name'])
+                    )
+                metadata_list = qt(db_connection.execute(s))
+                if len(metadata_list) != 1:
+                    return list(request, selector='-', response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno('CV99')), active_user=active_user, user_groups=user_groups)
+                metadata = metadata_list[0]
+            else:
+                metadata = fields['metadata']
+
             db_close(db_ctl, commit=True)
-            #return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
 
             message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
             context = {
                     'group_name': fields['group_name'],
                     'cloud_name': fields['cloud_name'],
-                    'metadata': fields['metadata'],
+                    'metadata': metadata,
                     'response_code': 0,
                     'message': message,
                 }
 
-            return render(request, 'csv2/editor.html',context)
+            return render(request, 'csv2/editor.html', context)
         else:
             db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)

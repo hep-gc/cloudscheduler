@@ -1,0 +1,3 @@
+The \fBserver\fR object modifies and lists server configuration for \fBcloudscheduler\fR servers.
+The server object and actions are only available to privileged users.
+***CAUTION: Modifing these values can cause server errors***

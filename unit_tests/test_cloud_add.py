@@ -332,7 +332,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', 'value specified for "ram_ctl" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "ram_ctl" must be an integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
@@ -444,7 +444,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', 'value specified for "cores_ctl" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "cores_ctl" must be an integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
@@ -460,7 +460,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be an integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),
@@ -507,7 +507,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV01', 'value specified for "spot_price" must be a integer value.',
+        gvar, 1, 'CV01', 'value specified for "spot_price" must be an integer value.',
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'cloud-invalid-unit-test'),

@@ -1,0 +1,3 @@
+.TP
+\fB\-sic \fIinterval\fR, \fB\-\-sleep-interval-cleanup \fIinterval\fR
+\fIinterval\fR must be an integer.

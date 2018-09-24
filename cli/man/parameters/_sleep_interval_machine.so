@@ -1,0 +1,3 @@
+.TP
+\fB\-sim \fIinterval\fR, \fB\-\-sleep-interval-machine \fIinterval\fR
+\fIinterval\fR must be an integer.

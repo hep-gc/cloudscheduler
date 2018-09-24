@@ -8,7 +8,7 @@ from re import sub
 from sys import argv
 from unit_test_common import initialize_csv2_request, generate_secret
 
-TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'cli']
+TEST_OBJECTS = ['user', 'group', 'cloud', 'job', 'vm', 'cli', 'server']
 
 def get_test_list(ut_path):
     test_names = []

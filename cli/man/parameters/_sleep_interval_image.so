@@ -1,0 +1,3 @@
+.TP
+\fB\-sii \fIinterval\fR, \fB\-\-sleep-interval-image \fIinterval\fR
+\fIinterval\fR must be an integer.

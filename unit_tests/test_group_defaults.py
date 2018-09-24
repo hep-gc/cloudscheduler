@@ -54,7 +54,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_cpus" must be a integer value.',
+        gvar, 1, 'GV07', 'group defaults update value specified for "job_cpus" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 'invalid-unit-test'
@@ -63,7 +63,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_ram" must be a integer value.',
+        gvar, 1, 'GV07', 'group defaults update value specified for "job_ram" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_ram': 'invalid-unit-test'
@@ -72,7 +72,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_disk" must be a integer value.',
+        gvar, 1, 'GV07', 'group defaults update value specified for "job_disk" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_disk': 'invalid-unit-test'
@@ -90,7 +90,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_swap" must be a integer value.',
+        gvar, 1, 'GV07', 'group defaults update value specified for "job_swap" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_swap': 'invalid-unit-test'
@@ -99,7 +99,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "vm_keep_alive" must be a integer value.',
+        gvar, 1, 'GV07', 'group defaults update value specified for "vm_keep_alive" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_keep_alive': 'invalid-unit-test'

@@ -1,0 +1,3 @@
+.TP
+\fB\-sin \fIinterval\fR, \fB\-\-sleep-interval-network \fIinterval\fR
+\fIinterval\fR must be an integer.

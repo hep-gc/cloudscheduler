@@ -77,7 +77,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'value specified for "priority" must be a integer value.',
+        gvar, 1, None, 'value specified for "priority" must be an integer value.',
         ['cloudscheduler', 'group', 'metadata-update', '-mn', 'invalid-unit-test', '-mp', 'invalid-unit-test']
     )
 

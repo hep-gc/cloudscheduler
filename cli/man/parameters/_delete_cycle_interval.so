@@ -1,0 +1,3 @@
+.TP
+\fB\-dci \fIinterval\fR, \fB\-\-delete-cycle-interval \fIinterval\fR
+\fIinterval\fR must be an integer.

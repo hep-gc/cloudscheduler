@@ -100,7 +100,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                 response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
         
             response = _requests(gvar,
-                    '/settings/prepare',
+                    '/settings/prepare/',
                     form_data = {
                         'group': gvar['command_args']['group'],
                         },
