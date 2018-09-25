@@ -40,7 +40,7 @@ def trim_keys(dict_to_trim, key_list):
 def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
-                           "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", \
+                           "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
     condor_host = socket.gethostname()
