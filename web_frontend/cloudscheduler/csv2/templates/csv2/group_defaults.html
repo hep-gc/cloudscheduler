@@ -1,0 +1,213 @@
+
+
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+    {% load template_utils %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
+
+    <script type="text/javascript" src="{% static "csv2/common.js" %}"></script>
+    <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
+    
+    <script type="text/javascript">
+
+        var visited = {};
+
+        function meta_fetch(groupname , metaname) {
+
+            //var url='/group/metadata-fetch/'+groupname+'::'+metaname
+            var url='/group/metadata-fetch/'+metaname
+            var frame='editor-'+groupname+'-'+metaname
+
+            if (!visited[frame]){
+                document.getElementById(frame).src=url;
+                visited[frame]=1;
+            }
+        }
+
+        function show_group(group_name){
+            if (group_name.length > 0) {
+                document.location.hash = group_name;
+            }
+        }
+    </script>
+
+</head>
+
+<body class="defaults-nav" onpageshow="show_group('{{active_group}}')">
+<!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
+<div class="main-div">
+    <div class="menu">
+
+    {% for group in defaults_list %}
+
+        <!--https://codepen.io/nathanlong/pen/mBrvn-->
+        
+        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
+            
+            <div class="menu-target">
+
+                <div class="tab">
+                    <input id="settings-{{group.group_name}}" type="checkbox" name="tabs" checked>
+                    <label for="settings-{{group.group_name}}">Settings</label>
+                    <div class="tab-content">
+
+                        <form name="{{group.group_name}}" action="/group/update/" method="post">
+                        {% csrf_token %}
+                        
+                        
+
+                            <input type="hidden" name="group_name" value="{{group.group_name}}" />
+                            <table>
+
+
+
+
+                                <tr class="highlight1"><td><label for="job_cpus">Job CPUs</label></td>
+                                <td><input type="text" name="job_cpus" value="{{group.job_cpus}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="job_ram">Job RAM</label></td>
+                                <td><input type="text" name="job_ram" value="{{group.job_ram}}" /></td></tr>
+
+
+                                <tr class="highlight1"><td><label for="job_disk">Job Disk</label></td>
+                                <td><input type="text" name="job_disk" value="{{group.job_disk}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="job_scratch">Job Scratch</label></td>
+                                <td><input type="text" name="job_scratch" value="{{group.job_scratch}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="job_swap">Job Swap</label></td>
+                                <td><input type="text" name="job_swap" value="{{group.job_swap}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="vm_flavor">VM Flavor</label></td>
+                                <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
+                                <td><input type="text" name="vm_image" value="{{group.vm_image}}" /></td></tr>                                    
+                                <tr class="highlight1"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
+                                <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
+
+
+                                <tr>
+                                    <td>
+                                        <input type="submit" value="Update Group" />
+                                    </td>
+                                </tr>
+
+                                
+                                
+
+                            </table>
+                            
+                        </form>
+                    </div>
+                </div>
+
+                <div class="tab">
+                    <input id="metadata-{{group.group_name}}" type="checkbox" name="tabs" checked>
+                    <label for="metadata-{{group.group_name}}">Metadata</label>
+                    <div class="tab-content">
+
+
+                        {% for key, value in metadata_dict.items %}
+                            {% if key == group.group_name %}
+
+                                {% if value|length > 0%}
+
+                                    {% for meta, value2 in value.items %}
+
+                                        <div class="tab2">
+                                            <input id="metadata-{{group.group_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
+                                            <label for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
+                                            <div class="tab2-content">
+
+                                                <iframe id="editor-{{group.group_name}}-{{meta}}" class="iframe-content" src=""></iframe>
+
+                                            </div>
+
+                                        </div>
+
+
+                                    {% endfor %}
+
+
+                                {% endif %}
+
+                            {% endif %}
+
+
+                        {% endfor %}
+
+                        <div class="tab2">
+                            <input id="metadata-{{group.group_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{group.group_name}}')">
+                            <label for="metadata-{{group.group_name}}-add">+</label>
+                            <div class="tab2-content">
+
+
+                                <form name="{{ group.group_name }}-add" action="/group/metadata-add/" method="post">
+                                {% csrf_token %}
+                                
+                                    <input type="hidden" name="group_name" value="{{ group.group_name }}">
+                                    <input type="hidden" name="group_name" value="{{ group.group_name }}">
+
+                                    <label for="metadata_name">METADATA name</label>
+                                    <input type="text" name="metadata_name" value="">
+                                    <input type="submit" id="update" value="Update">
+                                    <br>
+                                    <textarea name="metadata" id="{{group.group_name}}editor"></textarea>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+            
+        </div>
+        
+    {% endfor %}
+
+
+        
+    </div>
+
+
+    {% for group in group_list %}
+    <div id="delete-{{group.group_name}}" class="modalDialog">
+        <div>
+            <a href="#{{group.group_name}}" title="Close" class="close">X</a>
+            <form name="{{group.group_name}}" action="/group/delete/" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="group_name" id="" value="{{group.group_name}}" />
+                <input type="submit" value="Delete {{group.group_name}}" />
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div class="footer"
+    {% if response_code == 1 %}
+        <tr><td><b>Error: {{ message }}</b></td></tr>
+    {% elif message is not None %}
+        <tr><td>{{ message }}</td></tr>
+    {% endif %}
+</div>
+
+
+</body>
+
