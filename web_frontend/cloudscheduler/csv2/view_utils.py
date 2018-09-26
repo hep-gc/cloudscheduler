@@ -733,6 +733,47 @@ def table_fields(Fields, Table, Columns, selection):
 
 #-------------------------------------------------------------------------------
 
+def validate_by_filtered_table_entries(value, field, db_ctl, table_name, column_name, filter_list):
+    """
+    This function validates that a value is present in a filtered table column
+    
+    Arguments:
+
+    value       - the value to be validated.
+    field       - the name of the field being validated(for error message only).
+    db_ctl      - the database connection object.
+    table_name  - the name of the table.
+    column_name - then name of the column.
+    filter_list - the list of filters in the following format:
+
+                  [[col1, val1], [col2, val2], ...]
+    """
+
+    from sqlalchemy.sql import select
+    import cloudscheduler.lib.schema
+    
+    db_engine, db_session, db_connection, db_map = db_ctl
+
+    table = cloudscheduler.lib.schema.__dict__[table_name]
+
+    options = []
+    s = select([table])
+    for filter in filter_list:
+        if len(filter) != 2:
+            return 1, 'incorrect filter format'
+        c1 = table.c[filter[0]]
+        s = s.where(c1 == filter[1])
+    for row in db_connection.execute(s):
+        if column_name in row and (not row[column_name] in options):
+            options.append(row[column_name])
+
+    if value in options:
+        return 0, None
+    else:
+        return 1, 'no value "{}" exists for "{}"'.format(value, field)
+
+#-------------------------------------------------------------------------------
+
 def validate_fields(request, fields, db_ctl, tables, active_user):
     """
     This function validates/normalizes form fields/command arguments.
