@@ -2,7 +2,7 @@
 ** List all group resources (clouds) with associated metadata (at least one row per group
 ** resourceand one row per metadata file)..
 */
-create or replace view view_group_resources_with_metadata as
+create or replace view view_group_resources_with_metadata_info as
 
 select
 
