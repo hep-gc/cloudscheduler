@@ -1,5 +1,4 @@
 
-
 {% block navbar %}
    {% include "csv2/navigation_bar.html" %}
 {% endblock %}
@@ -9,229 +8,91 @@
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/groups.css" %}">
-    <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
-    <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
 
     <script type="text/javascript" src="{% static "csv2/common.js" %}"></script>
-    <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
-    
-    <script type="text/javascript">
 
-        var visited = {};
 
-        function meta_fetch(groupname , metaname) {
-
-            //var url='/group/metadata-fetch/'+groupname+'::'+metaname
-            var url='/group/metadata-fetch/'+metaname
-            var frame='editor-'+groupname+'-'+metaname
-
-            if (!visited[frame]){
-                document.getElementById(frame).src=url;
-                visited[frame]=1;
-            }
-        }
-
-        function show_group(group_name){
-            if (group_name.length > 0) {
-                document.location.hash = group_name;
-            }
-        }
-    </script>
 
 </head>
 
-<body class="groups-nav" onpageshow="show_group('{{active_group}}')">
+<body class="groups-nav" onpageshow="show_group('{{current_group}}')">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
-
-    {% for group in group_list %}
-        {% if group.group_name == active_group  or is_superuser == 1 %}    
-
+        {% for group in group_list %}
+        
             <!--https://codepen.io/nathanlong/pen/mBrvn-->
             
             <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
-                
                 <div class="menu-target">
+                <form name="{{group.group_name}}" action="/group/update/" method="post">
+                {% csrf_token %}
+                
+                
 
-                    <div class="tab">
-                        <input id="settings-{{group.group_name}}" type="checkbox" name="tabs" checked>
-                        <label for="settings-{{group.group_name}}">Settings</label>
-                        <div class="tab-content">
+                    <input type="hidden" name="group_name" value="{{group.group_name}}" />
+                    <table>
+                        <tr class="highlight1">
+                            <td>
+                                <label for="condor_central_manager">Condor Central Manager</label>
+                            </td>
+                            <td>
+                                <input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" />
+                            </td>
+                        </tr>
+                        
 
-                            <form name="{{group.group_name}}" action="/group/update/" method="post">
-                            {% csrf_token %}
-                            
-                            
+                        <tr class="highlight2">
+                            <td>
+                                <label for="user_groups">Users</label>
+                            </td>
+                            <td>
+                                <input id="search-users-{{ group.group_name }}" type="text" placeholder="Username search.." onkeyup="search('users-{{ group.group_name }}')">
 
-                                <input type="hidden" name="group_name" value="{{group.group_name}}" />
-                                <table>
-                                    <tr class="highlight1">
-                                        <td>
-                                            <label for="condor_central_manager">Condor Central Manager</label>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="condor_central_manager" id="" value="{{group.condor_central_manager}}" />
-                                        </td>
-                                    </tr>
+                                <div id="ul-users-{{group.group_name}}" class="user-list lists highlight2">
                                     
-
-                                    
-
-
-
-                                    <tr>
-                                        <td>
-                                            <input type="submit" value="Update Group" />
-                                        </td>
-
-                                        <td>
-                                            <a href="#delete-{{group.group_name}}"><button type="button">Delete</button></a>
-                                        </td>
-
-                                    </tr>
-
-                                    
-                                    
-
-                                </table>
-                                
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="tab">
-                        <input id="metadata-{{group.group_name}}" type="checkbox" name="tabs" checked>
-                        <label for="metadata-{{group.group_name}}">Metadata</label>
-                        <div class="tab-content">
-
-
-                            {% for key, value in metadata_dict.items %}
-                                {% if key == group.group_name %}
-
-                                    {% if value|length > 0%}
-
-                                        {% for meta, value2 in value.items %}
-
-                                            <div class="tab2">
-                                                <input id="metadata-{{group.group_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
-                                                <label for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
-                                                <div class="tab2-content">
-
-                                                    <iframe id="editor-{{group.group_name}}-{{meta}}" class="iframe-content" src=""></iframe>
-
-                                                </div>
-
-                                            </div>
-
-
-                                        {% endfor %}
-
-
-                                    {% endif %}
-
-                                {% endif %}
-
-
-                            {% endfor %}
-
-                            <div class="tab2">
-                                <input id="metadata-{{group.group_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{group.group_name}}')">
-                                <label for="metadata-{{group.group_name}}-add">+</label>
-                                <div class="tab2-content">
-
-
-                                    <form name="{{ group.group_name }}-add" action="/group/metadata-add/" method="post">
-                                    {% csrf_token %}
-                                    
-                                        <input type="hidden" name="group_name" value="{{ group.group_name }}">
-                                        <input type="hidden" name="group_name" value="{{ group.group_name }}">
-
-                                        <label for="metadata_name">METADATA name</label>
-                                        <input type="text" name="metadata_name" value="">
-                                        <input type="submit" id="update" value="Update">
-                                        <br>
-                                        <textarea name="metadata" id="{{group.group_name}}editor"></textarea>
-
-                                    </form>
-
+                                    <ul>
+                                    {% for user in groups_per_user %}
+                                        {{ user.group_name }}
+                                        {% if group.group_name in user.user_groups %}
+                                            <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></li>
+                                        {% else %}
+                                            <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </ul>
                                 </div>
-
-                            </div>
-
-                        </div>
-
-
-                    </div>
-
-                    <div class="tab">
-                        <input id="users-{{group.group_name}}" type="checkbox" name="tabs">
-                        <label for="users-{{group.group_name}}">Users</label>
-                        <div class="tab-content">
-
-                            <form name="{{group.group_name}}" action="/group/update/" method="post">
-                            {% csrf_token %}
-                            
-                                <input type="hidden" name="group_name" value="{{group.group_name}}" />
-                                <table>
-                                    
-                                    <tr class="highlight1">
-                                        <td>
-                                            <label for="user_groups">Users</label>
-                                        </td>
-                                        <td>
-                                            <input id="search-users-{{ group.group_name }}" type="text" placeholder="Username search.." onkeyup="search('users-{{ group.group_name }}')">
-
-                                            <div id="ul-users-{{group.group_name}}" class="highlight2">
-
-                                                <ul>
-                                                {% for user in groups_per_user %}
-                                                    {{ user.group_name }}
-                                                    {% if group.group_name in user.user_groups %}
-                                                        <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></li>
-                                                    {% else %}
-                                                        <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></li>
-                                                    {% endif %}
-                                                {% endfor %}
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
-                                    
+                            </td>
+                        </tr>
+                        <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
 
 
 
-                                    <tr>
-                                        <td>
-                                            <input type="submit" value="Update Group" />
-                                        </td>
+                        <tr>
+                            <td>
+                                <input type="submit" value="Update Group" />
+                            </td>
 
-                                        <td>
-                                            <a href="#delete-{{group.group_name}}"><button type="button">Delete</button></a>
-                                        </td>
+                            <td>
+                                <a href="#delete-{{group.group_name}}"><button type="button">Delete</button></a>
+                            </td>
 
-                                    </tr>
+                        </tr>
 
-                                    
-                                    
+                        
+                        
 
-                                </table>
-                                
-                            </form>
-                        </div>
-                    </div>
+                    </table>
 
 
-
-
-
+                    
+                </form>
                 </div>
                 
             </div>
         
-        {% endif %}
-    {% endfor %}
+
+        {% endfor %}
 
 
         <div id="add-group"> <a href="#add-group" class="menu-link">+</a>
@@ -321,4 +182,3 @@
 
 
 </body>
-

@@ -40,7 +40,7 @@ urlpatterns = [
 
 #   path('settings/preferences/',                  settings_views.preferences),
     path('settings/prepare/',                      settings_views.prepare),
-#   path('settings/log-out/',                      settings_views.log_out),
+    path('settings/log-out/',                      settings_views.log_out),
 
     path('user/add/',                              user_views.add),
     path('user/delete/',                           user_views.delete),
