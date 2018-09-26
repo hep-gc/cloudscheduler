@@ -412,7 +412,7 @@ def list(
         cloud_list = qt(db_connection.execute(s), prune=['password'])
         metadata_dict = {}
     else:
-        s = select([view_group_resources_with_metadata]).where(view_group_resources_with_metadata.c.group_name == active_user.active_group)
+        s = select([view_group_resources_with_metadata_info]).where(view_group_resources_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
             db_connection.execute(s),
             keys = {

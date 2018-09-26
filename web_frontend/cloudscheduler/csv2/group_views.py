@@ -236,7 +236,7 @@ def defaults(request):
 
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] != 'application/json':
-        s = select([view_groups_with_metadata]).where(csv2_group_defaults.c.group_name==active_user.active_group)
+        s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
         group_list, metadata_dict = qt(
             db_connection.execute(s),
             keys = {
@@ -502,7 +502,7 @@ def list(
         group_list = qt(db_connection.execute(s))
         metadata_dict = {}
     else:
-        s = select([view_groups_with_metadata]).order_by('group_name')
+        s = select([view_groups_with_metadata_info]).order_by('group_name')
         group_list, metadata_dict = qt(
             db_connection.execute(s),
             keys = {
@@ -514,7 +514,6 @@ def list(
                     'metadata_enabled',
                     'metadata_priority',
                     'metadata_mime_type',
-                    #'metadata',
                     ]
                 },
             prune=['password']    
