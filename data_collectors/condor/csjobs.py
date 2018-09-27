@@ -7,6 +7,7 @@ import socket
 import re
 import os
 import sys
+import gc
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.csv2_config import Config
@@ -30,8 +31,9 @@ from sqlalchemy.ext.automap import automap_base
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
     keys_to_trim = []
-    key_list.append("group_name")
     for key in dict_to_trim:
+        if key == "group_name":
+            continue
         if key not in key_list or isinstance(dict_to_trim[key], classad._classad.Value):
             keys_to_trim.append(key)
     for key in keys_to_trim:
@@ -106,10 +108,11 @@ def job_poller():
                 user_group_dict = {}
 
             # Retrieve jobs.
+            
             logging.debug("getting job list from condor")
             try:
-                job_list = condor_session.query(
-                    attr_list=job_attributes
+                job_list = condor_session.xquery(
+                    projection=job_attributes
                     )
             except Exception as exc:
                 # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
@@ -187,12 +190,12 @@ def job_poller():
                 delete_cycle = False
 
             del condor_session
+            del job_list
             db_session.close()
             cycle_count = cycle_count + 1
             if cycle_count >= config.delete_cycle_interval:
                 delete_cycle = True
                 cycle_count = 0
-
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_job)
 
     except Exception as exc:
