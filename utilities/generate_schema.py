@@ -117,8 +117,8 @@ def main(args):
 
                 elif _w[1][:4] == 'int(' or \
                 _w[1][:6] == 'bigint' or \
-                _w[1] == 'date' or \
-                _w[1] == 'datetime' or \
+                _w[1][:4] == 'date' or \
+                _w[1][:8] == 'datetime' or \
                 _w[1][:7] == 'decimal' or \
                 _w[1][:8] == 'smallint' or \
                 _w[1][:7] == 'tinyint':
