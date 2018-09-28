@@ -29,6 +29,7 @@ KEY_MAP = {
     '-vi':  'vm_image',
     '-vk':  'keyname',
     '-vka': 'vm_keep_alive',
+    '-vn':  'vm_network',
     '-vr':  'ram_ctl',
     }
 
@@ -58,7 +59,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
     required = []
-    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka','-vr', '-xA']
+    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -269,7 +270,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vr', '-xA']
+    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

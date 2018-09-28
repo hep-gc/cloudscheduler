@@ -21,6 +21,7 @@ KEY_MAP = {
     '-vf':  'vm_flavor',
     '-vi':  'vm_image',
     '-vka': 'vm_keep_alive',
+    '-vn':  'vm_network',
     }
 
 def _filter_by_group_name_and_or_metadata_name(gvar, qs):
@@ -77,7 +78,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-xA']
+    optional = ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -112,6 +113,7 @@ def defaults(gvar):
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
+            'vm_network/Network/VM',
             'job_cpus/Cores/Job',
             'job_disk/Disk (GBs)/Job',
             'job_ram/RAM (MBs)/Job',
