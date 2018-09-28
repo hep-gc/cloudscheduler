@@ -43,13 +43,8 @@ CONFIG_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'category':                     ('csv2_configuration', 'category'),
-        'cacerts':                      'ignore',
-        'config_key':                   'reject',
-        'csrfmiddlewaretoken':          'ignore',
-        'default_job_group':            'ignore',
+        'delete_cycle_interval':        'integer',
         'enable_glint':                 ['True', 'False'],
-        'group':                        'ignore',
-        'log_file':                     'ignore',
         'log_level':                    'integer',
         'no_limit_default':             'integer',
         'sleep_interval_cleanup':       'integer',
@@ -64,8 +59,16 @@ CONFIG_KEYS = {
         'sleep_interval_main_short':    'integer',
         'sleep_interval_network':       'integer',
         'sleep_interval_vm':            'integer',
+
+        'config_key':                   'reject',
         'type':                         'reject',
         'value':                        'reject',
+
+        'cacerts':                      'ignore',
+        'csrfmiddlewaretoken':          'ignore',
+        'default_job_group':            'ignore',
+        'group':                        'ignore',
+        'log_file':                     'ignore',
     },
     'mandatory': [
         'category',
