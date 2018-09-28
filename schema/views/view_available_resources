@@ -16,6 +16,7 @@ from (
         vgr.spot_price,
         vgr.cascading_vm_image as default_image,
         vgr.cascading_vm_keep_alive as keep_alive,
+        vgr.cascading_vm_network as default_network,
         authurl,
         project,
         username,

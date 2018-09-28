@@ -79,12 +79,11 @@ auth_user = Table('auth_user', metadata,
   Column('is_superuser', Integer),
   Column('username', String(150)),
   Column('first_name', String(30)),
-  Column('last_name', String(30)),
+  Column('last_name', String(150)),
   Column('email', String(254)),
   Column('is_staff', Integer),
   Column('is_active', Integer),
-  Column('date_joined', Integer),
-  Column('csv2_user', String(64))
+  Column('date_joined', Integer)
   )
 
 auth_user_groups = Table('auth_user_groups', metadata,
@@ -258,7 +257,8 @@ csv2_group_defaults = Table('csv2_group_defaults', metadata,
   Column('job_swap', Integer),
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
-  Column('vm_keep_alive', Integer)
+  Column('vm_keep_alive', Integer),
+  Column('vm_network', String(64))
   )
 
 csv2_group_metadata = Table('csv2_group_metadata', metadata,
@@ -316,7 +316,8 @@ csv2_group_resources = Table('csv2_group_resources', metadata,
   Column('spot_price', Integer),
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
-  Column('vm_keep_alive', Integer)
+  Column('vm_keep_alive', Integer),
+  Column('vm_network', String(64))
   )
 
 csv2_groups = Table('csv2_groups', metadata,
@@ -396,6 +397,66 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
+silk_profile = Table('silk_profile', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('name', String(300)),
+  Column('start_time', Integer),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('file_path', String(300)),
+  Column('line_num', Integer),
+  Column('end_line_num', Integer),
+  Column('func_name', String(300)),
+  Column('exception_raised', Integer),
+  Column('dynamic', Integer),
+  Column('request_id', String(36))
+  )
+
+silk_profile_queries = Table('silk_profile_queries', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('profile_id', Integer),
+  Column('sqlquery_id', Integer)
+  )
+
+silk_request = Table('silk_request', metadata,
+  Column('id', String(36), primary_key=True),
+  Column('path', String(190)),
+  Column('query_params', String),
+  Column('raw_body', String),
+  Column('body', String),
+  Column('method', String(10)),
+  Column('start_time', Integer),
+  Column('view_name', String(190)),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('encoded_headers', String),
+  Column('meta_time', Float),
+  Column('meta_num_queries', Integer),
+  Column('meta_time_spent_queries', Float),
+  Column('pyprofile', String),
+  Column('num_sql_queries', Integer),
+  Column('prof_file', String(300))
+  )
+
+silk_response = Table('silk_response', metadata,
+  Column('id', String(36), primary_key=True),
+  Column('status_code', Integer),
+  Column('raw_body', String),
+  Column('body', String),
+  Column('encoded_headers', String),
+  Column('request_id', String(36))
+  )
+
+silk_sqlquery = Table('silk_sqlquery', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('query', String),
+  Column('start_time', Integer),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('traceback', String),
+  Column('request_id', String(36))
+  )
+
 view_available_resources = Table('view_available_resources', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -403,6 +464,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('spot_price', Integer),
   Column('default_image', String(64)),
   Column('keep_alive', Integer),
+  Column('default_network', String(64)),
   Column('authurl', String(128)),
   Column('project', String(128)),
   Column('username', String(20)),
@@ -446,6 +508,7 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('default_flavor', String(64)),
   Column('default_image', String(64)),
   Column('keep_alive', Integer),
+  Column('default_network', String(64)),
   Column('VMs', Integer),
   Column('VMs_unregistered', Integer),
   Column('VMs_running', Integer),
@@ -510,9 +573,11 @@ view_group_resources = Table('view_group_resources', metadata,
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_network', String(64)),
   Column('cascading_vm_flavor', String(64)),
   Column('cascading_vm_image', String(64)),
   Column('cascading_vm_keep_alive', Integer),
+  Column('cascading_vm_network', String(64)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
   Column('project', String(128)),
@@ -560,9 +625,11 @@ view_group_resources_with_metadata_info = Table('view_group_resources_with_metad
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_network', String(64)),
   Column('cascading_vm_flavor', String(64)),
   Column('cascading_vm_image', String(64)),
   Column('cascading_vm_keep_alive', Integer),
+  Column('cascading_vm_network', String(64)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
   Column('project', String(128)),
@@ -614,9 +681,11 @@ view_group_resources_with_metadata_names = Table('view_group_resources_with_meta
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_network', String(64)),
   Column('cascading_vm_flavor', String(64)),
   Column('cascading_vm_image', String(64)),
   Column('cascading_vm_keep_alive', Integer),
+  Column('cascading_vm_network', String(64)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
   Column('project', String(128)),

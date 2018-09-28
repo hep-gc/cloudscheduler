@@ -31,6 +31,7 @@ from (
     cgr.vm_flavor,
     cgr.vm_image,
     cgr.vm_keep_alive,
+    cgr.vm_network,
 
     case when cgr.vm_flavor is null or cgr.vm_flavor='' then
         case when cgd.vm_flavor is null or cgr.vm_flavor='' then
@@ -61,6 +62,16 @@ from (
     else
         cgr.vm_keep_alive
     end as cascading_vm_keep_alive,
+
+    case when cgr.vm_network is null or cgr.vm_network='' then
+        case when cgd.vm_network is null or cgr.vm_network='' then
+            null
+        else
+            cgd.vm_network
+        end
+    else
+        cgr.vm_network
+    end as cascading_vm_network,
 
     authurl,
     project_domain_name,
