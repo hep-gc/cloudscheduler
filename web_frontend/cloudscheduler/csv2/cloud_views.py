@@ -282,23 +282,23 @@ def add(request):
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
 
-        if 'vm_flavor' in fields:
+        if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', db_ctl, 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
-        if 'vm_image' in fields:
+        if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', db_ctl, 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
-        if 'vm_network' in fields:
+        if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', db_ctl, 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
@@ -968,23 +968,23 @@ def update(request):
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV35'), msg), active_user=active_user, user_groups=user_groups)
 
-        if 'vm_flavor' in fields:
+        if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', db_ctl, 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
-        if 'vm_image' in fields:
+        if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', db_ctl, 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
-        if 'vm_network' in fields:
+        if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', db_ctl, 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 db_close(db_ctl)
-                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
