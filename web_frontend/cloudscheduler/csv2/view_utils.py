@@ -770,7 +770,10 @@ def validate_by_filtered_table_entries(value, field, db_ctl, table_name, column_
     if value in options:
         return 0, None
     else:
-        return 1, 'no value "{}" exists for "{}"'.format(value, field)
+        msg = 'specified item does not exist: {}={}'.format(field, value)
+        for filter in filter_list:
+            msg += ', {}={}'.format(filter[0], filter[1])
+        return 1, msg
 
 #-------------------------------------------------------------------------------
 
