@@ -240,8 +240,9 @@ def main(gvar, user_secret):
             'cores_ctl': 5,
             'enabled': 0,
             'vm_keep_alive': 10,
-            'vm_flavor': 'updated-value',
-            'vm_image': 'updated-value',
+            'vm_flavor': '',
+            'vm_image': '',
+            'vm_network': '',
             'spot_price': 1,
             'metadata_name': ut_id(gvar, 'cty1')
         },
@@ -266,8 +267,9 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'enabled': 0,
             'vm_keep_alive': 10,
-            'vm_flavor': 'updated-value',
-            'vm_image': 'updated-value',
+            'vm_flavor': '',
+            'vm_image': '',
+            'vm_network': '',
             'spot_price': 1,
             'group_exclusions': ut_id(gvar, 'cty1')
         },
@@ -389,6 +391,36 @@ def main(gvar, user_secret):
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group_name': ut_id(gvar, 'ctg1'),
             'group_exclusions': ut_id(gvar, 'cty1,cty2,cty3')
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV99', 'cloud update, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'vm_image': 'invalid-unit-test',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV98', 'cloud update, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'vm_flavor': 'invalid-unit-test',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV##', 'cloud update, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
+        '/cloud/update/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'group': ut_id(gvar, 'ctg1'),
+            'vm_network': 'invalid-unit-test',
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

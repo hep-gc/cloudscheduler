@@ -116,8 +116,36 @@ def main(gvar, user_secret):
             'job_disk': 1,
             'job_swap': 1,
             'vm_keep_alive': 1,
-            'vm_flavor': 'group-test-group-four',
-            'vm_image': 'group_test_group_four'
+            'vm_flavor': '',
+            'vm_image': '',
+            'vm_network': '',
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV##', 'group defaults, "{}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'vm_image': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV##', 'group defaults, "{}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'vm_flavor': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV##', 'group defaults, "{}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'vm_network': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

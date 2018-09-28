@@ -199,8 +199,9 @@ def main(gvar, user_secret):
             '-cu', ut_id(gvar, 'clc10'),
             '-ce', 'no',
             '-vka', '10',
-            '-vi', 'command-line-cloud-update',
-            '-vf', 'command-line-cloud-update',
+            '-vi', '',
+            '-vf', '',
+            '-vn', '',
             '-csp', '10',
             '-gme', ut_id(gvar, 'clm2')
         ]
