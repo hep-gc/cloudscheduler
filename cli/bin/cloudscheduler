@@ -198,6 +198,7 @@ def main(args):
             ('-vh',  '--vm-hostname', True),
             ('-vk',  '--vm-keypair', True),
             ('-vka', '--vm-keep-alive', True),
+            ('-vn',  '--vm-network', True),
             ('-vo',  '--vm-option', True),
             ('-vr',  '--vm-ram', True),
             ('-vS',  '--vm-status', True),
