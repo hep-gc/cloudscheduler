@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
+import time
+
 '''
 UTILITY FUNCTIONS
 '''
@@ -655,7 +657,8 @@ def render(request, template, context):
         response = HttpResponse(json.dumps(context, cls=csv2Encoder), content_type='application/json')
     else:
         response = django_render(request, template, context)
-
+    end_time = time.time()
+    print("Render time: %f.5" % end_time)
     return response
 
 #-------------------------------------------------------------------------------

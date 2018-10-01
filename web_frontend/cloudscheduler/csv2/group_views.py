@@ -231,12 +231,16 @@ def defaults(request):
         if request.method == 'POST':
                 # Validate input fields.
                 rc, msg, fields, tables, columns = validate_fields(request, [GROUP_DEFAULTS_KEYS], db_ctl, ['csv2_group_defaults'], active_user)
-                if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
+
+                if rc == 0 and 'vm_flavor' in fields and fields["vm_flavor"]:
                     rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', db_ctl, 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
-                if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
+                
+                if rc == 0 and 'vm_image' in fields and fields["vm_image"]:
                     rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', db_ctl, 'cloud_images', 'name', [['group_name', fields['group_name']]])
-                if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
+
+                if rc == 0 and 'vm_network' in fields and fields["vm_network"]:
                     rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', db_ctl, 'cloud_networks', 'name', [['group_name', fields['group_name']]])
+
                 if rc == 0:
                     # Update the group defaults.
                     table = tables['csv2_group_defaults']

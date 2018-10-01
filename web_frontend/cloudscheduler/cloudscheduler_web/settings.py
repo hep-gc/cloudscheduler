@@ -25,7 +25,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+
+# Profiling
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
 
 ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev.heprc.uvic.ca",
@@ -67,9 +72,12 @@ LOGGING = {
         },
     }
 }
+
+
 # Application definition
 
 INSTALLED_APPS = [
+    'silk',
     'csv2.apps.Csv2Config',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -77,8 +85,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'debug_toolbar',
-    'mathfilters'
+#    'debug_toolbar',
+    'mathfilters',
 ]
 if config.enable_glint:
     INSTALLED_APPS.append('glintwebui.apps.GlintwebuiConfig')
@@ -89,7 +97,8 @@ INTERNAL_IPS = [
 ]
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'silk.middleware.SilkyMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -99,7 +108,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+'''
 DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',
     'debug_toolbar.panels.timer.TimerPanel',
@@ -117,6 +126,7 @@ DEBUG_TOOLBAR_PANELS = [
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
 }
+'''
 INTERNAL_IPS = [
     '142.104.60.114',
     '142.104.60.61',

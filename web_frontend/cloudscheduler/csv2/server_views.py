@@ -127,6 +127,8 @@ def config(request):
         config_list = []
         response_code = 1
     else:
+        db_close(db_ctl)
+        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
         s = select([csv2_configuration])
         config_list = qt(db_connection.execute(s))
         response_code = 0
