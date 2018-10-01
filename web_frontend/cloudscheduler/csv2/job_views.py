@@ -10,9 +10,8 @@ from cloudscheduler.lib.csv2_config import Config
 config = Config('web_frontend')
 
 from .view_utils import \
-    db_close, \
+    get_db_connection, \
     db_execute, \
-    db_open, \
     getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
@@ -92,27 +91,23 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_connection = get_db_connection()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
-        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
         if rc != 0:        
-            db_close(db_ctl)
             return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
     job_list = qt(db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
-
-    db_close(db_ctl)
 
 #   # Position the page.
 #   obj_act_id = request.path.split('/')

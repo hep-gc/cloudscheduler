@@ -10,9 +10,9 @@ from cloudscheduler.lib.csv2_config import Config
 web_config = Config('web_frontend')
 
 from .view_utils import \
-    db_close, \
+    get_db_connection, \
+    get_db_session, \
     db_execute, \
-    db_open, \
     getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
@@ -88,15 +88,16 @@ def config(request):
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_session = get_db_session()
+    db_connection = get_db_connection()
 
     message = None
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    rc, msg, active_user, user_groups = set_user_groups(request)
     if rc == 0:
         if (request.method == 'POST') and ((not 'group' in request.POST) or len(request.POST) > 2):
                 # Validate input fields.
-                rc, msg, fields, tables, columns = validate_fields(request, [CONFIG_KEYS], db_ctl, ['csv2_configuration,n'], active_user)
+                rc, msg, fields, tables, columns = validate_fields(request, [CONFIG_KEYS], ['csv2_configuration,n'], active_user)
                 if rc == 0:
                     # Update the server configuration.
                     table = tables['csv2_configuration']
@@ -111,7 +112,7 @@ def config(request):
                         message = '{} server config must specify at least one field to update.'.format(lno('SV00'))
                     else:
                         for field in fields:
-                            rc, msg = db_execute(db_ctl, table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
+                            rc, msg = db_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
                             if rc != 0:
                                 message = '{} server config update failed - {}'.format(lno('SV01'), msg)
                                 break
@@ -127,13 +128,11 @@ def config(request):
         config_list = []
         response_code = 1
     else:
-        db_close(db_ctl)
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection = get_db_connection()
         s = select([csv2_configuration])
         config_list = qt(db_connection.execute(s))
         response_code = 0
 
-    db_close(db_ctl)
 
     # Render the page.
     context = {

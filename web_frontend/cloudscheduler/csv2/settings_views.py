@@ -1,12 +1,10 @@
 from django.views.decorators.csrf import requires_csrf_token
-from .view_utils import db_open, getSuperUserStatus, render, set_user_groups
+from .view_utils import getSuperUserStatus, render, set_user_groups
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
 import time
 
-from .view_utils import \
-    db_close
 
 # lno: SV - error code identifier.
 
@@ -19,9 +17,6 @@ def log_out(request):
     """
 
     logout(request)
-
-
-
 
     context = {
             'response_code': 0,
@@ -53,17 +48,10 @@ def prepare(request):
     This function returns a minimal response plus a CSRF.
     """
 
-    # open the database.
-
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
-        db_close(db_ctl)
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
-
-    db_close(db_ctl)
 
     context = {
             'active_user': active_user,
