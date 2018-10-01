@@ -3,6 +3,8 @@ from .view_utils import db_open, getSuperUserStatus, render, set_user_groups
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
+import time
+
 from .view_utils import \
     db_close
 
@@ -52,6 +54,7 @@ def prepare(request):
     """
 
     # open the database.
+
     db_engine, db_session, db_connection, db_map = db_ctl = db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
@@ -70,6 +73,8 @@ def prepare(request):
             'response_code': 0,
             'message': None
     }
+    print("Prepare time: %f.5" % time.time())
+
 
     return render(request, 'csv2/settings.html', context)
 

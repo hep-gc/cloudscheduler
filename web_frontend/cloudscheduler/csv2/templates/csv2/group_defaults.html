@@ -58,7 +58,7 @@
                     <label for="settings-{{group.group_name}}">Settings</label>
                     <div class="tab-content">
 
-                        <form name="{{group.group_name}}" action="/group/update/" method="post">
+                        <form name="{{group.group_name}}" action="/group/defaults/" method="post">
                         {% csrf_token %}
                         
                         
@@ -79,8 +79,8 @@
                                 <tr class="highlight1"><td><label for="job_disk">Job Disk</label></td>
                                 <td><input type="text" name="job_disk" value="{{group.job_disk}}" /></td></tr>
 
-                                <tr class="highlight1"><td><label for="job_scratch">Job Scratch</label></td>
-                                <td><input type="text" name="job_scratch" value="{{group.job_scratch}}" /></td></tr>
+                                <!--<tr class="highlight1"><td><label for="job_scratch">Job Scratch</label></td>
+                                <td><input type="text" name="job_scratch" value="{{group.job_scratch}}" /></td></tr>-->
 
                                 <tr class="highlight1"><td><label for="job_swap">Job Swap</label></td>
                                 <td><input type="text" name="job_swap" value="{{group.job_swap}}" /></td></tr>
@@ -89,7 +89,11 @@
                                 <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
 
                                 <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
-                                <td><input type="text" name="vm_image" value="{{group.vm_image}}" /></td></tr>                                    
+                                <td><input type="text" name="vm_image" value="{{group.vm_image}}" /></td></tr>
+
+                                <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
+                                <td><input type="text" name="vm_network" value="{{group.vm_network}}" /></td></tr>
+
                                 <tr class="highlight1"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
 
@@ -154,7 +158,6 @@
                                 {% csrf_token %}
                                 
                                     <input type="hidden" name="group_name" value="{{ group.group_name }}">
-                                    <input type="hidden" name="group_name" value="{{ group.group_name }}">
 
                                     <label for="metadata_name">METADATA name</label>
                                     <input type="text" name="metadata_name" value="">
@@ -183,20 +186,6 @@
 
         
     </div>
-
-
-    {% for group in group_list %}
-    <div id="delete-{{group.group_name}}" class="modalDialog">
-        <div>
-            <a href="#{{group.group_name}}" title="Close" class="close">X</a>
-            <form name="{{group.group_name}}" action="/group/delete/" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="group_name" id="" value="{{group.group_name}}" />
-                <input type="submit" value="Delete {{group.group_name}}" />
-            </form>
-        </div>
-    </div>
-    {% endfor %}
 
 </div>
 

@@ -408,6 +408,14 @@ def update(request):
             db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), active_user=active_user, user_groups=user_groups)
 
+
+        #if request.POST['not_superuser']:
+            #if 'is_superuser' not in request.POST:
+                #request.POST['is_superuser'] = 1
+            #del request.POST['not_superuser']
+
+        #request.POST['is_superuser'] = 1
+
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [USER_GROUP_KEYS], db_ctl, ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:        

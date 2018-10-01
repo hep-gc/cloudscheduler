@@ -39,6 +39,8 @@ import sqlalchemy.exc
 import os
 import psutil
 
+from silk.profiling.profiler import silk_profile as silkp
+
 # lno: CV - error code identifier.
 
 #-------------------------------------------------------------------------------
@@ -130,6 +132,7 @@ METADATA_LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Manage Metadata Exclusions")
 def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_names, option=None):
     """
     Ensure all the specified metadata exclusions (metadata_names) and only the specified
@@ -195,7 +198,12 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
 
 #-------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
+=======
+@silkp(name="Cloud Manage Group Metadata Verification")
+def manage_group_metadata_verification(db_ctl, tables, active_group, cloud_names, metadata_names):
+>>>>>>> 041c989744dd27294180ed0cee2b2a7391ef0ee0
     """
     Make sure the specified cloud, and metadata names exist.
     """
@@ -258,6 +266,7 @@ def manage_group_metadata_verification(tables, active_group, cloud_names, metada
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Add")
 @requires_csrf_token
 def add(request):
     """
@@ -326,6 +335,7 @@ def add(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Delete")
 @requires_csrf_token
 def delete(request):
     """
@@ -379,6 +389,7 @@ def delete(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Cloud List')
 @requires_csrf_token
 def list(
     request,
@@ -470,6 +481,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Cloud Metadata Add')
 @requires_csrf_token
 def metadata_add(request):
     """
@@ -522,6 +534,7 @@ def metadata_add(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Metadata Add")
 @requires_csrf_token
 def metadata_collation(request):
 
@@ -560,6 +573,7 @@ def metadata_collation(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Cloud Metadata Delete')
 @requires_csrf_token
 def metadata_delete(request):
     """
@@ -605,6 +619,7 @@ def metadata_delete(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
 def metadata_fetch(request, selector=None):
     if not verifyUser(request):
@@ -652,6 +667,7 @@ def metadata_fetch(request, selector=None):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Metadata List")
 @requires_csrf_token
 def metadata_list(request):
 
@@ -703,6 +719,7 @@ def metadata_list(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Metadata Update")
 @requires_csrf_token
 def metadata_update(request):
     """
@@ -769,6 +786,7 @@ def metadata_update(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Status")
 @requires_csrf_token
 def status(request, group_name=None):
     """
@@ -790,6 +808,23 @@ def status(request, group_name=None):
     # get cloud status per group
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
     cloud_status_list = qt(db_connection.execute(s))
+
+    # get slots type counts
+    s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
+    slot_list, slot_dict = qt(
+        db_connection.execute(s),
+        keys = {
+            'primary': [
+                'group_name',
+                'cloud_name'
+                ],
+            'secondary': [
+                'slots_CPUs',
+                'slot_count'
+                ],
+            'match_list': cloud_status_list
+            } 
+        )
 
     # get job status per group
     s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
@@ -885,6 +920,8 @@ def status(request, group_name=None):
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
             'system_list' : system_list,
+            'slot_list': slot_list,
+            'slot_dict' : slot_dict,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
@@ -895,6 +932,7 @@ def status(request, group_name=None):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="Cloud Update")
 @requires_csrf_token
 def update(request):
     """

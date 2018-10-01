@@ -46,11 +46,15 @@
                         </tr>
                         </select></td></tr>
                         <tr class="highlight1"><td><label for="is_superuser">Superuser</label></td>
-                        {% if user.is_superuser %}
-                            <td><input name="is_superuser" type="checkbox" value="{{user.username}}" checked/></td>
-                        {% else %}
-                            <td><input name="is_superuser" type="checkbox" value="{{user.username}}"/></td>
-                        {% endif %}
+
+
+                            <!--<input type="hidden" name="not_superuser" value="0" />-->
+                            {% if user.is_superuser %}
+                                <td><input type="checkbox" name="is_superuser" value="1" checked/></td>
+                            {% else %}
+                                <td><input type="checkbox" name="is_superuser" value="1"/></td>
+                            {% endif %}
+
                         </tr>
                         <tr class="highlight2"><td><label for="users_groups">Groups</label></td><td></td></tr>
 

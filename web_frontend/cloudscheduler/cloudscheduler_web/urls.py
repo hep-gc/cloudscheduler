@@ -25,15 +25,18 @@ urlpatterns = [
     url(r'^', include('csv2.urls')),
 ]
 
+urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
+
 if config.enable_glint:
     urlpatterns = [
         url(r'^images/', include('glintwebui.image_urls')),
         url(r'^keypairs/', include('glintwebui.keypair_urls')),
     ] + urlpatterns
-
+'''
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
+'''
 
