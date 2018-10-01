@@ -10,9 +10,11 @@ from cloudscheduler.lib.csv2_config import Config
 config = Config('web_frontend')
 
 from .view_utils import \
-    db_close, \
+    db_commit, \
     db_execute, \
-    db_open, \
+    get_db_connection, \
+    get_db_map, \
+    get_db_session(), \
     diff_lists, \
     getAuthUser, \
     getcsv2User, \
@@ -128,7 +130,7 @@ METADATA_LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-def manage_group_metadata_exclusions(db_ctl, tables, active_group, cloud_name, metadata_names, option=None):
+def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_names, option=None):
     """
     Ensure all the specified metadata exclusions (metadata_names) and only the specified
     metadata exclusions are defined for the specified cloud. The specified cloud and
@@ -137,7 +139,7 @@ def manage_group_metadata_exclusions(db_ctl, tables, active_group, cloud_name, m
 
     from sqlalchemy.sql import select
 
-    db_engine, db_session, db_connection, db_map = db_ctl
+    db_connection = get_db_connection()
 
     table = tables['csv2_group_metadata_exclusions']
 
@@ -165,7 +167,7 @@ def manage_group_metadata_exclusions(db_ctl, tables, active_group, cloud_name, m
 
         # Add the missing exclusions.
         for metadata_name in add_exclusions:
-            rc, msg = db_execute(db_ctl, table.insert().values(group_name=active_group, cloud_name=cloud_name, metadata_name=metadata_name))
+            rc, msg = db_execute(table.insert().values(group_name=active_group, cloud_name=cloud_name, metadata_name=metadata_name))
             if rc != 0:
                 return 1, msg
 
@@ -175,7 +177,7 @@ def manage_group_metadata_exclusions(db_ctl, tables, active_group, cloud_name, m
         
         # Remove the extraneous exclusions.
         for metadata_name in remove_exclusions:
-            rc, msg = db_execute(db_ctl, table.delete((group_name==active_group) & (cloud_name==cloud_name) & (metadata_name==metadata_name)))
+            rc, msg = db_execute(table.delete((group_name==active_group) & (cloud_name==cloud_name) & (metadata_name==metadata_name)))
             if rc != 0:
                 return 1, msg
 
@@ -185,7 +187,7 @@ def manage_group_metadata_exclusions(db_ctl, tables, active_group, cloud_name, m
         
         # Remove the extraneous exclusions.
         for metadata_name in remove_exclusions:
-            rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.metadata_name==metadata_name)))
+            rc, msg = db_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.metadata_name==metadata_name)))
             if rc != 0:
                 return 1, msg
 
@@ -193,14 +195,14 @@ def manage_group_metadata_exclusions(db_ctl, tables, active_group, cloud_name, m
 
 #-------------------------------------------------------------------------------
 
-def manage_group_metadata_verification(db_ctl, tables, active_group, cloud_names, metadata_names):
+def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
     """
     Make sure the specified cloud, and metadata names exist.
     """
 
     from sqlalchemy.sql import select
 
-    db_engine, db_session, db_connection, db_map = db_ctl
+    db_connection = get_db_connection()
 
     if cloud_names:
         # if there is only one cloud, make it a list anyway
@@ -268,61 +270,54 @@ def add(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection= get_db_connection()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], ['csv2_group_resources', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:        
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
-            rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', db_ctl, 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_image' in fields and fields['vm_image']:
-            rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', db_ctl, 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_network' in fields and fields['vm_network']:
-            rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', db_ctl, 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
-            rc, msg = manage_group_metadata_verification(db_ctl, tables, fields['group_name'], None, fields['metadata_name']) 
+            rc, msg = manage_group_metadata_verification(tables, fields['group_name'], None, fields['metadata_name']) 
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud.
         table = tables['csv2_group_resources']
-        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        rc, msg = db_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add the cloud's group metadata exclusions.
         if 'metadata_name' in fields:
-            rc, msg = manage_group_metadata_exclusions(db_ctl, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+            rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
         if rc == 0:
-            db_close(db_ctl, commit=True)
+            db_commit()
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            db_close(db_ctl)
+            db_commit()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s add group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
                     
     ### Bad request.
@@ -343,45 +338,39 @@ def delete(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection = get_db_connection()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_METADATA_NAME], db_ctl, ['csv2_group_resources', 'csv2_group_resource_metadata', 'csv2_group_metadata_exclusions'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_group_resources', 'csv2_group_resource_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        if rc != 0:
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any metadata files for the cloud.
         table = tables['csv2_group_resource_metadata']
-        rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
+        rc, msg = db_execute(table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete any metadata exclusions files for the cloud.
         table = tables['csv2_group_metadata_exclusions']
-        rc, msg = db_execute(db_ctl, table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
+        rc, msg = db_execute(table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud.
         table = tables['csv2_group_resources']
         rc, msg = db_execute(
-            db_ctl,
             table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name']))
             )
         if rc == 0:
-            db_close(db_ctl, commit=True)
+            db_commit()
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno('CV08'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -406,20 +395,18 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_connection= get_db_connection()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
-        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], db_ctl, [], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
+        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
+        if rc != 0:
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud list, %s' % (lno('CV11'), msg)})
 
     s = select([csv2_cloud_types])
@@ -448,8 +435,6 @@ def list(
                 },
             prune=['password']    
             )
-
-    db_close(db_ctl)
 
     # Position the page.
     obj_act_id = request.path.split('/')
@@ -497,18 +482,16 @@ def metadata_add(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection= get_db_connection()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
+        if rc != 0:
             return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # Check cloud already exists.
@@ -526,12 +509,11 @@ def metadata_add(request):
 
         # Add the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
-        rc, msg = db_execute(db_ctl, table.insert().values(table_fields(fields, table, columns, 'insert')))
+        rc, msg = db_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
-            db_close(db_ctl, commit=True)
+            db_commit())
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -547,25 +529,21 @@ def metadata_collation(request):
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_connection = get_db_connection()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
-        db_close(db_ctl)
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV18'), msg)})
 
     # Validate input fields (should be none).
-    rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], db_ctl, [], active_user)
-    if rc != 0:        
-        db_close(db_ctl)
+    rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], [], active_user)
+    if rc != 0:
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV19'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([view_metadata_collation]).where(view_metadata_collation.c.group_name == active_user.active_group)
     cloud_metadata_list = qt(db_connection.execute(s))
-
-    db_close(db_ctl)
 
     # Render the page.
     context = {
@@ -594,24 +572,21 @@ def metadata_delete(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection = get_db_connection()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV20'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], ['csv2_group_resource_metadata'], active_user)
+        if rc != 0:
             return list(request, selector='-', response_code=1, message='%s cloud metadata-delete %s' % (lno('CV21'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
         rc, msg = db_execute(
-            db_ctl,
             table.delete( \
                 (table.c.group_name==fields['group_name']) & \
                 (table.c.cloud_name==fields['cloud_name']) & \
@@ -619,10 +594,9 @@ def metadata_delete(request):
                 )
             )
         if rc == 0:
-            db_close(db_ctl, commit=True)
+            db_commit()
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -637,12 +611,13 @@ def metadata_fetch(request, selector=None):
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_connection = get_db_connection()
+    db_map = get_db_map()
+    db_session = get_db_session()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
-        db_close(db_ctl)
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
 
     # Retrieve metadata file.
@@ -668,10 +643,7 @@ def metadata_fetch(request, selector=None):
                         'enable_glint': config.enable_glint
                         }
                 
-                    db_close(db_ctl)
                     return render(request, 'csv2/cloud_editor.html', context)
-             
-    db_close(db_ctl)
 
     if id:
       return render(request, 'csv2/cloud_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
@@ -687,18 +659,16 @@ def metadata_list(request):
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_connection= get_db_connection()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
-        db_close(db_ctl)
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV26'), msg)})
 
     # Validate input fields (should be none).
-    rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], db_ctl, [], active_user)
-    if rc != 0:        
-        db_close(db_ctl)
+    rc, msg, fields, tables, columns = validate_fields(request, [METADATA_LIST_KEYS], [], active_user)
+    if rc != 0:
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV27'), msg)})
 
     # Retrieve cloud/metadata information.
@@ -715,8 +685,6 @@ def metadata_list(request):
     s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
     cloud_metadata_names = qt(db_connection.execute(s))
 
-
-    db_close(db_ctl)
 
     # Render the page.
     context = {
@@ -747,23 +715,21 @@ def metadata_update(request):
 
     if request.method == 'POST':
         # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection = get_db_connection()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], db_ctl, ['csv2_group_resource_metadata'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
+        rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], ['csv2_group_resource_metadata'], active_user)
+        if rc != 0:
             return list(request, selector='-', response_code=1, message='%s cloud metadata-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the cloud metadata file.
         table = tables['csv2_group_resource_metadata']
-        rc, msg = db_execute(db_ctl, table.update().where( \
+        rc, msg = db_execute(table.update().where( \
             (table.c.group_name==fields['group_name']) & \
             (table.c.cloud_name==fields['cloud_name']) & \
             (table.c.metadata_name==fields['metadata_name']) \
@@ -782,7 +748,7 @@ def metadata_update(request):
             else:
                 metadata = fields['metadata']
 
-            db_close(db_ctl, commit=True)
+            db_commit()
 
             message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
             context = {
@@ -795,7 +761,6 @@ def metadata_update(request):
 
             return render(request, 'csv2/cloud_editor.html', context)
         else:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -815,12 +780,11 @@ def status(request, group_name=None):
         raise PermissionDenied
 
     # open the database.
-    db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+    db_connection = get_db_connection()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+    rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
-        db_close(db_ctl)
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV33'), msg), active_user=active_user, user_groups=user_groups)
 
     # get cloud status per group
@@ -830,8 +794,6 @@ def status(request, group_name=None):
     # get job status per group
     s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
     job_status_list = qt(db_connection.execute(s))
-
-    db_close(db_ctl)
 
     cloud_total_list = {}
 
@@ -954,77 +916,68 @@ def update(request):
             del request.POST['password']
 
         # open the database.
-        db_engine, db_session, db_connection, db_map = db_ctl = db_open()
+        db_connection = get_db_connection()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request, db_ctl)
+        rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
-            db_close(db_ctl)
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV34'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], db_ctl, ['csv2_group_resources', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
-        if rc != 0:        
-            db_close(db_ctl)
+        rc, msg, fields, tables, columns = validate_fields(request, [CLOUD_KEYS], ['csv2_group_resources', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        if rc != 0:
             return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV35'), msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
-            rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', db_ctl, 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_image' in fields and fields['vm_image']:
-            rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', db_ctl, 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_network' in fields and fields['vm_network']:
-            rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', db_ctl, 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
-            rc, msg = manage_group_metadata_verification(db_ctl, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
+            rc, msg = manage_group_metadata_verification(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name']) 
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # update the cloud.
         table = tables['csv2_group_resources']
         cloud_updates = table_fields(fields, table, columns, 'update')
         if len(cloud_updates) > 0:
-            rc, msg = db_execute(db_ctl, table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(cloud_updates))
+            rc, msg = db_execute(table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(cloud_updates))
             if rc != 0:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV36'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
             if 'metadata_name' not in fields:
-                db_close(db_ctl)
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'), active_user=active_user, user_groups=user_groups)
 
         # Update the cloud's group metadata exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
             if 'metadata_name' in fields:
                 if 'metadata_option' in fields and fields['metadata_option'] == 'delete':
-                    rc, msg = manage_group_metadata_exclusions(db_ctl, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='delete')
+                    rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='delete')
                 else:
-                    rc, msg = manage_group_metadata_exclusions(db_ctl, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='add')
+                    rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='add')
 
         else:
             if 'metadata_name' in fields:
-                rc, msg = manage_group_metadata_exclusions(db_ctl, tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+                rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
             else:
-                rc, msg = manage_group_metadata_exclusions(db_ctl, tables, fields['group_name'], fields['cloud_name'], None)
+                rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], None)
 
         if rc == 0:
-            db_close(db_ctl, commit=True)
+            db_commit()
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            db_close(db_ctl)
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s update group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.

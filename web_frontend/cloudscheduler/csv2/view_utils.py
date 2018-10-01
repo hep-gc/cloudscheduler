@@ -1,16 +1,26 @@
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
+# Shared database connection + parameters
+global db_ctl = []
+
 '''
 UTILITY FUNCTIONS
 '''
+#-------------------------------------------------------------------------------
+
+def db_commit():
+    global db_ctl
+    db_engine, db_session, db_connection, db_map = db_ctl
+    db_session.commit()
 
 #-------------------------------------------------------------------------------
 
-def db_close(db_ctl, commit=False):
+def db_close(commit=False):
     """
     Commit or rollback and then close the database connection.
     """
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -23,10 +33,11 @@ def db_close(db_ctl, commit=False):
 
 #-------------------------------------------------------------------------------
 
-def db_execute(db_ctl, request, allow_no_rows=False):
+def db_execute(request, allow_no_rows=False):
     """
     Execute a DB request and return the response. Also, trap and return errors.
     """
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -45,7 +56,7 @@ def db_execute(db_ctl, request, allow_no_rows=False):
 
 #-------------------------------------------------------------------------------
 
-def db_open():
+def _db_open():
     """
     Provide a database connection and mapping.
     """
@@ -128,7 +139,7 @@ def lno(id):
 
 #-------------------------------------------------------------------------------
 
-def manage_group_users(db_ctl, tables, group, users, option=None):
+def manage_group_users(tables, group, users, option=None):
     """
     Ensure all the specified users and only the specified users are
     members of the specified group. The specified group and users
@@ -136,6 +147,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
     """
 
     from sqlalchemy.sql import select
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -165,7 +177,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
 
         # Add the missing users.
         for user in add_users:
-            rc, msg = db_execute(db_ctl, table.insert().values(username=user, group_name=group))
+            rc, msg = db_execute(table.insert().values(username=user, group_name=group))
             if rc != 0:
                 return 1, msg
 
@@ -175,7 +187,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
         
         # Remove the extraneous users.
         for user in remove_users:
-            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -185,7 +197,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
         
         # Remove the extraneous users.
         for user in remove_users:
-            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -193,7 +205,7 @@ def manage_group_users(db_ctl, tables, group, users, option=None):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_groups(db_ctl, tables, user, groups, option=None):
+def manage_user_groups(tables, user, groups, option=None):
     """
     Ensure all the specified groups and only the specified groups are
     have the specified user as a member. The specified user and groups
@@ -201,6 +213,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
     """
 
     from sqlalchemy.sql import select
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -230,7 +243,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
 
         # Add the missing groups.
         for group in add_groups:
-            rc, msg = db_execute(db_ctl, table.insert().values(username=user, group_name=group))
+            rc, msg = db_execute(table.insert().values(username=user, group_name=group))
             if rc != 0:
                 return 1, msg
 
@@ -240,7 +253,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -250,7 +263,7 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
         
         # Remove the extraneous groups.
         for group in remove_groups:
-            rc, msg = db_execute(db_ctl, table.delete((table.c.username==user) & (table.c.group_name==group)))
+            rc, msg = db_execute(table.delete((table.c.username==user) & (table.c.group_name==group)))
             if rc != 0:
                 return 1, msg
 
@@ -258,12 +271,13 @@ def manage_user_groups(db_ctl, tables, user, groups, option=None):
 
 #-------------------------------------------------------------------------------
 
-def manage_user_group_verification(db_ctl, tables, users, groups):
+def manage_user_group_verification(tables, users, groups):
     """
     Make sure the specified users and groups exist.
     """
 
     from sqlalchemy.sql import select
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -668,7 +682,8 @@ def service_msg(service_name):
 
 #-------------------------------------------------------------------------------
 
-def set_user_groups(request, db_ctl):
+def set_user_groups(request):
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -733,7 +748,7 @@ def table_fields(Fields, Table, Columns, selection):
 
 #-------------------------------------------------------------------------------
 
-def validate_by_filtered_table_entries(value, field, db_ctl, table_name, column_name, filter_list):
+def validate_by_filtered_table_entries(value, field, table_name, column_name, filter_list):
     """
     This function validates that a value is present in a filtered table column
     
@@ -741,7 +756,6 @@ def validate_by_filtered_table_entries(value, field, db_ctl, table_name, column_
 
     value       - the value to be validated.
     field       - the name of the field being validated(for error message only).
-    db_ctl      - the database connection object.
     table_name  - the name of the table.
     column_name - then name of the column.
     filter_list - the list of filters in the following format:
@@ -751,6 +765,8 @@ def validate_by_filtered_table_entries(value, field, db_ctl, table_name, column_
 
     from sqlalchemy.sql import select
     import cloudscheduler.lib.schema
+
+    global db_ctl
     
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -777,7 +793,7 @@ def validate_by_filtered_table_entries(value, field, db_ctl, table_name, column_
 
 #-------------------------------------------------------------------------------
 
-def validate_fields(request, fields, db_ctl, tables, active_user):
+def validate_fields(request, fields, tables, active_user):
     """
     This function validates/normalizes form fields/command arguments.
 
@@ -835,6 +851,8 @@ def validate_fields(request, fields, db_ctl, tables, active_user):
     from sqlalchemy.sql import select
     import cloudscheduler.lib.schema
     import re
+
+    global db_ctl
 
     db_engine, db_session, db_connection, db_map = db_ctl
 
@@ -1096,3 +1114,30 @@ def verifyUser(request):
 
     return False
 
+
+#-------------------------------------------------------------------------------
+
+def get_db_engine():
+    global db_ctl
+    return db_ctl[0]
+
+#-------------------------------------------------------------------------------
+def get_db_session():
+    global db_ctl
+    return db_ctl[1]
+
+#-------------------------------------------------------------------------------
+def get_db_connection():
+    global db_ctl
+    return db_ctl[2]
+
+#-------------------------------------------------------------------------------
+
+def get_db_map():
+    global db_ctl
+    return db_ctl[3]
+
+#-------------------------------------------------------------------------------
+
+# db initialization code
+db_ctl = _db_open()
