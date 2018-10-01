@@ -14,7 +14,7 @@ from .view_utils import \
     db_execute, \
     get_db_connection, \
     get_db_map, \
-    get_db_session(), \
+    get_db_session, \
     diff_lists, \
     getAuthUser, \
     getcsv2User, \
@@ -198,12 +198,8 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
 
 #-------------------------------------------------------------------------------
 
-<<<<<<< HEAD
-def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
-=======
 @silkp(name="Cloud Manage Group Metadata Verification")
-def manage_group_metadata_verification(db_ctl, tables, active_group, cloud_names, metadata_names):
->>>>>>> 041c989744dd27294180ed0cee2b2a7391ef0ee0
+def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
     """
     Make sure the specified cloud, and metadata names exist.
     """
@@ -523,7 +519,7 @@ def metadata_add(request):
         table = tables['csv2_group_resource_metadata']
         rc, msg = db_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
-            db_commit())
+            db_commit()
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
@@ -819,7 +815,7 @@ def status(request, group_name=None):
                 'cloud_name'
                 ],
             'secondary': [
-                'slots_CPUs',
+                'slot_CPUs',
                 'slot_count'
                 ],
             'match_list': cloud_status_list
