@@ -220,7 +220,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV97', 'group add, "{}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV97', 'group add, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test.ca',
@@ -229,7 +229,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV96', 'group add, "{}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV96', 'group add, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test.ca',
@@ -238,7 +238,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV95', 'group add, "{}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV95', 'group add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test.ca',
