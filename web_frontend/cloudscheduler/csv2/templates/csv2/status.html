@@ -203,16 +203,16 @@
                     <td class="col-spacer">&nbsp;</td>
 
 
-                    {% if cloud.slots_used != 0 %}
-                        <td tooltip="
+                    {% if cloud.slots_used == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style" tooltip="
                             {% for slot in slot_list%}
                                 {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.slot_CPUs }}x{{slot.slot_count}}  
+                                    {{ slot.slot_CPUs }}x{{slot.slot_count}}c&#013;&#010;
                                 {% endif %}
                             {% endfor %}
-                        ">{{cloud.slots_used}}</td>
-                    {% else %}
-                        <td>0</td>
+                        "><a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">{{cloud.slots_used}}</td>
                     {% endif %}
 
                     {% if cloud.cores_ctl == -1 %}
@@ -300,8 +300,12 @@
 
                 <td class="col-spacer">&nbsp;</td>
 
-                <td class="bold-style">{{cloud_total_list.slots_used}}</td>
 
+                {% if cloud_total_list.slots_used == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a onclick="pass_url('::::')" href="#vms-overlay">{{cloud_total_list.slots_used}}</td>
+                {% endif %}
 
                 <td class="bold-style">{{cloud_total_list.cores_busy}} <b>/</b> {{cloud_total_list.cores_native}}</td>
 
