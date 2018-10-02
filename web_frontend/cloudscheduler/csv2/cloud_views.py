@@ -843,18 +843,14 @@ def status(request, group_name=None):
 
     # get slots type counts
     s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
-    slot_list, slot_dict = qt(
+    slot_dict = qt(
         db_connection.execute(s),
         keys = {
             'primary': [
                 'group_name',
-                'cloud_name'
-                ],
-            'secondary': [
-                'slots_CPUs',
-                'slot_count'
-                ],
-            'match_list': cloud_status_list
+                'cloud_name',
+                'slot_CPUs'
+                ]
             } 
         )
 
@@ -954,7 +950,6 @@ def status(request, group_name=None):
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
             'system_list' : system_list,
-            'slot_list': slot_list,
             'slot_dict' : slot_dict,
             'response_code': 0,
             'message': None,
