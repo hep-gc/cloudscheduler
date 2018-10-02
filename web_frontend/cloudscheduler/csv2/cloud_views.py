@@ -199,12 +199,8 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
 
 #-------------------------------------------------------------------------------
 
-<<<<<<< HEAD
-def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
-=======
 @silkp(name="Cloud Manage Group Metadata Verification")
-def manage_group_metadata_verification(db_ctl, tables, active_group, cloud_names, metadata_names):
->>>>>>> 041c989744dd27294180ed0cee2b2a7391ef0ee0
+def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
     """
     Make sure the specified cloud, and metadata names exist.
     """
@@ -857,7 +853,7 @@ def status(request, group_name=None):
                 'cloud_name'
                 ],
             'secondary': [
-                'slots_CPUs',
+                'slot_CPUs',
                 'slot_count'
                 ],
             'match_list': cloud_status_list

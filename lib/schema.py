@@ -533,6 +533,13 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('slots_used', Integer)
   )
 
+view_cloud_status_slots = Table('view_cloud_status_slots', metadata,
+  Column('group_name', String(256)),
+  Column('cloud_name', String(256)),
+  Column('slot_CPUs', Integer),
+  Column('slot_count', Integer)
+  )
+
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
   Column('global_job_id', String(128)),
   Column('group_name', String(32)),

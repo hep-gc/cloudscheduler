@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Profiling
 SILKY_PYTHON_PROFILER = True

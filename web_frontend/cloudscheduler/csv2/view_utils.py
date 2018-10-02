@@ -2,7 +2,7 @@ from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
 # Shared database connection + parameters
-global db_ctl = []
+db_ctl = []
 import time
 
 '''
