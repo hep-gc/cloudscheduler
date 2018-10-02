@@ -12,6 +12,7 @@ web_config = Config('web_frontend')
 from .view_utils import \
     get_db_connection, \
     get_db_session, \
+    db_rollback, \
     db_execute, \
     getAuthUser, \
     getcsv2User, \
@@ -128,11 +129,13 @@ def config(request):
         config_list = []
         response_code = 1
     else:
+        db_rollback()
         db_connection = get_db_connection()
         s = select([csv2_configuration])
         config_list = qt(db_connection.execute(s))
         response_code = 0
 
+    db_rollback()
 
     # Render the page.
     context = {

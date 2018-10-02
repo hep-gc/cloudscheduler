@@ -1,5 +1,5 @@
 from django.views.decorators.csrf import requires_csrf_token
-from .view_utils import getSuperUserStatus, render, set_user_groups
+from .view_utils import getSuperUserStatus, render, set_user_groups, db_rollback
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
@@ -51,7 +51,10 @@ def prepare(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
+        db_rollback()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+
+    db_rollback()
 
     context = {
             'active_user': active_user,
