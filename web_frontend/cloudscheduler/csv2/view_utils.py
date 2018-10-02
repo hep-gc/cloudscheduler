@@ -343,131 +343,199 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
     and transforms it into a standard python list (repeatably iterable). In the process,
     it can make the following transformations:
 
-        o It can delete columns from the rows (prune=[col1, col2,..]).
-        o It can split the query into a list and corresponding dictionaries (
-          (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
         o It can filter rows based on the result of an evaluated string; True is
           retained, and False is dropped.
 
-    Splitting a query into a list and corresponding dictionaries:
+        o It can delete columns from the rows (prune=[col1, col2,..]).
 
-    If the keys parameter is specified, it must contain both a 'primary' and
-    'secondary' list of keys, and optionally, a 'match_lst'.  For each row in
-    the input query, which must contain all primary/secondary keys, qt uses
-    the two key lists as follows:
+        o It can convert column values from rows (convert={'col1': 'datetime', ...}).
 
-    o For all keys in the primary list and any other key in the query not 
-      mentioned in the secondary list, qt copies the values from the query
-      into the primary output list.
+        o It can convert the queryset into a multi-level dictionary (
+          (keys={ 'primary': [...]).
 
-    o For all keys in the primary list, plus the first key in the secondary
-      list, qt creates a multi-level, nested output dictionary and copies
-      the values for all secondary keys from the query into the lowest level
-      dictionary.
+          The keys parameter specifies only the 'primary' key list, with each
+          key defining the hierarchy of the multi-level dictionary, the lowest
+          level containing all the remaining columns from the queryset. For
+          example, consider the folowing queryset:
 
-    The 'match_list' is both a switch (requesting additional processing) and
-    complimantary input. It causes qt to generate and return a multi-level
-    nested dictionary/list of all secondary key values per compound primary
-    key. The match list must contain all the primary keys and is used to
-    build an empty structure with all possible compound privary key values.
-    Subsequently, qt scans the secondary dictionary extracting the secondary
-    keys to be listed.
-    
-    An practical example of list splitting can be found in user_views.py, which
-    doese the following:
-    
-    # Retrieve the user list but loose the passwords.
-    s = select([view_user_groups])
-    user_list = qt(db_connection.execute(s), prune=['password'])
+            qs = [
+                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 1, 'slot_count': 8', ...},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 2, 'slot_count': 4', ...},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 4, 'slot_count': 2', ...},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 8, 'slot_count': 1', ...}
+                ]
 
-    # Retrieve user/groups list (dictionary containing list for each user).
-    s = select([csv2_user_groups])
-    ignore1, ignore2, groups_per_user = qt(
-        db_connection.execute(s),
-        keys = {
-            'primary': [
-                'username',
-                ],
-            'secondary': [
-                'group_name',
-                ],
-            'match_list': user_list,
-            }
-        )
+          and a specification of:
 
-    # Retrieve  available groups list (dictionary containing list for each user).
-    s = select([view_user_groups])
-    ignore1, ignore2, available_groups_per_user = qt(
-        db_connection.execute(s),
-        keys = {
-            'primary': [
-                'username',
-                ],
-            'secondary': [
-                'group_name',
-                'available',
-                ],
-            'match_list': user_list,
-            }
-        )
+            keys = {
+                'primary': ['group_name', 'cloud_name', 'slot_CPUs']
+                }
+
+          would produce the following result:
+
+            return {
+                'testing': {
+                    'otter': {
+                        1: {
+                            'slot_count': 8, ...
+                            }
+                        2: {
+                            'slot_count': 4, ...
+                            }
+                        4: {
+                            'slot_count': 2, ...
+                            }
+                        8: {
+                            'slot_count': 1, ...
+                            }
+                    }
+                }
+
+
+        o It can split the query into a list and corresponding dictionaries (
+          (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
+
+          when the keys parameter specifies both a 'primary' and 'secondary' key
+          lists (and optionally, a 'match_list'), the input query, must contain
+          all primary and secondary keys. For each row in the queryset, qt uses
+          the two key lists as follows:
+  
+          * For all keys in the primary list and any other key in the query not 
+            mentioned in the secondary list, qt copies the values from the query
+            into the primary output list.
+
+          * For all keys in the primary list, plus the first key in the secondary
+            list, qt creates a multi-level, nested output dictionary and copies
+            the values for all secondary keys from the query into the lowest level
+            dictionary.
+
+          The 'match_list' is both a switch (requesting additional processing) and
+          complimantary input. It causes qt to generate and return a multi-level
+          nested dictionary/list of all secondary key values per compound primary
+          key. The match list must contain all the primary keys and is used to
+          build an empty structure with all possible compound privary key values.
+          Subsequently, qt scans the secondary dictionary extracting the secondary
+          keys to be listed.
+        
+          A practical example of list splitting can be found in user_views.py, which
+          does the following:
+        
+          # Retrieve the user list but loose the passwords.
+          s = select([view_user_groups])
+          user_list = qt(db_connection.execute(s), prune=['password'])
+
+          # Retrieve user/groups list (dictionary containing list for each user).
+          s = select([csv2_user_groups])
+          ignore1, ignore2, groups_per_user = qt(
+              db_connection.execute(s),
+              keys = {
+                  'primary': [
+                      'username',
+                      ],
+                  'secondary': [
+                      'group_name',
+                      ],
+                  'match_list': user_list,
+                  }
+              )
+
+          # Retrieve  available groups list (dictionary containing list for each user).
+          s = select([view_user_groups])
+          ignore1, ignore2, available_groups_per_user = qt(
+              db_connection.execute(s),
+              keys = {
+                  'primary': [
+                      'username',
+                      ],
+                  'secondary': [
+                      'group_name',
+                      'available',
+                      ],
+                  'match_list': user_list,
+                  }
+              )
     """
 
-    if keys and ('primary' not in keys or 'secondary' not in keys):
-        raise Exception('view_utils.qt: "keys" dictionary requires both "primary" and "secondary" entries')
+    if keys and 'primary' not in keys:
+        raise Exception('view_utils.qt: "keys" dictionary requires a "primary" key list.')
+    elif keys and 'match_list' in keys and 'secondary' not in keys:
+        raise Exception('view_utils.qt: "keys" dictionary requires both "primary"  and "secondary" key lists if "match_list" is also specified.')
 
     from .view_utils import _qt, _qt_list
+    import time
 
+    # Initialize return structures.
     primary_list = []
     secondary_dict = {}
+    matched_dict = {}
 
+    # Handle an null query.
     if query:
         Query = query
     else:
         Query = []
-    for row in Query:
-        cols = dict(row)
 
+    # Process query rows.
+    for row in Query:
+        # If specified, apply the row filter.
         if filter:
+            cols = dict(row)
             if not eval(filter):
                 continue
 
-        if keys:
+        # Prune and convert columns.
+        cols = {}
+        for col in dict(row):
+            if col not in prune:
+                if convert and col in convert:
+                    if convert[col] == 'datetime':
+                        cols[col] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(dict(row)[col]))
+                else:
+                    cols[col] = dict(row)[col]
+
+        if not keys:
+            primary_list.append(cols)
+
+        elif keys and 'primary' in keys and 'secondary' not in keys:
+            add_row = False
+            secondary_dict_ptr = secondary_dict
+            for key in keys['primary']:
+                ignore, secondary_dict_ptr = _qt(False, secondary_dict_ptr, cols, key)
+
+            for col in cols:
+                if col not in keys['primary']:
+                    secondary_dict_ptr[col] = cols[col]
+
+        elif keys and 'primary' in keys and 'secondary' in keys:
             add_row = False
             secondary_dict_ptr = secondary_dict
             for key in keys['primary']:
                 add_row, secondary_dict_ptr = _qt(add_row, secondary_dict_ptr, cols, key)
              
             if keys['secondary']:
-                ignore, secondary_dict_ptr = _qt(add_row, secondary_dict_ptr, cols, keys['secondary'][0])
+                ignore, secondary_dict_ptr = _qt(False, secondary_dict_ptr, cols, keys['secondary'][0])
             
             for col in cols:
                 if col in keys['secondary'] and cols[col]:
-#                   secondary_dict_ptr[col] = cols[col]
-                    secondary_dict_ptr[col] = _qt_convert(convert, cols, col)
+                    secondary_dict_ptr[col] = cols[col]
             
             if add_row:
                 new_row = {}
                 for col in cols:
-                    if col not in keys['secondary'] + prune:
-#                       new_row[col] = cols[col]
-                        new_row[col] = _qt_convert(convert, cols, col)
+                    if col not in keys['secondary']:
+                        new_row[col] = cols[col]
 
 
                 primary_list.append(new_row)
 
-        else:
-            new_row = {}
-            for col in cols:
-                if col not in prune:
-#                 new_row[col] = cols[col]
-                  new_row[col] = _qt_convert(convert, cols, col)
+    if not keys:
+        return primary_list
 
-            primary_list.append(new_row)
+    elif keys and 'primary' in keys and 'secondary' not in keys:
+        return secondary_dict
 
-    if keys:
+    elif keys and 'primary' in keys and 'secondary' in keys:
         if 'match_list' in keys:
-            matched_dict = {}
-
             for row in keys['match_list']:
                 matched_dict_ptr = matched_dict
                 for key in keys['primary'][:-1]:
@@ -488,8 +556,6 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
             return primary_list, secondary_dict, matched_dict
         else:
             return primary_list, secondary_dict
-    else:
-        return primary_list
 
 #-------------------------------------------------------------------------------
 
@@ -507,22 +573,6 @@ def _qt(add_row, secondary_dict_ptr, cols, key):
             return True, secondary_dict_ptr[cols[key]]
     else:
         return add_row, secondary_dict_ptr
-
-#-------------------------------------------------------------------------------
-
-def _qt_convert(convert, cols, key):
-    """
-    This sub-function is called by view_utils.qt to convert the specified columns 
-    to their output format.
-    """
-
-    import time
-
-    if convert and key in convert:
-        if convert[key] == 'datetime':
-            return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cols[key]))
-
-    return cols[key]
 
 #-------------------------------------------------------------------------------
 
