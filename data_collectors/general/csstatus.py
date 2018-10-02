@@ -51,7 +51,7 @@ def status_poller():
             # id will always be zero because we only ever want one row of these
             system_dict = {'id': 0}
             for service in services:
-                system_dict[service + "_msg"] = service_msg(service)
+                system_dict[service + "_msg"] = _service_msg(service)
                 if "running" in system_dict[service + "_msg"]:
                     system_dict[service + "_status"] = 1
                 else:
