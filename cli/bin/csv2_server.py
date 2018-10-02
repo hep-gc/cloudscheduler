@@ -8,7 +8,7 @@ KEY_MAP = {
     '-lf':  'log_file',
     '-ll':  'log_level',
     '-nld': 'no_limit_default',
-    '-sc':  'cacerts',
+    '-c':  'cacerts',
     '-sic': 'sleep_interval_cleanup',
     '-siC': 'sleep_interval_command',
     '-sif': 'sleep_interval_flavor',
@@ -30,7 +30,7 @@ def config(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cc', '-dci', '-djg', '-eg', '-g', '-H', '-h', '-lf', '-ll', '-nld', '-NV', '-ok', '-r', '-s', '-sc', '-sic', '-siC', '-sif', '-sii', '-sij', '-sik', '-sil', '-sim', '-sin', '-siv', '-sml', '-sms', '-V', '-VC', '-xA']
+    optional = ['-c', '-cc', '-dci', '-djg', '-eg', '-g', '-H', '-h', '-lf', '-ll', '-nld', '-NV', '-ok', '-r', '-s', '-sic', '-siC', '-sif', '-sii', '-sij', '-sik', '-sil', '-sim', '-sin', '-siv', '-sml', '-sms', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
