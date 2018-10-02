@@ -66,6 +66,11 @@ def status_poller():
                 exit(1)
 
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+    except Exception as exc:
+        logging.exception("Problem during general execution:")
+        logging.exception(exc)
+        logging.error("Exiting..")
+        exit(1)
 
 
 if __name__ == '__main__':
