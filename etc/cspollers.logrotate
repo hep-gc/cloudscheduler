@@ -24,3 +24,12 @@
   copytruncate
   create 0644 cloudscheduler cloudscheduler
 }
+
+/var/log/cloudscheduler/csstatus.log {
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}

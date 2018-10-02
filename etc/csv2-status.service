@@ -1,0 +1,13 @@
+[Unit]
+Description=Polls the status of cloudscheduler components and reports to configured database
+After=network.target
+
+[Service]
+Type=simple
+User=condor
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/csstatus.py
+Restart=on-abort
+
+
+[Install]
+WantedBy=multi-user.target
