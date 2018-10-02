@@ -11,6 +11,7 @@ config = Config('web_frontend')
 
 from .view_utils import \
     db_commit, \
+    db_rollback, \
     db_execute, \
     get_db_connection, \
     get_db_session, \
@@ -152,38 +153,45 @@ def add(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS, GROUP_KEYS_ADD], ['csv2_groups', 'csv2_group_defaults', 'csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:
+            db_rollback()
             return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
+                db_rollback()
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
+                db_rollback()
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
+                db_rollback()
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(tables, fields['username'], None) 
             if rc != 0:
+                db_rollback()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV02'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Add the group.
         table = tables['csv2_groups']
         rc, msg = db_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV03'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Add user_groups.
@@ -197,6 +205,7 @@ def add(request):
             db_commit()
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully added.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults add "%s" failed - %s.' % (lno('GV04'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -274,6 +283,7 @@ def defaults(request):
             prune=['password']    
             )
 
+    db_rollback()
 
     # Render the page.
     context = {
@@ -312,6 +322,7 @@ def delete(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
@@ -330,6 +341,7 @@ def delete(request):
                 'cloud_flavors'
             ], active_user)
         if rc != 0:
+            db_rollback()
             return list(request, selector='-', response_code=1, message='%s group delete %s' % (lno('GV10'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any group metadata files for the group.
@@ -345,6 +357,7 @@ def delete(request):
                         table.delete((table.c.group_name==fields['group_name']) & (table.c.metadata_name==metadata_name))
                         )
                     if rc != 0:
+                        db_rollback()
                         return list(request, selector=fields['group_name'], response_code=1, message='%s group metadata file delete "%s::%s" failed - %s.' % (lno('GV11'), fields['group_name'], metadata_name, msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group defaults.
@@ -354,6 +367,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV12'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
@@ -364,6 +378,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_group_resource_metadata.
@@ -373,6 +388,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group resource metadata delete "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_group_metadata_exclusions.
@@ -382,6 +398,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s delete group metadata exclusions for group "%s" failed - %s.' % (lno('GV14'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_user_groups.
@@ -391,6 +408,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group users delete "%s" failed - %s.' % (lno('GV15'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the csv2_vms.
@@ -400,6 +418,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
@@ -409,6 +428,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_limits.
@@ -418,6 +438,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group limits delete "%s" failed - %s.' % (lno('GV18'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_images.
@@ -427,6 +448,7 @@ def delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group images delete "%s" failed - %s.' % (lno('GV19'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_flavors.
@@ -447,6 +469,7 @@ def delete(request):
             db_commit()
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group delete "%s" failed - %s.' % (lno('GV21'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.
@@ -479,12 +502,14 @@ def list(
     if not active_user:
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
         rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group list, %s' % (lno('GV23'), msg)})
 
     # Retrieve group information.
@@ -519,6 +544,8 @@ def list(
 
     s = select([csv2_group_defaults])
     group_defaults = qt(db_connection.execute(s))
+
+    db_rollback()
 
     # Position the page.
     obj_act_id = request.path.split('/')
@@ -572,11 +599,13 @@ def metadata_add(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV25'), msg)})
 
         # Add the group metadata file.
@@ -586,6 +615,7 @@ def metadata_add(request):
             db_commit()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
         else:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV26'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
@@ -610,11 +640,13 @@ def metadata_delete(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno('GV30'), msg)})
 
         # Delete the csv2_group_metadata_exclusions.
@@ -624,6 +656,7 @@ def metadata_delete(request):
             allow_no_rows=True
             )
         if rc != 0:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno('GV14'), fields['group_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the group metadata file.
@@ -638,6 +671,7 @@ def metadata_delete(request):
             db_commit()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
         else:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV31'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
@@ -658,6 +692,7 @@ def metadata_fetch(request, selector=None):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
+        db_rollback()
         return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
 
     # Retrieve metadata file.
@@ -678,11 +713,14 @@ def metadata_fetch(request, selector=None):
                     'message': None,
                     'enable_glint': config.enable_glint
                     }
-            
+
+                db_rollback()
                 return render(request, 'csv2/group_editor.html', context)
-         
+        
+        db_rollback()
         return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
 
+    db_rollback()
     return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
 
 #-------------------------------------------------------------------------------
@@ -699,16 +737,19 @@ def metadata_list(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(request)
     if rc != 0:
+        db_rollback()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
     if rc != 0:
+        db_rollback()
         return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-list, %s' % (lno('GV35'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)
     group_metadata_list = qt(db_connection.execute(s))
+    db_rollback()
 
     # Render the page.
     context = {
@@ -742,11 +783,13 @@ def metadata_update(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
 
         # Update the group metadata file.
@@ -770,6 +813,7 @@ def metadata_update(request):
             return render(request, 'csv2/group_editor.html',context)
 
         else:
+            db_rollback()
             return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV38'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
@@ -797,11 +841,13 @@ def update(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV41'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:
+            db_rollback()
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV42'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validity check the specified users.
@@ -816,9 +862,11 @@ def update(request):
         if len(group_updates) > 0:
             rc, msg = db_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
+                db_rollback()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV44'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
         else:
             if 'username' not in fields:
+                db_rollback()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update must specify at least one field to update.' % lno('GV45'), active_user=active_user, user_groups=user_groups)
 
 
@@ -840,6 +888,7 @@ def update(request):
             db_commit()
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            db_rollback()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV46'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
     ### Bad request.

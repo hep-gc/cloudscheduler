@@ -17,6 +17,17 @@ def db_commit():
 
 #-------------------------------------------------------------------------------
 
+def db_rollback():
+    """
+    Commit or rollback and then close the database connection.
+    """
+    global db_ctl
+
+    db_engine, db_session, db_connection, db_map = db_ctl
+    db_session.rollback()
+
+#-------------------------------------------------------------------------------
+# Shouldn't be used anywhere but on an exit
 def db_close(commit=False):
     """
     Commit or rollback and then close the database connection.

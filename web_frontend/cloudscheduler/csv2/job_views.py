@@ -11,6 +11,7 @@ config = Config('web_frontend')
 
 from .view_utils import \
     get_db_connection, \
+    db_rollback, \
     db_execute, \
     getAuthUser, \
     getcsv2User, \
@@ -97,18 +98,22 @@ def list(
     if not active_user:
         rc, msg, active_user, user_groups = set_user_groups(request)
         if rc != 0:
+            db_rollback()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
         rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
-        if rc != 0:        
+        if rc != 0:
+            db_rollback()
             return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
     job_list = qt(db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
 
+    db_rollback()
+    
 #   # Position the page.
 #   obj_act_id = request.path.split('/')
 #   if selector:
