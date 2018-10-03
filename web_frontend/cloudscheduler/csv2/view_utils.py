@@ -361,47 +361,43 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
 
         o It can convert column values from rows (convert={'col1': 'datetime', ...}).
 
-        o It can convert the queryset into a multi-level dictionary (
-          (keys={ 'primary': [...]).
-
-          The keys parameter specifies only the 'primary' key list, with each
-          key defining the hierarchy of the multi-level dictionary, the lowest
-          level containing all the remaining columns from the queryset. For
-          example, consider the folowing queryset:
-
-            qs = [
-                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 1, 'slot_count': 8', ...},
-                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 2, 'slot_count': 4', ...},
-                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 4, 'slot_count': 2', ...},
-                {'group_name': 'testing', 'cloud_name': 'otter', 'slot_CPUs': 8, 'slot_count': 1', ...}
-                ]
-
-          and a specification of:
+        o For a list of primary keys, it can sum a list of columns. For example, given
+          the following "keys" specification:
 
             keys = {
-                'primary': ['group_name', 'cloud_name', 'slot_CPUs']
+                'primary': ['group_name', 'slot_CPUs']
+                'primary': ['slot_count', 'test']
                 }
 
-          would produce the following result:
+          and the following queryset (note the mixture of integers, floats, and strings):
 
-            return {
-                'testing': {
-                    'otter': {
-                        1: {
-                            'slot_count': 8, ...
-                            }
-                        2: {
-                            'slot_count': 4, ...
-                            }
-                        4: {
-                            'slot_count': 2, ...
-                            }
-                        8: {
-                            'slot_count': 1, ...
-                            }
-                    }
-                }
+            [
+                {'group_name': 'atlas', 'cloud_name': 'cloud9', 'cpus': 1, 'slots': 8, 'test': 1.0},
+                {'group_name': 'atlas', 'cloud_name': 'cloud9', 'cpus': 8, 'slots': 8, 'test': 2.9},
+                {'group_name': 'testing', 'cloud_name': 'cloud9', 'cpus': 1, 'slots': '8', 'test': '3.8'},
+                {'group_name': 'testing', 'cloud_name': 'cloud9', 'cpus': 2, 'slots': '4', 'test': '4.7'},
+                {'group_name': 'testing', 'cloud_name': 'cloud9', 'cpus': 4, 'slots': '2', 'test': '5.6'},
+                {'group_name': 'testing', 'cloud_name': 'cloud9', 'cpus': 8, 'slots': '1', 'test': '6.5'},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'cpus': 1, 'slots': 8, 'test': 7.4},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'cpus': 2, 'slots': 4, 'test': 8.3},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'cpus': 4, 'slots': '2', 'test': '9.2'},
+                {'group_name': 'testing', 'cloud_name': 'otter', 'cpus': 8, 'slots': '1', 'test': '0.1'},
+            ]
 
+          would produce the following results:
+
+            [
+                {'group_name': 'atlas', 'cpus': 1, 'slots': 8, 'test': 1.0},
+                {'group_name': 'atlas', 'cpus': 8, 'slots': 8, 'test': 2.9},
+                {'group_name': 'testing', 'cpus': 1, 'slots': 16, 'test': 11.2},
+                {'group_name': 'testing', 'cpus': 2, 'slots': 8, 'test': 13.0},
+                {'group_name': 'testing', 'cpus': 4, 'slots': 4, 'test': 14.8},
+                {'group_name': 'testing', 'cpus': 8, 'slots': 2, 'test': 6.6}
+            ]
+          
+          NOTE: Numeric summation columns can either be integer or float or a 
+                character string that can be converted by int() or float(). The
+                result of summation is always an integer or a float.
 
         o It can split the query into a list and corresponding dictionaries (
           (keys={ 'primary': [...], 'secondary': [...], 'match_list': [...]).
@@ -467,12 +463,13 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
               )
     """
 
-    if keys and 'primary' not in keys:
-        raise Exception('view_utils.qt: "keys" dictionary requires a "primary" key list.')
+    if keys and not ( ('primary' in keys and 'sum' in keys) or ('primary' in keys and 'secondary' in keys) ):
+        raise Exception('view_utils.qt: "keys" dictionary requires either a "primary/sum" specification or a "primary/secondary" specification.')
     elif keys and 'match_list' in keys and 'secondary' not in keys:
-        raise Exception('view_utils.qt: "keys" dictionary requires both "primary"  and "secondary" key lists if "match_list" is also specified.')
+        raise Exception('view_utils.qt: "keys" dictionary requires a "primary/secondary" specification if "match_list" is also specified.')
 
-    from .view_utils import _qt, _qt_list
+    from decimal import Decimal
+    from .view_utils import _qt, _qt_list, _qt_list_sum
     import time
 
     # Initialize return structures.
@@ -507,15 +504,28 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
         if not keys:
             primary_list.append(cols)
 
-        elif keys and 'primary' in keys and 'secondary' not in keys:
-            add_row = False
+        elif keys and 'primary' in keys and 'sum' in keys:
             secondary_dict_ptr = secondary_dict
             for key in keys['primary']:
                 ignore, secondary_dict_ptr = _qt(False, secondary_dict_ptr, cols, key)
 
-            for col in cols:
-                if col not in keys['primary']:
-                    secondary_dict_ptr[col] = cols[col]
+            for col in keys['sum']:
+                if col in cols:
+                    if col not in secondary_dict_ptr:
+                        secondary_dict_ptr[col] = 0
+
+                    if isinstance(cols[col], int):
+                        secondary_dict_ptr[col] += cols[col]
+                    elif isinstance(cols[col], float):
+                        secondary_dict_ptr[col] = float(Decimal(str(secondary_dict_ptr[col])) + Decimal(str(cols[col])))
+                    else:
+                        try:
+                            secondary_dict_ptr[col] += int(cols[col])
+                        except:
+                            try:
+                                secondary_dict_ptr[col] = float(Decimal(str(secondary_dict_ptr[col])) + Decimal(cols[col]))
+                            except:
+                                pass
 
         elif keys and 'primary' in keys and 'secondary' in keys:
             add_row = False
@@ -542,8 +552,9 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
     if not keys:
         return primary_list
 
-    elif keys and 'primary' in keys and 'secondary' not in keys:
-        return secondary_dict
+    elif keys and 'primary' in keys and 'sum' in keys:
+         _qt_list_sum(primary_list, {}, secondary_dict, keys['primary'], 0)
+         return primary_list
 
     elif keys and 'primary' in keys and 'secondary' in keys:
         if 'match_list' in keys:
@@ -600,6 +611,24 @@ def _qt_list(secondary_dict_ptr, secondary_key_list_ptr, cols, key):
         return secondary_dict_ptr[cols[key]], secondary_key_list_ptr[cols[key]]
     else:
       return secondary_dict_ptr, secondary_key_list_ptr
+
+#-------------------------------------------------------------------------------
+
+def _qt_list_sum(primary_list, primary_dict_parent, secondary_dict_ptr, key_list, ix):
+    """
+    This sub-function is called by view_utils.qt to list a queryset's sums.
+    It is NOT meant to be called directly.
+    """
+
+    if len(secondary_dict_ptr) > 0 and isinstance(secondary_dict_ptr[list(secondary_dict_ptr)[0]], dict) :
+        for key in secondary_dict_ptr:
+            primary_dict = dict(primary_dict_parent)
+            primary_dict.update({key_list[ix]: key})
+            _qt_list_sum(primary_list, primary_dict, secondary_dict_ptr[key], key_list, ix+1)
+
+    else:
+        primary_list.append(primary_dict_parent)
+        primary_list[-1].update(secondary_dict_ptr)
 
 #-------------------------------------------------------------------------------
 
@@ -1204,3 +1233,4 @@ def get_db_map():
 
 # db initialization code
 db_ctl = _db_open()
+
