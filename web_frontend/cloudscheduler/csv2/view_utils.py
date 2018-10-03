@@ -365,8 +365,8 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
           the following "keys" specification:
 
             keys = {
-                'primary': ['group_name', 'slot_CPUs']
-                'primary': ['slot_count', 'test']
+                'primary': ['group_name', 'cpus']
+                'sum': ['slots', 'test']
                 }
 
           and the following queryset (note the mixture of integers, floats, and strings):
