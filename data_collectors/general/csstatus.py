@@ -25,6 +25,14 @@ def status_poller():
     multiprocessing.current_process().name = "Status Poller"
 
     services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines", "mariadb", "condor"]
+    db_service_names = {
+                       "csv2-main":      "csv2_main", 
+                       "csv2-openstack": "csv2_openstack", 
+                       "csv2-jobs":      "csv2_jobs", 
+                       "csv2-machines":  "csv2_machines", 
+                       "mariadb":        "mariadb", 
+                       "condor":         "condor"
+                   }
 
     # Initialize database objects
     Base = automap_base()
@@ -52,11 +60,11 @@ def status_poller():
             # id will always be zero because we only ever want one row of these
             system_dict = {'id': 0}
             for service in services:
-                system_dict[service + "_msg"] = _service_msg(service)
-                if "running" in system_dict[service + "_msg"]:
-                    system_dict[service + "_status"] = 1
+                system_dict[db_service_names[service] + "_msg"] = _service_msg(service)
+                if "running" in system_dict[db_service_names[service] + "_msg"]:
+                    system_dict[db_service_names[service] + "_status"] = 1
                 else:
-                    system_dict[service + "_status"] = 0
+                    system_dict[db_service_names[service] + "_status"] = 0
 
                 system_dict["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
 
