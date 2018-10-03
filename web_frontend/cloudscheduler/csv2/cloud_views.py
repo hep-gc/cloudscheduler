@@ -843,38 +843,34 @@ def status(request, group_name=None):
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
     cloud_status_list = qt(db_connection.execute(s))
 
-    # get slots type counts
-    s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
-    slot_list = qt(
-        db_connection.execute(s),
-#       keys = {
-#           'primary': [
-#               'group_name',
-#               'cloud_name',
-#               'slot_CPUs'
-#               ]
-#           } 
-        )
+    cloud_status_list_totals = qt(cloud_status_list, keys={
+        'primary': ['group_name'],
+        'sum': [
+            'VMs',
+            'VMs_unregistered',
+            'VMs_running',
+            'VMs_retiring',
+            'VMs_manual',
+            'VMs_in_error',
+            'VMs_other',
+            'Foreign_VMs',
+            'cores_max',
+            'cores_busy',
+            'cores_foreign',
+            'cores_idle',
+            'cores_native',
+                                'ram_max',
+                                'ram_busy',
+                                'ram_foreign',
+                                'ram_idle',
+                                'ram_native',
+                                'slots_max',
+            'slots_used'
+            ]
+        })
 
-    # get job status per group
-    s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
-    job_status_list = qt(db_connection.execute(s))
+    cloud_total_list = cloud_status_list_totals[0]
 
-    db_rollback()
-
-    cloud_total_list = {}
-
-
-    # tabulate the totals for all clouds
-    for d in cloud_status_list:
-        for key, value in d.items():
-            if isinstance(value, int) or isinstance(value, float):
-                if key in cloud_total_list:
-                    cloud_total_list[key] += value
-                else:
-                    cloud_total_list[key] = value
-            else:
-                cloud_total_list[key] = '-'
 
     if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
         cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
@@ -887,7 +883,34 @@ def status(request, group_name=None):
     else:
         cloud_total_list['cores_all'] = 0
 
+
+
+    # get slots type counts
+    s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
+    slot_list = qt(
+        db_connection.execute(s),
+        )
+
+    slot_total_list = qt(slot_list, keys={
+        'primary': ['group_name', 'slot_CPUs'],
+        'sum': ['slot_count']
+        })
+
+    # get job status per group
+    s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
+    job_status_list = qt(db_connection.execute(s))
+
+    # get system status
+    s = select([csv2_system_status])
+    system_list = qt(db_connection.execute(s))
+
+
+
+    db_rollback()
+
+
     # Determine the csv2 service statuses and put them in a list
+    '''
     system_list = {}
 
 
@@ -943,7 +966,7 @@ def status(request, group_name=None):
     system_list["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
     system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
     system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
-
+    '''
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
@@ -953,6 +976,7 @@ def status(request, group_name=None):
             'job_status_list': job_status_list,
             'system_list' : system_list,
             'slot_list' : slot_list,
+            'slot_total_list': slot_total_list,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint
