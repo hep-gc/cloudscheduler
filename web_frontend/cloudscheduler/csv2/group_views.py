@@ -37,6 +37,8 @@ from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
+from silk.profiling.profiler import silk_profile as silkp
+
 # lno: GV - error code identifier.
 
 #-------------------------------------------------------------------------------
@@ -135,6 +137,7 @@ LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Add')
 def add(request):
     """
     This function should receive a post request with a payload of group configuration
@@ -214,6 +217,7 @@ def add(request):
 
 #-------------------------------------------------------------------------------
 
+silkp(name='Group Defaults')
 def defaults(request):
     """
     Update and list group defaults.
@@ -303,6 +307,7 @@ def defaults(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Delete')
 def delete(request):
     """
     This function should recieve a post request with a payload of group name
@@ -478,6 +483,7 @@ def delete(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group List')
 def list(
     request,
     selector=None,
@@ -583,6 +589,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Metadata Add')
 def metadata_add(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -624,6 +631,7 @@ def metadata_add(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Metadata Delete')
 def metadata_delete(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -680,6 +688,7 @@ def metadata_delete(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Metadata Fetch')
 def metadata_fetch(request, selector=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -725,6 +734,7 @@ def metadata_fetch(request, selector=None):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Metadata List')
 @requires_csrf_token
 def metadata_list(request):
 
@@ -766,6 +776,7 @@ def metadata_list(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Metadata Update')
 def metadata_update(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -822,6 +833,7 @@ def metadata_update(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Update')
 def update(request):
     """
     This function should recieve a post request with a payload of group configuration

@@ -31,6 +31,8 @@ from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 import datetime
 
+from silk.profiling.profiler import silk_profile as silkp
+
 # lno: UV - error code identifier.
 
 #-------------------------------------------------------------------------------
@@ -105,6 +107,7 @@ def _verify_username_cert_cn(fields, check_username=False):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="User Add")
 def add(request):
     """
     Add a new user.
@@ -169,6 +172,7 @@ def add(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="User Delete")
 def delete(request):
     """
     Delete a user.
@@ -218,6 +222,7 @@ def delete(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="User List")
 def list(
     request, 
     selector=None,
@@ -328,6 +333,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="User Settings")
 def settings(request):
     """
     Unprivileged update user (password change).
@@ -388,6 +394,7 @@ def settings(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="User Update")
 def update(request):
     """
     Update a user.
