@@ -31,7 +31,7 @@ from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 import datetime
 
-from silk.profiling.profiler import silk_profile as silkp
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: UV - error code identifier.
 

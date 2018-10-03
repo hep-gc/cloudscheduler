@@ -35,6 +35,8 @@ from sqlalchemy.sql import and_
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
+
 # lno: VV - error code identifier.
 
 #-------------------------------------------------------------------------------
@@ -70,6 +72,7 @@ MANDATORY_KEYS = {
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="VM List")
 @requires_csrf_token
 def list(
     request,
@@ -126,6 +129,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
+@silkp(name="VM Update")
 @requires_csrf_token
 def update(request):
     """
