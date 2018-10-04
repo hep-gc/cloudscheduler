@@ -42,7 +42,6 @@
 
 <div class="main-div">
 
-
     <div class="refresh-button">
             <form><input type=button value="Refresh" onClick="window.location.reload()"><span id="CDTimer">???</span></form> 
     </div>
@@ -369,8 +368,8 @@
             </tr>
 
             <tr>
-                <td tooltip="{{ system_list.csv2-main_msg }}">
-                {% if system_list.csv2-main_status == 1 %}
+                <td tooltip="{{ system_list.csv2_main_msg }}">
+                {% if system_list.csv2_main_status == 1 %}
                     <span class="green-dot"></span></td>
                 {% else %}
                     <span class="red-dot"></span></td>
@@ -383,22 +382,22 @@
                     <span class="red-dot"></span></td>
                 {% endif %}
 
-                <td tooltip="{{ system_list.csv2-openstack_msg }}">
-                {% if system_list.csv2-openstack_status == 1 %}
+                <td tooltip="{{ system_list.csv2_openstack_msg }}">
+                {% if system_list.csv2_openstack_status == 1 %}
                     <span class="green-dot"></span></td>
                 {% else %}
                     <span class="red-dot"></span></td>
                 {% endif %}
 
-                <td tooltip="{{ system_list.csv2-jobs_msg }}">
-                {% if system_list.csv2-jobs_status == 1 %}
+                <td tooltip="{{ system_list.csv2_jobs_msg }}">
+                {% if system_list.csv2_jobs_status == 1 %}
                     <span class="green-dot"></span></td>
                 {% else %}
                     <span class="red-dot"></span></td>
                 {% endif %}
 
-                <td tooltip="{{ system_list.csv2-machines_msg }}">
-                {% if system_list.csv2-machines_status == 1 %}
+                <td tooltip="{{ system_list.csv2_machines_msg }}">
+                {% if system_list.csv2_machines_status == 1 %}
                     <span class="green-dot"></span></td>
                 {% else %}
                     <span class="red-dot"></span></td>

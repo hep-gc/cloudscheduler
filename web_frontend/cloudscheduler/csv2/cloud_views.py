@@ -905,68 +905,9 @@ def status(request, group_name=None):
     system_list = qt(db_connection.execute(s))
 
 
-
     db_rollback()
 
 
-    # Determine the csv2 service statuses and put them in a list
-    '''
-    system_list = {}
-
-
-    system_list["main_msg"] = service_msg("csv2-main")
-    if 'running' in system_list["main_msg"]:
-        system_list["main"] = 1
-    else:
-        system_list["main"] = 0
-
-    system_list["openstack_msg"] = service_msg("csv2-openstack")
-    if 'running' in system_list["openstack_msg"]:
-        system_list["openstack"] = 1
-    else:
-        system_list["openstack"] = 0
-
-    system_list["jobs_msg"] = service_msg("csv2-jobs")
-    if 'running' in system_list["jobs_msg"]:
-        system_list["jobs"] = 1
-    else:
-        system_list["jobs"] = 0
-
-    system_list["machines_msg"] = service_msg("csv2-machines")
-    if 'running' in system_list["machines_msg"]:
-        system_list["machines"] = 1
-    else:
-        system_list["machines"] = 0
-
-    system_list["db_msg"] = service_msg("mariadb")
-    if 'running' in system_list["db_msg"]:
-        system_list["db"] = 1
-    else:
-        system_list["db"] = 0
-
-    system_list["condor_msg"] = service_msg("condor")
-    if 'running' in system_list["condor_msg"]:
-        system_list["condor"] = 1
-    else:
-        system_list["condor"] = 0
-
-    # Determine the system load, RAM and disk usage
-
-    system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
-
-    system_list["ram"] = psutil.virtual_memory().percent
-    system_list["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
-    system_list["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
-
-    system_list["swap"] = psutil.swap_memory().percent
-    system_list["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
-    system_list["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
-
-
-    system_list["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
-    system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
-    system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
-    '''
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
@@ -974,7 +915,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
-            'system_list' : system_list,
+            'system_list' : system_list[0],
             'slot_list' : slot_list,
             'slot_total_list': slot_total_list,
             'response_code': 0,

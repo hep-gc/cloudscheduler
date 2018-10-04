@@ -334,6 +334,32 @@ csv2_poll_times = Table('csv2_poll_times', metadata,
   Column('last_poll', Integer)
   )
 
+csv2_system_status = Table('csv2_system_status', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('csv2_main_status', Integer),
+  Column('csv2_main_msg', String(512)),
+  Column('mariadb_status', Integer),
+  Column('mariadb_msg', String(512)),
+  Column('csv2_openstack_status', Integer),
+  Column('csv2_openstack_msg', String(512)),
+  Column('csv2_jobs_status', Integer),
+  Column('csv2_jobs_msg', String(512)),
+  Column('csv2_machines_status', Integer),
+  Column('csv2_machines_msg', String(512)),
+  Column('condor_status', Integer),
+  Column('condor_msg', String(512)),
+  Column('load', Float),
+  Column('ram', Float),
+  Column('ram_size', Float),
+  Column('ram_used', Float),
+  Column('swap', Float),
+  Column('swap_size', Float),
+  Column('swap_used', Float),
+  Column('disk', Float),
+  Column('disk_size', Float),
+  Column('disk_used', Float)
+  )
+
 csv2_user = Table('csv2_user', metadata,
   Column('username', String(32), primary_key=True),
   Column('cert_cn', String(128)),
