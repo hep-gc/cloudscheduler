@@ -87,7 +87,8 @@ def _db_open():
             config.db_host,
             str(config.db_port),
             config.db_name
-            )
+            ),
+        isolation_level="READ_COMMITTED"
         )
 
     db_session = Session(bind=db_engine)
