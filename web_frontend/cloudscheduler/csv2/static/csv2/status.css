@@ -261,6 +261,11 @@
   }
 }
 
+
+.system-div {
+  background-color: white;
+}
+
 .system-services {
   position: absolute;
   bottom: 0;
@@ -299,3 +304,49 @@
   border-radius: 50%;
   display: inline-block;
 }
+
+
+
+
+
+
+/* Acordeon styles */
+.slots {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.slots > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.slots > label {
+  position: relative;
+  display: block;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.slots-content {
+  display: none;
+
+}
+
+/* :checked */
+.slots input:checked ~ .slots-content {
+  display: block;
+}
+/* Icon */
+.slots > label::after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 3em;
+  height: 3em;
+  line-height: 3;
+  text-align: center;
+
+}
+
