@@ -129,7 +129,8 @@ def main(args):
                 _w[1] == 'mediumtext':
                     _stdout.append(" String")
 
-                elif _w[1][:7] == 'double':
+                elif _w[1][:7] == 'double' or \
+                _w[1][:5] == 'float':
                     _stdout.append(" Float")
 
                 else:
