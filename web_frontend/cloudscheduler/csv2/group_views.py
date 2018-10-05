@@ -269,7 +269,9 @@ def defaults(request):
         response_code = 0
 
     # Retrieve group information.
-    if request.META['HTTP_ACCEPT'] != 'application/json':
+    if request.META['HTTP_ACCEPT'] == 'application/json':
+        metadata_dict = {}
+    else:
         s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
         group_list, metadata_dict = qt(
             db_connection.execute(s),
