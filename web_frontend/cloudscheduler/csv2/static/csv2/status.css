@@ -2,22 +2,17 @@
   position: fixed;
   right:20;
   bottom: 20px;
+  width:30px;
+  max-width:30px;
 }
 
 
-.refresh-button input {
-  background-color: grey;
-  padding: 5px;
-  border: none;
-  color: white;
-}
 
 #CDTimer {
   padding: 5px;
-
-  /*background-color: grey;*/
   font-weight: bold;
   color: red;
+  text-align: center;
 }
 
 

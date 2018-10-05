@@ -13,8 +13,10 @@
 <meta id="refresher" http-equiv="refresh" content="30">
 
 <script type="text/javascript">
+    var TimerSwitch = 1;
 
     function set_refresh(time) {
+        TimerSwitch = 1;
         setTimeout(function() {
             location.reload();
         },time);
@@ -22,8 +24,13 @@
         document.getElementById('vms-iframe').src='';
     }
 
-    function pass_url(url) {
+    function stop_refresh() {
+        TimerSwitch = 0;
         window.stop();
+    }
+
+    function pass_url(url) {
+        stop_refresh();
         document.getElementById('vms-iframe').src='/vm/list/'+url;
     }
 </script>
@@ -43,7 +50,9 @@
 <div class="main-div">
 
     <div class="refresh-button">
-            <form><input type=button value="Refresh" onClick="window.location.reload()"><span id="CDTimer">???</span></form> 
+        <div id="CDTimer">???</div>
+        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
+        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
     </div>
     <br>
     <div class="status-table">
@@ -242,7 +251,7 @@
                     <td>{{cloud.cores_foreign}}</td>
 
                     <td class="col-spacer">&nbsp;</td>
-                    <td>{{cloud.cores_busy|add:cloud.cores_foreign}} <b>/</b> {{cloud.cores_native|add:cloud.cores_foreign}}</td>
+                    <td>{{cloud.cores_native|add:cloud.cores_foreign}}</td>
 
                 </tr>
             {% endfor %}
@@ -341,7 +350,7 @@
 
 
                 <td class="col-spacer">&nbsp;</td>
-                <td class="bold-style">{{cloud_total_list.cores_all_busy}} <b>/</b> {{cloud_total_list.cores_all}}</td>
+                <td class="bold-style">{{cloud_total_list.cores_all}}</td>
             </tr>
             </tbody> 
         </table>
@@ -465,7 +474,7 @@
     function CountDown(){
        setTimeout( "CountDown()", 1000 );
        TimerSPan.innerHTML=TimerVal;
-       TimerVal=TimerVal-1;
+       if(TimerSwitch == 1){TimerVal=TimerVal-1;}
        if (TimerVal<0) { TimerVal=0 }
     } CountDown() 
     /*]]>*/
