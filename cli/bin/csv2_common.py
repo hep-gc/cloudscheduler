@@ -4,6 +4,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
     """
 
     import csv2_help
+    from os import getenv
 
     # Summarize the mandatory, required, and optional parameters for the current command.
     mandatory = []
@@ -54,7 +55,7 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             if key_map and key[0] in key_map:
 #               form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
                 form_data[key_map[key[0]]] = _check_keys_for_password(gvar, key)
-        else:
+        elif not (key[2] == '-te' and getenv('EDITOR') is not None):
             missing.append(key[1])
 
     if missing:
