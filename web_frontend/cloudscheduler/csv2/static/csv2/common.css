@@ -1,3 +1,8 @@
+html *
+{
+  font-size: 0.98em !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
 
 /*----------footer bar to hold status----------*/
 
@@ -78,12 +83,16 @@
   text-decoration: none; /* Remove underline from links */
 
 }
-.menu div.menu-target {
+
+.menu div.menu-position {
   position: fixed;
   left: 220px;
   top: 70px;
   bottom:20px;
   overflow: auto;
+}
+
+.menu div.menu-target {
   display:none;
 }
 
