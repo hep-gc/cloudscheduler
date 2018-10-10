@@ -6,7 +6,10 @@ import sys
 import os
 import psutil
 
-from cloudscheduler.lib.csv2_config import Config
+# OLD CONFIG
+#from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.db_config import *
+
 from cloudscheduler.lib.poller_functions import \
     start_cycle, \
     wait_cycle
@@ -38,11 +41,11 @@ def status_poller():
     Base = automap_base()
     db_engine = create_engine(
         'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
+            config.db_config['db_user'],
+            config.db_config['db_password'],
+            config.db_config['db_host'],
+            str(config.db_config['db_port']),
+            config.db_config['db_name']
             )
         )
     Base.prepare(db_engine, reflect=True)
@@ -98,7 +101,9 @@ def status_poller():
 
 
 if __name__ == '__main__':
-    config = Config(os.path.basename(sys.argv[0]))
+    # old config
+    #config = Config(os.path.basename(sys.argv[0]))
+    config = Config(os.path.basename(sys.argv[0]), db_config_dict=True)
 
     logging.basicConfig(
         filename=config.log_file,
@@ -133,4 +138,4 @@ if __name__ == '__main__':
         try:
             process.join()
         except:
-            logging.error("failed to join process %s", process.name)
+            logging.error("failed to join process %s", process)
