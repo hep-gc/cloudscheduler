@@ -25,7 +25,7 @@
     {% for user in user_list %}
         <div id="{{user.username}}"> <a href="#{{user.username}}" class="menu-link">{{user.username}}</a>
             
-            <div class="menu-target">
+            <div class="menu-target menu-position">
                 <form name="{{user.username}}" action="/user/update/" method="post">
                     {% csrf_token %}
                     <table>

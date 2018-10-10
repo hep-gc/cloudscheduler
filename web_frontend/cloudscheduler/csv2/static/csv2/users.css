@@ -1,0 +1,108 @@
+html *
+{
+  font-size: 1em !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/*----------footer bar to hold status----------*/
+
+.footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  background-color: #efefef;
+  text-align: center;
+}
+
+/*----------different highligh colours----------*/
+
+.highlight1 {
+  background-color: lightcyan;
+}
+
+.highlight2 {
+  background-color: whitesmoke;
+}
+
+.highlight3 {
+  background-color: lightgreen;
+}
+
+.highlight4 {
+  background-color: lightpink;
+}
+
+
+/*----------main div containing page----------*/
+
+
+.main-div {
+  position: relative;
+  left:0;
+  top: 60px;
+  margin: 0px 0;
+}
+
+.main-div table, th, td {
+  border: none;
+  border-collapse: collapse;
+  padding: 8px;
+}
+.main-div th {
+  text-align: right;
+}
+
+
+/*----------vertical menu and contents----------*/
+
+.menu {
+  min-height: 7em;    /* No height: can grow if :target doesn't work */
+  line-height: 1;   /* Easier to calculate with */
+  z-index: 0;     /* So that we can put other things behind */
+  width: 200px; /* Set a width if you like */
+  position: fixed;
+}
+.menu  div {
+  display: block;
+  overflow: auto;
+}
+.menu  div:not(:target) a.menu-link {
+  background-color: whitesmoke; /* Background color */
+  color: black; /* Black text color */
+  display: block; /* Make the links appear below each other */
+  padding: 12px; /* Add some padding */
+  text-decoration: none; /* Remove underline from links */
+}
+.menu  div:target a.menu-link {   /* ... to the default item */
+  background-color: maroon; /* Grey background color */
+  color: white; /* Black text color */
+  display: block; /* Make the links appear below each other */
+  padding: 12px; /* Add some padding */
+  text-decoration: none; /* Remove underline from links */
+
+}
+.menu div.menu-target {
+  position: fixed;
+  left: 220px;
+  top: 70px;
+  bottom:20px;
+  overflow: auto;
+  display:none;
+}
+
+.menu div.menu-target:target {
+  display:block;
+}
+
+.menu div.menu-target2 {
+  display:none;
+}
+
+.menu div.menu-target2:target {
+  display:block;
+}
+
+.menu  div:target  div, :target #default2 {
+  display:block;

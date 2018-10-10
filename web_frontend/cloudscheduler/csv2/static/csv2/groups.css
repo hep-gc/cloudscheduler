@@ -12,9 +12,9 @@
 .lists {
 	position: fixed;
 	left: 580px;
-  	top: 70px;
-  	bottom:20px;
-    overflow: auto;
+	top: 70px;
+  height: 50%;
+  overflow: scroll;
 }
 
 .lists ul {
@@ -23,23 +23,3 @@
 
 
 
-/*
-
-.menu div.user-list {
-  display:none;
-}
-.menu div.user-list:target {
-  display:block;
-
-}
-
-
-.menu div.meta-list {
-  display:none;
-}
-.menu div.meta-list:target {
-  	display:block;
-}
-
-
-*/
