@@ -245,7 +245,7 @@ def defaults(request):
                     table = tables['csv2_group_defaults']
                     rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                     if rc == 0:
-                        config.db_close(commit=True)
+                        config.db_session.commit()
                         message='group defaults "%s" successfully updated.' % (active_user.active_group)
                     else:
                         message='%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
