@@ -87,16 +87,18 @@ class Config:
         Commit/rollback and close a session.
         """
 
-        if commit:
-            self.db_session.commit()
-        else:
-            self.db_session.rollback()
+        if self.db_session:
+            if commit:
+                self.db_session.commit()
+            else:
+                self.db_session.rollback()
 
-        self.db_session.close()
-        self.db_session = None
+            self.db_session.close()
+            self.db_session = None
 
-        self.db_connection.close()
-        self.db_connection = None
+        if self.db_connection:
+            self.db_connection.close()
+            self.db_connection = None
 
 #-------------------------------------------------------------------------------
 
