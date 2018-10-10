@@ -226,7 +226,7 @@
 
                                     {% for slot in slot_list%}
                                         {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                            {{ slot.slot_CPUs }} &#10005 {{slot.slot_count}}c<br>
+                                            {{ slot.slot_count }} &#10005 {{ slot.slot_CPUs }}c<br>
                                         {% endif %}
                                     {% endfor %}
 
@@ -341,7 +341,7 @@
 
                                 <hr>
                                 {% for slot in slot_total_list%}
-                                    {{ slot.slot_CPUs }} &#10005 {{slot.slot_count}}c<br>
+                                    {{ slot.slot_count }} &#10005 {{ slot.slot_CPUs }}c<br>
                                 {% endfor %}
 
                             </div>
