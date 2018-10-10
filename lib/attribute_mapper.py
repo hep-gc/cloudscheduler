@@ -1,5 +1,3 @@
-# OLD CONFIG METHOD
-#from cloudscheduler.lib.csv2_config import Config
 from cloudscheduler.lib.db_config import *
 
 from sqlalchemy import create_engine

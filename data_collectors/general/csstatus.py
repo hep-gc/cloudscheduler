@@ -6,8 +6,6 @@ import sys
 import os
 import psutil
 
-# OLD CONFIG
-#from cloudscheduler.lib.csv2_config import Config
 from cloudscheduler.lib.db_config import *
 
 from cloudscheduler.lib.poller_functions import \
