@@ -1,19 +1,8 @@
-.refresh-button {
-  position: fixed;
-  right:20;
-  bottom: 20px;
-  width:30px;
-  max-width:30px;
+
+.status-div {
+  height: 100px;
+  overflow-y: scroll;
 }
-
-
-
-#CDTimer {
-  font-weight: bold;
-  color: red;
-  text-align: center;
-}
-
 
 .status-table th {
   font-weight: bold;
@@ -263,12 +252,15 @@
 
 
 .system-div {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
   background-color: white;
+  opacity: 1.0;
+
 }
 
 .system-services {
-  position: absolute;
-  bottom: 0;
   padding: 1rem;
   text-align: center;
   font-weight: bold;
@@ -305,7 +297,21 @@
   display: inline-block;
 }
 
+.refresh-button {
+  position: fixed;
+  right:20;
+  bottom: 20px;
+  width:30px;
+  max-width:30px;
+}
 
+
+
+#CDTimer {
+  font-weight: bold;
+  color: red;
+  text-align: center;
+}
 
 
 

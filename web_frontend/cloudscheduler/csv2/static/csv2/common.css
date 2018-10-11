@@ -1,8 +1,4 @@
-html *
-{
-  font-size: 0.98em !important;
-  font-family: Arial, Helvetica, sans-serif !important;
-}
+
 
 /*----------footer bar to hold status----------*/
 
@@ -42,7 +38,9 @@ html *
   position: relative;
   left:0;
   top: 60px;
+  bottom: 100px;
   margin: 0px 0;
+  overflow: auto;
 }
 
 .main-div table, th, td {

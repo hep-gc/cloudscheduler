@@ -1,4 +1,8 @@
-
+html *
+{
+  font-size: 0.98em !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
 
 /*******************************************/
 
