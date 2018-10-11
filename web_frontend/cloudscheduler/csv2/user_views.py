@@ -66,6 +66,8 @@ UNPRIVILEGED_USER_KEYS = {
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
+
+        'username':            'reject',
         },
     }
 
@@ -350,14 +352,14 @@ def settings(request):
             if rc == 0:        
                 # Update the user.
                 table = tables['csv2_user']
-                rc, msg = config.db_session_execute(table.update().where(table.c.username==fields['username']).values(table_fields(fields, table, columns, 'update')))
+                rc, msg = config.db_session_execute(table.update().where(table.c.username==active_user).values(table_fields(fields, table, columns, 'update')))
                 if rc == 0:
                     config.db_close(commit=True)
                     request.session.delete()
                     update_session_auth_hash(request, getcsv2User(request))
                     message = 'user "%s" successfully updated.' % fields['username']
                 else:
-                    message = '%s user update, "%s" failed - %s.' % (lno('UV14'), fields['username'], message)
+                    message = '%s user update, "%s" failed - %s.' % (lno('UV14'), active_user, message)
 
             else:
                 message='%s user update, %s' % (lno('UV15'), msg)
