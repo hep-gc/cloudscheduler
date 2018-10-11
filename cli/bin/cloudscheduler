@@ -94,7 +94,12 @@ def main(args):
                 False, # super_user?
                 {
                     'backup':                             csv2_metadata.backup,
+                    'delete':                             csv2_metadata.delete,
+                    'edit':                               csv2_metadata.edit,
+                    'list':                               csv2_metadata.list,
+                    'load':                               csv2_metadata.load,
                     'restore':                            csv2_metadata.restore,
+                    'update':                             csv2_metadata.update,
                     }
                 ],
             'my': [
