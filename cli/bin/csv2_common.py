@@ -1,4 +1,4 @@
-def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
+def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=True):
     """
     Modify user settings.
     """
@@ -17,9 +17,9 @@ def check_keys(gvar, mp, rp, op, key_map=None, requires_server=True):
             mandatory.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
         if key[0] in rp:
             required.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
-        if key[0] in op or (op == ['*'] and key[0] not in mp + rp):
+        if key[0] in op or (op == ['*'] and key[0] not in mp + rp + not_optional):
             options.append([key[0], '%-4s |  %s' % (key[0], key[1]), key[1][2:]])
-        if key[0] in mp + rp + op or (op == ['*'] and key[0] not in mp + rp):
+        if key[0] in mp + rp + op or (op == ['*'] and key[0] not in mp + rp + not_optional):
             valid_keys.append(key[1][2:])
     
     # Check for invalid parameters
@@ -244,6 +244,9 @@ def _requests(gvar, request, form_data={}):
 
     if 'super_user' in response:
         gvar['super_user'] = response['super_user']
+
+    if 'user_groups' in response:
+        gvar['user_groups'] = response['user_groups']
 
     return response
 
