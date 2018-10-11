@@ -8,7 +8,8 @@ import os
 import sys
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
-from cloudscheduler.lib.csv2_config import Config
+#from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.schema import view_redundant_machines
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -46,19 +47,22 @@ def machine_poller():
     condor_host = socket.gethostname()
     fail_count = 0
     # Initialize database objects
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    RESOURCE = Base.classes.condor_machines
-    CLOUDS = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config(os.path.basename(sys.argv[0]))
+
+
+    RESOURCE = config.db_map.classes.condor_machines
+    CLOUDS = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -70,7 +74,7 @@ def machine_poller():
     cycle_count = 0
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
@@ -85,7 +89,8 @@ def machine_poller():
 
             fail_count = 0
 
-            db_session = Session(db_engine)
+            db_open()
+            db_session = config.db_session
             new_poll_time = int(time.time())
 
             if not condor_inventory_built:
@@ -104,7 +109,8 @@ def machine_poller():
                 logging.error("Failed to get machines from condor queue, aborting poller")
                 logging.error(exc)
                 del condor_session
-                db_session.close()
+                db_close()
+                del db_session
                 exit(1)
 
             abort_cycle = False
@@ -138,7 +144,8 @@ def machine_poller():
 
             if abort_cycle:
                 del condor_session
-                db_session.close()
+                db_close()
+                del db_session
                 time.sleep(config.sleep_interval_machine)
                 continue
 
@@ -150,7 +157,8 @@ def machine_poller():
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    db_session.close()
+                    db_close()
+                    del db_session
                     time.sleep(config.sleep_interval_machine)
                     continue
 
@@ -159,7 +167,8 @@ def machine_poller():
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
             del condor_session
-            db_session.close()
+            db_session.close(commit=True)
+            del db_session
             cycle_count = cycle_count + 1
             if cycle_count > config.delete_cycle_interval:
                 delete_cycle = True
@@ -171,25 +180,31 @@ def machine_poller():
         logging.exception("Machine poller while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_session.close()
+        db_close()
+        del db_session
 
 def command_poller():
     multiprocessing.current_process().name = "Command Poller"
     condor_host = socket.gethostname()
     # database setup
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    Resource = Base.classes.condor_machines
-    session = Session(db_engine)
+    config = Config(os.path.basename(sys.argv[0]))
+
+    # Database connections created as part of config
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    #session = Session(db_engine)
+
+    Resource = config.db_map.classes.condor_machines
+
 
     try:
         while True:
@@ -205,7 +220,10 @@ def command_poller():
 
             fail_count = 0
 
-            db_session = Session(db_engine)
+            #db_session = Session(db_engine)
+            db_open()
+            db_session = config.db_session
+
             master_type = htcondor.AdTypes.Master
             startd_type = htcondor.AdTypes.Startd
 
@@ -228,7 +246,8 @@ def command_poller():
 
             if abort_cycle:
                 del condor_session
-                db_session.close()
+                db_close()
+                del db_session
                 time.sleep(config.sleep_interval_command)
                 continue
 
@@ -239,7 +258,8 @@ def command_poller():
                     logging.exception("Failed to commit retire machine, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    db_session.close()
+                    db_close()
+                    del db_session
                     time.sleep(config.sleep_interval_command)
                     continue
 
@@ -263,7 +283,8 @@ def command_poller():
 
             if abort_cycle:
                 del condor_session
-                db_session.close()
+                db_close()
+                del db_session
                 time.sleep(config.sleep_interval_command)
                 continue
 
@@ -278,18 +299,21 @@ def command_poller():
 
             logging.info("Completed command consumer cycle")
             del condor_session
-            db_session.close()
+            db_close(commit=True)
+            del db_session
             time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_session.close()
+        db_close()
+        del db_session
 
 
 if __name__ == '__main__':
     config = Config(os.path.basename(sys.argv[0]))
+    # Don't need db params as each process will create it's own config
 
     logging.basicConfig(
         filename=config.log_file,
