@@ -9,7 +9,7 @@ import sys
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 #from cloudscheduler.lib.csv2_config import Config
-from cloudscheduler.lib.db_config import *
+from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.schema import view_redundant_machines
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -89,7 +89,7 @@ def machine_poller():
 
             fail_count = 0
 
-            db_open()
+            config.db_open()
             db_session = config.db_session
             new_poll_time = int(time.time())
 
@@ -109,7 +109,7 @@ def machine_poller():
                 logging.error("Failed to get machines from condor queue, aborting poller")
                 logging.error(exc)
                 del condor_session
-                db_close()
+                config.db_close()
                 del db_session
                 exit(1)
 
@@ -144,7 +144,7 @@ def machine_poller():
 
             if abort_cycle:
                 del condor_session
-                db_close()
+                config.db_close()
                 del db_session
                 time.sleep(config.sleep_interval_machine)
                 continue
@@ -157,7 +157,7 @@ def machine_poller():
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    db_close()
+                    config.db_close()
                     del db_session
                     time.sleep(config.sleep_interval_machine)
                     continue
@@ -167,7 +167,7 @@ def machine_poller():
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
             del condor_session
-            db_session.close(commit=True)
+            config.db_close(commit=True)
             del db_session
             cycle_count = cycle_count + 1
             if cycle_count > config.delete_cycle_interval:
@@ -180,7 +180,7 @@ def machine_poller():
         logging.exception("Machine poller while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_close()
+        config.db_close()
         del db_session
 
 def command_poller():
@@ -221,7 +221,7 @@ def command_poller():
             fail_count = 0
 
             #db_session = Session(db_engine)
-            db_open()
+            config.db_open()
             db_session = config.db_session
 
             master_type = htcondor.AdTypes.Master
@@ -246,7 +246,7 @@ def command_poller():
 
             if abort_cycle:
                 del condor_session
-                db_close()
+                config.db_close()
                 del db_session
                 time.sleep(config.sleep_interval_command)
                 continue
@@ -258,7 +258,7 @@ def command_poller():
                     logging.exception("Failed to commit retire machine, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    db_close()
+                    config.db_close()
                     del db_session
                     time.sleep(config.sleep_interval_command)
                     continue
@@ -283,7 +283,7 @@ def command_poller():
 
             if abort_cycle:
                 del condor_session
-                db_close()
+                config.db_close()
                 del db_session
                 time.sleep(config.sleep_interval_command)
                 continue
@@ -299,7 +299,7 @@ def command_poller():
 
             logging.info("Completed command consumer cycle")
             del condor_session
-            db_close(commit=True)
+            config.db_close(commit=True)
             del db_session
             time.sleep(config.sleep_interval_command)
 
@@ -307,7 +307,7 @@ def command_poller():
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_close()
+        config.db_close()
         del db_session
 
 
