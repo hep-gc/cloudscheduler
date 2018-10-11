@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-from cloudscheduler.lib.csv2_config import Config
-config = Config('web_frontend')
+from cloudscheduler.lib.db_config import *
+config = Config('web_frontend', db_config_dict=True)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,10 +28,10 @@ SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 DEBUG = True
 
 # Profiling
-if config.enable_profiling:
-    SILKY_PYTHON_PROFILER = True
-    SILKY_PYTHON_PROFILER_BINARY = True
-    SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
+#if config.enable_profiling:
+#    SILKY_PYTHON_PROFILER = True
+#    SILKY_PYTHON_PROFILER_BINARY = True
+#    SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
 
 ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev.heprc.uvic.ca",
@@ -78,7 +78,7 @@ LOGGING = {
 # Application definition
 if config.enable_profiling:
     INSTALLED_APPS = [
-        'silk',
+#        'silk',
         'csv2.apps.Csv2Config',
         'django.contrib.admin',
         'django.contrib.auth',
@@ -105,7 +105,7 @@ if config.enable_glint:
 
 if config.enable_profiling:
     MIDDLEWARE = [
-        'silk.middleware.SilkyMiddleware',
+#        'silk.middleware.SilkyMiddleware',
         'django.middleware.security.SecurityMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.middleware.common.CommonMiddleware',
@@ -159,14 +159,15 @@ WSGI_APPLICATION = 'cloudscheduler_web.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config.db_name,
-        'USER': config.db_user,
-        'PASSWORD': config.db_password,
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
+        'HOST': config.db_config['db_host'],
+        'PORT': config.db_config['db_port'],
+        'NAME': config.db_config['db_name'],
+        'USER': config.db_config['db_user'],
+        'PASSWORD': config.db_config['db_password'],
     }
 }
-
+del config.db_config
+CSV2_CONFIG = config
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators

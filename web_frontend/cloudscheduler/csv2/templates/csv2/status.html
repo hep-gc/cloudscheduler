@@ -49,12 +49,7 @@
 
 <div class="main-div">
 
-    <div class="refresh-button">
-        <div id="CDTimer">???</div>
-        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
-        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
-    </div>
-    <br>
+
     <div class="status-table">
         <table>
           <colgroup>
@@ -383,7 +378,7 @@
 </div>
 
 
-<div class="system-table">
+<div class="system-div">
     <table class="system-services">
         <!--<colgroup>
         <col class="red" span="1" />
@@ -392,12 +387,19 @@
         </colgroup>-->
         <thead>
             <tr>
-                <th colspan="6">CS system services</th>
+                <th colspan="7">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
                 <th colspan="4">CS system resources</th>
             </tr>
 
             <tr>
+                <td tooltip="{{ system_list.csv2_status_msg }}">
+                {% if system_list.csv2_status_status == 1 %}
+                    <span class="green-dot"></span></td>
+                {% else %}
+                    <span class="red-dot"></span></td>
+                {% endif %}
+
                 <td tooltip="{{ system_list.csv2_main_msg }}">
                 {% if system_list.csv2_main_status == 1 %}
                     <span class="green-dot"></span></td>
@@ -453,6 +455,7 @@
 
             </tr>
             <tr>
+                <td>status</td>
                 <td>main</td>
                 <td>database</td>
                 <td>openstack</td>
@@ -473,6 +476,12 @@
 
         </tbody> 
     </table>
+
+    <div class="refresh-button">
+        <div id="CDTimer">???</div>
+        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
+        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
+    </div>
 </div>
 
 

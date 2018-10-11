@@ -6,13 +6,26 @@ import json
 import os
 import yaml
 
+from csv2_group import metadata_delete, metadata_edit, metadata_list, metadata_load, metadata_update
+
 KEY_MAP = {
     '-g':   'group',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
 
-def get_repository_and_servers(gvar):
+def create_backup_file(path):
+    """
+    Open the backup file (for writing), making the directory if necessary, and return the file descriptor.
+    """
+
+    path_dir = os.path.dirname(path)
+    if not os.path.exists(path_dir):
+        os.makedirs(path_dir)
+
+    return open(path, 'w')
+
+def _get_repository_and_servers(gvar):
     """
     Backup all user data for all groups/clouds for each server configured in the user defaults.
     """
@@ -53,20 +66,7 @@ def get_repository_and_servers(gvar):
 
     return servers, server_xref
 
-def make_dir(path):
-    """
-    Set the address and credentials for the specified cloudscheduler server.
-    """
-
-    try:
-        os.mkdir(path)
-    except FileExistsError:
-        pass
-#   except:
-#       print('Error: can\'t create directory "%s".' % path)
-
-
-def set_server(gvar, servers, server):
+def _set_server(gvar, servers, server):
     """
     Set the address and credentials for the specified cloudscheduler server.
     """
@@ -111,7 +111,7 @@ def backup(gvar):
         return mandatory + required + optional
 
     # Retrieve the backup repository and all server information.
-    servers['settings'], servers['xref'] = get_repository_and_servers(gvar)
+    servers['settings'], servers['xref'] = _get_repository_and_servers(gvar)
 
     # Check for missing arguments or help required.
     check_keys(
@@ -122,50 +122,52 @@ def backup(gvar):
 
     # Retrieve data to backup For each cloudscheduler server.
     for server in servers['settings']:
-        if server != 'prod':                     ########################## testing
-            continue                             ########################## testing
-
-        server_dir = set_server(gvar, servers, server)
-        make_dir(server_dir)
-        make_dir('%s/groups' % server_dir)
+        server_dir = _set_server(gvar, servers, server)
 
         response = requests(gvar, '/settings/prepare/')
         groups = gvar['user_groups']
         for group in groups:
             response = requests(gvar, '/settings/prepare/', {'group': group})
             group_dir = '%s/groups/%s' % (server_dir, group)
-            make_dir(group_dir)
-            make_dir('%s/clouds' % group_dir)
-            make_dir('%s/metadata' % group_dir)
-
-
 
             print('Fetching: server=%s, group=%s' % (server, group))
             response = requests(gvar, '/group/defaults/')
-            fd = open('%s/defaults' % group_dir, 'w')
+            fd = create_backup_file('%s/defaults' % group_dir)
             fd.write(json.dumps(response['defaults_list']))
             fd.close()
+
+            response = requests(gvar, '/group/metadata-list/')
+            for metadata in response['group_metadata_list']:
+                metadata_dir = '%s/metadata' % group_dir
+                fd = create_backup_file('%s/%s' % (metadata_dir, metadata['metadata_name']))
+                fd.write(json.dumps(metadata))
+                fd.close()
 
             response = requests(gvar, '/cloud/list/')
             for cloud in response['cloud_list']:
                 cloud_dir = '%s/clouds/%s' % (group_dir, cloud['cloud_name'])
-                make_dir(cloud_dir)
-
-                fd = open('%s/settings' % cloud_dir, 'w')
+                fd = create_backup_file('%s/settings' % cloud_dir)
                 fd.write(json.dumps(cloud))
                 fd.close()
 
-            response = requests(gvar, '/group/metadata-list/')
-            for metadata in response['group_metadata_list']:
-                metadata_dir = '%s/clouds/%s' % (group_dir, metadata['metadata_name'])
-                make_dir(metadata_dir)
-
-                fd = open('%s/settings' % metadata_dir, 'w')
+            response = requests(gvar, '/cloud/metadata-list/')
+            for metadata in response['cloud_metadata_list']:
+                metadata_dir = '%s/metadata' % cloud_dir
+                fd = create_backup_file('%s/%s' % (metadata_dir, metadata['metadata_name']))
                 fd.write(json.dumps(metadata))
                 fd.close()
 
-    print(servers)
-    print(gvar['user_groups'])
+def delete(gvar):
+    metadata_delete(gvar)
+
+def edit(gvar):
+    metadata_edit(gvar)
+
+def list(gvar):
+    metadata_list(gvar)
+
+def load(gvar):
+    metadata_load(gvar)
 
 def restore(gvar):
     """
@@ -185,4 +187,7 @@ def restore(gvar):
         mandatory,
         required,
         optional)
+
+def update(gvar):
+    metadata_update(gvar)
 

@@ -66,25 +66,25 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=0.",
+        gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', form_data={'vm_option': 'sysctl'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs killed=0.",
+        gvar, 0, None, "vm update, VMs killed: 0.",
         '/vm/update/', form_data={'vm_option': 'kill'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to manual control=0.",
+        gvar, 0, None, "vm update, VMs set to manual control: 0.",
         '/vm/update/', form_data={'vm_option': 'manctl'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs retired=0.",
+        gvar, 0, None, "vm update, VMs retired: 0.",
         '/vm/update/', form_data={'vm_option': 'retire'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
@@ -96,19 +96,19 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=0.",
+        gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', form_data={'vm_option': 'sysctl', 'poller_status': 'error'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=0.",
+        gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', form_data={'vm_option': 'sysctl', 'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=0.",
+        gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', form_data={'vm_option': 'sysctl', 'hostname': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )

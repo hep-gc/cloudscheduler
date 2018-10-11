@@ -884,9 +884,81 @@ def status(request, group_name=None):
     s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
     job_status_list = qt(config.db_connection.execute(s))
 
-    # get system status
-    s = select([csv2_system_status])
-    system_list = qt(config.db_connection.execute(s))
+
+
+
+    system_list = {}
+
+    system_list["csv2_status_msg"] = service_msg("csv2-status")
+    if 'running' in system_list["csv2_status_msg"]:
+        system_list["csv2_status_status"] = 1
+        # get system status
+        s = select([csv2_system_status])
+        #system_list = qt(config.db_connection.execute(s))
+        system_list.update(qt(config.db_connection.execute(s))[0])
+
+    else:
+        system_list["csv2_status_status"] = 0
+
+        # Determine the csv2 service statuses and put them in a list
+
+        system_list["csv2_main_msg"] = service_msg("csv2-main")
+        if 'running' in system_list["csv2_main_msg"]:
+            system_list["csv2_main_status"] = 1
+        else:
+            system_list["csv2_main_status"] = 0
+
+        system_list["csv2_openstack_msg"] = service_msg("csv2-openstack")
+        if 'running' in system_list["csv2_openstack_msg"]:
+            system_list["csv2_openstack_status"] = 1
+        else:
+            system_list["csv2_openstack_status"] = 0
+
+        system_list["csv2_jobs_msg"] = service_msg("csv2-jobs")
+        if 'running' in system_list["csv2_jobs_msg"]:
+            system_list["csv2_jobs_status"] = 1
+        else:
+            system_list["csv2_jobs_status"] = 0
+
+        system_list["csv2_machines_msg"] = service_msg("csv2-machines")
+        if 'running' in system_list["csv2_machines_msg"]:
+            system_list["csv2_machines_status"] = 1
+        else:
+            system_list["csv2_machines_status"] = 0
+
+        system_list["mariadb_msg"] = service_msg("mariadb")
+        if 'running' in system_list["mariadb_msg"]:
+            system_list["mariadb_status"] = 1
+        else:
+            system_list["mariadb_status"] = 0
+
+        system_list["condor_msg"] = service_msg("condor")
+        if 'running' in system_list["condor_msg"]:
+            system_list["condor_status"] = 1
+        else:
+            system_list["condor_status"] = 0
+
+        # Determine the system load, RAM and disk usage
+
+        system_list["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+
+        system_list["ram"] = psutil.virtual_memory().percent
+        system_list["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
+        system_list["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
+
+        system_list["swap"] = psutil.swap_memory().percent
+        system_list["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
+        system_list["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
+
+
+        system_list["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
+        system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
+        system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
+
+
+
+
+
 
 
     config.db_close()
@@ -899,7 +971,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'job_status_list': job_status_list,
-            'system_list' : system_list[0],
+            'system_list' : system_list,
             'slot_list' : slot_list,
             'slot_total_list': slot_total_list,
             'response_code': 0,

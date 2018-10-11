@@ -110,7 +110,7 @@ def configuration(request):
                         message = '{} server config must specify at least one field to update.'.format(lno('SV00'))
                     else:
                         for field in fields:
-                            rc, msg = config.db_session_execute(config, table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
+                            rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
                             if rc != 0:
                                 config.db_session.rollback()
                                 message = '{} server config update failed - {}'.format(lno('SV01'), msg)
