@@ -810,7 +810,6 @@ def metadata_update(request):
             message='group metadata file "%s::%s" successfully  updated.' % (fields['group_name'], fields['metadata_name'])
             context = {
                     'group_name': fields['group_name'],
-                    'metadata': fields['metadata'],
                     'response_code': 0,
                     'message': message,
                 }
