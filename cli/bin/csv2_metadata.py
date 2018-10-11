@@ -6,6 +6,8 @@ import json
 import os
 import yaml
 
+from csv2_group import metadata_delete, metadata_edit, metadata_list, metadata_load, metadata_update
+
 KEY_MAP = {
     '-g':   'group',
     }
@@ -23,7 +25,7 @@ def create_backup_file(path):
 
     return open(path, 'w')
 
-def get_repository_and_servers(gvar):
+def _get_repository_and_servers(gvar):
     """
     Backup all user data for all groups/clouds for each server configured in the user defaults.
     """
@@ -64,7 +66,7 @@ def get_repository_and_servers(gvar):
 
     return servers, server_xref
 
-def set_server(gvar, servers, server):
+def _set_server(gvar, servers, server):
     """
     Set the address and credentials for the specified cloudscheduler server.
     """
@@ -109,7 +111,7 @@ def backup(gvar):
         return mandatory + required + optional
 
     # Retrieve the backup repository and all server information.
-    servers['settings'], servers['xref'] = get_repository_and_servers(gvar)
+    servers['settings'], servers['xref'] = _get_repository_and_servers(gvar)
 
     # Check for missing arguments or help required.
     check_keys(
@@ -120,7 +122,7 @@ def backup(gvar):
 
     # Retrieve data to backup For each cloudscheduler server.
     for server in servers['settings']:
-        server_dir = set_server(gvar, servers, server)
+        server_dir = _set_server(gvar, servers, server)
 
         response = requests(gvar, '/settings/prepare/')
         groups = gvar['user_groups']
@@ -155,6 +157,18 @@ def backup(gvar):
                 fd.write(json.dumps(metadata))
                 fd.close()
 
+def delete(gvar):
+    metadata_delete(gvar)
+
+def edit(gvar):
+    metadata_edit(gvar)
+
+def list(gvar):
+    metadata_list(gvar)
+
+def load(gvar):
+    metadata_load(gvar)
+
 def restore(gvar):
     """
     Restore selected user data.
@@ -173,4 +187,7 @@ def restore(gvar):
         mandatory,
         required,
         optional)
+
+def update(gvar):
+    metadata_update(gvar)
 
