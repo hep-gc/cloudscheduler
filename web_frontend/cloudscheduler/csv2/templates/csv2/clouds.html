@@ -64,6 +64,10 @@
                             {% csrf_token %}
                             <table>
                                 <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+
+                                <tr class="highlight1"><td><label for="authurl">Enabled</label></td>
+                                <td><input type="text" name="enabled" value="{{cloud.enabled}}" /></td></tr>
+                                
                                 <tr class="highlight1"><td><label for="authurl">URL</label></td>
                                 <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
                                 <tr class="highlight1"><td><label for="project">Project</label></td>
