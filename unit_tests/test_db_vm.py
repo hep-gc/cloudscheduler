@@ -55,32 +55,32 @@ def main(gvar, user_secret):
 
     # Setting Manual Control
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to manual control=0.",
+        gvar, 0, None, "vm update, VMs set to manual control: 0.",
         '/vm/update/', form_data={'vm_option': 'manctl', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs set to manual control=0.',
+        gvar, 0, None, 'vm update, VMs set to manual control: 0.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'manctl', '-vh', 'foreign-cloud--vmid4']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to manual control=1.",
+        gvar, 0, None, "vm update, VMs set to manual control: 1.",
         '/vm/update/', form_data={'vm_option': 'manctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs set to manual control=1.',
+        gvar, 0, None, 'vm update, VMs set to manual control: 1.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'manctl', '-vh', 'vm-test-group--vm-test-cloud--vmid2']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to manual control=3.",
+        gvar, 0, None, "vm update, VMs set to manual control: 3.",
         '/vm/update/', form_data={'vm_option': 'manctl'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs set to manual control=3.',
+        gvar, 0, None, 'vm update, VMs set to manual control: 3.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'manctl']
     )
 
@@ -128,32 +128,32 @@ def main(gvar, user_secret):
 
     # Setting System Control
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=0.",
+        gvar, 0, None, "vm update, VMs set to system control: 0.",
         '/vm/update/', form_data={'vm_option': 'sysctl', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs set to system control=0.',
+        gvar, 0, None, 'vm update, VMs set to system control: 0.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'sysctl', '-vh', 'foreign-cloud--vmid4']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=1.",
+        gvar, 0, None, "vm update, VMs set to system control: 1.",
         '/vm/update/', form_data={'vm_option': 'sysctl', 'hostname': 'vm-test-group--vm-test-cloud--vmid2'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs set to system control=1.',
+        gvar, 0, None, 'vm update, VMs set to system control: 1.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'sysctl', '-vh', 'vm-test-group--vm-test-cloud--vmid3']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs set to system control=3.",
+        gvar, 0, None, "vm update, VMs set to system control: 3.",
         '/vm/update/', form_data={'vm_option': 'sysctl'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs set to system control=3.',
+        gvar, 0, None, 'vm update, VMs set to system control: 3.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'sysctl']
     )
 
@@ -201,32 +201,32 @@ def main(gvar, user_secret):
 
     # Setting Retire
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs retired=0.",
+        gvar, 0, None, "vm update, VMs retired: 0.",
         '/vm/update/', form_data={'vm_option': 'retire', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs retired=0.',
+        gvar, 0, None, 'vm update, VMs retired: 0.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'retire', '-vh', 'foreign-cloud--vmid4']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs retired=1.",
+        gvar, 0, None, "vm update, VMs retired: 1.",
         '/vm/update/', form_data={'vm_option': 'retire', 'hostname': 'vm-test-group--vm-test-cloud--vmid3'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs retired=1.',
+        gvar, 0, None, 'vm update, VMs retired: 1.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'retire', '-vh', 'vm-test-group--vm-test-cloud--vmid1']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs retired=3.",
+        gvar, 0, None, "vm update, VMs retired: 3.",
         '/vm/update/', form_data={'vm_option': 'retire'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs retired=3.',
+        gvar, 0, None, 'vm update, VMs retired: 3.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'retire']
     )
 
@@ -254,32 +254,32 @@ def main(gvar, user_secret):
 
     # Setting Kill
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs killed=0.",
+        gvar, 0, None, "vm update, VMs killed: 0.",
         '/vm/update/', form_data={'vm_option': 'kill', 'hostname': 'foreign-cloud--vmid4'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs killed=0.',
+        gvar, 0, None, 'vm update, VMs killed: 0.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'kill', '-vh', 'foreign-cloud--vmid4']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs killed=1.",
+        gvar, 0, None, "vm update, VMs killed: 1.",
         '/vm/update/', form_data={'vm_option': 'kill', 'hostname': 'vm-test-group--vm-test-cloud--vmid1'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs killed=1.',
+        gvar, 0, None, 'vm update, VMs killed: 1.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'kill', '-vh', 'vm-test-group--vm-test-cloud--vmid2']
     )
 
     execute_csv2_request(
-        gvar, 0, None, "vm update, VMs killed=3.",
+        gvar, 0, None, "vm update, VMs killed: 3.",
         '/vm/update/', form_data={'vm_option': 'kill'}
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm update, VMs killed=3.',
+        gvar, 0, None, 'vm update, VMs killed: 3.',
         ['cloudscheduler', 'vm', 'update', '-vo', 'kill']
     )
 

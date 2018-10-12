@@ -49,12 +49,7 @@
 
 <div class="main-div">
 
-    <div class="refresh-button">
-        <div id="CDTimer">???</div>
-        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
-        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
-    </div>
-    <br>
+
     <div class="status-table">
         <table>
           <colgroup>
@@ -125,7 +120,7 @@
           <colgroup>
             <col class="grey" />
             <col class="red" span="1" />
-            <col class="clear" span="10" />
+            <col class="clear" span="11" />
             <col class="blue" span="1" />
             <col class="clear" span="2" />
           </colgroup>
@@ -215,13 +210,25 @@
                     {% if cloud.slots_used == 0 %}
                         <td class="zero-style">0</td>
                     {% else %}
-                        <td class="more-style" tooltip="
-                            {% for slot in slot_list%}
-                                {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.slot_CPUs }}x{{slot.slot_count}}c&#013;&#010;
-                                {% endif %}
-                            {% endfor %}
-                        "><a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">{{cloud.slots_used}}</td>
+                        <td class="more-style">
+
+                            <div class="slots">
+                                <input id="slots-{{cloud.cloud_name}}" type="checkbox">
+                                <label for="slots-{{cloud.cloud_name}}">{{cloud.slots_used}}</label>
+                                <div class="slots-content">
+
+                                    <hr>
+
+                                    {% for slot in slot_list%}
+                                        {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                                            {{ slot.slot_count }} &#10005 {{ slot.slot_CPUs }}c<br>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                </div>
+
+                            </div>
+                        </td>
                     {% endif %}
 
                     {% if cloud.cores_ctl == -1 %}
@@ -321,11 +328,20 @@
                 {% if cloud_total_list.slots_used == 0 %}
                     <td class="zero-style">0</td>
                 {% else %}
-                    <td class="more-style" tooltip="
-                            {% for slot in slot_total_list%}
-                                {{ slot.slot_CPUs }}x{{slot.slot_count}}c&#013;&#010;
-                            {% endfor %}
-                        "><a onclick="pass_url('::::')" href="#vms-overlay">{{cloud_total_list.slots_used}}</td>
+                    <td class="more-style">
+                        <div class="slots">
+                            <input id="slots-{{cloud.cloud_name}}" type="checkbox">
+                            <label for="slots-{{cloud.cloud_name}}">{{cloud_total_list.slots_used}}</label>
+                            <div class="slots-content">
+
+                                <hr>
+                                {% for slot in slot_total_list%}
+                                    {{ slot.slot_count }} &#10005 {{ slot.slot_CPUs }}c<br>
+                                {% endfor %}
+
+                            </div>
+                        </div>
+                    </td>
                 {% endif %}
 
 
@@ -362,7 +378,7 @@
 </div>
 
 
-<div class="system-table">
+<div class="system-div">
     <table class="system-services">
         <!--<colgroup>
         <col class="red" span="1" />
@@ -371,12 +387,19 @@
         </colgroup>-->
         <thead>
             <tr>
-                <th colspan="6">CS system services</th>
+                <th colspan="7">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
                 <th colspan="4">CS system resources</th>
             </tr>
 
             <tr>
+                <td tooltip="{{ system_list.csv2_status_msg }}">
+                {% if system_list.csv2_status_status == 1 %}
+                    <span class="green-dot"></span></td>
+                {% else %}
+                    <span class="red-dot"></span></td>
+                {% endif %}
+
                 <td tooltip="{{ system_list.csv2_main_msg }}">
                 {% if system_list.csv2_main_status == 1 %}
                     <span class="green-dot"></span></td>
@@ -432,6 +455,7 @@
 
             </tr>
             <tr>
+                <td>status</td>
                 <td>main</td>
                 <td>database</td>
                 <td>openstack</td>
@@ -452,6 +476,12 @@
 
         </tbody> 
     </table>
+
+    <div class="refresh-button">
+        <div id="CDTimer">???</div>
+        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
+        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
+    </div>
 </div>
 
 

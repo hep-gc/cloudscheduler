@@ -16,18 +16,19 @@
   position: relative;
   display: block;
   padding: 0 0 0 1em;
-  background: whitesmoke;
-  font-weight: bold;
+  background: powderblue;
   line-height: 3;
   cursor: pointer;
+  text-align: center;
 }
 
 .tab-content {
+  position: fixed;
+  left: 220px;
+  top: 70px;
+  bottom:20px;
+  overflow: auto;
   max-height: 0;
-  overflow: hidden;
-  -webkit-transition: max-height .35s;
-  -o-transition: max-height .35s;
-  transition: max-height .35s;
 }
 .blue .tab-content {
   background: #3498db;
@@ -49,9 +50,6 @@
   height: 3em;
   line-height: 3;
   text-align: center;
-  -webkit-transition: all .35s;
-  -o-transition: all .35s;
-  transition: all .35s;
 }
 .tab > input[type=checkbox] + label::after {
   content: "+";
@@ -63,7 +61,6 @@
 
 
 
-
 iframe {
   z-index: 1;
   width: 100%;
@@ -71,13 +68,15 @@ iframe {
   border: 0;
 }
 
-.editor-frame {
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  border: 0;
+.hide-iframe {
+  position: fixed;
+  top:60;
+  bottom:0;
+  left:700;
+  right:10;
+  max-height: 0;
+  overflow: auto;
 }
-
 
 
 
@@ -86,7 +85,6 @@ iframe {
   position: relative;
   margin-bottom: 1px;
   width: 100%;
-
   overflow: hidden;
 }
 .tab2 > input {
@@ -111,7 +109,7 @@ iframe {
   left:700;
   right:10;
   max-height: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .tab2-content p {
@@ -133,10 +131,4 @@ iframe {
   text-align: center;
 
 }
-.tab2 > input[type=checkbox] + label::after {
-  content: "+";
-}
 
-.tab2 > input[type=checkbox]:checked + label::after {
-  content: "-";
-}

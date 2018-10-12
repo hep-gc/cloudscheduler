@@ -88,12 +88,13 @@ def set(gvar):
     mandatory = ['-s']
     required = []
     optional = ['*']
+    not_optional = ['-br']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
 
     # Check for missing arguments or help required.
-    check_keys(gvar, mandatory, required, optional, requires_server=False)
+    check_keys(gvar, mandatory, required, optional, not_optional=not_optional, requires_server=False)
 
     # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):

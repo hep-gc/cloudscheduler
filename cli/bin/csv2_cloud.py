@@ -426,7 +426,13 @@ def metadata_edit(gvar):
     fd.write(response['metadata'])
     fd.close()
 
-    p = Popen([gvar['user_settings']['text-editor'], '%s/%s' % (fetch_dir, response['metadata_name'])])
+    editor = ''
+    if 'text-editor' in gvar['user_settings']:
+        editor = gvar['user_settings']['text-editor']
+    else:
+        editor = os.getenv('EDITOR')
+
+    p = Popen([editor, '%s/%s' % (fetch_dir, response['metadata_name'])])
     p.communicate()
 
     if filecmp.cmp(

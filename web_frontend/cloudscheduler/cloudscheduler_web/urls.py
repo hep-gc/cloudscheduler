@@ -17,18 +17,16 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
-from cloudscheduler.lib.csv2_config import Config
-config = Config('web_frontend')
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('csv2.urls')),
 ]
 
-if config.enable_profiling:
-    urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
+#if config.enable_profiling:
+#    urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
 
-if config.enable_glint:
+if settings.CSV2_CONFIG.enable_glint:
     urlpatterns = [
         url(r'^images/', include('glintwebui.image_urls')),
         url(r'^keypairs/', include('glintwebui.keypair_urls')),

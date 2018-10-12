@@ -1,3 +1,6 @@
+from django.conf import settings
+config = settings.CSV2_CONFIG
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
@@ -6,14 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from cloudscheduler.lib.csv2_config import Config
-config = Config('web_frontend')
-
 from .view_utils import \
-    db_execute, \
-    db_commit, \
-    db_rollback, \
-    get_db_connection, \
     getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
@@ -35,7 +31,7 @@ from sqlalchemy.sql import and_
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
-from cloudscheduler.lib.web_profiler import silk_profile as silkp
+#from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: VV - error code identifier.
 
@@ -72,7 +68,7 @@ MANDATORY_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-@silkp(name="VM List")
+#@silkp(name="VM List")
 @requires_csrf_token
 def list(
     request,
@@ -87,31 +83,31 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_connection = get_db_connection()
+    config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
-            db_rollback()
+            config.db_close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
-        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
         if rc != 0:
-            db_rollback()
+            config.db_close()
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('VV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={'status_changed_time': 'datetime', 'last_updated': 'datetime'})
+    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={'status_changed_time': 'datetime', 'last_updated': 'datetime'})
 
     # Retrieve available Clouds.
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    cloud_list = qt(db_connection.execute(s))
+    cloud_list = qt(config.db_connection.execute(s))
 
-    db_rollback()
+    config.db_close()
 
     # Render the page.
     context = {
@@ -129,7 +125,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
-@silkp(name="VM Update")
+#@silkp(name="VM Update")
 @requires_csrf_token
 def update(request):
     """
@@ -141,18 +137,18 @@ def update(request):
 
     if request.method == 'POST':
         # open the database.
-        db_connection = get_db_connection()
+        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
-            db_rollback()
+            config.db_close()
             return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(request, [VM_KEYS, MANDATORY_KEYS], ['csv2_vms,n', 'condor_machines,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [VM_KEYS, MANDATORY_KEYS], ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
-            db_rollback()
+            config.db_close()
             return list(request, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
@@ -172,29 +168,32 @@ def update(request):
 
         # Retrieve VM information.
         s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) & (view_vms.c.foreign_vm == 0))
-        vm_list = qt(db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+        vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
         count = 0
         for vm in vm_list:
             if fields['vm_option'] == 'kill':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
             elif fields['vm_option'] == 'retire':
-                update = table.update().where(table.c.machine.like(f"%{vm['hostname']}%")).values({'retire_request_time': int(time.time())})
+                update = table.update().where(table.c.machine.like("%{vm['hostname']}%")).values({'retire_request_time': int(time.time())})
             elif fields['vm_option'] == 'manctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
             elif fields['vm_option'] == 'sysctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
 
-            # rc, msg = db_execute(db_ctl, table.update().where(table.c.vmid == vm['vmid']).values(control), allow_no_rows=True)
-            rc, msg = db_execute(update, allow_no_rows=True)
+            rc, msg = db_session_execute(config, update, allow_no_rows=True)
             if rc == 0:
                 count += msg
             else:
-                db_rollback()
+                config.db_close()
                 return list(request, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
-        db_commit()
-        return list(request, response_code=0, message='vm update, VMs %s=%s.' % (verb, count))
+        if count > 0:
+            config.db_close(commit=True)
+        else:
+            config.db_close()
+
+        return list(request, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
 
     ### Bad request.
     else:
