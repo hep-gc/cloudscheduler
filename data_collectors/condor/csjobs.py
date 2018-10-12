@@ -9,7 +9,6 @@ import sys
 import gc
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
-#from cloudscheduler.lib.csv2_config import Config
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -72,7 +71,7 @@ def job_poller():
     #db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
     #    "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
     #Base.prepare(db_engine, reflect=True)
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     JOB = config.db_map.classes.condor_jobs
     USER_GROUPS = config.db_map.classes.csv2_user_groups
@@ -220,7 +219,7 @@ def command_poller():
     #    "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
     #Base.prepare(db_engine, reflect=True)
 
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Job = config.db_map.classes.condor_jobs
 
     try:
@@ -292,7 +291,7 @@ def command_poller():
 
 
 if __name__ == '__main__':
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
         filename=config.log_file,

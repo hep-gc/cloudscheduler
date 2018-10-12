@@ -8,7 +8,6 @@ import os
 import sys
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
-#from cloudscheduler.lib.csv2_config import Config
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.schema import view_redundant_machines
 from cloudscheduler.lib.poller_functions import \
@@ -58,7 +57,7 @@ def machine_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -187,7 +186,7 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
     condor_host = socket.gethostname()
     # database setup
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     # Database connections created as part of config
     #Base = automap_base()
@@ -312,7 +311,7 @@ def command_poller():
 
 
 if __name__ == '__main__':
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     # Don't need db params as each process will create it's own config
 
     logging.basicConfig(
