@@ -3,14 +3,14 @@ from multiprocessing import Process
 import time
 import copy
 import logging
-import socket
 import re
 import os
 import sys
 import gc
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
-from cloudscheduler.lib.csv2_config import Config
+#from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
@@ -68,16 +68,18 @@ def job_poller():
     cycle_count = 0
     condor_inventory_built = False
 
-    Base = automap_base()
-    db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(db_engine, reflect=True)
-    JOB = Base.classes.condor_jobs
-    USER_GROUPS = Base.classes.csv2_user_groups
-    CLOUDS = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+    #    "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    #Base.prepare(db_engine, reflect=True)
+    config = Config(os.path.basename(sys.argv[0]))
+
+    JOB = config.db_map.classes.condor_jobs
+    USER_GROUPS = config.db_map.classes.csv2_user_groups
+    CLOUDS = config.db_map.classes.csv2_group_resources
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
         while True:
             #
             # Setup - initialize condor and database objects and build user-group list
@@ -95,7 +97,8 @@ def job_poller():
 
             fail_count = 0
 
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
         
             if not condor_inventory_built:
                 build_inventory_for_condor(inventory, db_session, CLOUDS)
@@ -120,7 +123,8 @@ def job_poller():
                 logging.error("Failed to get jobs from condor queue, aborting job poller")
                 logging.error(exc)
                 del condor_session
-                db_session.close()
+                config.db_close()
+                del db_session
                 exit(1)
 
 
@@ -168,7 +172,8 @@ def job_poller():
 
             if abort_cycle:
                 del condor_session
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_job)
                 continue
 
@@ -180,7 +185,8 @@ def job_poller():
                     logging.exception("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    db_session.close()
+                    config.db_close()
+                    del db_session
                     time.sleep(config.sleep_interval_job)
                     continue
 
@@ -191,7 +197,8 @@ def job_poller():
 
             del condor_session
             del job_list
-            db_session.close()
+            config.db_close()
+            del db_session
             cycle_count = cycle_count + 1
             if cycle_count >= config.delete_cycle_interval:
                 delete_cycle = True
@@ -202,16 +209,19 @@ def job_poller():
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
-        db_session.close()
+        config.db_close()
+        del db_session
 
 def command_poller():
     multiprocessing.current_process().name = "Command Poller"
     #Make database engine
-    Base = automap_base()
-    db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
-    Base.prepare(db_engine, reflect=True)
-    Job = Base.classes.condor_jobs
+    #Base = automap_base()
+    #db_engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
+    #    "@" + config.db_host+ ":" + str(config.db_port) + "/" + config.db_name)
+    #Base.prepare(db_engine, reflect=True)
+
+    config = Config(os.path.basename(sys.argv[0]))
+    Job = config.db_map.classes.condor_jobs
 
     try:
         while True:
@@ -227,7 +237,8 @@ def command_poller():
 
             fail_count = 0
 
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
 
             #Query database for any entries that have a command flag
             abort_cycle = False
@@ -250,7 +261,8 @@ def command_poller():
 
             if abort_cycle:
                 del condor_session
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_command)
                 continue
 
@@ -261,13 +273,15 @@ def command_poller():
                     logging.exception("Failed to commit job changes, aborting cycle...")
                     logging.error(exc)
                     del condor_session
-                    db_session.close()
+                    config.db_close()
+                    del db_session
                     time.sleep(config.sleep_interval_command)
                     continue
 
             logging.info("Completed command consumer cycle")
             del condor_session
-            db_session.close()
+            config.db_close()
+            del db_session
             time.sleep(config.sleep_interval_command)
 
     except Exception as exc:

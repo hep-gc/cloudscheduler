@@ -55,7 +55,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
             if key_map and key[0] in key_map:
 #               form_data[key_map[key[0]]] = gvar['user_settings'][key[2]]
                 form_data[key_map[key[0]]] = _check_keys_for_password(gvar, key)
-        elif not (key[2] == '-te' and getenv('EDITOR') is not None):
+        elif not(key[0] == '-te' and getenv('EDITOR') is not None):
             missing.append(key[1])
 
     if missing:
