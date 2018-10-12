@@ -10,24 +10,17 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, categories, db_config_dict=False):
+    def __init__(self, db_yaml, categories, db_config_dict=False):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
 
         # Retrieve the database configuration.
-        if os.path.exists("/etc/cloudscheduler/cloudscheduler.yml"):
-            path = "/etc/cloudscheduler/cloudscheduler.yml"
-
-        elif os.path.exists("/etc/cloudscheduler/cloudscheduler.yaml"):
-            path = "/etc/cloudscheduler/cloudscheduler.yaml"
-
+        if os.path.exists(db_yaml):
+            with open(db_yaml, 'r') as ymlfile:
+                base_config = yaml.load(ymlfile)
         else:
-            raise Exception('Configuration file (either "/etc/cloudscheduler/cloudscheduler.yml" or ' \
-                '"/etc/cloudscheduler/cloudscheduler.yaml") not found.')
-
-        with open(path, 'r') as ymlfile:
-            base_config = yaml.load(ymlfile)
+            raise Exception('Configuration file "%s" does not exist.' % db_yaml)
 
         db_config = {}
         if 'database' in base_config:
