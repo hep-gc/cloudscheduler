@@ -200,11 +200,12 @@ def main(gvar, user_secret):
         values={
             'user_domain_name': 'Default',
             'project': 'unit-test-cloud-three',
-            'vm_image': None,
+            'vm_image': '',
             'username': ut_id(gvar, 'ctu3'),
             'cores_ctl': -1,
-            'vm_flavor': None,
-            'vm_keep_alive': None,
+            'vm_flavor': '',
+            'vm_keep_alive': 0,
+            'vm_network': '',
             'group_exclusions': None,
             'cloud_type': 'local',
             'spot_price': None,
@@ -416,7 +417,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV##', 'cloud update, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV94', 'cloud update, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'ctc3'), ut_id(gvar, 'ctg1')),
         '/cloud/update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'group': ut_id(gvar, 'ctg1'),

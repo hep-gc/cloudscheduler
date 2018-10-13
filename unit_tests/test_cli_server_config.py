@@ -73,7 +73,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, 'SV01', 'server config update failed - the request did not match any rows',
-        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-sc', 'invalid-unit-test']
+        ['cloudscheduler', 'server', 'config', '-cc', 'web_frontend', '-c', 'invalid-unit-test']
     )
 
     execute_csv2_command(
