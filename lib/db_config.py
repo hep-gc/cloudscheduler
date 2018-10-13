@@ -27,6 +27,9 @@ class Config:
             for item in base_config['database']:
                 db_config[item] = base_config['database'][item]
 
+            if 'db_table' not in db_config:
+                db_config['db_table'] = 'configuration'
+
         if db_config_dict:
             self.__dict__['db_config'] = db_config
 
@@ -53,21 +56,21 @@ class Config:
 
         self.__dict__['db_session'] = Session(self.__dict__['db_engine'])
         for category in category_list:
-            rows = self.__dict__['db_session'].query(self.__dict__['db_map'].classes.csv2_configuration).filter(
-                self.__dict__['db_map'].classes.csv2_configuration.category == category
+            rows = self.__dict__['db_session'].query(self.__dict__['db_map'].classes[db_config['db_table']]).filter(
+                self.__dict__['db_map'].classes[db_config['db_table']].category == category
                 )
 
             for row in rows:
-                if row.type == 'bool':
-                    self.__dict__[row.config_key] = row.value == '1' or row.value.lower() == 'yes' or row.value.lower() == 'true'
-                elif row.type == 'float':
-                    self.__dict__[row.config_key] = float(row.value)
-                elif row.type == 'int':
-                    self.__dict__[row.config_key] = int(row.value)
-                elif row.type == 'null':
+                if row.config_type == 'bool':
+                    self.__dict__[row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
+                elif row.config_type == 'float':
+                    self.__dict__[row.config_key] = float(row.config_value)
+                elif row.config_type == 'int':
+                    self.__dict__[row.config_key] = int(row.config_value)
+                elif row.config_type == 'null':
                     self.__dict__[row.config_key] = None
                 else:
-                    self.__dict__[row.config_key] = row.value
+                    self.__dict__[row.config_key] = row.config_value
 
         # Close the session.
         self.__dict__['db_session'].close()
