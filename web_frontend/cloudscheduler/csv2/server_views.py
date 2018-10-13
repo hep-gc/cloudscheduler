@@ -131,6 +131,11 @@ def configuration(request):
         config_list = qt(config.db_connection.execute(s))
         response_code = 0
 
+        #config_list = qt(config.db_connection.execute(s), keys={
+        #'primary': ['config_key'],
+        #'secondary': ['value']
+        #})
+
     config.db_close()
 
     # Render the page.
