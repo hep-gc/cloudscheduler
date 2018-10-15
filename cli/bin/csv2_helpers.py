@@ -9,6 +9,8 @@ def generate_bash_completion_script(gvar):
     options = get_option_list(gvar)
 
     arguments = {
+        '-bk|--backup-key': '-f',
+        '-br|--backup-repository': '-f',
         '-cc|--config-category': '-W "csjobs.py csmachines.py openstackPoller.py web_frontend"',
         '-ce|--cloud-enabled': '-W "true false yes no 1 0"',
         '-ct|--cloud-type': '-W "amazon azure google local opennebula openstack"',
