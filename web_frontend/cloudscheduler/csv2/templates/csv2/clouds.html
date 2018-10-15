@@ -56,7 +56,7 @@
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="checkbox" name="tabs" checked>
+                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" checked>
                     <label for="settings-{{cloud.cloud_name}}">Settings</label>
                     <div class="tab-content">
 
@@ -64,6 +64,10 @@
                             {% csrf_token %}
                             <table>
                                 <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+
+                                <tr class="highlight1"><td><label for="authurl">Enabled</label></td>
+                                <td><input type="text" name="enabled" value="{{cloud.enabled}}" /></td></tr>
+                                
                                 <tr class="highlight1"><td><label for="authurl">URL</label></td>
                                 <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
                                 <tr class="highlight1"><td><label for="project">Project</label></td>
@@ -121,6 +125,12 @@
                                 <td><a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a></td></tr>
                             </table>
                         </form>
+
+                        <div class="hide-iframe">
+                            <iframe src=""></iframe>
+                        </div>
+
+
                     </div>
 
                 </div>
@@ -128,7 +138,7 @@
 
 
                 <div class="tab">
-                    <input id="metadata-{{cloud.cloud_name}}" type="checkbox" name="tabs" checked>
+                    <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs">
                     <label for="metadata-{{cloud.cloud_name}}">Metadata</label>
                     <div class="tab-content">
 
@@ -143,7 +153,7 @@
                                     <label for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
                                     <div class="tab2-content">
 
-                                        <iframe id="editor-{{cloud.cloud_name}}-{{meta}}" class="iframe-content" src=""></iframe>
+                                        <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>
 
                                     </div>
 

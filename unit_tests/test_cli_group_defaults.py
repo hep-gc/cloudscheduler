@@ -103,7 +103,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'group defaults, table #1 columns: keys=group_name, columns=vm_flavor,vm_image,vm_keep_alive,job_cpus,job_disk,job_ram,job_swap',
+        gvar, 0, None, 'group defaults, table #1 columns: keys=group_name, columns=',
         ['cloudscheduler', 'group', 'defaults', '-VC']
     )
 

@@ -124,7 +124,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'group defaults, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
+        gvar, 1, 'GV07', 'group defaults update specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_image': 'invalid-unit-test'
@@ -133,7 +133,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'group defaults, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
+        gvar, 1, 'GV07', 'group defaults update specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_flavor': 'invalid-unit-test'
@@ -142,7 +142,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'group defaults, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
+        gvar, 1, 'GV07', 'group defaults update specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_network': 'invalid-unit-test'

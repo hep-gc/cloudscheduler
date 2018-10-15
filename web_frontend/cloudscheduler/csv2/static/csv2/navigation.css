@@ -1,4 +1,8 @@
-
+html *
+{
+  font-size: 0.98em !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
 
 /*******************************************/
 
@@ -97,6 +101,7 @@ ul.sub-menu li:hover{
 .defaults-nav a.defaults-nav,
 .groups-nav a.groups-nav,
 .users-nav a.users-nav,
+.config-nav a.config-nav,
 .images-nav a.images-nav,
 .vms-nav a.vms-nav
 {

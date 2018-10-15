@@ -11,6 +11,18 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, sys.argv[0])
 
+    # set profile
+    execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "user";',
+        ['cloudscheduler', 'user', 'list', '-s', 'unit-test-un']
+    )
+
+    # set profile
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'user', 'list', '-s', 'unit-test']
+    )
+
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "user"',
         ['cloudscheduler', 'user']

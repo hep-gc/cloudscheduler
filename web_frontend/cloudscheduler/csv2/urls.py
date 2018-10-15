@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.urls import path
 
-from . import views, cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
+from . import cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
 
 urlpatterns = [
 
@@ -34,11 +34,11 @@ urlpatterns = [
     path('group/metadata-update/',                 group_views.metadata_update),
 
     path('job/list/',                              job_views.list),
-#   path('job/modify/',                            job_views.modify),
+##  path('job/modify/',                            job_views.modify),
 
-    path('server/config/',                         server_views.config),
+    path('server/config/',                         server_views.configuration),
 
-#   path('settings/preferences/',                  settings_views.preferences),
+##  path('settings/preferences/',                  settings_views.preferences),
     path('settings/prepare/',                      settings_views.prepare),
     path('settings/log-out/',                      settings_views.log_out),
 

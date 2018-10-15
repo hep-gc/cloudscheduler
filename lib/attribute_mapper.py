@@ -1,4 +1,4 @@
-from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.db_config import *
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -28,11 +28,11 @@ def build_mapping_dictionaries():
     global rowid_dict
     global attr_list_dict
 
-    config = Config('db_only')
+    config = Config('db_only', db_config_dict=True)
 
     Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + config.db_user + ":" + config.db_password + \
-        "@" + config.db_host + ":" + str(config.db_port) + "/" + config.db_name)
+    engine = create_engine("mysql+pymysql://" + config.db_config['db_user'] + ":" + config.db_config['db_password'] + \
+        "@" + config.db_config['db_host'] + ":" + str(config.db_config['db_port']) + "/" + config.db_config['db_name'])
     Base.prepare(engine, reflect=True)
     Mappings = Base.classes.csv2_attribute_mapping
     session = Session(engine)

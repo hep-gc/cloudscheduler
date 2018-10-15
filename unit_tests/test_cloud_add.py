@@ -698,7 +698,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV##', 'cloud add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
+        gvar, 1, 'CV95', 'cloud add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
         '/cloud/add/', form_data={
             'group': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'invalid-unit-test'),

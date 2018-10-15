@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "cloud"; use -h or -H for help.',
-        ['cloudscheduler', 'cloud', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

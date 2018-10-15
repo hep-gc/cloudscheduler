@@ -1,5 +1,8 @@
+from django.conf import settings
+config = settings.CSV2_CONFIG
+
 from django.views.decorators.csrf import requires_csrf_token
-from .view_utils import getSuperUserStatus, render, set_user_groups, db_rollback
+from .view_utils import getSuperUserStatus, render, set_user_groups
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
@@ -48,13 +51,15 @@ def prepare(request):
     This function returns a minimal response plus a CSRF.
     """
 
+    config.db_open()
+
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc != 0:
-        db_rollback()
+        config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
-    db_rollback()
+    config.db_close()
 
     context = {
             'active_user': active_user,

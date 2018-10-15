@@ -1,3 +1,6 @@
+from django.conf import settings
+config = settings.CSV2_CONFIG
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
@@ -6,13 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User #to get auth_user table
 from .models import user as csv2_user
 
-from cloudscheduler.lib.csv2_config import Config
-config = Config('web_frontend')
-
 from .view_utils import \
-    get_db_connection, \
-    db_rollback, \
-    db_execute, \
     getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
@@ -31,7 +28,7 @@ from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
-from cloudscheduler.lib.web_profiler import silk_profile as silkp
+#from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: JV - error code identifier.
 
@@ -78,7 +75,7 @@ LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-@silkp(name="Job List")
+#@silkp(name="Job List")
 @requires_csrf_token
 def list(
     request,
@@ -95,27 +92,27 @@ def list(
         raise PermissionDenied
 
     # open the database.
-    db_connection = get_db_connection()
+    config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
-            db_rollback()
+            config.db_close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
-        rc, msg, fields, tables, columns = validate_fields(request, [LIST_KEYS], [], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
         if rc != 0:
-            db_rollback()
+            config.db_close()
             return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
-    job_list = qt(db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
+    job_list = qt(config.db_connection.execute(s), convert={'entered_current_status': 'datetime', 'q_date': 'datetime'})
 
-    db_rollback()
+    config.db_close()
     
 #   # Position the page.
 #   obj_act_id = request.path.split('/')

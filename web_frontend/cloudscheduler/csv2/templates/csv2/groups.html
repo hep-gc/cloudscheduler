@@ -24,7 +24,7 @@
             <!--https://codepen.io/nathanlong/pen/mBrvn-->
             
             <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
-                <div class="menu-target">
+                <div class="menu-target menu-position">
                 <form name="{{group.group_name}}" action="/group/update/" method="post">
                 {% csrf_token %}
                 
@@ -48,19 +48,19 @@
                             </td>
                             <td>
                                 <input id="search-users-{{ group.group_name }}" type="text" placeholder="Username search.." onkeyup="search('users-{{ group.group_name }}')">
-
-                                <div id="ul-users-{{group.group_name}}" class="user-list lists highlight2">
+                            </td>
+                                <div id="ul-users-{{group.group_name}}" class="highlight2">
                                     
-                                    <ul>
+
                                     {% for user in groups_per_user %}
                                         {{ user.group_name }}
                                         {% if group.group_name in user.user_groups %}
-                                            <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></li>
+                                            <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" checked/>{{ user.username }}</input></td></tr>
                                         {% else %}
-                                            <li><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></li>
+                                             <tr><td></td><td class="highlight2"><input type="checkbox" name="username.{{ forloop.counter }}" value="{{ user.username }}" />{{user.username }}</input></td></tr>
                                         {% endif %}
                                     {% endfor %}
-                                    </ul>
+
                                 </div>
                             </td>
                         </tr>
@@ -125,7 +125,7 @@
                             <td>
                                 <input id="search-users-{{ group.group_name }}" type="text" placeholder="Username search.." onkeyup="search('users-{{ group.group_name }}')">
 
-                                <div id="ul-users-{{group.group_name}}" class="user-list lists highlight2">
+                                <div id="ul-users-{{group.group_name}}" class="lists highlight2">
                                     
                                     <ul>
                                     {% for user in groups_per_user %}

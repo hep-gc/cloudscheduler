@@ -4,7 +4,6 @@ import logging
 import time
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
-from cloudscheduler.lib.csv2_config import Config
 
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func

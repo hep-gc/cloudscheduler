@@ -17,6 +17,8 @@ import csv2_defaults
 import csv2_group
 import csv2_help
 import csv2_helpers
+import csv2_metadata
+import csv2_my
 import csv2_job
 import csv2_server
 import csv2_user
@@ -88,6 +90,24 @@ def main(args):
                     'list':                               csv2_job.list,
                     }
                 ],
+            'metadata': [
+                False, # super_user?
+                {
+                    'backup':                             csv2_metadata.backup,
+                    'delete':                             csv2_metadata.delete,
+                    'edit':                               csv2_metadata.edit,
+                    'list':                               csv2_metadata.list,
+                    'load':                               csv2_metadata.load,
+                    'restore':                            csv2_metadata.restore,
+                    'update':                             csv2_metadata.update,
+                    }
+                ],
+            'my': [
+                False, # super_user?
+                {
+                    'settings':                           csv2_my.settings,
+                    }
+                ],
             'server': [
                 True, # super_user?
                 {
@@ -113,6 +133,7 @@ def main(args):
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
+            ('-br',  '--backup-repository', True),
             ('-c',   '--cacerts', True),
             ('-ca',  '--cloud-address', True),
             ('-cc',  '--config-category', True),
@@ -266,9 +287,10 @@ def main(args):
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
     # Set active_group and super_user.
-    if gvar['object'] == 'defaults' or gvar['object'] == 'helpers':
+    if gvar['object'] == 'defaults' or gvar['object'] == 'helpers' or gvar['object'] == 'metadata':
         gvar['active_group'] = '-'
         gvar['super_user'] = False
+        gvar['user_groups'] = []
     else:
         response = requests(gvar, '/settings/prepare/')
 

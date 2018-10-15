@@ -36,7 +36,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "jodiew-ctg2".',
+        gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
         '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg2')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

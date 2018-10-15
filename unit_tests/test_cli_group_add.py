@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "group"',
-        ['cloudscheduler', 'group']
+        ['cloudscheduler', 'group', '-s', 'unit-test']
     )
 
     execute_csv2_command(
@@ -133,8 +133,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg10'), '-gm', 'command-line-group-10', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg10')),
-        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg10'), '-gm', 'command-line-group-10']
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg10'), '-gm', 'command-line-group-10', '-s', 'unit-test']
     )
 
     execute_csv2_command(
