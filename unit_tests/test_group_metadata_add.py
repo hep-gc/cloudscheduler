@@ -136,6 +136,16 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'GV##', 'invalid metadata name',
+        '/group/metadata-add/', form_data={
+            'group': ut_id(gvar, 'gtg5'),
+            'metadata_name': '',
+            'metadata': 'invalid-unit-test',
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty1')),
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg5'),

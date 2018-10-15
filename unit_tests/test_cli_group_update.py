@@ -112,8 +112,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-un', ut_id(gvar, 'clu3,clu7'), '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-un', ut_id(gvar, 'clu3,clu7')]
+        ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-un', ut_id(gvar, 'clu3,clu7'), '-s', 'unit-test']
     )
 
     execute_csv2_command(

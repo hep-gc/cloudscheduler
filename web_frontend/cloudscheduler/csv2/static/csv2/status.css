@@ -1,8 +1,15 @@
 
+
 .status-div {
-  height: 100px;
-  overflow-y: scroll;
+  position: absolute;
+  top: 70px;
+  bottom: 100px;
+  right: 10px;
+  left: 10px;
+  overflow: auto;
+  white-space: nowrap;
 }
+
 
 .status-table th {
   font-weight: bold;
@@ -257,11 +264,9 @@
   width: 100%;
   background-color: white;
   opacity: 1.0;
-
 }
 
 .system-services {
-  padding: 1rem;
   text-align: center;
   font-weight: bold;
 }

@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'metadata-edit']
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

@@ -894,7 +894,6 @@ def status(request, group_name=None):
         system_list["csv2_status_status"] = 1
         # get system status
         s = select([csv2_system_status])
-        #system_list = qt(config.db_connection.execute(s))
         system_list.update(qt(config.db_connection.execute(s))[0])
 
     else:
