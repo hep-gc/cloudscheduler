@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "vm"',
-        ['cloudscheduler', 'vm']
+        ['cloudscheduler', 'vm', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

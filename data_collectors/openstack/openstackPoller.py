@@ -8,7 +8,7 @@ import os
 from dateutil import tz, parser
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
-from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
@@ -129,19 +129,22 @@ def command_poller():
     multiprocessing.current_process().name = "VM Commands"
     last_poll_time = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    VM = Base.classes.csv2_vms
-    CLOUD = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+
+    VM = config.db_map.classes.csv2_vms
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -151,7 +154,8 @@ def command_poller():
         while True:
             logging.info("Beginning command poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
             
             # Retrieve list of VMs to be terminated.
             vm_to_destroy = db_session.query(VM).filter(VM.terminate == 1, VM.manual_control != 1)
@@ -178,40 +182,45 @@ def command_poller():
                     logging.error(exc)
 
             last_poll_time = new_poll_time
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_command)
 
     except Exception as exc:
         logging.exception("Command poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    FLAVOR = Base.classes.cloud_flavors
-    CLOUD = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+
+    FLAVOR = config.db_map.classes.cloud_flavors
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning flavor poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -306,29 +315,33 @@ def flavor_poller():
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
             delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
 
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_flavor)
 
     except Exception as exc:
         logging.exception("Flavor poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    IMAGE = Base.classes.cloud_images
-    CLOUD = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+
+    IMAGE = config.db_map.classes.cloud_images
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -339,8 +352,8 @@ def image_poller():
         while True:
             logging.info("Beginning image poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
-            # db_session.autoflush = False
+            config.db_open()
+            db_session = config.db_session
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -420,49 +433,54 @@ def image_poller():
                         break
 
             if abort_cycle:
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_image)
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
             delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id')
 
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_image)
 
 
     except Exception as exc:
         logging.exception("Image poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 # Retrieve keypairs.
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    KEYPAIR = Base.classes.cloud_keypairs
-    CLOUD = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    KEYPAIR = config.db_map.classes.cloud_keypairs
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning keypair poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -527,47 +545,52 @@ def keypair_poller():
                         break
 
             if abort_cycle:
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_keypair)
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
             delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
 
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_keypair)
 
     except Exception as exc:
         logging.exception("Keypair poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
     Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    LIMIT = Base.classes.cloud_limits
-    CLOUD = Base.classes.csv2_group_resources
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    LIMIT = config.db_map.classes.cloud_limits
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning limit poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -626,7 +649,8 @@ def limit_poller():
 
             del nova
             if abort_cycle:
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_limit)
                 continue
 
@@ -643,41 +667,44 @@ def limit_poller():
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
             delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
 
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_limit)
 
     except Exception as exc:
         logging.exception("Limit poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    NETWORK = Base.classes.cloud_networks
-    CLOUD = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    NETWORK = config.db_map.classes.cloud_networks
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning network poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
-            # db_session.autoflush = False
+            config.db_open()
+            db_session = config.db_session
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -750,50 +777,55 @@ def network_poller():
                         break
 
             if abort_cycle:
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_network)
                 continue
 
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
             delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
 
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_network)
 
     except Exception as exc:
         logging.exception("Network poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 # Retrieve VMs.
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_user,
-            config.db_password,
-            config.db_host,
-            str(config.db_port),
-            config.db_name
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    VM = Base.classes.csv2_vms
-    CLOUD = Base.classes.csv2_group_resources
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_user,
+    #        config.db_password,
+    #        config.db_host,
+    #        str(config.db_port),
+    #        config.db_name
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    VM = config.db_map.classes.csv2_vms
+    CLOUD = config.db_map.classes.csv2_group_resources
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.info("Beginning VM poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            db_session = Session(db_engine)
+            config.db_open()
+            db_session = config.db_session
 
             # For each OpenStack cloud, retrieve and process VMs.
             abort_cycle = False
@@ -873,7 +905,8 @@ def vm_poller():
                         break
 
             if abort_cycle:
-                db_session.close()
+                config.db_close()
+                del db_session
                 time.sleep(config.sleep_interval_vm)
                 continue
 
@@ -881,18 +914,20 @@ def vm_poller():
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time)
 
             logging.info("Completed VM poller cycle")
-            db_session.close()
+            config.db_close()
+            del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_vm)
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        db_session.close()
+        config.db_close()
+        del db_session
 
 ## Main.
 
 if __name__ == '__main__':
-    config = Config(os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
         filename=config.log_file,

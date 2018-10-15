@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'Clouds/Metadata:',
-        ['cloudscheduler', 'cloud', 'metadata-list']
+        ['cloudscheduler', 'cloud', 'metadata-list', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

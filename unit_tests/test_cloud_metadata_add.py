@@ -181,6 +181,16 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
+        gvar, 1, 'CV##', 'invalid metadata name',
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'ctc3'),
+            'metadata_name': '',
+            'metadata': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty1')),
         '/cloud/metadata-add/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),

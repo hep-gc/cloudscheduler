@@ -1,0 +1,51 @@
+
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+{% load template_utils %}
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/config.css" %}">
+
+</head>
+<body class="config-nav">
+
+
+    <div class="main-div">
+
+
+
+
+
+        <form name="config" action="/server/config/" method="post">
+            {% csrf_token %}
+            <table>
+
+                {% for config in config_list %}
+                    
+                    <tr class="highlight1"><td><label for="{{ config.category }}-{{ config.config_key }}">{{ config.category }}-{{ config.config_key }} </label></td>
+                    <td><input type="text" name="enabled" value="{{ config.value }}" /></td></tr>
+
+                {% endfor %}
+
+
+
+
+                
+
+
+                <tr><td><input type="submit" value="Update Config" /></td>
+
+            </table>
+        </form>
+
+    </div>
+
+
+
+
+</body>
+</html>

@@ -36,20 +36,23 @@ def status_poller():
                    }
 
     # Initialize database objects
-    Base = automap_base()
-    db_engine = create_engine(
-        'mysql://%s:%s@%s:%s/%s' % (
-            config.db_config['db_user'],
-            config.db_config['db_password'],
-            config.db_config['db_host'],
-            str(config.db_config['db_port']),
-            config.db_config['db_name']
-            )
-        )
-    Base.prepare(db_engine, reflect=True)
-    STATUS = Base.classes.csv2_system_status
+    #Base = automap_base()
+    #db_engine = create_engine(
+    #    'mysql://%s:%s@%s:%s/%s' % (
+    #        config.db_config['db_user'],
+    #        config.db_config['db_password'],
+    #        config.db_config['db_host'],
+    #        str(config.db_config['db_port']),
+    #        config.db_config['db_name']
+    #        )
+    #    )
+    #Base.prepare(db_engine, reflect=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
-    db_session = Session(db_engine)
+    STATUS = config.db_map.classes.csv2_system_status
+
+    config.db_open()
+    db_session = config.db_session
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -88,6 +91,8 @@ def status_poller():
                 db_session.commit()
             except Exception as exc:
                 logging.exception("Failed to merge and commit status update exiting")
+                config.db_close()
+                del db_session
                 exit(1)
 
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
@@ -95,13 +100,15 @@ def status_poller():
         logging.exception("Problem during general execution:")
         logging.exception(exc)
         logging.error("Exiting..")
+        config.db_close()
+        del db_session
         exit(1)
 
 
 if __name__ == '__main__':
     # old config
     #config = Config(os.path.basename(sys.argv[0]))
-    config = Config(os.path.basename(sys.argv[0]), db_config_dict=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     logging.basicConfig(
         filename=config.log_file,
