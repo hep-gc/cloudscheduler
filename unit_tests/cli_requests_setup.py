@@ -43,7 +43,8 @@ def main(gvar, user_secret):
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'clg1'),
             'condor_central_manager': 'unit-test-group-one.ca',
-            'username': ut_id(gvar, '')[:-1]
+            'username.1': ut_id(gvar, '')[:-1],
+            'username.2': ut_id(gvar, 'test'),
         }
     )
 
@@ -226,12 +227,6 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yes'
         }
-    )
-
-    # set default profile
-    execute_csv2_command(
-        gvar, 0, None, None,
-        ['cloudscheduler', 'user', 'list', '-s', 'unit-test']
     )
 
 if __name__ == "__main__":

@@ -8,10 +8,10 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
         else:
             initialize_csv2_request(gvar, sys.argv[0])
-    
+
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "defaults"',
-        ['cloudscheduler', 'defaults']
+        ['cloudscheduler', 'defaults', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

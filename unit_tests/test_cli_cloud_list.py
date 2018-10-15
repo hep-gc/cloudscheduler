@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'cloud', 'list', '-xx', 'yy']
+        ['cloudscheduler', 'cloud', 'list', '-xx', 'yy', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

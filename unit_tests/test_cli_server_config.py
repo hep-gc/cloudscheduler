@@ -10,7 +10,19 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
         else:
             initialize_csv2_request(gvar, sys.argv[0])
-    
+
+    # set profile
+    execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "server";',
+        ['cloudscheduler', 'server', 'config', '-s', 'unit-test-un']
+    )
+
+    # set profile
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'server', 'config', '-s', 'unit-test']
+    )
+
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, '')[:-1]),
         ['cloudscheduler', 'server', 'config']

@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'delete']
+        ['cloudscheduler', 'group', 'delete', '-s', 'unit-test']
     )
 
     execute_csv2_command(
@@ -67,8 +67,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3'), '-Y', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'clg3')),
-        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3'), '-Y']
+        ['cloudscheduler', 'group', 'delete', '-gn', ut_id(gvar, 'clg3'), '-Y', '-s', 'unit-test']
     )
 
     execute_csv2_command(
