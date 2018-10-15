@@ -28,7 +28,7 @@ def build_mapping_dictionaries():
     global rowid_dict
     global attr_list_dict
 
-    config = Config('db_only', db_config_dict=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'db_only', db_config_dict=True)
 
     Base = automap_base()
     engine = create_engine("mysql+pymysql://" + config.db_config['db_user'] + ":" + config.db_config['db_password'] + \

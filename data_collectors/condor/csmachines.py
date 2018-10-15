@@ -79,14 +79,16 @@ def machine_poller():
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
-            condor_hosts_set = {} # use a set here so we dont re-query same host if multiple groups have same host
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
+            logging.info("HOST SET: %s" % condor_hosts_set)
             for condor_host in condor_hosts_set:
+                logging.info("Polling condor host: %s" % condor_host)
                 try:
                     condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping...:" % )
+                    logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.error(exc)
                     continue
 
@@ -103,12 +105,9 @@ def machine_poller():
                 except Exception as exc:
                     # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
                     # instead of simpyl handling the error and trying again
-                    logging.error("Failed to get machines from condor queue, aborting poller")
+                    logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
                     logging.error(exc)
-                    del condor_session
-                    config.db_close()
-                    del db_session
-                    exit(1)
+                    continue
 
                 abort_cycle = False
                 uncommitted_updates = 0
@@ -175,7 +174,6 @@ def machine_poller():
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
         logging.error(exc)
-        del condor_session
         config.db_close()
         del db_session
 
@@ -209,14 +207,14 @@ def command_poller():
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
-            condor_hosts_set = {} # use a set here so we dont re-query same host if multiple groups have same host
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
             for condor_host in condor_hosts_set:
                 try:
                     condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping...:" % )
+                    logging.exception("Failed to locate condor daemon, skipping...:")
                     logging.error(exc)
                     continue
 
@@ -294,7 +292,6 @@ def command_poller():
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
-        del condor_session
         config.db_close()
         del db_session
 
@@ -312,7 +309,7 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'command':            command_poller,
+#        'command':            command_poller,
         'machine':            machine_poller,
         }
 
@@ -337,4 +334,4 @@ if __name__ == '__main__':
         try:
             process.join()
         except:
-            logging.error("failed to join process %s", process.name)
+            logging.error("failed to join process %s", process)
