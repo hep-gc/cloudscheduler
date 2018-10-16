@@ -125,7 +125,7 @@ def configuration(request):
 
     if message and message[:2] == 'SV':
         config_list = []
-        config_uniq = []
+        config_categories = []
         response_code = 1
     else:
         s = select([csv2_configuration])
