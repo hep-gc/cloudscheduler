@@ -276,7 +276,7 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-#        'command':            command_poller,
+        'command':            command_poller,
         'job':                job_poller,
         }
 
