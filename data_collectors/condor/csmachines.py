@@ -43,7 +43,6 @@ def machine_poller():
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
-    fail_count = 0
     # Initialize database objects
     #Base = automap_base()
     #db_engine = create_engine(
@@ -82,7 +81,7 @@ def machine_poller():
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
-            logging.info("HOST SET: %s" % condor_hosts_set)
+
             for condor_host in condor_hosts_set:
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
@@ -309,7 +308,7 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-#        'command':            command_poller,
+        'command':            command_poller,
         'machine':            machine_poller,
         }
 
