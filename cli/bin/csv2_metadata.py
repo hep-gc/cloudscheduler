@@ -293,14 +293,17 @@ def backup(gvar):
 
     # Retrieve data to backup for each cloudscheduler server.
     fetched = {}
-    for server in servers['settings']:
+    for server in sorted(servers['settings']):
         host, host_dir = _set_host(gvar, servers, server)
         if host not in fetched:
             fetched[host] = {}
 
+        # Save the initital server group so it can be restored later.
         response = requests(gvar, '/settings/prepare/')
+        servers['initial_server_group'] = gvar['active_group']
+
         groups = gvar['user_groups']
-        for group in groups:
+        for group in sorted(groups):
             if group in fetched[host]:
                 continue
 
@@ -327,6 +330,9 @@ def backup(gvar):
             for metadata in response['cloud_metadata_list']:
                 metadata_dir = '%s/metadata' % cloud_dir
                 _create_backup_file(gvar, '%s/%s' % (metadata_dir, metadata['metadata_name']), metadata)
+
+        # Restore the server's initial group.
+        response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
 
     _update_git(gvar, 'post')
 
