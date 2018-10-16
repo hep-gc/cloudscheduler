@@ -56,6 +56,7 @@ def job_poller():
     delete_cycle = True
     cycle_count = 0
     condor_inventory_built = False
+    uncommitted_updates = 0
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
@@ -171,8 +172,6 @@ def job_poller():
                 delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time)
                 delete_cycle = False
 
-            del condor_session
-            del job_list
             config.db_close()
             del db_session
             cycle_count = cycle_count + 1
@@ -277,7 +276,7 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'command':            command_poller,
+#        'command':            command_poller,
         'job':                job_poller,
         }
 
