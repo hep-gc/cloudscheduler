@@ -2,6 +2,7 @@ from csv2_common import check_keys, requests, show_active_user_groups, show_tabl
 from subprocess import Popen, PIPE
 
 from getpass import getuser
+from shutil import rmtree
 from tempfile import mkdtemp
 
 import filecmp
@@ -335,6 +336,9 @@ def backup(gvar):
         response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
 
     _update_git(gvar, 'post')
+
+    if gvar['temp_dir']:
+        rmtree(gvar['temp_dir'])
 
 def delete(gvar):
     return metadata_delete(gvar)
