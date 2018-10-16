@@ -66,6 +66,11 @@ def main(gvar):
 
     execute_csv2_request(
         gvar, None, None, None,
+        '/user/delete/', form_data={'username': ut_id(gvar, 'test')}
+    )
+
+    execute_csv2_request(
+        gvar, None, None, None,
         '/user/delete/', form_data={'username': 'invalid-unit-test'}
     )
 
