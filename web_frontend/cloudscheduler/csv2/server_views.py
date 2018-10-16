@@ -110,7 +110,7 @@ def configuration(request):
                         message = '{} server config must specify at least one field to update.'.format(lno('SV00'))
                     else:
                         for field in fields:
-                            rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
+                            rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.config_value:fields[field]}))
                             if rc != 0:
                                 config.db_session.rollback()
                                 message = '{} server config update failed - {}'.format(lno('SV01'), msg)
@@ -125,16 +125,14 @@ def configuration(request):
 
     if message and message[:2] == 'SV':
         config_list = []
+        config_categories = []
         response_code = 1
     else:
         s = select([csv2_configuration])
         config_list = qt(config.db_connection.execute(s))
+        config_categories = list({v['category']:v for v in config_list})
         response_code = 0
 
-        #config_list = qt(config.db_connection.execute(s), keys={
-        #'primary': ['config_key'],
-        #'secondary': ['value']
-        #})
 
     config.db_close()
 
@@ -144,6 +142,7 @@ def configuration(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'config_list': config_list,
+            'config_categories': config_categories,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint
