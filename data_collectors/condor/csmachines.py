@@ -239,7 +239,7 @@ def command_poller():
                     db_session.merge(resource)
                     uncommitted_updates = uncommitted_updates + 1
 
-                    if uncommitted_updates >= 50:
+                    if uncommitted_updates >= config.batch_commit_size:
                          try:
                             db_session.commit()
                             uncommitted_updates = 0
