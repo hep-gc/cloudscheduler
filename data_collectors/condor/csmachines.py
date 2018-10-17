@@ -228,7 +228,7 @@ def command_poller():
 
             # Query database for machines to be retired.
             abort_cycle = False
-            uncommitted_updates = False
+            uncommitted_updates = 0
             for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
                 logging.info("Retiring machine %s" % resource.name)
                 try:
@@ -237,7 +237,18 @@ def command_poller():
 
                     resource.retired_time = int(time.time())
                     db_session.merge(resource)
-                    uncommitted_updates = True
+                    uncommitted_updates = uncommitted_updates + 1
+
+                    if uncommitted_updates >= 50:
+                         try:
+                            db_session.commit()
+                            uncommitted_updates = 0
+                        except Exception as exc:
+                            logging.exception("Failed to commit batch of retired machines, aborting cycle...")
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+
                 except Exception as exc:
                     logging.exception("Failed to retire machine, rebooting command poller...")
                     logging.error(exc)
@@ -250,7 +261,7 @@ def command_poller():
                 time.sleep(config.sleep_interval_command)
                 continue
 
-            if uncommitted_updates:
+            if uncommitted_updates > 0:
                 try:
                     db_session.commit()
                 except Exception as exc:
