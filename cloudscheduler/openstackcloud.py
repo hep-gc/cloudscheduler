@@ -99,7 +99,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
 
         # Check image from job, else use cloud default, else global default
         imageobj = None
-        image_dict = self._attr_list_to_dict(job.image)
+        image_dict = self._attr_list_to_dict(job.images)
         try:
             if job.image and self.name in image_dict.keys():
                 imageobj = nova.glance.find_image(image_dict[self.name])
@@ -128,7 +128,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             elif 'default' in instancetype_dict.keys():
                 flavorl = nova.flavors.find(name=instancetype_dict['default'])
             elif flavor:
-                flavorl = nova.flavors.find(name=flavor.split('::')[2])
+                flavorl = nova.flavors.find(name=flavor.split(':')[1])
             elif self.default_flavor:
                 flavorl = nova.flavors.find(name=self.default_flavor)
             else:
