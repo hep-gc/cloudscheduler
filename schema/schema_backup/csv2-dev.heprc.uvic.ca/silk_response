@@ -16,27 +16,24 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_mime_types`
+-- Table structure for table `silk_response`
 --
 
-DROP TABLE IF EXISTS `csv2_mime_types`;
+DROP TABLE IF EXISTS `silk_response`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_mime_types` (
-  `mime_type` varchar(32) NOT NULL,
-  PRIMARY KEY (`mime_type`)
+CREATE TABLE `silk_response` (
+  `id` varchar(36) NOT NULL,
+  `status_code` int(11) NOT NULL,
+  `raw_body` longtext NOT NULL,
+  `body` longtext NOT NULL,
+  `encoded_headers` longtext NOT NULL,
+  `request_id` varchar(36) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `request_id` (`request_id`),
+  CONSTRAINT `silk_response_request_id_1e8e2776_fk_silk_request_id` FOREIGN KEY (`request_id`) REFERENCES `silk_request` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `csv2_mime_types`
---
-
-LOCK TABLES `csv2_mime_types` WRITE;
-/*!40000 ALTER TABLE `csv2_mime_types` DISABLE KEYS */;
-INSERT INTO `csv2_mime_types` VALUES ('cloud-config'),('ucernvm-config');
-/*!40000 ALTER TABLE `csv2_mime_types` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

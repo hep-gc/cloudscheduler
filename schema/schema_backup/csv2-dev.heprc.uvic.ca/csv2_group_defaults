@@ -1,8 +1,8 @@
--- MySQL dump 10.16  Distrib 10.2.15-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.2.18-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
--- Server version	10.2.15-MariaDB
+-- Server version	10.2.18-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -29,10 +29,10 @@ CREATE TABLE `csv2_group_defaults` (
   `job_disk` int(11) NOT NULL DEFAULT 5,
   `job_scratch` int(11) NOT NULL DEFAULT 0,
   `job_swap` int(11) NOT NULL DEFAULT 0,
-  `vm_flavor` varchar(64) DEFAULT NULL,
-  `vm_image` varchar(64) DEFAULT NULL,
-  `vm_keep_alive` int(11) DEFAULT NULL,
-  `vm_network` varchar(64) DEFAULT NULL,
+  `vm_flavor` varchar(64) NOT NULL DEFAULT '',
+  `vm_image` varchar(64) NOT NULL DEFAULT '',
+  `vm_keep_alive` int(11) NOT NULL DEFAULT 0,
+  `vm_network` varchar(64) NOT NULL DEFAULT '',
   PRIMARY KEY (`group_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -46,4 +46,4 @@ CREATE TABLE `csv2_group_defaults` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-09-28  7:56:09
+-- Dump completed on 2018-10-18 10:38:06

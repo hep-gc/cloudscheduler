@@ -16,27 +16,39 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_mime_types`
+-- Table structure for table `csv2_system_status`
 --
 
-DROP TABLE IF EXISTS `csv2_mime_types`;
+DROP TABLE IF EXISTS `csv2_system_status`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_mime_types` (
-  `mime_type` varchar(32) NOT NULL,
-  PRIMARY KEY (`mime_type`)
+CREATE TABLE `csv2_system_status` (
+  `id` int(1) NOT NULL,
+  `csv2_main_status` tinyint(1) NOT NULL,
+  `csv2_main_msg` varchar(512) NOT NULL,
+  `mariadb_status` tinyint(1) NOT NULL,
+  `mariadb_msg` varchar(512) NOT NULL,
+  `csv2_openstack_status` tinyint(1) NOT NULL,
+  `csv2_openstack_msg` varchar(512) NOT NULL,
+  `csv2_jobs_status` tinyint(1) NOT NULL,
+  `csv2_jobs_msg` varchar(512) NOT NULL,
+  `csv2_machines_status` tinyint(1) NOT NULL,
+  `csv2_machines_msg` varchar(512) NOT NULL,
+  `condor_status` tinyint(1) NOT NULL,
+  `condor_msg` varchar(512) NOT NULL,
+  `load` float NOT NULL,
+  `ram` float NOT NULL,
+  `ram_size` float NOT NULL,
+  `ram_used` float NOT NULL,
+  `swap` float NOT NULL,
+  `swap_size` float NOT NULL,
+  `swap_used` float NOT NULL,
+  `disk` float NOT NULL,
+  `disk_size` float NOT NULL,
+  `disk_used` float NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `csv2_mime_types`
---
-
-LOCK TABLES `csv2_mime_types` WRITE;
-/*!40000 ALTER TABLE `csv2_mime_types` DISABLE KEYS */;
-INSERT INTO `csv2_mime_types` VALUES ('cloud-config'),('ucernvm-config');
-/*!40000 ALTER TABLE `csv2_mime_types` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
