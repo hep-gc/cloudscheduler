@@ -33,8 +33,8 @@ from (
     cgr.vm_keep_alive,
     cgr.vm_network,
 
-    case when cgr.vm_flavor is null or cgr.vm_flavor='' then
-        case when cgd.vm_flavor is null or cgr.vm_flavor='' then
+    case when ifnull(cgr.vm_flavor,'')='' then
+        case when ifnull(cgd.vm_flavor,'')='' then
             null
         else
             cgd.vm_flavor
@@ -43,8 +43,8 @@ from (
         cgr.vm_flavor
     end as cascading_vm_flavor,
 
-    case when cgr.vm_image is null or cgr.vm_image='' then
-        case when cgd.vm_image is null or cgr.vm_image='' then
+    case when ifnull(cgr.vm_image,'')='' then
+        case when ifnull(cgd.vm_image,'')='' then
             null
         else
             cgd.vm_image
@@ -53,8 +53,8 @@ from (
         cgr.vm_image
     end as cascading_vm_image,
 
-    case when cgr.vm_keep_alive is null or cgr.vm_keep_alive=-1 then
-        case when cgd.vm_keep_alive is null or cgd.vm_keep_alive=-1 then
+    case when ifnull(cgr.vm_keep_alive,'')='' then
+        case when ifnull(cgd.vm_keep_alive,'')='' then
             0
         else
             cgd.vm_keep_alive
@@ -63,8 +63,8 @@ from (
         cgr.vm_keep_alive
     end as cascading_vm_keep_alive,
 
-    case when cgr.vm_network is null or cgr.vm_network='' then
-        case when cgd.vm_network is null or cgr.vm_network='' then
+    case when ifnull(cgr.vm_network,'')='' then
+        case when ifnull(cgd.vm_network,'')='' then
             null
         else
             cgd.vm_network

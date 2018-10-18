@@ -14,9 +14,9 @@ from (
         vgr.cloud_name,
         vgr.enabled,
         vgr.spot_price,
-        vgr.cascading_vm_image as default_image,
+        concat(vgr.cloud_name, ":", vgr.cascading_vm_image) as default_image,
         vgr.cascading_vm_keep_alive as keep_alive,
-        vgr.cascading_vm_network as default_network,
+        concat(vgr.cloud_name, ":", vgr.cascading_vm_network) as default_network,
         authurl,
         project,
         username,
@@ -59,18 +59,14 @@ from (
         vgr.group_name,
         vgr.cloud_name
         order by
-        flavor_cores,
-        flavor_disk,
-        flavor_enduring_disk,
-        flavor_ephemeral_disk,
-        flavor_ram,
-        flavor_swap
+            flavor_cores,
+            flavor_disk,
+            flavor_enduring_disk,
+            flavor_ephemeral_disk,
+            flavor_ram,
+            flavor_swap
         ) as flavor_priority,
-
-        /*
-        ** User the concat() DB function to create (a unique ID for the) flavor.
-        */
-        concat(vgr.group_name, "::", vgr.cloud_name, "::", cf.name) as flavor
+        concat(vgr.cloud_name, ":", cf.name) as flavor
 
         from view_group_resources as vgr
         join cloud_flavors as cf on
