@@ -18,6 +18,14 @@ KEY_MAP = {
 
 COMMAS_TO_NL = str.maketrans(',','\n')
 
+def _conditionally_restore_a_file(gvar, path, metadata):
+    """
+    If ....
+    """
+
+    if path in gvar['backup_path_list']:
+        del gvar['backup_path_list'][path]
+
 def _create_backup_file(gvar, path, metadata):
     """
     Open the backup file (for writing), making the directory if necessary, and return the file descriptor.
@@ -95,6 +103,19 @@ def _create_backup_file(gvar, path, metadata):
                 stdout=PIPE, stderr=PIPE
                 )
             stdout, stderr = p.communicate()
+
+def _get_backup_path_list(gvar, dir_path):
+    """
+    Scan the backup repository saving a list of all file paths.
+    """
+
+    for item in os.listdir(dir_path):
+        current_path = '%s/%s' % (dir_path, item)
+        if os.path.isdir(current_path) and item[0] != '.':
+            _get_backup_path_list(gvar, current_path)
+        elif os.path.isfile(current_path) and item [0] != '.':
+            gvar['backup_path_list'][current_path] = True
+
 
 def _get_repository_and_servers(gvar):
     """
@@ -251,7 +272,7 @@ def _update_git(gvar, msg):
                     'git',
                     'commit',
                     '-am',
-                    '%s-backup commit by %s' % (msg, getuser())
+                    '%s commit by %s' % (msg, getuser())
                     ],
                 cwd=gvar['user_settings']['backup-repository'], stdout=PIPE, stderr=PIPE
                 )
@@ -284,7 +305,7 @@ def backup(gvar):
         optional)
 
     # If the backup directory is an encrypted git repository, create a working temorary directory.
-    _update_git(gvar, 'pre')
+    _update_git(gvar, 'pre-backup')
 
     # If the backup directory is an encrypted git repository, create a working temorary directory.
     if 'backup-key' in gvar['user_settings'] and os.path.exists('%s/.git' % gvar['user_settings']['backup-repository']):
@@ -335,7 +356,7 @@ def backup(gvar):
         # Restore the server's initial group.
         response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
 
-    _update_git(gvar, 'post')
+    _update_git(gvar, 'post-backup')
 
     if gvar['temp_dir']:
         rmtree(gvar['temp_dir'])
@@ -357,15 +378,20 @@ def load(gvar):
 
 def restore(gvar):
     """
-    Restore selected user data.
+    Restore user data.
     """
 
     mandatory = []
     required = ['-br']
-    optional = []
+    optional = ['-bk', '-xA']
+    servers = {}
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
+
+    # Retrieve the backup repository and all server information.
+    servers['settings'], servers['xref'] = _get_repository_and_servers(gvar)
+    print(servers['xref'])
 
     # Check for missing arguments or help required.
     check_keys(
@@ -373,6 +399,67 @@ def restore(gvar):
         mandatory,
         required,
         optional)
+
+    # If the backup directory is an encrypted git repository, create a working temorary directory.
+#   _update_git(gvar, 'pre-restore')
+
+    # If the backup directory is an encrypted git repository, create a working temorary directory.
+    gvar['backup_path_list'] = {}
+    _get_backup_path_list(gvar, gvar['user_settings']['backup-repository'])
+
+    # If the backup directory is an encrypted git repository, create a working temorary directory.
+    gvar['temp_dir'] = mkdtemp()
+
+    # Retrieve data to backup for each cloudscheduler server.
+    fetched = {}
+    for server in sorted(servers['settings']):
+        host, host_dir = _set_host(gvar, servers, server)
+        if host not in fetched:
+            fetched[host] = {}
+
+        # Save the initital server group so it can be restored later.
+        response = requests(gvar, '/settings/prepare/')
+        servers['initial_server_group'] = gvar['active_group']
+
+        groups = gvar['user_groups']
+        for group in sorted(groups):
+            if group in fetched[host]:
+                continue
+
+            fetched[host][group] = True
+
+            response = requests(gvar, '/settings/prepare/', {'group': group})
+            group_dir = '%s/groups/%s' % (host_dir, group)
+
+            print('Checking: server=%s, group=%s' % (server, group))
+            response = requests(gvar, '/group/defaults/')
+            _conditionally_restore_a_file(gvar, '%s/defaults' % group_dir, response['defaults_list'])
+
+            response = requests(gvar, '/group/metadata-list/')
+            for metadata in response['group_metadata_list']:
+                metadata_dir = '%s/metadata' % group_dir
+                _conditionally_restore_a_file(gvar, '%s/%s' % (metadata_dir, metadata['metadata_name']), metadata)
+
+            response = requests(gvar, '/cloud/list/')
+            for cloud in response['cloud_list']:
+                cloud_dir = '%s/clouds/%s' % (group_dir, cloud['cloud_name'])
+                _conditionally_restore_a_file(gvar, '%s/settings' % cloud_dir, cloud)
+
+            response = requests(gvar, '/cloud/metadata-list/')
+            for metadata in response['cloud_metadata_list']:
+                metadata_dir = '%s/metadata' % cloud_dir
+                _conditionally_restore_a_file(gvar, '%s/%s' % (metadata_dir, metadata['metadata_name']), metadata)
+
+        # Restore the server's initial group.
+        response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
+
+    # Conditionally restore backup files missing on the server.
+    for path in sorted(gvar['backup_path_list']):
+        _conditionally_restore_a_file(gvar, path, None)
+
+#   _update_git(gvar, 'post-restore')
+
+    rmtree(gvar['temp_dir'])
 
 def update(gvar):
     return metadata_update(gvar)
