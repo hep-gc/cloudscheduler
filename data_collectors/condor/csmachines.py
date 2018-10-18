@@ -240,7 +240,7 @@ def command_poller():
                     uncommitted_updates = uncommitted_updates + 1
 
                     if uncommitted_updates >= config.batch_commit_size:
-                         try:
+                        try:
                             db_session.commit()
                             uncommitted_updates = 0
                         except Exception as exc:
