@@ -1,13 +1,6 @@
 
 
-/* Style the search box inside the navigation bar */
-.menu input[type=text] {
-    float: right;
-    padding: 6px;
-    border: none;
-    margin-top: 8px;
-    margin-right: 16px;
-}
+
 
 .lists {
 	position: fixed;
@@ -20,6 +13,3 @@
 .lists ul {
   list-style-type: none;
 }
-
-
-
