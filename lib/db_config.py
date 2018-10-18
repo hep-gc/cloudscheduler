@@ -31,10 +31,10 @@ class Config:
                 db_config['db_table'] = 'configuration'
 
         if db_config_dict:
-            self.__dict__['db_config'] = db_config
+            self.db_config = db_config
 
         # Open the database.
-        self.__dict__['db_engine'] = create_engine(
+        self.db_engine = create_engine(
             'mysql://%s:%s@%s:%s/%s' % (
                 db_config['db_user'],
                 db_config['db_password'],
@@ -45,9 +45,9 @@ class Config:
             isolation_level="READ_COMMITTED"
             )
 
-        self.__dict__['db_connection'] = None
-        self.__dict__['db_map'] = automap_base()
-        self.__dict__['db_map'].prepare(self.__dict__['db_engine'], reflect=True)
+        self.db_connection = None
+        self.db_map = automap_base()
+        self.db_map.prepare(self.db_engine, reflect=True)
 
         # Retrieve the configuration for the specified category.
         if isinstance(categories, str):
@@ -55,10 +55,10 @@ class Config:
         else:
             category_list = categories
 
-        self.__dict__['db_session'] = Session(self.__dict__['db_engine'])
+        self.db_session = Session(self.db_engine)
         for category in category_list:
-            rows = self.__dict__['db_session'].query(self.__dict__['db_map'].classes[db_config['db_table']]).filter(
-                self.__dict__['db_map'].classes[db_config['db_table']].category == category
+            rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
+                self.db_map.classes[db_config['db_table']].category == category
                 )
 
             for row in rows:
@@ -74,8 +74,8 @@ class Config:
                     self.__dict__[row.config_key] = row.config_value
 
         # Close the session.
-        self.__dict__['db_session'].close()
-        self.__dict__['db_session'] = None
+        self.db_session.close()
+        self.db_session = None
 
 #-------------------------------------------------------------------------------
 
