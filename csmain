@@ -129,7 +129,7 @@ def main():
                 # ie vms[cloud-name][flavor] = 6
                 runnable_job_count = 0
                 for flavor in num_jobs_per_flavor_possible.keys():
-                    (group, cloud_name, flavor_name) = flavor.split('::')
+                    (group, cloud_name, flavor_name) = flavor.split(':')
                     runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]
                 log.debug("Runnable_job_count before: %s", runnable_job_count)
                 runnable_job_count -= idle_job.running  # Subtract the already running jobs
@@ -175,7 +175,7 @@ def main():
                         try:
                             if cm_group.clouds[cloud.cloud_name].enabled:
                                 use_image = None
-                                if idle_job.image:
+                                if idle_job.images:
                                     use_image = None
                                 elif cloud.default_image:
                                     use_image = cloud.default_image
