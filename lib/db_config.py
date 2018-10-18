@@ -41,7 +41,8 @@ class Config:
                 db_config['db_host'],
                 str(db_config['db_port']),
                 db_config['db_name']
-                )
+                ),
+            isolation_level="READ_COMMITTED"
             )
 
         self.__dict__['db_connection'] = None

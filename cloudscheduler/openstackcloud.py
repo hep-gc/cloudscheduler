@@ -138,7 +138,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         # Deal with network if needed
         netid = []
         network = None
-        network_dict = self._attr_list_to_dict(job.network)
+        network_dict = self._attr_list_to_dict(job.networks)
         if network_dict and self.name in network_dict.keys():
             if len(network_dict[self.name].split('-')) == 5:  # uuid
                 netid = [{'net-id': network_dict[self.name]}]
