@@ -181,7 +181,7 @@ def update(request):
             elif fields['vm_option'] == 'sysctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
 
-            rc, msg = db_session_execute(config, update, allow_no_rows=True)
+            rc, msg = config.db_session_execute(update, allow_no_rows=True)
             if rc == 0:
                 count += msg
             else:
