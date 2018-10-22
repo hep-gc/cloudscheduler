@@ -49,7 +49,6 @@
 
 <div class="status-div">
 
-
     <div class="status-table">
         <table>
           <colgroup>
@@ -138,17 +137,17 @@
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="native-style">Slots</th>
-                <th class="native-style">Busy Cores</th>
-                <th class="native-style">Native Cores</th>
+                <th class="native-style">Busy<br>Cores</th>
+                <th class="native-style">Cores<br>Limit</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
-                <th class="foreign-style">Foreign VMs</th>
-                <th class="foreign-style">Foreign Cores</th>
+                <th class="foreign-style">Foreign<br>VMs</th>
+                <th class="foreign-style">Foreign<br>Cores</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
-                <th class="total-style" tooltip="Total used cores over total cores on cloud.">Total Cores</th>
+                <th class="total-style" tooltip="Total used cores over total cores on cloud.">Cores<br>Quota</th>
 
 
             </tr>
@@ -239,9 +238,9 @@
                         {% endif %}
 
                         {% if cloud.cores_ctl == -1 %}
-                            <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_native}}</td>
+                            <td class="sysctl-style" tooltip="Max cores set to system control (-1).">{{cloud.cores_limit}}</td>
                         {% else %}
-                            <td class="manual-style" tooltip="Max cores set to manual control.">{{cloud.cores_ctl}}</td>
+                            <td class="manual-style" tooltip="Max cores set to manual control.">{{cloud.cores_limit}}</td>
                         {% endif %}
 
 
@@ -259,7 +258,7 @@
                         <td>{{cloud.cores_foreign}}</td>
 
                         <td class="col-spacer">&nbsp;</td>
-                        <td>{{cloud.cores_native|add:cloud.cores_foreign}}</td>
+                        <td>{{cloud.cores_max}}</td>
 
                     </tr>
                 {% endif %}
@@ -348,7 +347,7 @@
 
 
                 <td class="bold-style">{{cloud_total_list.cores_busy}}</td>
-                <td class="bold-style">{{cloud_total_list.cores_native}}</td>
+                <td class="bold-style">{{cloud_total_list.cores_limit}}</td>
 
 
                 <td class="col-spacer">&nbsp;</td>
@@ -368,7 +367,7 @@
 
 
                 <td class="col-spacer">&nbsp;</td>
-                <td class="bold-style">{{cloud_total_list.cores_all}}</td>
+                <td class="bold-style">{{cloud_total_list.cores_max}}</td>
             </tr>
             </tbody> 
         </table>
