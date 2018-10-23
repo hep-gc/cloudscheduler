@@ -84,7 +84,8 @@ iframe {
 .tab2 {
   position: relative;
   margin-bottom: 1px;
-  width: 100%;
+  padding-left: 10;
+  padding-right: 10;
   overflow: hidden;
 }
 .tab2 > input {
@@ -106,7 +107,7 @@ iframe {
   position: fixed;
   top:60;
   bottom:0;
-  left:700;
+  left:650;
   right:10;
   max-height: 0;
   overflow: auto;

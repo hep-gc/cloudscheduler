@@ -96,6 +96,7 @@ def main(args):
                     'backup':                             csv2_metadata.backup,
                     'delete':                             csv2_metadata.delete,
                     'edit':                               csv2_metadata.edit,
+                    'group-defaults':                     csv2_metadata.group,
                     'list':                               csv2_metadata.list,
                     'load':                               csv2_metadata.load,
                     'restore':                            csv2_metadata.restore,
@@ -133,6 +134,7 @@ def main(args):
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
+            ('-bk',  '--backup-key', True),
             ('-br',  '--backup-repository', True),
             ('-c',   '--cacerts', True),
             ('-ca',  '--cloud-address', True),

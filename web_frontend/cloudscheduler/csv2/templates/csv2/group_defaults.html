@@ -31,6 +31,14 @@
             }
         }
 
+        function meta_new(groupname) {
+
+            var url='/group/metadata-new/'+groupname
+            var frame='editor-'+groupname+'-add'
+
+            document.getElementById(frame).src=url;
+        }
+
         function show_group(group_name){
             if (group_name.length > 0) {
                 document.location.hash = group_name;
@@ -156,12 +164,15 @@
 
                                 <form name="{{ group.group_name }}-add" action="/group/metadata-add/" method="post">
                                 {% csrf_token %}
-                                
+                                    <table>
                                     <input type="hidden" name="group_name" value="{{ group.group_name }}">
 
-                                    <label for="metadata_name">METADATA name</label>
-                                    <input type="text" name="metadata_name" value="">
-                                    <input type="submit" id="update" value="Update">
+
+                                    <tr><td><label for="metadata_name">METADATA name</label></td>
+                                    <td><input type="text" name="metadata_name" value=""/></td></tr>
+                                    <tr><td></td>
+                                    <td><input type="submit" id="update" value="Update"></td></tr>
+                                    </table>
                                     <br>
                                     <textarea name="metadata" id="{{group.group_name}}editor"></textarea>
 

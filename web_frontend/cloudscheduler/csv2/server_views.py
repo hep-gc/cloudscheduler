@@ -41,9 +41,11 @@ CONFIG_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
+        'batch_commit_size':            'integer',
         'category':                     ('csv2_configuration', 'category'),
         'delete_cycle_interval':        'integer',
         'enable_glint':                 ['True', 'False'],
+        'enable_profiling':             ['True', 'False'],
         'log_level':                    'integer',
         'no_limit_default':             'integer',
         'sleep_interval_cleanup':       'integer',
@@ -57,6 +59,7 @@ CONFIG_KEYS = {
         'sleep_interval_main_long':     'integer',
         'sleep_interval_main_short':    'integer',
         'sleep_interval_network':       'integer',
+        'sleep_interval_status':        'integer',
         'sleep_interval_vm':            'integer',
 
         'config_key':                   'reject',
@@ -110,7 +113,7 @@ def configuration(request):
                         message = '{} server config must specify at least one field to update.'.format(lno('SV00'))
                     else:
                         for field in fields:
-                            rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.value:fields[field]}))
+                            rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.config_value:fields[field]}))
                             if rc != 0:
                                 config.db_session.rollback()
                                 message = '{} server config update failed - {}'.format(lno('SV01'), msg)
@@ -125,16 +128,14 @@ def configuration(request):
 
     if message and message[:2] == 'SV':
         config_list = []
+        config_categories = []
         response_code = 1
     else:
         s = select([csv2_configuration])
         config_list = qt(config.db_connection.execute(s))
+        config_categories = list({v['category']:v for v in config_list})
         response_code = 0
 
-        #config_list = qt(config.db_connection.execute(s), keys={
-        #'primary': ['config_key'],
-        #'secondary': ['value']
-        #})
 
     config.db_close()
 
@@ -144,6 +145,7 @@ def configuration(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'config_list': config_list,
+            'config_categories': config_categories,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint

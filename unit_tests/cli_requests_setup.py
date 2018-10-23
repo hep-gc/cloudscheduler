@@ -37,6 +37,18 @@ def main(gvar, user_secret):
         }
     )
 
+    # user for unprivleged tests
+    execute_csv2_request(
+        gvar, 0, None, None,
+        '/user/add/', form_data={
+            'username': ut_id(gvar, 'test'),
+            'password1': user_secret,
+            'password2': user_secret,
+            'cert_cn': ut_id(gvar, 'test'),
+            'is_superuser': 0,
+        }
+    )
+
     # group with users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg1')),
@@ -227,6 +239,11 @@ def main(gvar, user_secret):
             'metadata_name': ut_id(gvar, 'clm2.yaml'),
             'metadata': '- example: yes'
         }
+    )
+    
+    execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'defaults', 'set', '-s', 'unit-test-un', '-su', ut_id(gvar, 'test'), '-spw', user_secret]
     )
 
 if __name__ == "__main__":

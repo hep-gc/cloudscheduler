@@ -78,6 +78,7 @@ def job_poller():
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
 
+            uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
@@ -109,7 +110,6 @@ def job_poller():
 
                 # Process job data & insert/update jobs in Database
                 abort_cycle = False
-                uncommitted_updates = 0
                 for job_ad in job_list:
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
@@ -203,6 +203,7 @@ def command_poller():
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
 
+            uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
                 try:
                     coll = htcondor.Collector(condor_host)
@@ -215,7 +216,6 @@ def command_poller():
 
                 #Query database for any entries that have a command flag
                 abort_cycle = False
-                uncommitted_updates = False
                 for job in db_session.query(Job).filter(Job.hold_job_reason != None):
                     logging.info("Holding job %s, reason=%s" % (job.global_job_id, job.hold_job_reason))
                     local_job_id = job.global_job_id.split('#')[1]
@@ -226,7 +226,18 @@ def command_poller():
                         job.job_status = 5
                         job.hold_job_reason = None
                         db_session.merge(job)
-                        uncommitted_updates = True
+                        uncommitted_updates = uncommitted_updates + 1
+
+                        if uncommitted_updates >= config.batch_commit_size:
+                            try:
+                                db_session.commit()
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.exception("Failed to commit batch of job changes, aborting cycle...")
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
                     except Exception as exc:
                         logging.exception("Failed to hold job, rebooting command poller...")
                         logging.error(exc)
@@ -239,7 +250,7 @@ def command_poller():
                     time.sleep(config.sleep_interval_command)
                     continue
 
-            if uncommitted_updates:
+            if uncommitted_updates > 0:
                 try:
                     db_session.commit()
                 except Exception as exc:

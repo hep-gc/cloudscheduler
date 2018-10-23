@@ -43,18 +43,6 @@ def machine_poller():
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
-    # Initialize database objects
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
 
@@ -182,20 +170,6 @@ def command_poller():
     # database setup
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
-    # Database connections created as part of config
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    #session = Session(db_engine)
-
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
 
@@ -205,10 +179,12 @@ def command_poller():
             logging.info("Beginning command consumer cycle")
             config.db_open()
             db_session = config.db_session
+<<<<<<< HEAD
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
+            uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 try:
                     condor_session = htcondor.Collector(condor_host)
@@ -222,7 +198,6 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                uncommitted_updates = False
                 for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
                     logging.info("Retiring machine %s" % resource.name)
                     try:
@@ -231,13 +206,23 @@ def command_poller():
 
                         resource.retired_time = int(time.time())
                         db_session.merge(resource)
-                        uncommitted_updates = True
+                        uncommitted_updates = uncommitted_updates + 1
+                        if uncommitted_updates >= config.batch_commit_size:
+                            try:
+                                db_session.commit()
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.exception("Failed to commit batch of retired machines, aborting cycle...")
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
                     except Exception as exc:
                         logging.exception("Failed to retire machine, rebooting command poller...")
                         logging.error(exc)
                         exit(1)
 
-            if uncommitted_updates:
+            if uncommitted_updates > 0:
                 try:
                     db_session.commit()
                 except Exception as exc:

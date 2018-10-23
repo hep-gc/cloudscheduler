@@ -13,92 +13,92 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'metadata-update']
+        ['cloudscheduler', 'metadata', 'update']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'group', 'metadata-update', '-xx', 'yy']
+        ['cloudscheduler', 'metadata', 'update', '-xx', 'yy']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: job-cores',
-        ['cloudscheduler', 'group', 'metadata-update', '-jc', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-jc', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
-        ['cloudscheduler', 'group', 'metadata-update', '-s', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-s', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, None,
-        ['cloudscheduler', 'group', 'metadata-update', '-s', 'unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler group metadata-update".',
-        ['cloudscheduler', 'group', 'metadata-update', '-h']
+        gvar, 0, None, 'Help requested for "cloudscheduler metadata update".',
+        ['cloudscheduler', 'metadata', 'update', '-h']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'group', 'metadata-update', '-H']
+        ['cloudscheduler', 'metadata', 'update', '-H']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'Expose API requested',
-        ['cloudscheduler', 'group', 'metadata-update', '-xA']
+        ['cloudscheduler', 'metadata', 'update', '-xA']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'group', 'metadata-update', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-g', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'metadata-update', '-g', ut_id(gvar, 'clg1')]
+        ['cloudscheduler', 'metadata', 'update', '-g', ut_id(gvar, 'clg1')]
     )
 
     execute_csv2_command(
         gvar, 1, None, 'the request did not match any rows.',
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', 'invalid-unit-test', '-me', '0']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', 'invalid-unit-test', '-me', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', 'invalid-unit-test', '-mmt', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-mmt', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'value specified for "priority" must be an integer value.',
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', 'invalid-unit-test', '-mp', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-mp', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'requires at least one option to modify.',
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', ut_id(gvar, 'clm2')]
+        ['cloudscheduler', 'metadata', 'update', '-mn', ut_id(gvar, 'clm2')]
     )
 
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}" successfully  updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm2')),
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', ut_id(gvar, 'clm2'), '-me', 'false']
+        ['cloudscheduler', 'metadata', 'update', '-mn', ut_id(gvar, 'clm2'), '-me', 'false']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}" successfully  updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm2')),
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', ut_id(gvar, 'clm2'), '-mmt', 'ucernvm-config']
+        ['cloudscheduler', 'metadata', 'update', '-mn', ut_id(gvar, 'clm2'), '-mmt', 'ucernvm-config']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}" successfully  updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clm2')),
-        ['cloudscheduler', 'group', 'metadata-update', '-mn', ut_id(gvar, 'clm2'), '-mp', '1']
+        ['cloudscheduler', 'metadata', 'update', '-mn', ut_id(gvar, 'clm2'), '-mp', '1']
     )
 
 if __name__ == "__main__":

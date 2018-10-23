@@ -9,6 +9,8 @@ def generate_bash_completion_script(gvar):
     options = get_option_list(gvar)
 
     arguments = {
+        '-bk|--backup-key': '-f',
+        '-br|--backup-repository': '-f',
         '-cc|--config-category': '-W "csjobs.py csmachines.py openstackPoller.py web_frontend"',
         '-ce|--cloud-enabled': '-W "true false yes no 1 0"',
         '-ct|--cloud-type': '-W "amazon azure google local opennebula openstack"',
@@ -81,7 +83,7 @@ def get_option_list(gvar):
             options[object][action] = []
             short_options = gvar['actions'][object][1][action](gvar)
             for key in gvar['command_keys']:
-                if (key[0] in short_options) or ('*' in short_options):
+                if key and short_options and ((key[0] in short_options) or ('*' in short_options)):
                     options[object][action].append(key[1])
     
     gvar['retrieve_options'] = False

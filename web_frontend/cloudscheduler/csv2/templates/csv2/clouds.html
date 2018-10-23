@@ -126,6 +126,18 @@
                             </table>
                         </form>
 
+                        <div class="tab2">
+
+                            <div class="tab2-content">
+
+                                <iframe id="editor-hide"  src=""></iframe>
+
+                            </div>
+
+                        </div>
+
+
+
                         <div class="hide-iframe">
                             <iframe src=""></iframe>
                         </div>
@@ -201,36 +213,40 @@
             <div class="menu-target">
                 <form name="add_cloud" action="/cloud/add/" method="post">
                     {% csrf_token %}
-                    <table>
-                        <tr><td><label for="cloud_name">Cloud name</label></td>
-                        <td><input type="text" name="cloud_name" value="" /></td></tr>
-                        <tr><td><label for="authurl">URL</label></td>
-                        <td><input type="text" name="authurl" value="" /></td></tr>
-                        <tr><td><label for="project">Project</label></td>
-                        <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                        <tr><td><label for="username">Username</label></td>
-                        <td><input type="text" name="username" value="" /></td></tr>
-                        <tr><td><label for="password">Password</label></td>
-                        <td><input type="password" name="password" value="" /></td></tr>
-                        <tr><td><label for="keyname">Key pair name</label></td>
-                        <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
-                        <tr><td><label for="cacertificate">CA certificate</label></td>
-                        <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                        <tr><td><label for="region">Region</label></td>
-                        <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                        <tr><td><label for="user_domain_name">User domain name</label></td>
-                        <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                        <tr><td><label for="project_domain_name">Project domain name</label></td>
-                        <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
+                    <div class="menu-position">
+                        <table>
+                            <tr class="highlight1"><td><label for="cloud_name">Cloud name</label></td>
+                            <td><input type="text" name="cloud_name" value="" /></td></tr>
+                            <tr class="highlight1"><td><label for="authurl">Enabled</label></td>
+                            <td><input type="text" name="enabled" value="1" /></td></tr>
+                            <tr class="highlight1"><td><label for="authurl">URL</label></td>
+                            <td><input type="text" name="authurl" value="" /></td></tr>
+                            <tr class="highlight1"><td><label for="project">Project</label></td>
+                            <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                            <tr class="highlight1"><td><label for="username">Username</label></td>
+                            <td><input type="text" name="username" value="" /></td></tr>
+                            <tr class="highlight1"><td><label for="password">Password</label></td>
+                            <td><input type="password" name="password" value="" /></td></tr>
+                            <tr class="highlight1"><td><label for="keyname">Key pair name</label></td>
+                            <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
+                            <tr class="highlight1"><td><label for="cacertificate">CA certificate</label></td>
+                            <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                            <tr class="highlight1"><td><label for="region">Region</label></td>
+                            <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+                            <tr class="highlight1"><td><label for="user_domain_name">User domain name</label></td>
+                            <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                            <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
+                            <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-                        <tr><td><label for="cloud_type">Cloud type</label></td>
-                        <td><select name="cloud_type" id=""/>
-                        {% for type in type_list %}
-                                <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
-                        {% endfor %}
+                            <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
+                            <td><select name="cloud_type" id=""/>
+                            {% for type in type_list %}
+                                    <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                            {% endfor %}
 
-                        <tr><td><input type="submit" value="Add Cloud" /></td></tr>
-                    </table>
+                            <tr><td><input type="submit" value="Add Cloud" /></td></tr>
+                        </table>
+                    </div>
                 </form>  
             </div>
         </div>
