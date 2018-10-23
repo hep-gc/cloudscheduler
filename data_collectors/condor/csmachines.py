@@ -179,7 +179,6 @@ def command_poller():
             logging.info("Beginning command consumer cycle")
             config.db_open()
             db_session = config.db_session
-<<<<<<< HEAD
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
