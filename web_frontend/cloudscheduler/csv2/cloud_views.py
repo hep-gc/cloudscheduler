@@ -868,7 +868,7 @@ def status(request, group_name=None):
         n=n+1
 
 
-
+    '''
     if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
         cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
     else:
@@ -880,7 +880,7 @@ def status(request, group_name=None):
     else:
         cloud_total_list['cores_all'] = 0
 
-
+    '''
 
     # get slots type counts
     s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
