@@ -263,7 +263,6 @@ def command_poller():
                     continue
 
             logging.info("Completed command consumer cycle")
-            del condor_session
             config.db_close()
             del db_session
             time.sleep(config.sleep_interval_command)
