@@ -827,6 +827,7 @@ def status(request, group_name=None):
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
     cloud_status_list = qt(config.db_connection.execute(s))
 
+ 
     cloud_status_list_totals = qt(cloud_status_list, keys={
         'primary': ['group_name'],
         'sum': [
@@ -855,7 +856,19 @@ def status(request, group_name=None):
 
     cloud_total_list = cloud_status_list_totals[0]
 
+    cloud_total_list['cores_limit'] = 0
+    n=0
+    for cloud in cloud_status_list:
+        if cloud['cores_ctl'] == -1:
+            cloud_status_list[n]['cores_limit'] = cloud['cores_native']
+        else:
+            cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
 
+        cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
+        n=n+1
+
+
+    '''
     if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
         cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
     else:
@@ -867,7 +880,7 @@ def status(request, group_name=None):
     else:
         cloud_total_list['cores_all'] = 0
 
-
+    '''
 
     # get slots type counts
     s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
