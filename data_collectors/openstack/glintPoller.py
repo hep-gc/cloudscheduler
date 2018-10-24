@@ -1,14 +1,18 @@
 from __future__ import absolute_import, unicode_literals
 import os
+import sys
 import time
+import multiprocessing
+from multiprocessing import Process
 import subprocess
+import logging
 import django
 from django.conf import settings
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-import glintwebui.config as config
 from glintwebui.db_util import get_db_base_and_session
+from cloudscheduler.lib.db_config import Config
 
 from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
@@ -18,7 +22,7 @@ repo_proccesed, check_for_repo_changes, set_collection_task, check_for_image_con
 set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
 
 
-def image_collection(self):
+def image_collection():
     multiprocessing.current_process().name = "Glint Image Collection"
     wait_period = 0
     term_signal = False
@@ -32,13 +36,13 @@ def image_collection(self):
     # perminant for loop to monitor image states and to queue up tasks
     while True:
         # First check for term signal
-        logger.debug("Term signal: %s", term_signal)
+        logging.debug("Term signal: %s", term_signal)
         if term_signal is True:
             #term signal detected, break while loop
-            logger.info("Term signal detected, shutting down")
+            logging.info("Term signal detected, shutting down")
             set_collection_task(False)
             return
-        logger.info("Start Image collection")
+        logging.info("Start Image collection")
         group_list = session.query(Group)
 
         #if there are no active transactions clean up the cache folders
@@ -61,8 +65,8 @@ def image_collection(self):
                     image_list = image_list + rcon.image_list
 
                 except Exception as exc:
-                    logger.error(exc)
-                    logger.error("Could not connect to repo: %s at %s",\
+                    logging.error(exc)
+                    logging.error("Could not connect to repo: %s at %s",\
                         repo.project, repo.authurl)
 
             # take the new json and compare it to the previous one
@@ -74,11 +78,11 @@ def image_collection(self):
 
             # now we have the most current version of the image matrix for this group the last
             # thing that needs to be done here is to proccess the PROJECTX_pending_transactions
-            logger.info("Processing pending Transactions for group: %s", group.group_name)
+            logging.info("Processing pending Transactions for group: %s", group.group_name)
             updated_img_list = process_pending_transactions(
                 group_name=group.group_name,
                 json_img_dict=updated_img_list)
-            logger.info("Proccessing state changes for group: %s", group.group_name)
+            logging.info("Proccessing state changes for group: %s", group.group_name)
             updated_img_list = process_state_changes(
                 group_name=group.group_name,
                 json_img_dict=updated_img_list)
@@ -90,7 +94,7 @@ def image_collection(self):
             #conflict_dict = check_for_image_conflicts(json_img_dict=updated_img_list)
             #set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
 
-        logger.info("Image collection complete, entering downtime")
+        logging.info("Image collection complete, entering downtime")
         loop_counter = 0
         if num_tx == 0:
             wait_period = config.image_collection_interval
@@ -112,7 +116,7 @@ def image_collection(self):
             output = subprocess.check_output(['ps', '-A'])
             if 'httpd' not in str(output):
                 #apache has shut down, time for image collection to do the same
-                logger.info("httpd offline, terminating")
+                logging.info("httpd offline, terminating")
                 term_signal = True
                 break
             loop_counter = loop_counter+1
