@@ -39,6 +39,13 @@
             document.getElementById(frame).src=url;
         }
 
+        function hide_meta(groupname) {
+
+            var frame=groupname+'-hide'
+
+            document.getElementById(frame).checked = true;
+        }
+
         function show_group(group_name){
             if (group_name.length > 0) {
                 document.location.hash = group_name;
@@ -62,7 +69,7 @@
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{group.group_name}}" type="radio" name="tabs" checked>
+                    <input id="settings-{{group.group_name}}" type="radio" name="tabs" onclick="hide_meta('{{group.group_name}}')" checked>
                     <label for="settings-{{group.group_name}}">Settings</label>
                     <div class="tab-content">
 
@@ -118,6 +125,15 @@
                             </table>
                             
                         </form>
+
+                        <div class="tab2">
+                            <input id="{{group.group_name}}-hide" type="radio" name="tabs2">
+                            <div class="tab2-content">
+                                <iframe id="editor-{{group.group_name}}-hide"  src=""></iframe>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
 

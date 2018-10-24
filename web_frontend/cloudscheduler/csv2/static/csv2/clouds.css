@@ -104,32 +104,18 @@ iframe {
 }
 
 .tab2-content {
+  max-height: 0;
+}
+
+/* :checked */
+.tab2 input:checked ~ .tab2-content {
   position: fixed;
+  max-height: 100vh;
   top:60;
   bottom:0;
-  left:650;
+  left:600;
   right:10;
-  max-height: 0;
   overflow: auto;
 }
 
-.tab2-content p {
-  margin: 1em;
-}
-/* :checked */
-.tab2 input:checked ~ .tab2-content {
-  max-height: 100vh;
-}
-/* Icon */
-.tab2 > label::after {
-  position: absolute;
-  right: 0;
-  top: 0;
-  display: block;
-  width: 3em;
-  height: 3em;
-  line-height: 3;
-  text-align: center;
-
-}
 

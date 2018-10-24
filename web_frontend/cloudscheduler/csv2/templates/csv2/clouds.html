@@ -34,6 +34,12 @@
         document.getElementById(frame).src=url;
     }
 
+    function hide_meta(cloudname) {
+
+        var frame=cloudname+'-hide'
+
+        document.getElementById(frame).checked = true;
+    }
 
     function show_cloud(cloud_name){
         if (cloud_name.length > 0) {
@@ -56,7 +62,7 @@
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" checked>
+                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="hide_meta('{{cloud.cloud_name}}')" checked>
                     <label for="settings-{{cloud.cloud_name}}">Settings</label>
                     <div class="tab-content">
 
@@ -128,20 +134,15 @@
 
                         <div class="tab2">
 
+                            <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
+
                             <div class="tab2-content">
 
-                                <iframe id="editor-hide"  src=""></iframe>
+                                <iframe id="editor-{{cloud.cloud_name}}-hide"  src=""></iframe>
 
                             </div>
 
                         </div>
-
-
-
-                        <div class="hide-iframe">
-                            <iframe src=""></iframe>
-                        </div>
-
 
                     </div>
 
