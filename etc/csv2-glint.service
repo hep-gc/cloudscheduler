@@ -1,0 +1,13 @@
+[Unit]
+Description=Polls openstack data for glint service
+After=network.target
+
+[Service]
+Type=simple
+User=condor
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/openstack/glintPoller.py
+Restart=on-abort
+
+
+[Install]
+WantedBy=multi-user.target
