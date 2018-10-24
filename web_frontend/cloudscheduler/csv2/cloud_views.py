@@ -16,6 +16,7 @@ from .view_utils import \
     getSuperUserStatus, \
     lno, \
     qt, \
+    qt_filter_get, \
     render, \
     service_msg, \
     set_user_groups, \
@@ -825,9 +826,9 @@ def status(request, group_name=None):
 
     # get cloud status per group
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    cloud_status_list = qt(config.db_connection.execute(s))
+    cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
 
- 
+    # calculate the totals for all rows
     cloud_status_list_totals = qt(cloud_status_list, keys={
         'primary': ['group_name'],
         'sum': [
@@ -856,6 +857,7 @@ def status(request, group_name=None):
 
     cloud_total_list = cloud_status_list_totals[0]
 
+    # find the actual cores limit in use
     cloud_total_list['cores_limit'] = 0
     n=0
     for cloud in cloud_status_list:
@@ -867,20 +869,6 @@ def status(request, group_name=None):
         cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
         n=n+1
 
-
-    '''
-    if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
-        cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
-    else:
-        cloud_total_list['cores_all_busy'] = 0
-
-
-    if 'cores_native' in cloud_total_list and 'cores_foreign' in cloud_total_list:
-        cloud_total_list['cores_all'] = cloud_total_list['cores_native'] + cloud_total_list['cores_foreign']
-    else:
-        cloud_total_list['cores_all'] = 0
-
-    '''
 
     # get slots type counts
     s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
