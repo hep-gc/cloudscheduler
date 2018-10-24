@@ -22,6 +22,9 @@
 {% block navbar %}
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
+
+<body class="images-nav" onpageshow="show_cloud('{{current_cloud}}')">
+
 <div class="wrapper" style="padding-top:60px">
 <table class="image_matrix" style="border:none">
 <tr>
@@ -124,6 +127,7 @@
 	</footer>
 </div>
 </div>
+</body>
 
 
 <script>
