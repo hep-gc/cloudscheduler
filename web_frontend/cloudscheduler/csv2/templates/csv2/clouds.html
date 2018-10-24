@@ -34,9 +34,10 @@
         document.getElementById(frame).src=url;
     }
 
-    function hide_meta(cloudname) {
 
-        var frame=cloudname+'-hide'
+    function check_target(targetname) {
+
+        var frame=targetname;
 
         document.getElementById(frame).checked = true;
     }
@@ -52,18 +53,18 @@
 <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}')">
+<body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
 
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link">{{cloud.cloud_name}}</a>
+        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="check_target('{{cloud.cloud_name}}-settings') ; check_target('{{cloud.cloud_name}}-hide')">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="hide_meta('{{cloud.cloud_name}}')" checked>
-                    <label for="settings-{{cloud.cloud_name}}">Settings</label>
+                    <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="check_target('{{cloud.cloud_name}}-hide')" checked>
+                    <label for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
@@ -133,15 +134,10 @@
                         </form>
 
                         <div class="tab2">
-
                             <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
-
                             <div class="tab2-content">
-
                                 <iframe id="editor-{{cloud.cloud_name}}-hide"  src=""></iframe>
-
                             </div>
-
                         </div>
 
                     </div>

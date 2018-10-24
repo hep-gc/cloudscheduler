@@ -39,10 +39,10 @@
             document.getElementById(frame).src=url;
         }
 
-        function hide_meta(groupname) {
+        function check_target(targetname) {
 
-            var frame=groupname+'-hide'
-
+            var frame=targetname;
+            
             document.getElementById(frame).checked = true;
         }
 
@@ -55,7 +55,7 @@
 
 </head>
 
-<body class="defaults-nav" onpageshow="show_group('{{active_group}}')">
+<body class="defaults-nav" onpageshow="show_group('{{active_group}}') ; check_target('{{default_list.0.group_name}}-settings')">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -64,13 +64,13 @@
 
         <!--https://codepen.io/nathanlong/pen/mBrvn-->
         
-        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
+        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link" onclick="check_target('{{group.group_name}}-settings') ; check_target('{{group.group_name}}-hide')">{{group.group_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{group.group_name}}" type="radio" name="tabs" onclick="hide_meta('{{group.group_name}}')" checked>
-                    <label for="settings-{{group.group_name}}">Settings</label>
+                    <input id="{{group.group_name}}-settings" type="radio" name="tabs" onclick="check_target('{{group.group_name}}-hide')" checked>
+                    <label for="{{group.group_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{group.group_name}}" action="/group/defaults/" method="post">
