@@ -113,6 +113,9 @@ def update_pending_transactions(old_img_dict, new_img_dict):
     new_dict = json.loads(new_img_dict)
 
     for repo_key in old_dict:
+        if repo_key not in new_dict:
+            #cloud has been removed, we can ignore it
+            continue
         repo_dict = old_dict[repo_key]
         for img_key in repo_dict:
             #if a pending one is found, check for it in the new list

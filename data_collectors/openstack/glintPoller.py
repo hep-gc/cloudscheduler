@@ -21,6 +21,11 @@ find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_t
 repo_proccesed, check_for_repo_changes, set_collection_task, check_for_image_conflicts,\
 set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
 
+def image_replication():
+    #get csv2_group_defaults from db
+    #get image matrix from redis
+    #check all cloud resources for default_image
+    return False
 
 def image_collection():
     multiprocessing.current_process().name = "Glint Image Collection"
