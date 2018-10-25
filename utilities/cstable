@@ -20,19 +20,25 @@ def main(args):
     """
     Retrieve view definitions and print the requested report.
     """
+    
+    """
+    gvar = {'priorities': {}, 'tables': {}, 'views': {}}
+    gvar['fqdn'] = socket.getfqdn()
+    print(gvar['fqdn'])
+    """
 
-    if len(args) < 3 or (args[1] != 'diff' and args[1] != 'redefine'):
+    if len(args) < 3 or (args[1] != 'diff' and args[1] != 'redefine' and args[1] != 'clone'):
         print(
-            'Synopsis: csview [ diff <other_hostname | redefine <other_hostname> ]\n\n' \
-            'diff     - comapres the schema backups of the current host with the specified host.\n\n' \
-            'redefine - for tables configured in .../cloudscheduler/etc//schema_backup.conf, this\n' \
-            '           funcion reloads the table definition and data from the specified host\'s\n' \
-            '           schema backups.'
+            'Synopsis: csview [ diff <other_hostname | redefine <other_hostname> | clone <other_hostname>]\n\n' \
+            'diff     - compares the schema backups of the current host with the specified host.\n\n' \
+            'redefine - for tables configured in ../etc/schema_backup.conf, this function reloads\n' \
+            '            the table definition and data from the specified host\'s schema backups.\n' \
+            'clone    - for all tables, this function reloads the table definition and data from the\n' \
+            '            specified host\'s schema backups.\n'
             )
         exit(0)
 
     gvar = {'priorities': {}, 'tables': {}, 'views': {}}
-
     gvar['cmd_path'] = os.path.realpath(args[0])
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
@@ -82,10 +88,48 @@ def main(args):
                     stdout, stderr = _p1.communicate()
                     fd.close()
                     if _p1.returncode != 0:
-                        print('Failed to redine view "%s" - %s' % (view, stderr.decode('utf-8')))
+                        print('Failed to redefine view "%s" - %s' % (view, stderr.decode('utf-8')))
                         exit(1)
                 else:
                     print('Skipping redefinition of table "%s", backup file "%s" missing.' % (table, table_backup_path))
+
+    elif args[1] == 'clone':
+        fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
+        gvar['csv2_config'] = yaml.load(fd.read())
+        fd.close()
+    
+        print(gvar['csv2_config']['database']['db_user'])
+        print(gvar['csv2_config']['database']['db_password'],
+              gvar['csv2_config']['database']['db_name'])
+        gvar['all_tables'] = os.listdir(gvar['schema_backup_dir'] + '/' + gvar['other_fqdn'])
+        #print(gvar['all_tables'])
+
+        for table in sorted(gvar['all_tables']):
+            if table:
+                print('Cloning table "%s".' % table)
+                table_backup_path = '%s/%s/%s' % (gvar['schema_backup_dir'], gvar['other_fqdn'], table)
+                if os.path.isfile(table_backup_path):
+                    fd = open(table_backup_path)
+                    print(fd)
+
+                    _p1 = Popen(
+                        [
+                            'mysql',
+                            '-u%s' % gvar['csv2_config']['database']['db_user'],
+                            '-p%s' % gvar['csv2_config']['database']['db_password'],
+                            gvar['csv2_config']['database']['db_name']
+                            ],
+                        stdin=fd,
+                        stdout=PIPE,
+                        stderr=PIPE
+                        )
+                    stdout, stderr = _p1.communicate()
+                    fd.close()
+                    if _p1.returncode != 0:
+                        print('Failed to clone view "%s" - %s' % (view, stderr.decode('utf-8')))
+                        exit(1)
+                else:
+                    print('Skipping cloning of table "%s", backup file "%s" missing.' % (table, table_backup_path))
 
 if __name__ == "__main__":
     main(sys.argv)
