@@ -54,11 +54,11 @@ def image_collection():
             do_cache_cleanup()
 
         for group in group_list:
-            logging.info("Querying group:%s for cloud resources." % group)
+            logging.info("Querying group: %s for cloud resources." % group.group_name)
             repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             image_list = ()
             for repo in repo_list:
-                logging.info("Querying cloud:%s for image data." % repo.authurl)
+                logging.info("Querying cloud: %s for image data." % repo.cloud_name)
                 try:
                     rcon = repo_connector(
                         auth_url=repo.authurl,
