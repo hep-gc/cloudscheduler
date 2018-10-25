@@ -14,6 +14,7 @@ from lib.schema import view_vms
 from lib.schema import view_groups_of_idle_jobs
 from lib.schema import view_available_resources
 from lib.schema import view_condor_jobs_group_defaults_applied
+from lib.schema import view_group_resources
 
 from sqlalchemy import create_engine
 from sqlalchemy import exists
@@ -55,9 +56,9 @@ def main():
             Base.prepare(engine, reflect=True)
             session = Session(engine)
 
-            Resources = Base.classes.csv2_group_resources
-            group_resources = session.query(Resources).filter(Resources.group_name == csgroup.group_name,
-                                                              Resources.enabled == 1)
+            #Resources = Base.classes.csv2_group_resources
+            group_resources = session.query(view_group_resources).filter(view_group_resources.c.group_name == csgroup.group_name,
+                                                                         view_group_resources.c.enabled == 1)
             Group_metadata = Base.classes.csv2_group_metadata
             group_yamls = session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
