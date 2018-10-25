@@ -150,6 +150,7 @@ def main():
                         if cloud.cloud_name in cloud_booted_on:
                             continue
                         log.debug("Taking a look at booting on: %s", cloud.cloud_name)
+                        log.debug("Using Flavor: %s", cloud.flavor)
                         log.debug("num jobs per flavor: %s", num_jobs_per_flavor_possible)
                         # Need to redo this calculation for each cloud / flavor because it may change
                         num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
