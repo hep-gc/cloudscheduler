@@ -264,8 +264,19 @@ def defaults(request):
 
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
+        image_list = {}
         metadata_dict = {}
+        network_list = {}
     else:
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
+
+        # Get all all networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
+
+        # Get the group default metadata list:
         s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
         group_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -291,7 +302,9 @@ def defaults(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'defaults_list': defaults_list,
+            'image_list': image_list,
             'metadata_dict': metadata_dict,
+            'network_list': network_list,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint
