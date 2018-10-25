@@ -34,9 +34,8 @@ def image_collection():
     num_tx = get_num_transactions()
 
     # setup database objects
-    Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
-    Group = Base.classes.csv2_groups
+    Group_Resources = config.db_map.classes.csv2_group_resources
+    Group = config.db_map.classes.csv2_groups
 
     # perminant for loop to monitor image states and to queue up tasks
     while True:
@@ -47,6 +46,9 @@ def image_collection():
             logging.info("Term signal detected, shutting down")
             return
         logging.info("Start Image collection")
+
+        config.db_open()
+        session = config.db_session
         group_list = session.query(Group)
 
         #if there are no active transactions clean up the cache folders
@@ -101,6 +103,9 @@ def image_collection():
             #set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
 
         logging.info("Image collection complete, entering downtime")
+        config.db_close()
+        del session
+
         loop_counter = 0
         if num_tx == 0:
             wait_period = config.image_collection_interval
