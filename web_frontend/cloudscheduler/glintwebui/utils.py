@@ -871,6 +871,45 @@ def create_new_keypair(key_name, cloud):
         raise
     return new_key
 
+def check_and_transfer_defaults(db_session, json_img_dict, group):
+    #get csv2_group_defaults from db
+    #get image matrix from parameter
+    #check all cloud resources for default_image
+    defaults = session.query(defaults_class_obj).get(group)
+    img_dict = json.loads(json_img_dict)
+    grp_dict = img_dict[group]
+    try:
+        for repo_key in grp_dict:
+            default_present = False
+            for image in grp_dict[repo_key]:
+                if image[name] == defaults.vm_image:
+                    default_present = True
+                    break
+            if not default_present:
+                # need to xfer image to this cloud
+                logger.info("Found missing default image, attempting to transfer %s to %s" % (defaults.vm_image, repo_key))
+                img_details = __get_image_details(group, defaults.vm_image)
+                disk_format = img_details[0]
+                container_format = img_details[1]
+                transaction = {
+                    'user': "default_transfer",
+                    'action': 'transfer',
+                    'group_name': group,
+                    'cloud_name': repo_key,
+                    'image_name': defaults.vm_image,
+                    'disk_format': disk_format,
+                    'container_format': container_format
+                }
+                trans_key = group_name + "_pending_transactions"
+                red.rpush(trans_key, json.dumps(transaction))
+                increment_transactions()
+    except Exception as exc:
+        logger.error("Error attempting to queue transfers for default image:")
+        logger.error(exc)
+        return False
+
+    return True
+
 
 def __get_image_ids(repo_dict):
     img_trans_dict = {}

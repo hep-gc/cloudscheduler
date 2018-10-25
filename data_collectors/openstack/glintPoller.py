@@ -18,14 +18,9 @@ from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
 set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
-repo_proccesed, check_for_repo_changes, check_for_image_conflicts,\
+repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_defaults,\
 set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
 
-def image_replication():
-    #get csv2_group_defaults from db
-    #get image matrix from redis
-    #check all cloud resources for default_image
-    return False
 
 def image_collection():
     multiprocessing.current_process().name = "Glint Image Collection"
@@ -36,6 +31,7 @@ def image_collection():
     # setup database objects
     Group_Resources = config.db_map.classes.csv2_group_resources
     Group = config.db_map.classes.csv2_groups
+    Group_Defaults = db_map.classes.csv2_group_defaults
 
     # perminant for loop to monitor image states and to queue up tasks
     while True:
@@ -101,6 +97,10 @@ def image_collection():
             # THESE FUNCTIONS ARE NOT USED FOR CSV2 ANYWHERE SO I AM DISABLING THEM
             #conflict_dict = check_for_image_conflicts(json_img_dict=updated_img_list)
             #set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
+
+            logging.info("Checking resources for group default image...")
+            check_and_transfer_defaults(session, updated_img_list, group.group_name)
+
 
         logging.info("Image collection complete, entering downtime")
         config.db_close()
