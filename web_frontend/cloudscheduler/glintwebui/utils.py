@@ -871,18 +871,23 @@ def create_new_keypair(key_name, cloud):
         raise
     return new_key
 
-def check_and_transfer_defaults(db_session, json_img_dict, group):
+def check_and_transfer_defaults(db_session, json_img_dict, group, defaults_class_obj):
     #get csv2_group_defaults from db
     #get image matrix from parameter
     #check all cloud resources for default_image
-    defaults = session.query(defaults_class_obj).get(group)
-    img_dict = json.loads(json_img_dict)
-    grp_dict = img_dict[group]
+    defaults = db_session.query(defaults_class_obj).get(group)
+    if defaults.vm_image is None or defaults.vm_image=="":
+        logger.info("No default image set, skipping...")
+        return False
+    grp_dict = json.loads(json_img_dict)
     try:
         for repo_key in grp_dict:
+            logger.info("checking %s fo default image %s.." % (repo_key, defaults.vm_image))
             default_present = False
-            for image in grp_dict[repo_key]:
-                if image[name] == defaults.vm_image:
+            for image_id in grp_dict[repo_key]:
+                img_dict = grp_dict[repo_key][image_id]
+                if img_dict["name"] == defaults.vm_image:
+                    logger.info("Image found, breaking")
                     default_present = True
                     break
             if not default_present:
@@ -900,7 +905,8 @@ def check_and_transfer_defaults(db_session, json_img_dict, group):
                     'disk_format': disk_format,
                     'container_format': container_format
                 }
-                trans_key = group_name + "_pending_transactions"
+                trans_key = group + "_pending_transactions"
+                red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
                 red.rpush(trans_key, json.dumps(transaction))
                 increment_transactions()
     except Exception as exc:

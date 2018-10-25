@@ -31,7 +31,7 @@ def image_collection():
     # setup database objects
     Group_Resources = config.db_map.classes.csv2_group_resources
     Group = config.db_map.classes.csv2_groups
-    Group_Defaults = db_map.classes.csv2_group_defaults
+    Group_Defaults = config.db_map.classes.csv2_group_defaults
 
     # perminant for loop to monitor image states and to queue up tasks
     while True:
@@ -98,8 +98,6 @@ def image_collection():
             #conflict_dict = check_for_image_conflicts(json_img_dict=updated_img_list)
             #set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
 
-            logging.info("Checking resources for group default image...")
-            check_and_transfer_defaults(session, updated_img_list, group.group_name)
 
 
         logging.info("Image collection complete, entering downtime")
@@ -134,7 +132,10 @@ def image_collection():
         num_tx = get_num_transactions()
 
 
+def default_image_replication():
 
+    logging.info("Checking resources for group default image...")
+    check_and_transfer_defaults(session, updated_img_list, group.group_name, Group_Defaults)
 
 
 ## Main.
