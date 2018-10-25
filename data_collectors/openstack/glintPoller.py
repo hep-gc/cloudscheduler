@@ -18,7 +18,7 @@ from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
 set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
-repo_proccesed, check_for_repo_changes, set_collection_task, check_for_image_conflicts,\
+repo_proccesed, check_for_repo_changes, check_for_image_conflicts,\
 set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
 
 def image_replication():
@@ -45,7 +45,6 @@ def image_collection():
         if term_signal is True:
             #term signal detected, break while loop
             logging.info("Term signal detected, shutting down")
-            set_collection_task(False)
             return
         logging.info("Start Image collection")
         group_list = session.query(Group)
@@ -55,9 +54,11 @@ def image_collection():
             do_cache_cleanup()
 
         for group in group_list:
+            logging.info("Querying group:%s for cloud resources." % group)
             repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             image_list = ()
             for repo in repo_list:
+                logging.info("Querying cloud:%s for image data." % repo.authurl)
                 try:
                     rcon = repo_connector(
                         auth_url=repo.authurl,
@@ -106,7 +107,7 @@ def image_collection():
         else:
             wait_period = 0
 
-        while loop_counter < wait_period:
+        while loop_counter*5 < wait_period:
             time.sleep(5)
             num_tx = get_num_transactions()
             #check for new transactions

@@ -115,6 +115,7 @@ def update_pending_transactions(old_img_dict, new_img_dict):
     for repo_key in old_dict:
         if repo_key not in new_dict:
             #cloud has been removed, we can ignore it
+            logger.info("%s not found in new image dict, ignoring" % repo_key)
             continue
         repo_dict = old_dict[repo_key]
         for img_key in repo_dict:
