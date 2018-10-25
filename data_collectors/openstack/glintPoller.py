@@ -31,7 +31,6 @@ def image_collection():
     # setup database objects
     Group_Resources = config.db_map.classes.csv2_group_resources
     Group = config.db_map.classes.csv2_groups
-    Group_Defaults = config.db_map.classes.csv2_group_defaults
 
     # perminant for loop to monitor image states and to queue up tasks
     while True:
@@ -133,9 +132,23 @@ def image_collection():
 
 
 def default_image_replication():
+    multiprocessing.current_process().name = "Default Image Replication"
 
-    logging.info("Checking resources for group default image...")
-    check_and_transfer_defaults(session, updated_img_list, group.group_name, Group_Defaults)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    Group = config.db_map.classes.csv2_groups
+    Group_Defaults = config.db_map.classes.csv2_group_defaults
+
+    while True:
+        config.db_open()
+        session = config.db_session
+        group_list = session.query(Group)
+
+        for group in group_list:
+            img_list = get_images_for_group(group.group_name)
+            logging.info("Checking resources for group %s's default image..." % group.group_name)
+            check_and_transfer_defaults(session, img_list, group.group_name, Group_Defaults)
+
+        time.sleep(3600) #an hour for now, should be configurable and notifiably via redis
 
 
 ## Main.
@@ -152,7 +165,8 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'glint':     image_collection,
+        'glint':                     image_collection,
+        'default_image_replication': default_image_replication,
         }
 
     # Wait for keyboard input to exit
