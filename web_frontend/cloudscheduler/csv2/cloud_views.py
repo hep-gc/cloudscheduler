@@ -656,6 +656,10 @@ def metadata_fetch(request, selector=None):
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
 
+    # Get all the images in group:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
     # Retrieve metadata file.
     obj_act_id = request.path.split('/') # /cloud/metadata_fetch/<group>.<cloud>.<metadata>
     if len(obj_act_id) > 3:
@@ -674,6 +678,7 @@ def metadata_fetch(request, selector=None):
                         'metadata_priority': row.priority,
                         'metadata_mime_type': row.mime_type,
                         'metadata_name': row.metadata_name,
+                        'mime_types_list': mime_types_list,
                         'response_code': 0,
                         'message': None,
                         'enable_glint': config.enable_glint
@@ -681,6 +686,7 @@ def metadata_fetch(request, selector=None):
 
                     config.db_close()
                     return render(request, 'csv2/cloud_editor.html', context)
+
 
     config.db_close()
 

@@ -10,13 +10,40 @@
 <body class="metadata-fetch">
 
     <h3 id="metadata-name">{{ metadata_name }}</h3>
+
     <form name="{{ cloud_name }}-{{ metadata_name }}" action="/cloud/metadata-update/" method="post">
     {% csrf_token %}
-    
-        <input type="hidden" name="group_name" value="{{ group_name }}">
-        <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
-        <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
-        
+        <table>
+            <input type="hidden" name="group_name" value="{{ group_name }}">
+            <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
+            <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+            
+            <input type="hidden" name="enabled" value="0" />
+
+            <tr class="highlight4"><td><label for="authurl">Enabled</label></td>
+            <td>
+            {% if metadata_enabled == 1%}
+                <input type="checkbox" name="enabled" value="1" checked/>
+            {% else %}
+                <input type="checkbox" name="enabled" value="1" />
+            {% endif %}
+            </td></tr>
+
+            <tr class="highlight4"><td><label for="priority">Priority</label></td>
+            <td><input type="number" name="priority" value="{{metadata_priority}}" /></td></tr>
+
+
+            <tr class="highlight4"><td><label for="mime_type">MIME Type</label></td>
+            <td><select name="mime_type"/>
+            {% for type in mime_types_list %}
+                {% if cloud.cloud_type == type.mime_type %}
+                    <option value="{{ type.mime_type }}" selected>{{ type.mime_type }}</option>
+                {% else %}
+                    <option value="{{ type.mime_type }}">{{ type.mime_type }}</option>
+                {% endif %}
+            {% endfor %}
+            
+        </table>
         <input type="submit" id="right" value="Update">
         <!--
         <nav class="editor-bar">
@@ -39,7 +66,6 @@
         <input type="submit" id="right" value="Delete" onclick="parent.location.reload()">
 
     </form>
-
 
     <div class="editor-footer" id="message">
         {% if response_code == 1 %}
