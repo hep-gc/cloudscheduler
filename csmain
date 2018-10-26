@@ -190,7 +190,6 @@ def main():
                                                flavor=cloud.flavor,  #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
                                                job=idle_job,
                                                template_dict=template_dict,
-                                               keep_alive=cloud.keep_alive,
                                                image = use_image)
                                 runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
                                 log.debug('done booting on cloud %s', cloud.cloud_name)
