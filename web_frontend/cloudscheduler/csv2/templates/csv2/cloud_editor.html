@@ -1,6 +1,7 @@
 
 <head>
     {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
     <title>{{ metadata_name }}</title>
 
@@ -13,7 +14,10 @@
 
     <form name="{{ cloud_name }}-{{ metadata_name }}" action="/cloud/metadata-update/" method="post">
     {% csrf_token %}
-        <table>
+
+        <textarea name="metadata" id="meta-editor">{{ metadata }}</textarea>
+        <br>
+        <table class="highlight4">
             <input type="hidden" name="group_name" value="{{ group_name }}">
             <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
             <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
@@ -43,29 +47,23 @@
                 {% endif %}
             {% endfor %}
             
-        </table>
-        <input type="submit" id="right" value="Update">
-        <!--
-        <nav class="editor-bar">
-            <ul>
-                <li><h3 id="metadata-name">{{ metadata_name }}</h3></li>
-                <li><input type="submit" id="right" value="Update"></li>
-            </ul>
-        </nav>-->
-        <br>
-        <textarea name="metadata" id="meta-editor">{{ metadata }}</textarea>
+            <tr><td><input type="submit" id="right" value="Update" onclick="parent.location.reload()"></td>
 
+
+        
     </form>
+        <td>
+            <form name="{{ cloud_name }}-{{ metadata_name }}-delete" action="/cloud/metadata-delete/" method="post">
+            {% csrf_token %}
+            
+                <input type="hidden" name="group_name" value="{{ group_name }}">
+                <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
+                <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+                <input type="submit" id="right" value="Delete" onclick="parent.location.reload()">
 
-    <form name="{{ cloud_name }}-{{ metadata_name }}-delete" action="/cloud/metadata-delete/" method="post">
-    {% csrf_token %}
-    
-        <input type="hidden" name="group_name" value="{{ group_name }}">
-        <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
-        <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
-        <input type="submit" id="right" value="Delete" onclick="parent.location.reload()">
-
-    </form>
+            </form>
+        </td></tr>
+    </table>
 
     <div class="editor-footer" id="message">
         {% if response_code == 1 %}

@@ -5,7 +5,7 @@ function createEditor(name) {
 
     // create ace editor 
     var editor = ace.edit()
-    editor.container.style.height = "80%"
+    editor.container.style.height = "70%"
     editor.container.style.width = "100%"
     editor.session.setValue(textarea.value)
     editor.setTheme("ace/theme/dracula");
