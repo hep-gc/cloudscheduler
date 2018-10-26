@@ -33,12 +33,12 @@ replace(
         "''", '"'),
     '},{', ', ') as group_metadata
 from (
-    /* n05 */
+    /* n04 */
     select
     group_name,
     group_concat(cloud_metadata) as cloud_source
     from (
-        /* n04 */
+        /* n03 */
         select
         group_name, 
         replace(
@@ -48,7 +48,7 @@ from (
                 ),
             '"', "''") as cloud_metadata
         from (
-            /* n03 */
+            /* n02 */
             select
             group_name,
             cloud_name,
@@ -85,10 +85,10 @@ from (
                     ) as n01
 
             group by group_name,cloud_name
-            ) as n03
-        ) as n04
+            ) as n02
+        ) as n03
 
     group by group_name
-    ) as n05
+    ) as n04
 
 ;
