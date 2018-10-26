@@ -527,6 +527,10 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_slots', Integer)
   )
 
+view_available_resources_json = Table('view_available_resources_json', metadata,
+  Column('flavors', String)
+  )
+
 view_cloud_status = Table('view_cloud_status', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
