@@ -172,7 +172,7 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
         
         # Remove the extraneous exclusions.
         for metadata_name in remove_exclusions:
-            rc, msg = config.db_session_execute(table.delete((group_name==active_group) & (cloud_name==cloud_name) & (metadata_name==metadata_name)))
+            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.metadata_name==metadata_name)))
             if rc != 0:
                 return 1, msg
 
