@@ -94,6 +94,7 @@ def project_details(request, group_name=None, message=None):
     # set up database objects
     Base, session = get_db_base_and_session()
     User_Group = Base.classes.csv2_user_groups
+    Group_Defaults = Base.classes.csv2_group_defaults
 
     user_obj = getUser(request)
 
@@ -108,6 +109,12 @@ def project_details(request, group_name=None, message=None):
         except Exception:
             # catches nonetype error
             group_name = "No groups available"
+
+    defaults = session.query(Group_Defaults).get(group)
+    if defaults.vm_image is None or defaults.vm_image=="":
+        default_image = None
+    else:
+        default_image = defaults.vm_image
 
     user_obj.active_group = group_name
     session.merge(user_obj)
@@ -162,6 +169,7 @@ def project_details(request, group_name=None, message=None):
         #'conflict_dict': conflict_dict,
         'version': version,
         'num_tx': num_tx,
+        'default_image': default_image,
         'enable_glint': True
     }
     return render(request, 'glintwebui/project_details.html', context)
