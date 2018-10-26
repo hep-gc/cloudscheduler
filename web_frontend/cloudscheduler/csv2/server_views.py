@@ -41,9 +41,11 @@ CONFIG_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
+        'batch_commit_size':            'integer',
         'category':                     ('csv2_configuration', 'category'),
         'delete_cycle_interval':        'integer',
         'enable_glint':                 ['True', 'False'],
+        'enable_profiling':             ['True', 'False'],
         'log_level':                    'integer',
         'no_limit_default':             'integer',
         'sleep_interval_cleanup':       'integer',
@@ -57,6 +59,7 @@ CONFIG_KEYS = {
         'sleep_interval_main_long':     'integer',
         'sleep_interval_main_short':    'integer',
         'sleep_interval_network':       'integer',
+        'sleep_interval_status':        'integer',
         'sleep_interval_vm':            'integer',
 
         'config_key':                   'reject',

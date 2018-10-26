@@ -101,7 +101,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         imageobj = None
         image_dict = self._attr_list_to_dict(job.images)
         try:
-            if job.image and self.name in image_dict.keys():
+            if job.images and self.name in image_dict.keys():
                 imageobj = nova.glance.find_image(image_dict[self.name])
             elif self.default_image:
                 imageobj = nova.glance.find_image(self.default_image)

@@ -16,6 +16,7 @@ from .view_utils import \
     getSuperUserStatus, \
     lno, \
     qt, \
+    qt_filter_get, \
     render, \
     service_msg, \
     set_user_groups, \
@@ -424,8 +425,18 @@ def list(
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
+        image_list = {}
         metadata_dict = {}
+        network_list = {}
     else:
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
+
+        # Get all the networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
+
         s = select([view_group_resources_with_metadata_info]).where(view_group_resources_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -470,6 +481,8 @@ def list(
             'cloud_list': cloud_list,
             'type_list': type_list,
             'metadata_dict': metadata_dict,
+            'image_list': image_list,
+            'network_list': network_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
@@ -825,8 +838,9 @@ def status(request, group_name=None):
 
     # get cloud status per group
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    cloud_status_list = qt(config.db_connection.execute(s))
+    cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
 
+    # calculate the totals for all rows
     cloud_status_list_totals = qt(cloud_status_list, keys={
         'primary': ['group_name'],
         'sum': [
@@ -855,18 +869,17 @@ def status(request, group_name=None):
 
     cloud_total_list = cloud_status_list_totals[0]
 
+    # find the actual cores limit in use
+    cloud_total_list['cores_limit'] = 0
+    n=0
+    for cloud in cloud_status_list:
+        if cloud['cores_ctl'] == -1:
+            cloud_status_list[n]['cores_limit'] = cloud['cores_native']
+        else:
+            cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
 
-    if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
-        cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
-    else:
-        cloud_total_list['cores_all_busy'] = 0
-
-
-    if 'cores_native' in cloud_total_list and 'cores_foreign' in cloud_total_list:
-        cloud_total_list['cores_all'] = cloud_total_list['cores_native'] + cloud_total_list['cores_foreign']
-    else:
-        cloud_total_list['cores_all'] = 0
-
+        cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
+        n=n+1
 
 
     # get slots type counts

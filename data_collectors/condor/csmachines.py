@@ -43,25 +43,12 @@ def machine_poller():
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
-    condor_host = socket.gethostname()
-    fail_count = 0
-    # Initialize database objects
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
 
     RESOURCE = config.db_map.classes.condor_machines
     CLOUDS = config.db_map.classes.csv2_group_resources
+    GROUPS = config.db_map.classes.csv2_groups
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -76,77 +63,73 @@ def machine_poller():
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-
-            try:
-                condor_session = htcondor.Collector()
-            except Exception as exc:
-                fail_count += 1
-                logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
-                logging.error(exc)
-                time.sleep(config.sleep_interval_machine)
-                continue
-
-            fail_count = 0
-
             config.db_open()
             db_session = config.db_session
-            new_poll_time = int(time.time())
+            groups = db_session.query(GROUPS)
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            for group in groups:
+                condor_hosts_set.add(group.condor_central_manager)
 
-            if not condor_inventory_built:
-                build_inventory_for_condor(inventory, db_session, CLOUDS)
-                condor_inventory_built = True
-
-            # Retrieve machines.
-            try:
-                condor_resources = condor_session.query(
-                    ad_type=htcondor.AdTypes.Startd,
-                    projection=resource_attributes
-                     )
-            except Exception as exc:
-                # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
-                # instead of simpyl handling the error and trying again
-                logging.error("Failed to get machines from condor queue, aborting poller")
-                logging.error(exc)
-                del condor_session
-                config.db_close()
-                del db_session
-                exit(1)
-
-            abort_cycle = False
-            uncommitted_updates = 0
-            for resource in condor_resources:
-                r_dict = dict(resource)
-                if "Start" in r_dict:
-                    r_dict["Start"] = str(r_dict["Start"])
-                r_dict = trim_keys(r_dict, resource_attributes)
-                r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
-                if unmapped:
-                    logging.error("attribute mapper found unmapped variables:")
-                    logging.error(unmapped)
-
-                r_dict["condor_host"] = condor_host
-
-                # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], "-", r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
+            for condor_host in condor_hosts_set:
+                logging.info("Polling condor host: %s" % condor_host)
+                try:
+                    condor_session = htcondor.Collector(condor_host)
+                except Exception as exc:
+                    logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
+                    logging.error(exc)
                     continue
 
-                logging.info("Adding/updating machine %s", r_dict["name"])
-                new_resource = RESOURCE(**r_dict)
-                try:
-                    db_session.merge(new_resource)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to merge machine entry, aborting cycle...")
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+                if not condor_inventory_built:
+                    build_inventory_for_condor(inventory, db_session, CLOUDS)
+                    condor_inventory_built = True
 
-            if abort_cycle:
-                del condor_session
-                config.db_close()
-                del db_session
-                time.sleep(config.sleep_interval_machine)
-                continue
+                # Retrieve machines.
+                try:
+                    condor_resources = condor_session.query(
+                        ad_type=htcondor.AdTypes.Startd,
+                        projection=resource_attributes
+                         )
+                except Exception as exc:
+                    # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
+                    # instead of simpyl handling the error and trying again
+                    logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
+                    logging.error(exc)
+                    continue
+
+                abort_cycle = False
+                uncommitted_updates = 0
+                for resource in condor_resources:
+                    r_dict = dict(resource)
+                    if "Start" in r_dict:
+                        r_dict["Start"] = str(r_dict["Start"])
+                    r_dict = trim_keys(r_dict, resource_attributes)
+                    r_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=r_dict)
+                    if unmapped:
+                        logging.error("attribute mapper found unmapped variables:")
+                        logging.error(unmapped)
+
+                    r_dict["condor_host"] = condor_host
+
+                    # Check if this item has changed relative to the local cache, skip it if it's unchanged
+                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], "-", r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
+
+                    logging.info("Adding/updating machine %s", r_dict["name"])
+                    new_resource = RESOURCE(**r_dict)
+                    try:
+                        db_session.merge(new_resource)
+                        uncommitted_updates += 1
+                    except Exception as exc:
+                        logging.exception("Failed to merge machine entry, aborting cycle...")
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+                if abort_cycle:
+                    del condor_session
+                    config.db_close()
+                    del db_session
+                    break
 
             if uncommitted_updates > 0:
                 try:
@@ -178,7 +161,6 @@ def machine_poller():
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
         logging.error(exc)
-        del condor_session
         config.db_close()
         del db_session
 
@@ -188,78 +170,56 @@ def command_poller():
     # database setup
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
-    # Database connections created as part of config
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    #session = Session(db_engine)
-
     Resource = config.db_map.classes.condor_machines
+    GROUPS = config.db_map.classes.csv2_groups
 
 
     try:
         while True:
             logging.info("Beginning command consumer cycle")
-            try:
-                condor_session = htcondor.Collector()
-            except Exception as exc:
-                fail_count += 1
-                logging.exception("Failed to locate condor daemon, failures=%s, sleeping...:" % fail_count)
-                logging.error(exc)
-                time.sleep(config.sleep_interval_command)
-                continue
-
-            fail_count = 0
-
-            #db_session = Session(db_engine)
             config.db_open()
             db_session = config.db_session
-
-            master_type = htcondor.AdTypes.Master
-            startd_type = htcondor.AdTypes.Startd
-
-            # Query database for machines to be retired.
-            abort_cycle = False
+            groups = db_session.query(GROUPS)
+            condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            for group in groups:
+                condor_hosts_set.add(group.condor_central_manager)
             uncommitted_updates = 0
-            for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
-                logging.info("Retiring machine %s" % resource.name)
+            for condor_host in condor_hosts_set:
                 try:
-                    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
-                    master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-
-                    resource.retired_time = int(time.time())
-                    db_session.merge(resource)
-                    uncommitted_updates = uncommitted_updates + 1
-
-                    if uncommitted_updates >= config.batch_commit_size:
-                        try:
-                            db_session.commit()
-                            uncommitted_updates = 0
-                        except Exception as exc:
-                            logging.exception("Failed to commit batch of retired machines, aborting cycle...")
-                            logging.error(exc)
-                            abort_cycle = True
-                            break
-
+                    condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
-                    logging.exception("Failed to retire machine, rebooting command poller...")
+                    logging.exception("Failed to locate condor daemon, skipping...:")
                     logging.error(exc)
-                    exit(1)
+                    continue
 
-            if abort_cycle:
-                del condor_session
-                config.db_close()
-                del db_session
-                time.sleep(config.sleep_interval_command)
-                continue
+                master_type = htcondor.AdTypes.Master
+                startd_type = htcondor.AdTypes.Startd
+
+                # Query database for machines to be retired.
+                abort_cycle = False
+                for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
+                    logging.info("Retiring machine %s" % resource.name)
+                    try:
+                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
+                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+
+                        resource.retired_time = int(time.time())
+                        db_session.merge(resource)
+                        uncommitted_updates = uncommitted_updates + 1
+                        if uncommitted_updates >= config.batch_commit_size:
+                            try:
+                                db_session.commit()
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.exception("Failed to commit batch of retired machines, aborting cycle...")
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
+                    except Exception as exc:
+                        logging.exception("Failed to retire machine, rebooting command poller...")
+                        logging.error(exc)
+                        exit(1)
 
             if uncommitted_updates > 0:
                 try:
@@ -273,39 +233,38 @@ def command_poller():
                     time.sleep(config.sleep_interval_command)
                     continue
 
-            # Query database for machines with no associated VM.
-            master_list = []
-            startd_list = []
-            redundant_machine_list = db_session.query(view_redundant_machines).filter(view_redundant_machines.c.condor_host == condor_host)
-            for resource in redundant_machine_list:
-                logging.info("Removing classads for machine %s" % resource.name)
-                try:
-                    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
-                    master_list.append(condor_classad)
 
-                    condor_classad = condor_session.query(startd_type, 'Name=="%s"' % resource.name)[0]
-                    startd_list.append(condor_classad)
-                except Exception as exc:
-                    logging.exception("Failed to retrieve machine classads, aborting cycle...")
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+            for condor_host in condor_hosts_set:
+                # Query database for machines with no associated VM.
+                master_list = []
+                startd_list = []
+                redundant_machine_list = db_session.query(view_redundant_machines).filter(view_redundant_machines.c.condor_host == condor_host)
+                for resource in redundant_machine_list:
+                    logging.info("Removing classads for machine %s" % resource.name)
+                    try:
+                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
+                        master_list.append(condor_classad)
 
-            if abort_cycle:
-                del condor_session
-                config.db_close()
-                del db_session
-                time.sleep(config.sleep_interval_command)
-                continue
+                        condor_classad = condor_session.query(startd_type, 'Name=="%s"' % resource.name)[0]
+                        startd_list.append(condor_classad)
+                    except Exception as exc:
+                        logging.exception("Failed to retrieve machine classads, aborting...")
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
 
-            # Execute condor_advertise to remove classads.
-            if startd_list:
-                startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
-                logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
+                if abort_cycle:
+                    abort_cycle = False
+                    continue
 
-            if master_list:
-                master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
-                logging.info("condor_advertise result for master ads: %s", master_advertise_result)
+                # Execute condor_advertise to remove classads.
+                if startd_list:
+                    startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
+                    logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
+
+                if master_list:
+                    master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
+                    logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
             logging.info("Completed command consumer cycle")
             del condor_session
@@ -316,7 +275,6 @@ def command_poller():
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
-        del condor_session
         config.db_close()
         del db_session
 
@@ -359,4 +317,4 @@ if __name__ == '__main__':
         try:
             process.join()
         except:
-            logging.error("failed to join process %s", process.name)
+            logging.error("failed to join process %s", process)

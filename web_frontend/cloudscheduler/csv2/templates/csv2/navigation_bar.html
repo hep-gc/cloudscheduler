@@ -13,7 +13,7 @@
                 <form name="group_selector" action="" method="POST">
                     {% csrf_token %}
                     <div align="center">
-                        <select name="group" id="group" onchange="this.form.submit()">
+                        <select name="group" id="group"  onchange="this.form.submit()">
                         {% for grp in user_groups %}
                             {% if grp == active_group %}
                                 <option value="{{grp}}" selected>{{grp}}</option>
@@ -28,16 +28,15 @@
             <li><a class="status-nav" href="/cloud/status/">Status</a></li>
             <li><a class="clouds-nav" href="/cloud/list/">Clouds</a></li>
             <li><a class="defaults-nav" href="/group/defaults/">Defaults</a></li>
-            <!--
             {% if enable_glint %}
-                <li><a href="/images/">Images</a></li>
+                <li><a class="images-nav" href="/images/">Images</a></li>
+                <li><a class="keys-nav" href="/keypairs/">Keys</a></li>
             {% else %}
                 <li style="opacity:1"><span title="Edit csv2 webserver config to enable Image management">Images</span></li>
+                <li style="opacity:1"><span title="Edit csv2 webserver config to enable Key management">Keys</span></li>
             {% endif %}
-            -->
         </div>
         <div class="float-right">
-
 
                 <li><a class="users-nav" href="/user/list/">Users</a></li>
                 <li><a class="groups-nav" href="/group/list/">Groups</a></li>

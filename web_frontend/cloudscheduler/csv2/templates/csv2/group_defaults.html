@@ -31,6 +31,21 @@
             }
         }
 
+        function meta_new(groupname) {
+
+            var url='/group/metadata-new/'+groupname
+            var frame='editor-'+groupname+'-add'
+
+            document.getElementById(frame).src=url;
+        }
+
+        function check_target(targetname) {
+
+            var frame=targetname;
+            
+            document.getElementById(frame).checked = true;
+        }
+
         function show_group(group_name){
             if (group_name.length > 0) {
                 document.location.hash = group_name;
@@ -40,7 +55,7 @@
 
 </head>
 
-<body class="defaults-nav" onpageshow="show_group('{{active_group}}')">
+<body class="defaults-nav" onpageshow="show_group('{{active_group}}') ; check_target('{{default_list.0.group_name}}-settings')">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -49,13 +64,13 @@
 
         <!--https://codepen.io/nathanlong/pen/mBrvn-->
         
-        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
+        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link" onclick="check_target('{{group.group_name}}-settings') ; check_target('{{group.group_name}}-hide')">{{group.group_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{group.group_name}}" type="radio" name="tabs" checked>
-                    <label for="settings-{{group.group_name}}">Settings</label>
+                    <input id="{{group.group_name}}-settings" type="radio" name="tabs" onclick="check_target('{{group.group_name}}-hide')" checked>
+                    <label for="{{group.group_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{group.group_name}}" action="/group/defaults/" method="post">
@@ -88,11 +103,28 @@
                                 <tr class="highlight1"><td><label for="vm_flavor">VM Flavor</label></td>
                                 <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
 
+
                                 <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
-                                <td><input type="text" name="vm_image" value="{{group.vm_image}}" /></td></tr>
+                                <td><select name="vm_image" id=""/>
+                                <option value=""></option>
+                                {% for image in image_list %}
+                                    {% if image.name == group.vm_image %}
+                                        <option value="{{ image.name }}" selected>{{ image.name }}</option>
+                                    {% else %}
+                                        <option value="{{ image.name }}">{{ image.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
                                 <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
-                                <td><input type="text" name="vm_network" value="{{group.vm_network}}" /></td></tr>
+                                <td><select name="vm_network" id=""/>
+                                <option value=""></option>
+                                {% for network in network_list %}
+                                    {% if network.name == group.vm_network %}
+                                        <option value="{{ network.name }}" selected>{{ network.name }}</option>
+                                    {% else %}
+                                        <option value="{{ network.name }}">{{ network.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
                                 <tr class="highlight1"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
@@ -110,6 +142,15 @@
                             </table>
                             
                         </form>
+
+                        <div class="tab2">
+                            <input id="{{group.group_name}}-hide" type="radio" name="tabs2">
+                            <div class="tab2-content">
+                                <iframe id="editor-{{group.group_name}}-hide"  src=""></iframe>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
 
@@ -156,12 +197,15 @@
 
                                 <form name="{{ group.group_name }}-add" action="/group/metadata-add/" method="post">
                                 {% csrf_token %}
-                                
+                                    <table>
                                     <input type="hidden" name="group_name" value="{{ group.group_name }}">
 
-                                    <label for="metadata_name">METADATA name</label>
-                                    <input type="text" name="metadata_name" value="">
-                                    <input type="submit" id="update" value="Update">
+
+                                    <tr><td><label for="metadata_name">METADATA name</label></td>
+                                    <td><input type="text" name="metadata_name" value=""/></td></tr>
+                                    <tr><td></td>
+                                    <td><input type="submit" id="update" value="Update"></td></tr>
+                                    </table>
                                     <br>
                                     <textarea name="metadata" id="{{group.group_name}}editor"></textarea>
 

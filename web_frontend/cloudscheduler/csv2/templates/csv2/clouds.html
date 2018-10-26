@@ -35,6 +35,13 @@
     }
 
 
+    function check_target(targetname) {
+
+        var frame=targetname;
+
+        document.getElementById(frame).checked = true;
+    }
+
     function show_cloud(cloud_name){
         if (cloud_name.length > 0) {
             document.location.hash = cloud_name;
@@ -46,23 +53,24 @@
 <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}')">
+<body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
 
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link">{{cloud.cloud_name}}</a>
+        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="check_target('{{cloud.cloud_name}}-settings') ; check_target('{{cloud.cloud_name}}-hide')">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" checked>
-                    <label for="settings-{{cloud.cloud_name}}">Settings</label>
+                    <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="check_target('{{cloud.cloud_name}}-hide')" checked>
+                    <label for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
                             {% csrf_token %}
                             <table>
+                                <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
                                 <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
 
                                 <tr class="highlight1"><td><label for="authurl">Enabled</label></td>
@@ -86,6 +94,36 @@
                                 <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
                                 <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
                                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
+
+
+
+                                <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
+                                <td><select name="vm_network" id=""/>
+                                <option value=""></option>
+                                {% for network in network_list %}
+                                    {% if network.cloud_name == cloud.cloud_name%}
+                                        {% if network.name == cloud.vm_network %}
+                                            <option value="{{ network.name }}" selected>{{ network.name }}</option>
+                                        {% else %}
+                                            <option value="{{ network.name }}">{{ network.name }}</option>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+
+
+                                <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
+                                <td><select name="vm_image" id=""/>
+                                <option value=""></option>
+                                {% for image in image_list %}
+                                    {% if image.cloud_name == cloud.cloud_name%}
+                                        {% if image.name == cloud.vm_image %}
+                                            <option value="{{ image.name }}" selected>{{ image.name }}</option>
+                                        {% else %}
+                                            <option value="{{ image.name }}">{{ image.name }}</option>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+
 
                                 <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
                                 <td><select name="cloud_type" id=""/>
@@ -126,10 +164,12 @@
                             </table>
                         </form>
 
-                        <div class="hide-iframe">
-                            <iframe src=""></iframe>
+                        <div class="tab2">
+                            <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
+                            <div class="tab2-content">
+                                <iframe id="editor-{{cloud.cloud_name}}-hide"  src=""></iframe>
+                            </div>
                         </div>
-
 
                     </div>
 
@@ -226,10 +266,15 @@
                             <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
                             <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
+
                             <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
                             <td><select name="cloud_type" id=""/>
                             {% for type in type_list %}
+                                {% if type.cloud_type == cloud.cloud_type %}
+                                    <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                {% else %}
                                     <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                {% endif %}
                             {% endfor %}
 
                             <tr><td><input type="submit" value="Add Cloud" /></td></tr>

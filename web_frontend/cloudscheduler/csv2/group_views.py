@@ -264,8 +264,19 @@ def defaults(request):
 
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
+        image_list = {}
         metadata_dict = {}
+        network_list = {}
     else:
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
+
+        # Get all all networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
+
+        # Get the group default metadata list:
         s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
         group_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -291,7 +302,9 @@ def defaults(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'defaults_list': defaults_list,
+            'image_list': image_list,
             'metadata_dict': metadata_dict,
+            'network_list': network_list,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint
@@ -603,27 +616,27 @@ def metadata_add(request):
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV25'), msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV25'), msg)})
 
         # Add the group metadata file.
         table = tables['csv2_group_metadata']
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
         else:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV26'), active_user.active_group, fields['metadata_name'], msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV26'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
     else:
-        return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
+        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -645,13 +658,13 @@ def metadata_delete(request):
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno('GV30'), msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete %s' % (lno('GV30'), msg)})
 
         # Delete the csv2_group_metadata_exclusions.
         table = tables['csv2_group_metadata_exclusions']
@@ -673,14 +686,14 @@ def metadata_delete(request):
             )
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
         else:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV31'), active_user.active_group, fields['metadata_name'], msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV31'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
     else:
-        return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
+        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
 
 #-------------------------------------------------------------------------------
 
@@ -696,7 +709,7 @@ def metadata_fetch(request, selector=None):
     rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
+        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
 
     # Retrieve metadata file.
     id = request.path.split('/')
@@ -721,10 +734,10 @@ def metadata_fetch(request, selector=None):
                 return render(request, 'csv2/group_editor.html', context)
         
         config.db_close()
-        return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
+        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
 
     config.db_close()
-    return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
+    return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -748,7 +761,7 @@ def metadata_list(request):
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-list, %s' % (lno('GV35'), msg)})
+        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-list, %s' % (lno('GV35'), msg)})
 
     # Retrieve cloud/metadata information.
     s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)
@@ -789,13 +802,13 @@ def metadata_update(request):
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
@@ -805,7 +818,7 @@ def metadata_update(request):
             ).values(table_fields(fields, table, columns, 'update')))
         if rc == 0:
             config.db_close(commit=True)
-            #return render(request, 'csv2/groups_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully  updated.' % (active_user.active_group, fields['metadata_name'])})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully  updated.' % (active_user.active_group, fields['metadata_name'])})
         
             message='group metadata file "%s::%s" successfully  updated.' % (fields['group_name'], fields['metadata_name'])
             context = {
@@ -818,11 +831,11 @@ def metadata_update(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV38'), active_user.active_group, fields['metadata_name'], msg)})
+            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV38'), active_user.active_group, fields['metadata_name'], msg)})
 
     ### Bad request.
     else:
-        return render(request, 'csv2/groups_defaults.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
+        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
 
 #-------------------------------------------------------------------------------
 

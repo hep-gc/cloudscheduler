@@ -113,6 +113,10 @@ def update_pending_transactions(old_img_dict, new_img_dict):
     new_dict = json.loads(new_img_dict)
 
     for repo_key in old_dict:
+        if repo_key not in new_dict:
+            #cloud has been removed, we can ignore it
+            logger.info("%s not found in new image dict, ignoring" % repo_key)
+            continue
         repo_dict = old_dict[repo_key]
         for img_key in repo_dict:
             #if a pending one is found, check for it in the new list
@@ -866,6 +870,51 @@ def create_new_keypair(key_name, cloud):
     except Exception as exc:
         raise
     return new_key
+
+def check_and_transfer_defaults(db_session, json_img_dict, group, defaults_class_obj):
+    #get csv2_group_defaults from db
+    #get image matrix from parameter
+    #check all cloud resources for default_image
+    defaults = db_session.query(defaults_class_obj).get(group)
+    if defaults.vm_image is None or defaults.vm_image=="":
+        logger.info("No default image set, skipping...")
+        return False
+    grp_dict = json.loads(json_img_dict)
+    try:
+        for repo_key in grp_dict:
+            logger.info("checking %s fo default image %s.." % (repo_key, defaults.vm_image))
+            default_present = False
+            for image_id in grp_dict[repo_key]:
+                img_dict = grp_dict[repo_key][image_id]
+                if img_dict["name"] == defaults.vm_image:
+                    logger.info("Image found, breaking")
+                    default_present = True
+                    break
+            if not default_present:
+                # need to xfer image to this cloud
+                logger.info("Found missing default image, attempting to transfer %s to %s" % (defaults.vm_image, repo_key))
+                img_details = __get_image_details(group, defaults.vm_image)
+                disk_format = img_details[0]
+                container_format = img_details[1]
+                transaction = {
+                    'user': "default_transfer",
+                    'action': 'transfer',
+                    'group_name': group,
+                    'cloud_name': repo_key,
+                    'image_name': defaults.vm_image,
+                    'disk_format': disk_format,
+                    'container_format': container_format
+                }
+                trans_key = group + "_pending_transactions"
+                red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+                red.rpush(trans_key, json.dumps(transaction))
+                increment_transactions()
+    except Exception as exc:
+        logger.error("Error attempting to queue transfers for default image:")
+        logger.error(exc)
+        return False
+
+    return True
 
 
 def __get_image_ids(repo_dict):

@@ -103,6 +103,7 @@ ul.sub-menu li:hover{
 .users-nav a.users-nav,
 .config-nav a.config-nav,
 .images-nav a.images-nav,
+.keys-nav a.keys-nav,
 .vms-nav a.vms-nav
 {
   background: green;

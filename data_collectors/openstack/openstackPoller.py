@@ -348,7 +348,7 @@ def image_poller():
     poll_time_history = [0,0,0,0]
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning image poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
