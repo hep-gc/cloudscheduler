@@ -53,11 +53,12 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             raise Exception
 
         self.default_securitygroup = defaultsecuritygroup
-        self.default_image = resource.vm_image
-        self.default_flavor = resource.vm_flavor
-        self.default_network = defaultnetwork
+        self.default_image = resource.cascading_vm_image
+        self.default_flavor = resource.cascading_vm_flavor
+        self.default_network = resource.cascading_vm_network
+        self.keep_alive = resource.cascading_vm_keep_alive   # with this here now can probably remove it from the earlier part of call stack
 
-    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, keep_alive=0, image=None):
+    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
         Try to boot VMs on OpenStack.
         :param group_yaml_list: yaml from the group owning cloud
@@ -192,7 +193,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                     'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                     'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time()),
-                    'keep_alive': keep_alive
+                    'keep_alive': self.keep_alive
                 }
                 new_vm = Vms(**vm_dict)
                 db_session.merge(new_vm)
