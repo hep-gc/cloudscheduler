@@ -425,8 +425,18 @@ def list(
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
+        image_list = {}
         metadata_dict = {}
+        network_list = {}
     else:
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
+
+        # Get all the networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
+
         s = select([view_group_resources_with_metadata_info]).where(view_group_resources_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -471,6 +481,8 @@ def list(
             'cloud_list': cloud_list,
             'type_list': type_list,
             'metadata_dict': metadata_dict,
+            'image_list': image_list,
+            'network_list': network_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,

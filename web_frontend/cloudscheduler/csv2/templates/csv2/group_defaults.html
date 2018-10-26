@@ -103,11 +103,28 @@
                                 <tr class="highlight1"><td><label for="vm_flavor">VM Flavor</label></td>
                                 <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
 
+
                                 <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
-                                <td><input type="text" name="vm_image" value="{{group.vm_image}}" /></td></tr>
+                                <td><select name="vm_image" id=""/>
+                                <option value=""></option>
+                                {% for image in image_list %}
+                                    {% if image.name == group.vm_image %}
+                                        <option value="{{ image.name }}" selected>{{ image.name }}</option>
+                                    {% else %}
+                                        <option value="{{ image.name }}">{{ image.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
                                 <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
-                                <td><input type="text" name="vm_network" value="{{group.vm_network}}" /></td></tr>
+                                <td><select name="vm_network" id=""/>
+                                <option value=""></option>
+                                {% for network in network_list %}
+                                    {% if network.name == group.vm_network %}
+                                        <option value="{{ network.name }}" selected>{{ network.name }}</option>
+                                    {% else %}
+                                        <option value="{{ network.name }}">{{ network.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
                                 <tr class="highlight1"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
