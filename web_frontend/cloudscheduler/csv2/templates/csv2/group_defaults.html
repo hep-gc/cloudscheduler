@@ -70,7 +70,7 @@
 
                 <div class="tab">
                     <input id="{{group.group_name}}-settings" type="radio" name="tabs" onclick="check_target('{{group.group_name}}-hide')" checked>
-                    <label for="{{group.group_name}}-settings">Settings</label>
+                    <label class="highlight3" for="{{group.group_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{group.group_name}}" action="/group/defaults/" method="post">
@@ -84,27 +84,27 @@
 
 
 
-                                <tr class="highlight1"><td><label for="job_cpus">Job CPUs</label></td>
+                                <tr class="highlight3"><td><label for="job_cpus">Job CPUs</label></td>
                                 <td><input type="text" name="job_cpus" value="{{group.job_cpus}}" /></td></tr>
 
-                                <tr class="highlight1"><td><label for="job_ram">Job RAM</label></td>
+                                <tr class="highlight3"><td><label for="job_ram">Job RAM</label></td>
                                 <td><input type="text" name="job_ram" value="{{group.job_ram}}" /></td></tr>
 
 
-                                <tr class="highlight1"><td><label for="job_disk">Job Disk</label></td>
+                                <tr class="highlight3"><td><label for="job_disk">Job Disk</label></td>
                                 <td><input type="text" name="job_disk" value="{{group.job_disk}}" /></td></tr>
 
-                                <!--<tr class="highlight1"><td><label for="job_scratch">Job Scratch</label></td>
+                                <!--<tr class="highlight3"><td><label for="job_scratch">Job Scratch</label></td>
                                 <td><input type="text" name="job_scratch" value="{{group.job_scratch}}" /></td></tr>-->
 
-                                <tr class="highlight1"><td><label for="job_swap">Job Swap</label></td>
+                                <tr class="highlight3"><td><label for="job_swap">Job Swap</label></td>
                                 <td><input type="text" name="job_swap" value="{{group.job_swap}}" /></td></tr>
 
-                                <tr class="highlight1"><td><label for="vm_flavor">VM Flavor</label></td>
+                                <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
                                 <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
 
 
-                                <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
+                                <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
                                 <td><select name="vm_image" id=""/>
                                 <option value=""></option>
                                 {% for image in image_list %}
@@ -115,7 +115,7 @@
                                     {% endif %}
                                 {% endfor %}
 
-                                <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
+                                <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
                                 <td><select name="vm_network" id=""/>
                                 <option value=""></option>
                                 {% for network in network_list %}
@@ -126,7 +126,7 @@
                                     {% endif %}
                                 {% endfor %}
 
-                                <tr class="highlight1"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
+                                <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
 
 
@@ -156,7 +156,7 @@
 
                 <div class="tab">
                     <input id="metadata-{{group.group_name}}" type="radio" name="tabs">
-                    <label for="metadata-{{group.group_name}}">Metadata</label>
+                    <label class="highlight4" for="metadata-{{group.group_name}}">Metadata</label>
                     <div class="tab-content">
 
 
@@ -169,7 +169,7 @@
 
                                         <div class="tab2">
                                             <input id="metadata-{{group.group_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
-                                            <label for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
+                                            <label class="highlight4" for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
                                             <div class="tab2-content">
 
                                                 <iframe id="editor-{{group.group_name}}-{{meta}}" class="iframe-content" src=""></iframe>
@@ -191,7 +191,7 @@
 
                         <div class="tab2">
                             <input id="metadata-{{group.group_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{group.group_name}}')">
-                            <label for="metadata-{{group.group_name}}-add">+</label>
+                            <label class="highlight4" for="metadata-{{group.group_name}}-add">+</label>
                             <div class="tab2-content">
 
 

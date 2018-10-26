@@ -64,7 +64,7 @@
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="check_target('{{cloud.cloud_name}}-hide')" checked>
-                    <label for="{{cloud.cloud_name}}-settings">Settings</label>
+                    <label class="highlight3" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
@@ -73,31 +73,40 @@
                                 <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
                                 <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
 
-                                <tr class="highlight1"><td><label for="authurl">Enabled</label></td>
-                                <td><input type="text" name="enabled" value="{{cloud.enabled}}" /></td></tr>
-                                
-                                <tr class="highlight1"><td><label for="authurl">URL</label></td>
+
+                                <input type="hidden" name="enabled" value="0" />
+
+                                <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
+                                <td>
+                                {% if cloud.enabled == 1%}
+                                    <input type="checkbox" name="enabled" value="1" checked/>
+                                {% else %}
+                                    <input type="checkbox" name="enabled" value="1" />
+                                {% endif %}
+                                </td></tr>
+
+                                <tr class="highlight3"><td><label for="authurl">URL</label></td>
                                 <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="project">Project</label></td>
+                                <tr class="highlight3"><td><label for="project">Project</label></td>
                                 <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="username">Username</label></td>
+                                <tr class="highlight3"><td><label for="username">Username</label></td>
                                 <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="password">Password</label></td>
+                                <tr class="highlight3"><td><label for="password">Password</label></td>
                                 <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
-                                <tr class="highlight1"><td><label for="keyname">Key pair name</label></td>
+                                <tr class="highlight3"><td><label for="keyname">Key pair name</label></td>
                                 <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="cacertificate">CA certificate</label></td>
+                                <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                 <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="region">Region</label></td>
+                                <tr class="highlight3"><td><label for="region">Region</label></td>
                                 <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="user_domain_name">User domain name</label></td>
+                                <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                                 <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                                <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
+                                <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
 
 
-                                <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
+                                <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
                                 <td><select name="vm_network" id=""/>
                                 <option value=""></option>
                                 {% for network in network_list %}
@@ -111,7 +120,7 @@
                                 {% endfor %}
 
 
-                                <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
+                                <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
                                 <td><select name="vm_image" id=""/>
                                 <option value=""></option>
                                 {% for image in image_list %}
@@ -125,7 +134,7 @@
                                 {% endfor %}
 
 
-                                <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
+                                <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                                 <td><select name="cloud_type" id=""/>
                                 {% for type in type_list %}
                                     {% if cloud.cloud_type == type.cloud_type %}
@@ -179,7 +188,7 @@
 
                 <div class="tab">
                     <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs">
-                    <label for="metadata-{{cloud.cloud_name}}">Metadata</label>
+                    <label class="highlight4" for="metadata-{{cloud.cloud_name}}">Metadata</label>
                     <div class="tab-content">
 
 
@@ -190,7 +199,7 @@
 
                                 <div class="tab2">
                                     <input id="metadata-{{cloud.cloud_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
-                                    <label for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
+                                    <label class="highlight4" for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
                                     <div class="tab2-content">
 
                                         <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>
@@ -205,7 +214,7 @@
 
                         <div class="tab2">
                             <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{cloud.cloud_name}}')">
-                            <label for="metadata-{{cloud.cloud_name}}-add">+</label>
+                            <label class="highlight4" for="metadata-{{cloud.cloud_name}}-add">+</label>
                             <div class="tab2-content">
 
 
@@ -243,31 +252,31 @@
                     {% csrf_token %}
                     <div class="menu-position">
                         <table>
-                            <tr class="highlight1"><td><label for="cloud_name">Cloud name</label></td>
+                            <tr class="highlight3"><td><label for="cloud_name">Cloud name</label></td>
                             <td><input type="text" name="cloud_name" value="" /></td></tr>
-                            <tr class="highlight1"><td><label for="authurl">Enabled</label></td>
+                            <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
                             <td><input type="text" name="enabled" value="1" /></td></tr>
-                            <tr class="highlight1"><td><label for="authurl">URL</label></td>
+                            <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" value="" /></td></tr>
-                            <tr class="highlight1"><td><label for="project">Project</label></td>
+                            <tr class="highlight3"><td><label for="project">Project</label></td>
                             <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                            <tr class="highlight1"><td><label for="username">Username</label></td>
+                            <tr class="highlight3"><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" value="" /></td></tr>
-                            <tr class="highlight1"><td><label for="password">Password</label></td>
+                            <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
-                            <tr class="highlight1"><td><label for="keyname">Key pair name</label></td>
+                            <tr class="highlight3"><td><label for="keyname">Key pair name</label></td>
                             <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
-                            <tr class="highlight1"><td><label for="cacertificate">CA certificate</label></td>
+                            <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                            <tr class="highlight1"><td><label for="region">Region</label></td>
+                            <tr class="highlight3"><td><label for="region">Region</label></td>
                             <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                            <tr class="highlight1"><td><label for="user_domain_name">User domain name</label></td>
+                            <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                            <tr class="highlight1"><td><label for="project_domain_name">Project domain name</label></td>
+                            <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                             <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
 
-                            <tr class="highlight1"><td><label for="cloud_type">Cloud type</label></td>
+                            <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                             <td><select name="cloud_type" id=""/>
                             {% for type in type_list %}
                                 {% if type.cloud_type == cloud.cloud_type %}

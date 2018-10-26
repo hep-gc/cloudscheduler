@@ -16,8 +16,7 @@
   position: relative;
   display: block;
   padding: 0 0 0 1em;
-  background: powderblue;
-  line-height: 3;
+  line-height: 2;
   cursor: pointer;
   text-align: center;
 }
@@ -97,7 +96,6 @@ iframe {
   position: relative;
   display: block;
   padding: 0 0 0 1em;
-  background: orange;
   font-weight: bold;
   line-height: 3;
   cursor: pointer;
