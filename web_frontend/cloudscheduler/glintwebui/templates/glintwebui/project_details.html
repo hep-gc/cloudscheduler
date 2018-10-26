@@ -57,7 +57,11 @@
 		{% endcomment %}
 		{% if image_set is not None %}
 			{% for image in image_set %}
-				<tr class="image_row"><td><b> {{image}} </b> <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/></td>
+				<tr class="image_row"><td><b> {{image}} </b> <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/>
+                {% if image == default_image %}
+                    <img title="Default Image" src="/static/glintwebui/img/gold_star.png" style="width:20px;height:20px; float:right; padding-left:5px;" />
+                {% endif %}
+                </td>
 				{% for repo_key, repo_value in image_dict.items %}
 					{% with image_id=image_lookup|get_item:repo_key|get_item:image %}
 					{% if repo_value|get_item:image_id is not None %}

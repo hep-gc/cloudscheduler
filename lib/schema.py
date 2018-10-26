@@ -101,7 +101,7 @@ auth_user_user_permissions = Table('auth_user_user_permissions', metadata,
 cloud_flavors = Table('cloud_flavors', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
-  Column('id', String(128), primary_key=True),
+  Column('id', String(128)),
   Column('ram', Integer),
   Column('cores', Integer),
   Column('swap', Integer),
@@ -109,7 +109,7 @@ cloud_flavors = Table('cloud_flavors', metadata,
   Column('ephemeral_disk', Integer),
   Column('is_public', Integer),
   Column('last_updated', Integer),
-  Column('name', String(128))
+  Column('name', String(128), primary_key=True)
   )
 
 cloud_images = Table('cloud_images', metadata,
@@ -527,6 +527,10 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_slots', Integer)
   )
 
+view_available_resources_json = Table('view_available_resources_json', metadata,
+  Column('flavors', String)
+  )
+
 view_cloud_status = Table('view_cloud_status', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -572,8 +576,8 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('target_clouds', String),
   Column('job_status', Integer),
   Column('request_cpus', Integer),
-  Column('request_ram', Integer),
   Column('request_disk', Integer),
+  Column('request_ram', Integer),
   Column('request_swap', Integer),
   Column('requirements', String(512)),
   Column('job_priority', Integer),
@@ -843,6 +847,10 @@ view_metadata_collation = Table('view_metadata_collation', metadata,
   Column('metadata_name', String(64))
   )
 
+view_metadata_collation_json = Table('view_metadata_collation_json', metadata,
+  Column('group_metadata', String)
+  )
+
 view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('group_name', String(32)),
   Column('hostname', String(256)),
@@ -850,6 +858,16 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('name', String(128)),
   Column('entered_current_state', Integer),
   Column('cloud_name', String(32))
+  )
+
+view_test = Table('view_test', metadata,
+  Column('flavor', String(161)),
+  Column('resources', String)
+  )
+
+view_test2 = Table('view_test2', metadata,
+  Column('available_resources', String(19)),
+  Column('flavors', String)
   )
 
 view_user_groups = Table('view_user_groups', metadata,
