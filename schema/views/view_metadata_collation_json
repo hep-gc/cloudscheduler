@@ -1,0 +1,94 @@
+/*
+** List metadata in collation order. This view provides SQL "select" statements
+** to be used to retrieve the actual metadata as follows:
+**
+**    # Fetch the metadata list.
+**    metadata_list = json.loads(config.db_connection.execute(
+**        select([view_metadata_collation_json])
+**        ).fetchone().group_metadata.decode('utf-8'))
+**
+**    # Fetch all the metadata for "group-a"/"cloud-b".
+**    for metadata_select in metadata_list['group-a']['cloud-b']:
+**        metadata =  config.db_connection.execute(metadata_select).fetchone()[0]
+*/
+create or replace view view_metadata_collation_json as
+
+select
+replace(
+    replace(
+        replace(
+            replace(
+                replace(
+                    replace(
+                        replace(
+                            json_object(
+                                group_name,
+                                cloud_source
+                                ),
+                            '"', "''"),
+                        "}''", "}"),
+                    "''{", "{"),
+                "]''", "]"),
+            "''[", "["),
+        "''", '"'),
+    '},{', ', ') as group_metadata
+from (
+    /* n05 */
+    select
+    group_name,
+    group_concat(cloud_metadata) as cloud_source
+    from (
+        /* n04 */
+        select
+        group_name, 
+        replace(
+            json_object(
+                cloud_name,
+                metadata
+                ),
+            '"', "''") as cloud_metadata
+        from (
+            /* n03 */
+            select
+            group_name,
+            cloud_name,
+            concat('[', group_concat(metadata_source order by priority,metadata_name), ']') as metadata
+                from (
+                    /* n01 */
+                    select
+                    priority,
+                    metadata_name,
+                    group_name,
+                    cloud_name,
+                    case when type='group' then
+                        concat(
+                            "''select metadata from csv2_group_metadata where group_name='",
+                            group_name,
+                            "' and metadata_name='",
+                            metadata_name,
+                            "';''"
+                            )
+                    else
+                        concat(
+                            "''select metadata from csv2_group_resource_metadata where group_name='",
+                            group_name,
+                            "' and cloud_name='",
+                            cloud_name,
+                            "' and metadata_name='",
+                            metadata_name,
+                            "';''"
+                            )
+                    end as metadata_source
+
+                    from view_metadata_collation as vmc
+                    where metadata_name != ""
+                    ) as n01
+
+            group by group_name,cloud_name
+            ) as n03
+        ) as n04
+
+    group by group_name
+    ) as n05
+
+;
