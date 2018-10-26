@@ -129,17 +129,6 @@ def command_poller():
     multiprocessing.current_process().name = "VM Commands"
     last_poll_time = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
@@ -176,13 +165,15 @@ def command_poller():
                 nova = _get_nova_client(session)
                 try:
                     nova.servers.delete(vm.vmid)
-                    logging.info("VM Terminated: %s", (vm.hostname,))
+                    logging.info("VM Terminated: %s, updating db entry", (vm.hostname,))
+                    vm.terminate = 2
+                    db_session.merge(vm)
                 except Exception as exc:
                     logging.exception("Failed to terminate VM: %s", vm.hostname)
                     logging.error(exc)
 
             last_poll_time = new_poll_time
-            config.db_close()
+            config.db_close(commit=True) # may need to batch these commits if we are attempting to terminate a lot of vms at once or the database sesion will time out
             del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_command)
 
@@ -194,17 +185,7 @@ def command_poller():
 
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
+
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     FLAVOR = config.db_map.classes.cloud_flavors
