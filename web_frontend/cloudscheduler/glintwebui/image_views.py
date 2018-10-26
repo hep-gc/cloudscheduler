@@ -110,7 +110,7 @@ def project_details(request, group_name=None, message=None):
             # catches nonetype error
             group_name = "No groups available"
 
-    defaults = session.query(Group_Defaults).get(group)
+    defaults = session.query(Group_Defaults).get(group_name)
     if defaults.vm_image is None or defaults.vm_image=="":
         default_image = None
     else:
