@@ -100,8 +100,16 @@
                                 <tr class="highlight3"><td><label for="job_swap">Job Swap</label></td>
                                 <td><input type="text" name="job_swap" value="{{group.job_swap}}" /></td></tr>
 
-                                <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
-                                <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
+                                <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
+                                <td><select name="vm_keyname" id=""/>
+                                <option value=""></option>
+                                {% for key in keypairs_list %}
+                                    {% if key.key_name == group.vm_keyname %}
+                                        <option value="{{ key.key_name }}" selected>{{ keyname.name }}</option>
+                                    {% else %}
+                                        <option value="{{ key.key_name }}">{{ key.key_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
 
                                 <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
@@ -115,6 +123,17 @@
                                     {% endif %}
                                 {% endfor %}
 
+                                <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
+                                <td><select name="vm_flavor" id=""/>
+                                <option value=""></option>
+                                {% for flavor in flavor_list %}
+                                    {% if flavor.name == group.vm_flavor %}
+                                        <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
+                                    {% else %}
+                                        <option value="{{ flavor.name }}">{{ flavor.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+
                                 <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
                                 <td><select name="vm_network" id=""/>
                                 <option value=""></option>
@@ -125,6 +144,7 @@
                                         <option value="{{ network.name }}">{{ network.name }}</option>
                                     {% endif %}
                                 {% endfor %}
+
 
                                 <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>

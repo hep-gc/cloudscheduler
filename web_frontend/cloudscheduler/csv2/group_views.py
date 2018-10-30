@@ -274,6 +274,7 @@ def defaults(request):
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         image_list = {}
+        flavor_list = {}
         metadata_dict = {}
         keyname_list = {}
         network_list = {}
@@ -282,9 +283,13 @@ def defaults(request):
         s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
         image_list = qt(config.db_connection.execute(s))
 
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
+
         # Get all keynames in group:
         s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-        keyname_list = qt(config.db_connection.execute(s))
+        keypairs_list = qt(config.db_connection.execute(s))
 
         # Get all networks in group:
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
@@ -317,8 +322,9 @@ def defaults(request):
             'user_groups': user_groups,
             'defaults_list': defaults_list,
             'image_list': image_list,
+            'flavor_list': flavor_list,
             'metadata_dict': metadata_dict,
-            'keyname_list': keyname_list,
+            'keypairs_list': keypairs_list,
             'network_list': network_list,
             'response_code': response_code,
             'message': message,

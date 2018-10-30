@@ -432,17 +432,22 @@ def list(
         s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
         image_list = {}
+        flavor_list = {}
         metadata_dict = {}
-        keyname_list = {}
+        keypairs_list = {}
         network_list = {}
     else:
         # Get all the images in group:
         s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
         image_list = qt(config.db_connection.execute(s))
 
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
+
         # Get all the keynames in group:
         s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-        keyname_list = qt(config.db_connection.execute(s))
+        keypairs_list = qt(config.db_connection.execute(s))
 
         # Get all the networks in group:
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
@@ -493,7 +498,8 @@ def list(
             'type_list': type_list,
             'metadata_dict': metadata_dict,
             'image_list': image_list,
-            'keyname_list': keyname_list,
+            'flavor_list': flavor_list,
+            'keypairs_list': keypairs_list,
             'network_list': network_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
