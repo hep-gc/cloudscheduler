@@ -27,8 +27,8 @@ KEY_MAP = {
     '-vc':  'cores_ctl',
     '-vf':  'vm_flavor',
     '-vi':  'vm_image',
-    '-vk':  'keyname',
     '-vka': 'vm_keep_alive',
+    '-vk':  'vm_keyname',
     '-vn':  'vm_network',
     '-vr':  'ram_ctl',
     }
@@ -59,7 +59,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
     required = []
-    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-xA']
+    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -171,7 +171,6 @@ def list(gvar):
             'region/Region',
             'spot_price/Spot Price',
             'cloud_type/Cloud Type',
-            'keyname/Keyname',
             'cores_ctl/Control/Cores',
             'cores_max/Max/Cores',
             'ram_ctl/Control/RAM',
@@ -179,10 +178,12 @@ def list(gvar):
             'vm_flavor/Flavor/Cloud Default',
             'vm_image/Image/Cloud Default',
             'vm_keep_alive/Keep Alive/Cloud Default',
+            'vm_keyname/Keyname/Cloud Default',
             'vm_network/Network/Cloud Default',
             'cascading_vm_flavor/Flavor/Cascading Default',
             'cascading_vm_image/Image/Cascading Default',
             'cascading_vm_keep_alive/Keep Alive/Cascading Default',
+            'cascading_vm_keyname/Keyname/Cascading Default',
             'cascading_vm_network/Network/Cascading Default',
             'cacertificate/CA Certificate',
             'group_exclusions/Group Exclusions/Metadata',
@@ -270,7 +271,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-xA']
+    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
