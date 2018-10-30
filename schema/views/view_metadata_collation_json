@@ -21,10 +21,7 @@ replace(
                 replace(
                     replace(
                         replace(
-                            json_object(
-                                group_name,
-                                cloud_source
-                                ),
+                            concat("{",  group_concat(cloud_source), "}"),
                             '"', "''"),
                         "}''", "}"),
                     "''{", "{"),
@@ -35,8 +32,8 @@ replace(
 from (
     /* n04 */
     select
-    group_name,
-    group_concat(cloud_metadata) as cloud_source
+    1 as grouping,
+    concat("''", group_name, "'': ", group_concat(cloud_metadata)) as cloud_source
     from (
         /* n03 */
         select
@@ -53,6 +50,15 @@ from (
             group_name,
             cloud_name,
             concat('[', group_concat(metadata_source order by priority,metadata_name), ']') as metadata
+                /*
+
+                All of the above outer nestings should be replaced by:
+
+                select
+                json('{group_name{cloud_name[metadata_source order by priority,metadata_name]}}')
+
+                */
+
                 from (
                     /* n01 */
                     select
@@ -90,5 +96,7 @@ from (
 
     group by group_name
     ) as n04
+
+group by grouping
 
 ;
