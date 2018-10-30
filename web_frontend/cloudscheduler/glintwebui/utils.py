@@ -871,7 +871,7 @@ def create_new_keypair(key_name, cloud):
         raise
     return new_key
 
-def check_and_transfer_defaults(db_session, json_img_dict, group, defaults_class_obj):
+def check_and_transfer_image_defaults(db_session, json_img_dict, group, defaults_class_obj):
     #get csv2_group_defaults from db
     #get image matrix from parameter
     #check all cloud resources for default_image

@@ -18,7 +18,7 @@ from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
 set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
-repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_defaults,\
+repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_image_defaults,\
 set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
 
 
@@ -131,24 +131,126 @@ def image_collection():
         num_tx = get_num_transactions()
 
 
-def default_image_replication():
+def defaults_replication():
     multiprocessing.current_process().name = "Default Image Replication"
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Group = config.db_map.classes.csv2_groups
     Group_Defaults = config.db_map.classes.csv2_group_defaults
+    Group_Resources = config.db_map.classes.csv2_group_resources
+    Keypairs = config.db_map.classes.cloud_keypairs
 
     while True:
         config.db_open()
         session = config.db_session
         group_list = session.query(Group)
 
+
         for group in group_list:
+            cloud_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             img_list = get_images_for_group(group.group_name)
             logging.info("Checking resources for group %s's default image..." % group.group_name)
-            check_and_transfer_defaults(session, img_list, group.group_name, Group_Defaults)
+            check_and_transfer_image_defaults(session, img_list, group.group_name, Group_Defaults)
 
-        time.sleep(3600) #an hour for now, should be configurable and notifiably via redis
+            #keypair_dict =get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
+            #check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
+
+
+
+        time.sleep(3600) #an hour for now, should be configurable and notifiable via redis
+
+
+'''
+keypair dict structure
+
+key_id;key_name{
+    name: key_name,
+    cloud1: bool
+    cloud2: bool
+    .
+    ..
+    ...
+    cloudx: bool
+}
+'''
+
+def get_keypair_dict(group_name, db_session, cloud_obj, keypair_obj):
+
+    grp_resources = db_session.query(cloud_obj).filter(cloud_obj.group_name == group_name)
+    key_dict = {}
+
+    for cloud in grp_resources:
+        cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
+        for key in cloud_keys:
+            # issue of renaming here if keys have different names on different clouds
+            # the keys will have a unique fingerprint and that is what is used as an identifier
+            if (key.fingerprint + ";" + key.key_name) in key_dict:
+                dict_key = key.fingerprint + ";" + key.key_name
+                key_dict[dict_key][key.cloud_name] = True
+            else:
+                dict_key = key.fingerprint + ";" + key.key_name
+                key_dict[dict_key] = {}
+                key_dict[dict_key]["name"] = key.key_name
+                key_dict[dict_key][key.cloud_name] = True
+
+    return key_dict
+
+def get_composite_key_for_default(key_name, key_dict):
+    for comp_key in key_dict:
+        if key_dict[comp_key]["name"] == key_name
+            return comp_key
+    return False
+
+
+#realastically all we need is the nested dict for the default keypair but to get that we need the key name and fingerprint
+def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_dict, keypair_obj, defaults_obj):
+    # get default key
+    defaults = db_session.query(defaults_obj).get(group_name)
+    default_key = defaults.vm_keyname
+    comp_key = get_composite_key_for_default(default_key, key_dict)
+    try:
+        default_dict = key_dict[comp_key]
+        # first thing is we need to find the key on a cloud to use as a source,
+        # if we cant find it anywhere then we cant transfer it anywhere either!
+        split_key = comp_key.split(";")
+        fingerprint = split_key[0]
+        key_name = split_key[1]
+        default_keypair_src = db_session.query(keypair_obj).filter(
+            keypair_obj.group_name == group_name,
+            keypair_obj.fingerprint == fingerprint,
+            keypair_obj.key_name == keyname).first()
+        for cloud in cloud_list:
+            if cloud.group_name == default_keypair_src.group_name and cloud.cloud_name = default_keypair_src.cloud_name:
+                src_cloud = cloud
+                break
+            else:
+                logging.error("Couldn't find source cloud for default key %s" % comp_key)
+                return False
+
+
+        for cloud in cloud_list:
+            try:
+                default_dict[cloud.cloud_name] # if this is initialized the key already exists on that cloud
+                continue
+            except:
+                #Default key doesnt exist here and needs to be transferred
+                # get keypair needs group resources entry (cloud)
+                # transfer keypair needs keypair and target group_resources entry (cloud)
+                logging.info("Getting OS keypair...")
+                os_keypair = get_keypair(comp_key, src_cloud)
+                logging.info("Uploading default keypair to %s" % cloud.cloud_name)
+                transfer_keypair(keypair, cloud)
+                    
+
+    except Exception as exc:
+        # key error
+        logging.error("Default Key doesn't exist anywhere or issue building key_dict")
+        logging.error("Default key: %s" % default_key)
+        logging.error("Key dict: %s" % key_dict)
+        return False
+
+
+    return True
 
 
 ## Main.
@@ -165,8 +267,8 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'glint':                     image_collection,
-        'default_image_replication': default_image_replication,
+        'glint':                image_collection,
+        #'defaults_replication': default_image_replication,
         }
 
     # Wait for keyboard input to exit
