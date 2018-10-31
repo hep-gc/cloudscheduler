@@ -93,8 +93,7 @@
                                 <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
                                 <tr class="highlight3"><td><label for="password">Password</label></td>
                                 <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
-                                <tr class="highlight3"><td><label for="keyname">Key pair name</label></td>
-                                <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
+
                                 <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                 <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
                                 <tr class="highlight3"><td><label for="region">Region</label></td>
@@ -104,7 +103,18 @@
                                 <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-
+                                <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
+                                <td><select name="vm_keyname" id=""/>
+                                <option value=""></option>
+                                {% for key in keypairs_list %}
+                                    {% if key.cloud_name == cloud.cloud_name%}
+                                        {% if key.key_name == cloud.vm_keyname %}
+                                            <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
+                                        {% else %}
+                                            <option value="{{ key.key_name }}">{{ key.key_name }}</option>
+                                        {% endif %}
+                                    {% endif %}   
+                                {% endfor %}
 
                                 <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
                                 <td><select name="vm_network" id=""/>
@@ -132,6 +142,21 @@
                                         {% endif %}
                                     {% endif %}
                                 {% endfor %}
+
+
+                                <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
+                                <td><select name="vm_flavor" id=""/>
+                                <option value=""></option>
+                                {% for flavor in flavor_list %}
+                                    {% if flavor.cloud_name == cloud.cloud_name%}
+                                        {% if flavor.name == cloud.vm_flavor %}
+                                            <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
+                                        {% else %}
+                                            <option value="{{ flavor.name }}">{{ flavor.name }}</option>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+
 
 
                                 <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
@@ -264,8 +289,8 @@
                             <td><input type="text" name="username" value="" /></td></tr>
                             <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
-                            <tr class="highlight3"><td><label for="keyname">Key pair name</label></td>
-                            <td><input type="text" name="keyname" value="{{cloud.keyname}}" /></td></tr>
+                            <tr class="highlight3"><td><label for="vm_keyname">Key pair name</label></td>
+                            <td><input type="text" name="vm_keyname" value="{{cloud.vm_keyname}}" /></td></tr>
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
                             <tr class="highlight3"><td><label for="region">Region</label></td>

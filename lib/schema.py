@@ -258,6 +258,7 @@ csv2_group_defaults = Table('csv2_group_defaults', metadata,
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_keyname', String(64)),
   Column('vm_network', String(64))
   )
 
@@ -317,6 +318,7 @@ csv2_group_resources = Table('csv2_group_resources', metadata,
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_keyname', String(64)),
   Column('vm_network', String(64))
   )
 
@@ -490,6 +492,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('spot_price', Integer),
   Column('default_image', String(97)),
   Column('keep_alive', Integer),
+  Column('default_keyname', String(97)),
   Column('default_network', String(97)),
   Column('authurl', String(128)),
   Column('project', String(128)),
@@ -538,6 +541,7 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('default_flavor', String(64)),
   Column('default_image', String(64)),
   Column('keep_alive', Integer),
+  Column('default_keyname', String(64)),
   Column('default_network', String(64)),
   Column('VMs', Integer),
   Column('VMs_unregistered', Integer),
@@ -610,10 +614,12 @@ view_group_resources = Table('view_group_resources', metadata,
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_keyname', String(64)),
   Column('vm_network', String(64)),
   Column('cascading_vm_flavor', String(64)),
   Column('cascading_vm_image', String(64)),
   Column('cascading_vm_keep_alive', Integer),
+  Column('cascading_vm_keyname', String(64)),
   Column('cascading_vm_network', String(64)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
@@ -662,10 +668,12 @@ view_group_resources_with_metadata_info = Table('view_group_resources_with_metad
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_keyname', String(64)),
   Column('vm_network', String(64)),
   Column('cascading_vm_flavor', String(64)),
   Column('cascading_vm_image', String(64)),
   Column('cascading_vm_keep_alive', Integer),
+  Column('cascading_vm_keyname', String(64)),
   Column('cascading_vm_network', String(64)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
@@ -718,10 +726,12 @@ view_group_resources_with_metadata_names = Table('view_group_resources_with_meta
   Column('vm_flavor', String(64)),
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
+  Column('vm_keyname', String(64)),
   Column('vm_network', String(64)),
   Column('cascading_vm_flavor', String(64)),
   Column('cascading_vm_image', String(64)),
   Column('cascading_vm_keep_alive', Integer),
+  Column('cascading_vm_keyname', String(64)),
   Column('cascading_vm_network', String(64)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
@@ -858,16 +868,6 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('name', String(128)),
   Column('entered_current_state', Integer),
   Column('cloud_name', String(32))
-  )
-
-view_test = Table('view_test', metadata,
-  Column('flavor', String(161)),
-  Column('resources', String)
-  )
-
-view_test2 = Table('view_test2', metadata,
-  Column('available_resources', String(19)),
-  Column('flavors', String)
   )
 
 view_user_groups = Table('view_user_groups', metadata,

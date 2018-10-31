@@ -289,6 +289,12 @@ def add(request):
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
+        if 'vm_keyname' in fields and fields['vm_keyname']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            if rc != 0:
+                config.db_close()
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
@@ -426,12 +432,22 @@ def list(
         s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
         image_list = {}
+        flavor_list = {}
         metadata_dict = {}
+        keypairs_list = {}
         network_list = {}
     else:
         # Get all the images in group:
         s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
         image_list = qt(config.db_connection.execute(s))
+
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
+
+        # Get all the keynames in group:
+        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+        keypairs_list = qt(config.db_connection.execute(s))
 
         # Get all the networks in group:
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
@@ -482,6 +498,8 @@ def list(
             'type_list': type_list,
             'metadata_dict': metadata_dict,
             'image_list': image_list,
+            'flavor_list': flavor_list,
+            'keypairs_list': keypairs_list,
             'network_list': network_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
@@ -1049,6 +1067,12 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+
+        if 'vm_keyname' in fields and fields['vm_keyname']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            if rc != 0:
+                config.db_close()
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])

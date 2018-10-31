@@ -6,6 +6,8 @@
     <title>{{ metadata_name }}</title>
 
     <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
+    <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
+
 </head>
 
 <body class="metadata-fetch">
@@ -73,7 +75,6 @@
         {% endif %}
     </div>
 
-    <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
     <script type="text/javascript">
         createEditor("meta-editor")

@@ -171,6 +171,12 @@ def add(request):
                 config.db_close()
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
+        if 'vm_keyname' in fields and fields['vm_keyname']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']]])
+            if rc != 0:
+                config.db_close()
+                return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
@@ -237,6 +243,9 @@ def defaults(request):
                 if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
                     rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
                 
+                if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
+                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']]])
+                
                 if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
                     rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
                 
@@ -265,14 +274,24 @@ def defaults(request):
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
         image_list = {}
+        flavor_list = {}
         metadata_dict = {}
+        keyname_list = {}
         network_list = {}
     else:
         # Get all the images in group:
         s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
         image_list = qt(config.db_connection.execute(s))
 
-        # Get all all networks in group:
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
+
+        # Get all keynames in group:
+        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+        keypairs_list = qt(config.db_connection.execute(s))
+
+        # Get all networks in group:
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
         network_list = qt(config.db_connection.execute(s))
 
@@ -303,7 +322,9 @@ def defaults(request):
             'user_groups': user_groups,
             'defaults_list': defaults_list,
             'image_list': image_list,
+            'flavor_list': flavor_list,
             'metadata_dict': metadata_dict,
+            'keypairs_list': keypairs_list,
             'network_list': network_list,
             'response_code': response_code,
             'message': message,
@@ -349,6 +370,7 @@ def delete(request):
                 'csv2_group_metadata_exclusions',
                 'csv2_user_groups',
                 'csv2_vms',
+                'cloud_keypairs',
                 'cloud_networks',
                 'cloud_limits',
                 'cloud_images',
@@ -434,6 +456,16 @@ def delete(request):
         if rc != 0:
             config.db_close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # Delete the cloud_keypairs.
+        table = tables['cloud_keypairs']
+        rc, msg = config.db_session_execute(
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            config.db_close()
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group keynames delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
