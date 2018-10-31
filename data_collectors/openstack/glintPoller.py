@@ -132,7 +132,7 @@ def image_collection():
 
 
 def defaults_replication():
-    multiprocessing.current_process().name = "Default Image Replication"
+    multiprocessing.current_process().name = "Defaults Replication"
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Group = config.db_map.classes.csv2_groups
@@ -197,7 +197,7 @@ def get_keypair_dict(group_name, db_session, cloud_obj, keypair_obj):
 
 def get_composite_key_for_default(key_name, key_dict):
     for comp_key in key_dict:
-        if key_dict[comp_key]["name"] == key_name
+        if key_dict[comp_key]["name"] == key_name:
             return comp_key
     return False
 
@@ -220,7 +220,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
             keypair_obj.fingerprint == fingerprint,
             keypair_obj.key_name == keyname).first()
         for cloud in cloud_list:
-            if cloud.group_name == default_keypair_src.group_name and cloud.cloud_name = default_keypair_src.cloud_name:
+            if cloud.group_name == default_keypair_src.group_name and cloud.cloud_name == default_keypair_src.cloud_name:
                 src_cloud = cloud
                 break
             else:
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     processes = {}
     process_ids = {
         'glint':                image_collection,
-        #'defaults_replication': default_image_replication,
+        'defaults_replication': defaults_replication,
         }
 
     # Wait for keyboard input to exit

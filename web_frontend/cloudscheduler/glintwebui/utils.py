@@ -652,7 +652,7 @@ def check_cached_images(image_name, image_checksum):
     cache_tuple_list = red.lrange("glint_img_cache", 0, -1)
 
     for img_tuple in cache_tuple_list:
-        img_tuple = literal_eval(img_tuple)
+        img_tuple = literal_eval(str(img_tuple))
         if image_name == str(img_tuple[0]) and image_checksum == str(img_tuple[1]):
             #update entry and return path
             red.lrem("glint_img_cache", 0, str(img_tuple))
@@ -878,6 +878,9 @@ def check_and_transfer_image_defaults(db_session, json_img_dict, group, defaults
     defaults = db_session.query(defaults_class_obj).get(group)
     if defaults.vm_image is None or defaults.vm_image=="":
         logger.info("No default image set, skipping...")
+        return False
+    if json_img_dict is None:
+        logger.info("Image dict is empty, returning..")
         return False
     grp_dict = json.loads(json_img_dict)
     try:
