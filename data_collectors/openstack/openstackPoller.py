@@ -839,6 +839,14 @@ def vm_poller():
                 # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                 uncommitted_updates = 0
                 for vm in vm_list:
+                    ip_addrs = []
+                    floating_ips = []
+                    for net in vm.addresses:
+                        for addr in vm.addresses[net]:
+                            if addr['OS-EXT-IPS:type'] == 'fixed':
+                                ip_addrs.append(addr['addr'])
+                            elif addr['OS-EXT-IPS:type'] == 'floating':
+                                floating_ips.append(addr['addr'])
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
@@ -850,6 +858,8 @@ def vm_poller():
                         'flavor_id': vm.flavor["id"],
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                         'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
+                        'vm_ips': str(ip_addrs),
+                        'vm_floating_ips': str(floating_ips),
                         'last_updated': new_poll_time
                     }
 
