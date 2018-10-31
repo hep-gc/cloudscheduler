@@ -86,6 +86,8 @@ def list(gvar):
             'cloud_name/Cloud,k',
             'hostname/Hostname,k',
             'vmid/VMID',
+            'vm_ips/IPs',
+            'vm_floating_ips/Floating IPs',
             'auth_url/Authorization URL',
             'project/Project',
             'status/Status',
