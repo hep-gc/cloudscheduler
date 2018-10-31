@@ -19,7 +19,7 @@ from glintwebui.utils import  jsonify_image_list, update_pending_transactions, g
 set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
 repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_image_defaults,\
-set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
+set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair, transfer_keypair
 
 
 def image_collection():
@@ -152,8 +152,8 @@ def defaults_replication():
             logging.info("Checking resources for group %s's default image..." % group.group_name)
             check_and_transfer_image_defaults(session, img_list, group.group_name, Group_Defaults)
 
-            #keypair_dict =get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
-            #check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
+            keypair_dict = get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
+            check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
 
 
 
@@ -180,7 +180,7 @@ def get_keypair_dict(group_name, db_session, cloud_obj, keypair_obj):
     key_dict = {}
 
     for cloud in grp_resources:
-        cloud_keys = session.query(Keypairs).filter(Keypairs.cloud_name == cloud.cloud_name, Keypairs.group_name == cloud.group_name)
+        cloud_keys = db_session.query(keypair_obj).filter(keypair_obj.cloud_name == cloud.cloud_name, keypair_obj.group_name == cloud.group_name)
         for key in cloud_keys:
             # issue of renaming here if keys have different names on different clouds
             # the keys will have a unique fingerprint and that is what is used as an identifier
@@ -202,7 +202,6 @@ def get_composite_key_for_default(key_name, key_dict):
     return False
 
 
-#realastically all we need is the nested dict for the default keypair but to get that we need the key name and fingerprint
 def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_dict, keypair_obj, defaults_obj):
     # get default key
     defaults = db_session.query(defaults_obj).get(group_name)
@@ -218,7 +217,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
         default_keypair_src = db_session.query(keypair_obj).filter(
             keypair_obj.group_name == group_name,
             keypair_obj.fingerprint == fingerprint,
-            keypair_obj.key_name == keyname).first()
+            keypair_obj.key_name == key_name).first()
         for cloud in cloud_list:
             if cloud.group_name == default_keypair_src.group_name and cloud.cloud_name == default_keypair_src.cloud_name:
                 src_cloud = cloud
@@ -231,6 +230,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
         for cloud in cloud_list:
             try:
                 default_dict[cloud.cloud_name] # if this is initialized the key already exists on that cloud
+                logging.info("Key: %s found on cloud %s" % (key_name, cloud.cloud_name))
                 continue
             except:
                 #Default key doesnt exist here and needs to be transferred
@@ -239,7 +239,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
                 logging.info("Getting OS keypair...")
                 os_keypair = get_keypair(comp_key, src_cloud)
                 logging.info("Uploading default keypair to %s" % cloud.cloud_name)
-                transfer_keypair(keypair, cloud)
+                transfer_keypair(os_keypair, cloud)
                     
 
     except Exception as exc:
@@ -247,6 +247,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
         logging.error("Default Key doesn't exist anywhere or issue building key_dict")
         logging.error("Default key: %s" % default_key)
         logging.error("Key dict: %s" % key_dict)
+        logging.error(exc)
         return False
 
 
