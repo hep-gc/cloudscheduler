@@ -55,7 +55,9 @@ from (
                 All of the above outer nestings should be replaced by:
 
                 select
-                json('{group_name{cloud_name[metadata_source order by priority,metadata_name]}}')
+                json_format('{%X{%X[[%X,%X]]}}', group_name, cloud_name, metadata_source, mime_type order by priority,metadata_name)
+
+                Where: %X is either %s or %d or %f.
 
                 */
 
