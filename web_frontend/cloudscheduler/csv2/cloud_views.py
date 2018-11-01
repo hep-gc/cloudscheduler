@@ -674,7 +674,7 @@ def metadata_fetch(request, selector=None):
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
 
-    # Get all the images in group:
+    # Get mime type list:
     s = select([csv2_mime_types])
     mime_types_list = qt(config.db_connection.execute(s))
 
@@ -703,15 +703,15 @@ def metadata_fetch(request, selector=None):
                         }
 
                     config.db_close()
-                    return render(request, 'csv2/cloud_editor.html', context)
+                    return render(request, 'csv2/meta_editor.html', context)
 
 
     config.db_close()
 
     if id:
-      return render(request, 'csv2/cloud_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
+      return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
     else:
-      return render(request, 'csv2/cloud_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
+      return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -829,7 +829,7 @@ def metadata_update(request):
                     'message': message,
                 }
 
-            return render(request, 'csv2/cloud_editor.html', context)
+            return render(request, 'csv2/meta_editor.html', context)
         else:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)

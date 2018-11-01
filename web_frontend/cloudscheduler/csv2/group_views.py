@@ -743,6 +743,10 @@ def metadata_fetch(request, selector=None):
         config.db_close()
         return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
 
+    # Get mime type list:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
     # Retrieve metadata file.
     id = request.path.split('/')
     if len(id) > 3:
@@ -757,13 +761,14 @@ def metadata_fetch(request, selector=None):
                     'metadata_priority': row.priority,
                     'metadata_mime_type': row.mime_type,
                     'metadata_name': row.metadata_name,
+                    'mime_types_list': mime_types_list,
                     'response_code': 0,
                     'message': None,
                     'enable_glint': config.enable_glint
                     }
 
                 config.db_close()
-                return render(request, 'csv2/group_editor.html', context)
+                return render(request, 'csv2/meta_editor.html', context)
         
         config.db_close()
         return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
@@ -859,7 +864,7 @@ def metadata_update(request):
                     'message': message,
                 }
 
-            return render(request, 'csv2/group_editor.html',context)
+            return render(request, 'csv2/meta_editor.html',context)
 
         else:
             config.db_close()
