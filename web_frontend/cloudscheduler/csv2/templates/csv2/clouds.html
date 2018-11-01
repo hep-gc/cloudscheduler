@@ -103,8 +103,19 @@
                                 <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                                 <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
+
+
+                                <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
+                                <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
+
+
+                                <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
+                                <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
+
+
+
                                 <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
-                                <td><select name="vm_keyname" id=""/>
+                                <td><select name="vm_keyname" class="dropdown"/>
                                 <option value=""></option>
                                 {% for key in keypairs_list %}
                                     {% if key.cloud_name == cloud.cloud_name%}
@@ -117,7 +128,7 @@
                                 {% endfor %}
 
                                 <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
-                                <td><select name="vm_network" id=""/>
+                                <td><select name="vm_network" class="dropdown"/>
                                 <option value=""></option>
                                 {% for network in network_list %}
                                     {% if network.cloud_name == cloud.cloud_name%}
@@ -131,7 +142,7 @@
 
 
                                 <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
-                                <td><select name="vm_image" id=""/>
+                                <td><select name="vm_image" class="dropdown"/>
                                 <option value=""></option>
                                 {% for image in image_list %}
                                     {% if image.cloud_name == cloud.cloud_name%}
@@ -145,7 +156,7 @@
 
 
                                 <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
-                                <td><select name="vm_flavor" id=""/>
+                                <td><select name="vm_flavor" class="dropdown"/>
                                 <option value=""></option>
                                 {% for flavor in flavor_list %}
                                     {% if flavor.cloud_name == cloud.cloud_name%}
@@ -160,7 +171,7 @@
 
 
                                 <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                                <td><select name="cloud_type" id=""/>
+                                <td><select name="cloud_type" class="dropdown"/>
                                 {% for type in type_list %}
                                     {% if cloud.cloud_type == type.cloud_type %}
                                         <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
@@ -214,7 +225,7 @@
                 <div class="tab">
                     <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs">
                     <label class="highlight4" for="metadata-{{cloud.cloud_name}}">Metadata</label>
-                    <div class="tab-content">
+                    <div class="tab-content meta-div">
 
 
                         {% for key, value in metadata_dict.items %}

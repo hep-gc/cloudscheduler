@@ -58,7 +58,10 @@
   content: "-";
 }
 
-
+.meta-div {
+  width: 150px;
+  overflow: hidden;
+}
 
 iframe {
   z-index: 1;
@@ -111,7 +114,7 @@ iframe {
   max-height: 100vh;
   top:60;
   bottom:0;
-  left:600;
+  left:380;
   right:10;
   overflow: auto;
 }

@@ -101,7 +101,7 @@
                                 <td><input type="text" name="job_swap" value="{{group.job_swap}}" /></td></tr>
 
                                 <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
-                                <td><select name="vm_keyname" id=""/>
+                                <td><select name="vm_keyname" class="dropdown"/>
                                 <option value=""></option>
                                 {% for key in keypairs_list %}
                                     {% if key.key_name == group.vm_keyname %}
@@ -113,7 +113,7 @@
 
 
                                 <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
-                                <td><select name="vm_image" id=""/>
+                                <td><select name="vm_image" class="dropdown"/>
                                 <option value=""></option>
                                 {% for image in image_list %}
                                     {% if image.name == group.vm_image %}
@@ -124,7 +124,7 @@
                                 {% endfor %}
 
                                 <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
-                                <td><select name="vm_flavor" id=""/>
+                                <td><select name="vm_flavor" class="dropdown"/>
                                 <option value=""></option>
                                 {% for flavor in flavor_list %}
                                     {% if flavor.name == group.vm_flavor %}
@@ -135,7 +135,7 @@
                                 {% endfor %}
 
                                 <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
-                                <td><select name="vm_network" id=""/>
+                                <td><select name="vm_network" class="dropdown"/>
                                 <option value=""></option>
                                 {% for network in network_list %}
                                     {% if network.name == group.vm_network %}
@@ -177,7 +177,7 @@
                 <div class="tab">
                     <input id="metadata-{{group.group_name}}" type="radio" name="tabs">
                     <label class="highlight4" for="metadata-{{group.group_name}}">Metadata</label>
-                    <div class="tab-content">
+                    <div class="tab-content meta-div">
 
 
                         {% for key, value in metadata_dict.items %}

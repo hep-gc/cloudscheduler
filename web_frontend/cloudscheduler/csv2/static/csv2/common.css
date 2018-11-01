@@ -1,7 +1,4 @@
-checkbox {
 
-  
-}
 
 /*----------footer bar to hold status----------*/
 
@@ -34,6 +31,10 @@ checkbox {
 }
 
 
+.dropdown {
+    width: 200px;
+    overflow: hidden;
+}
 
 /*----------main div containing page----------*/
 
