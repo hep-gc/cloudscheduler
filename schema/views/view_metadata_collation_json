@@ -55,7 +55,7 @@ from (
                 All of the above outer nestings should be replaced by:
 
                 select
-                json_format('{%X{%X[[%X,%X]]}}', group_name, cloud_name, metadata_source, mime_type order by priority,metadata_name)
+                json_format('{%X{%X[[%X*]]}}', group_name, cloud_name, metadata_name, metadata_source, mime_type order by priority,metadata_name)
 
                 Where: %X is either %s or %d or %f.
 
@@ -70,21 +70,29 @@ from (
                     cloud_name,
                     case when type='group' then
                         concat(
-                            "''select metadata from csv2_group_metadata where group_name='",
+                            "[''",
+                            metadata_name,
+                            "'', ''select metadata from csv2_group_metadata where group_name='",
                             group_name,
                             "' and metadata_name='",
                             metadata_name,
-                            "';''"
+                            "';'', ''",
+                            mime_type,
+                            "'']"
                             )
                     else
                         concat(
-                            "''select metadata from csv2_group_resource_metadata where group_name='",
+                            "[''",
+                            metadata_name,
+                            "'', ''select metadata from csv2_group_resource_metadata where group_name='",
                             group_name,
                             "' and cloud_name='",
                             cloud_name,
                             "' and metadata_name='",
                             metadata_name,
-                            "';''"
+                            "';'', ''",
+                            mime_type,
+                            "'']"
                             )
                     end as metadata_source
 
