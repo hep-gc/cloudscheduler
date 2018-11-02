@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import copy
+import json
 import math
 import time
 import logging
@@ -15,11 +16,15 @@ from lib.schema import view_groups_of_idle_jobs
 from lib.schema import view_available_resources
 from lib.schema import view_condor_jobs_group_defaults_applied
 from lib.schema import view_group_resources
+from lib.schema import view_metadata_collation_json
+
+from lib.db_config import Config
 
 from sqlalchemy import create_engine
 from sqlalchemy import exists
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.sql import select
 
 
 CLOUDRESOURCES = {}
@@ -33,6 +38,13 @@ def main():
     main function.
     """
     log = logging.getLogger(__name__)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
+    if not config:
+        print("Probably loading config file.")
+    else:
+        print(config.__dict__)
+    config.db_open()
+
     while(True):
         # basic scheduling: fifo w/ condor_prioity
 
@@ -46,8 +58,22 @@ def main():
         csv2groups = session0.query(CSGroups)
         #logging.debug(type(csv2groups))
         #log.debug(type(csv2groups[0]),csv2groups[0])
+
+        # Get the metadata for groups as json selects with mime_types pre-sorted
+        # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
+        try:
+            metadata = json.loads(config.db_connection.execute(select([view_metadata_collation_json])).fetchone().group_metadata)
+        except AttributeError as ae:
+            log.exception("Probably loading metadata, is there no metadata?")
+
+
         for csgroup in csv2groups:
             log.debug("Dealing with current group: %s", csgroup.group_name)
+            if csgroup.group_name in metadata.keys():
+                pass
+            else:
+                log.debug("No metadata/yamls found for group: % this may cause problem with VMs registering to condor.",
+                          csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
             Base = automap_base()
@@ -65,7 +91,8 @@ def main():
             group_yaml_list = []
             for yam in group_yamls:
                 group_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
-            cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources, group_yamls=group_yaml_list)
+            cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
+                                                                group_yamls=group_yaml_list, metadata=metadata[csgroup.group_name])
             cm_group.setup()
             # At this point I should have a valid set of all the group and cloud specific yaml to use
             # it will still need to be combined with the job yaml - done now in the basecloud prepare_userdata function
@@ -247,7 +274,10 @@ def verify_idle_jobs(group):
             job.hold_job_reason = bad_jobs[job.global_job_id]
         except KeyError:
             continue
-    session.commit()
+    try:
+        session.commit()
+    except Exception as ex:
+        log.exception(ex)
     log.debug("Done Verify jobs.")
     return
 
@@ -319,7 +349,10 @@ def check_idle_time(group):
     for machine in unclaimed_idle_machines:
         machine.idle_time = int(time.time())
         log.debug("%s detected doing nothing - set idle_time.", machine.machine)
-    session.commit()
+    try:
+        session.commit()
+    except Exception as ex: #  sqlalchemy.exc.InternalError pymysql.err.InternalError Deadlock
+        log.exception(ex)
 
 
 def check_idle_time_unset(group):
@@ -349,7 +382,10 @@ def check_idle_time_unset(group):
         if machine.total_slots != 1 or machine.state != "Unclaimed" or machine.activity != "Idle":
             log.debug("%s detected change - unset idle_time.", machine.machine)
             machine.idle_time = None
-    session.commit()
+    try:
+        session.commit()
+    except Exception as ex:
+        log.exception(ex)
 
 
 def check_idle_machines(group):
@@ -387,7 +423,10 @@ def check_idle_machines(group):
         for row in update_result:
             row.retire_request_time = int(time.time())
         # TODO Update csv2_vms table with a retired flag on that vm
-    session.commit()
+    try:
+        session.commit()
+    except Exception as ex:
+        log.exception(ex)
     # Return dict of cloud names with number of idle machine classads
     return machines_dict
 
@@ -443,7 +482,10 @@ def check_unregistered_machines(group):
         for vm in update_result:
             vm.terminate = 1
     log.debug("Done checking %s unregistered VMs.", group)
-    session.commit()
+    try:
+        session.commit()
+    except Exception as ex:
+        log.exception(ex)
     return new_vms
 
 
