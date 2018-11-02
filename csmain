@@ -72,7 +72,7 @@ def main():
             if csgroup.group_name in metadata.keys():
                 pass
             else:
-                log.debug("No metadata/yamls found for group: % this may cause problem with VMs registering to condor.",
+                log.debug("No metadata/yamls found for group: %s this may cause problem with VMs registering to condor.",
                           csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
@@ -92,7 +92,8 @@ def main():
             for yam in group_yamls:
                 group_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
             cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
-                                                                group_yamls=group_yaml_list, metadata=metadata[csgroup.group_name])
+                                                                group_yamls=group_yaml_list,
+                                                                metadata=metadata[csgroup.group_name] if csgroup.group_name in metadata.keys() else None)
             cm_group.setup()
             # At this point I should have a valid set of all the group and cloud specific yaml to use
             # it will still need to be combined with the job yaml - done now in the basecloud prepare_userdata function

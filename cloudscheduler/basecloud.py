@@ -12,6 +12,8 @@ from abc import ABC, abstractmethod
 import cloudscheduler.vm
 import cloudscheduler.cloud_init_util
 
+from lib.db_config import Config
+
 import jinja2
 
 class BaseCloud(ABC):
@@ -20,13 +22,15 @@ class BaseCloud(ABC):
     Abstract BaseCloud class, meant to be inherited by any specific cloud class for use
     by cloudscheduler.
     """
-    def __init__(self, group, name, vms=None, extrayaml=None):
+    def __init__(self, group, name, vms=None, extrayaml=None, metadata=None):
         self.log = logging.getLogger(__name__)
         self.name = name
         self.group = group
         self.enabled = True
         self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms}
         self.extrayaml = extrayaml
+        self.metadata = metadata  # Should a be list of tuples with (name, select statement, mime type) already in order
+        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
 
     def __repr__(self):
         return ' : '.join([self.name, self.enabled])
@@ -80,32 +84,37 @@ class BaseCloud(ABC):
     def prepare_userdata(self, group_yaml, yaml_list, template_dict):
         """ yamllist is a list of strings of file:mimetype format
             group_yaml is a list of tuples with name, yaml content, mimetype format"""
+
+        metadata_yamls = []  # also appending the mime type again with it in tuple (name, content, mime type)
+
         if yaml_list:
-            raw_yaml_list = []
             for yam in yaml_list:
                 [name, contents, mimetype] = cloudscheduler.cloud_init_util\
                     .read_file_type_pairs(yam)
                 if contents and mimetype:
-                    raw_yaml_list.append((name, contents, mimetype, 0))  # Default priority to 0 for job yamls.?
-            group_yaml.extend(raw_yaml_list)
-        if self.extrayaml:
-            group_yaml.extend(self.extrayaml)
-        try:
-            group_yaml = sorted(group_yaml, key= lambda prio: prio[3])  # Sort based on the priority value
-        except IndexError:
-            self.log.exception("Tuple not long enough, did we miss inserting all the values?")
-        for yaml_tuple in group_yaml:
+                    metadata_yamls.append((name,contents,mimetype))
+
+        # metadata_yamls = []  # also appending the mime type again with it in tuple
+        self.config.db_open()
+        for source in self.metadata:
+            metadata_yamls.append([source[0], self.config.db_connection.execute(source[1]).fetchone()[0], source[2]]) # will be a source[2] with name
+        self.config.db_close()
+
+        for yaml_tuple in metadata_yamls:
             if '.j2' in yaml_tuple[0]:
                 template_dict['cs_cloud_name'] = self.name
                 yaml_tuple[1] = jinja2.Environment()\
                     .from_string(yaml_tuple[1]).render(template_dict)
-        userdata = cloudscheduler.cloud_init_util\
-            .build_multi_mime_message(group_yaml)
-        if not userdata:
+        user_data = cloudscheduler.cloud_init_util \
+            .build_multi_mime_message(metadata_yamls)
+
+        # with open('/tmp/metadata_test.txt', 'w') as fd:
+        #    fd.write(userdata)
+        if not user_data:
             return ""
         compressed = ""
         try:
-            compressed = gzip.compress(str.encode(userdata))
+            compressed = gzip.compress(str.encode(user_data))
         except ValueError as ex:
             self.log.exception('zip failure bad value: %s', ex)
         except TypeError as ex:
