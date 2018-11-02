@@ -801,31 +801,6 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('other', Integer)
   )
 
-view_groups_of_idle_jobs2 = Table('view_groups_of_idle_jobs2', metadata,
-  Column('group_name', String(32)),
-  Column('target_clouds', String),
-  Column('request_cpus', Integer),
-  Column('request_ram', Integer),
-  Column('request_disk', Integer),
-  Column('request_swap', Integer),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('images', String),
-  Column('instance_type', String(512)),
-  Column('networks', String),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('queue_date', Integer),
-  Column('flavors', String),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer)
-  )
-
 view_groups_with_metadata_info = Table('view_groups_with_metadata_info', metadata,
   Column('group_name', String(32)),
   Column('condor_central_manager', String),
@@ -856,7 +831,8 @@ view_metadata_collation = Table('view_metadata_collation', metadata,
   Column('cloud_name', String(32)),
   Column('type', String(5)),
   Column('priority', Integer),
-  Column('metadata_name', String(64))
+  Column('metadata_name', String(64)),
+  Column('mime_type', String(128))
   )
 
 view_metadata_collation_json = Table('view_metadata_collation_json', metadata,
