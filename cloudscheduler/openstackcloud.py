@@ -25,7 +25,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
     OpenStack Connector class for cloudscheduler
     """
     def __init__(self, resource=None, vms=None, defaultsecuritygroup=None,
-                 defaultnetwork=None, extrayaml=None,):
+                 defaultnetwork=None, extrayaml=None, metadata=None):
 
         """
         OpenStack constructor
@@ -37,7 +37,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         """
         cloudscheduler.basecloud.BaseCloud.__init__(self, group=resource.group_name,
                                                     name=resource.cloud_name,
-                                                    extrayaml=extrayaml, vms=vms)
+                                                    extrayaml=extrayaml, vms=vms, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.authurl = resource.authurl
         self.username = resource.username
