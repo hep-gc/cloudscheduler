@@ -19,6 +19,7 @@ urlpatterns = [
     path('cloud/metadata-delete/',                 cloud_views.metadata_delete),
     path('cloud/metadata-fetch/<path:selector>/',  cloud_views.metadata_fetch),
     path('cloud/metadata-list/',                   cloud_views.metadata_list),
+    path('cloud/metadata-new/<path:selector>/',    cloud_views.metadata_new),
     path('cloud/metadata-update/',                 cloud_views.metadata_update),
 
     path('group/add/',                             group_views.add),
@@ -31,6 +32,7 @@ urlpatterns = [
     path('group/metadata-delete/',                 group_views.metadata_delete),
     path('group/metadata-fetch/<path:selector>/',  group_views.metadata_fetch),
     path('group/metadata-list/',                   group_views.metadata_list),
+    path('group/metadata-new/',                    group_views.metadata_new),
     path('group/metadata-update/',                 group_views.metadata_update),
 
     path('job/list/',                              job_views.list),

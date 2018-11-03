@@ -26,7 +26,7 @@
         }
     }
 
-    function meta_new(cloudname) {
+    function meta_add(cloudname) {
 
         var url='/cloud/metadata-new/'+cloudname
         var frame='editor-'+cloudname+'-add'
@@ -51,6 +51,7 @@
 </script>
 
 <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
+<script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
 </head>
 <body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
@@ -248,25 +249,13 @@
                             {% endfor %}
                         {% endfor %}
 
+
                         <div class="tab2">
-                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{cloud.cloud_name}}')">
+                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
                             <label class="highlight4" for="metadata-{{cloud.cloud_name}}-add">+</label>
                             <div class="tab2-content">
 
-
-                                <form name="{{ cloud.cloud_name }}-add" action="/cloud/metadata-add/" method="post">
-                                {% csrf_token %}
-                                
-                                    <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
-                                    <input type="hidden" name="cloud_name" value="{{ cloud.cloud_name }}">
-
-                                    <label for="metadata_name">METADATA name</label>
-                                    <input type="text" name="metadata_name" value="">
-                                    <input type="submit" id="update" value="Update">
-                                    <br>
-                                    <textarea name="metadata" id="{{cloud.cloud_name}}editor"></textarea>
-
-                                </form>
+                                <iframe id="editor-{{cloud.cloud_name}}-add"  src=""></iframe>
 
                             </div>
 
@@ -290,8 +279,12 @@
                         <table>
                             <tr class="highlight3"><td><label for="cloud_name">Cloud name</label></td>
                             <td><input type="text" name="cloud_name" value="" /></td></tr>
+
+
+                            <input type="hidden" name="enabled" value="0" />
                             <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
-                            <td><input type="text" name="enabled" value="1" /></td></tr>
+                            <td><input type="checkbox" name="enabled" value="1" /></td></tr>
+
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" value="" /></td></tr>
                             <tr class="highlight3"><td><label for="project">Project</label></td>
@@ -300,8 +293,14 @@
                             <td><input type="text" name="username" value="" /></td></tr>
                             <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
-                            <tr class="highlight3"><td><label for="vm_keyname">Key pair name</label></td>
-                            <td><input type="text" name="vm_keyname" value="{{cloud.vm_keyname}}" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
+                            <td><select name="vm_keyname" class="dropdown"/>
+                            <option value=""></option>
+                            {% for key in keypairs_list %}
+                                <option value="{{ key.key_name }}">{{ key.key_name }}</option>
+                            {% endfor %}
+
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
                             <tr class="highlight3"><td><label for="region">Region</label></td>
@@ -313,13 +312,9 @@
 
 
                             <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                            <td><select name="cloud_type" id=""/>
+                            <td><select name="cloud_type" class="dropdown"/>
                             {% for type in type_list %}
-                                {% if type.cloud_type == cloud.cloud_type %}
-                                    <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
-                                {% else %}
-                                    <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
-                                {% endif %}
+                                <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
                             {% endfor %}
 
                             <tr><td><input type="submit" value="Add Cloud" /></td></tr>
