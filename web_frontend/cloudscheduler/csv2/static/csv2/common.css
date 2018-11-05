@@ -22,14 +22,19 @@
   background-color: whitesmoke;
 }
 
-.highlight3 {
-  background-color: lightgreen;
-}
-
 .highlight4 {
-  background-color: lightpink;
+  background-color: lightyellow;
 }
 
+.highlight3 {
+  background-color: lightcyan;
+}
+
+
+.dropdown {
+    width: 200px;
+    overflow: hidden;
+}
 
 /*----------main div containing page----------*/
 

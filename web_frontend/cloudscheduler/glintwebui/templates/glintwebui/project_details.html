@@ -1,8 +1,8 @@
 <head>
 {% if num_tx > 0 %}
-    <meta http-equiv="refresh" content="6">
-{% else %}
     <meta http-equiv="refresh" content="180">
+{% else %}
+    <meta http-equiv="refresh" content="300">
 {% endif %}
 {% load static %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -22,6 +22,9 @@
 {% block navbar %}
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
+
+<body class="images-nav" onpageshow="show_cloud('{{current_cloud}}')">
+
 <div class="wrapper" style="padding-top:60px">
 <table class="image_matrix" style="border:none">
 <tr>
@@ -54,7 +57,11 @@
 		{% endcomment %}
 		{% if image_set is not None %}
 			{% for image in image_set %}
-				<tr class="image_row"><td><b> {{image}} </b> <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/></td>
+				<tr class="image_row"><td><b> {{image}} </b> <img title="Download Image" src="/static/glintwebui/img/green_download_icon.png" onclick="downloadImage('{{image}}');" style="width:20px;height:20px; float:right; padding-left:5px; cursor: pointer;"/>
+                {% if image == default_image %}
+                    <img title="Default Image" src="/static/glintwebui/img/gold_star.png" style="width:20px;height:20px; float:right; padding-left:5px;" />
+                {% endif %}
+                </td>
 				{% for repo_key, repo_value in image_dict.items %}
 					{% with image_id=image_lookup|get_item:repo_key|get_item:image %}
 					{% if repo_value|get_item:image_id is not None %}
@@ -124,6 +131,7 @@
 	</footer>
 </div>
 </div>
+</body>
 
 
 <script>

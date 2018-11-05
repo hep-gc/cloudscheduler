@@ -16,6 +16,7 @@ from (
         vgr.spot_price,
         concat(vgr.cloud_name, ":", vgr.cascading_vm_image) as default_image,
         vgr.cascading_vm_keep_alive as keep_alive,
+        concat(vgr.cloud_name, ":", vgr.cascading_vm_keyname) as default_keyname,
         concat(vgr.cloud_name, ":", vgr.cascading_vm_network) as default_network,
         authurl,
         project,

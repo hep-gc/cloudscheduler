@@ -175,13 +175,14 @@ def update(request):
             if fields['vm_option'] == 'kill':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
             elif fields['vm_option'] == 'retire':
-                update = table.update().where(table.c.machine.like("%{vm['hostname']}%")).values({'retire_request_time': int(time.time())})
+#               update = table.update().where(table.c.machine.like("%{vm['hostname']}%")).values({'retire_request_time': int(time.time())})
+                update = table.update().where((table.c.slot_type == 'Partitionable') & (table.c.machine.like('%s%%' % vm['hostname']))).values({'retire_request_time': int(time.time())})
             elif fields['vm_option'] == 'manctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
             elif fields['vm_option'] == 'sysctl':
                 update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
 
-            rc, msg = db_session_execute(config, update, allow_no_rows=True)
+            rc, msg = config.db_session_execute(update, allow_no_rows=True)
             if rc == 0:
                 count += msg
             else:

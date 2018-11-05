@@ -16,8 +16,7 @@
   position: relative;
   display: block;
   padding: 0 0 0 1em;
-  background: powderblue;
-  line-height: 3;
+  line-height: 2;
   cursor: pointer;
   text-align: center;
 }
@@ -59,7 +58,10 @@
   content: "-";
 }
 
-
+.meta-div {
+  width: 150px;
+  overflow: hidden;
+}
 
 iframe {
   z-index: 1;
@@ -97,39 +99,24 @@ iframe {
   position: relative;
   display: block;
   padding: 0 0 0 1em;
-  background: orange;
   font-weight: bold;
   line-height: 3;
   cursor: pointer;
 }
 
 .tab2-content {
-  position: fixed;
-  top:60;
-  bottom:0;
-  left:650;
-  right:10;
   max-height: 0;
-  overflow: auto;z
 }
 
-.tab2-content p {
-  margin: 1em;
-}
 /* :checked */
 .tab2 input:checked ~ .tab2-content {
+  position: fixed;
   max-height: 100vh;
+  top:60;
+  bottom:0;
+  left:380;
+  right:10;
+  overflow: auto;
 }
-/* Icon */
-.tab2 > label::after {
-  position: absolute;
-  right: 0;
-  top: 0;
-  display: block;
-  width: 3em;
-  height: 3em;
-  line-height: 3;
-  text-align: center;
 
-}
 

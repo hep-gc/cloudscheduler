@@ -7,7 +7,6 @@
 {% load template_utils %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/users.css" %}">
 
 <script type="text/javascript">
     function show_user(username){
@@ -44,9 +43,10 @@
                             <td><input type="text" name="cert_cn" id="" value="" /></td>
                         {% endif %}
                         </tr>
-                        </select></td></tr>
-                        <tr class="highlight1"><td><label for="is_superuser">Superuser</label></td>
+                        </td></tr>
 
+                        <input type="hidden" name="is_superuser" value="0"/>
+                        <tr class="highlight1"><td><label for="is_superuser">Superuser</label></td>
 
                             <!--<input type="hidden" name="not_superuser" value="0" />-->
                             {% if user.is_superuser %}
@@ -88,7 +88,8 @@
                         <td><input type="password" name="password2" id="" value="" /></td></tr>
                         <tr class="highlight1"><td><label for="cert_cn">Cert CN</label></td>
                         <td><input type="text" name="cert_cn" id="" value="" /></td></tr>
-                        </select></td></tr>
+                        </td></tr>
+                        <input type="hidden" name="is_superuser" value="0"/>
                         <tr class="highlight1"><td><label for="is_superuser">Superuser</label></td>
                         <td><input name="is_superuser" type="checkbox" value="1"></td></tr>
 

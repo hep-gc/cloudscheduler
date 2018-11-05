@@ -20,7 +20,7 @@ class CloudManager():
     """
     CloudManager class for holding a groups resources and their group yaml
     """
-    def __init__(self, name, group_resources, group_yamls):
+    def __init__(self, name, group_resources, group_yamls, metadata):
         """
         Create a new CloudManager.
         :param name: The name of the group
@@ -32,6 +32,7 @@ class CloudManager():
         self.clouds = {}
         self.group_resources = group_resources
         self.group_yamls = group_yamls
+        self.metadata = metadata
 
     def setup(self):
         """
@@ -61,11 +62,14 @@ class CloudManager():
                                                        cloud_vm.cloud_name == cloud.cloud_name)
             try:
                 if cloud.cloud_type == 'localhost':
-                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(extrayaml=cloud_yaml_list, resource=cloud)
+                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(extrayaml=cloud_yaml_list, resource=cloud,
+                                                                            metadata=self.metadata[cloud.cloud_name])
                 else:
                     newcloud = cloudscheduler.openstackcloud.\
-                        OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms)
-                self.clouds[newcloud.name] = newcloud
+                        OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms,
+                                       metadata=self.metadata[cloud.cloud_name])
+                if newcloud:
+                    self.clouds[newcloud.name] = newcloud
             except Exception as ex:
                 self.log.exception(ex)
         self.log.debug("Added all clouds for group: %s", self.name)

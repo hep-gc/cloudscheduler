@@ -129,17 +129,6 @@ def command_poller():
     multiprocessing.current_process().name = "VM Commands"
     last_poll_time = 0
     vm_poller_id = "vm_poller_" + str(socket.getfqdn())
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
@@ -176,13 +165,15 @@ def command_poller():
                 nova = _get_nova_client(session)
                 try:
                     nova.servers.delete(vm.vmid)
-                    logging.info("VM Terminated: %s", (vm.hostname,))
+                    logging.info("VM Terminated: %s, updating db entry", (vm.hostname,))
+                    vm.terminate = 2
+                    db_session.merge(vm)
                 except Exception as exc:
                     logging.exception("Failed to terminate VM: %s", vm.hostname)
                     logging.error(exc)
 
             last_poll_time = new_poll_time
-            config.db_close()
+            config.db_close(commit=True) # may need to batch these commits if we are attempting to terminate a lot of vms at once or the database sesion will time out
             del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_command)
 
@@ -194,17 +185,7 @@ def command_poller():
 
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
+
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     FLAVOR = config.db_map.classes.cloud_flavors
@@ -348,7 +329,7 @@ def image_poller():
     poll_time_history = [0,0,0,0]
 
     try:
-        inventory = get_inventory_item_hash_from_database(db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
         while True:
             logging.info("Beginning image poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
@@ -858,6 +839,14 @@ def vm_poller():
                 # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                 uncommitted_updates = 0
                 for vm in vm_list:
+                    ip_addrs = []
+                    floating_ips = []
+                    for net in vm.addresses:
+                        for addr in vm.addresses[net]:
+                            if addr['OS-EXT-IPS:type'] == 'fixed':
+                                ip_addrs.append(addr['addr'])
+                            elif addr['OS-EXT-IPS:type'] == 'floating':
+                                floating_ips.append(addr['addr'])
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
@@ -869,6 +858,8 @@ def vm_poller():
                         'flavor_id': vm.flavor["id"],
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                         'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
+                        'vm_ips': str(ip_addrs),
+                        'vm_floating_ips': str(floating_ips),
                         'last_updated': new_poll_time
                     }
 

@@ -1,25 +1,7 @@
 
-
-
-.editor-bar ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+#left {
+  float: left;
 }
-
-.editor-bar li {
-    float: left;
-}
-
-.editor-bar li a {
-    display: block;
-    color: white;
-    text-align: center;
-    text-decoration: none;
-}
-
-
 
 #right {
 	float: right;
@@ -37,3 +19,7 @@
   text-align: center;
 
 }
+
+input[type=number]{
+    width: 100px;
+} 

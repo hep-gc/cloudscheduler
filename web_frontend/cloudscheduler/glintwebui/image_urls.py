@@ -2,11 +2,6 @@ from django.conf.urls import url
 
 from . import image_views
 
-
-from .celery_app import image_collection
-from .utils import check_collection_task, set_collection_task
-
-
 urlpatterns = [
     url(r'^$', image_views.index, name='index'),
     url(r'^project_details/(?P<group_name>.+)/$', image_views.project_details, name='project_details'),
@@ -39,9 +34,3 @@ urlpatterns = [
     
 
 ]
-
-# Check if the image collection task is running, if not start it and set it to running
-collection_started = check_collection_task()
-if not collection_started:
-    image_collection.apply_async(queue='image_collection')
-    set_collection_task(True)

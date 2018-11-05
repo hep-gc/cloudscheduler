@@ -31,12 +31,19 @@
             }
         }
 
-        function meta_new(groupname) {
+        function meta_add() {
 
-            var url='/group/metadata-new/'+groupname
-            var frame='editor-'+groupname+'-add'
+            var url='/group/metadata-new/'
+            var frame='editor-add'
 
             document.getElementById(frame).src=url;
+        }
+
+        function check_target(targetname) {
+
+            var frame=targetname;
+            
+            document.getElementById(frame).checked = true;
         }
 
         function show_group(group_name){
@@ -48,7 +55,7 @@
 
 </head>
 
-<body class="defaults-nav" onpageshow="show_group('{{active_group}}')">
+<body class="defaults-nav" onpageshow="show_group('{{active_group}}') ; check_target('{{default_list.0.group_name}}-settings')">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -57,13 +64,13 @@
 
         <!--https://codepen.io/nathanlong/pen/mBrvn-->
         
-        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
+        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link" onclick="check_target('{{group.group_name}}-settings') ; check_target('{{group.group_name}}-hide')">{{group.group_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{group.group_name}}" type="radio" name="tabs" checked>
-                    <label for="settings-{{group.group_name}}">Settings</label>
+                    <input id="{{group.group_name}}-settings" type="radio" name="tabs" onclick="check_target('{{group.group_name}}-hide')" checked>
+                    <label class="highlight3" for="{{group.group_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{group.group_name}}" action="/group/defaults/" method="post">
@@ -77,32 +84,69 @@
 
 
 
-                                <tr class="highlight1"><td><label for="job_cpus">Job CPUs</label></td>
+                                <tr class="highlight3"><td><label for="job_cpus">Job CPUs</label></td>
                                 <td><input type="text" name="job_cpus" value="{{group.job_cpus}}" /></td></tr>
 
-                                <tr class="highlight1"><td><label for="job_ram">Job RAM</label></td>
+                                <tr class="highlight3"><td><label for="job_ram">Job RAM</label></td>
                                 <td><input type="text" name="job_ram" value="{{group.job_ram}}" /></td></tr>
 
 
-                                <tr class="highlight1"><td><label for="job_disk">Job Disk</label></td>
+                                <tr class="highlight3"><td><label for="job_disk">Job Disk</label></td>
                                 <td><input type="text" name="job_disk" value="{{group.job_disk}}" /></td></tr>
 
-                                <!--<tr class="highlight1"><td><label for="job_scratch">Job Scratch</label></td>
+                                <!--<tr class="highlight3"><td><label for="job_scratch">Job Scratch</label></td>
                                 <td><input type="text" name="job_scratch" value="{{group.job_scratch}}" /></td></tr>-->
 
-                                <tr class="highlight1"><td><label for="job_swap">Job Swap</label></td>
+                                <tr class="highlight3"><td><label for="job_swap">Job Swap</label></td>
                                 <td><input type="text" name="job_swap" value="{{group.job_swap}}" /></td></tr>
 
-                                <tr class="highlight1"><td><label for="vm_flavor">VM Flavor</label></td>
-                                <td><input type="text" name="vm_flavor" value="{{group.vm_flavor}}" /></td></tr>
+                                <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
+                                <td><select name="vm_keyname" class="dropdown"/>
+                                <option value=""></option>
+                                {% for key in keypairs_list %}
+                                    {% if key.key_name == group.vm_keyname %}
+                                        <option value="{{ key.key_name }}" selected>{{ keyname.name }}</option>
+                                    {% else %}
+                                        <option value="{{ key.key_name }}">{{ key.key_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
-                                <tr class="highlight1"><td><label for="vm_image">VM Image</label></td>
-                                <td><input type="text" name="vm_image" value="{{group.vm_image}}" /></td></tr>
 
-                                <tr class="highlight1"><td><label for="vm_network">VM Network</label></td>
-                                <td><input type="text" name="vm_network" value="{{group.vm_network}}" /></td></tr>
+                                <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
+                                <td><select name="vm_image" class="dropdown"/>
+                                <option value=""></option>
+                                {% for image in image_list %}
+                                    {% if image.name == group.vm_image %}
+                                        <option value="{{ image.name }}" selected>{{ image.name }}</option>
+                                    {% else %}
+                                        <option value="{{ image.name }}">{{ image.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
 
-                                <tr class="highlight1"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
+                                <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
+                                <td><select name="vm_flavor" class="dropdown"/>
+                                <option value=""></option>
+                                {% for flavor in flavor_list %}
+                                    {% if flavor.name == group.vm_flavor %}
+                                        <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
+                                    {% else %}
+                                        <option value="{{ flavor.name }}">{{ flavor.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+
+                                <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
+                                <td><select name="vm_network" class="dropdown"/>
+                                <option value=""></option>
+                                {% for network in network_list %}
+                                    {% if network.name == group.vm_network %}
+                                        <option value="{{ network.name }}" selected>{{ network.name }}</option>
+                                    {% else %}
+                                        <option value="{{ network.name }}">{{ network.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+
+
+                                <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                 <td><input type="text" name="vm_keep_alive" value="{{group.vm_keep_alive}}" /></td></tr>
 
 
@@ -118,13 +162,22 @@
                             </table>
                             
                         </form>
+
+                        <div class="tab2">
+                            <input id="{{group.group_name}}-hide" type="radio" name="tabs2">
+                            <div class="tab2-content">
+                                <iframe id="editor-{{group.group_name}}-hide"  src=""></iframe>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
 
                 <div class="tab">
                     <input id="metadata-{{group.group_name}}" type="radio" name="tabs">
-                    <label for="metadata-{{group.group_name}}">Metadata</label>
-                    <div class="tab-content">
+                    <label class="highlight4" for="metadata-{{group.group_name}}">Metadata</label>
+                    <div class="tab-content meta-div">
 
 
                         {% for key, value in metadata_dict.items %}
@@ -136,7 +189,7 @@
 
                                         <div class="tab2">
                                             <input id="metadata-{{group.group_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
-                                            <label for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
+                                            <label class="highlight4" for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
                                             <div class="tab2-content">
 
                                                 <iframe id="editor-{{group.group_name}}-{{meta}}" class="iframe-content" src=""></iframe>
@@ -156,27 +209,13 @@
 
                         {% endfor %}
 
+
                         <div class="tab2">
-                            <input id="metadata-{{group.group_name}}-add" type="radio" name="tabs2" onclick="meta_new('{{group.group_name}}')">
-                            <label for="metadata-{{group.group_name}}-add">+</label>
+                            <input id="metadata-add" type="radio" name="tabs2" onclick="meta_add()">
+                            <label class="highlight4" for="metadata-add">+</label>
                             <div class="tab2-content">
 
-
-                                <form name="{{ group.group_name }}-add" action="/group/metadata-add/" method="post">
-                                {% csrf_token %}
-                                    <table>
-                                    <input type="hidden" name="group_name" value="{{ group.group_name }}">
-
-
-                                    <tr><td><label for="metadata_name">METADATA name</label></td>
-                                    <td><input type="text" name="metadata_name" value=""/></td></tr>
-                                    <tr><td></td>
-                                    <td><input type="submit" id="update" value="Update"></td></tr>
-                                    </table>
-                                    <br>
-                                    <textarea name="metadata" id="{{group.group_name}}editor"></textarea>
-
-                                </form>
+                                <iframe id="editor-add"  src=""></iframe>
 
                             </div>
 

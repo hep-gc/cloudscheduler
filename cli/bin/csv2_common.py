@@ -1,3 +1,5 @@
+#-------------------------------------------------------------------------------
+              
 def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=True):
     """
     Modify user settings.
@@ -72,6 +74,8 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
 
     return form_data
 
+#-------------------------------------------------------------------------------
+              
 def _check_keys_for_password(gvar, key):
     """
     Internal function to prompt for passwords (if requested, iw -upw ?).
@@ -96,6 +100,131 @@ def _check_keys_for_password(gvar, key):
     else:
        return gvar['user_settings'][key[2]]
 
+#-------------------------------------------------------------------------------
+
+def qc(query, columns, option='keep', filter=None):
+    """
+    Query Columns takes a row/list of rows and a column/list of columns to keep or
+    prune, depending on the option specified. Also, a filter (see qc_filter) may be
+    specified, which is used to select rows.
+    """
+
+    if isinstance(query, dict):
+        query_list = [ query ]
+    elif isinstance(query, (list, tuple)):
+        query_list = list(query)
+    else:    
+        raise Exception('Parameter "query" is not a dictionary, list, or tuple (%s).' % type(query))
+
+    if isinstance(columns, str):
+        column_list = [ columns ]
+    if isinstance(columns, (list, tuple)):
+        column_list = list(columns)
+    else:    
+        raise Exception('Parameter "columns" is not a string, list, or tuple.')
+
+    if len(column_list) < 1:
+        raise Exception('No columns were specified in parameter "columns".')
+
+    # Initialize return structures.
+    result_list = []
+    for row in query_list:
+        if filter:
+            cols = dict(row)
+            if not eval(filter):
+                continue
+
+        result_list.append({})
+        for column in row:
+            if (option == 'keep' and column in column_list) or (option == 'prune' and column not in column_list):
+                result_list[-1][column] = row[column]
+
+    if isinstance(query, dict):
+        return result_list[0]
+    else:
+        return result_list
+              
+#-------------------------------------------------------------------------------
+
+def qc_filter_get(columns, values, aliases=None, and_or='and'):
+    """
+    Return an eveluation string to filter the rows of a queryset. This function takes the
+    following arguments:
+        o "columns" is a list of columns to be matched against items within the "values"
+           parameter.
+
+        o "values" is either a list or a dictionary. If it is a dictionary, the keys are
+          column names identified by the columns parameter. If it is a list, the values 
+          in the list have an index value corresponding to the columns argument. A value
+          for a column can have one of five formats:
+              1. An integer.
+              2. A string. A string of "null" will match column is null.
+              3. A string containing a comma separated list.
+              4. A list.
+              5. An alias ("aliases" parameter required, see below). Each alias is 
+                 replaced by its corresponding value.
+
+        o "aliases" is a structure with the following format:
+              aliases = {
+                  <column_name_1>: {
+                      <alias_1>: <value>,
+                      <alias_2>: <value>,
+                       . 
+                      },
+                  <column_name_2>: {
+                      <alias_1>: <value>,
+                      <alias_2>: <value>,
+                       . 
+                      },
+                   .
+                  }
+
+          The "value" for an alias can be any one of the first four formats. 
+
+        o "and_or" is either "and" default) or "or" and is used as the boolean operator
+          between column selections.
+    """
+
+    key_value_list = []
+    for ix in range(len(columns)):
+        if isinstance(values, dict):
+            if columns[ix] in values:
+                value = values[columns[ix]]
+            else:
+                continue
+
+        else:
+            if ix < len(values):
+                value = values[ix]
+            else:
+                break
+
+        if value == '':
+            continue
+
+        if aliases and columns[ix] in aliases and value in aliases[columns[ix]]:
+            value = aliases[columns[ix]][value]
+
+        try:
+            x = float(value)
+            key_value_list.append("cols['%s'] == %s" % (columns[ix], value))
+        except:
+            if isinstance(value, list):
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value))
+            elif value == 'null':
+                key_value_list.append("cols['%s'] is null" % columns[ix])
+            elif ',' in value:
+                key_value_list.append("cols['%s'] in %s" % (columns[ix], value.split(',')))
+            else:
+              key_value_list.append("cols['%s'] == '%s'" % (columns[ix], value))
+
+    if len(key_value_list) < 1:
+        return None
+    else:
+        return (' %s ' % and_or).join(key_value_list)
+
+#-------------------------------------------------------------------------------
+              
 def requests(gvar, request, form_data={}):
     """
     Make RESTful requests via the _requests function and return the response. This function will
@@ -121,6 +250,8 @@ def requests(gvar, request, form_data={}):
     # Perform the callers request.
     return _requests(gvar, request, form_data=form_data)
 
+#-------------------------------------------------------------------------------
+              
 def _requests(gvar, request, form_data={}):
     """
     Make RESTful request and return response.
@@ -250,6 +381,8 @@ def _requests(gvar, request, form_data={}):
 
     return response
 
+#-------------------------------------------------------------------------------
+              
 def show_active_user_groups(gvar, response):
     """
     Print the server response header.
@@ -258,6 +391,8 @@ def show_active_user_groups(gvar, response):
     if not gvar['user_settings']['view-columns']:
         print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
 
+#-------------------------------------------------------------------------------
+              
 def show_table(gvar, queryset, columns, allow_null=True, title=None):
     """
     Print a table from a SQLAlchemy query set.
@@ -508,6 +643,8 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
     print('Rows: %s' % len(_qs))
     gvar['tables_shown'] += 1
 
+#-------------------------------------------------------------------------------
+              
 def _show_table_pad(columns, values, lengths, justify='left', values_xref=None):
     """
     Pad column values with blanks. The parameters have the following format:
@@ -540,6 +677,8 @@ def _show_table_pad(columns, values, lengths, justify='left', values_xref=None):
 
     return padded_columns
 
+#-------------------------------------------------------------------------------
+              
 def _show_table_set_segment(segment, column):
     """
     Determine if headers are single column or multi-column, setting them appropriately
@@ -595,6 +734,8 @@ def _show_table_set_segment(segment, column):
                 segment['SH_low_ix'] = column_ix
                 segment['SH_hi_ix'] = column_ix
 
+#-------------------------------------------------------------------------------
+              
 def _show_table_set_segment_insert_new_column(segment, column):
     """
     Insert a new column into the current segment.
@@ -604,6 +745,8 @@ def _show_table_set_segment_insert_new_column(segment, column):
     segment['length'] += 3 + segment['table']['lengths'][column]
     return len(segment['columns']) - 1
 
+#-------------------------------------------------------------------------------
+              
 def _show_table_set_segment_super_headers(segment):
     """
     Set the super_headers for a segment.
@@ -615,6 +758,7 @@ def _show_table_set_segment_super_headers(segment):
         segment['super_header_lengths'].append(len(segment['headers'][-1]))
         segment['super_headers'].append(_show_table_pad([column], segment['table']['super_headers'], {column: segment['super_header_lengths'][-1]}, justify='centre')[0])
 
+#-------------------------------------------------------------------------------
 
 def verify_yaml_file(file_path):
     # Read the entire file.
@@ -636,6 +780,8 @@ def verify_yaml_file(file_path):
         'metadata': file_string,
         }
 
+#-------------------------------------------------------------------------------
+              
 def _yaml_load_and_verify(yaml_string):
     import yaml
 

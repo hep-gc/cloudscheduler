@@ -16,6 +16,7 @@ from .view_utils import \
     getSuperUserStatus, \
     lno, \
     qt, \
+    qt_filter_get, \
     render, \
     service_msg, \
     set_user_groups, \
@@ -171,7 +172,7 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
         
         # Remove the extraneous exclusions.
         for metadata_name in remove_exclusions:
-            rc, msg = config.db_session_execute(table.delete((group_name==active_group) & (cloud_name==cloud_name) & (metadata_name==metadata_name)))
+            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.metadata_name==metadata_name)))
             if rc != 0:
                 return 1, msg
 
@@ -287,6 +288,12 @@ def add(request):
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+
+        if 'vm_keyname' in fields and fields['vm_keyname']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            if rc != 0:
+                config.db_close()
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
@@ -424,8 +431,28 @@ def list(
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
+        image_list = {}
+        flavor_list = {}
         metadata_dict = {}
+        keypairs_list = {}
+        network_list = {}
     else:
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
+
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
+
+        # Get all the keynames in group:
+        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+        keypairs_list = qt(config.db_connection.execute(s))
+
+        # Get all the networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
+
         s = select([view_group_resources_with_metadata_info]).where(view_group_resources_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -470,6 +497,10 @@ def list(
             'cloud_list': cloud_list,
             'type_list': type_list,
             'metadata_dict': metadata_dict,
+            'image_list': image_list,
+            'flavor_list': flavor_list,
+            'keypairs_list': keypairs_list,
+            'network_list': network_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
@@ -643,6 +674,10 @@ def metadata_fetch(request, selector=None):
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
 
+    # Get mime type list:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
     # Retrieve metadata file.
     obj_act_id = request.path.split('/') # /cloud/metadata_fetch/<group>.<cloud>.<metadata>
     if len(obj_act_id) > 3:
@@ -661,20 +696,22 @@ def metadata_fetch(request, selector=None):
                         'metadata_priority': row.priority,
                         'metadata_mime_type': row.mime_type,
                         'metadata_name': row.metadata_name,
+                        'mime_types_list': mime_types_list,
                         'response_code': 0,
                         'message': None,
                         'enable_glint': config.enable_glint
                         }
 
                     config.db_close()
-                    return render(request, 'csv2/cloud_editor.html', context)
+                    return render(request, 'csv2/meta_editor.html', context)
+
 
     config.db_close()
 
     if id:
-      return render(request, 'csv2/cloud_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
+      return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, received an invalid metadata file id "%s::%s".' % (active_user.active_group, id)})
     else:
-      return render(request, 'csv2/cloud_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
+      return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_fetch, metadata file id omitted.'})
 
 #-------------------------------------------------------------------------------
 
@@ -732,7 +769,53 @@ def metadata_list(request):
     return render(request, 'csv2/metadata-list.html', context)
 
 #-------------------------------------------------------------------------------
+#@silkp(name="Cloud Metadata Fetch")
+@requires_csrf_token
+def metadata_new(request, selector=None):
+    if not verifyUser(request):
+        raise PermissionDenied
 
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
+
+    # Get mime type list:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
+    # Retrieve metadata file.
+    obj_act_id = request.path.split('/') # /cloud/metadata_add/<group>.<cloud>.<metadata>
+    if len(obj_act_id) > 3:
+        cloud_name = obj_act_id[3]
+
+        context = {
+            'group_name': active_user.active_group,
+            'cloud_name': cloud_name,
+            'metadata': "",
+            'metadata_enabled': 0,
+            'metadata_priority': 0,
+            'metadata_mime_type': "",
+            'metadata_name': "",
+            'mime_types_list': mime_types_list,
+            'response_code': 0,
+            'message': "new-cloud-metadata",
+            'enable_glint': config.enable_glint
+            }
+
+        config.db_close()
+        return render(request, 'csv2/meta_editor.html', context)
+
+
+    config.db_close()
+
+    return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_new, received an invalid request: "%s".' % obj_act_id })
+
+#-------------------------------------------------------------------------------
 #@silkp(name="Cloud Metadata Update")
 @requires_csrf_token
 def metadata_update(request):
@@ -792,7 +875,7 @@ def metadata_update(request):
                     'message': message,
                 }
 
-            return render(request, 'csv2/cloud_editor.html', context)
+            return render(request, 'csv2/meta_editor.html', context)
         else:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
@@ -825,8 +908,9 @@ def status(request, group_name=None):
 
     # get cloud status per group
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    cloud_status_list = qt(config.db_connection.execute(s))
+    cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
 
+    # calculate the totals for all rows
     cloud_status_list_totals = qt(cloud_status_list, keys={
         'primary': ['group_name'],
         'sum': [
@@ -855,18 +939,17 @@ def status(request, group_name=None):
 
     cloud_total_list = cloud_status_list_totals[0]
 
+    # find the actual cores limit in use
+    cloud_total_list['cores_limit'] = 0
+    n=0
+    for cloud in cloud_status_list:
+        if cloud['cores_ctl'] == -1:
+            cloud_status_list[n]['cores_limit'] = cloud['cores_native']
+        else:
+            cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
 
-    if 'cores_busy' in cloud_total_list and 'cores_foreign' in cloud_total_list:
-        cloud_total_list['cores_all_busy'] = cloud_total_list['cores_busy'] + cloud_total_list['cores_foreign']
-    else:
-        cloud_total_list['cores_all_busy'] = 0
-
-
-    if 'cores_native' in cloud_total_list and 'cores_foreign' in cloud_total_list:
-        cloud_total_list['cores_all'] = cloud_total_list['cores_native'] + cloud_total_list['cores_foreign']
-    else:
-        cloud_total_list['cores_all'] = 0
-
+        cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
+        n=n+1
 
 
     # get slots type counts
@@ -1030,6 +1113,12 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
+
+        if 'vm_keyname' in fields and fields['vm_keyname']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            if rc != 0:
+                config.db_close()
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])

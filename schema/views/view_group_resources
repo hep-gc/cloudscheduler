@@ -31,6 +31,7 @@ from (
     cgr.vm_flavor,
     cgr.vm_image,
     cgr.vm_keep_alive,
+    cgr.vm_keyname,
     cgr.vm_network,
 
     case when ifnull(cgr.vm_flavor,'')='' then
@@ -62,6 +63,16 @@ from (
     else
         cgr.vm_keep_alive
     end as cascading_vm_keep_alive,
+
+    case when ifnull(cgr.vm_keyname,'')='' then
+        case when ifnull(cgd.vm_keyname,'')='' then
+            null
+        else
+            cgd.vm_keyname
+        end
+    else
+        cgr.vm_keyname
+    end as cascading_vm_keyname,
 
     case when ifnull(cgr.vm_network,'')='' then
         case when ifnull(cgd.vm_network,'')='' then

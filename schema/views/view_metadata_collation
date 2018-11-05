@@ -19,7 +19,8 @@ from (
     cgr.cloud_name,
     "group" as type,
     priority,
-    cgm.metadata_name
+    cgm.metadata_name,
+    cgm.mime_type
 
     from csv2_group_resources as cgr
 
@@ -39,7 +40,8 @@ from (
     cloud_name,
     "cloud" as type,
     priority,
-    metadata_name
+    metadata_name,
+    mime_type
 
     from csv2_group_resource_metadata as cgrm
 

@@ -42,7 +42,8 @@ class Config:
                 str(db_config['db_port']),
                 db_config['db_name']
                 ),
-            isolation_level="READ_COMMITTED"
+            isolation_level="READ_COMMITTED",
+            pool_pre_ping=True
             )
 
         self.db_connection = None

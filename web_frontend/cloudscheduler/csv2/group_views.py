@@ -171,6 +171,12 @@ def add(request):
                 config.db_close()
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
+        if 'vm_keyname' in fields and fields['vm_keyname']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']]])
+            if rc != 0:
+                config.db_close()
+                return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
+
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
@@ -237,6 +243,9 @@ def defaults(request):
                 if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
                     rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
                 
+                if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
+                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']]])
+                
                 if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
                     rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
                 
@@ -264,8 +273,29 @@ def defaults(request):
 
     # Retrieve group information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
+        image_list = {}
+        flavor_list = {}
         metadata_dict = {}
+        keyname_list = {}
+        network_list = {}
     else:
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
+
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
+
+        # Get all keynames in group:
+        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+        keypairs_list = qt(config.db_connection.execute(s))
+
+        # Get all networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
+
+        # Get the group default metadata list:
         s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
         group_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -291,7 +321,11 @@ def defaults(request):
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'defaults_list': defaults_list,
+            'image_list': image_list,
+            'flavor_list': flavor_list,
             'metadata_dict': metadata_dict,
+            'keypairs_list': keypairs_list,
+            'network_list': network_list,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint
@@ -336,6 +370,7 @@ def delete(request):
                 'csv2_group_metadata_exclusions',
                 'csv2_user_groups',
                 'csv2_vms',
+                'cloud_keypairs',
                 'cloud_networks',
                 'cloud_limits',
                 'cloud_images',
@@ -421,6 +456,16 @@ def delete(request):
         if rc != 0:
             config.db_close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group VMs defaults delete "%s" failed - %s.' % (lno('GV16'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # Delete the cloud_keypairs.
+        table = tables['cloud_keypairs']
+        rc, msg = config.db_session_execute(
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            config.db_close()
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group keynames delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud_networks.
         table = tables['cloud_networks']
@@ -698,6 +743,10 @@ def metadata_fetch(request, selector=None):
         config.db_close()
         return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
 
+    # Get mime type list:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
     # Retrieve metadata file.
     id = request.path.split('/')
     if len(id) > 3:
@@ -712,13 +761,14 @@ def metadata_fetch(request, selector=None):
                     'metadata_priority': row.priority,
                     'metadata_mime_type': row.mime_type,
                     'metadata_name': row.metadata_name,
+                    'mime_types_list': mime_types_list,
                     'response_code': 0,
                     'message': None,
                     'enable_glint': config.enable_glint
                     }
 
                 config.db_close()
-                return render(request, 'csv2/group_editor.html', context)
+                return render(request, 'csv2/meta_editor.html', context)
         
         config.db_close()
         return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, id[3])})
@@ -769,6 +819,44 @@ def metadata_list(request):
     return render(request, 'csv2/group_metadata_list.html', context)
 
 #-------------------------------------------------------------------------------
+#@silkp(name="Group Metadata New")
+@requires_csrf_token
+def metadata_new(request):
+    if not verifyUser(request):
+        raise PermissionDenied
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
+
+    # Get mime type list:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
+
+    context = {
+        'group_name': active_user.active_group,
+        'metadata': "",
+        'metadata_enabled': 0,
+        'metadata_priority': 0,
+        'metadata_mime_type': "",
+        'metadata_name': "",
+        'mime_types_list': mime_types_list,
+        'response_code': 0,
+        'message': "new-group-metadata",
+        'enable_glint': config.enable_glint
+        }
+
+    config.db_close()
+    return render(request, 'csv2/meta_editor.html', context)
+
+
+#-------------------------------------------------------------------------------
 
 #@silkp(name='Group Metadata Update')
 def metadata_update(request):
@@ -814,7 +902,7 @@ def metadata_update(request):
                     'message': message,
                 }
 
-            return render(request, 'csv2/group_editor.html',context)
+            return render(request, 'csv2/meta_editor.html',context)
 
         else:
             config.db_close()
