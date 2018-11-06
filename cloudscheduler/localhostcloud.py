@@ -27,7 +27,7 @@ class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
     Localhost Connector class for cloudscheduler
     """
     def __init__(self, resource=None, defaultimage=None,
-                 defaultnetwork=None, extrayaml=None, imagerepo=''):
+                 defaultnetwork=None, extrayaml=None, imagerepo='', metadata=None):
 
         """
         Localhost constructor
@@ -40,7 +40,7 @@ class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
         :param extrayaml: The cloud specific yaml
         """
         cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
-                                                    extrayaml=extrayaml)
+                                                    extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.default_image = defaultimage
         self.default_network = defaultnetwork

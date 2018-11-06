@@ -11,31 +11,38 @@
 </head>
 
 <body class="metadata-fetch">
-{% if cloud_name %}
-    <form name="{{ cloud_name }}-{{ metadata_name }}" action="/cloud/metadata-update/" method="post">
+{% if message == "new-cloud-metadata" %}
+    <form name="metadata-form" action="/cloud/metadata-add/" method="post">
+{% elif message == "new-group-metadata" %}
+    <form name="metadata-form" action="/group/metadata-add/" method="post">  
+{% elif cloud_name %}
+    <form name="metadata-form}" action="/cloud/metadata-update/" method="post">
 {% else %}
-    <form name="{{ metadata_name }}" action="/group/metadata-update/" method="post">
+    <form name="metadata-form" action="/group/metadata-update/" method="post">
 {% endif %}
 
     {% csrf_token %}
 
         <table>
+        {% if message == "new-cloud-metadata" or message == "new-group-metadata"%}
+            <tr><td><label for="metadata_name">Metadata Name:</label></td>
+            <td><input type="text" name="metadata_name" value="" /></td>
+        {% else %}
+            <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+            <tr><td><h2 id="metadata-name">{{ metadata_name }}</h2></td>
+        {% endif %}
+
 
             <input type="hidden" name="group_name" value="{{ group_name }}">
-
 
         {% if cloud_name %}
             <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
         {% endif %}
 
-            <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
-            <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+
+
             
             <input type="hidden" name="enabled" value="0" />
-
-
-            <tr><td><h2 id="metadata-name">{{ metadata_name }}</h2></td>
-
 
             <td><label for="authurl">Enabled:</label></td>
             <td>
@@ -74,23 +81,26 @@
 
     </form>
         <td>
+        {% if message != "new-cloud-metadata" and message != "new-group-metadata" %}
 
-    {% if cloud_name %}
-        <form name="{{ cloud_name }}-{{ metadata_name }}-delete" action="/cloud/metadata-delete/" method="post">
-    {% else %}
-        <form name="{{ metadata_name }}-delete" action="/group/metadata-delete/" method="post">
-    {% endif %}
+            {% if cloud_name %}
+                <form name="{{ cloud_name }}-{{ metadata_name }}-delete" action="/cloud/metadata-delete/" method="post">
+            {% else %}
+                <form name="{{ metadata_name }}-delete" action="/group/metadata-delete/" method="post">
+            {% endif %}
 
-        {% csrf_token %}
-            <input type="hidden" name="group_name" value="{{ group_name }}">
+            {% csrf_token %}
+                <input type="hidden" name="group_name" value="{{ group_name }}">
 
-        {% if cloud_name %}
-            <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
+            {% if cloud_name %}
+                <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
+            {% endif %}
+
+                <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
+                <input type="submit" id="right" value="Delete" onclick="parent.location.reload()">
+            </form>
         {% endif %}
 
-            <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
-            <input type="submit" id="right" value="Delete" onclick="parent.location.reload()">
-        </form>
         </td>
 
         </tr>
@@ -99,7 +109,7 @@
     <div class="editor-footer" id="message">
         {% if response_code == 1 %}
             <tr><td><b>Error: {{ message }}</b></td></tr>
-        {% elif message is not None %}
+        {% elif message is not None and message != "new-cloud-metadata" and message != "new-group-metadata" %}
             <tr><td>{{ message }}</td></tr>
         {% endif %}
     </div>

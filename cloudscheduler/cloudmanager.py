@@ -20,7 +20,7 @@ class CloudManager():
     """
     CloudManager class for holding a groups resources and their group yaml
     """
-    def __init__(self, name, group_resources, group_yamls):
+    def __init__(self, name, group_resources, group_yamls, metadata):
         """
         Create a new CloudManager.
         :param name: The name of the group
@@ -32,6 +32,7 @@ class CloudManager():
         self.clouds = {}
         self.group_resources = group_resources
         self.group_yamls = group_yamls
+        self.metadata = metadata
 
     def setup(self):
         """
@@ -46,26 +47,26 @@ class CloudManager():
                                "/" + csconfig.config.db_name)
         base.prepare(engine, reflect=True)
         session = Session(engine)
-        cloud_yaml = base.classes.csv2_group_resource_metadata
         cloud_vm = base.classes.csv2_vms
 
         for cloud in self.group_resources:
-            cloud_yamls = session.query(cloud_yaml).\
-                filter(cloud_yaml.group_name == self.name,
-                       cloud_yaml.cloud_name == cloud.cloud_name,
-                       cloud_yaml.enabled == 1)
-            cloud_yaml_list = []
-            for yam in cloud_yamls:
-                cloud_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
-            cloud_vms = session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
+            cloud_vms = []
+            try:
+                cloud_vms = session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
                                                        cloud_vm.cloud_name == cloud.cloud_name)
+            except Exception as ex:
+                self.log.exception("Unable to query database: %s", ex)
+
             try:
                 if cloud.cloud_type == 'localhost':
-                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(extrayaml=cloud_yaml_list, resource=cloud)
+                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(resource=cloud,
+                                                                            metadata=self.metadata[cloud.cloud_name])
                 else:
                     newcloud = cloudscheduler.openstackcloud.\
-                        OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms)
-                self.clouds[newcloud.name] = newcloud
+                        OpenStackCloud(resource=cloud, vms=cloud_vms,
+                                       metadata=self.metadata[cloud.cloud_name])
+                if newcloud:
+                    self.clouds[newcloud.name] = newcloud
             except Exception as ex:
                 self.log.exception(ex)
         self.log.debug("Added all clouds for group: %s", self.name)

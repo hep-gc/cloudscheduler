@@ -769,7 +769,53 @@ def metadata_list(request):
     return render(request, 'csv2/metadata-list.html', context)
 
 #-------------------------------------------------------------------------------
+#@silkp(name="Cloud Metadata Fetch")
+@requires_csrf_token
+def metadata_new(request, selector=None):
+    if not verifyUser(request):
+        raise PermissionDenied
 
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
+
+    # Get mime type list:
+    s = select([csv2_mime_types])
+    mime_types_list = qt(config.db_connection.execute(s))
+
+    # Retrieve metadata file.
+    obj_act_id = request.path.split('/') # /cloud/metadata_add/<group>.<cloud>.<metadata>
+    if len(obj_act_id) > 3:
+        cloud_name = obj_act_id[3]
+
+        context = {
+            'group_name': active_user.active_group,
+            'cloud_name': cloud_name,
+            'metadata': "",
+            'metadata_enabled': 0,
+            'metadata_priority': 0,
+            'metadata_mime_type': "",
+            'metadata_name': "",
+            'mime_types_list': mime_types_list,
+            'response_code': 0,
+            'message': "new-cloud-metadata",
+            'enable_glint': config.enable_glint
+            }
+
+        config.db_close()
+        return render(request, 'csv2/meta_editor.html', context)
+
+
+    config.db_close()
+
+    return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_new, received an invalid request: "%s".' % obj_act_id })
+
+#-------------------------------------------------------------------------------
 #@silkp(name="Cloud Metadata Update")
 @requires_csrf_token
 def metadata_update(request):

@@ -119,4 +119,17 @@ iframe {
   overflow: auto;
 }
 
+.tab2-hide {
+  max-height: 0;
+}
 
+/* :checked */
+.tab2 input:checked ~ .tab2-hide {
+  position: fixed;
+  max-height: 100vh;
+  top:60;
+  bottom:0;
+  left:800;
+  right:10;
+  overflow: auto;
+}
