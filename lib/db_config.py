@@ -54,6 +54,7 @@ class Config:
         # Create a unique instance ID from our FQDN and, if necessary, save it in the database
         self.csv2_host_id = sum(socket.getfqdn().encode())
 
+        self.db_session = Session(self.db_engine)
         rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
             (self.db_map.classes[db_config['db_table']].category == 'SQL') &
             (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
@@ -66,6 +67,8 @@ class Config:
                     (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
                     ).values({'config_value': self.csv2_host_id})
 
+                self.db_session.commit()
+
             except:
                 if rc != 0:
                     print("Error updating csv2_host_id in db_config: %s" % msg)
@@ -76,7 +79,6 @@ class Config:
         else:
             category_list = categories
 
-        self.db_session = Session(self.db_engine)
         for category in category_list:
             rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
                 self.db_map.classes[db_config['db_table']].category == category
