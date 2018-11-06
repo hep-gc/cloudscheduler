@@ -62,15 +62,15 @@ class Config:
 
         if self.csv2_host_id != rows[0].config_value:
             try:
-                self.db_session.update(self.db_map.classes[db_config['db_table']]).where(
+                self.db_session.execute(self.db_map.classes[db_config['db_table']].update().where(
                     (self.db_map.classes[db_config['db_table']].category == 'SQL') &
                     (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
-                    ).values({'config_value': self.csv2_host_id})
+                    ).values({'config_value': self.csv2_host_id}))
 
                 self.db_session.commit()
 
             except:
-                print("Error updating csv2_host_id in db_config: %s" % msg)
+                print("Error updating csv2_host_id in db_config.")
 
         # Retrieve the configuration for the specified category.
         if isinstance(categories, str):
