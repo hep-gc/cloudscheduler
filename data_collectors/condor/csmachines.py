@@ -24,6 +24,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+def set_orange_count(config, column, count):
+    config.db_open()
+    rc, msg = config.db_session_execute('update csv2_system_status set %s=%d;' % (column, count))
+    if rc == 0:
+        config.db_session.commit()
+    else:
+        logging.error('Failed to update csv2_system_status, %s=%s' % (column, count))
+    config.db_close()
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -296,12 +304,16 @@ if __name__ == '__main__':
         'machine':            machine_poller,
         }
 
+    orange_count = 0
+
     # Wait for keyboard input to exit
     try:
         while True:
+            orange = False
             for process in sorted(process_ids):
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
+                        orange = True
                         logging.error("%s process died, restarting...", process)
                         del(processes[process])
                     else:
@@ -309,6 +321,16 @@ if __name__ == '__main__':
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
                     time.sleep(config.sleep_interval_main_short)
+
+            if orange:
+                orange_count += 1
+                if orange_count >= config.orange_threshold:
+                    set_orange_count(config, 'csv2_machines_error_count', orange_count)
+            elif orange_count > 0:
+                orange_count -= 1
+                if orange_count < 1:
+                    set_orange_count(config, 'csv2_machines_error_count', orange_count)
+               
             time.sleep(config.sleep_interval_main_long)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
