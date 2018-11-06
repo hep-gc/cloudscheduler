@@ -60,7 +60,7 @@ class Config:
             (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
             )
 
-        if self.csv2_host_id != rows[0].csv2_host_id:
+        if self.csv2_host_id != rows[0].config_value:
             try:
                 self.db_session.update(self.db_map.classes[db_config['db_table']]).where(
                     (self.db_map.classes[db_config['db_table']].category == 'SQL') &
