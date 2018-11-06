@@ -64,7 +64,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'add', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'add', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -299,6 +299,21 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cu', ut_id(gvar, 'clc11'),
             '-gme', ut_id(gvar, 'clm2,clm2.yaml')
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc12')),
+        ['cloudscheduler', 'cloud', 'add',
+            '-cn', ut_id(gvar, 'clc12'),
+            '-ca', 'command-line-cloud-12.ca',
+            '-cpw', 'command-line-cloud-12',
+            '-cp', 'command-line-cloud-12',
+            '-cr', 'clc12-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc12'),
+            '-s', 'unit-test',
+            '-g', ut_id(gvar, 'clg1'),
         ]
     )
 

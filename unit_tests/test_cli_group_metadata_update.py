@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
-        ['cloudscheduler', 'metadata', 'update', '-s', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0', '-s', 'invalid-unit-test']
     )
 
     execute_csv2_command(
@@ -48,12 +48,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'Expose API requested',
-        ['cloudscheduler', 'metadata', 'update', '-xA']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0', '-xA']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'metadata', 'update', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0', '-g', 'invalid-unit-test']
     )
 
     execute_csv2_command(

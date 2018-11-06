@@ -33,7 +33,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'metadata-update', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-update', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -104,6 +104,11 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, 'file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm2')),
         ['cloudscheduler', 'cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-mp', '1']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'file "{}::{}::{}" successfully  updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm2')),
+        ['cloudscheduler', 'cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-mp', '1', '-g', ut_id(gvar, 'clg1'), '-s', 'unit-test']
     )
 
 if __name__ == "__main__":

@@ -32,6 +32,11 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['cloudscheduler', 'group', 'defaults', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'group', 'defaults', '-s', 'unit-test']
     )

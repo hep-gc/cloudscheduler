@@ -33,7 +33,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'delete', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'delete', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -69,6 +69,11 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc1')),
         ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc1'), '-Y']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
+        ['cloudscheduler', 'cloud', 'delete', '-cn', ut_id(gvar, 'clc3'), '-Y', '-s', 'unit-test', '-g', ut_id(gvar, 'clg1')]
     )
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "job"; use -h or -H for help.',
-        ['cloudscheduler', 'job', '-s', 'unit-test']
+        ['cloudscheduler', 'job', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -63,6 +63,11 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'job', 'list', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler job list".',
         ['cloudscheduler', 'job', 'list', '-h']
     )
@@ -84,7 +89,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1')]
+        ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1'), '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1'), '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

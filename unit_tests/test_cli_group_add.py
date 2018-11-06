@@ -12,6 +12,11 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, sys.argv[0])
 
     execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['cloudscheduler', 'group', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 1, None, 'No action specified for object "group"',
         ['cloudscheduler', 'group', '-s', 'unit-test']
     )
@@ -43,8 +48,13 @@ def main(gvar, user_secret):
 
     #### ADD ####
     execute_csv2_command(
+        gvar, 1, None, 'You are not authorized to access object "group";',
+        ['cloudscheduler', 'group', 'add', '-s', 'unit-test-un']
+    )
+    
+    execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'group', 'add']
+        ['cloudscheduler', 'group', 'add', '-s', 'unit-test']
     )
 
     execute_csv2_command(

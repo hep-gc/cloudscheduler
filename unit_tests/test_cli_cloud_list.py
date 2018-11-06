@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'list', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'list', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -52,13 +52,18 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
+        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'cloud', 'list', '-g', ut_id(gvar, 'clg1')]
     )
 
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'cloud', 'list']
+        ['cloudscheduler', 'cloud', 'list', '-s', 'unit-test', '-g', ut_id(gvar, 'clg1')]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'cloud', 'list', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

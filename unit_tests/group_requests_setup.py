@@ -11,7 +11,7 @@ def main(gvar, user_secret):
             initialize_csv2_request(gvar, sys.argv[0])
     if not user_secret:
         user_secret = generate_secret()
-    
+
     group_requests_cleanup.main(gvar)
 
     # unprivileged user in no groups
@@ -24,7 +24,7 @@ def main(gvar, user_secret):
                 'cert_cn': '{} test user one'.format(ut_id(gvar, 'group'))
             }
         )
-    
+
     # privileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu2')),
@@ -36,7 +36,7 @@ def main(gvar, user_secret):
                 'is_superuser': 1
             }
         )
-    
+
     # group to be changed in group_update
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg4')),
@@ -99,7 +99,7 @@ def main(gvar, user_secret):
             'group_name.2': ut_id(gvar, 'gtg5'),
         }
     )
-    
+
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
         '/group/metadata-add/', form_data={
@@ -140,7 +140,7 @@ def main(gvar, user_secret):
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
-    
+
     # unprivileged user to be added to groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu4')),

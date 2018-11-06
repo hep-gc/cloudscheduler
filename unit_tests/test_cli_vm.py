@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "vm"; use -h or -H for help.',
-        ['cloudscheduler', 'vm', '-s', 'unit-test']
+        ['cloudscheduler', 'vm', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -63,6 +63,11 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'vm', 'list', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler vm list".',
         ['cloudscheduler', 'vm', 'list', '-h']
     )
@@ -83,7 +88,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
+        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
         ['cloudscheduler', 'vm', 'list', '-g', ut_id(gvar, 'clg1')]
     )
 
@@ -94,7 +99,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'vm list, table #1 columns: keys=group_name,cloud_name,hostname, columns=vmid,auth_url,project,status,flavor_id,task,power_status,terminate,terminate_time,status_changed_time,last_updated,flavor_name,condor_slots,foreign_vm,cores,disk,ram,swap,poller_status,manual_control',
+        gvar, 0, None, 'vm list, table #1 columns: keys=group_name,cloud_name,hostname, columns=',
         ['cloudscheduler', 'vm', 'list', '-VC']
     )
 

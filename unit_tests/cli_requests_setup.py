@@ -159,6 +159,21 @@ def main(gvar, user_secret):
         }
     )
 
+    # cloud to be deleted
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'clg1'),
+            'cloud_name': ut_id(gvar, 'clc3'),
+            'authurl': 'unit-test-cloud-three.ca',
+            'project': 'unit-test-cloud-three',
+            'username': ut_id(gvar, 'clc3'),
+            'password': 'unit-test-cloud-three',
+            'region': ut_id(gvar, 'clc3-r'),
+            'cloud_type': 'local'
+        }
+    )
+
     # cloud to be listed and edited
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
@@ -218,6 +233,15 @@ def main(gvar, user_secret):
         '/cloud/metadata-add/', form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm1'),
+            'metadata': '- example: yes'
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm3')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'clc2'),
+            'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yes'
         }
     )

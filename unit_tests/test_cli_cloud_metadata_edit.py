@@ -13,7 +13,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test-un']
+        ['cloudscheduler', 'cloud', 'metadata-edit']
     )
 
     execute_csv2_command(
@@ -33,7 +33,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -90,6 +90,26 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, 'completed, no changes.',
         ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'successfully  updated.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript6-un']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'successfully  updated.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript7-un']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript8-un']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'completed, no changes.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-g', ut_id(gvar, 'clg1'), '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5', '-s', 'unit-test']
     )
 
     execute_csv2_command(
