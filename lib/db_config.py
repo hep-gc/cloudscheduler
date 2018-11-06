@@ -3,6 +3,7 @@ DB utilities and configuration.
 """
 
 import os
+import socket
 import yaml
 
 from sqlalchemy import create_engine
@@ -21,6 +22,9 @@ class Config:
                 base_config = yaml.load(ymlfile)
         else:
             raise Exception('Configuration file "%s" does not exist.' % db_yaml)
+
+        # Create a unique instance ID from our FQDN.
+        self.csv2_instance_id = sum(socket.getfqdn().encode())
 
         db_config = {}
         if 'database' in base_config:
