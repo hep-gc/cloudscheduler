@@ -70,8 +70,7 @@ class Config:
                 self.db_session.commit()
 
             except:
-                if rc != 0:
-                    print("Error updating csv2_host_id in db_config: %s" % msg)
+                print("Error updating csv2_host_id in db_config: %s" % msg)
 
         # Retrieve the configuration for the specified category.
         if isinstance(categories, str):
