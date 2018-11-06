@@ -23,9 +23,6 @@ class Config:
         else:
             raise Exception('Configuration file "%s" does not exist.' % db_yaml)
 
-        # Create a unique instance ID from our FQDN.
-        self.csv2_instance_id = sum(socket.getfqdn().encode())
-
         db_config = {}
         if 'database' in base_config:
             for item in base_config['database']:
@@ -53,6 +50,25 @@ class Config:
         self.db_connection = None
         self.db_map = automap_base()
         self.db_map.prepare(self.db_engine, reflect=True)
+
+        # Create a unique instance ID from our FQDN and, if necessary, save it in the database
+        self.csv2_host_id = sum(socket.getfqdn().encode())
+
+        rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
+            (self.db_map.classes[db_config['db_table']].category == 'SQL') &
+            (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
+            )
+
+        if self.csv2_host_id != rows[0].csv2_host_id:
+            try:
+                self.db_session.update(self.db_map.classes[db_config['db_table']]).where(
+                    (self.db_map.classes[db_config['db_table']].category == 'SQL') &
+                    (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
+                    ).values({'config_value': self.csv2_host_id})
+
+            except:
+                if rc != 0:
+                    print("Error updating csv2_host_id in db_config: %s" % msg)
 
         # Retrieve the configuration for the specified category.
         if isinstance(categories, str):
