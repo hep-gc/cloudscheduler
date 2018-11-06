@@ -115,9 +115,12 @@ IGNORE_METADATA_NAME = {
 IGNORE_KEYS = {
     'format': {
         'cloud_name':                                 'ignore',
+        'fingerprint':                                'ignore',
+        'id':                                         'ignore',
+        'key_name':                                   'ignore',
+        'name':                                       'ignore',
         'username':                                   'ignore',
         'vmid':                                       'ignore',
-        'id':                                         'ignore',
         },
     }
 
