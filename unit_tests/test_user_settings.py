@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
-import sys
+from sys import argv
 
 # lno: UV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
     
     new_secret = generate_secret()
     
