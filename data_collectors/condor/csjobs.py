@@ -15,6 +15,7 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
+    set_orange_count, \
     start_cycle, \
     wait_cycle
 
@@ -290,12 +291,16 @@ if __name__ == '__main__':
         'job':                job_poller,
         }
 
+    previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', 1, 0)
+
     # Wait for keyboard input to exit
     try:
         while True:
+            orange = False
             for process in process_ids:
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
+                        orange = True
                         logging.error("%s process died, restarting...", process)
                         del processes[process]
                     else:
@@ -303,6 +308,12 @@ if __name__ == '__main__':
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
                     time.sleep(config.sleep_interval_main_short)
+
+            if orange:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', previous_count, current_count+1)
+            else:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', previous_count, current_count-1)
+               
             time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
