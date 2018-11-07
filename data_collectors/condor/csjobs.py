@@ -211,8 +211,8 @@ def command_poller():
                     scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
                     condor_session = htcondor.Schedd(scheddAd)
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.error(exc)
+                    logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
+                    logging.warning(exc)
                     continue
 
                 #Query database for any entries that have a command flag
