@@ -194,6 +194,30 @@ def set_inventory_item(inventory, group_name, cloud_name, item, update_time):
     inventory[group_name][cloud_name][item] = True
     return int(parser.parse(update_time).astimezone(tz.tzlocal()).strftime('%s'))
 
+def set_orange_count(logging, config, column, previous_count, current_count):
+    if current_count < 1:
+       orange_count = 0
+    else:
+       orange_count = current_count
+
+    if orange_count != previous_count:
+        if not config.db_session:
+            auto_close = True
+            config.db_open()
+        else:
+            auto_close = False
+
+        rc, msg = config.db_session_execute('update csv2_system_status set %s=%d;' % (column, orange_count))
+        if rc == 0:
+            config.db_session.commit()
+        else:
+            logging.error('Failed to update csv2_system_status, %s=%s' % (column, orange_count))
+
+        if auto_close:
+            config.db_close()
+
+    return orange_count, orange_count
+
 def test_and_set_inventory_item_hash(inventory, group_name, cloud_name, item, item_dict, poll_time, debug_hash=False):
     from cloudscheduler.lib.poller_functions import set_inventory_group_and_cloud
 

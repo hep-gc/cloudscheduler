@@ -15,6 +15,7 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
+    set_orange_count, \
     start_cycle, \
     wait_cycle
 
@@ -23,15 +24,6 @@ import classad
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
-
-def set_orange_count(config, column, count):
-    config.db_open()
-    rc, msg = config.db_session_execute('update csv2_system_status set %s=%d;' % (column, count))
-    if rc == 0:
-        config.db_session.commit()
-    else:
-        logging.error('Failed to update csv2_system_status, %s=%s' % (column, count))
-    config.db_close()
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -304,7 +296,7 @@ if __name__ == '__main__':
         'machine':            machine_poller,
         }
 
-    orange_count = 0
+    previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', 1, 0)
 
     # Wait for keyboard input to exit
     try:
@@ -323,13 +315,9 @@ if __name__ == '__main__':
                     time.sleep(config.sleep_interval_main_short)
 
             if orange:
-                orange_count += 1
-                if orange_count >= config.orange_threshold:
-                    set_orange_count(config, 'csv2_machines_error_count', orange_count)
-            elif orange_count > 0:
-                orange_count -= 1
-                if orange_count < 1:
-                    set_orange_count(config, 'csv2_machines_error_count', orange_count)
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', previous_count, current_count+1)
+            else:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', previous_count, current_count-1)
                
             time.sleep(config.sleep_interval_main_long)
     except (SystemExit, KeyboardInterrupt):
