@@ -420,26 +420,43 @@
                     <span class="red-dot"></span></td>
                 {% endif %}
 
-                <td tooltip="{{ system_list.csv2_openstack_msg }}">
-                {% if system_list.csv2_openstack_status == 1 %}
+
+                {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
+                    <td tooltip="{{ system_list.csv2_openstack_msg }}">
                     <span class="green-dot"></span></td>
+                {% elif system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count != 0%}
+                    <td tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
+                    <span class="orange-dot"></span></td>
                 {% else %}
+                    <td tooltip="{{ system_list.csv2_openstack_msg }}">
                     <span class="red-dot"></span></td>
                 {% endif %}
 
-                <td tooltip="{{ system_list.csv2_jobs_msg }}">
-                {% if system_list.csv2_jobs_status == 1 %}
+
+                {% if system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count == 0%}
+                    <td tooltip="{{ system_list.csv2_jobs_msg }}">
                     <span class="green-dot"></span></td>
+                {% elif system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count != 0%}
+                    <td tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
+                    <span class="orange-dot"></span></td>
                 {% else %}
+                    <td tooltip="{{ system_list.csv2_jobs_msg }}">
                     <span class="red-dot"></span></td>
                 {% endif %}
 
-                <td tooltip="{{ system_list.csv2_machines_msg }}">
-                {% if system_list.csv2_machines_status == 1 %}
+
+                {% if system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count == 0%}
+                    <td tooltip="{{ system_list.csv2_machines_msg }}">
                     <span class="green-dot"></span></td>
+                {% elif system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count != 0%}
+                    <td tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
+                    <span class="orange-dot"></span></td>
                 {% else %}
+                    <td tooltip="{{ system_list.csv2_machines_msg }}">
                     <span class="red-dot"></span></td>
                 {% endif %}
+
+
 
                 <td tooltip="{{ system_list.condor_msg }}">
                 {% if system_list.condor_status == 1 %}

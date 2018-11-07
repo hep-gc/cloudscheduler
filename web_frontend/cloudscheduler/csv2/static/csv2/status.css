@@ -300,6 +300,14 @@
   display: inline-block;
 }
 
+.orange-dot {
+  height: 25px;
+  width: 25px;
+  background-color: orange;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 .red-dot {
   height: 25px;
   width: 25px;
