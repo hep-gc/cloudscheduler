@@ -118,6 +118,7 @@ def main(gvar, user_secret):
             'vm_keep_alive': 1,
             'vm_flavor': '',
             'vm_image': '',
+            'vm_keyname': '',
             'vm_network': '',
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
@@ -146,6 +147,15 @@ def main(gvar, user_secret):
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_network': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV07', 'group defaults update specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'vm_keyname': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

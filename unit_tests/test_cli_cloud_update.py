@@ -198,9 +198,10 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cu', ut_id(gvar, 'clc10'),
             '-ce', 'no',
-            '-vka', '10',
             '-vi', '',
             '-vf', '',
+            '-vk', '',
+            '-vka', '10',
             '-vn', '',
             '-csp', '10',
             '-gme', ut_id(gvar, 'clm2')

@@ -215,7 +215,8 @@ def main(gvar, user_secret):
             'job_swap': 1,
             'vm_flavor': '',
             'vm_image': '',
-            'vm_network': ''
+            'vm_keyname': '',
+            'vm_network': '',
         }
     )
 
@@ -243,6 +244,15 @@ def main(gvar, user_secret):
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test.ca',
             'vm_network': 'invalid-unit-test',
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV95', 'group add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'invalid-unit-test'),
+            'condor_central_manager': 'invalid-unit-test.ca',
+            'vm_keyname': 'invalid-unit-test',
         }
     )
 

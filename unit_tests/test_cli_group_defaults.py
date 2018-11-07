@@ -93,7 +93,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'group defaults "{}" successfully updated.'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'metadata', 'group-defaults', '-jc', '1', '-jd', '1', '-jr', '1', '-js', '1', '-vka', '1', '-vi', '', '-vf', '', '-vn', '']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-jc', '1', '-jd', '1', '-jr', '1', '-js', '1', '-vka', '1', '-vi', '', '-vk', '', '-vf', '', '-vn', '']
     )
 
     execute_csv2_command(

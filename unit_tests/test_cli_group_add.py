@@ -164,7 +164,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'clg11')),
-        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg11'), '-gm', 'command-line-group-11', '-un', ut_id(gvar, 'clu3'), '-vf', '', '-vi', '', '-vn', '']
+        ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'clg11'), '-gm', 'command-line-group-11', '-un', ut_id(gvar, 'clu3'), '-vf', '', '-vi', '', '-vk', '', '-vn', '']
     )
 
 if __name__ == "__main__":
