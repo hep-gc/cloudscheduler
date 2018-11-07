@@ -200,7 +200,7 @@ def set_orange_count(logging, config, column, previous_count, current_count):
     else:
        orange_count = current_count
 
-    if orange_count != previous_count:
+    if orange_count != previous_count and (orange_count < 1 or orange_count >= config.orange_threshold):
         if not config.db_session:
             auto_close = True
             config.db_open()
