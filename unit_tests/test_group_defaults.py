@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: GV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
@@ -118,6 +118,7 @@ def main(gvar, user_secret):
             'vm_keep_alive': 1,
             'vm_flavor': '',
             'vm_image': '',
+            'vm_keyname': '',
             'vm_network': '',
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
@@ -146,6 +147,15 @@ def main(gvar, user_secret):
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_network': 'invalid-unit-test'
+        },
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV07', 'group defaults update specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'gtg4')),
+        '/group/defaults/', form_data={
+            'group': ut_id(gvar, 'gtg4'),
+            'vm_keyname': 'invalid-unit-test'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

@@ -107,7 +107,7 @@ def image_collection():
         if num_tx == 0:
             wait_period = config.image_collection_interval
         else:
-            wait_period = 0
+            wait_period = 5
 
         while loop_counter*5 < wait_period:
             time.sleep(5)
@@ -120,13 +120,6 @@ def image_collection():
                 repo_proccesed()
                 break
 
-            #check if httpd is running
-            output = subprocess.check_output(['ps', '-A'])
-            if 'httpd' not in str(output):
-                #apache has shut down, time for image collection to do the same
-                logging.info("httpd offline, terminating")
-                term_signal = True
-                break
             loop_counter = loop_counter+1
         num_tx = get_num_transactions()
 

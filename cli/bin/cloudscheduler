@@ -219,7 +219,7 @@ def main(args):
             ('-vf',  '--vm-flavor', True),
             ('-vi',  '--vm-image', True),
             ('-vh',  '--vm-hostname', True),
-            ('-vk',  '--vm-keypair', True),
+            ('-vk',  '--vm-keyname', True),
             ('-vka', '--vm-keep-alive', True),
             ('-vn',  '--vm-network', True),
             ('-vo',  '--vm-option', True),
