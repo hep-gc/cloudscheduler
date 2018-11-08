@@ -107,10 +107,10 @@ def image_collection():
         if num_tx == 0:
             wait_period = config.image_collection_interval
         else:
-            wait_period = 5
+            wait_period = 10
 
-        while loop_counter*5 < wait_period:
-            time.sleep(5)
+        while loop_counter*10 < wait_period:
+            time.sleep(10)
             num_tx = get_num_transactions()
             #check for new transactions
             if num_tx > 0:
