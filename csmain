@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import os
+
 import copy
 import json
 import math
@@ -9,7 +9,6 @@ from collections import defaultdict
 
 import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
-import cloudscheduler.config as csconfig
 
 from lib.schema import view_vms
 from lib.schema import view_groups_of_idle_jobs
@@ -20,42 +19,30 @@ from lib.schema import view_metadata_collation_json
 
 from lib.db_config import Config
 
-from sqlalchemy import create_engine
 from sqlalchemy import exists
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.sql import select
-
-
-CLOUDRESOURCES = {}
-
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s")
 
 
 def main():
     """
     main function.
     """
-    log = logging.getLogger(__name__)
+
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
     if not config:
-        print("Probably loading config file.")
-    else:
-        print(config.__dict__)
+        print("Problem loading config file.")
+    logging.basicConfig(level=logging.DEBUG,
+                        format="%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s")
+    log = logging.getLogger(__name__)
     config.db_open()
 
     while(True):
         # basic scheduling: fifo w/ condor_prioity
+        CSGroups = config.db_map.classes.csv2_groups
 
-        Base0 = automap_base()
-        engine0 = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                     csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-        Base0.prepare(engine0, reflect=True)
-        CSGroups = Base0.classes.csv2_groups
-        session0 = Session(engine0)
         # Get all the current csv2_groups
-        csv2groups = session0.query(CSGroups)
+        csv2groups = config.db_session.query(CSGroups)
+        #csv2groups = session0.query(CSGroups)
         #logging.debug(type(csv2groups))
         #log.debug(type(csv2groups[0]),csv2groups[0])
 
@@ -76,17 +63,10 @@ def main():
                           csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
-            Base = automap_base()
-            engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                     csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-            Base.prepare(engine, reflect=True)
-            session = Session(engine)
-
-            #Resources = Base.classes.csv2_group_resources
-            group_resources = session.query(view_group_resources).filter(view_group_resources.c.group_name == csgroup.group_name,
+            group_resources = config.db_session.query(view_group_resources).filter(view_group_resources.c.group_name == csgroup.group_name,
                                                                          view_group_resources.c.enabled == 1)
-            Group_metadata = Base.classes.csv2_group_metadata
-            group_yamls = session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
+            Group_metadata = config.db_map.classes.csv2_group_metadata
+            group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
             group_yaml_list = []
             for yam in group_yamls:
@@ -112,7 +92,7 @@ def main():
 
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
-            idle_jobs_for_group = session.query(view_groups_of_idle_jobs).filter(
+            idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs).filter(
                 view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
                 view_groups_of_idle_jobs.c.job_priority)
             log.debug('---------------got idle jobs--------------')
@@ -136,11 +116,11 @@ def main():
 
                 # Get All the possible matching clouds
                 if target_cloud_list:
-                    clouds_matching = session.query(view_available_resources).filter(
+                    clouds_matching = config.db_session.query(view_available_resources).filter(
                         view_available_resources.c.flavor.in_(flavor_list),
                         view_available_resources.c.cloud_name.in_(target_cloud_list))
                 else:
-                    clouds_matching = session.query(view_available_resources).filter(
+                    clouds_matching = config.db_session.query(view_available_resources).filter(
                         view_available_resources.c.flavor.in_(flavor_list))
                 num_jobs_per_flavor_possible = {}
                 for cloud_match in clouds_matching:
@@ -168,11 +148,11 @@ def main():
                 if runnable_job_count <= 0: # Need more VMs - try to boot stuff - does this really need to be <= or just < ???
                     log.debug("flavor list: %s", flavor_list)
                     if target_cloud_list:
-                        clouds_matching_new = session.query(view_available_resources).filter(
+                        clouds_matching_new = config.db_session.query(view_available_resources).filter(
                             view_available_resources.c.flavor.in_(flavor_list),
                             view_available_resources.c.cloud_name.in_(target_cloud_list))
                     else:
-                        clouds_matching_new = session.query(view_available_resources).filter(
+                        clouds_matching_new = config.db_session.query(view_available_resources).filter(
                             view_available_resources.c.flavor.in_(flavor_list))
 
                     for cloud in clouds_matching_new:
@@ -250,78 +230,75 @@ def main():
             # Repeat for next group
         #break # will need to take this out and put in an actual stopping condition.
 
-def verify_idle_jobs(group):
+def verify_idle_jobs(group, config):
     """ Check the view for idle jobs and make sure it has all the required fields
     Hold jobs that fail the tests."""
     log = logging.getLogger(__name__)
     log.debug("Verify jobs for group: %s", group)
-    base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    base.prepare(engine, reflect=True)
-    session = Session(engine)
 
-    idle_jobs_for_group = session.query(view_condor_jobs_group_defaults_applied).filter(
+    config.db_open()
+    idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied).filter(
         view_condor_jobs_group_defaults_applied.c.group_name == group,
         view_condor_jobs_group_defaults_applied.c.job_status == 1)
     bad_jobs = {}
     for job in idle_jobs_for_group:
         if not job.image:
             bad_jobs[job.global_job_id] = "Missing Image"
-    condor_jobs = base.classes.condor_jobs
-    jobs = session.query(condor_jobs).filter(condor_jobs.global_job_id.in_(bad_jobs.keys()))
+    condor_jobs = config.db_map.classes.condor_jobs
+    jobs = config.db_session.query(condor_jobs).filter(condor_jobs.global_job_id.in_(bad_jobs.keys()))
     for job in jobs:
         try:
             job.hold_job_reason = bad_jobs[job.global_job_id]
         except KeyError:
             continue
     try:
-        session.commit()
+        config.db_close()
     except Exception as ex:
         log.exception(ex)
     log.debug("Done Verify jobs.")
     return
 
 
-def count_cloud_flavors(group):
+def count_cloud_flavors(group, config):
     """Query the VMs for group and arrange into a dictionary format
     of dict[cloud_name][flavor] = count of that flavor
     """
     log = logging.getLogger(__name__)
-    base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    base.prepare(engine, reflect=True)
-    session = Session(engine)
-    group_vms = session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0)
+    config.db_open()
+    group_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0)
     vm_cloud_flavors = defaultdict(lambda: defaultdict(int))
     for vm in group_vms:
         vm_cloud_flavors[vm.cloud_name][vm.flavor_name] += 1
     log.debug("Done counting current flavors for group: %s.", group)
+    try:
+        config.db_close()
+    except Exception as ex:
+        log.exception("Problem closing connection: %s", ex)
     return vm_cloud_flavors
 
 
-def check_registered_condor_machines(group):
+def check_registered_condor_machines(group, config):
     """Query the condor machines for everything belonging to the group to get idea
     of how many available resources there are for idle jobs - including brand new machines
     that are in the benchmarking state etc. and use that info to determine if more VMs are needed."""
     log = logging.getLogger(__name__)
+    config.db_open()
     machines_dict = defaultdict(int)
-    base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    base.prepare(engine, reflect=True)
-    session = Session(engine)
-    machines = base.classes.condor_machines
-    registered_machines = session.query(machines).filter(machines.group_name == group)
+
+    machines = config.db_map.classes.condor_machines
+    registered_machines = config.db_session.query(machines).filter(machines.group_name == group)
     for machine in registered_machines:
         log.debug(machine)
         machines_dict[machine.flavor] += 1
     log.debug("Done checking registered machines classads: %s", group)
+    try:
+        config.db_close()
+    except Exception as ex:
+        log.exception(ex)
     return machines_dict
 
 
-def check_idle_time(group):
+def check_idle_time(group, config):
     """
     Determine idle start time of machines to use with keep_alive
     :param group:
@@ -336,13 +313,9 @@ def check_idle_time(group):
     # if keep alive exceeded set retire flags/time (retire_request_time)
     log = logging.getLogger(__name__)
     log.debug("Check Idle Machines for Keep Alive time for: %s", group)
-    Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    Base.prepare(engine, reflect=True)
-    session = Session(engine)
-    machines = Base.classes.condor_machines
-    unclaimed_idle_machines = session.query(machines).filter(machines.state == "Unclaimed",
+    config.db_open()
+    machines = config.db_map.classes.condor_machines
+    unclaimed_idle_machines = config.db_session.query(machines).filter(machines.state == "Unclaimed",
                                                              machines.activity == "Idle",
                                                              machines.group_name == group,
                                                              machines.idle_time == None,
@@ -351,12 +324,12 @@ def check_idle_time(group):
         machine.idle_time = int(time.time())
         log.debug("%s detected doing nothing - set idle_time.", machine.machine)
     try:
-        session.commit()
+        config.db_close()
     except Exception as ex: #  sqlalchemy.exc.InternalError pymysql.err.InternalError Deadlock
         log.exception(ex)
 
 
-def check_idle_time_unset(group):
+def check_idle_time_unset(group, config):
     """
     Determine idle start time of machines to use with keep_alive
     :param group:
@@ -371,25 +344,22 @@ def check_idle_time_unset(group):
     # if keep alive exceeded set retire flags/time (retire_request_time)
     log = logging.getLogger(__name__)
     log.debug("Unset the idle time if needed for: %s", group)
-    Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    Base.prepare(engine, reflect=True)
-    session = Session(engine)
-    machines = Base.classes.condor_machines
-    unclaimed_idle_machines = session.query(machines).filter(machines.group_name == group,
+    config.db_open()
+
+    machines = config.db_map.classes.condor_machines
+    unclaimed_idle_machines = config.db_session.query(machines).filter(machines.group_name == group,
                                                              machines.idle_time != None)
     for machine in unclaimed_idle_machines:
         if machine.total_slots != 1 or machine.state != "Unclaimed" or machine.activity != "Idle":
             log.debug("%s detected change - unset idle_time.", machine.machine)
             machine.idle_time = None
     try:
-        session.commit()
+        config.db_close()
     except Exception as ex:
         log.exception(ex)
 
 
-def check_idle_machines(group):
+def check_idle_machines(group, config):
     """
     Query the condor machines and ones that are idle with no jobs requiring them
     or that have been idle an extended period of time and set the Retire flag in db for them.
@@ -397,13 +367,10 @@ def check_idle_machines(group):
     """
     log = logging.getLogger(__name__)
     log.debug("Checking %s Idle Machines.", group)
-    Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    Base.prepare(engine, reflect=True)
-    session = Session(engine)
-    machines = Base.classes.condor_machines
-    unclaimed_idle_machines = session.query(view_vms).filter(view_vms.c.idle_time != None,
+    config.db_open()
+
+    machines = config.db_map.classes.condor_machines
+    unclaimed_idle_machines = config.db_session.query(view_vms).filter(view_vms.c.idle_time != None,
                                                              view_vms.c.group_name == group)
     machines_dict = defaultdict(int)
     idle_list = []
@@ -420,34 +387,31 @@ def check_idle_machines(group):
                 machines_dict[name_parts[1]] += 1 # key on the cloud_name part of hostname
     if idle_list:
         log.debug("setting retire_request_time on %s entries.", len(idle_list))
-        update_result = session.query(machines).filter(machines.machine.in_(idle_list))
+        update_result = config.db_session.query(machines).filter(machines.machine.in_(idle_list))
         for row in update_result:
             row.retire_request_time = int(time.time())
         # TODO Update csv2_vms table with a retired flag on that vm
     try:
-        session.commit()
+        config.db_close()
     except Exception as ex:
         log.exception(ex)
     # Return dict of cloud names with number of idle machine classads
     return machines_dict
 
 
-def check_unregistered_machines(group):
+def check_unregistered_machines(group, config):
     """Query the condor machines and cloud VMs to sort out which ones have failed to register correctly.
     and take steps to shut those down. There could be problems with shutting down machines cs isn't controlling
     so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
     log = logging.getLogger(__name__)
     log.debug("Check Unregistered Machines: %s", group)
-    Base = automap_base()
-    engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" + csconfig.config.db_password + "@" +
-                           csconfig.config.db_host + ":" + str(csconfig.config.db_port) + "/" + csconfig.config.db_name)
-    Base.prepare(engine, reflect=True)
-    session = Session(engine)
-    machines = Base.classes.condor_machines
-    vms = Base.classes.csv2_vms
-    clouds = Base.classes.csv2_group_resources
-    group_clouds = session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
+    config.db_open()
+
+    machines = config.db_map.classes.condor_machines
+    vms = config.db_map.classes.csv2_vms
+    clouds = config.db_map.classes.csv2_group_resources
+    group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
+    unregistered_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
                                                                                              where(machines.machine.contains(view_vms.c.hostname)))
 
     cloud_names = []
@@ -479,30 +443,16 @@ def check_unregistered_machines(group):
     if to_terminate:
         log.debug((len(to_terminate)))
         log.debug(to_terminate)
-        update_result = session.query(vms).filter(vms.vmid.in_(to_terminate))
+        update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
         for vm in update_result:
             vm.terminate = 1
     log.debug("Done checking %s unregistered VMs.", group)
     try:
-        session.commit()
+        config.db_close()
     except Exception as ex:
         log.exception(ex)
     return new_vms
 
-
-# should re-adapt this to deal with adding group from DB and splitting code into functions instead of all inline
-def add_user_cloud(user, user_resource_file=None):
-    """
-
-    :param user:
-    :param user_resource_file:
-    """
-    if not user_resource_file:
-        homedir = os.path.expanduser(''.join['~', user])
-        user_resource_file = ''.join([homedir, '/.cloudscheduler/cloudresources.yaml'])
-    cmuser = cloudscheduler.cloudmanager.CloudManager(name=user, resource_file=user_resource_file)
-    cmuser.setup()
-    CLOUDRESOURCES[cmuser.name] = cmuser
 
 
 main()
