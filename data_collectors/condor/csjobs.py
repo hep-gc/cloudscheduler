@@ -92,7 +92,7 @@ def job_poller():
 
                 except Exception as exc:
                     logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.error(exc)
+                    logging.debug(exc)
                     continue
 
 
@@ -215,7 +215,7 @@ def command_poller():
                     condor_session = htcondor.Schedd(scheddAd)
                 except Exception as exc:
                     logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.warning(exc)
+                    logging.debug(exc)
                     continue
 
                 #Query database for any entries that have a command flag
