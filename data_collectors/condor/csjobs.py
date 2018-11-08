@@ -61,6 +61,9 @@ def job_poller():
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
+    if config.default_job_group is None:
+        config.default_job_group = ""
+
     JOB = config.db_map.classes.condor_jobs
     CLOUDS = config.db_map.classes.csv2_group_resources
     GROUPS = config.db_map.classes.csv2_groups

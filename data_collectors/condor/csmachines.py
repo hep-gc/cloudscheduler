@@ -100,6 +100,9 @@ def machine_poller():
                 uncommitted_updates = 0
                 for resource in condor_resources:
                     r_dict = dict(resource)
+                    if 'group_name' not in r_dict:
+                        logging.info("Skipping resource with no group_name.")
+                        continue
                     if "Start" in r_dict:
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
@@ -247,6 +250,8 @@ def command_poller():
 
                         condor_classad = condor_session.query(startd_type, 'Name=="%s"' % resource.name)[0]
                         startd_list.append(condor_classad)
+                    except IndexError as exc:
+                        pass
                     except Exception as exc:
                         logging.exception("Failed to retrieve machine classads, aborting...")
                         logging.error(exc)
