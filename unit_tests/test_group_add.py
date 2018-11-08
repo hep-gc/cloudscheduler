@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: GV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
     
     execute_csv2_request(
         gvar, 1, 'GV05', 'invalid method "GET" specified.',
@@ -215,7 +215,8 @@ def main(gvar, user_secret):
             'job_swap': 1,
             'vm_flavor': '',
             'vm_image': '',
-            'vm_network': ''
+            'vm_keyname': '',
+            'vm_network': '',
         }
     )
 
@@ -243,6 +244,15 @@ def main(gvar, user_secret):
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'condor_central_manager': 'invalid-unit-test.ca',
             'vm_network': 'invalid-unit-test',
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'GV95', 'group add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        '/group/add/', form_data={
+            'group_name': ut_id(gvar, 'invalid-unit-test'),
+            'condor_central_manager': 'invalid-unit-test.ca',
+            'vm_keyname': 'invalid-unit-test',
         }
     )
 

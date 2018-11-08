@@ -1,0 +1,3 @@
+The \fBcloudscheduler metadata update\fR action updates group metadata from csv2 servers.
+This action is available to all users, provided they are in the group that the metadata belongs to.
+Priviliged users may also use the \fBcloudscheduler group metadata-update\fR command.

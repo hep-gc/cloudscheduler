@@ -46,7 +46,7 @@ def job_poller():
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
-                      "EnteredCurrentStatus", "QDate"]
+                      "EnteredCurrentStatus", "QDate", "HoldReasonCode", "HoldReasonSubCode", "LastRemoteHost" ]
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
     cycle_start_time = 0
@@ -60,6 +60,9 @@ def job_poller():
     uncommitted_updates = 0
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+
+    if config.default_job_group is None:
+        config.default_job_group = ""
 
     JOB = config.db_map.classes.condor_jobs
     CLOUDS = config.db_map.classes.csv2_group_resources
@@ -89,7 +92,7 @@ def job_poller():
 
                 except Exception as exc:
                     logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.error(exc)
+                    logging.debug(exc)
                     continue
 
 
@@ -212,7 +215,7 @@ def command_poller():
                     condor_session = htcondor.Schedd(scheddAd)
                 except Exception as exc:
                     logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.warning(exc)
+                    logging.debug(exc)
                     continue
 
                 #Query database for any entries that have a command flag

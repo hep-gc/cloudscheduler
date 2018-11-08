@@ -1,3 +1,3 @@
 The \fBcloudscheduler group metadata-list\fR action displays group metadata for the current group from csv2 servers.
-This action is available to any user, provided they are in the group that the metadata belongs to.
-
+This action is available to priviliged users, provided they are in the group that the metadata belongs to.
+To list metadata as an unpriviliged user use the \fBcloudscheduler metadata list\fR command.

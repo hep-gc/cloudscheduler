@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: GV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
 
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',

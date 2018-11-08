@@ -1,0 +1,54 @@
+.so ../man/_header.so
+\fBcloudscheduler metadata update\fR \- update group metadata on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B metadata
+.B update
+.BI \-mn " name"
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_metadata_update.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_metadata_name.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_metadata_enabled.so
+.so ../man/parameters/_metadata_mime_type.so
+.so ../man/parameters/_metadata_priority.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Updating the group metadata "example":
+.EX
+$ cloudscheduler metadata update -mn example.yaml -me no -mmt ucernvm-config -mp 2
+group metadata file "example::example.yaml" successfully  updated.
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_group_metadata-update (1)
+.BR csv2_metadata_group-defaults (1)
+.BR csv2_metadata_delete (1)
+.BR csv2_metadata_edit (1)
+.BR csv2_metadata_list (1)
+.BR csv2_metadata_load (1)
