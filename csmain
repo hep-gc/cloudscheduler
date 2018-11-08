@@ -34,12 +34,12 @@ def main():
     logging.basicConfig(level=logging.DEBUG,
                         format="%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s")
     log = logging.getLogger(__name__)
-    config.db_open()
+    #config.db_open()
 
     while(True):
         # basic scheduling: fifo w/ condor_prioity
         CSGroups = config.db_map.classes.csv2_groups
-
+        config.db_open()
         # Get all the current csv2_groups
         csv2groups = config.db_session.query(CSGroups)
         #csv2groups = session0.query(CSGroups)
@@ -83,13 +83,13 @@ def main():
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
             #verify_idle_jobs(csgroup.group_name)
-            check_idle_time(csgroup.group_name)
-            check_idle_time_unset(csgroup.group_name)
-            idle_machines = check_idle_machines(csgroup.group_name)
-            new_vms = check_unregistered_machines(csgroup.group_name)
-            current_flavors = count_cloud_flavors(csgroup.group_name)
+            check_idle_time(csgroup.group_name, config)
+            check_idle_time_unset(csgroup.group_name, config)
+            idle_machines = check_idle_machines(csgroup.group_name, config)
+            new_vms = check_unregistered_machines(csgroup.group_name,config)
+            current_flavors = count_cloud_flavors(csgroup.group_name, config)
             log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
-
+            config.db_open()
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
             idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs).filter(
