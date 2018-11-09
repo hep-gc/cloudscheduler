@@ -118,16 +118,18 @@
         <table>
           <colgroup>
             <col class="grey" />
-            <col class="red" span="1" />
-            <col class="clear" span="10" />
-            <col class="blue" span="1" />
-            <col class="clear" span="3" />
+            <col class="clear" span="1" />
+            <col class="clear" span="12" />
+            <col class="clear" span="1" />
+            <col class="clear" span="5" />
           </colgroup>
           <thead>
             <tr>
                 <th class="name-style">Clouds</th>
                 <th class="native-style">VMs</th>
+                <th class="native-style">Starting</th>
                 <th class="native-style">Unreg.</th>
+                <th class="native-style">Idle</th>                
                 <th class="native-style">Running</th>
                 <th class="native-style">Retiring</th>
                 <th class="native-style">Manual</th>
@@ -151,6 +153,8 @@
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="native-style">Slots</th>
+                <th class="native-style">Slots Cores</th>
+                <th class="native-style">Slots Idle</th>
 
             </tr>
             {% for cloud in cloud_status_list %}
@@ -169,11 +173,24 @@
                         <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">{{cloud.VMs}}</a></td>
                     {% endif %}
 
+                    {% if cloud.VMs_starting == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">{{cloud.VMs_starting}}</a></td>
+                    {% endif %}
+
 
                     {% if cloud.VMs_unregistered == 0 %}
                         <td class="zero-style">0</td>
                     {% else %}
                         <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">{{cloud.VMs_unregistered}}</a></td>
+                    {% endif %}
+
+
+                    {% if cloud.VMs_idle == 0 %}
+                        <td class="zero-style">0</td>
+                    {% else %}
+                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">{{cloud.VMs_idle}}</a></td>
                     {% endif %}
 
 
@@ -246,14 +263,14 @@
                     <td>{{cloud.cores_max}}</td>
 
                     <td class="col-spacer">&nbsp;</td>
-                    {% if cloud.slots_used == 0 %}
+                    {% if cloud.slots_count == 0 %}
                         <td class="zero-style">0</td>
                     {% else %}
                         <td class="more-style">
 
                             <div class="slots">
                                 <input id="slots-{{cloud.cloud_name}}" type="checkbox">
-                                <label for="slots-{{cloud.cloud_name}}">{{cloud.slots_used}}</label>
+                                <label for="slots-{{cloud.cloud_name}}">{{cloud.slots_count}}</label>
                                 <div class="slots-content">
 
                                     <hr>
@@ -270,12 +287,13 @@
                         </td>
                     {% endif %}
 
-
+                    <td>{{cloud.slots_core_count}}</td>
+                    <td>{{cloud.slots_idle_core_count}}</td>
                 </tr>
 
             {% endfor %}
             <tr>
-                <td colspan="8" class="row-spacer">&nbsp;</td>
+                <td colspan="10" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="2" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
@@ -283,7 +301,7 @@
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="1" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="1" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
              <tr>
                 <td class="bold-style">Totals:</td>
@@ -295,10 +313,24 @@
                 {% endif %}
 
 
+                {% if cloud_total_list.VMs_starting == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a onclick="pass_url('::starting::')" href="#vms-overlay">{{cloud_total_list.VMs_starting}}</a></td>
+                {% endif %}
+
+
                 {% if cloud_total_list.VMs_unregistered == 0 %}
                     <td class="zero-style">0</td>
                 {% else %}
                     <td class="more-style"><a onclick="pass_url('::unregistered::')" href="#vms-overlay">{{cloud_total_list.VMs_unregistered}}</a></td>
+                {% endif %}
+
+
+                {% if cloud_total_list.VMs_idle == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style"><a onclick="pass_url('::idle::')" href="#vms-overlay">{{cloud_total_list.VMs_idle}}</a></td>
                 {% endif %}
 
 
@@ -382,6 +414,10 @@
                         </div>
                     </td>
                 {% endif %}
+
+                <td>{{cloud_total_list.slots_cores}}</td>
+                <td>{{cloud_total_list.slots_idle}}</td>
+
             </tr>
             </tbody> 
         </table>

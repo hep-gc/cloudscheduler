@@ -954,7 +954,7 @@ def status(request, group_name=None):
 
 
     # get slots type counts
-    s = select([view_cloud_status_slots]).where(view_cloud_status_slots.c.group_name == active_user.active_group)
+    s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
     slot_list = qt(
         config.db_connection.execute(s),
         )
