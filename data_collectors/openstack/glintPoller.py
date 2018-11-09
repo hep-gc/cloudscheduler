@@ -149,7 +149,7 @@ def defaults_replication():
             check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
 
         time_slept = 0
-        while(time_slept<3600):
+        while(time_slept<config.defaults_sleep_interval):
             if check_defaults_changed():
                 set_defaults_changed(False)
                 break
