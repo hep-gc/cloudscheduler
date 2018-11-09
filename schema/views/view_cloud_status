@@ -35,8 +35,8 @@ sum(ram_native) as ram_busy,
 sum(ram_foreign) as ram_foreign,
 sum(ram_idle) as ram_idle,
 sum(ram_idle)+sum(ram_native) as ram_native,
-condor_slots as slots_used, /**************************************************************************** deprecated **************************/
-condor_slots_used as slots_max, /**************************************************************************** deprecated **************************/
+condor_slots as slots_max, /**************************************************************************** deprecated **************************/
+condor_slots_used as slots_used, /**************************************************************************** deprecated **************************/
 slot_count,
 slot_core_count,
 slot_idle_core_count
