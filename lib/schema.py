@@ -573,8 +573,6 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('ram_foreign', Integer),
   Column('ram_idle', Integer),
   Column('ram_native', Integer),
-  Column('slots_max', Integer),
-  Column('slots_used', Integer),
   Column('slot_count', Integer),
   Column('slot_core_count', Integer),
   Column('slot_idle_core_count', Integer)
@@ -587,13 +585,6 @@ view_cloud_status_slot_detail = Table('view_cloud_status_slot_detail', metadata,
   Column('slot_type', Integer),
   Column('slot_count', Integer),
   Column('core_count', Integer)
-  )
-
-view_cloud_status_slots = Table('view_cloud_status_slots', metadata,
-  Column('group_name', String(256)),
-  Column('cloud_name', String(256)),
-  Column('slot_CPUs', Integer),
-  Column('slot_count', Integer)
   )
 
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
