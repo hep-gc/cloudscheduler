@@ -194,8 +194,11 @@ condor_jobs = Table('condor_jobs', metadata,
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_job_reason', String(64)),
-  Column('held_reason', String(64))
+  Column('hold_reason_code', Integer),
+  Column('hold_reason_subcode', Integer),
+  Column('last_remote_host', String(64)),
+  Column('held_reason', String(64)),
+  Column('hold_job_reason', String(64))
   )
 
 condor_machines = Table('condor_machines', metadata,
@@ -540,8 +543,8 @@ view_available_resources_json = Table('view_available_resources_json', metadata,
   )
 
 view_cloud_status = Table('view_cloud_status', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
+  Column('group_name', String(256)),
+  Column('cloud_name', String(256)),
   Column('enabled', Integer),
   Column('default_flavor', String(64)),
   Column('default_image', String(64)),
@@ -549,7 +552,9 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('default_keyname', String(64)),
   Column('default_network', String(64)),
   Column('VMs', Integer),
+  Column('VMs_starting', Integer),
   Column('VMs_unregistered', Integer),
+  Column('VMs_idle', Integer),
   Column('VMs_running', Integer),
   Column('VMs_retiring', Integer),
   Column('VMs_manual', Integer),
@@ -568,8 +573,20 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('ram_foreign', Integer),
   Column('ram_idle', Integer),
   Column('ram_native', Integer),
-  Column('slots_max', Integer),
-  Column('slots_used', Integer)
+  Column('condor_slots', Integer),
+  Column('condor_slots_used', Integer),
+  Column('slot_count', Integer),
+  Column('slot_core_count', Integer),
+  Column('slot_idle_core_count', Integer)
+  )
+
+view_cloud_status_slot_detail = Table('view_cloud_status_slot_detail', metadata,
+  Column('group_name', String(256)),
+  Column('cloud_name', String(256)),
+  Column('slot_id', String(380)),
+  Column('slot_type', Integer),
+  Column('slot_count', Integer),
+  Column('core_count', Integer)
   )
 
 view_cloud_status_slots = Table('view_cloud_status_slots', metadata,
