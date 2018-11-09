@@ -148,9 +148,13 @@ def defaults_replication():
             keypair_dict = get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
             check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
 
-
-
-        time.sleep(3600) #an hour for now, should be configurable and notifiable via redis
+        time_slept = 0
+        while(time_slept<3600):
+            if check_defaults_changed():
+                set_defaults_changed(False)
+                break
+            time.sleep(30) #an hour for now, should be configurable and notifiable via redis
+            time_slept = time_slept + 30
 
 
 '''
