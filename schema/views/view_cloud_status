@@ -35,8 +35,6 @@ sum(ram_native) as ram_busy,
 sum(ram_foreign) as ram_foreign,
 sum(ram_idle) as ram_idle,
 sum(ram_idle)+sum(ram_native) as ram_native,
-condor_slots as slots_max, /**************************************************************************** deprecated **************************/
-condor_slots_used as slots_used, /**************************************************************************** deprecated **************************/
 slot_count,
 slot_core_count,
 slot_idle_core_count
@@ -56,8 +54,6 @@ from (
     sum(VMs_in_error) as VMs_in_error,
     sum(VMs_other) as VMs_other,
     sum(Foreign_VMs) as Foreign_VMs,
-    sum(condor_slots) as condor_slots,
-    sum(condor_slots_used) as condor_slots_used,
     sum(slot_count) as slot_count,
     sum(slot_core_count) as slot_core_count,
     sum(slot_idle_core_count) as slot_idle_core_count
@@ -80,8 +76,6 @@ from (
         0 as VMs_in_error,
         0 as VMs_other,
         0 as Foreign_VMs,
-        0 as condor_slots,
-        0 as condor_slots_used,
         0 as slot_count,
         0 as slot_core_count,
         0 as slot_idle_core_count
@@ -105,8 +99,6 @@ from (
         case when poller_status="error" then 1 else 0 end as VMs_in_error,
         case when poller_status="other" then 1 else 0 end as VMs_other,
         case when poller_status="foreign" then 1 else 0 end as Foreign_VMs,
-        0 as condor_slots,
-        0 as condor_slots_used,
         0 as slot_count,
         0 as slot_core_count,
         0 as slot_idle_core_count
@@ -130,8 +122,6 @@ from (
         0 as VMs_in_error,
         0 as VMs_other,
         0 as Foreign_VMs,
-        0 as condor_slots,
-        0 as condor_slots_used,
         slot_count,
         slot_core_count,
         slot_idle_core_count
