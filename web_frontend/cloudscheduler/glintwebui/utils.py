@@ -919,6 +919,15 @@ def check_and_transfer_image_defaults(db_session, json_img_dict, group, defaults
 
     return True
 
+def check_defaults_changed():
+    red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+    return red.get("defaults_changed")
+
+def set_defaults_changed(changed_bool):
+    red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+    red.set("defaults_changed", changed_bool)    
+    return True
+
 
 def __get_image_ids(repo_dict):
     img_trans_dict = {}
