@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev.heprc.uvic.ca",
                  "csv2-dev2.heprc.uvic.ca",
                  "htc-dev.heprc.uvic.ca",
+                 "localhost"
                 ]
 
 LOGGING = {
