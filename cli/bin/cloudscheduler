@@ -255,12 +255,12 @@ def main(args):
     # Load the user settings.
     if 'server' in gvar['command_args']:
         gvar['server'] = gvar['command_args']['server']
-        _fd = open('/tmp/.csv2_%s' % os.getppid(), 'w')
+        _fd = open('/tmp/.csv2', 'w')
         _fd.write(gvar['server'])
         _fd.close()
     else:
-        if os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
-            _fd = open('/tmp/.csv2_%s' % os.getppid())
+        if os.path.isfile('/tmp/.csv2'):
+            _fd = open('/tmp/.csv2')
             gvar['server'] = _fd.read()
             _fd.close()
         else:
