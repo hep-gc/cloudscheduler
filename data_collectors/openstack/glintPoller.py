@@ -20,7 +20,7 @@ set_images_for_group, process_pending_transactions, process_state_changes, queue
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
 repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_image_defaults,\
 set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair,\
-check_defaults_changed, transfer_keypair
+check_defaults_changed, set_defaults_changed, transfer_keypair
 
 
 def image_collection():
@@ -152,6 +152,7 @@ def defaults_replication():
         time_slept = 0
         while(time_slept<config.defaults_sleep_interval):
             if check_defaults_changed():
+                logging.info("Defaults changed, waking up...")
                 set_defaults_changed(False)
                 break
             time.sleep(30) #an hour for now, should be configurable and notifiable via redis
