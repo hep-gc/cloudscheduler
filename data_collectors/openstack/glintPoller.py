@@ -19,7 +19,8 @@ from glintwebui.utils import  jsonify_image_list, update_pending_transactions, g
 set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
 repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_image_defaults,\
-set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair, transfer_keypair
+set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair,\
+check_defaults_changed, transfer_keypair
 
 
 def image_collection():
