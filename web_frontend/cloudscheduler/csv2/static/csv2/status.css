@@ -1,5 +1,9 @@
 
+/*************************************/
 
+/*****************************************************************/
+/*                          table styling                        */
+/*****************************************************************/
 .status-div {
   position: absolute;
   top: 70px;
@@ -90,9 +94,68 @@
   padding: 1px;
 
 }
+/*****************************************************************/
+.nested-table td {
+  padding: 0px;
+  font-weight: bold;
+  border: 0 ;
+  background-color: powderblue;
+}
+.nested-table td:hover {
+  background-color: powderblue;
+  color: black;
+}
 
 
+/*****************************************************************/
+/*                    expanding row styling                      */
+/*****************************************************************/
 
+
+/* Acordeon styles */
+.slots {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.slots > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.slots > label {
+  position: relative;
+  display: block;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.slots-content {
+  display: none;
+
+}
+
+/* :checked */
+.slots input:checked ~ .slots-content {
+  display: block;
+}
+/* Icon */
+.slots > label::after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 3em;
+  height: 3em;
+  line-height: 3;
+  text-align: center;
+
+}
+
+
+/*****************************************************************/
+/*                          status styling                       */
+/*****************************************************************/
 .name-style{
   background-color: maroon;
   color: white;
@@ -173,7 +236,7 @@
 .clear {}
 
 /*****************************************************************/
-/*                       Tooltips styling                        */
+/*                       tooltips styling                        */
 /*****************************************************************/
 
 [tooltip]{
@@ -204,11 +267,10 @@
    opacity:1 !important;
 }
 
+
 /*****************************************************************/
-
-
-
-
+/*                        overlay styling                        */
+/*****************************************************************/
 
 .overlay {
   position: fixed;
@@ -263,6 +325,9 @@
   }
 }
 
+/*****************************************************************/
+/*                       sys stats styling                       */
+/*****************************************************************/
 
 .system-div {
   position: fixed;
@@ -324,54 +389,9 @@
   max-width:30px;
 }
 
-
-
 #CDTimer {
   font-weight: bold;
   color: red;
   text-align: center;
-}
-
-
-
-
-/* Acordeon styles */
-.slots {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-}
-.slots > input {
-  position: absolute;
-  opacity: 0;
-  z-index: -1;
-}
-.slots > label {
-  position: relative;
-  display: block;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.slots-content {
-  display: none;
-
-}
-
-/* :checked */
-.slots input:checked ~ .slots-content {
-  display: block;
-}
-/* Icon */
-.slots > label::after {
-  position: absolute;
-  right: 0;
-  top: 0;
-  display: block;
-  width: 3em;
-  height: 3em;
-  line-height: 3;
-  text-align: center;
-
 }
 
