@@ -214,6 +214,7 @@ def main(args):
             ('-V',   '--view', True),
             ('-VC',  '--view-columns', False),
             ('-vc',  '--vm-cores', True),
+            ('-vcs',  '--vm-cores-softmax', True),
             ('-vd',  '--vm-disk', True),
             ('-vF',  '--vm-foreign', True),
             ('-vf',  '--vm-flavor', True),

@@ -9,9 +9,17 @@ select
 vgrr.*,
 
 case when cores_ctl=-1 then
-    cores_max-(cores_native+cores_foreign)
+    case when cores_softmax=-1 then
+        cores_max-(cores_native+cores_foreign)
+    else
+        least(cores_softmax-(cores_native+cores_foreign), cores_max-(cores_native+cores_foreign))
+    end
 else
-    least(cores_ctl-cores_native, cores_max-(cores_native+cores_foreign))
+    case when cores_softmax=-1 then
+        least(cores_ctl-cores_native, cores_max-(cores_native+cores_foreign))
+    else
+        least(cores_ctl-cores_native, cores_softmax-(cores_native+cores_foreign), cores_max-(cores_native+cores_foreign))
+    end
 end as cores_idle,
 
 
@@ -95,15 +103,22 @@ from (
     region,
     cloud_type,
 
-    case when cores_ctl=-1 then
-        cores_ctl
+    case when cores_ctl<0 then
+        -1
     else
-        case when ifnull(cores_ctl,0)>ifnull(cores_max,0) then
-            ifnull(cores_max,0)
+        case when cores_softmax<0 then
+            least(cores_ctl, ifnull(cores_max,0))
         else
-            ifnull(cores_ctl,0)
+            least(cores_ctl, cores_softmax, ifnull(cores_max,0))
         end
     end as cores_ctl,
+
+    case when cores_softmax<0 then
+        -1
+    else
+        cores_softmax
+    end as cores_softmax,
+
     ifnull(cores_max, 0) as cores_max,
     ifnull(cores_used, 0) as cores_used,
     sum(case when vv.cores is NULL or vv.foreign_vm=0 then 0 else vv.cores end) as cores_foreign,

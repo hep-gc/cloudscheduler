@@ -25,6 +25,7 @@ KEY_MAP = {
     '-mn':  'metadata_name',
     '-mp':  'priority',
     '-vc':  'cores_ctl',
+    '-vcs': 'cores_softmax',
     '-vf':  'vm_flavor',
     '-vi':  'vm_image',
     '-vka': 'vm_keep_alive',
@@ -59,7 +60,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
     required = []
-    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
+    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -172,6 +173,7 @@ def list(gvar):
             'spot_price/Spot Price',
             'cloud_type/Cloud Type',
             'cores_ctl/Control/Cores',
+            'cores_softmax/SoftMax/Cores',
             'cores_max/Max/Cores',
             'ram_ctl/Control/RAM',
             'ram_max/Max/RAM',
@@ -241,22 +243,25 @@ def status(gvar):
             'default_image/Image/Defaults',
             'keep_alive/Keep Alive/Defaults',
             'VMs/Total/VMs',
+            'VMs_starting/Starting/VMs',
             'VMs_unregistered/Unregistered/VMs',
+            'VMs_idle/idle/VMs',
             'VMs_running/Running/VMs',
             'VMs_retiring/Retiring/VMs',
             'VMs_manual/Manual/VMs',
             'VMs_in_error/Error/VMs',
             'VMs_other/Other/VMs',
-            'cores_max/Total/Cores',
+            'cores_limit/Limit/Cores',
             'cores_ctl/Setting/Cores',
             'cores_idle/Idle/Cores',
             'cores_native/Used/Cores',
-            'ram_max/Total/RAM',
+            'ram_limit/Limit/RAM',
             'ram_ctl/Setting/RAM',
             'ram_idle/Idle/RAM',
             'ram_native/Used/RAM',
-            'slots_max/Total/Slots',
-            'slots_used/Used/Slots',
+            'slot_count/Busy/Condor Slots',
+            'slot_core_count/Busy Cores/Condor Slots',
+            'slot_idle_core_count/Idle Cores/Condor Slots',
             'Foreign_VMs/VMs/Foreign',
             'cores_foreign/Cores/Foreign',
             'ram_foreign/RAM/Foreign',
@@ -271,7 +276,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
+    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
