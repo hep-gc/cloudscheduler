@@ -23,6 +23,7 @@ from .view_utils import \
     validate_by_filtered_table_entries, \
     validate_fields, \
     verifyUser
+#from glintwebui.utils import set_defaults_changed
 from collections import defaultdict
 import bcrypt
 
@@ -258,6 +259,7 @@ def defaults(request):
                     rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                     if rc == 0:
                         config.db_session.commit()
+                        #set_defaults_changed(True)
                         message='group defaults "%s" successfully updated.' % (active_user.active_group)
                     else:
                         message='%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
