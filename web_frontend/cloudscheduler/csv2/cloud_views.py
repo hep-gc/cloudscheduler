@@ -916,7 +916,9 @@ def status(request, group_name=None):
         'primary': ['group_name'],
         'sum': [
             'VMs',
+            'VMs_starting',
             'VMs_unregistered',
+            'VMs_idle',
             'VMs_running',
             'VMs_retiring',
             'VMs_manual',
@@ -928,13 +930,14 @@ def status(request, group_name=None):
             'cores_foreign',
             'cores_idle',
             'cores_native',
-                                'ram_max',
-                                'ram_busy',
-                                'ram_foreign',
-                                'ram_idle',
-                                'ram_native',
-                                'slots_max',
-            'slots_used'
+            'ram_max',
+            'ram_busy',
+            'ram_foreign',
+            'ram_idle',
+            'ram_native',
+            'slot_count',
+            'slot_core_count',
+            'slot_idle_core_count'
             ]
         })
 

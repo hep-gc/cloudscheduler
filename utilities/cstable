@@ -88,7 +88,7 @@ def main(args):
                     stdout, stderr = _p1.communicate()
                     fd.close()
                     if _p1.returncode != 0:
-                        print('Failed to redefine view "%s" - %s' % (view, stderr.decode('utf-8')))
+                        print('Failed to redefine table "%s" - %s' % (table, stderr.decode('utf-8')))
                         exit(1)
                 else:
                     print('Skipping redefinition of table "%s", backup file "%s" missing.' % (table, table_backup_path))
@@ -98,9 +98,6 @@ def main(args):
         gvar['csv2_config'] = yaml.load(fd.read())
         fd.close()
     
-        print(gvar['csv2_config']['database']['db_user'])
-        print(gvar['csv2_config']['database']['db_password'],
-              gvar['csv2_config']['database']['db_name'])
         gvar['all_tables'] = os.listdir(gvar['schema_backup_dir'] + '/' + gvar['other_fqdn'])
         #print(gvar['all_tables'])
 
@@ -126,7 +123,7 @@ def main(args):
                     stdout, stderr = _p1.communicate()
                     fd.close()
                     if _p1.returncode != 0:
-                        print('Failed to clone view "%s" - %s' % (view, stderr.decode('utf-8')))
+                        print('Failed to clone table "%s" - %s' % (table, stderr.decode('utf-8')))
                         exit(1)
                 else:
                     print('Skipping cloning of table "%s", backup file "%s" missing.' % (table, table_backup_path))

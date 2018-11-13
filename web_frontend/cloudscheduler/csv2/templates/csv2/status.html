@@ -263,14 +263,14 @@
                     <td>{{cloud.cores_max}}</td>
 
                     <td class="col-spacer">&nbsp;</td>
-                    {% if cloud.slots_count == 0 %}
+                    {% if cloud.slot_count == 0 %}
                         <td class="zero-style">0</td>
                     {% else %}
                         <td class="more-style">
 
                             <div class="slots">
                                 <input id="slots-{{cloud.cloud_name}}" type="checkbox">
-                                <label for="slots-{{cloud.cloud_name}}">{{cloud.slots_count}}</label>
+                                <label for="slots-{{cloud.cloud_name}}">{{cloud.slot_count}}</label>
                                 <div class="slots-content">
 
                                     <hr>
@@ -287,8 +287,8 @@
                         </td>
                     {% endif %}
 
-                    <td>{{cloud.slots_core_count}}</td>
-                    <td>{{cloud.slots_idle_core_count}}</td>
+                    <td>{{cloud.slot_core_count}}</td>
+                    <td>{{cloud.slot_idle_core_count}}</td>
                 </tr>
 
             {% endfor %}
@@ -396,13 +396,13 @@
 
                 <td class="col-spacer">&nbsp;</td>
 
-                {% if cloud_total_list.slots_used == 0 %}
+                {% if cloud_total_list.slot_count == 0 %}
                     <td class="zero-style">0</td>
                 {% else %}
                     <td class="more-style">
                         <div class="slots">
                             <input id="slots-{{cloud.cloud_name}}" type="checkbox">
-                            <label for="slots-{{cloud.cloud_name}}">{{cloud_total_list.slots_used}}</label>
+                            <label for="slots-{{cloud.cloud_name}}">{{cloud_total_list.slot_count}}</label>
                             <div class="slots-content">
 
                                 <hr>
@@ -415,8 +415,8 @@
                     </td>
                 {% endif %}
 
-                <td>{{cloud_total_list.slots_cores}}</td>
-                <td>{{cloud_total_list.slots_idle}}</td>
+                <td>{{cloud_total_list.slot_core_count}}</td>
+                <td>{{cloud_total_list.slot_idle_core_count}}</td>
 
             </tr>
             </tbody> 
