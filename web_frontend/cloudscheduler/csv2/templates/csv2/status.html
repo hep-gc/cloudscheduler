@@ -153,9 +153,19 @@
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="native-style">Slots</th>
-                <th class="native-style">Slots Cores</th>
-                <th class="native-style">Slots Idle</th>
-
+                <th class="native-style" colspan="2">
+                    <table class="nested-table">
+                        <tr colspan="2">Slot Cores</tr>
+                        <tr>
+                            <td>Busy</td>
+                            <td>Idle</td>
+                        </tr>
+                    </table>
+                </th>
+                <!--
+                <th class="native-style">Slots<br>Used Cores</th>
+                <th class="native-style">Slots<br>Idle Cores</th>
+                -->
             </tr>
             {% for cloud in cloud_status_list %}
 
