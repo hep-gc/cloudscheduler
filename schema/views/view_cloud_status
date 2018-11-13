@@ -5,8 +5,8 @@ create or replace view view_cloud_status as
 
 select
 
-css.group_name,
-css.cloud_name,
+n03.group_name,
+n03.cloud_name,
 enabled,
 cascading_vm_flavor as default_flavor,
 cascading_vm_image as default_image,
@@ -23,18 +23,38 @@ VMs_manual,
 VMs_in_error,
 VMs_other,
 Foreign_VMs,
-sum(cores_ctl) as cores_ctl,
-sum(cores_max) as cores_max,
-sum(cores_native) as cores_busy,
-sum(cores_foreign) as cores_foreign,
-sum(cores_idle) as cores_idle,
-sum(cores_idle)+sum(cores_native) as cores_native,
-sum(ram_ctl) as ram_ctl,
-sum(ram_max) as ram_max,
-sum(ram_native) as ram_busy,
-sum(ram_foreign) as ram_foreign,
-sum(ram_idle) as ram_idle,
-sum(ram_idle)+sum(ram_native) as ram_native,
+cores_ctl,
+
+case when cores_ctl=-1 then
+    case when cores_softmax=-1 then
+        ifnull(cores_max,0)
+    else
+        least(cores_softmax, ifnull(ram_max,0))
+    end
+else
+    case when cores_softmax=-1 then
+        least(cores_ctl, ifnull(ram_max,0))
+    else
+        least(cores_ctl, cores_softmax, ifnull(ram_max,0))
+    end
+end as cores_limit,
+
+cores_native as cores_busy,
+cores_foreign,
+cores_idle,
+cores_idle+cores_native as cores_native,
+ram_ctl,
+
+case when ram_ctl=-1 then
+    ifnull(ram_max,0)
+else
+    least(ram_ctl, ifnull(ram_max,0))
+end as ram_limit,
+
+ram_native as ram_busy,
+ram_foreign,
+ram_idle,
+ram_idle+ram_native as ram_native,
 slot_count,
 slot_core_count,
 slot_idle_core_count
@@ -158,14 +178,14 @@ from (
             end as slot_idle_core_count
 
             from condor_machines
-            ) as csc /* condor_slot_counts */
-        ) as csr /* cloud_status_raw */
+            ) as n01
+        ) as n02
     group by group_name,cloud_name
-    ) as css /* cloud_status_sum */
+    ) as n03
 
 left outer join view_group_resources as vgr on
-css.group_name=vgr.group_name and
-css.cloud_name=vgr.cloud_name
+n03.group_name=vgr.group_name and
+n03.cloud_name=vgr.cloud_name
 
-group by group_name,cloud_name
+order by group_name,cloud_name
 ;
