@@ -24,10 +24,6 @@ import csv2_server
 import csv2_user
 import csv2_vm
 
-DEFAULT_SETTINGS = {
-    'server-address': 'https://localhost',
-    }
-
 def main(args):
     """
     Determine object type and call handler.
@@ -244,35 +240,41 @@ def main(args):
     gvar['command_args'] = _args(gvar, args[1:])
 
     # Ensure a minimal user settings exists.
-    if not os.path.exists('%s/.csv2/default' % gvar['home_dir']):
-        os.makedirs('%s/.csv2/default' % gvar['home_dir'], mode=0o700)  
+    if not os.path.exists('%s/.csv2' % gvar['home_dir']):
+        os.makedirs('%s/.csv2' % gvar['home_dir'], mode=0o700)  
 
-    if not os.path.exists('%s/.csv2/default/settings.yaml' % gvar['home_dir']):
-        _fd = open('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 'w')
-        _fd.write(yaml.dump(DEFAULT_SETTINGS))
-        _fd.close()
-        os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
-
-    # Load the user settings.
+    # Save or load the user's server specification.
+    gvar['server'] = '-'
     if 'server' in gvar['command_args']:
         gvar['server'] = gvar['command_args']['server']
-        _fd = open('/tmp/.csv2_%s' % os.getppid(), 'w')
-        _fd.write(gvar['server'])
+        if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])):
+            _fd = open('/tmp/.csv2_%s' % os.getppid(), 'w')
+            _fd.write(gvar['server'])
+            _fd.close()
+
+    elif os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
+        _fd = open('/tmp/.csv2_%s' % os.getppid())
+        gvar['server'] = _fd.read()
         _fd.close()
+
+    elif os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
+        _fd = open('%s/.csv2/default_server' % gvar['home_dir'])
+        gvar['server'] = _fd.read()
+        _fd.close()
+
+    if gvar['server'] == '-':
+        if 'server-address' in gvar['command_args']:
+            gvar['user_settings'] = {}
+        else:
+            print('Error: No server specified and no server address (URL) provided.')
+            exit(1)
     else:
-        if os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
-            _fd = open('/tmp/.csv2_%s' % os.getppid())
-            gvar['server'] = _fd.read()
+        if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])):
+            _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
+            gvar['user_settings'] = yaml.load(_fd)
             _fd.close()
         else:
-            gvar['server'] = 'default'
-
-    try:
-        _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
-        gvar['user_settings'] = yaml.load(_fd)
-        _fd.close()
-    except:
-        gvar['user_settings'] = {}
+            gvar['user_settings'] = {}
 
     # Apply options temporarily.
     for key in gvar['command_args']:
