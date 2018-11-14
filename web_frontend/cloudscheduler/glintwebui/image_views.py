@@ -54,6 +54,7 @@ def getSuperUserStatus(request):
     else:
         return auth_user.is_superuser
 
+''' Index is longer used as it was simply creating overhead, index requests now go directly to project details
 @silkp(name='Images Index')
 def index(request):
 
@@ -83,7 +84,7 @@ def index(request):
     }
     return render(request, 'glintwebui/index.html', context)
 
-
+'''
 
 @silkp(name='View Image Matrix')
 def project_details(request, group_name=None, message=None):
