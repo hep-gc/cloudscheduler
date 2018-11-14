@@ -104,5 +104,10 @@ def set(gvar):
     _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
     _fd.write(yaml.dump(gvar['user_settings']))
     _fd.close()
-    os.chmod('%s/.csv2/default/settings.yaml' % gvar['home_dir'], 0o600)
+    os.chmod('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 0o600)
+
+    _fd = open('%s/.csv2/default_server' % gvar['home_dir'], 'w')
+    _fd.write(gvar['server'])
+    _fd.close()
+    os.chmod('%s/.csv2/default_server' % gvar['home_dir'], 0o600)
 
