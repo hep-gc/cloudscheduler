@@ -14,6 +14,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
+
 logger = logging.getLogger('glintv2')
 
 def getUser(request):
@@ -38,7 +40,7 @@ def getSuperUserStatus(request):
 
 
 # WEB VIEWS
-
+@silkp(name='Manage Keys')
 def manage_keys(request, group_name=None, message=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -89,7 +91,7 @@ def manage_keys(request, group_name=None, message=None):
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)
 
-
+@silkp(name='Upload Keypair')
 def upload_keypair(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -141,7 +143,7 @@ def upload_keypair(request, group_name=None):
 
     return None
 
-
+@silkp(name='New Keypair')
 def new_keypair(request, group_name=None,):
     if not verifyUser(request):
         raise PermissionDenied
@@ -196,7 +198,7 @@ def new_keypair(request, group_name=None,):
         #not a post do nothing
         return None
 
-
+@silkp(name='Save Keypairs')
 def save_keypairs(request, group_name=None, message=None):
     if not verifyUser(request):
         raise PermissionDenied

@@ -28,6 +28,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
+
 
 logger = logging.getLogger('glintv2')
 
@@ -52,7 +54,8 @@ def getSuperUserStatus(request):
     else:
         return auth_user.is_superuser
 
-
+''' Index is longer used as it was simply creating overhead, index requests now go directly to project details
+@silkp(name='Images Index')
 def index(request):
 
     if not verifyUser(request):
@@ -81,9 +84,9 @@ def index(request):
     }
     return render(request, 'glintwebui/index.html', context)
 
+'''
 
-
-
+@silkp(name='View Image Matrix')
 def project_details(request, group_name=None, message=None):
     # Since img name, img id is no longer a unique way to identify images across clouds
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
@@ -271,6 +274,7 @@ def add_repo(request, group_name):
         }
         return render(request, 'glintwebui/add_repo.html', context, {'form': form})
 
+@silkp(name='Save Images')
 def save_images(request, group_name):
     if not verifyUser(request):
         raise PermissionDenied
@@ -956,7 +960,7 @@ def manage_groups(request, message=None):
     }
     return render(request, 'glintwebui/manage_groups.html', context)
 
-
+@silkp(name='Download Image')
 def download_image(request, group_name, image_name):
     if not verifyUser(request):
         raise PermissionDenied
@@ -1005,6 +1009,7 @@ def download_image(request, group_name, image_name):
     response['Content-Length'] = os.path.getsize(file_full_path)
     return response
 
+@silkp(name='Upload Image')
 def upload_image(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -1186,6 +1191,7 @@ def upload_image(request, group_name=None):
         }
         return render(request, 'glintwebui/upload_image.html', context)
 
+@silkp(name='Manage Keys')
 def manage_keys(request, group_name=None, message=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -1236,7 +1242,7 @@ def manage_keys(request, group_name=None, message=None):
     # need to create template
     return render(request, 'glintwebui/manage_keys.html', context)
 
-
+@silkp(name='Upload Keypair')
 def upload_keypair(request, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -1288,7 +1294,7 @@ def upload_keypair(request, group_name=None):
 
     return None
 
-
+@silkp(name='New Keypair')
 def new_keypair(request, group_name=None,):
     if not verifyUser(request):
         raise PermissionDenied
@@ -1343,7 +1349,7 @@ def new_keypair(request, group_name=None,):
         #not a post do nothing
         return None
 
-
+@silkp(name='Save Keypairs')
 def save_keypairs(request, group_name=None, message=None):
     if not verifyUser(request):
         raise PermissionDenied
