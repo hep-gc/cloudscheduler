@@ -35,7 +35,7 @@ import sqlalchemy.exc
 import os
 import psutil
 
-from silk.profiling.profiler import silk_profile as silkp
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: CV - error code identifier.
 
