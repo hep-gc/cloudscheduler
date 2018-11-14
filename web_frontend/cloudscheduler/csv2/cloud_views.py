@@ -49,6 +49,7 @@ CLOUD_KEYS = {
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'enabled':                              'dboolean',
         'cores_ctl':                            'integer',
+        'cores_softmax':                        'integer',
         'metadata_name':                        'ignore',
         'metadata_option':                      ['add', 'delete'],
         'ram_ctl':                              'integer',
@@ -899,7 +900,6 @@ def status(request, group_name=None):
 
     # open the database.
     config.db_open()
-    print(">>>>>>>>>>>>>>>>>>>>>>>", config.csv2_host_id)
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
