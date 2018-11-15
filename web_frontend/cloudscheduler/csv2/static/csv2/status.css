@@ -95,13 +95,13 @@
 
 }
 /*****************************************************************/
-.nested-table td {
+.nested-table th {
   padding: 0px;
   font-weight: bold;
   border: 0 ;
   background-color: powderblue;
 }
-.nested-table td:hover {
+.nested-table th:hover {
   background-color: powderblue;
   color: black;
 }
@@ -117,7 +117,74 @@ td a {
 }
 
 
+.main-row {
+  display: table-row;
+}
 
+.extra-row {
+  display: none;
+}
+
+
+input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
+  display: table-row;
+}
+
+/*
+
+.how-other-disclosure {
+  display: none;
+  margin: 10px 0 0 35px;
+}
+
+#how-other:checked ~ .how-other-disclosure {
+  display: block;
+}
+*/
+/*****************************************************************/
+
+
+
+
+/* Acordeon styles */
+.slots {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.slots > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.slots > label {
+  position: relative;
+  display: block;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.slots-content {
+  display: none;
+
+}
+
+/* :checked */
+.slots input:checked ~ .slots-content {
+  display: block;
+}
+/* Icon */
+.slots > label::after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 3em;
+  height: 3em;
+  line-height: 3;
+  text-align: center;
+
+}
 /*****************************************************************/
 /*                          status styling                       */
 /*****************************************************************/
