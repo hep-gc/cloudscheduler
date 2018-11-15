@@ -39,10 +39,11 @@ else
     end
 end as cores_limit,
 
-cores_native as cores_busy,
+cores_native,
 cores_foreign,
 cores_idle,
-cores_idle+cores_native as cores_native,
+cores_native+cores_foreign as cores_native_foreign,
+cores_idle+cores_native+cores_foreign as cores_idle_native_foreign,
 ram_ctl,
 
 case when ram_ctl=-1 then
