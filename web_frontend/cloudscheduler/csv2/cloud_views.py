@@ -35,7 +35,7 @@ import sqlalchemy.exc
 import os
 import psutil
 
-#from silk.profiling.profiler import silk_profile as silkp
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: CV - error code identifier.
 
@@ -49,6 +49,7 @@ CLOUD_KEYS = {
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'enabled':                              'dboolean',
         'cores_ctl':                            'integer',
+        'cores_softmax':                        'integer',
         'metadata_name':                        'ignore',
         'metadata_option':                      ['add', 'delete'],
         'ram_ctl':                              'integer',
@@ -128,7 +129,7 @@ METADATA_LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Manage Metadata Exclusions")
+@silkp(name="Cloud Manage Metadata Exclusions")
 def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_names, option=None):
     """
     Ensure all the specified metadata exclusions (metadata_names) and only the specified
@@ -190,7 +191,7 @@ def manage_group_metadata_exclusions(tables, active_group, cloud_name, metadata_
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Manage Group Metadata Verification")
+@silkp(name="Cloud Manage Group Metadata Verification")
 def manage_group_metadata_verification(tables, active_group, cloud_names, metadata_names):
     """
     Make sure the specified cloud, and metadata names exist.
@@ -250,7 +251,7 @@ def manage_group_metadata_verification(tables, active_group, cloud_names, metada
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Add")
+@silkp(name="Cloud Add")
 @requires_csrf_token
 def add(request):
     """
@@ -332,7 +333,7 @@ def add(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Delete")
+@silkp(name="Cloud Delete")
 @requires_csrf_token
 def delete(request):
     """
@@ -391,7 +392,7 @@ def delete(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Cloud List')
+@silkp(name='Cloud List')
 @requires_csrf_token
 def list(
     request,
@@ -511,7 +512,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Cloud Metadata Add')
+@silkp(name='Cloud Metadata Add')
 @requires_csrf_token
 def metadata_add(request):
     """
@@ -567,7 +568,7 @@ def metadata_add(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Metadata Add")
+@silkp(name="Cloud Metadata Add")
 @requires_csrf_token
 def metadata_collation(request):
 
@@ -610,7 +611,7 @@ def metadata_collation(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Cloud Metadata Delete')
+@silkp(name='Cloud Metadata Delete')
 @requires_csrf_token
 def metadata_delete(request):
     """
@@ -659,7 +660,7 @@ def metadata_delete(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Metadata Fetch")
+@silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
 def metadata_fetch(request, selector=None):
     if not verifyUser(request):
@@ -715,7 +716,7 @@ def metadata_fetch(request, selector=None):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Metadata List")
+@silkp(name="Cloud Metadata List")
 @requires_csrf_token
 def metadata_list(request):
 
@@ -769,7 +770,7 @@ def metadata_list(request):
     return render(request, 'csv2/metadata-list.html', context)
 
 #-------------------------------------------------------------------------------
-#@silkp(name="Cloud Metadata Fetch")
+@silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
 def metadata_new(request, selector=None):
     if not verifyUser(request):
@@ -816,7 +817,7 @@ def metadata_new(request, selector=None):
     return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_new, received an invalid request: "%s".' % obj_act_id })
 
 #-------------------------------------------------------------------------------
-#@silkp(name="Cloud Metadata Update")
+@silkp(name="Cloud Metadata Update")
 @requires_csrf_token
 def metadata_update(request):
     """
@@ -886,7 +887,7 @@ def metadata_update(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Status")
+@silkp(name="Cloud Status")
 @requires_csrf_token
 def status(request, group_name=None):
     """
@@ -899,7 +900,6 @@ def status(request, group_name=None):
 
     # open the database.
     config.db_open()
-    print(">>>>>>>>>>>>>>>>>>>>>>>", config.csv2_host_id)
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -1070,7 +1070,7 @@ def status(request, group_name=None):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Cloud Update")
+@silkp(name="Cloud Update")
 @requires_csrf_token
 def update(request):
     """

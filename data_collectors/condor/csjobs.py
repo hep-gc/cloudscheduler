@@ -130,6 +130,13 @@ def job_poller():
                         logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
                         job_dict['group_name'] = config.default_job_group
 
+                    # Some jobs have an expression for the request disk causing us to store a string
+                    # this should resolve the expression or us an alternative if unable
+                    try:
+                        job_dict["RequestDisk"] = int(job_dict["RequestDisk"])
+                    except Exception as exc:
+                        job_dict["RequestDisk"] = int(job_dict["DiskUsage"])
+
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
                     logging.debug(job_dict)
@@ -165,9 +172,7 @@ def job_poller():
                 except Exception as exc:
                     logging.exception("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
-                    del condor_session
                     config.db_close()
-                    del db_session
                     time.sleep(config.sleep_interval_job)
                     continue
 
@@ -268,7 +273,6 @@ def command_poller():
 
             logging.info("Completed command consumer cycle")
             config.db_close()
-            del db_session
             time.sleep(config.sleep_interval_command)
 
     except Exception as exc:

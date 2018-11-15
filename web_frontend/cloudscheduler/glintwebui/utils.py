@@ -921,7 +921,11 @@ def check_and_transfer_image_defaults(db_session, json_img_dict, group, defaults
 
 def check_defaults_changed():
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
-    return red.get("defaults_changed")
+    changed_bool =  red.get("defaults_changed").decode("utf-8") 
+    if changed_bool == "True":
+        return True
+    else:
+        return False
 
 def set_defaults_changed(changed_bool):
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)

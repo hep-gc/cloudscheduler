@@ -23,8 +23,8 @@ urlpatterns = [
     url(r'^', include('csv2.urls')),
 ]
 
-#if config.enable_profiling:
-#    urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
+if settings.CSV2_CONFIG.enable_profiling:
+    urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
 
 if settings.CSV2_CONFIG.enable_glint:
     urlpatterns = [

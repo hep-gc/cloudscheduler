@@ -1,6 +1,6 @@
 from functools import wraps
 
-from cloudscheduler.lib.csv2_config import Config
+from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend')
 
 if config.enable_profiling:

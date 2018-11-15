@@ -31,7 +31,7 @@ from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
-#from cloudscheduler.lib.web_profiler import silk_profile as silkp
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: SV - error code identifier.
 
@@ -79,7 +79,7 @@ CONFIG_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Server Config")
+@silkp(name="Server Config")
 def configuration(request):
     """
     Update and list server configurations

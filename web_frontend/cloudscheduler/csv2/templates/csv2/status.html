@@ -111,17 +111,37 @@
         </table>
     </div>
 
+
+    <label for="toggle-row">toggle row</label>
+
+
+    <!--
+    https://codepen.io/istro/pen/daker 
+    https://codersblock.com/blog/checkbox-trickery-with-css/
+    -->
+
+    <!--
+    <input id="how-other" name="how" type="radio">
+    <label for="how-other" class="side-label">Other...</label>
+
+    <div class="how-other-disclosure">
+      <label for="how-other-explain" class="top-label">Please explain</label>
+      <textarea id="how-other-explain"></textarea>
+    </div>
+    -->
+
+
+
     <br>
     {% set VMstotal = 0 %}
     {% set VMs_foreign_total = 0 %}
     <div class="status-table">
+        <input id="toggle-row" type="checkbox"></input>
+
         <table>
           <colgroup>
-            <col class="grey" />
-            <col class="clear" span="1" />
-            <col class="clear" span="12" />
-            <col class="clear" span="1" />
-            <col class="clear" span="5" />
+            <col class="grey" span="1"/>
+            <col class="clear" span="21" />
           </colgroup>
           <thead>
             <tr>
@@ -153,9 +173,19 @@
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="native-style">Slots</th>
-                <th class="native-style">Slots Cores</th>
-                <th class="native-style">Slots Idle</th>
-
+                <th class="native-style" colspan="2">
+                    <table class="nested-table">
+                        <tr colspan="2">Slot Cores</tr>
+                        <tr>
+                            <th>Busy</th>
+                            <th>Idle</th>
+                        </tr>
+                    </table>
+                </th>
+                <!--
+                <th class="native-style">Slots<br>Used Cores</th>
+                <th class="native-style">Slots<br>Idle Cores</th>
+                -->
             </tr>
             {% for cloud in cloud_status_list %}
 
@@ -290,6 +320,58 @@
                     <td>{{cloud.slot_core_count}}</td>
                     <td>{{cloud.slot_idle_core_count}}</td>
                 </tr>
+
+
+
+                <tr class="extra-row">
+                    <td></td>
+                    <td>VMs</td>
+                    <td>Starting</td>
+                    <td>Unreg.</td>
+                    <td>Idle</td>                
+                    <td>Running</td>
+                    <td>Retiring</td>
+                    <td>Manual</td>
+                    <td>Error</td>
+                    <td>Other</td>
+
+                    <td class="col-spacer">&nbsp;</td>
+
+                    <td>Used<br>Cores</td>
+                    <td>Cores<br>Limit</td>
+
+                    <td class="col-spacer">&nbsp;</td>
+
+                    <td>Foreign<br>VMs</td>
+                    <td>Foreign<br>Cores</td>
+
+                    <td class="col-spacer">&nbsp;</td>
+
+                    <td>Cores<br>Quota</td>
+                    
+                    <td class="col-spacer">&nbsp;</td>
+
+                    <td>
+                        {% for slot in slot_list%}
+                            {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                                {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for slot in slot_list%}
+                            {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                                {{ slot.core_count }}<br>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+
+                    <td>Idle</td>
+
+                </tr>
+
+
+
 
             {% endfor %}
             <tr>
