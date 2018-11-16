@@ -35,14 +35,14 @@
 .status-table td, th {
   padding: 8px;
   text-align: center;
-  border-bottom: 2px solid #ddd;
+  border-top: 2px solid #ddd;
   position: relative;
   width: 80px;
 }
 
 .status-table .col-spacer {
   background-color: white;
-  border-bottom: 0px;
+  border: 0px;
   color: white;
   width: 20px;
 }
@@ -89,23 +89,6 @@
 }
 
 
-.status-table td td {
-  border-bottom: 0px;
-  padding: 1px;
-
-}
-/*****************************************************************/
-.nested-table th {
-  padding: 0px;
-  font-weight: bold;
-  border: 0 ;
-  background-color: powderblue;
-}
-.nested-table th:hover {
-  background-color: powderblue;
-  color: black;
-}
-
 
 /*****************************************************************/
 /*                    expanding row styling                      */
@@ -116,14 +99,42 @@ td a {
     width:100%;
 }
 
+.toggle-button {
+  position: relative;
+  left: 95%;
+  top: 30px;
+  width:30px;
+  max-width:30px;
+}
 
-.main-row {
-  display: table-row;
+.toggle-box{
+  display: none;
+}
+
+.header-row th {
+  border-top: 0px;
+}
+
+.bottom-row td {
+  border-top: 2px solid #ddd;
+  border-bottom: 0px;
+  background-color: white;
+  height: 0px;
+  padding: 0px;
+}
+
+.bottom-row td:hover {
+  background-color: white;
+}
+
+.extra-row td {
+  border-top: 0px;
 }
 
 .extra-row {
   display: none;
 }
+
 
 
 input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
@@ -202,6 +213,12 @@ input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
   background-color: powderblue;
   color: black;
 }
+.native-style th{
+  background-color: powderblue;
+  color: black;
+  padding: 0px;
+}
+
 
 .foreign-style {
   background-color: orange;
@@ -211,6 +228,12 @@ input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
 .total-style {
   background-color: green;
   color: white;
+}
+
+.total-style th{
+  background-color: green;
+  color: white;
+  padding: 0px;
 }
 
 .title-style a {

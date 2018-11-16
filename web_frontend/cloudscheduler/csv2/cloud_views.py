@@ -925,11 +925,12 @@ def status(request, group_name=None):
             'VMs_in_error',
             'VMs_other',
             'Foreign_VMs',
-            'cores_max',
-            'cores_busy',
+            'cores_limit',
             'cores_foreign',
             'cores_idle',
             'cores_native',
+            'cores_native_foreign',
+            'cores_idle_native_foreign',
             'ram_max',
             'ram_busy',
             'ram_foreign',
@@ -944,6 +945,7 @@ def status(request, group_name=None):
     cloud_total_list = cloud_status_list_totals[0]
 
     # find the actual cores limit in use
+    '''
     cloud_total_list['cores_limit'] = 0
     n=0
     for cloud in cloud_status_list:
@@ -954,7 +956,7 @@ def status(request, group_name=None):
 
         cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
         n=n+1
-
+    '''
 
     # get slots type counts
     s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
