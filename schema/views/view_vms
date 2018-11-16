@@ -15,8 +15,8 @@ cf.name as flavor_name,
 cpp.condor_slots,
 cdp.condor_slots_used,
 cpp.machine,
-cpp.my_current_time,
-cpp.entered_current_state,
+cdp.my_current_time,
+cdp.entered_current_state,
 cpp.idle_time,
 cpp.retire_request_time,
 cpp.retired_time,
@@ -73,8 +73,6 @@ left outer join (
     substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
     substring_index(machine,'.',1) as hostname,
     machine,
-    my_current_time,
-    entered_current_state,
     total_slots as condor_slots,
     idle_time,
     retire_request_time,
@@ -96,6 +94,8 @@ left outer join (
     substring_index(machine,'--',1) as group_name,
     substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
     substring_index(machine,'.',1) as hostname,
+    max(my_current_time) as my_current_time,
+    max(entered_current_state) as entered_current_state,
     sum(case when activity="Busy" then 1 else 0 end) as condor_slots_used
 
     from condor_machines
