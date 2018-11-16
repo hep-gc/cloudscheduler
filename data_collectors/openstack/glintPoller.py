@@ -135,6 +135,7 @@ def defaults_replication():
     Keypairs = config.db_map.classes.cloud_keypairs
 
     while True:
+        set_defaults_changed(False)
         config.db_open()
         session = config.db_session
         group_list = session.query(Group)
