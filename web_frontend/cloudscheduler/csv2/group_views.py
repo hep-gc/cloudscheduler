@@ -23,6 +23,7 @@ from .view_utils import \
     validate_by_filtered_table_entries, \
     validate_fields, \
     verifyUser
+from glintwebui.utils import set_defaults_changed
 from collections import defaultdict
 import bcrypt
 
@@ -31,7 +32,7 @@ from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
-#from cloudscheduler.lib.web_profiler import silk_profile as silkp
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: GV - error code identifier.
 
@@ -115,9 +116,12 @@ IGNORE_METADATA_NAME = {
 IGNORE_KEYS = {
     'format': {
         'cloud_name':                                 'ignore',
+        'fingerprint':                                'ignore',
+        'id':                                         'ignore',
+        'key_name':                                   'ignore',
+        'name':                                       'ignore',
         'username':                                   'ignore',
         'vmid':                                       'ignore',
-        'id':                                         'ignore',
         },
     }
 
@@ -131,7 +135,7 @@ LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Add')
+@silkp(name='Group Add')
 def add(request):
     """
     This function should receive a post request with a payload of group configuration
@@ -217,7 +221,7 @@ def add(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Defaults')
+@silkp(name='Group Defaults')
 def defaults(request):
     """
     Update and list group defaults.
@@ -255,11 +259,12 @@ def defaults(request):
                     rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                     if rc == 0:
                         config.db_session.commit()
+                        set_defaults_changed(True)
                         message='group defaults "%s" successfully updated.' % (active_user.active_group)
                     else:
                         message='%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
                 else:
-                    message='%s group defaults update %s' % (lno('GV07'), msg)
+                    message='%s group defaults update %s.' % (lno('GV07'), msg)
     else:
         message='%s %s' % (lno('GV08'), msg)
 
@@ -276,7 +281,7 @@ def defaults(request):
         image_list = {}
         flavor_list = {}
         metadata_dict = {}
-        keyname_list = {}
+        keypairs_list = {}
         network_list = {}
     else:
         # Get all the images in group:
@@ -337,7 +342,7 @@ def defaults(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Delete')
+@silkp(name='Group Delete')
 def delete(request):
     """
     This function should recieve a post request with a payload of group name
@@ -524,7 +529,7 @@ def delete(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group List')
+@silkp(name='Group List')
 def list(
     request,
     selector=None,
@@ -630,7 +635,7 @@ def list(
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Metadata Add')
+@silkp(name='Group Metadata Add')
 def metadata_add(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -672,7 +677,7 @@ def metadata_add(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Metadata Delete')
+@silkp(name='Group Metadata Delete')
 def metadata_delete(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -729,7 +734,7 @@ def metadata_delete(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Metadata Fetch')
+@silkp(name='Group Metadata Fetch')
 def metadata_fetch(request, selector=None):
     if not verifyUser(request):
         raise PermissionDenied
@@ -778,7 +783,7 @@ def metadata_fetch(request, selector=None):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Metadata List')
+@silkp(name='Group Metadata List')
 @requires_csrf_token
 def metadata_list(request):
 
@@ -819,7 +824,7 @@ def metadata_list(request):
     return render(request, 'csv2/group_metadata_list.html', context)
 
 #-------------------------------------------------------------------------------
-#@silkp(name="Group Metadata New")
+@silkp(name="Group Metadata New")
 @requires_csrf_token
 def metadata_new(request):
     if not verifyUser(request):
@@ -858,7 +863,7 @@ def metadata_new(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Metadata Update')
+@silkp(name='Group Metadata Update')
 def metadata_update(request):
     """
     This function should recieve a post request with a payload of a metadata file
@@ -914,7 +919,7 @@ def metadata_update(request):
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name='Group Update')
+@silkp(name='Group Update')
 def update(request):
     """
     This function should recieve a post request with a payload of group configuration

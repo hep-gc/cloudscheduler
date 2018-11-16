@@ -1,19 +1,20 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
-import sys
+from os import environ
+from sys import argv
 
 # lno: CV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test-un']
+        ['cloudscheduler', 'cloud', 'metadata-edit']
     )
 
     execute_csv2_command(
@@ -33,7 +34,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -86,10 +87,44 @@ def main(gvar, user_secret):
         ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', 'invalid-unit-test']
     )
 
-    # The edit scripts in the next 4 tests will break easily as they rely on some system variables
+    environ['EDITOR'] = './editscript5'
+
+    execute_csv2_command(
+        gvar, 0, None, 'completed, no changes.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2')]
+    )
+
+    environ.pop('EDITOR')
+
+    execute_csv2_command(
+        gvar, 1, None, 'Error: "cloudscheduler cloud metadata-edit" - no value, neither default nor command line, for the following required parameters:',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2')]
+    )
+
+    # The edit scripts in the next 8 tests will break easily as they rely on some system variables
     execute_csv2_command(
         gvar, 0, None, 'completed, no changes.',
         ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'successfully  updated.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript6-un']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'successfully  updated.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript7-un']
+    )
+
+    execute_csv2_command(
+        gvar, 1, None, 'Invalid yaml file "scanner error": mapping values are not allowed here',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2.yaml'), '-te', './editscript8-un']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'completed, no changes.',
+        ['cloudscheduler', 'cloud', 'metadata-edit', '-g', ut_id(gvar, 'clg1'), '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-te', './editscript5', '-s', 'unit-test']
     )
 
     execute_csv2_command(

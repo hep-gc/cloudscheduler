@@ -3,7 +3,7 @@ from django.conf.urls import url
 from . import image_views
 
 urlpatterns = [
-    url(r'^$', image_views.index, name='index'),
+    url(r'^$', image_views.project_details, name='project_details'),
     url(r'^project_details/(?P<group_name>.+)/$', image_views.project_details, name='project_details'),
 #    url(r'^add_repo/(?P<group_name>.+)/$', views.add_repo, name='add_repo'),
 #    url(r'^manage_repos/(?P<group_name>.+)/$', views.manage_repos, name='manage_repos'),

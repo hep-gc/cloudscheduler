@@ -15,6 +15,7 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
+    set_orange_count, \
     start_cycle, \
     wait_cycle
 
@@ -45,7 +46,7 @@ def job_poller():
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
-                      "EnteredCurrentStatus", "QDate"]
+                      "EnteredCurrentStatus", "QDate", "HoldReasonCode", "HoldReasonSubCode", "LastRemoteHost" ]
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
     cycle_start_time = 0
@@ -59,6 +60,9 @@ def job_poller():
     uncommitted_updates = 0
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+
+    if config.default_job_group is None:
+        config.default_job_group = ""
 
     JOB = config.db_map.classes.condor_jobs
     CLOUDS = config.db_map.classes.csv2_group_resources
@@ -88,7 +92,7 @@ def job_poller():
 
                 except Exception as exc:
                     logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.error(exc)
+                    logging.debug(exc)
                     continue
 
 
@@ -126,6 +130,13 @@ def job_poller():
                         logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
                         job_dict['group_name'] = config.default_job_group
 
+                    # Some jobs have an expression for the request disk causing us to store a string
+                    # this should resolve the expression or us an alternative if unable
+                    try:
+                        job_dict["RequestDisk"] = int(job_dict["RequestDisk"])
+                    except Exception as exc:
+                        job_dict["RequestDisk"] = int(job_dict["DiskUsage"])
+
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
                     logging.debug(job_dict)
@@ -161,9 +172,7 @@ def job_poller():
                 except Exception as exc:
                     logging.exception("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
-                    del condor_session
                     config.db_close()
-                    del db_session
                     time.sleep(config.sleep_interval_job)
                     continue
 
@@ -210,8 +219,8 @@ def command_poller():
                     scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
                     condor_session = htcondor.Schedd(scheddAd)
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
-                    logging.error(exc)
+                    logging.warning("Failed to locate condor daemon, skipping: %s" % condor_host)
+                    logging.debug(exc)
                     continue
 
                 #Query database for any entries that have a command flag
@@ -264,7 +273,6 @@ def command_poller():
 
             logging.info("Completed command consumer cycle")
             config.db_close()
-            del db_session
             time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
@@ -290,12 +298,16 @@ if __name__ == '__main__':
         'job':                job_poller,
         }
 
+    previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', 1, 0)
+
     # Wait for keyboard input to exit
     try:
         while True:
+            orange = False
             for process in process_ids:
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
+                        orange = True
                         logging.error("%s process died, restarting...", process)
                         del processes[process]
                     else:
@@ -303,6 +315,12 @@ if __name__ == '__main__':
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
                     time.sleep(config.sleep_interval_main_short)
+
+            if orange:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', previous_count, current_count+1)
+            else:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', previous_count, current_count-1)
+               
             time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):

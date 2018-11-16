@@ -3,9 +3,10 @@ DB utilities and configuration.
 """
 
 import os
+import socket
 import yaml
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
@@ -50,13 +51,30 @@ class Config:
         self.db_map = automap_base()
         self.db_map.prepare(self.db_engine, reflect=True)
 
+        # Create a unique instance ID from our FQDN and, if necessary, save it in the database
+        self.csv2_host_id = sum(socket.getfqdn().encode())
+
+        self.db_session = Session(self.db_engine)
+        rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
+            (self.db_map.classes[db_config['db_table']].category == 'SQL') &
+            (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
+            )
+
+        if self.csv2_host_id != rows[0].config_value:
+            try:
+                self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (db_config['db_table'], self.csv2_host_id))
+
+                self.db_session.commit()
+
+            except Exception as msg:
+                print("Error updating csv2_host_id in db_config: %s" % msg)
+
         # Retrieve the configuration for the specified category.
         if isinstance(categories, str):
             category_list = [ categories ]
         else:
             category_list = categories
 
-        self.db_session = Session(self.db_engine)
         for category in category_list:
             rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
                 self.db_map.classes[db_config['db_table']].category == category

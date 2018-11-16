@@ -193,7 +193,8 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
                     'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                     'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time()),
-                    'keep_alive': self.keep_alive
+                    'keep_alive': self.keep_alive,
+                    'start_time': int(time.time()),
                 }
                 new_vm = Vms(**vm_dict)
                 db_session.merge(new_vm)

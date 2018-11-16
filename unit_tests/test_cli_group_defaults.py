@@ -1,139 +1,139 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: GV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
     
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, '')[:-1]),
-        ['cloudscheduler', 'group', 'defaults']
+        ['cloudscheduler', 'metadata', 'group-defaults']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-xx\', \'yy\']',
-        ['cloudscheduler', 'group', 'defaults', '-xx', 'yy']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-xx', 'yy']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: group-name',
-        ['cloudscheduler', 'group', 'defaults', '-gn', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-gn', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
-        ['cloudscheduler', 'group', 'defaults', '-s', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-s', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults', '-s', 'unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'Help requested for "cloudscheduler group defaults".',
-        ['cloudscheduler', 'group', 'defaults', '-h']
+        gvar, 0, None, 'Help requested for "cloudscheduler metadata group-defaults".',
+        ['cloudscheduler', 'metadata', 'group-defaults', '-h']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'General Commands Manual',
-        ['cloudscheduler', 'group', 'defaults', '-H']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-H']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'Expose API requested',
-        ['cloudscheduler', 'group', 'defaults', '-xA']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-xA']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'group', 'defaults', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-g', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'defaults', '-g', ut_id(gvar, 'clg1')]
+        ['cloudscheduler', 'metadata', 'group-defaults', '-g', ut_id(gvar, 'clg1')]
     )
 
     execute_csv2_command(
         gvar, 1, 'GV07', 'value specified for "job_cpus" must be an integer value.',
-        ['cloudscheduler', 'group', 'defaults', '-jc', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-jc', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'GV07', 'value specified for "job_disk" must be an integer value.',
-        ['cloudscheduler', 'group', 'defaults', '-jd', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-jd', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were unrecognized: [\'-jed\', \'invalid-unit-test\']',
-        ['cloudscheduler', 'group', 'defaults', '-jed', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-jed', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'GV07', 'value specified for "job_ram" must be an integer value.',
-        ['cloudscheduler', 'group', 'defaults', '-jr', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-jr', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'GV07', 'value specified for "job_swap" must be an integer value.',
-        ['cloudscheduler', 'group', 'defaults', '-js', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-js', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 1, 'GV07', 'value specified for "vm_keep_alive" must be an integer value.',
-        ['cloudscheduler', 'group', 'defaults', '-vka', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-vka', 'invalid-unit-test']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'group defaults "{}" successfully updated.'.format(ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'group', 'defaults', '-jc', '1', '-jd', '1', '-jr', '1', '-js', '1', '-vka', '1', '-vi', '', '-vf', '', '-vn', '']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-jc', '1', '-jd', '1', '-jr', '1', '-js', '1', '-vka', '1', '-vi', '', '-vk', '', '-vf', '', '-vn', '']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults', '-ok'],
+        ['cloudscheduler', 'metadata', 'group-defaults', '-ok'],
         list='Active Group Defaults', columns=['Group']
     )
 
     execute_csv2_command(
         gvar, 0, None, 'group defaults, table #1 columns: keys=group_name, columns=',
-        ['cloudscheduler', 'group', 'defaults', '-VC']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-VC']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults', '-NV'],
+        ['cloudscheduler', 'metadata', 'group-defaults', '-NV'],
         list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Flavor', 'Image', 'Keep Alive', 'Cores', 'Disk (GBs)', 'RAM (MBs)', 'Swap (GBs)']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults', '-V', 'job_ram,vm_keep_alive'],
+        ['cloudscheduler', 'metadata', 'group-defaults', '-V', 'job_ram,vm_keep_alive'],
         list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Keep Alive', 'RAM (MBs)']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults'],
+        ['cloudscheduler', 'metadata', 'group-defaults'],
         list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Keep Alive', 'RAM (MBs)']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults', '-r'],
+        ['cloudscheduler', 'metadata', 'group-defaults', '-r'],
         list='Active Group Defaults', columns=['Key', 'Value']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'group', 'defaults', '-V', ''],
+        ['cloudscheduler', 'metadata', 'group-defaults', '-V', ''],
         list='Active Group Defaults', columns=['VM', 'Job', 'Group', 'Flavor', 'Image', 'Keep Alive', 'Cores', 'Disk (GBs)', 'RAM (MBs)', 'Swap (GBs)']
     )
 

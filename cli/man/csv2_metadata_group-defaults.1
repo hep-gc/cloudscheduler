@@ -1,0 +1,83 @@
+.so ../man/_header.so
+\fBcloudscheduler metadata group-defaults\fR \- modify and view group defaults on cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B metadata
+.B group-defaults
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_metadata_group-defaults.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_job_cores.so
+.so ../man/parameters/_job_disk.so
+.so ../man/parameters/_job_ram.so
+.so ../man/parameters/_job_swap.so
+.so ../man/parameters/_vm_flavor_group_defaults.so
+.so ../man/parameters/_vm_image_group_defaults.so
+.so ../man/parameters/_vm_keep_alive_group_defaults.so
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Viewing defaults for the group "example":
+.EX
+$ cloudscheduler metadata group-defaults -g example
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Active Group Defaults:
++---------+--------+-------+------------+-------------+-------------+-------------+-------------+
++         |             VM              |                          Job                          +
++  Group  | Flavor   Image   Keep Alive |    Cores      Disk (GBs)     RAM (MBs)    Swap (GBs)  +
++---------+--------+-------+------------+-------------+-------------+-------------+-------------+
+| example | None   | None  | None       | 1           | 5           | 1000        | 0           |
++---------+--------+-------+------------+-------------+-------------+-------------+-------------+
+Rows: 1
+.EE
+.TP
+2.
+Updating the default for the group "example":
+.EX
+$ cloudscheduler metadata group-defaults -g example -jc 2 -jd 10 -jr 2000 -js 1 -vf 'flavor-name1,flavor-name2' -vi 'image-name1,image-name2' -vka 60
+group defaults "example" successfully updated.
+Server: default, Active User: example, Active Group: example, User's Groups: ['example', 'testing']
+
+Active Group Defaults:
++---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
++         |                                VM                                 |                          Job                          +
++  Group  |          Flavor                      Image            Keep Alive  |    Cores      Disk (GBs)     RAM (MBs)    Swap (GBs)  +
++---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
+| example | flavor-name1,flavor-name2 | image-name1,image-name2 | 60          | 2           | 10          | 2000        | 1           |
++---------+---------------------------+-------------------------+-------------+-------------+-------------+-------------+-------------+
+Rows: 1
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_metadata (1)
+.BR csv2_group_defaults (1)
+.BR csv2_metadata_delete (1)
+.BR csv2_metadata_edit (1)
+.BR csv2_metadata_list (1)
+.BR csv2_metadata_load (1)
+.BR csv2_metadata_update (1)

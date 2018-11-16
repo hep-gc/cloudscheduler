@@ -19,7 +19,8 @@ from glintwebui.utils import  jsonify_image_list, update_pending_transactions, g
 set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
 find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
 repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_image_defaults,\
-set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair, transfer_keypair
+set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair,\
+check_defaults_changed, set_defaults_changed, transfer_keypair
 
 
 def image_collection():
@@ -107,10 +108,10 @@ def image_collection():
         if num_tx == 0:
             wait_period = config.image_collection_interval
         else:
-            wait_period = 0
+            wait_period = 10
 
-        while loop_counter*5 < wait_period:
-            time.sleep(5)
+        while loop_counter*10 < wait_period:
+            time.sleep(10)
             num_tx = get_num_transactions()
             #check for new transactions
             if num_tx > 0:
@@ -120,13 +121,6 @@ def image_collection():
                 repo_proccesed()
                 break
 
-            #check if httpd is running
-            output = subprocess.check_output(['ps', '-A'])
-            if 'httpd' not in str(output):
-                #apache has shut down, time for image collection to do the same
-                logging.info("httpd offline, terminating")
-                term_signal = True
-                break
             loop_counter = loop_counter+1
         num_tx = get_num_transactions()
 
@@ -141,6 +135,7 @@ def defaults_replication():
     Keypairs = config.db_map.classes.cloud_keypairs
 
     while True:
+        set_defaults_changed(False)
         config.db_open()
         session = config.db_session
         group_list = session.query(Group)
@@ -155,9 +150,14 @@ def defaults_replication():
             keypair_dict = get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
             check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
 
-
-
-        time.sleep(3600) #an hour for now, should be configurable and notifiable via redis
+        time_slept = 0
+        while(time_slept<config.defaults_sleep_interval):
+            if check_defaults_changed():
+                logging.info("Defaults changed, waking up...")
+                set_defaults_changed(False)
+                break
+            time.sleep(30) #an hour for now, should be configurable and notifiable via redis
+            time_slept = time_slept + 30
 
 
 '''

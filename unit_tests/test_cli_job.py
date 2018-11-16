@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: JV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "job"',
@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'No action specified for object "job"; use -h or -H for help.',
-        ['cloudscheduler', 'job', '-s', 'unit-test']
+        ['cloudscheduler', 'job', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -63,6 +63,11 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
+        gvar, 0, None, None,
+        ['cloudscheduler', 'job', 'list', '-s', 'unit-test-un']
+    )
+
+    execute_csv2_command(
         gvar, 0, None, 'Help requested for "cloudscheduler job list".',
         ['cloudscheduler', 'job', 'list', '-h']
     )
@@ -84,7 +89,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}, Active Group: {}'.format(ut_id(gvar, '')[:-1], ut_id(gvar, 'clg1')),
-        ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1')]
+        ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1'), '-s', 'unit-test']
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'Server: unit-test-un, Active User: {}, Active Group: {}'.format(ut_id(gvar, 'test'), ut_id(gvar, 'clg1')),
+        ['cloudscheduler', 'job', 'list', '-g', ut_id(gvar, 'clg1'), '-s', 'unit-test-un']
     )
 
     execute_csv2_command(

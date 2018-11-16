@@ -5,7 +5,7 @@ import socket
 import time
 import sys
 import os
-from dateutil import tz, parser
+import datetime
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -14,6 +14,7 @@ from cloudscheduler.lib.poller_functions import \
     foreign, \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
+    set_orange_count, \
     start_cycle, \
     wait_cycle
 #   get_last_poll_time_from_database, \
@@ -847,6 +848,9 @@ def vm_poller():
                                 ip_addrs.append(addr['addr'])
                             elif addr['OS-EXT-IPS:type'] == 'floating':
                                 floating_ips.append(addr['addr'])
+                    strt_time = vm.__dict__["OS-SRV-USG:launched_at"]
+                    dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
+                    vm_start_time = dt_strt_time.strftime('%s')
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
@@ -860,6 +864,7 @@ def vm_poller():
                         'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
                         'vm_ips': str(ip_addrs),
                         'vm_floating_ips': str(floating_ips),
+                        'start_time': vm_start_time,
                         'last_updated': new_poll_time
                     }
 
@@ -938,12 +943,16 @@ if __name__ == '__main__':
         'vm':          vm_poller,
         }
 
+    previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', 1, 0)
+
     # Wait for keyboard input to exit
     try:
         while True:
+            orange = False
             for process in process_ids:
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
+                        orange = True
                         logging.error("%s process died, restarting...", process)
                         del(processes[process])
                     else:
@@ -951,6 +960,12 @@ if __name__ == '__main__':
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
                     time.sleep(config.sleep_interval_main_short)
+
+            if orange:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', previous_count, current_count+1)
+            else:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', previous_count, current_count-1)
+               
             time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
