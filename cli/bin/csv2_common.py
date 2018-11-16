@@ -430,6 +430,9 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
 
     if not gvar['user_settings']['no-view'] and gvar['object'] in gvar['views'] and gvar['action'] in gvar['views'][gvar['object']]:
         Selections = gvar['views'][gvar['object']][gvar['action']]
+        if Selections == [['-r']]:
+            gvar['user_settings']['rotate'] = True
+            Selections = None
     else:
         Selections = None
 
