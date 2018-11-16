@@ -147,6 +147,7 @@ def main(args):
             ('-cu',  '--cloud-user', True),
             ('-dci', '--delete_cycle_interval', True),
             ('-djg', '--default_job_group', True),
+            ('-ds',  '--default-server', False),   #### special case in _args() ###
             ('-eg',  '--enable_glint', True),
             ('-f',   '--file-path', True),
             ('-g',   '--group', True),
@@ -336,8 +337,11 @@ def _args(gvar, arg_list):
     unrecognized = []
 
     for _ix in range(len(gvar['command_keys'])):
-        if not gvar['command_keys'][_ix][2]:
-            response[gvar['command_keys'][_ix][1][2:]] = False
+        if gvar['command_keys'][_ix][0] == '-ds':
+            gvar['set_default_server'] = False
+        else:
+            if not gvar['command_keys'][_ix][2]:
+                response[gvar['command_keys'][_ix][1][2:]] = False
 
     # Scan args.
     _max_ix = len(arg_list) - 1
@@ -362,7 +366,10 @@ def _args(gvar, arg_list):
                 (arg_list[_ix] == gvar['command_keys'][_iy][0] or \
                 arg_list[_ix] == gvar['command_keys'][_iy][1]):
                     _recognized = True
-                    response[gvar['command_keys'][_iy][1][2:]] = True
+                    if gvar['command_keys'][_iy][0] == '-ds':
+                        gvar['set_default_server'] = True
+                    else:
+                        response[gvar['command_keys'][_iy][1][2:]] = True
 
         if not _recognized:
             if not gvar['object']:
