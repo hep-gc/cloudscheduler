@@ -50,6 +50,15 @@ def list(gvar):
     check_keys(gvar, mandatory, required, optional, requires_server=False)
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
+    if os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
+        fd = open('%s/.csv2/default_server' % gvar['home_dir'])
+        default_server = fd.read()
+        fd.close
+        report_title = 'Defaults (default server = %s):' % default_server
+    else:
+        report_title = 'Defaults:'
+
+    # Retrive all possible option names ordered by 'server' and then alphabetically.
     _keys = ['server,k']
     for _ix in range(len(gvar['command_keys'])):
         key = gvar['command_keys'][_ix][1][2:]
@@ -78,7 +87,7 @@ def list(gvar):
                 _queryset.append({'fields': _settings})
 
     # Display results.
-    show_table(gvar, _queryset, _keys, allow_null=False, title='Defaults:')
+    show_table(gvar, _queryset, _keys, allow_null=False, title=report_title)
 
 def set(gvar):
     """
@@ -100,14 +109,16 @@ def set(gvar):
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']), mode=0o700)  
 
+    # Write the default server file.
+    if gvar['set_default_server']:
+        _fd = open('%s/.csv2/default_server' % gvar['home_dir'], 'w')
+        _fd.write(gvar['server'])
+        _fd.close()
+        os.chmod('%s/.csv2/default_server' % gvar['home_dir'], 0o600)
+
     # Write the settings file.
     _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
     _fd.write(yaml.dump(gvar['user_settings']))
     _fd.close()
     os.chmod('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 0o600)
-
-    _fd = open('%s/.csv2/default_server' % gvar['home_dir'], 'w')
-    _fd.write(gvar['server'])
-    _fd.close()
-    os.chmod('%s/.csv2/default_server' % gvar['home_dir'], 0o600)
 
