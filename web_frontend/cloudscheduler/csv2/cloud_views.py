@@ -966,7 +966,7 @@ def status(request, group_name=None):
         )
 
     slot_total_list = qt(slot_list, keys={
-        'primary': ['group_name', 'slot_CPUs'],
+        'primary': ['group_name'],
         'sum': ['slot_count']
         })
 
