@@ -28,10 +28,10 @@ def main():
     main function.
     """
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain')
     if not config:
         print("Problem loading config file.")
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=config.log_level,
                         format="%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s")
     log = logging.getLogger(__name__)
     #config.db_open()
@@ -168,10 +168,10 @@ def main():
                         num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
                         num_vms_to_boot = math.ceil(num_vms_to_boot)
                         log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
-                        # TODO Setup proper throttling and configuration of it.
-                        MAX_BOOT = 5  # Temp fix to quickly get a throttle in place
-                        if num_vms_to_boot > MAX_BOOT:
-                            num_vms_to_boot = MAX_BOOT
+
+                        # Throttle amount of VMs to boot in one shot - should this be per cloud?
+                        if num_vms_to_boot > config.max_start_vm_cloud:
+                            num_vms_to_boot = config.max_start_vm_cloud
                             log.debug("Adjusting for max_boot, will only boot: %s vms.", num_vms_to_boot)
                         log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, cloud.cloud_name)
                         try:
@@ -190,7 +190,7 @@ def main():
                                 elif cloud.default_image:
                                     use_image = cloud.default_image
                                 else:
-                                    pass  # TODO group defaults vm_image - looks like it already fills in though.
+                                    pass
 
                                 cm_group.clouds[cloud.cloud_name]\
                                     .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
@@ -375,7 +375,7 @@ def check_idle_machines(group, config):
     machines_dict = defaultdict(int)
     idle_list = []
     for machine in unclaimed_idle_machines:
-        # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 60 sec buffer for now
+        # TODO Make sure this line is behaving as intended and not catching every machine irregardless - added a 5 min buffer for now
         if int(time.time()) - machine.idle_time > max([machine.keep_alive, 300]) and not machine.retire_request_time :
             log.debug("Setting condor off flag for machine: %s", machine.hostname)
             idle_list.append(machine.machine)  # TODO Also capture info needed to update cvs2_vms table with a 'retired' flag of sorts
@@ -428,7 +428,7 @@ def check_unregistered_machines(group, config):
                 continue
             cname = hostname_split[1]
             if cname in cloud_names: # name prefix matches a valid cloud name
-                if int(time.time()) - vm.last_updated > 2400 and not vm.terminate: # not registered after some period of time - TODO make configurable.
+                if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
                     to_terminate.append(vm.vmid)
                     log.debug("Set terminate flag on vm: %s", vm.hostname)
                 # TODO Check the retired flag and if set terminate right away
