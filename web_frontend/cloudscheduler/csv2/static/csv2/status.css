@@ -100,8 +100,8 @@ td a {
 }
 
 .toggle-button {
-  position: relative;
-  left: 95%;
+  position: absolute;
+  right: 10px;
   top: 30px;
   width:30px;
   max-width:30px;
@@ -137,7 +137,7 @@ td a {
 
 
 
-input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
+input#toggle-row:checked ~ table tr.extra-row {
   display: table-row;
 }
 
