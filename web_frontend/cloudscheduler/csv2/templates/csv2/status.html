@@ -167,8 +167,16 @@
 
                 <th class="col-spacer">&nbsp;</th>
 
-                <th class="native-style">Used<br>Cores</th>
-                <th class="native-style">Cores<br>Limit</th>
+
+                <th class="native-style" colspan="2">
+                    <table>
+                        <tr colspan="2">Native Cores</tr>
+                        <tr>
+                            <th>Used</th>
+                            <th>Limit</th>
+                        </tr>
+                    </table>
+                </th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -208,213 +216,224 @@
             </tr>
             {% for cloud in cloud_status_list %}
 
-                <tr>
-                {% if cloud.enabled == 1 %}
-                    <td class="title-style">
-                {% else %}
-                    <td class="disabled-style">
+                {% if cloud.enabled == 1 or cloud.VMs > 0 %}
+                    <tr>
+                    {% if cloud.enabled == 1 %}
+                        <td class="title-style">
+                    {% else %}
+                        <td class="disabled-style">
+                    {% endif %}
+                        <a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">{{cloud.cloud_name}}</a></td>
+
+                        {% if cloud.VMs == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">{{cloud.VMs}}</a></td>
+                        {% endif %}
+
+                        {% if cloud.VMs_starting == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">{{cloud.VMs_starting}}</a></td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_unregistered == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">{{cloud.VMs_unregistered}}</a></td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_idle == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">{{cloud.VMs_idle}}</a></td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_running == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">{{cloud.VMs_running}}</td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_retiring == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">{{cloud.VMs_retiring}}</td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_manual == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">{{cloud.VMs_manual}}</td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_in_error == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">{{cloud.VMs_in_error}}</td>
+                        {% endif %}
+
+
+                        {% if cloud.VMs_other == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::other::')" href="#vms-overlay">{{cloud.VMs_other}}</td>
+                        {% endif %}
+
+                        <td class="col-spacer">&nbsp;</td>
+
+
+
+
+                        {% if cloud.cores_ctl == -1 %}
+                            <td class="sysctl-style">{{cloud.cores_native}}</td>
+                        {% else %}
+                            <td class="manual-style">{{cloud.cores_native}}</td>
+                        {% endif %}
+
+                        {% if cloud.cores_ctl == -1 %}
+                            <td class="sysctl-style">{{cloud.cores_limit}}</td>
+                        {% else %}
+                            <td class="manual-style">{{cloud.cores_limit}}</td>
+                        {% endif %}
+
+
+
+                        <td class="col-spacer">&nbsp;</td>
+
+
+                        {% if cloud.Foreign_VMs == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::foreign::')" href="#vms-overlay">{{ cloud.Foreign_VMs }}</a></td>
+                        {% endif %}
+
+
+
+                        {% if cloud.cores_foreign == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style">{{ cloud.cores_foreign }}</a></td>
+                        {% endif %}
+
+                        <td class="col-spacer">&nbsp;</td>
+
+
+                        <!--******************************-->
+                        {% if cloud.cores_max == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style">{{ cloud.cores_native_foreign }}</a></td>
+                        {% endif %}
+                        <!--******************************-->
+
+
+                        {% if cloud.cores_max == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style">{{ cloud.cores_idle_native_foreign }}</a></td>
+                        {% endif %}
+
+
+                        <td class="col-spacer">&nbsp;</td>
+
+                        {% if cloud.slot_count == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style">{{cloud.slot_count}}</td>
+                        {% endif %}
+
+
+                        {% if cloud.slot_core_count == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style">{{cloud.slot_core_count}}</td>
+                        {% endif %}
+
+                        {% if cloud.slot_idle_core_count == 0 %}
+                            <td class="zero-style">0</td>
+                        {% else %}
+                            <td class="more-style">{{cloud.slot_idle_core_count}}</td>
+                        {% endif %}
+
+                    </tr>
+
+
+
+                    <tr class="extra-row">
+                        <td></td>
+                        <td><!--VMs--></td>
+                        <td><!--Starting--></td>
+                        <td><!--Unreg.--></td>
+                        <td><!--Idle--></td>                
+                        <td><!--Running--></td>
+                        <td><!--Retiring--></td>
+                        <td><!--Manual--></td>
+                        <td><!--Error--></td>
+                        <td><!--Other--></td>
+
+                        <td class="col-spacer">&nbsp;</td>
+
+                        <td colspan="2">
+                        {% if cloud.cores_ctl == -1 %}
+                            <p class="sysctl-style">Using System Limit</p>
+                        {% else %}
+                            <p class="manual-style">Using User Limit</p>
+                        {% endif %}
+
+
+
+                        <td class="col-spacer">&nbsp;</td>
+
+                        <td><!--Foreign VMs--></td>
+                        <td><!--Foreign Cores--></td>
+
+                        <td class="col-spacer">&nbsp;</td>
+
+                        <td><!--Total Cores--></td>
+                        <td><!--Cores Quota--></td>
+                        
+                        <td class="col-spacer">&nbsp;</td>
+
+                        <td>
+                            {% for slot in slot_list%}
+                                {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                                    {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for slot in slot_list%}
+                                {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                                    {{ slot.core_count }}<br>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+
+                        <td><!--Idle--></td>
+
+                    </tr>                
                 {% endif %}
-                    <a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">{{cloud.cloud_name}}</a></td>
-
-                    {% if cloud.VMs == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">{{cloud.VMs}}</a></td>
-                    {% endif %}
-
-                    {% if cloud.VMs_starting == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">{{cloud.VMs_starting}}</a></td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_unregistered == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">{{cloud.VMs_unregistered}}</a></td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_idle == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">{{cloud.VMs_idle}}</a></td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_running == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">{{cloud.VMs_running}}</td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_retiring == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">{{cloud.VMs_retiring}}</td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_manual == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">{{cloud.VMs_manual}}</td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_in_error == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">{{cloud.VMs_in_error}}</td>
-                    {% endif %}
-
-
-                    {% if cloud.VMs_other == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::other::')" href="#vms-overlay">{{cloud.VMs_other}}</td>
-                    {% endif %}
-
-                    <td class="col-spacer">&nbsp;</td>
-
-
-
-
-                    {% if cloud.cores_ctl == -1 %}
-                        <td class="sysctl-style">{{cloud.cores_native}}</td>
-                    {% else %}
-                        <td class="manual-style">{{cloud.cores_native}}</td>
-                    {% endif %}
-
-                    {% if cloud.cores_ctl == -1 %}
-                        <td class="sysctl-style">{{cloud.cores_limit}}</td>
-                    {% else %}
-                        <td class="manual-style">{{cloud.cores_limit}}</td>
-                    {% endif %}
-
-
-
-                    <td class="col-spacer">&nbsp;</td>
-
-
-                    {% if cloud.Foreign_VMs == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::foreign::')" href="#vms-overlay">{{ cloud.Foreign_VMs }}</a></td>
-                    {% endif %}
-
-
-
-                    {% if cloud.cores_foreign == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style">{{ cloud.cores_foreign }}</a></td>
-                    {% endif %}
-
-                    <td class="col-spacer">&nbsp;</td>
-
-
-                    <!--******************************-->
-                    {% if cloud.cores_max == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style">{{ cloud.cores_native_foreign }}</a></td>
-                    {% endif %}
-                    <!--******************************-->
-
-
-                    {% if cloud.cores_max == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style">{{ cloud.cores_idle_native_foreign }}</a></td>
-                    {% endif %}
-
-
-                    <td class="col-spacer">&nbsp;</td>
-
-                    {% if cloud.slot_count == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style">{{cloud.slot_count}}</td>
-                    {% endif %}
-
-
-                    {% if cloud.slot_core_count == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style">{{cloud.slot_core_count}}</td>
-                    {% endif %}
-
-                    {% if cloud.slot_idle_core_count == 0 %}
-                        <td class="zero-style">0</td>
-                    {% else %}
-                        <td class="more-style">{{cloud.slot_idle_core_count}}</td>
-                    {% endif %}
-
-                </tr>
-
-
-
-                <tr class="extra-row">
-                    <td></td>
-                    <td><!--VMs--></td>
-                    <td><!--Starting--></td>
-                    <td><!--Unreg.--></td>
-                    <td><!--Idle--></td>                
-                    <td><!--Running--></td>
-                    <td><!--Retiring--></td>
-                    <td><!--Manual--></td>
-                    <td><!--Error--></td>
-                    <td><!--Other--></td>
-
-                    <td class="col-spacer">&nbsp;</td>
-
-                    <td colspan="2">
-                    {% if cloud.cores_ctl == -1 %}
-                        <p class="sysctl-style">Max cores set to<br>system control.</p>
-                    {% else %}
-                        <p class="manual-style">Max cores set to<br>manual control.</p>
-                    {% endif %}
-
-
-
-                    <td class="col-spacer">&nbsp;</td>
-
-                    <td><!--Foreign VMs--></td>
-                    <td><!--Foreign Cores--></td>
-
-                    <td class="col-spacer">&nbsp;</td>
-
-                    <td><!--Total Cores--></td>
-                    <td><!--Cores Quota--></td>
-                    
-                    <td class="col-spacer">&nbsp;</td>
-
-                    <td>
-                        {% for slot in slot_list%}
-                            {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% for slot in slot_list%}
-                            {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                {{ slot.core_count }}<br>
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-
-                    <td><!--Idle--></td>
-
-                </tr>
-
-
-
 
             {% endfor %}
+
+            <!--
+            {% for cloud in cloud_status_list %}
+                {% if cloud.enabled == 0 and cloud.VMs == 0 %}
+                    <tr class="extra-row">
+                        <td class="disabled-style">{{cloud.cloud_name}}</td>
+                        <td colspan="22"><h3>--- disabled ---</h3></td>
+                    </tr>        
+
+                {% endif %}
+            {% endfor %}
+            -->
             <tr>
                 <td colspan="10" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>

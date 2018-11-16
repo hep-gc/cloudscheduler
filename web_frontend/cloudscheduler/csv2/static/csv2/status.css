@@ -397,8 +397,10 @@ input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
   font-weight: bold;
 }
 
+
 .system-services th {
   text-align: center;
+  border: 0px;
 }
 
 .system-services td {
@@ -407,7 +409,7 @@ input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
 
 .system-services .col-spacer {
   background-color: white;
-  border-bottom: 0px;
+  border: 0px;
   color: white;
   width: 20px;
 }
