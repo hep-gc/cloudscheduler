@@ -393,6 +393,7 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('project', String(128)),
   Column('hostname', String(128)),
   Column('keep_alive', Integer),
+  Column('start_time', Integer),
   Column('status', String(32)),
   Column('flavor_id', String(128)),
   Column('task', String(32)),
@@ -891,6 +892,7 @@ view_vm_kill_retire_priority_list = Table('view_vm_kill_retire_priority_list', m
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
+  Column('machine', String(256)),
   Column('priority', Integer)
   )
 
@@ -904,6 +906,7 @@ view_vms = Table('view_vms', metadata,
   Column('project', String(128)),
   Column('hostname', String(128)),
   Column('keep_alive', Integer),
+  Column('start_time', Integer),
   Column('status', String(32)),
   Column('flavor_id', String(128)),
   Column('task', String(32)),
