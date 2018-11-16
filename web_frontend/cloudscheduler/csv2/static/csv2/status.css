@@ -257,7 +257,11 @@ input#toggle-row:checked ~ table tr.extra-row {
   color: black;
   font-weight: bold;
 }
-
+.more-style {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
 
 .sysctl-style {
   color: green;

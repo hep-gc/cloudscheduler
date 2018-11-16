@@ -289,15 +289,17 @@
                         <td class="col-spacer">&nbsp;</td>
 
 
-
-
-                        {% if cloud.cores_ctl == -1 %}
+                        {% if cloud.cores_native == 0 %}
+                            <td class="zero-style">0</td>
+                        {% elif cloud.cores_ctl == -1 %}
                             <td class="sysctl-style">{{cloud.cores_native}}</td>
                         {% else %}
                             <td class="manual-style">{{cloud.cores_native}}</td>
                         {% endif %}
 
-                        {% if cloud.cores_ctl == -1 %}
+                        {% if cloud.cores_limit == 0 %}
+                            <td class="zero-style">0</td>
+                        {% elif cloud.cores_ctl == -1 %}
                             <td class="sysctl-style">{{cloud.cores_limit}}</td>
                         {% else %}
                             <td class="manual-style">{{cloud.cores_limit}}</td>
@@ -382,9 +384,9 @@
 
                         <td colspan="2">
                         {% if cloud.cores_ctl == -1 %}
-                            <p class="sysctl-style">Using System Limit</p>
+                            <p>Using System Limit</p>
                         {% else %}
-                            <p class="manual-style">Using User Limit</p>
+                            <p>Using User Limit</p>
                         {% endif %}
 
 
@@ -404,14 +406,14 @@
                         <td>
                             {% for slot in slot_list%}
                                 {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
+                                    {{ slot.slot_count }}&#10005;{{ slot.slot_type }}c<br>
                                 {% endif %}
                             {% endfor %}
                         </td>
                         <td>
                             {% for slot in slot_list%}
                                 {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.core_count }}<br>
+                                    {{ slot.core_count }}@{{ slot.slot_id }}<br>
                                 {% endif %}
                             {% endfor %}
                         </td>
@@ -513,9 +515,17 @@
                 <td class="col-spacer">&nbsp;</td>
 
 
-                <td class="bold-style">{{cloud_total_list.cores_native}}</td>
-                <td class="bold-style">{{cloud_total_list.cores_limit}}</td>
+                {% if cloud_total_list.cores_native == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.cores_native}}</td>
+                {% endif %}
 
+                {% if cloud_total_list.cores_limit == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.cores_limit}}</td>
+                {% endif %}
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -545,24 +555,21 @@
                 {% if cloud_total_list.slot_count == 0 %}
                     <td class="zero-style">0</td>
                 {% else %}
-                    <td class="more-style">
-                        <div class="slots">
-                            <input id="slots-{{cloud.cloud_name}}" type="checkbox">
-                            <label for="slots-{{cloud.cloud_name}}">{{cloud_total_list.slot_count}}</label>
-                            <div class="slots-content">
-
-                                <hr>
-                                {% for slot in slot_total_list%}
-                                    {{ slot.slot_count }} &#10005 {{ slot.slot_CPUs }}c<br>
-                                {% endfor %}
-
-                            </div>
-                        </div>
-                    </td>
+                    <td class="more-style">{{cloud_total_list.slot_count}}</td>
                 {% endif %}
 
-                <td>{{cloud_total_list.slot_core_count}}</td>
-                <td>{{cloud_total_list.slot_idle_core_count}}</td>
+
+                {% if cloud_total_list.slot_core_count == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.slot_core_count}}</td>
+                {% endif %}
+
+                {% if cloud_total_list.slot_idle_core_count == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.slot_idle_core_count}}</td>
+                {% endif %}
 
             </tr>
 
@@ -599,14 +606,14 @@
                 <td>
                     {% for slot in slot_total_list%}
                         {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
+                            {{ slot.slot_count }}&#10005;{{ slot.slot_type }}c<br>
                         {% endif %}
                     {% endfor %}
                 </td>
                 <td>
                     {% for slot in slot_total_list%}
                         {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            {{ slot.core_count }}<br>
+                            {{ slot.core_count }}@{{ slot.slot_id }}<br>
                         {% endif %}
                     {% endfor %}
                 </td>
@@ -629,10 +636,6 @@
             </tbody> 
         </table>
     </div>
-
-    <br>
-
-
 </div>
 
 

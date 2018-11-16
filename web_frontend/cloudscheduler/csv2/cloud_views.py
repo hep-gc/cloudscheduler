@@ -966,8 +966,11 @@ def status(request, group_name=None):
         )
 
     slot_total_list = qt(slot_list, keys={
-        'primary': ['group_name'],
-        'sum': ['slot_count']
+        'primary': ['group_name', 'slot_type', 'slot_id'],
+        'sum': [
+            'slot_count',
+            'core_count'
+            ]
         })
 
     # get job status per group
