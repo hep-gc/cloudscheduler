@@ -909,7 +909,8 @@ def status(request, group_name=None):
 
     # get cloud status per group
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
+    #cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
+    cloud_status_list = qt(config.db_connection.execute(s))
 
     # calculate the totals for all rows
     cloud_status_list_totals = qt(cloud_status_list, keys={

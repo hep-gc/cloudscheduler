@@ -264,7 +264,7 @@ def defaults(request):
                     else:
                         message='%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
                 else:
-                    message='%s group defaults update %s' % (lno('GV07'), msg)
+                    message='%s group defaults update %s.' % (lno('GV07'), msg)
     else:
         message='%s %s' % (lno('GV08'), msg)
 
@@ -281,7 +281,7 @@ def defaults(request):
         image_list = {}
         flavor_list = {}
         metadata_dict = {}
-        keyname_list = {}
+        keypairs_list = {}
         network_list = {}
     else:
         # Get all the images in group:
