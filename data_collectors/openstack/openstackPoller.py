@@ -5,7 +5,7 @@ import socket
 import time
 import sys
 import os
-from dateutil import tz, parser
+import datetime
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -848,6 +848,9 @@ def vm_poller():
                                 ip_addrs.append(addr['addr'])
                             elif addr['OS-EXT-IPS:type'] == 'floating':
                                 floating_ips.append(addr['addr'])
+                    strt_time = vm.__dict__["OS-SRV-USG:launched_at"]
+                    dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
+                    vm_start_time = dt_strt_time.strftime('%s')
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
@@ -861,6 +864,7 @@ def vm_poller():
                         'power_state': vm.__dict__.get("OS-EXT-STS:power_state"),
                         'vm_ips': str(ip_addrs),
                         'vm_floating_ips': str(floating_ips),
+                        'start_time': vm_start_time,
                         'last_updated': new_poll_time
                     }
 
