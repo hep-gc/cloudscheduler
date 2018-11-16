@@ -5,100 +5,188 @@ create or replace view view_cloud_status as
 
 select
 
-grwvs.group_name,
-grwvs.cloud_name,
-vgr.enabled,
-vgr.cascading_vm_flavor as default_flavor,
-vgr.cascading_vm_image as default_image,
-vgr.cascading_vm_keep_alive as keep_alive,
-vgr.cascading_vm_keyname as default_keyname,
-vgr.cascading_vm_network as default_network,
-cast(sum(VMs) as int) as VMs,
-cast(sum(VMs_unregistered) as int) as VMs_unregistered,
-cast(sum(VMs_running) as int) as VMs_running,
-cast(sum(VMs_retiring) as int) as VMs_retiring,
-cast(sum(VMs_manual) as int) as VMs_manual,
-cast(sum(VMs_in_error) as int) as VMs_in_error,
-cast(sum(VMs_other) as int) as VMs_other,
-cast(sum(Foreign_VMs) as int) as Foreign_VMs,
-cast(sum(grwvs.cores_ctl) as int) as cores_ctl,
-cast(sum(grwvs.cores_max) as int) as cores_max,
-cast(sum(grwvs.cores_native) as int) as cores_busy,
-cast(sum(grwvs.cores_foreign) as int) as cores_foreign,
-cast(sum(grwvs.cores_idle) as int) as cores_idle,
-cast(sum(grwvs.cores_idle)+sum(grwvs.cores_native) as int) as cores_native,
-cast(sum(grwvs.ram_ctl) as int) as ram_ctl,
-cast(sum(grwvs.ram_max) as int) as ram_max,
-cast(sum(grwvs.ram_native) as int) as ram_busy,
-cast(sum(grwvs.ram_foreign) as int) as ram_foreign,
-cast(sum(grwvs.ram_idle) as int) as ram_idle,
-cast(sum(grwvs.ram_idle)+sum(grwvs.ram_native) as int) as ram_native,
-cast(sum(condor_slots) as int) as slots_max,
-cast(sum(condor_slots_used) as int) as slots_used
+n03.group_name,
+n03.cloud_name,
+enabled,
+cascading_vm_flavor as default_flavor,
+cascading_vm_image as default_image,
+cascading_vm_keep_alive as keep_alive,
+cascading_vm_keyname as default_keyname,
+cascading_vm_network as default_network,
+VMs,
+VMs_starting,
+VMs_unregistered,
+VMs_idle,
+VMs_running,
+VMs_retiring,
+VMs_manual,
+VMs_in_error,
+VMs_other,
+Foreign_VMs,
+cores_ctl,
+
+case when cores_ctl=-1 then
+    case when cores_softmax=-1 then
+        ifnull(cores_max,0)
+    else
+        least(cores_softmax, ifnull(ram_max,0))
+    end
+else
+    case when cores_softmax=-1 then
+        least(cores_ctl, ifnull(ram_max,0))
+    else
+        least(cores_ctl, cores_softmax, ifnull(ram_max,0))
+    end
+end as cores_limit,
+
+cores_native,
+cores_foreign,
+cores_idle,
+cores_native+cores_foreign as cores_native_foreign,
+cores_idle+cores_native+cores_foreign as cores_idle_native_foreign,
+ram_ctl,
+
+case when ram_ctl=-1 then
+    ifnull(ram_max,0)
+else
+    least(ram_ctl, ifnull(ram_max,0))
+end as ram_limit,
+
+ram_native as ram_busy,
+ram_foreign,
+ram_idle,
+ram_idle+ram_native as ram_native,
+slot_count,
+slot_core_count,
+slot_idle_core_count
 
 from (
     select
 
     group_name,
     cloud_name,
-    0 as VMs,
-    0 as VMs_unregistered,
-    0 as VMs_running,
-    0 as VMs_retiring,
-    0 as VMs_manual,
-    0 as VMs_in_error,
-    0 as VMs_other,
-    0 as Foreign_VMs,
-    cores_ctl,
-    cores_max,
-    cores_native,
-    cores_foreign,
-    cores_idle,
-    ram_ctl,
-    ram_max,
-    ram_native,
-    ram_foreign,
-    ram_idle,
-    0 as condor_slots,
-    0 as condor_slots_used
+    sum(VMs) as VMs,
+    sum(VMs_starting) as VMs_starting,
+    sum(VMs_unregistered) as VMs_unregistered,
+    sum(VMs_idle) as VMs_idle,
+    sum(VMs_running) as VMs_running,
+    sum(VMs_retiring) as VMs_retiring,
+    sum(VMs_manual) as VMs_manual,
+    sum(VMs_in_error) as VMs_in_error,
+    sum(VMs_other) as VMs_other,
+    sum(Foreign_VMs) as Foreign_VMs,
+    sum(slot_count) as slot_count,
+    sum(slot_core_count) as slot_core_count,
+    sum(slot_idle_core_count) as slot_idle_core_count
 
-    from view_group_resources
+    from (
+        /*
+        ** Ensure all clouds are represented.
+        */
+        select
 
-    /*
-    ** Retrieve VM count for each group.
-    */
-    union all select
+        group_name,
+        cloud_name,
+        0 as VMs,
+        0 as VMs_starting,
+        0 as VMs_unregistered,
+        0 as VMs_idle,
+        0 as VMs_running,
+        0 as VMs_retiring,
+        0 as VMs_manual,
+        0 as VMs_in_error,
+        0 as VMs_other,
+        0 as Foreign_VMs,
+        0 as slot_count,
+        0 as slot_core_count,
+        0 as slot_idle_core_count
 
-    group_name,
-    cloud_name,
-    case when foreign_vm=0 then 1 else 0 end as VMs,
-    case when poller_status="unregistered" then 1 else 0 end as VMs_unregistered,
-    case when poller_status="running" then 1 else 0 end as VMs_running,
-    case when poller_status="retiring" then 1 else 0 end as VMs_retiring,
-    case when poller_status="manual" then 1 else 0 end as VMs_manual,
-    case when poller_status="error" then 1 else 0 end as VMs_in_error,
-    case when poller_status="other" then 1 else 0 end as VMs_other,
-    case when poller_status="foreign" then 1 else 0 end as Foreign_VMs,
-    0 as cores_ctl,
-    0 as cores_max,
-    0 as cores_native,
-    0 as cores_foreign,
-    0 as cores_idle,
-    0 as ram_ctl,
-    0 as ram_max,
-    0 as ram_native,
-    0 as ram_foreign,
-    0 as ram_idle,
-    condor_slots,
-    condor_slots_used
+        from view_group_resources
 
-    from view_vms
-    ) as grwvs /* group_resources_with_vm_status */
+        /*
+        ** Retrieve VM count for each group.
+        */
+        union all select
+
+        group_name,
+        cloud_name,
+        case when foreign_vm=0 then 1 else 0 end as VMs,
+        case when poller_status="starting" then 1 else 0 end as VMs_starting,
+        case when poller_status="unregistered" then 1 else 0 end as VMs_unregistered,
+        case when poller_status="idle" then 1 else 0 end as VMs_idle,
+        case when poller_status="running" then 1 else 0 end as VMs_running,
+        case when poller_status="retiring" then 1 else 0 end as VMs_retiring,
+        case when poller_status="manual" then 1 else 0 end as VMs_manual,
+        case when poller_status="error" then 1 else 0 end as VMs_in_error,
+        case when poller_status="other" then 1 else 0 end as VMs_other,
+        case when poller_status="foreign" then 1 else 0 end as Foreign_VMs,
+        0 as slot_count,
+        0 as slot_core_count,
+        0 as slot_idle_core_count
+
+        from view_vms
+
+        /*
+        ** Retrieve VM count for each group.
+        */
+        union all select
+
+        group_name,
+        cloud_name,
+        0 as VMs,
+        0 as VMs_starting,
+        0 as VMs_unregistered,
+        0 as VMs_idle,
+        0 as VMs_running,
+        0 as VMs_retiring,
+        0 as VMs_manual,
+        0 as VMs_in_error,
+        0 as VMs_other,
+        0 as Foreign_VMs,
+        slot_count,
+        slot_core_count,
+        slot_idle_core_count
+        from (
+
+            select
+            case when instr(machine,'--')=0 then
+                "-"
+            else
+                substring_index(machine,'--',1)
+            end as group_name,
+            case when instr(machine,'--')=0 then
+                "-"
+            else
+                substring_index(substring_index(machine,'--',2),'--',-1)
+            end as cloud_name,
+
+            case when state="Claimed" then
+                1
+            else
+                0
+            end as slot_count,
+
+            case when state="Claimed" then
+                slot_CPUs
+            else
+                0
+            end as slot_core_count,
+
+            case when state="Claimed" then
+                0
+            else
+                slot_CPUs
+            end as slot_idle_core_count
+
+            from condor_machines
+            ) as n01
+        ) as n02
+    group by group_name,cloud_name
+    ) as n03
 
 left outer join view_group_resources as vgr on
-grwvs.group_name=vgr.group_name and
-grwvs.cloud_name=vgr.cloud_name
+n03.group_name=vgr.group_name and
+n03.cloud_name=vgr.cloud_name
 
-group by group_name,cloud_name
-
+order by group_name,cloud_name
 ;

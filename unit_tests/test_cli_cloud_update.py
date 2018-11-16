@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: CV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
@@ -33,7 +33,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
-        ['cloudscheduler', 'cloud', 'update', '-s', 'unit-test']
+        ['cloudscheduler', 'cloud', 'update', '-s', 'unit-test-un']
     )
 
     execute_csv2_command(
@@ -198,9 +198,10 @@ def main(gvar, user_secret):
             '-ct', 'local',
             '-cu', ut_id(gvar, 'clc10'),
             '-ce', 'no',
-            '-vka', '10',
             '-vi', '',
             '-vf', '',
+            '-vk', '',
+            '-vka', '10',
             '-vn', '',
             '-csp', '10',
             '-gme', ut_id(gvar, 'clm2')
@@ -278,6 +279,22 @@ def main(gvar, user_secret):
             '-cu', ut_id(gvar, 'clc10'),
             '-gme', ut_id(gvar, 'clm2.yaml,clm3'),
             '-gmo', 'add'
+        ]
+    )
+
+    execute_csv2_command(
+        gvar, 0, None, 'cloud "{}::{}" successfully updated.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
+        ['cloudscheduler', 'cloud', 'update',
+            '-cn', ut_id(gvar, 'clc2'),
+            '-ca', 'command-line-cloud-update2.ca',
+            '-cpw', 'command-line-cloud-update2',
+            '-cp', 'command-line-cloud-update2',
+            '-cr', 'clc10-r',
+            '-ct', 'local',
+            '-cu', ut_id(gvar, 'clc10'),
+            '-gmo', 'add',
+            '-g', ut_id(gvar, 'clg1'),
+            '-s', 'unit-test',
         ]
     )
 

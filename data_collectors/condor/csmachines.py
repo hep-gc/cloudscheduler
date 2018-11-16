@@ -15,6 +15,7 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
+    set_orange_count, \
     start_cycle, \
     wait_cycle
 
@@ -23,7 +24,6 @@ import classad
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
-
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -100,6 +100,9 @@ def machine_poller():
                 uncommitted_updates = 0
                 for resource in condor_resources:
                     r_dict = dict(resource)
+                    if 'group_name' not in r_dict:
+                        logging.info("Skipping resource with no group_name.")
+                        continue
                     if "Start" in r_dict:
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
@@ -247,6 +250,8 @@ def command_poller():
 
                         condor_classad = condor_session.query(startd_type, 'Name=="%s"' % resource.name)[0]
                         startd_list.append(condor_classad)
+                    except IndexError as exc:
+                        pass
                     except Exception as exc:
                         logging.exception("Failed to retrieve machine classads, aborting...")
                         logging.error(exc)
@@ -296,12 +301,16 @@ if __name__ == '__main__':
         'machine':            machine_poller,
         }
 
+    previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', 1, 0)
+
     # Wait for keyboard input to exit
     try:
         while True:
+            orange = False
             for process in sorted(process_ids):
                 if process not in processes or not processes[process].is_alive():
                     if process in processes:
+                        orange = True
                         logging.error("%s process died, restarting...", process)
                         del(processes[process])
                     else:
@@ -309,6 +318,12 @@ if __name__ == '__main__':
                     processes[process] = Process(target=process_ids[process])
                     processes[process].start()
                     time.sleep(config.sleep_interval_main_short)
+
+            if orange:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', previous_count, current_count+1)
+            else:
+                previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', previous_count, current_count-1)
+               
             time.sleep(config.sleep_interval_main_long)
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")

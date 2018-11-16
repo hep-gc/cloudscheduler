@@ -1,14 +1,14 @@
 from unit_test_common import execute_csv2_command, execute_csv2_request, initialize_csv2_request, ut_id, generate_secret
-import sys
+from sys import argv
 import cli_requests_cleanup
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
     if not user_secret:
         user_secret = generate_secret()
     
@@ -159,6 +159,21 @@ def main(gvar, user_secret):
         }
     )
 
+    # cloud to be deleted
+    execute_csv2_request(
+        gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc3')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'clg1'),
+            'cloud_name': ut_id(gvar, 'clc3'),
+            'authurl': 'unit-test-cloud-three.ca',
+            'project': 'unit-test-cloud-three',
+            'username': ut_id(gvar, 'clc3'),
+            'password': 'unit-test-cloud-three',
+            'region': ut_id(gvar, 'clc3-r'),
+            'cloud_type': 'local'
+        }
+    )
+
     # cloud to be listed and edited
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2')),
@@ -218,6 +233,15 @@ def main(gvar, user_secret):
         '/cloud/metadata-add/', form_data={
             'cloud_name': ut_id(gvar, 'clc2'),
             'metadata_name': ut_id(gvar, 'clm1'),
+            'metadata': '- example: yes'
+        }
+    )
+
+    execute_csv2_request(
+        gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc2'), ut_id(gvar, 'clm3')),
+        '/cloud/metadata-add/', form_data={
+            'cloud_name': ut_id(gvar, 'clc2'),
+            'metadata_name': ut_id(gvar, 'clm3'),
             'metadata': '- example: yes'
         }
     )

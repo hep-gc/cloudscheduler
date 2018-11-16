@@ -13,7 +13,7 @@ import cloudscheduler.openstackcloud
 import cloudscheduler.localhostcloud
 import cloudscheduler.config as csconfig
 
-
+from lib.db_config import Config
 
 class CloudManager():
 
@@ -33,43 +33,38 @@ class CloudManager():
         self.group_resources = group_resources
         self.group_yamls = group_yamls
         self.metadata = metadata
+        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
 
     def setup(self):
         """
         Setup the group cloud resources and fetch cloud specific
         yaml from the database.
         """
-        base = automap_base()
-        engine = create_engine("mysql+pymysql://" + csconfig.config.db_user + ":" +
-                               csconfig.config.db_password + "@" +
-                               csconfig.config.db_host + ":" +
-                               str(csconfig.config.db_port) +
-                               "/" + csconfig.config.db_name)
-        base.prepare(engine, reflect=True)
-        session = Session(engine)
-        cloud_yaml = base.classes.csv2_group_resource_metadata
-        cloud_vm = base.classes.csv2_vms
+        self.config.db_open()
+        cloud_vm = self.config.db_map.classes.csv2_vms
 
         for cloud in self.group_resources:
-            cloud_yamls = session.query(cloud_yaml).\
-                filter(cloud_yaml.group_name == self.name,
-                       cloud_yaml.cloud_name == cloud.cloud_name,
-                       cloud_yaml.enabled == 1)
-            cloud_yaml_list = []
-            for yam in cloud_yamls:
-                cloud_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
-            cloud_vms = session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
+            cloud_vms = []
+            try:
+                cloud_vms = self.config.db_session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
                                                        cloud_vm.cloud_name == cloud.cloud_name)
+            except Exception as ex:
+                self.log.exception("Unable to query database: %s", ex)
+
             try:
                 if cloud.cloud_type == 'localhost':
-                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(extrayaml=cloud_yaml_list, resource=cloud,
+                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(resource=cloud,
                                                                             metadata=self.metadata[cloud.cloud_name])
                 else:
                     newcloud = cloudscheduler.openstackcloud.\
-                        OpenStackCloud(extrayaml=cloud_yaml_list, resource=cloud, vms=cloud_vms,
+                        OpenStackCloud(resource=cloud, vms=cloud_vms,
                                        metadata=self.metadata[cloud.cloud_name])
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
             except Exception as ex:
                 self.log.exception(ex)
         self.log.debug("Added all clouds for group: %s", self.name)
+        try:
+            self.config.db_close()
+        except Exception as ex:
+            self.log.exception(ex)

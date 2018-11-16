@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: GV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
 
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
@@ -28,7 +28,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
-        ['cloudscheduler', 'metadata', 'update', '-s', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0', '-s', 'invalid-unit-test']
     )
 
     execute_csv2_command(
@@ -48,12 +48,12 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'Expose API requested',
-        ['cloudscheduler', 'metadata', 'update', '-xA']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0', '-xA']
     )
 
     execute_csv2_command(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        ['cloudscheduler', 'metadata', 'update', '-g', 'invalid-unit-test']
+        ['cloudscheduler', 'metadata', 'update', '-mn', 'invalid-unit-test', '-me', '0', '-g', 'invalid-unit-test']
     )
 
     execute_csv2_command(

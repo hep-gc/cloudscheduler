@@ -1,15 +1,16 @@
 from unit_test_common import execute_csv2_command, initialize_csv2_request, ut_id
-import sys
+from os import environ
+from sys import argv
 
 # lno: GV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
     
     execute_csv2_command(
         gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
@@ -74,6 +75,20 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 1, None, None,
         ['cloudscheduler', 'metadata', 'edit', '-mn', ut_id(gvar, 'clm2'), '-te', 'invalid-unit-test']
+    )
+
+    environ['EDITOR'] = './editscript1'
+
+    execute_csv2_command(
+        gvar, 0, None, 'completed, no changes.',
+        ['cloudscheduler', 'metadata', 'edit', '-mn', ut_id(gvar, 'clm2')]
+    )
+
+    environ.pop('EDITOR')
+
+    execute_csv2_command(
+        gvar, 1, None, 'Error: "cloudscheduler metadata edit" - no value, neither default nor command line, for the following required parameters:',
+        ['cloudscheduler', 'metadata', 'edit', '-mn', ut_id(gvar, 'clm2')]
     )
 
     # The edit scripts in the next 4 tests will break easily as they rely on some system variables

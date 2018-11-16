@@ -28,15 +28,16 @@ SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 DEBUG = True
 
 # Profiling
-#if config.enable_profiling:
-#    SILKY_PYTHON_PROFILER = True
-#    SILKY_PYTHON_PROFILER_BINARY = True
-#    SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
+if config.enable_profiling:
+    SILKY_PYTHON_PROFILER = True
+    SILKY_PYTHON_PROFILER_BINARY = True
+    SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
 
 ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev.heprc.uvic.ca",
                  "csv2-dev2.heprc.uvic.ca",
                  "htc-dev.heprc.uvic.ca",
+                 "localhost"
                 ]
 
 LOGGING = {
@@ -79,7 +80,7 @@ LOGGING = {
 # Application definition
 if config.enable_profiling:
     INSTALLED_APPS = [
-#        'silk',
+        'silk',
         'csv2.apps.Csv2Config',
         'django.contrib.admin',
         'django.contrib.auth',
@@ -106,7 +107,7 @@ if config.enable_glint:
 
 if config.enable_profiling:
     MIDDLEWARE = [
-#        'silk.middleware.SilkyMiddleware',
+        'silk.middleware.SilkyMiddleware',
         'django.middleware.security.SecurityMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.middleware.common.CommonMiddleware',

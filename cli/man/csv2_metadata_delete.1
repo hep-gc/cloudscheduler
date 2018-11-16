@@ -1,0 +1,52 @@
+.so ../man/_header.so
+\fBcloudscheduler metadata delete\fR \- delete group metadata from cloudscheduler version 2 (csv2) servers
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B metadata
+.B delete
+.BI \-mn " name"
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_metadata_delete.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_metadata_name.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+.so ../man/_options.so
+.so ../man/parameters/_yes.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+Deleteing group metadata "example":
+.EX
+$ cloudscheduler metadata delete -mn example.yaml -Y
+group metadata file "example::example.yaml" successfully deleted.
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_group_metadata-delete (1)
+.BR csv2_metadata_group-defaults (1)
+.BR csv2_metadata_edit (1)
+.BR csv2_metadata_list (1)
+.BR csv2_metadata_load (1)
+.BR csv2_metadata_update (1)

@@ -12,7 +12,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
     mandatory = []
     required = []
     options = []
-    valid_keys = []
+    valid_keys = ['server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user']
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
@@ -430,6 +430,9 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
 
     if not gvar['user_settings']['no-view'] and gvar['object'] in gvar['views'] and gvar['action'] in gvar['views'][gvar['object']]:
         Selections = gvar['views'][gvar['object']][gvar['action']]
+        if Selections == [['-r']]:
+            gvar['user_settings']['rotate'] = True
+            Selections = None
     else:
         Selections = None
 

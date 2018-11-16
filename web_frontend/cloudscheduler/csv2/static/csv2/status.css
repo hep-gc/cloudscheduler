@@ -1,5 +1,9 @@
 
+/*************************************/
 
+/*****************************************************************/
+/*                          table styling                        */
+/*****************************************************************/
 .status-div {
   position: absolute;
   top: 70px;
@@ -31,14 +35,14 @@
 .status-table td, th {
   padding: 8px;
   text-align: center;
-  border-bottom: 2px solid #ddd;
+  border-top: 2px solid #ddd;
   position: relative;
   width: 80px;
 }
 
 .status-table .col-spacer {
   background-color: white;
-  border-bottom: 0px;
+  border: 0px;
   color: white;
   width: 20px;
 }
@@ -85,14 +89,116 @@
 }
 
 
-.status-table td td {
-  border-bottom: 0px;
-  padding: 1px;
 
+/*****************************************************************/
+/*                    expanding row styling                      */
+/*****************************************************************/
+
+td a {
+    display:block;
+    width:100%;
+}
+
+.toggle-button {
+  position: relative;
+  left: 95%;
+  top: 30px;
+  width:30px;
+  max-width:30px;
+}
+
+.toggle-box{
+  display: none;
+}
+
+.header-row th {
+  border-top: 0px;
+}
+
+.bottom-row td {
+  border-top: 2px solid #ddd;
+  border-bottom: 0px;
+  background-color: white;
+  height: 0px;
+  padding: 0px;
+}
+
+.bottom-row td:hover {
+  background-color: white;
+}
+
+.extra-row td {
+  border-top: 0px;
+}
+
+.extra-row {
+  display: none;
 }
 
 
 
+input#toggle-row:checked ~ table tr.extra-row,  table td.extra-row {
+  display: table-row;
+}
+
+/*
+
+.how-other-disclosure {
+  display: none;
+  margin: 10px 0 0 35px;
+}
+
+#how-other:checked ~ .how-other-disclosure {
+  display: block;
+}
+*/
+/*****************************************************************/
+
+
+
+
+/* Acordeon styles */
+.slots {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.slots > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.slots > label {
+  position: relative;
+  display: block;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.slots-content {
+  display: none;
+
+}
+
+/* :checked */
+.slots input:checked ~ .slots-content {
+  display: block;
+}
+/* Icon */
+.slots > label::after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 3em;
+  height: 3em;
+  line-height: 3;
+  text-align: center;
+
+}
+/*****************************************************************/
+/*                          status styling                       */
+/*****************************************************************/
 .name-style{
   background-color: maroon;
   color: white;
@@ -107,6 +213,12 @@
   background-color: powderblue;
   color: black;
 }
+.native-style th{
+  background-color: powderblue;
+  color: black;
+  padding: 0px;
+}
+
 
 .foreign-style {
   background-color: orange;
@@ -116,6 +228,12 @@
 .total-style {
   background-color: green;
   color: white;
+}
+
+.total-style th{
+  background-color: green;
+  color: white;
+  padding: 0px;
 }
 
 .title-style a {
@@ -173,7 +291,7 @@
 .clear {}
 
 /*****************************************************************/
-/*                       Tooltips styling                        */
+/*                       tooltips styling                        */
 /*****************************************************************/
 
 [tooltip]{
@@ -204,11 +322,10 @@
    opacity:1 !important;
 }
 
+
 /*****************************************************************/
-
-
-
-
+/*                        overlay styling                        */
+/*****************************************************************/
 
 .overlay {
   position: fixed;
@@ -263,6 +380,9 @@
   }
 }
 
+/*****************************************************************/
+/*                       sys stats styling                       */
+/*****************************************************************/
 
 .system-div {
   position: fixed;
@@ -277,8 +397,10 @@
   font-weight: bold;
 }
 
+
 .system-services th {
   text-align: center;
+  border: 0px;
 }
 
 .system-services td {
@@ -287,7 +409,7 @@
 
 .system-services .col-spacer {
   background-color: white;
-  border-bottom: 0px;
+  border: 0px;
   color: white;
   width: 20px;
 }
@@ -296,6 +418,14 @@
   height: 25px;
   width: 25px;
   background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.orange-dot {
+  height: 25px;
+  width: 25px;
+  background-color: orange;
   border-radius: 50%;
   display: inline-block;
 }
@@ -316,54 +446,9 @@
   max-width:30px;
 }
 
-
-
 #CDTimer {
   font-weight: bold;
   color: red;
   text-align: center;
-}
-
-
-
-
-/* Acordeon styles */
-.slots {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-}
-.slots > input {
-  position: absolute;
-  opacity: 0;
-  z-index: -1;
-}
-.slots > label {
-  position: relative;
-  display: block;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.slots-content {
-  display: none;
-
-}
-
-/* :checked */
-.slots input:checked ~ .slots-content {
-  display: block;
-}
-/* Icon */
-.slots > label::after {
-  position: absolute;
-  right: 0;
-  top: 0;
-  display: block;
-  width: 3em;
-  height: 3em;
-  line-height: 3;
-  text-align: center;
-
 }
 

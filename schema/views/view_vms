@@ -15,10 +15,8 @@ cf.name as flavor_name,
 cpp.condor_slots,
 cdp.condor_slots_used,
 cpp.machine,
-cpp.my_current_time,
-cpp.entered_current_state,
-cpp.state,
-cpp.activity,
+cdp.my_current_time,
+cdp.entered_current_state,
 cpp.idle_time,
 cpp.retire_request_time,
 cpp.retired_time,
@@ -36,16 +34,24 @@ else
         case when cv.status = 'ERROR' then
             'error'
         else
-            case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.condor_slots is null then
-                'unregistered'
+            case when cv.power_status = 1 and ifnull(cpp.retire_request_time,0) != 0 then
+                'retiring'
             else
-                case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time != 0 then
-                    'retiring'
+                case when cv.power_status = 1 and cv.status = 'BUILD' then
+                    'starting'
                 else
-                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.retire_request_time = 0 then
-                        'running'
+                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.condor_slots is null then
+                        'unregistered'
                     else
-                        'other'
+                        case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cdp.condor_slots_used,0) < 1 then
+                            'idle'
+                        else
+                            case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cdp.condor_slots_used,0) > 0 then
+                                'running'
+                            else
+                                'other'
+                            end
+                        end
                     end
                 end
             end
@@ -67,10 +73,6 @@ left outer join (
     substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
     substring_index(machine,'.',1) as hostname,
     machine,
-    my_current_time,
-    entered_current_state,
-    state,
-    activity,
     total_slots as condor_slots,
     idle_time,
     retire_request_time,
@@ -92,6 +94,8 @@ left outer join (
     substring_index(machine,'--',1) as group_name,
     substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
     substring_index(machine,'.',1) as hostname,
+    max(my_current_time) as my_current_time,
+    max(entered_current_state) as entered_current_state,
     sum(case when activity="Busy" then 1 else 0 end) as condor_slots_used
 
     from condor_machines

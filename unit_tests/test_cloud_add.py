@@ -1,15 +1,15 @@
 from unit_test_common import execute_csv2_request, initialize_csv2_request, ut_id
-import sys
+from sys import argv
 
 # lno: CV - error code identifier.
 
 def main(gvar, user_secret):
     if not gvar:
         gvar = {}
-        if len(sys.argv) > 1:
-            initialize_csv2_request(gvar, sys.argv[0], selections=sys.argv[1])
+        if len(argv) > 1:
+            initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
-            initialize_csv2_request(gvar, sys.argv[0])
+            initialize_csv2_request(gvar, argv[0])
     
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
@@ -585,6 +585,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'vm_flavor': '',
             'vm_image': '',
+            'vm_keyname': '',
             'vm_network': '',
             'enabled': 0,
             'vm_keep_alive': 10,
@@ -608,6 +609,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'vm_flavor': '',
             'vm_image': '',
+            'vm_keyname': '',
             'vm_network': '',
             'enabled': 0,
             'vm_keep_alive': 10,
@@ -630,6 +632,7 @@ def main(gvar, user_secret):
             'cloud_type': 'local',
             'vm_flavor': '',
             'vm_image': '',
+            'vm_keyname': '',
             'vm_network': '',
             'metadata_name.1': ut_id(gvar, 'cty1'),
             'metadata_name.2': ut_id(gvar, 'cty2'),
@@ -709,6 +712,22 @@ def main(gvar, user_secret):
             'region': ut_id(gvar, 'ctc7-r'),
             'cloud_type': 'local',
             'vm_network': 'invalid-unit-test',
+        },
+        server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
+    )
+
+    execute_csv2_request(
+        gvar, 1, 'CV95', 'cloud add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={1}, cloud_name={0}.'.format(ut_id(gvar, 'invalid-unit-test'), ut_id(gvar, 'ctg1')),
+        '/cloud/add/', form_data={
+            'group': ut_id(gvar, 'ctg1'),
+            'cloud_name': ut_id(gvar, 'invalid-unit-test'),
+            'authurl': 'unit-test-cloud-seven.ca',
+            'project': 'unit-test-cloud-seven',
+            'username': ut_id(gvar, 'ctu3'),
+            'password': user_secret,
+            'region': ut_id(gvar, 'ctc7-r'),
+            'cloud_type': 'local',
+            'vm_keyname': 'invalid-unit-test',
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

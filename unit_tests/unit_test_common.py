@@ -50,7 +50,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
                             for col_name in column_name.strip().split('  '):
                                 if col_name.strip() and (col_name.strip() not in column_list):
                                     column_list.append(col_name.strip())
-                if columns.sort() != column_list.sort():
+                if set(columns) != set(column_list):
                     failed = True
                     list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, column_list)
 

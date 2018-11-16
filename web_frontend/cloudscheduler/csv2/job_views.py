@@ -28,7 +28,7 @@ from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
-#from cloudscheduler.lib.web_profiler import silk_profile as silkp
+from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: JV - error code identifier.
 
@@ -75,7 +75,7 @@ LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-#@silkp(name="Job List")
+@silkp(name="Job List")
 @requires_csrf_token
 def list(
     request,
