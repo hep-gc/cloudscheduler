@@ -30,7 +30,7 @@ def image_collection():
     num_tx = get_num_transactions()
 
     # setup database objects
-    Group_Resources = config.db_map.classes.csv2_group_resources
+    Group_Resources = config.db_map.classes.csv2_clouds
     Group = config.db_map.classes.csv2_groups
 
     # perminant for loop to monitor image states and to queue up tasks
@@ -131,7 +131,7 @@ def defaults_replication():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Group = config.db_map.classes.csv2_groups
     Group_Defaults = config.db_map.classes.csv2_group_defaults
-    Group_Resources = config.db_map.classes.csv2_group_resources
+    Group_Resources = config.db_map.classes.csv2_clouds
     Keypairs = config.db_map.classes.cloud_keypairs
 
     while True:

@@ -14,7 +14,7 @@ from lib.schema import view_vms
 from lib.schema import view_groups_of_idle_jobs
 from lib.schema import view_available_resources
 from lib.schema import view_condor_jobs_group_defaults_applied
-from lib.schema import view_group_resources
+from lib.schema import view_clouds
 from lib.schema import view_metadata_collation_json
 
 from lib.db_config import Config
@@ -63,8 +63,8 @@ def main():
                           csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
-            group_resources = config.db_session.query(view_group_resources).filter(view_group_resources.c.group_name == csgroup.group_name,
-                                                                         view_group_resources.c.enabled == 1)
+            group_resources = config.db_session.query(view_clouds).filter(view_clouds.c.group_name == csgroup.group_name,
+                                                                         view_clouds.c.enabled == 1)
             Group_metadata = config.db_map.classes.csv2_group_metadata
             group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
