@@ -47,7 +47,7 @@ def machine_poller():
 
 
     RESOURCE = config.db_map.classes.condor_machines
-    CLOUDS = config.db_map.classes.csv2_group_resources
+    CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
 
     cycle_start_time = 0

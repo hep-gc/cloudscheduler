@@ -10,14 +10,14 @@ select
 
 from (
     select
-        vgr.group_name,
-        vgr.cloud_name,
-        vgr.enabled,
-        vgr.spot_price,
-        concat(vgr.cloud_name, ":", vgr.cascading_vm_image) as default_image,
-        vgr.cascading_vm_keep_alive as keep_alive,
-        concat(vgr.cloud_name, ":", vgr.cascading_vm_keyname) as default_keyname,
-        concat(vgr.cloud_name, ":", vgr.cascading_vm_network) as default_network,
+        vc.group_name,
+        vc.cloud_name,
+        vc.enabled,
+        vc.spot_price,
+        concat(vc.cloud_name, ":", vc.cascading_vm_image) as default_image,
+        vc.cascading_vm_keep_alive as keep_alive,
+        concat(vc.cloud_name, ":", vc.cascading_vm_keyname) as default_keyname,
+        concat(vc.cloud_name, ":", vc.cascading_vm_network) as default_network,
         authurl,
         project,
         username,
@@ -45,7 +45,7 @@ from (
 
         name as flavor_name,
         id as flavor_id,
-        concat(vgr.cloud_name, "::", name) as flavor_instance_type,
+        concat(vc.cloud_name, "::", name) as flavor_instance_type,
         cf.cores as flavor_cores,
         disk + ephemeral_disk as flavor_disk,
         disk as flavor_enduring_disk,
@@ -57,8 +57,8 @@ from (
         ** Use the row_number() DB function to create flavor_priority, ranking flavors by cores, disk, ram, and swap.
         */
         row_number() over (partition by
-        vgr.group_name,
-        vgr.cloud_name
+        vc.group_name,
+        vc.cloud_name
         order by
             flavor_cores,
             flavor_disk,
@@ -67,19 +67,19 @@ from (
             flavor_ram,
             flavor_swap
         ) as flavor_priority,
-        concat(vgr.cloud_name, ":", cf.name) as flavor
+        concat(vc.cloud_name, ":", cf.name) as flavor
 
-        from view_group_resources as vgr
+        from view_clouds as vc
         join cloud_flavors as cf on
-        vgr.group_name=cf.group_name and
-        vgr.cloud_name=cf.cloud_name and (
-            vgr.cascading_vm_flavor is null or
-            vgr.cascading_vm_flavor="" or
-            vgr.cascading_vm_flavor=cf.name
+        vc.group_name=cf.group_name and
+        vc.cloud_name=cf.cloud_name and (
+            vc.cascading_vm_flavor is null or
+            vc.cascading_vm_flavor="" or
+            vc.cascading_vm_flavor=cf.name
             )
 
 
-        order by vgr.group_name,vgr.cloud_name,flavor_priority
+        order by vc.group_name,vc.cloud_name,flavor_priority
         ) as grwcf /* group_resources_with_cloud_flavors */
   
 where

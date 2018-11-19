@@ -101,7 +101,7 @@ from (
         0 as slot_core_count,
         0 as slot_idle_core_count
 
-        from view_group_resources
+        from view_clouds
 
         /*
         ** Retrieve VM count for each group.
@@ -184,9 +184,9 @@ from (
     group by group_name,cloud_name
     ) as n03
 
-left outer join view_group_resources as vgr on
-n03.group_name=vgr.group_name and
-n03.cloud_name=vgr.cloud_name
+left outer join view_clouds as vc on
+n03.group_name=vc.group_name and
+n03.cloud_name=vc.cloud_name
 
 order by group_name,cloud_name
 ;

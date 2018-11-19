@@ -134,7 +134,7 @@ def command_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -190,7 +190,7 @@ def flavor_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     FLAVOR = config.db_map.classes.cloud_flavors
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -323,7 +323,7 @@ def image_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
     IMAGE = config.db_map.classes.cloud_images
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -450,7 +450,7 @@ def keypair_poller():
     #Base.prepare(db_engine, reflect=True)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     KEYPAIR = config.db_map.classes.cloud_keypairs
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -560,7 +560,7 @@ def limit_poller():
     #Base.prepare(db_engine, reflect=True)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     LIMIT = config.db_map.classes.cloud_limits
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -674,7 +674,7 @@ def network_poller():
     #Base.prepare(db_engine, reflect=True)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     NETWORK = config.db_map.classes.cloud_networks
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -793,7 +793,7 @@ def vm_poller():
     #Base.prepare(db_engine, reflect=True)
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_map.classes.csv2_group_resources
+    CLOUD = config.db_map.classes.csv2_clouds
 
     cycle_start_time = 0
     new_poll_time = 0
