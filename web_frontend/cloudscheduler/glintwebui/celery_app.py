@@ -43,7 +43,7 @@ def image_collection(self):
 
     # setup database objects
     Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
+    Group_Resources = Base.classes.csv2_clouds
     Group = Base.classes.csv2_groups
 
     # perminant for loop to monitor image states and to queue up tasks
