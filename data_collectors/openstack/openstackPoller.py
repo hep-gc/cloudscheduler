@@ -849,8 +849,12 @@ def vm_poller():
                             elif addr['OS-EXT-IPS:type'] == 'floating':
                                 floating_ips.append(addr['addr'])
                     strt_time = vm.__dict__["OS-SRV-USG:launched_at"]
-                    dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
-                    vm_start_time = dt_strt_time.strftime('%s')
+                    try:
+                        dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
+                        vm_start_time = dt_strt_time.strftime('%s')
+                    except:
+                        logging.info("No start time because VM still booting: %s, %s - setting start time equal to current time." % (type(strt_time), strt_time))
+                        vm_start_time = new_poll_time
                     vm_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
