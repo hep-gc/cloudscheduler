@@ -8,7 +8,6 @@ from django.conf import settings
 from celery import Celery
 from celery.utils.log import get_task_logger
 import glintwebui.config as config
-from .db_util import get_db_base_and_session
 
 from glintwebui.glint_api import repo_connector
 from .utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
@@ -34,111 +33,6 @@ def debug_task(self):
     logger.debug('Request: {0!r}'.format(self.request))
 
 
-@app.task(bind=True)
-def image_collection(self):
-
-    wait_period = 0
-    term_signal = False
-    num_tx = get_num_transactions()
-
-    # setup database objects
-    Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_clouds
-    Group = Base.classes.csv2_groups
-
-    # perminant for loop to monitor image states and to queue up tasks
-    while True:
-        # First check for term signal
-        logger.debug("Term signal: %s", term_signal)
-        if term_signal is True:
-            #term signal detected, break while loop
-            logger.info("Term signal detected, shutting down")
-            set_collection_task(False)
-            return
-        logger.info("Start Image collection")
-        group_list = session.query(Group)
-
-        #if there are no active transactions clean up the cache folders
-        if num_tx == 0:
-            do_cache_cleanup()
-
-        for group in group_list:
-            repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
-            image_list = ()
-            for repo in repo_list:
-                try:
-                    rcon = repo_connector(
-                        auth_url=repo.authurl,
-                        project=repo.project,
-                        username=repo.username,
-                        password=repo.password,
-                        user_domain_name=repo.user_domain_name,
-                        project_domain_name=repo.project_domain_name,
-                        alias=repo.cloud_name)
-                    image_list = image_list + rcon.image_list
-
-                except Exception as exc:
-                    logger.error(exc)
-                    logger.error("Could not connect to repo: %s at %s",\
-                        repo.project, repo.authurl)
-
-            # take the new json and compare it to the previous one
-            # and merge the differences, generally the new one will be used but if there
-            # are any images awaiting transfer or deletion they must be added to the list
-            updated_img_list = update_pending_transactions(
-                get_images_for_group(group.group_name),
-                jsonify_image_list(image_list=image_list, repo_list=repo_list))
-
-            # now we have the most current version of the image matrix for this group the last
-            # thing that needs to be done here is to proccess the PROJECTX_pending_transactions
-            logger.info("Processing pending Transactions for group: %s", group.group_name)
-            updated_img_list = process_pending_transactions(
-                group_name=group.group_name,
-                json_img_dict=updated_img_list)
-            logger.info("Proccessing state changes for group: %s", group.group_name)
-            updated_img_list = process_state_changes(
-                group_name=group.group_name,
-                json_img_dict=updated_img_list)
-            set_images_for_group(group_name=group.group_name, json_img_dict=updated_img_list)
-
-            # Need to build conflict dictionary to be displayed on matrix page. Check for
-            # image conflicts function returns a dictionary of conflicts, keyed by the repos
-            # THESE FUNCTIONS ARE NOT USED FOR CSV2 ANYWHERE SO I AM DISABLING THEM
-            #conflict_dict = check_for_image_conflicts(json_img_dict=updated_img_list)
-            #set_conflicts_for_group(group_name=group.group_name, conflict_dict=conflict_dict)
-
-        logger.info("Image collection complete, entering downtime")
-        loop_counter = 0
-        if num_tx == 0:
-            wait_period = config.image_collection_interval
-        else:
-            wait_period = 0
-
-        while loop_counter < wait_period:
-            time.sleep(5)
-            num_tx = get_num_transactions()
-            #check for new transactions
-            if num_tx > 0:
-                break
-            #check if repos have been added or deleted
-            if check_for_repo_changes():
-                repo_proccesed()
-                break
-
-            #check if httpd is running
-            output = subprocess.check_output(['ps', '-A'])
-            if 'httpd' not in str(output):
-                #apache has shut down, time for image collection to do the same
-                logger.info("httpd offile, terminating")
-                term_signal = True
-                break
-            loop_counter = loop_counter+1
-        num_tx = get_num_transactions()
-
-
-
-
-# Accepts Image info, project name, and a repo object
 # Must find and download the appropriate image (by name) and then upload it
 # to the given image ID
 @app.task(bind=True)
