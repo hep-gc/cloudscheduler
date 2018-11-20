@@ -13,6 +13,7 @@ from .view_utils import \
     getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
+    kill_retire, \
     lno, \
     qt, \
     qt_filter_get, \
@@ -48,7 +49,7 @@ VM_KEYS = {
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'hostname':                                                     'ignore',
+        'vm_hosts':                                                     'ignore',
         },
     }
 
@@ -62,6 +63,7 @@ LIST_KEYS = {
 
 MANDATORY_KEYS = {
     'mandatory': [
+        'vm_hosts',
         'vm_option',
         ]
     }
@@ -167,27 +169,34 @@ def update(request):
             return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
 
         # Retrieve VM information.
-        s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) & (view_vms.c.foreign_vm == 0))
-        vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
-
-        count = 0
-        for vm in vm_list:
-            if fields['vm_option'] == 'kill':
-                update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
-            elif fields['vm_option'] == 'retire':
-#               update = table.update().where(table.c.machine.like("%{vm['hostname']}%")).values({'retire_request_time': int(time.time())})
-                update = table.update().where((table.c.slot_type == 'Partitionable') & (table.c.machine.like('%s%%' % vm['hostname']))).values({'retire_request_time': int(time.time())})
-            elif fields['vm_option'] == 'manctl':
-                update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
-            elif fields['vm_option'] == 'sysctl':
-                update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
-
-            rc, msg = config.db_session_execute(update, allow_no_rows=True)
-            if rc == 0:
-                count += msg
+        if fields['vm_hosts'].isnumeric():
+            if 'cloud_name' in fields:
+                count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'idle', 'retire', fields['vm_hosts'])
             else:
-                config.db_close()
-                return list(request, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
+                count = kill_retire(config, active_user.active_group, '-', 'idle', 'retire', fields['vm_hosts'])
+        else:
+            count = 0
+            if fields['vm_hosts'] != '':
+                fields['hostname'] = fields['vm_hosts']
+                s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) & (view_vms.c.foreign_vm == 0))
+                vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+
+                for vm in vm_list:
+                    if fields['vm_option'] == 'kill':
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
+                    elif fields['vm_option'] == 'retire':
+                        update = table.update().where((table.c.slot_type == 'Partitionable') & (table.c.machine.like('%s%%' % vm['hostname']))).values({'retire_request_time': int(time.time())})
+                    elif fields['vm_option'] == 'manctl':
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
+                    elif fields['vm_option'] == 'sysctl':
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 0})
+
+                    rc, msg = config.db_session_execute(update, allow_no_rows=True)
+                    if rc == 0:
+                        count += msg
+                    else:
+                        config.db_close()
+                        return list(request, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
         if count > 0:
             config.db_close(commit=True)

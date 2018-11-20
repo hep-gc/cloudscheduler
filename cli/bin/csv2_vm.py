@@ -7,7 +7,7 @@ import os
 KEY_MAP = {
     '-cn':  'cloud_name',
     '-g':   'group',
-    '-vh':  'hosts',
+    '-vh':  'vm_hosts',
     '-vo':  'vm_option',
     '-vS':  'poller_status',
     }
