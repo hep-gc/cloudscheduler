@@ -216,7 +216,7 @@ def main(args):
             ('-vF',  '--vm-foreign', True),
             ('-vf',  '--vm-flavor', True),
             ('-vi',  '--vm-image', True),
-            ('-vh',  '--vm-hostname', True),
+            ('-vh',  '--vm-hosts', True),
             ('-vk',  '--vm-keyname', True),
             ('-vka', '--vm-keep-alive', True),
             ('-vn',  '--vm-network', True),
