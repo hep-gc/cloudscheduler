@@ -111,6 +111,11 @@ def main():
                     continue
                 if idle_job.target_clouds:
                     target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
+                    # Issue #36
+                    if not set(target_cloud_list).intersection(set(cm_group.clouds.keys())):
+                        log.warning("No Target Cloud found in currently available or enabled clouds. for jobs: %s", idle_job)
+                        # TODO Flag job to hold it?
+
                 else:
                     target_cloud_list = []
 
