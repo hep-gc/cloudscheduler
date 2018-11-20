@@ -432,7 +432,7 @@ def process_pending_transactions(group_name, json_img_dict):
     while True:
         # setup database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         trans = red.lpop(trans_key)
         if trans is None:
             break
@@ -613,7 +613,7 @@ def process_state_changes(group_name, json_img_dict):
 def find_image_by_name(group_name, image_name):
     # setup database objects
     Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
+    Group_Resources = Base.classes.csv2_clouds
 
     image_dict = json.loads(get_images_for_group(group_name))
     for cloud in image_dict:

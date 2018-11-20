@@ -188,7 +188,7 @@ def add_repo(request, group_name):
         user = getUser(request)
         # setup database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
 
         #Check if the form data is valid
         if form.is_valid():
@@ -281,7 +281,7 @@ def save_images(request, group_name):
     if request.method == 'POST':
         # set up database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         user = getUser(request)
         #get repos
         repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
@@ -319,7 +319,7 @@ def save_hidden_images(request, group_name=None):
             group_name = user.active_group
         # setup database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         #get repos
         repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
 
@@ -345,7 +345,7 @@ def resolve_conflict(request, group_name, cloud_name):
 
         #setup database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
 
         repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud_name).first()
         image_dict = json.loads(get_images_for_group(group_name))
@@ -387,7 +387,7 @@ def manage_repos(request, group_name, feedback_msg=None, error_msg=None):
     user_obj = getUser(request)
     # setup database objects
     Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
+    Group_Resources = Base.classes.csv2_clouds
     User_Group = Base.classes.csv2_user_groups
 
 
@@ -444,7 +444,7 @@ def update_repo(request, group_name):
                 # new data is good, grab the old repo and update to the new info
                 # setup database objects
                 Base, session = get_db_base_and_session()
-                Group_Resources = Base.classes.csv2_group_resources
+                Group_Resources = Base.classes.csv2_clouds
 
                 repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud_name).first()
                 repo_obj.username = usr
@@ -479,7 +479,7 @@ def delete_repo(request, group_name):
         #handle delete
         #setup database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         repo = request.POST.get('repo')
         cloud_name = request.POST.get('cloud_name')
         if repo is not None and cloud_name is not None:
@@ -929,7 +929,7 @@ def manage_groups(request, message=None):
 
     # setup database objects
     Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
+    Group_Resources = Base.classes.csv2_clouds
     User_Group = Base.classes.csv2_user_groups
     Glint_User = Base.classes.csv2_user
     Group = Base.classes.csv2_groups
@@ -1200,7 +1200,7 @@ def manage_keys(request, group_name=None, message=None):
         group_name = user_obj.active_group
 
     Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
+    Group_Resources = Base.classes.csv2_clouds
     Keypairs = Base.classes.csv2_keypairs
     User_Group = Base.classes.csv2_user_groups
     user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
@@ -1250,7 +1250,7 @@ def upload_keypair(request, group_name=None):
     if request.method == 'POST':
          # set up database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         Keypairs = Base.classes.csv2_keypairs
         user = getUser(request)
 
@@ -1302,7 +1302,7 @@ def new_keypair(request, group_name=None,):
     if request.method == 'POST':
          # set up database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         Keypairs = Base.classes.csv2_keypairs
         user = getUser(request)
 
@@ -1365,7 +1365,7 @@ def save_keypairs(request, group_name=None, message=None):
         try:
             #set up database objects
             Base, session = get_db_base_and_session()
-            Group_Resources = Base.classes.csv2_group_resources
+            Group_Resources = Base.classes.csv2_clouds
             Keypairs = Base.classes.csv2_keypairs
             # get list of clouds for this group
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
