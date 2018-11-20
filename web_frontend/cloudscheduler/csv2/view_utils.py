@@ -49,6 +49,33 @@ def getSuperUserStatus(request):
 
 #-------------------------------------------------------------------------------
 
+def kill_retire(config, group_name, cloud_name, age_idle, option, count):
+    from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
+
+    # Retrieve the list of VMs to retire or retain.
+    if option == 'retire':
+        asc_desc_limit_count = 'desc limit %s' % count
+    elif option == 'retain':
+        asc_desc_limit_count = 'asc limit %s, 999999999999' % count
+    else:
+        asc_desc_limit_count = 'asc limit %s, 999999999999' % count
+
+    if cloud_name == '-':
+        s = 'create or replace table kill_retire_priority_list as select * from view_vm_kill_retire_priority_%s where group_name="%s" order by priority %s;' % (age_idle, group_name, asc_desc_limit_count)
+    else:
+        s = 'create or replace table kill_retire_priority_list as select * from view_vm_kill_retire_priority_%s where group_name="%s" and cloud_name="%s" order by priority %s;' % (age_idle, group_name, cloud_name, asc_desc_limit_count)
+
+    config.db_connection.execute(s)
+
+    # Of the VMs to be shutdown, kill the idle ones and retire the busy ones.
+    config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.hostname=kpl.hostname set terminate=1 where machine is null;')
+    config.db_connection.execute('update condor_machines as cm left outer join (select * from kill_retire_priority_list) as kpl on cm.machine=kpl.machine set retire_request_time=my_current_time where machine is not null;')
+    
+    retired_list = qt(config.db_connection.execute('select count(*) from kill_retire_priority_list;'))
+    return retired_list[0]['count']
+
+#-------------------------------------------------------------------------------
+
 def lno(id):
     """
     This function returns the source file line number of the caller.
