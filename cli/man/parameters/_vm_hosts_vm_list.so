@@ -1,0 +1,3 @@
+.TP
+\fB\-vh \fIhosts\fR, \fB\-\-vm-hosts \fIhosts\fR
+Is a list of one or more comma seperated hostsnames used to filter the selection VMs.
