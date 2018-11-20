@@ -1,0 +1,23 @@
+/*
+** Used to pick VMs to kill or retire.
+create or replace temporary table xxx as select * from view_vm_kill_retire_priority_list limit 35;
+update condor_machines as cm left outer join (select * from xxx)  as kpl on cm.machine=kpl.machine set test=3 where priority is not null;
+select unix_timestamp();
+*/
+create or replace view view_vm_kill_retire_priority_age as
+
+select
+group_name,
+cloud_name,
+vmid,
+machine,
+case when my_current_time is null then
+    unix_timestamp() - start_time
+else
+    my_current_time - entered_current_state
+end as priority
+from view_vms
+where foreign_vm=0
+group by group_name,cloud_name,vmid
+order by priority desc
+;
