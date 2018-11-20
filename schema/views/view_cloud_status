@@ -38,6 +38,7 @@ else
         least(cores_ctl, cores_softmax, ifnull(ram_max,0))
     end
 end as cores_limit,
+cores_max,
 
 cores_native,
 cores_foreign,
@@ -51,6 +52,7 @@ case when ram_ctl=-1 then
 else
     least(ram_ctl, ifnull(ram_max,0))
 end as ram_limit,
+ram_max,
 
 ram_native as ram_busy,
 ram_foreign,
