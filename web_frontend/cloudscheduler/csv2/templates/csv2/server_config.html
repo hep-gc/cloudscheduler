@@ -33,8 +33,23 @@
                         {% for config in config_list %}
                             {% if config.category == category %}
                             
-                                <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
-                                <td><input type="text" name="{{ config.config_key }}" value="{{ config.config_value }}" /></td></tr>
+                                {% if config.config_type == "bool" %}
+
+                                    <input type="hidden" name="{{ config.config_key }}" value="False" />
+
+                                    <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
+                                    <td>
+                                    {% if config.config_value == "True"%}
+                                        <input type="checkbox" name="{{ config.config_key }}" value="True" checked/>
+                                    {% else %}
+                                        <input type="checkbox" name="{{ config.config_key }}" value="True" />
+                                    {% endif %}
+                                    </td></tr>
+
+                                {% else %}
+                                    <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
+                                    <td><input type="text" name="{{ config.config_key }}" value="{{ config.config_value }}" /></td></tr>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
 
