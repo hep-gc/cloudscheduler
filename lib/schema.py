@@ -584,6 +584,7 @@ view_cloud_status = Table('view_cloud_status', metadata,
 view_cloud_status_slot_detail = Table('view_cloud_status_slot_detail', metadata,
   Column('group_name', String(256)),
   Column('cloud_name', String(256)),
+  Column('slot_tag', String(392)),
   Column('slot_id', String(380)),
   Column('slot_type', Integer),
   Column('slot_count', Integer),
@@ -888,7 +889,15 @@ view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
   Column('VMs', Integer)
   )
 
-view_vm_kill_retire_priority_list = Table('view_vm_kill_retire_priority_list', metadata,
+view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
+  Column('vmid', String(128)),
+  Column('machine', String(256)),
+  Column('priority', Integer)
+  )
+
+view_vm_kill_retire_priority_idle = Table('view_vm_kill_retire_priority_idle', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
