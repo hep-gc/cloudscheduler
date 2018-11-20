@@ -1,4 +1,0 @@
-.TP
-\fB\-vh \fIhostname\fR, \fB\-\-vm-hostname \fIhostname\fR
-The unique identifier for the VM.
-Filters the VM list to only the VM with \fIhostname\fR.

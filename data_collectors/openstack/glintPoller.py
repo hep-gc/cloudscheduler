@@ -11,7 +11,6 @@ from django.conf import settings
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-from glintwebui.db_util import get_db_base_and_session
 from cloudscheduler.lib.db_config import Config
 
 from glintwebui.glint_api import repo_connector
@@ -268,8 +267,8 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'glint':                image_collection,
-        'defaults_replication': defaults_replication,
+        'glint image collection': image_collection,
+        'defaults_replication':   defaults_replication,
         }
 
     # Wait for keyboard input to exit
