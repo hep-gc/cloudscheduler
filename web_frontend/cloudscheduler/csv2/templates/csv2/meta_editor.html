@@ -44,13 +44,17 @@
             
             <input type="hidden" name="enabled" value="0" />
 
-            <td><label for="authurl">Enabled:</label></td>
+            <td><label for="enabled">Enabled:</label></td>
             <td>
+        {% if message == "new-cloud-metadata" or message == "new-group-metadata"%}
+            <input type="checkbox" name="enabled" value="1" checked/>
+        {% else %} 
             {% if metadata_enabled == 1%}
                 <input type="checkbox" name="enabled" value="1" checked/>
             {% else %}
                 <input type="checkbox" name="enabled" value="1" />
             {% endif %}
+        {% endif %}
             </td>
 
             <td><label for="priority">Priority:</label></td>
