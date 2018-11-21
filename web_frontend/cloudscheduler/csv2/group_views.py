@@ -570,7 +570,7 @@ def list(
         group_list = qt(config.db_connection.execute(s))
         metadata_dict = {}
     else:
-        s = select([view_clouds_with_metadata_info]).order_by('group_name')
+        s = select([view_groups_with_metadata_info]).order_by('group_name')
         group_list, metadata_dict = qt(
             config.db_connection.execute(s),
             keys = {
