@@ -21,4 +21,5 @@ sum(slot_CPUs) as core_count
 from condor_machines as cm
 where  state="Claimed"
 group by group_name,cloud_name,slot_tag
+order by group_name,cloud_name,slot_CPUs desc,slot_tag
 ;
