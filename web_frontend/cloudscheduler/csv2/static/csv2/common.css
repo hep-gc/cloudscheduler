@@ -133,6 +133,7 @@
 }
 
 .modalDialog > div {
+    text-align: center;
     width: 200px;
     position: relative;
     margin: 10% auto;
