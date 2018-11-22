@@ -149,9 +149,12 @@ class repo_connector(object):
              
         #open file then write to it
         file_path = scratch_dir + image_name
-        image_file = open(file_path, 'w+')
+        image_file = open(file_path, 'wb')
+        print(glance.images.data(image_id))
         for chunk in glance.images.data(image_id):
-            image_file.write(str(chunk))
+            print(type(chunk))
+            print(chunk)
+            image_file.write(bytes(chunk))
 
         return True
 

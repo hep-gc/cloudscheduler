@@ -961,9 +961,13 @@ def manage_groups(request, message=None):
     return render(request, 'glintwebui/manage_groups.html', context)
 
 @silkp(name='Download Image')
-def download_image(request, group_name, image_name):
+def download_image(request, image_name, group_name=None):
     if not verifyUser(request):
         raise PermissionDenied
+    user_obj = getUser(request)
+    if group_name is None:
+        group_name = user_obj.active_group
+
 
     logger.info("Preparing to download image file.")
     image_info = find_image_by_name(group_name=group_name, image_name=image_name)
@@ -1004,7 +1008,7 @@ def download_image(request, group_name, image_name):
     add_cached_image(image_name, image_checksum=image_info[5], full_path=file_full_path)
 
 
-    response = StreamingHttpResponse((line for line in open(file_full_path, 'r')))
+    response = StreamingHttpResponse((line for line in open(file_full_path, 'rb')))
     response['Content-Disposition'] = "attachment; filename={0}".format(filename)
     response['Content-Length'] = os.path.getsize(file_full_path)
     return response
