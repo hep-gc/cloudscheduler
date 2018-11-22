@@ -403,21 +403,18 @@
                         
                         <td class="col-spacer">&nbsp;</td>
 
-                        <td>
+                        <td colspan="2">
+                            <table>
                             {% for slot in slot_list%}
                                 {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.slot_count }}&#10005;{{ slot.slot_type }}c<br>
+                                    <tr>
+                                        <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                        <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                                    </tr>
                                 {% endif %}
                             {% endfor %}
+                            </table>
                         </td>
-                        <td>
-                            {% for slot in slot_list%}
-                                {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.core_count }}@{{ slot.slot_id }}<br>
-                                {% endif %}
-                            {% endfor %}
-                        </td>
-
                         <td><!--Idle--></td>
 
                     </tr>                
@@ -603,21 +600,18 @@
                 
                 <td class="col-spacer">&nbsp;</td>
 
-                <td>
+                <td colspan="2">
+                    <table>
                     {% for slot in slot_total_list%}
                         {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            {{ slot.slot_count }}&#10005;{{ slot.slot_type }}c<br>
+                            <tr>
+                                <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                            </tr>
                         {% endif %}
                     {% endfor %}
+                    </table>
                 </td>
-                <td>
-                    {% for slot in slot_total_list%}
-                        {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            {{ slot.core_count }}@{{ slot.slot_id }}<br>
-                        {% endif %}
-                    {% endfor %}
-                </td>
-
                 <td><!--Idle--></td>
 
 
