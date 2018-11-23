@@ -12,6 +12,7 @@ import cloudscheduler.cloudmanager
 
 from lib.schema import view_vms
 from lib.schema import view_groups_of_idle_jobs
+from lib.schema import view_groups_of_idle_jobs_test
 from lib.schema import view_available_resources
 from lib.schema import view_condor_jobs_group_defaults_applied
 from lib.schema import view_clouds
@@ -92,9 +93,9 @@ def main():
             config.db_open()
             # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
             # Get the idle jobs for the current group
-            idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs).filter(
-                view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
-                view_groups_of_idle_jobs.c.job_priority)
+            idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs_test).filter(
+                view_groups_of_idle_jobs_test.c.group_name == csgroup.group_name).order_by(
+                view_groups_of_idle_jobs_test.c.job_priority)
             log.debug('---------------got idle jobs--------------')
             cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
             for idle_job in idle_jobs_for_group:
@@ -114,7 +115,9 @@ def main():
                     # Issue #36
                     if not set(target_cloud_list).intersection(set(cm_group.clouds.keys())):
                         log.warning("No Target Cloud found in currently available or enabled clouds. for jobs: %s", idle_job)
-                        # TODO Flag job to hold it?
+                        continue
+                        # TODO Flag job to hold it? these jobs are grouped though, and IDs aren't listed in view, makes it harder to pinpoint them.
+                        # Either need to query them somehow, or see if it's possible for that view to list/include all the IDs in that set. Ask Colin
 
                 else:
                     target_cloud_list = []
