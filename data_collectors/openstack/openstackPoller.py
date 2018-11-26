@@ -889,8 +889,8 @@ def vm_poller():
                                     }
                                 #foreign vm
                                 continue
-                            elif host_tokens[2] != config.csv2_host_id:
-                                logging.debug("csv2 host id from host does not match, marking %s as foreign vm" % vm.name)
+                            elif int(host_tokens[2]) != int(config.csv2_host_id):
+                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
                                 if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                                 else:
