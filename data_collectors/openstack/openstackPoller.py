@@ -866,26 +866,52 @@ def vm_poller():
                     # due to emergent flavors and thus a new obj will need to be created
                     #~~~~~~~~
                         try:
-                            host_tokens = vm.hostname.split("--")
+                            host_tokens = vm.name.split("--")
                             if host_tokens[0] != group_name:
-                                logging.debug("group_name from host does not match, marking %s as foreign vm" % vm.hostname)
-                                for_vm_dict[vm.cloud_name + "--" + vm.flavor_id]["count"] = for_vm_dict[vm.cloud_name + vm.flavor_id]["count"] + 1
+                                logging.debug("group_name from host does not match, marking %s as foreign vm" % vm.name)
+                                if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
+                                    for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                        'count': 1
+                                    }
                                 #foreign vm
                                 continue
                             elif host_tokens[1] != cloud_name:
-                                logging.debug("cloud_name from host does not match, marking %s as foreign vm" % vm.hostname)
-                                for_vm_dict[vm.cloud_name + "--" + vm.flavor_id]["count"] = for_vm_dict[vm.cloud_name + vm.flavor_id]["count"] + 1
+                                logging.debug("cloud_name from host does not match, marking %s as foreign vm" % vm.name)
+                                if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
+                                    for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                        'count': 1
+                                    }
                                 #foreign vm
                                 continue
-                            elif host_token[2] != config.csv2_host_id
-                                logging.debug("csv2 host id from host does not match, marking %s as foreign vm" % vm.hostname)
-                                for_vm_dict[vm.cloud_name + "--" + vm.flavor_id]["count"] = for_vm_dict[vm.cloud_name + vm.flavor_id]["count"] + 1
+                            elif host_tokens[2] != config.csv2_host_id:
+                                logging.debug("csv2 host id from host does not match, marking %s as foreign vm" % vm.name)
+                                if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
+                                    for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                        'count': 1
+                                    }
+
                                 #foreign vm
                                 continue
                         except IndexError as exc:
                             #not enough tokens, bad hostname or foreign vm
-                            logging.error("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.hostname)
-                            for_vm_dict[vm.cloud_name + "--" + vm.flavor_id]["count"] = for_vm_dict[vm.cloud_name + vm.flavor_id]["count"] + 1
+                            logging.error("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
+                            if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
+                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[vm.cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                            else:
+                                # no entry yet
+                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                    'count': 1
+                                }
+
                             continue
 
                         ip_addrs = []
@@ -963,11 +989,11 @@ def vm_poller():
                             # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
                             for_vm_dict[key]['fvm_obj'].count = for_vm_dict[key]['count']
                             db_session.merge(for_vm_dict[key]['fvm_obj'])
-                        except IndexError:
+                        except KeyError:
                             # need to create new db obj for this entry
                             fvm_dict = {
                                 'group_name': group.group_name,
-                                'cloud_name': group.cloud_name,
+                                'cloud_name': split_key[0],
                                 'flavor_id':  split_key[1],
                                 'count':      for_vm_dict[key]['count']
                             }
