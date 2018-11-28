@@ -163,7 +163,6 @@
                 <th class="native-style">Retiring</th>
                 <th class="native-style">Manual</th>
                 <th class="native-style">Error</th>
-                <th class="native-style">Other</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -177,11 +176,13 @@
                         </tr>
                     </table>
                 </th>
+                <th class="native-style">RAM</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="foreign-style">Foreign<br>VMs</th>
                 <th class="foreign-style">Foreign<br>Cores</th>
+                <th class="foreign-style">RAM</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -195,6 +196,7 @@
                         </tr>
                     </table>
                 </th>
+                <th class="total-style">RAM</th>
 
 
                 <th class="col-spacer">&nbsp;</th>
@@ -209,6 +211,7 @@
                         </tr>
                     </table>
                 </th>
+
                 <!--
                 <th class="native-style">Slots<br>Used Cores</th>
                 <th class="native-style">Slots<br>Idle Cores</th>
@@ -280,11 +283,6 @@
                         {% endif %}
 
 
-                        {% if cloud.VMs_other == 0 %}
-                            <td class="zero-style">0</td>
-                        {% else %}
-                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::other::')" href="#vms-overlay">{{cloud.VMs_other}}</td>
-                        {% endif %}
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -304,7 +302,12 @@
                         {% else %}
                             <td class="manual-style">{{cloud.cores_limit}}</td>
                         {% endif %}
-
+                        
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
+                            {% endwith %}
+                        </td>
 
 
                         <td class="col-spacer">&nbsp;</td>
@@ -324,6 +327,12 @@
                             <td class="more-style">{{ cloud.cores_foreign }}</a></td>
                         {% endif %}
 
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
+                            {% endwith %}
+                        </td>
+
                         <td class="col-spacer">&nbsp;</td>
 
 
@@ -339,9 +348,14 @@
                         {% if cloud.cores_max == 0 %}
                             <td class="zero-style">0</td>
                         {% else %}
-                            <td class="more-style">{{ cloud.cores_max }}</a></td>
+                            <td class="more-style">{{ cloud.cores_quota }}</a></td>
                         {% endif %}
 
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                            {% endwith %}                        
+                        </td>
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -364,6 +378,8 @@
                             <td class="more-style">{{cloud.slot_idle_core_count}}</td>
                         {% endif %}
 
+                        
+
                     </tr>
 
 
@@ -378,7 +394,6 @@
                         <td><!--Retiring--></td>
                         <td><!--Manual--></td>
                         <td><!--Error--></td>
-                        <td><!--Other--></td>
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -388,19 +403,31 @@
                         {% else %}
                             <p>Using User Limit</p>
                         {% endif %}
-
-
+                        </td>
+                        <td>
+                            {% with ram=cloud.ram_native total=cloud.ram_quota %}
+                                {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {% endwith %}
+                        </td>
 
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Foreign VMs--></td>
                         <td><!--Foreign Cores--></td>
-
+                        <td>
+                            {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
+                                {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {% endwith %}
+                        </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Total Cores--></td>
                         <td><!--Cores Quota--></td>
-                        
+                        <td>
+                            {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
+                                {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {% endwith %}
+                        </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">
@@ -434,13 +461,13 @@
             {% endfor %}
             -->
             <tr>
-                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td colspan="9" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
@@ -503,11 +530,6 @@
                 {% endif %}
 
 
-                {% if cloud_total_list.VMs_other == 0 %}
-                    <td class="zero-style">0</td>
-                {% else %}
-                    <td class="more-style"><a onclick="pass_url('::other::')" href="#vms-overlay">{{cloud_total_list.VMs_other}}</a></td>
-                {% endif %}
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -523,6 +545,11 @@
                 {% else %}
                     <td class="more-style">{{cloud_total_list.cores_limit}}</td>
                 {% endif %}
+                    <td>
+                        {% with total=cloud_total_list.ram_quota %}
+                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native }}"></meter>
+                        {% endwith %}
+                    </td>
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -539,13 +566,24 @@
                     <td class="more-style"><a href="#">{{cloud_total_list.cores_foreign}}</a></td>
                 {% endif %}
 
+                    <td>
+                        {% with total=cloud_total_list.ram_quota %}
+                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_foreign }}"></meter>
+                        {% endwith %}
+                    </td>
 
                 <td class="col-spacer">&nbsp;</td>
                 <!--*******************************************************-->
                 <td class="bold-style">{{cloud_total_list.cores_native_foreign}}</td>
                 <!--*******************************************************-->
 
-                <td class="bold-style">{{cloud_total_list.cores_idle_native_foreign}}</td>
+                <td class="bold-style">{{cloud_total_list.cores_quota}}</td>
+
+                <td>
+                    {% with total=cloud_total_list.ram_quota %}
+                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native_foreign }}"></meter>
+                    {% endwith %}
+                </td>
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -581,23 +619,34 @@
                 <td><!--Retiring--></td>
                 <td><!--Manual--></td>
                 <td><!--Error--></td>
-                <td><!--Other--></td>
 
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Used Cores--></td>
                 <td><!--Cores Limit--></td>
-
+                <td>
+                    {% with ram=cloud_total_list.ram_native total=cloud_total_list.ram_quota %}
+                        {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                    {% endwith %}
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Foreign VMs--></td>
                 <td><!--Foreign Cores--></td>
-
+                <td>
+                    {% with ram=cloud_total_list.ram_foreign total=cloud_total_list.ram_quota %}
+                        {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                    {% endwith %}                    
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Total Cores--></td>
                 <td><!--Cores Quota--></td>
-                
+                <td>
+                    {% with ram=cloud_total_list.ram_native_foreign total=cloud_total_list.ram_quota %}
+                        {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                    {% endwith %}                    
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td colspan="2">
@@ -616,13 +665,13 @@
 
 
             <tr class="bottom-row">
-                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td colspan="9" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
