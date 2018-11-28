@@ -478,7 +478,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('cores_used', Integer),
   Column('ram_used', Integer),
   Column('flavor_id', String(128)),
-  Column('flavor', String(128)),
+  Column('flavor', String(161)),
   Column('flavor_cores', Integer),
   Column('flavor_ram', Integer),
   Column('flavor_slots', Integer)
