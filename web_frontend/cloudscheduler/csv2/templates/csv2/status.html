@@ -407,9 +407,9 @@
                         <td>
                             {% with ram=cloud.ram_native total=cloud.ram_quota %}
                                 {% if cloud.ram_quota > 1048576 %}
-                                    {{ ram|div:1048576 }} / {{ total|div:1048576 }} TB
+                                    {{ ram|div:1048576 }} / {{ total|div:1048576|floatformat:1 }} TB
                                 {% else %}
-                                    {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                                    {{ ram|div:1024 }} / {{ total|div:1024|floatformat:1 }} GB
                                 {% endif %}
                             {% endwith %}
                         </td>
@@ -421,9 +421,9 @@
                         <td>
                             {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
                                 {% if cloud.ram_quota > 1048576 %}
-                                    {{ ram|div:1048576 }} / {{ total|div:1048576 }} TB
+                                    {{ ram|div:1048576 }} / {{ total|div:1048576|floatformat:1 }} TB
                                 {% else %}
-                                    {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                                    {{ ram|div:1024 }} / {{ total|div:1024|floatformat:1 }} GB
                                 {% endif %}
                             {% endwith %}
                         </td>
@@ -434,9 +434,9 @@
                         <td>
                             {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
                                 {% if cloud.ram_quota > 1048576 %}
-                                    {{ ram|div:1048576 }} / {{ total|div:1048576 }} TB
+                                    {{ ram|div:1048576 }} / {{ total|div:1048576|floatformat:1 }} TB
                                 {% else %}
-                                    {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                                    {{ ram|div:1024 }} / {{ total|div:1024|floatformat:1 }} GB
                                 {% endif %}
                             {% endwith %}
                         </td>
@@ -639,9 +639,9 @@
                 <td>
                     {% with ram=cloud_total_list.ram_native total=cloud_total_list.ram_quota %}
                         {% if cloud_total_list.ram_quota > 1048576 %}
-                            {{ ram|div:1048576 }} / {{ total|div:1048576 }} TB
+                            {{ ram|div:1048576 }} / {{ total|div:1048576|floatformat:1 }} TB
                         {% else %}
-                            {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {{ ram|div:1024 }} / {{ total|div:1024|floatformat:1 }} GB
                         {% endif %}
                     {% endwith %}
                 </td>
@@ -652,9 +652,9 @@
                 <td>
                     {% with ram=cloud_total_list.ram_foreign total=cloud_total_list.ram_quota %}
                         {% if cloud_total_list.ram_quota > 1048576 %}
-                            {{ ram|div:1048576 }} / {{ total|div:1048576 }} TB
+                            {{ ram|div:1048576 }} / {{ total|div:1048576|floatformat:1 }} TB
                         {% else %}
-                            {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {{ ram|div:1024 }} / {{ total|div:1024|floatformat:1 }} GB
                         {% endif %}
                     {% endwith %}                    
                 </td>
@@ -665,9 +665,9 @@
                 <td>
                     {% with ram=cloud_total_list.ram_native_foreign total=cloud_total_list.ram_quota %}
                         {% if cloud_total_list.ram_quota > 1048576 %}
-                            {{ ram|div:1048576 }} / {{ total|div:1048576 }} TB
+                            {{ ram|div:1048576 }} / {{ total|div:1048576|floatformat:1 }} TB
                         {% else %}
-                            {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {{ ram|div:1024 }} / {{ total|div:1024|floatformat:1 }} GB
                         {% endif %}
                     {% endwith %}                    
                 </td>
