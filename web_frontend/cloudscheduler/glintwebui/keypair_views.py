@@ -4,15 +4,10 @@ from django.http import HttpResponse
 from django.http import StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
-import glintwebui.config as config
 
 from .__version__ import version
 from .db_util import get_db_base_and_session
 from .utils import get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
