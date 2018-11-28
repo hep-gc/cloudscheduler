@@ -114,7 +114,9 @@ def main():
                     # Issue #36
                     if not set(target_cloud_list).intersection(set(cm_group.clouds.keys())):
                         log.warning("No Target Cloud found in currently available or enabled clouds. for jobs: %s", idle_job)
-                        # TODO Flag job to hold it?
+                        continue
+                        # TODO Flag job to hold it? these jobs are grouped though, and IDs aren't listed in view, makes it harder to pinpoint them.
+                        # Either need to query them somehow, or see if it's possible for that view to list/include all the IDs in that set. Ask Colin
 
                 else:
                     target_cloud_list = []
@@ -414,7 +416,7 @@ def check_unregistered_machines(group, config):
 
     machines = config.db_map.classes.condor_machines
     vms = config.db_map.classes.csv2_vms
-    clouds = config.db_map.classes.csv2_group_resources
+    clouds = config.db_map.classes.csv2_clouds
     group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
     unregistered_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
                                                                                              where(machines.machine.contains(view_vms.c.hostname)))
