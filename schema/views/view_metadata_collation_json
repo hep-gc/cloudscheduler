@@ -84,7 +84,7 @@ from (
                         concat(
                             "[''",
                             metadata_name,
-                            "'', ''select metadata from csv2_group_resource_metadata where group_name='",
+                            "'', ''select metadata from csv2_cloud_metadata where group_name='",
                             group_name,
                             "' and cloud_name='",
                             cloud_name,

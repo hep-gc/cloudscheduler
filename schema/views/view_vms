@@ -37,7 +37,7 @@ else
             case when cv.power_status = 1 and ifnull(cpp.retire_request_time,0) != 0 then
                 'retiring'
             else
-                case when cv.power_status = 1 and cv.status = 'BUILD' then
+                case when cv.status = 'BUILD' then
                     'starting'
                 else
                     case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.condor_slots is null then

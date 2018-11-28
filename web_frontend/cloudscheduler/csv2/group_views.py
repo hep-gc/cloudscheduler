@@ -370,8 +370,8 @@ def delete(request):
                 'csv2_groups',
                 'csv2_group_metadata',
                 'csv2_group_defaults',
-                'csv2_group_resources',
-                'csv2_group_resource_metadata',
+                'csv2_clouds',
+                'csv2_cloud_metadata',
                 'csv2_group_metadata_exclusions',
                 'csv2_user_groups',
                 'csv2_vms',
@@ -412,8 +412,8 @@ def delete(request):
             return list(request, selector=fields['group_name'], response_code=1, message='%s group defaults delete "%s" failed - %s.' % (lno('GV12'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
 
-        # Delete the csv2_group_resources.
-        table = tables['csv2_group_resources']
+        # Delete the csv2_clouds.
+        table = tables['csv2_clouds']
         rc, msg = config.db_session_execute(
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True
@@ -422,8 +422,8 @@ def delete(request):
             config.db_close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group resources delete "%s" failed - %s.' % (lno('GV13'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
-        # Delete the csv2_group_resource_metadata.
-        table = tables['csv2_group_resource_metadata']
+        # Delete the csv2_cloud_metadata.
+        table = tables['csv2_cloud_metadata']
         rc, msg = config.db_session_execute(
             table.delete(table.c.group_name==fields['group_name']),
             allow_no_rows=True

@@ -11,16 +11,13 @@ from django.conf import settings
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-from glintwebui.db_util import get_db_base_and_session
 from cloudscheduler.lib.db_config import Config
 
 from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
-set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
-find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
-repo_proccesed, check_for_repo_changes, check_for_image_conflicts, check_and_transfer_image_defaults,\
-set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup, get_keypair,\
-check_defaults_changed, set_defaults_changed, transfer_keypair
+set_images_for_group, process_pending_transactions, process_state_changes, \
+get_num_transactions, repo_proccesed, check_for_repo_changes, check_and_transfer_image_defaults,\
+do_cache_cleanup, get_keypair, check_defaults_changed, set_defaults_changed, transfer_keypair
 
 
 def image_collection():
@@ -30,7 +27,7 @@ def image_collection():
     num_tx = get_num_transactions()
 
     # setup database objects
-    Group_Resources = config.db_map.classes.csv2_group_resources
+    Group_Resources = config.db_map.classes.csv2_clouds
     Group = config.db_map.classes.csv2_groups
 
     # perminant for loop to monitor image states and to queue up tasks
@@ -131,7 +128,7 @@ def defaults_replication():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Group = config.db_map.classes.csv2_groups
     Group_Defaults = config.db_map.classes.csv2_group_defaults
-    Group_Resources = config.db_map.classes.csv2_group_resources
+    Group_Resources = config.db_map.classes.csv2_clouds
     Keypairs = config.db_map.classes.cloud_keypairs
 
     while True:
@@ -268,8 +265,8 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'glint':                image_collection,
-        'defaults_replication': defaults_replication,
+        'glint image collection': image_collection,
+        'defaults_replication':   defaults_replication,
         }
 
     # Wait for keyboard input to exit

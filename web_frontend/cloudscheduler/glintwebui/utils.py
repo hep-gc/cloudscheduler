@@ -6,7 +6,6 @@ import json
 import redis
 from glintwebui.glint_api import repo_connector
 import glintwebui.config as config
-from .db_util import get_db_base_and_session
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -422,6 +421,7 @@ def parse_pending_transactions(group_name, cloud_name, image_list, user):
 # Then finally we can call the asynch celery tasks
 def process_pending_transactions(group_name, json_img_dict):
     from .celery_app import transfer_image, delete_image, upload_image
+    from .db_util import get_db_base_and_session
 
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
     trans_key = group_name + '_pending_transactions'
@@ -432,7 +432,7 @@ def process_pending_transactions(group_name, json_img_dict):
     while True:
         # setup database objects
         Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_group_resources
+        Group_Resources = Base.classes.csv2_clouds
         trans = red.lpop(trans_key)
         if trans is None:
             break
@@ -612,8 +612,9 @@ def process_state_changes(group_name, json_img_dict):
 # (auth_url, tenant, username, password, img_id)
 def find_image_by_name(group_name, image_name):
     # setup database objects
+    from .db_util import get_db_base_and_session
     Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_group_resources
+    Group_Resources = Base.classes.csv2_clouds
 
     image_dict = json.loads(get_images_for_group(group_name))
     for cloud in image_dict:

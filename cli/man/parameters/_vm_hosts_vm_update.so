@@ -1,0 +1,6 @@
+.TP
+\fB\-vh \fIhosts\fR, \fB\-\-vm-hosts \fIhosts\fR
+Is ether a list of one or more comma seperated hostsnames used to filter the selection of VMs to be updated, or
+is an integer specifying the number of VMs to select from a predefined filter.
+This filter, the kill/retire priority list, selects all VMs in priority order; idle VMs first, followed by
+the remaining VMs in descending job age order.

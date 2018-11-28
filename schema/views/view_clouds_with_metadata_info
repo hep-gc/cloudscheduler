@@ -1,0 +1,22 @@
+/*
+** List all group resources (clouds) with associated metadata (at least one row per group
+** resourceand one row per metadata file)..
+*/
+create or replace view view_clouds_with_metadata_info as
+
+select
+
+vc.*,
+metadata_name,
+ccm.enabled as metadata_enabled,
+priority as metadata_priority,
+mime_type as metadata_mime_type
+
+from view_clouds as vc
+left outer join csv2_cloud_metadata as ccm on
+    vc.group_name=ccm.group_name and
+    vc.cloud_name=ccm.cloud_name
+
+order by vc.group_name,vc.cloud_name
+
+;

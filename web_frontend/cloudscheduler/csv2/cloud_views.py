@@ -205,7 +205,7 @@ def manage_group_metadata_verification(tables, active_group, cloud_names, metada
             cloud_name_list = cloud_names
 
         # Get the list of valid clouds.
-        table = tables['csv2_group_resources']
+        table = tables['csv2_clouds']
         s = select([table]).where(table.c.group_name==active_group)
         cloud_list = qt(config.db_connection.execute(s))
 
@@ -273,7 +273,7 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_group_resources', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0: 
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -310,7 +310,7 @@ def add(request):
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud.
-        table = tables['csv2_group_resources']
+        table = tables['csv2_clouds']
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
             config.db_close()
@@ -355,13 +355,13 @@ def delete(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_group_resources', 'csv2_group_resource_metadata', 'csv2_group_metadata_exclusions'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete any metadata files for the cloud.
-        table = tables['csv2_group_resource_metadata']
+        table = tables['csv2_cloud_metadata']
         rc, msg = config.db_session_execute(table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])), allow_no_rows=True)
         if rc != 0:
             config.db_close()
@@ -375,7 +375,7 @@ def delete(request):
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Delete the cloud.
-        table = tables['csv2_group_resources']
+        table = tables['csv2_clouds']
         rc, msg = config.db_session_execute(
             table.delete((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name']))
             )
@@ -430,7 +430,7 @@ def list(
 
     # Retrieve cloud information.
     if request.META['HTTP_ACCEPT'] == 'application/json':
-        s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
+        s = select([view_clouds_with_metadata_names]).where(view_clouds_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
         image_list = {}
         flavor_list = {}
@@ -454,7 +454,7 @@ def list(
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
         network_list = qt(config.db_connection.execute(s))
 
-        s = select([view_group_resources_with_metadata_info]).where(view_group_resources_with_metadata_info.c.group_name == active_user.active_group)
+        s = select([view_clouds_with_metadata_info]).where(view_clouds_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
             config.db_connection.execute(s),
             keys = {
@@ -534,14 +534,14 @@ def metadata_add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_resource_metadata', 'csv2_group_resources,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata', 'csv2_clouds,n'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud metadata-add %s' % (lno('CV13'), msg), active_user=active_user, user_groups=user_groups)
 
         # Check cloud already exists.
-        table = tables['csv2_group_resources']
-        s = select([csv2_group_resources]).where(csv2_group_resources.c.group_name == active_user.active_group)
+        table = tables['csv2_clouds']
+        s = select([csv2_clouds]).where(csv2_clouds.c.group_name == active_user.active_group)
         cloud_list = config.db_connection.execute(s)
         found = False
         for cloud in cloud_list:
@@ -553,7 +553,7 @@ def metadata_add(request):
             return list(request, selector='-', response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno('CV14'), fields['cloud_name']), active_user=active_user, user_groups=user_groups)
 
         # Add the cloud metadata file.
-        table = tables['csv2_group_resource_metadata']
+        table = tables['csv2_cloud_metadata']
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
             config.db_close(commit=True)
@@ -633,13 +633,13 @@ def metadata_delete(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV20'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_resource_metadata'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud metadata-delete %s' % (lno('CV21'), msg), active_user=active_user, user_groups=user_groups)
 
         # Delete the cloud metadata file.
-        table = tables['csv2_group_resource_metadata']
+        table = tables['csv2_cloud_metadata']
         rc, msg = config.db_session_execute(
             table.delete( \
                 (table.c.group_name==fields['group_name']) & \
@@ -685,7 +685,7 @@ def metadata_fetch(request, selector=None):
         id = obj_act_id[3]
         ids = id.split('::')
         if len(ids) == 2:
-            METADATA = config.db_map.classes.csv2_group_resource_metadata
+            METADATA = config.db_map.classes.csv2_cloud_metadata
             METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==ids[0]) & (METADATA.metadata_name==ids[1]))
             if METADATAobj:
                 for row in METADATAobj:
@@ -739,7 +739,7 @@ def metadata_list(request):
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV27'), msg)})
 
     # Retrieve cloud/metadata information.
-    s = select([csv2_group_resource_metadata]).where(csv2_group_resource_metadata.c.group_name == active_user.active_group)
+    s = select([csv2_cloud_metadata]).where(csv2_cloud_metadata.c.group_name == active_user.active_group)
     cloud_metadata_list = qt(config.db_connection.execute(s))
     
 
@@ -749,7 +749,7 @@ def metadata_list(request):
     group_metadata_names = qt(config.db_connection.execute(s))
 
     # Retrieve cloud/metadata information.
-    s = select([view_group_resources_with_metadata_names]).where(view_group_resources_with_metadata_names.c.group_name == active_user.active_group)
+    s = select([view_clouds_with_metadata_names]).where(view_clouds_with_metadata_names.c.group_name == active_user.active_group)
     cloud_metadata_names = qt(config.db_connection.execute(s))
 
     config.db_close()
@@ -839,13 +839,13 @@ def metadata_update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_resource_metadata'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud metadata-update %s' % (lno('CV29'), msg), active_user=active_user, user_groups=user_groups)
 
         # Update the cloud metadata file.
-        table = tables['csv2_group_resource_metadata']
+        table = tables['csv2_cloud_metadata']
         rc, msg = config.db_session_execute(table.update().where( \
             (table.c.group_name==fields['group_name']) & \
             (table.c.cloud_name==fields['cloud_name']) & \
@@ -924,19 +924,18 @@ def status(request, group_name=None):
             'VMs_retiring',
             'VMs_manual',
             'VMs_in_error',
-            'VMs_other',
             'Foreign_VMs',
             'cores_limit',
             'cores_foreign',
             'cores_idle',
             'cores_native',
             'cores_native_foreign',
-            'cores_idle_native_foreign',
-            'ram_max',
-            'ram_busy',
+            'cores_quota',
+            'ram_quota',
             'ram_foreign',
             'ram_idle',
             'ram_native',
+            'ram_native_foreign',
             'slot_count',
             'slot_core_count',
             'slot_idle_core_count'
@@ -966,8 +965,11 @@ def status(request, group_name=None):
         )
 
     slot_total_list = qt(slot_list, keys={
-        'primary': ['group_name'],
-        'sum': ['slot_count']
+        'primary': ['group_name', 'slot_type', 'slot_id'],
+        'sum': [
+            'slot_count',
+            'core_count'
+            ]
         })
 
     # get job status per group
@@ -1104,7 +1106,7 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV34'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_group_resources', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV35'), msg), active_user=active_user, user_groups=user_groups)
@@ -1141,7 +1143,7 @@ def update(request):
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # update the cloud.
-        table = tables['csv2_group_resources']
+        table = tables['csv2_clouds']
         cloud_updates = table_fields(fields, table, columns, 'update')
         if len(cloud_updates) > 0:
             rc, msg = config.db_session_execute(table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(cloud_updates))

@@ -98,6 +98,9 @@ class BaseCloud(ABC):
         # metadata_yamls = []  # also appending the mime type again with it in tuple
         self.config.db_open()
         for source in self.metadata:
+            if len(source) != 3:
+                self.log.debug("Problem with view?: %s", source)
+                continue
             metadata_yamls.append([source[0], self.config.db_connection.execute(source[1]).fetchone()[0], source[2]]) # will be a source[2] with name
         self.config.db_close()
 

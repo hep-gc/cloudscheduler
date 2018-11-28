@@ -13,11 +13,13 @@ case when instr(machine,'--')=0 then
 else
     substring_index(substring_index(machine,'--',2),'--',-1)
 end as cloud_name,
+concat(substring(substring_index(name,'@',1),5), ':', slot_CPUs) as slot_tag,
 substring(substring_index(name,'@',1),5) as slot_id,
 slot_CPUs as slot_type,
 sum(1) as slot_count,
 sum(slot_CPUs) as core_count
 from condor_machines as cm
 where  state="Claimed"
-group by group_name,cloud_name,slot_type,slot_id
+group by group_name,cloud_name,slot_tag
+order by group_name,cloud_name,slot_CPUs desc,slot_tag
 ;

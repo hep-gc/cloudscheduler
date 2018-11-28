@@ -58,6 +58,10 @@
   content: "-";
 }
 
+table td {
+  vertical-align: top;
+}
+
 .meta-div {
   width: 150px;
   overflow: hidden;
@@ -133,3 +137,4 @@ iframe {
   right:10;
   overflow: auto;
 }
+

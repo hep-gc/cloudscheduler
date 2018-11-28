@@ -64,46 +64,72 @@ class repo_connector(object):
             return sess
 
     def _get_images(self):
-        glance = glanceclient.Client('2', session=self.sess)
+        try:
+            glance = glanceclient.Client('2', session=self.sess)
+        except Exception as exc:
+            logger.warning("unable to create glance client")
+            logger.warning(exc)
+            return None
         image_list = ()
 
         # Do things with images
-        for image in glance.images.list():
-            img_checksum = "No Checksum"
-            img_id = image['id']
-            img_name = image['name']
-            img_disk_format = image['disk_format']
-            img_containter_format = image['container_format']
-            img_visibility = image['visibility']
-            if image['checksum'] is not None:
-                img_checksum = image['checksum']
+        try:
+            for image in glance.images.list():
+                img_checksum = "No Checksum"
+                img_id = image['id']
+                img_name = image['name']
+                img_disk_format = image['disk_format']
+                img_containter_format = image['container_format']
+                img_visibility = image['visibility']
+                if image['checksum'] is not None:
+                    img_checksum = image['checksum']
 
-            image_list += ((self.project, img_name, img_id, img_disk_format, \
-            	img_containter_format, img_visibility, img_checksum, self.alias),)
+                image_list += ((self.project, img_name, img_id, img_disk_format, \
+                    img_containter_format, img_visibility, img_checksum, self.alias),)
 
-        return image_list
+            return image_list
+        except Exception as exc:
+            logger.warning("Error proccessing images via glance client, bad url or connection failure:")
+            logger.warning(exc)
+            return None
 
     def create_placeholder_image(self, image_name, disk_format, container_format):
-        glance = glanceclient.Client('2', session=self.sess)
-        image = glance.images.create(
-            name=image_name,
-            disk_format=disk_format,
-            container_format=container_format)
-        return image.id
+        try:
+            glance = glanceclient.Client('2', session=self.sess)
+            image = glance.images.create(
+                name=image_name,
+                disk_format=disk_format,
+                container_format=container_format)
+            return image.id
+        except Exception as exc:
+            logging.error("Unable to create glance object:")
+            logging.error(exc)
+            return False
 
     # Upload an image to repo, returns image id if successful
     # if there is no image_id it is a direct upload and no placeholder exists
     def upload_image(self, image_id, image_name, scratch_dir, disk_format=None, container_format=None):
         if image_id is not None:
             #this is the 2nd part of a transfer not a direct upload
-            glance = glanceclient.Client('2', session=self.sess)
+            try:
+                glance = glanceclient.Client('2', session=self.sess)
+            except Exception as exc:
+                logging.error("Unable to create glance object:")
+                logging.error(exc)
+                return False
             images = glance.images.list()
             file_path = scratch_dir + image_name
             glance.images.upload(image_id, open(file_path, 'rb'))
             return image_id
         else:
             #this is a straight upload not part of a transfer
-            glance = glanceclient.Client('2', session=self.sess)
+            try:
+                glance = glanceclient.Client('2', session=self.sess)
+            except Exception as exc:
+                logging.error("Unable to create glance object:")
+                logging.error(exc)
+                return False
+
             image = glance.images.create(
                 name=image_name,
                 disk_format=disk_format,
@@ -114,13 +140,21 @@ class repo_connector(object):
 
     # Download an image from the repo, returns True if successful or False if not
     def download_image(self, image_name, image_id, scratch_dir):
-        glance = glanceclient.Client('2', session=self.sess)
-
+        try:
+            glance = glanceclient.Client('2', session=self.sess)
+        except Exception as exc:
+            logging.error("Unable to create glance object:")
+            logging.error(exc)
+            return False
+             
         #open file then write to it
         file_path = scratch_dir + image_name
-        image_file = open(file_path, 'w+')
+        image_file = open(file_path, 'wb')
+        print(glance.images.data(image_id))
         for chunk in glance.images.data(image_id):
-            image_file.write(str(chunk))
+            print(type(chunk))
+            print(chunk)
+            image_file.write(bytes(chunk))
 
         return True
 

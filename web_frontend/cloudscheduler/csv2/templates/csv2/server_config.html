@@ -32,9 +32,65 @@
 
                         {% for config in config_list %}
                             {% if config.category == category %}
-                            
-                                <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
-                                <td><input type="text" name="{{ config.config_key }}" value="{{ config.config_value }}" /></td></tr>
+                                {% if config.config_key == "log_level" %}
+                                    <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
+                                    <td>
+                                    <select name="{{ config.config_key }}">
+                                        {% if config.config_value == "50" %}
+                                            <option value="50" selected>CRITICAL</option>
+                                        {% else %}
+                                            <option value="50">CRITICAL</option>
+                                        {% endif %}
+
+                                        {% if config.config_value == "40" %}
+                                            <option value="40" selected>ERROR</option>
+                                        {% else %}
+                                            <option value="40">ERROR</option>
+                                        {% endif %}
+
+                                        {% if config.config_value == "30" %}
+                                            <option value="30" selected>WARNING</option>
+                                        {% else %}
+                                            <option value="30">WARNING</option>
+                                        {% endif %}
+
+                                        {% if config.config_value == "20" %}
+                                            <option value="20" selected>INFO</option>
+                                        {% else %}
+                                            <option value="20">INFO</option>
+                                        {% endif %}
+
+                                        {% if config.config_value == "10" %}
+                                            <option value="10" selected>DEBUG</option>
+                                        {% else %}
+                                            <option value="10">DEBUG</option>
+                                        {% endif %}
+
+                                        {% if config.config_value == "0" %}
+                                            <option value="0" selected>NOTSET</option>
+                                        {% else %}
+                                            <option value="0">NOTSET</option>
+                                        {% endif %}
+
+                                    </select>
+                                    </td></tr>
+                                {% elif config.config_type == "bool" %}
+
+                                    <input type="hidden" name="{{ config.config_key }}" value="False" />
+
+                                    <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
+                                    <td>
+                                    {% if config.config_value == "True"%}
+                                        <input type="checkbox" name="{{ config.config_key }}" value="True" checked/>
+                                    {% else %}
+                                        <input type="checkbox" name="{{ config.config_key }}" value="True" />
+                                    {% endif %}
+                                    </td></tr>
+
+                                {% else %}
+                                    <tr class="highlight1"><td><label for="{{ config.config_key }}">{{ config.config_key }}</label></td>
+                                    <td><input type="text" name="{{ config.config_key }}" value="{{ config.config_value }}" /></td></tr>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
 

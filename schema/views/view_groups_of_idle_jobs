@@ -1,191 +1,321 @@
 /*
-** List groups of idle jobs with matching resource requirements together with flavors
-** with sufficient resouces. The list will also conform to target_cloud specifications.
+** Retrieve all jobs with status grouping those with similar charcateristics.
 */
 create or replace view view_groups_of_idle_jobs as
-
-/*
-** Retrieve information.
-*/
+/* n06 - Concatenate flavors, images, keynames, and networks  */
 select
+group_name,
+target_clouds,
+requirements,
+job_priority,
+user,
+max_price,
+user_data,
+job_per_core,
+min(queue_date) as queue_date,
+min(js_idle) as idle,
+min(js_running) as running,
+min(js_completed) as completed,
+min(js_held) as held,
+min(js_other) as other,
+request_cpus,
+request_disk,
+request_ram,
+request_swap,
+instance_type,
+group_concat(distinct image) as images,
+keep_alive,
+group_concat(distinct keyname) as keynames,
+group_concat(distinct network) as networks,
+group_concat(distinct flavor) as flavors
+from (
+    /* n05 - Re-group on flavor info (instead of request info) */
+    select
     group_name,
     target_clouds,
-    request_cpus,
-    request_ram,
-    request_disk,
-    request_swap,
     requirements,
     job_priority,
     user,
-    group_concat(image order by image) as images,
-    instance_type,
-    group_concat(network order by network) as networks,
     max_price,
     user_data,
     job_per_core,
-    queue_date,
+    min(queue_date) as queue_date,
+    sum(js_idle) as js_idle,
+    sum(js_running) as js_running,
+    sum(js_completed) as js_completed,
+    sum(js_held) as js_held,
+    sum(js_other) as js_other,
+    min(request_cpus) as request_cpus,
+    min(request_disk) as request_disk,
+    min(request_ram) as request_ram,
+    min(request_swap) as request_swap,
+    instance_type,
+    image,
+    keep_alive,
+    keyname,
+    network,
+    flavor
+    from (
+        /* 04 - Drop anything that is not flavor_priority 1 */
+        select
+        *
+        from (
+            /* n03 - Add: flavor, cores, disk, ram, swap, and priority */
+            select
+            gn as group_name,
+            target_clouds,
+            requirements,
+            job_priority,
+            user,
+            max_price,
+            user_data,
+            job_per_core,
+            queue_date,
+            js_idle,
+            js_running,
+            js_completed,
+            js_held,
+            js_other,
+            request_cpus,
+            request_disk,
+            request_ram,
+            request_swap,
+            instance_type,
+            image,
+            keep_alive,
+            keyname,
+            network,
+            concat(cf.cloud_name, ':', name) as flavor,
+            cf.cores as flavor_cores,
+            cf.disk +cf.ephemeral_disk as flavor_disk,
+            cf.ram as flavor_ram,
+            cf.swap as flavor_swap,
+                row_number() over (partition by
+                    gn,
+                    cloud_name,
+                    request_cpus,
+                    request_ram
+                order by
+                    flavor_cores,
+                    flavor_ram,
+                    flavor_disk,
+                    flavor_swap
+                ) as flavor_priority
+            from (
+                /* n02 - Apply defaults to job groups: cpus, disk, ram, swap, instance_type, image, keep_alive, keyname, and network */
+                select
+                n01.group_name as gn,
+                target_clouds,
+                requirements,
+                job_priority,
+                user,
+                max_price,
+                user_data,
+                job_per_core,
+                queue_date,
+                js_idle,
+                js_running,
+                js_completed,
+                js_held,
+                js_other,
 
-    /*
-    ** Use group_concat() DB function to create (a list of) flavors.
-    */
-    group_concat(flavor order by flavor) as flavors,
+                case when ifnull(request_cpus,0)!=0 then
+                    request_cpus
+                else 
+                    case when ifnull(job_cpus,0)!=0 then
+                        job_cpus
+                    else
+                        0
+                    end
+                end as request_cpus,
+                    
+                case when ifnull(request_disk,0)!=0 then
+                    request_disk / (1024 * 1024)
+                else 
+                    case when ifnull(job_disk,0)!=0 then
+                        job_disk + ifnull(job_scratch,0)
+                    else
+                        0
+                    end
+                end as request_disk,
+                    
+                case when ifnull(request_ram,0)!=0 then
+                    request_ram
+                else 
+                    case when ifnull(job_ram,0)!=0 then
+                        job_ram
+                    else
+                        0
+                    end
+                end as request_ram,
+                    
+                case when ifnull(request_swap,0)!=0 then
+                    request_swap / (1024 * 1024)
+                else 
+                    case when ifnull(job_swap,0)!=0 then
+                        job_swap
+                    else
+                        0
+                    end
+                end as request_swap,
+                    
+                case when ifnull(n01.instance_type,'')!='' then
+                    n01.instance_type
+                else
+                    case when ifnull(cc.vm_flavor,'')!='' then
+                        cc.vm_flavor
+                    else
+                        case when ifnull(cgd.vm_flavor,'')!='' then
+                            cgd.vm_flavor
+                        else
+                            null
+                        end
+                    end
+                end as instance_type,
 
-    idle,
-    running,
-    completed,
-    held,
-    other
+                case when ifnull(n01.image,'')!='' then
+                    n01.image
+                else
+                    case when ifnull(cc.vm_image,'')!='' then
+                        concat(cc.cloud_name, ':', cc.vm_image)
+                    else
+                        case when ifnull(cgd.vm_image,'')!='' then
+                            concat(cc.cloud_name, ':', cgd.vm_image)
+                        else
+                            null
+                        end
+                    end
+                end as image,
 
-from (
-    select
+                case when ifnull(n01.keep_alive,'')!='' then
+                    n01.keep_alive
+                else
+                    case when ifnull(cc.vm_keep_alive,'')!='' then
+                        cc.vm_keep_alive
+                    else
+                        case when ifnull(cgd.vm_keep_alive,'')!='' then
+                            cgd.vm_keep_alive
+                        else
+                            null
+                        end
+                    end
+                end as keep_alive,
 
-        vcjgda.group_name,
+                case when ifnull(cc.vm_keyname,'')!='' then
+                    concat(cc.cloud_name, ':', cc.vm_keyname)
+                else
+                    case when ifnull(cgd.vm_keyname,'')!='' then
+                        concat(cc.cloud_name, ':', cgd.vm_keyname)
+                    else
+                        null
+                    end
+                end as keyname,
+
+                case when ifnull(n01.network,'')!='' then
+                    n01.network
+                else
+                    case when ifnull(cc.vm_network,'')!='' then
+                        concat(cc.cloud_name, ':', cc.vm_network)
+                    else
+                        case when ifnull(cgd.vm_network,'')!='' then
+                            concat(cc.cloud_name, ':', cgd.vm_network)
+                        else
+                            null
+                        end
+                    end
+                end as network
+                /* n01 - Retrieve all jobs/status and group by characteristics */
+                from (
+                    select
+                        cj.group_name,
+                        target_clouds,
+                        request_cpus,
+                        request_disk,
+                        request_ram,
+                        request_swap,
+                        requirements,
+                        job_priority,
+                        user,
+                        image,
+                        instance_type,
+                        network,
+                        keep_alive,
+                        max_price,
+                        user_data,
+                        job_per_core,
+                        min(q_date) as queue_date,
+                        sum(case when job_status=1 then 1 else 0 end) as js_idle,
+                        sum(case when job_status=2 then 1 else 0 end) as js_running,
+                        sum(case when job_status=4 then 1 else 0 end) as js_completed,
+                        sum(case when job_status=5 then 1 else 0 end) as js_held,
+                        sum(case when job_status=0 or job_status=3 or job_status=6 then 1 else 0 end) as js_other
+                    from condor_jobs as cj
+                    group by
+                        cj.group_name,
+                        target_clouds,
+                        request_cpus,
+                        request_disk,
+                        request_ram,
+                        request_swap,
+                        requirements,
+                        job_priority,
+                        user,
+                        image,
+                        instance_type,
+                        network,
+                        keep_alive,
+                        max_price,
+                        user_data,
+                        job_per_core
+                    ) as n01
+                left outer join csv2_group_defaults as cgd on
+                    n01.group_name=cgd.group_name
+                join csv2_clouds as cc on
+                    n01.group_name=cc.group_name
+                ) as n02
+            left outer join cloud_flavors as cf on
+                n02.gn=cf.group_name and 
+                (n02.target_clouds is null or instr(n02.target_clouds, cf.cloud_name) > 0) and
+                (n02.instance_type is null or n02.instance_type = name) and
+                request_cpus <= cores and 
+                request_disk <= disk + ephemeral_disk and 
+                request_ram  <= ram and 
+                request_swap <= swap
+            ) as n03
+        where flavor_priority=1
+        ) as n04
+    group by
+        group_name,
         target_clouds,
-        request_cpus,
-        request_ram,
-        request_disk,
-        request_swap,
         requirements,
         job_priority,
         user,
-        
-        case when image is null then
-            default_image
-        else
-            image
-        end as image,
-        
-        instance_type,
-        
-        case when network is null then
-            default_network
-        else
-            network
-        end as network,
-        
         max_price,
         user_data,
         job_per_core,
-        min(q_date) as queue_date,
-        flavor,
-        case when instr(instance_type, flavor_instance_type) > 0 then 0 else 1 end as flavor_mismatch,
-        flavor_cores,
-        flavor_ram,
-        flavor_disk,
-        flavor_swap,
-
-        /*
-        ** Use row_number() DB window function to create the flavor_priority.
-        */
-        row_number() over (partition by 
-            group_name,
-            target_clouds,
-            request_cpus,
-            request_ram,
-            request_disk,
-            request_swap,
-            requirements,
-            job_priority,
-            user,
-            
-            case when image is null then
-                default_image
-            else
-                image
-            end,
-            
-            instance_type,
-            
-            case when network is null then
-                default_network
-            else
-                network
-            end,
-            
-            max_price,
-            user_data,
-            job_per_core,
-            queue_date
-        order by
-            instance_type,
-            flavor_mismatch,
-            flavor_cores,
-            flavor_ram,
-            flavor_disk,
-            flavor_swap
-        ) as flavor_priority,
-
-        /*
-        ** Count the items in each group.
-        */
-        sum(js_idle) as idle,
-        sum(js_running) as running,
-        sum(js_completed) as completed,
-        sum(js_held) as held,
-        sum(js_other) as other
-
-        from view_condor_jobs_group_defaults_applied as vcjgda
-
-        left outer join view_available_resources as var on
-            vcjgda.group_name=var.group_name and
-            (target_clouds is null or instr(target_clouds, var.cloud_name) > 0) and
-            request_cpus <= flavor_cores and
-            request_disk <= flavor_disk and
-            request_ram  <= flavor_ram and
-            request_swap <= flavor_swap
-
-        /*
-        ** Define the grouping.
-        */
-        group by
-            vcjgda.group_name,
-            target_clouds,
-            request_cpus,
-            request_ram,
-            request_disk,
-            request_swap,
-            requirements,
-            job_priority,
-            user,
-            image,
-            instance_type,
-            network,
-            max_price,
-            user_data,
-            job_per_core,
-            flavor
-
-        order by 
-            instance_type,
-            flavor_mismatch,
-            flavor_cores,
-            flavor_ram,
-            flavor_disk,
-            flavor_swap 
-        ) as vgoijr /* view_groups_of_idle_jobs_raw */
-
-where flavor_priority=1
-
-/*
-** Define the grouping.
-*/
+        instance_type,
+        image,
+        keep_alive,
+        keyname,
+        network,
+        flavor
+    ) as n05
 group by
     group_name,
     target_clouds,
-    request_cpus,
-    request_ram,
-    request_disk,
-    request_swap,
     requirements,
     job_priority,
     user,
-    image,
-    instance_type,
-    network,
     max_price,
     user_data,
-    job_per_core
-
-order by job_priority,queue_date
-
+    job_per_core,
+    instance_type,
+    image,
+    keep_alive,
+    keyname,
+    network,
+    request_cpus,
+    request_disk,
+    request_ram,
+    request_swap
 ;

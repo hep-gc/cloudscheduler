@@ -14,7 +14,7 @@ from lib.schema import view_vms
 from lib.schema import view_groups_of_idle_jobs
 from lib.schema import view_available_resources
 from lib.schema import view_condor_jobs_group_defaults_applied
-from lib.schema import view_group_resources
+from lib.schema import view_clouds
 from lib.schema import view_metadata_collation_json
 
 from lib.db_config import Config
@@ -63,8 +63,8 @@ def main():
                           csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
-            group_resources = config.db_session.query(view_group_resources).filter(view_group_resources.c.group_name == csgroup.group_name,
-                                                                         view_group_resources.c.enabled == 1)
+            group_resources = config.db_session.query(view_clouds).filter(view_clouds.c.group_name == csgroup.group_name,
+                                                                         view_clouds.c.enabled == 1)
             Group_metadata = config.db_map.classes.csv2_group_metadata
             group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
@@ -111,6 +111,13 @@ def main():
                     continue
                 if idle_job.target_clouds:
                     target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
+                    # Issue #36
+                    if not set(target_cloud_list).intersection(set(cm_group.clouds.keys())):
+                        log.warning("No Target Cloud found in currently available or enabled clouds. for jobs: %s", idle_job)
+                        continue
+                        # TODO Flag job to hold it? these jobs are grouped though, and IDs aren't listed in view, makes it harder to pinpoint them.
+                        # Either need to query them somehow, or see if it's possible for that view to list/include all the IDs in that set. Ask Colin
+
                 else:
                     target_cloud_list = []
 
@@ -409,7 +416,7 @@ def check_unregistered_machines(group, config):
 
     machines = config.db_map.classes.condor_machines
     vms = config.db_map.classes.csv2_vms
-    clouds = config.db_map.classes.csv2_group_resources
+    clouds = config.db_map.classes.csv2_clouds
     group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
     unregistered_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
                                                                                              where(machines.machine.contains(view_vms.c.hostname)))

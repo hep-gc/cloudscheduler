@@ -65,7 +65,7 @@ def job_poller():
         config.default_job_group = ""
 
     JOB = config.db_map.classes.condor_jobs
-    CLOUDS = config.db_map.classes.csv2_group_resources
+    CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
 
     try:

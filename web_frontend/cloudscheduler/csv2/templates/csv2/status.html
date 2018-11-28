@@ -145,7 +145,7 @@
     {% set VMstotal = 0 %}
     {% set VMs_foreign_total = 0 %}
     <div class="status-table">
-        <input class="toggle-box" id="toggle-row" type="checkbox"></input>
+        <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
 
         <table>
           <colgroup>
@@ -163,7 +163,6 @@
                 <th class="native-style">Retiring</th>
                 <th class="native-style">Manual</th>
                 <th class="native-style">Error</th>
-                <th class="native-style">Other</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -177,11 +176,13 @@
                         </tr>
                     </table>
                 </th>
+                <th class="native-style">RAM</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="foreign-style">Foreign<br>VMs</th>
                 <th class="foreign-style">Foreign<br>Cores</th>
+                <th class="foreign-style">RAM</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -191,10 +192,11 @@
                         <tr colspan="2">Global Cores</tr>
                         <tr>
                             <th>Used</th>
-                            <th>Total</th>
+                            <th>Quota</th>
                         </tr>
                     </table>
                 </th>
+                <th class="total-style">RAM</th>
 
 
                 <th class="col-spacer">&nbsp;</th>
@@ -209,6 +211,7 @@
                         </tr>
                     </table>
                 </th>
+
                 <!--
                 <th class="native-style">Slots<br>Used Cores</th>
                 <th class="native-style">Slots<br>Idle Cores</th>
@@ -280,29 +283,31 @@
                         {% endif %}
 
 
-                        {% if cloud.VMs_other == 0 %}
-                            <td class="zero-style">0</td>
-                        {% else %}
-                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::other::')" href="#vms-overlay">{{cloud.VMs_other}}</td>
-                        {% endif %}
 
                         <td class="col-spacer">&nbsp;</td>
 
 
-
-
-                        {% if cloud.cores_ctl == -1 %}
+                        {% if cloud.cores_native == 0 %}
+                            <td class="zero-style">0</td>
+                        {% elif cloud.cores_ctl == -1 %}
                             <td class="sysctl-style">{{cloud.cores_native}}</td>
                         {% else %}
                             <td class="manual-style">{{cloud.cores_native}}</td>
                         {% endif %}
 
-                        {% if cloud.cores_ctl == -1 %}
+                        {% if cloud.cores_limit == 0 %}
+                            <td class="zero-style">0</td>
+                        {% elif cloud.cores_ctl == -1 %}
                             <td class="sysctl-style">{{cloud.cores_limit}}</td>
                         {% else %}
                             <td class="manual-style">{{cloud.cores_limit}}</td>
                         {% endif %}
-
+                        
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
+                            {% endwith %}
+                        </td>
 
 
                         <td class="col-spacer">&nbsp;</td>
@@ -322,11 +327,17 @@
                             <td class="more-style">{{ cloud.cores_foreign }}</a></td>
                         {% endif %}
 
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
+                            {% endwith %}
+                        </td>
+
                         <td class="col-spacer">&nbsp;</td>
 
 
                         <!--******************************-->
-                        {% if cloud.cores_max == 0 %}
+                        {% if cloud.cores_native_foreign == 0 %}
                             <td class="zero-style">0</td>
                         {% else %}
                             <td class="more-style">{{ cloud.cores_native_foreign }}</a></td>
@@ -337,9 +348,14 @@
                         {% if cloud.cores_max == 0 %}
                             <td class="zero-style">0</td>
                         {% else %}
-                            <td class="more-style">{{ cloud.cores_idle_native_foreign }}</a></td>
+                            <td class="more-style">{{ cloud.cores_quota }}</a></td>
                         {% endif %}
 
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                            {% endwith %}                        
+                        </td>
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -362,6 +378,8 @@
                             <td class="more-style">{{cloud.slot_idle_core_count}}</td>
                         {% endif %}
 
+                        
+
                     </tr>
 
 
@@ -376,46 +394,54 @@
                         <td><!--Retiring--></td>
                         <td><!--Manual--></td>
                         <td><!--Error--></td>
-                        <td><!--Other--></td>
 
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">
                         {% if cloud.cores_ctl == -1 %}
-                            <p class="sysctl-style">Using System Limit</p>
+                            <p>Using System Limit</p>
                         {% else %}
-                            <p class="manual-style">Using User Limit</p>
+                            <p>Using User Limit</p>
                         {% endif %}
-
-
+                        </td>
+                        <td>
+                            {% with ram=cloud.ram_native total=cloud.ram_quota %}
+                                {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {% endwith %}
+                        </td>
 
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Foreign VMs--></td>
                         <td><!--Foreign Cores--></td>
-
+                        <td>
+                            {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
+                                {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {% endwith %}
+                        </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Total Cores--></td>
                         <td><!--Cores Quota--></td>
-                        
+                        <td>
+                            {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
+                                {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                            {% endwith %}
+                        </td>
                         <td class="col-spacer">&nbsp;</td>
 
-                        <td>
+                        <td colspan="2">
+                            <table>
                             {% for slot in slot_list%}
                                 {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
+                                    <tr>
+                                        <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                        <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                                    </tr>
                                 {% endif %}
                             {% endfor %}
+                            </table>
                         </td>
-                        <td>
-                            {% for slot in slot_list%}
-                                {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                    {{ slot.core_count }}<br>
-                                {% endif %}
-                            {% endfor %}
-                        </td>
-
                         <td><!--Idle--></td>
 
                     </tr>                
@@ -435,13 +461,13 @@
             {% endfor %}
             -->
             <tr>
-                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td colspan="9" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
@@ -504,18 +530,26 @@
                 {% endif %}
 
 
-                {% if cloud_total_list.VMs_other == 0 %}
-                    <td class="zero-style">0</td>
-                {% else %}
-                    <td class="more-style"><a onclick="pass_url('::other::')" href="#vms-overlay">{{cloud_total_list.VMs_other}}</a></td>
-                {% endif %}
 
                 <td class="col-spacer">&nbsp;</td>
 
 
-                <td class="bold-style">{{cloud_total_list.cores_native}}</td>
-                <td class="bold-style">{{cloud_total_list.cores_limit}}</td>
+                {% if cloud_total_list.cores_native == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.cores_native}}</td>
+                {% endif %}
 
+                {% if cloud_total_list.cores_limit == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.cores_limit}}</td>
+                {% endif %}
+                    <td>
+                        {% with total=cloud_total_list.ram_quota %}
+                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native }}"></meter>
+                        {% endwith %}
+                    </td>
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -532,37 +566,45 @@
                     <td class="more-style"><a href="#">{{cloud_total_list.cores_foreign}}</a></td>
                 {% endif %}
 
+                    <td>
+                        {% with total=cloud_total_list.ram_quota %}
+                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_foreign }}"></meter>
+                        {% endwith %}
+                    </td>
 
                 <td class="col-spacer">&nbsp;</td>
                 <!--*******************************************************-->
                 <td class="bold-style">{{cloud_total_list.cores_native_foreign}}</td>
                 <!--*******************************************************-->
 
-                <td class="bold-style">{{cloud_total_list.cores_idle_native_foreign}}</td>
+                <td class="bold-style">{{cloud_total_list.cores_quota}}</td>
+
+                <td>
+                    {% with total=cloud_total_list.ram_quota %}
+                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native_foreign }}"></meter>
+                    {% endwith %}
+                </td>
 
                 <td class="col-spacer">&nbsp;</td>
 
                 {% if cloud_total_list.slot_count == 0 %}
                     <td class="zero-style">0</td>
                 {% else %}
-                    <td class="more-style">
-                        <div class="slots">
-                            <input id="slots-{{cloud.cloud_name}}" type="checkbox">
-                            <label for="slots-{{cloud.cloud_name}}">{{cloud_total_list.slot_count}}</label>
-                            <div class="slots-content">
-
-                                <hr>
-                                {% for slot in slot_total_list%}
-                                    {{ slot.slot_count }} &#10005 {{ slot.slot_CPUs }}c<br>
-                                {% endfor %}
-
-                            </div>
-                        </div>
-                    </td>
+                    <td class="more-style">{{cloud_total_list.slot_count}}</td>
                 {% endif %}
 
-                <td>{{cloud_total_list.slot_core_count}}</td>
-                <td>{{cloud_total_list.slot_idle_core_count}}</td>
+
+                {% if cloud_total_list.slot_core_count == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.slot_core_count}}</td>
+                {% endif %}
+
+                {% if cloud_total_list.slot_idle_core_count == 0 %}
+                    <td class="zero-style">0</td>
+                {% else %}
+                    <td class="more-style">{{cloud_total_list.slot_idle_core_count}}</td>
+                {% endif %}
 
             </tr>
 
@@ -577,51 +619,59 @@
                 <td><!--Retiring--></td>
                 <td><!--Manual--></td>
                 <td><!--Error--></td>
-                <td><!--Other--></td>
 
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Used Cores--></td>
                 <td><!--Cores Limit--></td>
-
+                <td>
+                    {% with ram=cloud_total_list.ram_native total=cloud_total_list.ram_quota %}
+                        {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                    {% endwith %}
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Foreign VMs--></td>
                 <td><!--Foreign Cores--></td>
-
+                <td>
+                    {% with ram=cloud_total_list.ram_foreign total=cloud_total_list.ram_quota %}
+                        {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                    {% endwith %}                    
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Total Cores--></td>
                 <td><!--Cores Quota--></td>
-                
+                <td>
+                    {% with ram=cloud_total_list.ram_native_foreign total=cloud_total_list.ram_quota %}
+                        {{ ram|div:1024 }} / {{ total|div:1024 }} GB
+                    {% endwith %}                    
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
-                <td>
+                <td colspan="2">
+                    <table>
                     {% for slot in slot_total_list%}
                         {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            {{ slot.slot_count }} &#10005 {{ slot.slot_type }}c<br>
+                            <tr>
+                                <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                            </tr>
                         {% endif %}
                     {% endfor %}
+                    </table>
                 </td>
-                <td>
-                    {% for slot in slot_total_list%}
-                        {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            {{ slot.core_count }}<br>
-                        {% endif %}
-                    {% endfor %}
-                </td>
-
                 <td><!--Idle--></td>
 
 
             <tr class="bottom-row">
-                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td colspan="9" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
@@ -629,10 +679,6 @@
             </tbody> 
         </table>
     </div>
-
-    <br>
-
-
 </div>
 
 
