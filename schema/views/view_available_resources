@@ -100,7 +100,7 @@ from (
         n05.ram_used,
 
         id as flavor_id,
-        name as flavor_name,
+        name as flavor,
         cf.cores as flavor_cores,
         cf.ram as flavor_ram
 
