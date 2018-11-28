@@ -524,7 +524,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('cores_used', Integer),
   Column('ram_used', Integer),
   Column('flavor_id', String(128)),
-  Column('flavor_name', String(128)),
+  Column('flavor', String(161)),
   Column('flavor_cores', Integer),
   Column('flavor_ram', Integer),
   Column('flavor_slots', Integer)
@@ -880,7 +880,6 @@ view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', met
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
   Column('machine', String(256)),
-  Column('cores', Integer),
   Column('priority', Integer)
   )
 
@@ -889,7 +888,6 @@ view_vm_kill_retire_priority_idle = Table('view_vm_kill_retire_priority_idle', m
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
   Column('machine', String(256)),
-  Column('agg_cores', Integer),
   Column('priority', Integer)
   )
 
