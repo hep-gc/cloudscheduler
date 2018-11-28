@@ -30,6 +30,17 @@
   background-color: lightcyan;
 }
 
+/*---------- useful styling classes ----------*/
+
+.left  {
+  text-align: left;
+}
+
+.right  {
+  text-align: right;
+}
+
+
 
 .dropdown {
     width: 200px;
