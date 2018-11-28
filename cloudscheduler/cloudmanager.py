@@ -46,6 +46,7 @@ class CloudManager():
         for cloud in self.group_resources:
             cloud_vms = []
             try:
+                # Do I need the VMs at all ? I don't think  I do.
                 cloud_vms = self.config.db_session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
                                                        cloud_vm.cloud_name == cloud.cloud_name)
             except Exception as ex:
