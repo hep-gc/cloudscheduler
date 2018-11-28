@@ -905,7 +905,7 @@ def vm_poller():
                             #not enough tokens, bad hostname or foreign vm
                             logging.error("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
-                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[vm.cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:
                                 # no entry yet
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
