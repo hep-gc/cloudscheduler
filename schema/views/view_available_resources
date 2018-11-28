@@ -3,90 +3,191 @@
 ** combination show the number of VMs up and down.
 */
 create or replace view view_available_resources as
-
+/* n01 - Retain only those flavors with available slots */
 select
-    grwcf.*,
-    cast(least(cores_idle div flavor_cores, ram_idle div flavor_ram) as integer) as flavor_slots
-
+*
 from (
+    /* n02 - For each flavor, calculate available slots */
     select
-        vc.group_name,
-        vc.cloud_name,
-        vc.enabled,
-        vc.spot_price,
-        concat(vc.cloud_name, ":", vc.cascading_vm_image) as default_image,
-        vc.cascading_vm_keep_alive as keep_alive,
-        concat(vc.cloud_name, ":", vc.cascading_vm_keyname) as default_keyname,
-        concat(vc.cloud_name, ":", vc.cascading_vm_network) as default_network,
+    n03.*,
+
+    case when cores_max>cores_used and ram_max>ram_used then
+        least((cores_max-cores_used) div flavor_cores, (ram_max-ram_used) div flavor_ram)
+    else
+        0
+    end as flavor_slots
+
+    from (
+        /* n03 - Append the default image, keep_alive, keyname, network, corex_max,
+        ** ram_max, cores_used, ram_used, flavor_id, flavor_name, flavor_cores, and
+        ** flavor_ram 
+        */
+        select
+        n04.group_name,
+        n04.cloud_name,
+        cloud_type,
+        region,
+        spot_price,
         authurl,
+        cacertificate,
+        project_domain_name,
         project,
+        user_domain_name,
         username,
         password,
-        keyname,
-        cacertificate,
-        region,
-        user_domain_name,
-        project_domain_name,
-        cloud_type,
 
-        cores_max,
-        cores_ctl,
-        cores_used,
-        cores_native,
-        cores_foreign,
-        cores_idle,
+        case when ifnull(n04.vm_image,'')!='' then
+            n04.vm_image
+        else
+            case when ifnull(cgd.vm_image,'')!='' then
+                cgd.vm_image
+            else
+                null
+            end
+        end as default_image,
 
-        ram_max,
-        ram_ctl,
-        ram_used,
-        ram_native,
-        ram_foreign,
-        ram_idle,
+        case when ifnull(n04.vm_keep_alive,'')!='' then
+            n04.vm_keep_alive
+        else
+            case when ifnull(cgd.vm_keep_alive,'')!='' then
+                cgd.vm_keep_alive
+            else
+                null
+            end
+        end as keep_alive,
 
-        name as flavor_name,
+        case when ifnull(n04.vm_keyname,'')!='' then
+            n04.vm_keyname
+        else
+            case when ifnull(cgd.vm_keyname,'')!='' then
+                cgd.vm_keyname
+            else
+                null
+            end
+        end as default_keyname,
+
+        case when ifnull(n04.vm_network,'')!='' then
+            n04.vm_network
+        else
+            case when ifnull(cgd.vm_network,'')!='' then
+                cgd.vm_network
+            else
+                null
+            end
+        end as default_network,
+
+        case when ifnull(cores_ctl,-1)!=-1 then
+            case when ifnull(cores_softmax,-1)!=-1 then
+                least(cores_ctl, cores_softmax, cores_max)
+            else
+                least(cores_ctl, cores_max)
+            end
+        else
+            case when ifnull(cores_softmax,-1)!=-1 then
+                least(cores_softmax, cores_max)
+            else
+                cores_max
+            end
+        end as cores_max,
+
+        case when ifnull(ram_ctl,-1)!=-1 then
+            least(ram_ctl, ram_max)
+        else
+            ram_max
+        end as ram_max,
+
+        n05.cores_used,
+        n05.ram_used,
+
         id as flavor_id,
-        concat(vc.cloud_name, "::", name) as flavor_instance_type,
+        name as flavor_name,
         cf.cores as flavor_cores,
-        disk + ephemeral_disk as flavor_disk,
-        disk as flavor_enduring_disk,
-        ephemeral_disk as flavor_ephemeral_disk,
-        cf.ram as flavor_ram,
-        swap as flavor_swap,
+        cf.ram as flavor_ram
 
-        /*
-        ** Use the row_number() DB function to create flavor_priority, ranking flavors by cores, disk, ram, and swap.
-        */
-        row_number() over (partition by
-        vc.group_name,
-        vc.cloud_name
-        order by
-            flavor_cores,
-            flavor_disk,
-            flavor_enduring_disk,
-            flavor_ephemeral_disk,
-            flavor_ram,
-            flavor_swap
-        ) as flavor_priority,
-        concat(vc.cloud_name, ":", cf.name) as flavor
-
-        from view_clouds as vc
-        join cloud_flavors as cf on
-        vc.group_name=cf.group_name and
-        vc.cloud_name=cf.cloud_name and (
-            vc.cascading_vm_flavor is null or
-            vc.cascading_vm_flavor="" or
-            vc.cascading_vm_flavor=cf.name
-            )
-
-
-        order by vc.group_name,vc.cloud_name,flavor_priority
-        ) as grwcf /* group_resources_with_cloud_flavors */
-  
-where
-  enabled=1 and
-  flavor_cores<=cores_idle and
-  flavor_ram<=ram_idle
-
-order by group_name,cloud_name,flavor_priority
-
+        from (
+            /* n04 - Get all the enabled clouds together with the used cores, disk, ram, and swap (n05)  */
+            select
+            group_name,
+            cloud_name,
+            cloud_type,
+            cores_ctl,
+            cores_softmax,
+            ram_ctl,
+            region,
+            spot_price,
+            authurl,
+            project_domain_name,
+            project,
+            user_domain_name,
+            username,
+            password,
+            cacertificate,
+            keyname
+            vm_flavor,
+            vm_image,
+            vm_keep_alive,
+            vm_keyname,
+            vm_network 
+            from csv2_clouds
+            where enabled=1
+            ) as n04
+        left outer join csv2_group_defaults as cgd on
+            n04.group_name=cgd.group_name
+        left outer join cloud_limits as cl on
+            n04.group_name=cl.group_name and
+            n04.cloud_name=cl.cloud_name
+        left outer join (
+            /* n05 - For each cloud, calculate total used cores, disk, ram, and swap */
+            select
+            group_name,
+            cloud_name,
+            sum(cores) as cores_used,
+            sum(disk) as disk_used,
+            sum(ram) as ram_used,
+            sum(swap) as swap_used
+            from (
+                /* n06 - For each flavor, calculate total used cores, disk, ram, and swap */
+                select
+                n07.*,
+                cores*count as cores,
+                disk*count as disk,
+                ram*count as ram,
+                swap*count as swap
+                from (
+                    /* n07 - Retain only native VM groups */
+                    select
+                    n08.*,
+                    config_value
+                    from (
+                        /* n08 - Get groups of VMs and counts */
+                        select
+                        substring_index(substring_index(hostname, '--',3), '--', -1) as csv2,
+                        group_name,
+                        cloud_name,
+                        flavor_id,
+                        count(1) as count
+                        from csv2_vms
+                        group by csv2,group_name,cloud_name,flavor_id
+                        ) as n08
+                    left outer join csv2_configuration as cnf on
+                        cnf.category='SQL' and
+                        cnf.config_key='csv2_host_id' and
+                        n08.csv2=cnf.config_value
+                    where config_value is not null
+                    ) as n07
+                left outer join cloud_flavors as cf on
+                    n07.group_name=cf.group_name and
+                    n07.cloud_name=cf.cloud_name and
+                    n07.flavor_id=cf.id
+                ) as n06
+            group by n06.group_name,n06.cloud_name
+            ) as n05 on
+            n04.group_name=n05.group_name and
+            n04.cloud_name=n05.cloud_name
+        left outer join cloud_flavors as cf on
+            n04.group_name=cf.group_name and
+            n04.cloud_name=cf.cloud_name
+        ) as n03
+    ) as n02
+where flavor_slots>0
 ;
