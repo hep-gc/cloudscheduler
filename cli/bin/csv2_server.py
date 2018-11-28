@@ -63,8 +63,8 @@ def config(gvar):
         [
             'category/Category,k',
             'config_key/Config Key,k',
-            'type/Type',
-            'value/Value',
+            'config_type/Type',
+            'config_value/Value',
         ],
         title="Server Configuration:",
     )
