@@ -11,6 +11,8 @@ from django.http import StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
 import glintwebui.config as config
+from django.conf import settings
+db_config = settings.CSV2_CONFIG
 
 
 from .glint_api import repo_connector
@@ -19,7 +21,6 @@ from .glint_utils import get_unique_image_list, get_images_for_group, parse_pend
     check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions
 
 from .__version__ import version
-from .db_util import get_db_base_and_session
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -28,12 +29,15 @@ logger = logging.getLogger('glintv2')
 
 def getUser(request):
     user = request.META.get('REMOTE_USER')
-    Base, session = get_db_base_and_session()
-    Glint_User = Base.classes.csv2_user
+    db_config.db_open()
+    session = db_config.db_session
+    Glint_User = db_config.db_map.classes.csv2_user
     auth_user_list = session.query(Glint_User)
     for auth_user in auth_user_list:
         if user == auth_user.cert_cn or user == auth_user.username:
+            db_config.db_close()
             return auth_user
+    db_config.db_close()
 
 
 def verifyUser(request):
@@ -88,11 +92,13 @@ def project_details(request, group_name=None, message=None):
         raise PermissionDenied
 
     # set up database objects
-    Base, session = get_db_base_and_session()
-    User_Group = Base.classes.csv2_user_groups
-    Group_Defaults = Base.classes.csv2_group_defaults
-
     user_obj = getUser(request)
+    db_config.db_open()
+    session = db_config.db_session
+    User_Group = db_config.db_map.classes.csv2_user_groups
+    Group_Defaults = db_config.db_map.classes.csv2_group_defaults
+
+    
 
     if group_name is None:
         group_name = user_obj.active_group
@@ -168,6 +174,7 @@ def project_details(request, group_name=None, message=None):
         'default_image': default_image,
         'enable_glint': True
     }
+    db_config.db_close()
     return render(request, 'glintwebui/project_details.html', context)
 
 
@@ -274,9 +281,11 @@ def save_images(request, group_name):
         raise PermissionDenied
     if request.method == 'POST':
         # set up database objects
-        Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_clouds
         user = getUser(request)
+        db_config.db_open()
+        session = db_config.db_session
+        Group_Resources = db_config.db_map.classes.csv2_clouds
+        
         #get repos
         repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
 
@@ -297,6 +306,7 @@ def save_images(request, group_name):
         #ideally this will be removed in the future
         time.sleep(2)
         message = "Please allow glint a few seconds to proccess your request."
+        db_config.db_close()
         return project_details(request=request, message=message)
     #Not a post request, display matrix
     else:

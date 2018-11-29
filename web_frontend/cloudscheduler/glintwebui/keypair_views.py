@@ -6,8 +6,9 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
 
 from .__version__ import version
-from .db_util import get_db_base_and_session
-from .utils import get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
+from django.conf import settings
+db_config = settings.CSV2_CONFIG
+from .glint_utils import get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -15,12 +16,15 @@ logger = logging.getLogger('glintv2')
 
 def getUser(request):
     user = request.META.get('REMOTE_USER')
-    Base, session = get_db_base_and_session()
-    Glint_User = Base.classes.csv2_user
+    db_config.db_open()
+    session = db_config.db_session
+    Glint_User = db_config.db_map.classes.csv2_user
     auth_user_list = session.query(Glint_User)
     for auth_user in auth_user_list:
         if user == auth_user.cert_cn or user == auth_user.username:
+            db_config.db_close()
             return auth_user
+    db_config.db_close()
 
 def verifyUser(request):
     auth_user = getUser(request)
@@ -43,10 +47,11 @@ def manage_keys(request, group_name=None, message=None):
     if group_name is None:
         group_name = user_obj.active_group
 
-    Base, session = get_db_base_and_session()
-    Group_Resources = Base.classes.csv2_clouds
-    Keypairs = Base.classes.cloud_keypairs
-    User_Group = Base.classes.csv2_user_groups
+    db_config.db_open()
+    session = db_config.db_session
+    Group_Resources = db_config.db_map.classes.csv2_clouds
+    Keypairs = db_config.db_map.classes.cloud_keypairs
+    User_Group = db_config.db_map.classes.csv2_user_groups
     user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
     group_list = []
     for grp in user_groups:
@@ -84,6 +89,7 @@ def manage_keys(request, group_name=None, message=None):
         "num_clouds": num_clouds
     }
     # need to create template
+    db_config.db_close()
     return render(request, 'glintwebui/manage_keys.html', context)
 
 @silkp(name='Upload Keypair')
@@ -93,10 +99,12 @@ def upload_keypair(request, group_name=None):
 
     if request.method == 'POST':
          # set up database objects
-        Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_clouds
-        Keypairs = Base.classes.cloud_keypairs
         user = getUser(request)
+        db_config.db_open()
+        session = db_config.db_session
+        Group_Resources = db_config.db_map.classes.csv2_clouds
+        Keypairs = db_config.db_map.classes.cloud_keypairs
+
 
         # get list of target clouds to upload key to
         cloud_name_list = request.POST.getlist('clouds')
@@ -131,6 +139,7 @@ def upload_keypair(request, group_name=None):
                 logger.error("Error committing database session after creating new key")
                 logger.error("openstack and the database may be out of sync until next keypair poll cycle")
 
+        db_config.db_close()
         return redirect("manage_keys")
     else:
         #not a post do nothing
@@ -144,11 +153,13 @@ def new_keypair(request, group_name=None,):
         raise PermissionDenied
 
     if request.method == 'POST':
-         # set up database objects
-        Base, session = get_db_base_and_session()
-        Group_Resources = Base.classes.csv2_clouds
-        Keypairs = Base.classes.cloud_keypairs
+        # set up database objects
         user = getUser(request)
+        db_config.db_open()
+        session = db_config.db_session
+        Group_Resources = db_config.db_map.classes.csv2_clouds
+        Keypairs = db_config.db_map.classes.cloud_keypairs
+        
 
         # get list of target clouds to upload key to
         cloud_name_list = request.POST.getlist('clouds')
@@ -185,8 +196,9 @@ def new_keypair(request, group_name=None,):
                 #keypair name exists on this cloud
                 message = "Keypair name %s in use on cloud: %s. Aborting transation, keypair may have been created on some clouds" % (key_name, cloud)
                 logger.error(message)
+                db_config.db_close()
                 return manage_keys(request=request, group_name=grp, message=message)
-
+        db_config.db_close()
         return redirect("manage_keys")
  
     else:
@@ -208,9 +220,10 @@ def save_keypairs(request, group_name=None, message=None):
     if request.method == 'POST':
         try:
             #set up database objects
-            Base, session = get_db_base_and_session()
-            Group_Resources = Base.classes.csv2_clouds
-            Keypairs = Base.classes.cloud_keypairs
+            db_config.db_open()
+            session = db_config.db_session
+            Group_Resources = db_config.db_map.classes.csv2_clouds
+            Keypairs = db_config.db_map.classes.cloud_keypairs
             # get list of clouds for this group
             # for each cloud: check_list = request.POST.getlist(cloud.cloud_name)
             # check the checklist for diffs (add/remove keys)
@@ -290,7 +303,7 @@ def save_keypairs(request, group_name=None, message=None):
             logger.error(exc)
             logger.error("Error setting up database objects or during general execution of save_keypairs")
 
-        
+        db_config.db_close()
         return redirect("manage_keys")
 
 
