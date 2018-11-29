@@ -13,8 +13,8 @@ from django.shortcuts import render, redirect
 import glintwebui.config as config
 
 
-from .glint_api import repo_connector, validate_repo
-from .utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
+from .glint_api import repo_connector
+from .glint_utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
     build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, \
     check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions
 
@@ -171,7 +171,7 @@ def project_details(request, group_name=None, message=None):
     return render(request, 'glintwebui/project_details.html', context)
 
 
-
+'''
 #displays the form for adding a repo to a project and handles the post request
 def add_repo(request, group_name):
     if not verifyUser(request):
@@ -266,6 +266,7 @@ def add_repo(request, group_name):
             'group_name': group_name,
         }
         return render(request, 'glintwebui/add_repo.html', context, {'form': form})
+'''
 
 @silkp(name='Save Images')
 def save_images(request, group_name):
