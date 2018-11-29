@@ -21,7 +21,6 @@ def getUser(request, db_session):
     auth_user_list = db_session.query(Glint_User)
     for auth_user in auth_user_list:
         if user == auth_user.cert_cn or user == auth_user.username:
-            db_config.db_close()
             return auth_user
 
 def verifyUser(request, db_session):
