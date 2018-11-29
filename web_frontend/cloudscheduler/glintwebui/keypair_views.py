@@ -154,7 +154,7 @@ def new_keypair(request, group_name=None,):
     if request.method == 'POST':
         # set up database objects
         user = getUser(request)
-                session = db_config.db_session
+        session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         Keypairs = db_config.db_map.classes.cloud_keypairs
         
@@ -205,6 +205,7 @@ def new_keypair(request, group_name=None,):
 
 @silkp(name='Save Keypairs')
 def save_keypairs(request, group_name=None, message=None):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
 
@@ -218,7 +219,6 @@ def save_keypairs(request, group_name=None, message=None):
     if request.method == 'POST':
         try:
             #set up database objects
-            db_config.db_open()
             session = db_config.db_session
             Group_Resources = db_config.db_map.classes.csv2_clouds
             Keypairs = db_config.db_map.classes.cloud_keypairs
