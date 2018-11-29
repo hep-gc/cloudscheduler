@@ -27,9 +27,10 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 logger = logging.getLogger('glintv2')
 
+
+# database must be opened prior to calling this function
 def getUser(request):
     user = request.META.get('REMOTE_USER')
-    db_config.db_open()
     session = db_config.db_session
     Glint_User = db_config.db_map.classes.csv2_user
     auth_user_list = session.query(Glint_User)
@@ -37,7 +38,6 @@ def getUser(request):
         if user == auth_user.cert_cn or user == auth_user.username:
             db_config.db_close()
             return auth_user
-    db_config.db_close()
 
 
 def verifyUser(request):
@@ -88,12 +88,12 @@ def project_details(request, group_name=None, message=None):
     # Since img name, img id is no longer a unique way to identify images across clouds
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
     # this means we now have to create a new unique image set that is just the image names
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
 
     # set up database objects
     user_obj = getUser(request)
-    db_config.db_open()
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
     Group_Defaults = db_config.db_map.classes.csv2_group_defaults
@@ -277,12 +277,12 @@ def add_repo(request, group_name):
 
 @silkp(name='Save Images')
 def save_images(request, group_name):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
     if request.method == 'POST':
         # set up database objects
         user = getUser(request)
-        db_config.db_open()
         session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         
@@ -310,6 +310,7 @@ def save_images(request, group_name):
         return project_details(request=request, message=message)
     #Not a post request, display matrix
     else:
+        db_config.db_close()
         return project_details(request=request, group_name=group_name)
 
 '''
@@ -357,6 +358,7 @@ def resolve_conflict(request, group_name, cloud_name):
 
 @silkp(name='Download Image')
 def download_image(request, image_name, group_name=None):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
     user_obj = getUser(request)
@@ -380,6 +382,7 @@ def download_image(request, image_name, group_name=None):
         response = StreamingHttpResponse((line for line in open(tentative_path, 'r')))
         response['Content-Disposition'] = "attachment; filename={0}".format(filename)
         response['Content-Length'] = os.path.getsize(tentative_path)
+        db_config.db_close()
         return response
 
     # Download image
@@ -406,10 +409,12 @@ def download_image(request, image_name, group_name=None):
     response = StreamingHttpResponse((line for line in open(file_full_path, 'rb')))
     response['Content-Disposition'] = "attachment; filename={0}".format(filename)
     response['Content-Length'] = os.path.getsize(file_full_path)
+    db_config.db_close()
     return response
 
 @silkp(name='Upload Image')
 def upload_image(request, group_name=None):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
     user_obj = getUser(request)
@@ -447,6 +452,7 @@ def upload_image(request, group_name=None):
                 'max_repos': len(image_dict),
                 'message': message
             }
+            db_config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
         #And finally before we save locally double check that file doesn't already exist
@@ -480,6 +486,7 @@ def upload_image(request, group_name=None):
                 'message': ("Too many images by that name being uploaded,"
                             " please try again in a few minutes.")
             }
+            db_config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
         disk_format = request.POST.get('disk_format')
@@ -507,6 +514,7 @@ def upload_image(request, group_name=None):
             increment_transactions()
 
         #return to project details page with message
+        db_config.db_close()
         return redirect('project_details', group_name=group_name)
 
     elif request.method == 'POST' and request.POST.get('myfileurl'):
@@ -545,6 +553,7 @@ def upload_image(request, group_name=None):
                 'max_repos': len(image_dict),
                 'message': "Too many images by that name being uploaded or bad URL, please check the url and try again in a few minutes."
             }
+            db_config.db_close()
             return render(request, 'glintwebui/upload_image.html', context)
 
         # Probably could use some checks here to make sure it is a valid image file.
@@ -577,6 +586,7 @@ def upload_image(request, group_name=None):
             increment_transactions()
 
         #return to project details page with message
+        db_config.db_close()
         return redirect('project_details', group_name=group_name)
     else:
         #render page to upload image
@@ -588,5 +598,6 @@ def upload_image(request, group_name=None):
             'max_repos': len(image_dict),
             'message': None
         }
+        db_config.db_close()
         return render(request, 'glintwebui/upload_image.html', context)
 

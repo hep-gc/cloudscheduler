@@ -14,9 +14,9 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 logger = logging.getLogger('glintv2')
 
+# database must be opened prior to calling this function
 def getUser(request):
     user = request.META.get('REMOTE_USER')
-    db_config.db_open()
     session = db_config.db_session
     Glint_User = db_config.db_map.classes.csv2_user
     auth_user_list = session.query(Glint_User)
@@ -24,7 +24,6 @@ def getUser(request):
         if user == auth_user.cert_cn or user == auth_user.username:
             db_config.db_close()
             return auth_user
-    db_config.db_close()
 
 def verifyUser(request):
     auth_user = getUser(request)
@@ -41,13 +40,13 @@ def getSuperUserStatus(request):
 # WEB VIEWS
 @silkp(name='Manage Keys')
 def manage_keys(request, group_name=None, message=None):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
     user_obj = getUser(request)
     if group_name is None:
         group_name = user_obj.active_group
 
-    db_config.db_open()
     session = db_config.db_session
     Group_Resources = db_config.db_map.classes.csv2_clouds
     Keypairs = db_config.db_map.classes.cloud_keypairs
@@ -94,13 +93,13 @@ def manage_keys(request, group_name=None, message=None):
 
 @silkp(name='Upload Keypair')
 def upload_keypair(request, group_name=None):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
 
     if request.method == 'POST':
          # set up database objects
         user = getUser(request)
-        db_config.db_open()
         session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         Keypairs = db_config.db_map.classes.cloud_keypairs
@@ -149,14 +148,13 @@ def upload_keypair(request, group_name=None):
 
 @silkp(name='New Keypair')
 def new_keypair(request, group_name=None,):
+    db_config.db_open()
     if not verifyUser(request):
         raise PermissionDenied
-
     if request.method == 'POST':
         # set up database objects
         user = getUser(request)
-        db_config.db_open()
-        session = db_config.db_session
+                session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         Keypairs = db_config.db_map.classes.cloud_keypairs
         
