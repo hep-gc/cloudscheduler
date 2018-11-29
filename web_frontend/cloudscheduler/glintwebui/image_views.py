@@ -29,23 +29,21 @@ logger = logging.getLogger('glintv2')
 
 
 # database must be opened prior to calling this function
-def getUser(request):
+def getUser(request, db_session):
     user = request.META.get('REMOTE_USER')
-    session = db_config.db_session
     Glint_User = db_config.db_map.classes.csv2_user
-    auth_user_list = session.query(Glint_User)
+    auth_user_list = db_session.query(Glint_User)
     for auth_user in auth_user_list:
         if user == auth_user.cert_cn or user == auth_user.username:
             db_config.db_close()
             return auth_user
 
-
-def verifyUser(request):
-    auth_user = getUser(request)
+def verifyUser(request, db_session):
+    auth_user = getUser(request, db_session)
     return bool(auth_user)
 
-def getSuperUserStatus(request):
-    auth_user = getUser(request)
+def getSuperUserStatus(request, db_session):
+    auth_user = getUser(request, db_session)
     if auth_user is None:
         return False
     else:
@@ -89,11 +87,11 @@ def project_details(request, group_name=None, message=None):
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
     # this means we now have to create a new unique image set that is just the image names
     db_config.db_open()
-    if not verifyUser(request):
+    if not verifyUser(request, db_config.db_session):
         raise PermissionDenied
 
     # set up database objects
-    user_obj = getUser(request)
+    user_obj = getUser(request, db_config.db_session)
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
     Group_Defaults = db_config.db_map.classes.csv2_group_defaults
@@ -167,7 +165,7 @@ def project_details(request, group_name=None, message=None):
         #'hidden_image_set': hidden_image_set,
         'image_lookup': reverse_img_lookup,
         'message': message,
-        'is_superuser': getSuperUserStatus(request),
+        'is_superuser': getSuperUserStatus(request, db_config.db_session),
         #'conflict_dict': conflict_dict,
         'version': version,
         'num_tx': num_tx,
@@ -278,11 +276,11 @@ def add_repo(request, group_name):
 @silkp(name='Save Images')
 def save_images(request, group_name):
     db_config.db_open()
-    if not verifyUser(request):
+    if not verifyUser(request, db_config.db_session):
         raise PermissionDenied
     if request.method == 'POST':
         # set up database objects
-        user = getUser(request)
+        user = getUser(request, db_config.db_session)
         session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         
@@ -359,9 +357,9 @@ def resolve_conflict(request, group_name, cloud_name):
 @silkp(name='Download Image')
 def download_image(request, image_name, group_name=None):
     db_config.db_open()
-    if not verifyUser(request):
+    if not verifyUser(request, db_config.db_session):
         raise PermissionDenied
-    user_obj = getUser(request)
+    user_obj = getUser(request, db_config.db_session)
     if group_name is None:
         group_name = user_obj.active_group
 
@@ -415,9 +413,9 @@ def download_image(request, image_name, group_name=None):
 @silkp(name='Upload Image')
 def upload_image(request, group_name=None):
     db_config.db_open()
-    if not verifyUser(request):
+    if not verifyUser(request, db_config.db_session):
         raise PermissionDenied
-    user_obj = getUser(request)
+    user_obj = getUser(request, db_config.db_session)
     if group_name is None:
         group_name = user_obj.active_group
     try:
@@ -496,7 +494,7 @@ def upload_image(request, group_name=None):
 
         # now queue the uploads to the destination clouds
         red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
-        user = getUser(request)
+        user = getUser(request, db_config.db_session)
         for cloud in cloud_name_list:
             logger.info("Queing image upload to %s", cloud)
             transaction = {
@@ -569,7 +567,7 @@ def upload_image(request, group_name=None):
         # now upload it to the destination clouds
         cloud_name_list = request.POST.getlist('clouds')
         red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
-        user = getUser(request)
+        user = getUser(request, db_config.db_session)
         for cloud in cloud_name_list:
             transaction = {
                 'user': user.username,
