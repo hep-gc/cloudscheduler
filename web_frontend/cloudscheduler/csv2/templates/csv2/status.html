@@ -51,7 +51,8 @@
 
     <div class="toggle-button">
         <label for="toggle-row">
-            <img src="{% static "csv2/expand.svg" %}" alt="expand rows">
+            <span class="expand-symbol">&#x21a8;</span>
+            <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
         </label>
     </div>
 
@@ -705,6 +706,7 @@
     </div>
 </div>
 
+<!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
 
 <div class="system-div">
     <table class="system-services">
@@ -723,68 +725,71 @@
             <tr>
                 <td tooltip="{{ system_list.csv2_status_msg }}">
                 {% if system_list.csv2_status_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <!--<img src="{% static "csv2/running.svg" %}" alt="Running">-->
+                    <span class="green-symbol">&#x2714;</span>
+                    </td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
                 <td tooltip="{{ system_list.csv2_main_msg }}">
                 {% if system_list.csv2_main_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
                 <td tooltip="{{ system_list.mariadb_msg }}">
                 {% if system_list.mariadb_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span>
+                    </td>
                 {% endif %}
 
 
                 {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
                     <td tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count != 0%}
                     <td tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
-                    <span class="orange-dot"></span></td>
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
                     <td tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count == 0%}
                     <td tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count != 0%}
                     <td tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
-                    <span class="orange-dot"></span></td>
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
                     <td tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count == 0%}
                     <td tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count != 0%}
                     <td tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
-                    <span class="orange-dot"></span></td>
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
                     <td tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
 
                 <td tooltip="{{ system_list.condor_msg }}">
                 {% if system_list.condor_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
@@ -823,9 +828,11 @@
     </table>
 
     <div class="refresh-button">
-        <div id="CDTimer">???</div>
-        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
-        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
+        <span id="CDTimer">???</span>
+        <span class="reload-symbol" onClick="window.location.reload()">&#x27f3;</span>
+        <span class="stop-symbol" onClick="stop_refresh()">&#x270b;</span>
+        <!--<img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
+        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">-->
     </div>
 </div>
 
