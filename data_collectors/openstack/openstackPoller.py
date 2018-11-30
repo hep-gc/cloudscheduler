@@ -212,17 +212,17 @@ def flavor_poller():
             for cloud in cloud_list:
                 if cloud.authurl+cloud.project not in unique_cloud_dict:
                     unique_cloud_dict[cloud.authurl+cloud.project] = {
-                        'cloud_obj' = cloud,
-                        'groups' = [(cloud.group_name, cloud.cloud_name)]
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append(cloud.group_name)
+                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
 
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 logging.info("Processing flavours from cloud - %s" % cloud_name)
-                session = _get_openstack_session(cloud)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     continue
@@ -255,7 +255,9 @@ def flavor_poller():
                     else:
                         disk = flavor.disk
 
-                    for group_n, cloud_n in unique_cloud_dict[cloud]['groups']:
+                    for groups in unique_cloud_dict[cloud]['groups']:
+                        group_n = groups[0]
+                        cloud_n = groups[1]
 
                         flav_dict = {
                             'group_name': group_n,
@@ -298,7 +300,7 @@ def flavor_poller():
                         db_session.commit()
                         logging.info("Flavor updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit flavor updates for %s::%s, aborting cycle..." % (group_name, cloud_name))
+                        logging.exception("Failed to commit flavor updates for %s, aborting cycle..." % cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
