@@ -150,7 +150,10 @@ def defaults_replication():
         time_slept = 0
         while(time_slept<config.defaults_sleep_interval):
             if check_defaults_changed():
-                logging.info("Defaults changed, waking up...")
+                logging.info("Defaults changed, waking up soon (30s)...")
+                # we sleep here so that the keypairs and images will hopefully have enough time to update before the replication happens
+                # to make it foolproof we could sleep for the length of an image collection sleep cycle
+                time.sleep(30)
                 set_defaults_changed(False)
                 break
             time.sleep(30) #an hour for now, should be configurable and notifiable via redis

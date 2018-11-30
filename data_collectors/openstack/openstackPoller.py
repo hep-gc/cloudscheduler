@@ -206,13 +206,25 @@ def flavor_poller():
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing flavours from group:cloud -  %s::%s" % (group_name, cloud_name))
+                if cloud.authurl+cloud.project not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                        'cloud_obj' = cloud,
+                        'groups' = [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append(cloud.group_name)
+
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing flavours from cloud - %s" % cloud_name)
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     continue
 
                 # setup OpenStack api objects
@@ -222,12 +234,12 @@ def flavor_poller():
                 try:
                     flav_list =  nova.flavors.list()
                 except Exception as exc:
-                    logging.error("Failed to retrieve flavor data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
                     continue
 
                 if flav_list is False:
-                    logging.info("No flavors defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.info("No flavors defined for %s::%s, skipping this cloud..." % cloud_name)
                     continue
 
                 # Process flavours for this cloud.
@@ -243,37 +255,39 @@ def flavor_poller():
                     else:
                         disk = flavor.disk
 
-                    flav_dict = {
-                        'group_name': cloud.group_name,
-                        'cloud_name': cloud.cloud_name,
-                        'name': flavor.name,
-                        'ram': flavor.ram,
-                        'vcpus': flavor.vcpus,
-                        'id': flavor.id,
-                        'swap': swap,
-                        'disk': disk,
-                        'ephemeral_disk': flavor.ephemeral,
-                        'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
-                        'last_updated': new_poll_time
-                        }
+                    for group_n, cloud_n in unique_cloud_dict[cloud]['groups']:
 
-                    flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
-                    if unmapped:
-                        logging.error("Unmapped attributes found during mapping, discarding:")
-                        logging.error(unmapped)
+                        flav_dict = {
+                            'group_name': group_n,
+                            'cloud_name': cloud_n,
+                            'name': flavor.name,
+                            'ram': flavor.ram,
+                            'vcpus': flavor.vcpus,
+                            'id': flavor.id,
+                            'swap': swap,
+                            'disk': disk,
+                            'ephemeral_disk': flavor.ephemeral,
+                            'is_public': flavor.__dict__.get('os-flavor-access:is_public'),
+                            'last_updated': new_poll_time
+                            }
 
-                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, flavor.name, flav_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                        continue
+                        flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
+                        if unmapped:
+                            logging.error("Unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)
 
-                    new_flav = FLAVOR(**flav_dict)
-                    try:
-                        db_session.merge(new_flav)
-                        uncommitted_updates += 1
-                    except Exception as exc:
-                        logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, flavor.name))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, flavor.name, flav_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
+
+                        new_flav = FLAVOR(**flav_dict)
+                        try:
+                            db_session.merge(new_flav)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge flavor entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, flavor.name))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
 
                 del nova
                 if abort_cycle:
