@@ -7,10 +7,6 @@ import redis
 from glintwebui.glint_api import repo_connector
 import glintwebui.config as config
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
 from keystoneauth1 import exceptions

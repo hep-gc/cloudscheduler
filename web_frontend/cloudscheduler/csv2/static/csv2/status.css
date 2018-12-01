@@ -368,41 +368,60 @@ input#toggle-row:checked ~ table tr.extra-row {
   width: 20px;
 }
 
-.green-dot {
-  height: 25px;
-  width: 25px;
-  background-color: green;
-  border-radius: 50%;
-  display: inline-block;
+
+
+.green-symbol {
+  color: green;
+  font-size: 250% !important;
 }
 
-.orange-dot {
-  height: 25px;
-  width: 25px;
-  background-color: orange;
-  border-radius: 50%;
-  display: inline-block;
+.orange-symbol {
+  color: darkorange;
+  font-size: 200% !important;
 }
 
-.red-dot {
-  height: 25px;
-  width: 25px;
-  background-color: red;
-  border-radius: 50%;
-  display: inline-block;
+.red-symbol {
+  color: red;
+  font-size: 250% !important;
 }
+
+.expand-symbol {
+  color: black;
+  font-size: 250% !important;
+}
+
+
+/*****************************************************************/
+/*                    page refresh styling                       */
+/*****************************************************************/
 
 .refresh-button {
   position: fixed;
-  right:20;
+  right:10;
+  bottom: 10px;
+}
+
+.stop-symbol {
+  position: absolute;
+  right: 20px;
   bottom: 20px;
-  width:30px;
-  max-width:30px;
+  color: red;
+  font-size: 300% !important;
+}
+.reload-symbol {
+  position: absolute;
+  right: 60px;
+  bottom: 0px;
+  color: black;
+  font-size: 500% !important;
 }
 
 #CDTimer {
+  position: absolute;
+  bottom: 37px;
+  right: 93px;
+  z-index:100;
   font-weight: bold;
   color: red;
-  text-align: center;
 }
 
