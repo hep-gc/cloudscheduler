@@ -789,16 +789,12 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('max_price', String(512)),
   Column('user_data', String(512)),
   Column('job_per_core', Integer),
-  Column('request_cpus', Integer),
   Column('request_cpus_min', Integer),
   Column('request_cpus_max', Integer),
-  Column('request_disk', Integer),
   Column('request_disk_min', Integer),
   Column('request_disk_max', Integer),
-  Column('request_ram', Integer),
   Column('request_ram_min', Integer),
   Column('request_ram_max', Integer),
-  Column('request_swap', Integer),
   Column('request_swap_min', Integer),
   Column('request_swap_max', Integer),
   Column('queue_date', Integer),
@@ -872,12 +868,6 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('username', String(32)),
   Column('group_name', String(32)),
   Column('available', String(32))
-  )
-
-view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
-  Column('status', String(7)),
-  Column('cores', Integer),
-  Column('VMs', Integer)
   )
 
 view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,
