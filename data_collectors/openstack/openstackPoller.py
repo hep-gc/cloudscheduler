@@ -510,7 +510,7 @@ def keypair_poller():
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.info("Processing Key pairs from group:cloud - %s" % cloud_name)
+                logging.info("Processing Key pairs from cloud - %s" % cloud_name)
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s" % cloud_name)
@@ -566,7 +566,7 @@ def keypair_poller():
                         db_session.commit()
                         logging.info("Keypair updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % cloud_name)
+                        logging.error("Failed to commit new keypairs for %s, aborting cycle..."  % cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -622,13 +622,23 @@ def limit_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             uncommitted_updates = 0
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing Limits from group:cloud -  %s::%s" % (group_name, cloud_name))
-                session = _get_openstack_session(cloud)
+                if cloud.authurl+cloud.project not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing Limits from cloud - %s" % cloud_name)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     continue
 
                 # Retrieve limit list for the current cloud.
@@ -640,39 +650,42 @@ def limit_poller():
                     for limit in limit_list:
                         limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
-                    logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (group_name, cloud_name))
+                    logging.error("Failed to retrieve limits from nova, skipping %s" % cloud_name)
                     logging.error(exc)
                     continue
 
                 if limits_dict is False:
-                    logging.info("No limits defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
                     continue
 
                 # Process limit list for the current cloud.
-                limits_dict['group_name'] = cloud.group_name
-                limits_dict['cloud_name'] = cloud.cloud_name
-                limits_dict['last_updated'] = int(time.time())
-                limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
-                if unmapped:
-                    logging.error("Unmapped attributes found during mapping, discarding:")
-                    logging.error(unmapped)
+                for groups in unique_cloud_dict[cloud]['groups']:
+                    group_n = groups[0]
+                    cloud_n = groups[1]
+                    limits_dict['group_name'] = group_n
+                    limits_dict['cloud_name'] = cloud_n
+                    limits_dict['last_updated'] = int(time.time())
+                    limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
 
-                if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                    continue
+                    if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
 
-                for limit in limits_dict:
-                    if "-1" in str(limits_dict[limit]):
-                        limits_dict[limit] = config.no_limit_default
+                    for limit in limits_dict:
+                        if "-1" in str(limits_dict[limit]):
+                            limits_dict[limit] = config.no_limit_default
 
-                new_limits = LIMIT(**limits_dict)
-                try:
-                    db_session.merge(new_limits)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_name, cloud_name))
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+                    new_limits = LIMIT(**limits_dict)
+                    try:
+                        db_session.merge(new_limits)
+                        uncommitted_updates += 1
+                    except Exception as exc:
+                        logging.exception("Failed to merge limits for %s, aborting cycle..." % cloud_name)
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
 
             del nova
             if abort_cycle:
@@ -686,7 +699,7 @@ def limit_poller():
                     db_session.commit()
                     logging.info("Limit updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
-                    logging.error("Failed to commit new limits for %s::%s, aborting cycle..."  % (group_name, cloud_name))
+                    logging.error("Failed to commit new limits for %s, aborting cycle..."  %  cloud_name)
                     logging.error(exc)
                     abort_cycle = True
                     break
