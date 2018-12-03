@@ -131,9 +131,9 @@ def main():
                         view_available_resources.c.flavor.in_(flavor_list))
                 num_jobs_per_flavor_possible = {}
                 for cloud_match in clouds_matching:
-                    cpu = cloud_match.flavor_cores / idle_job.request_cpus
-                    ram = cloud_match.flavor_ram / idle_job.request_ram
-                    disk = cloud_match.flavor_disk / idle_job.request_disk if idle_job.request_disk else None
+                    cpu = cloud_match.flavor_cores / idle_job.request_cpus_min
+                    ram = cloud_match.flavor_ram / idle_job.request_ram_min
+                    disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
                     jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
                     if jobs_possible < 1:
                         jobs_possible = 1
@@ -192,7 +192,7 @@ def main():
                         try:
                             if cm_group.clouds[cloud.cloud_name].enabled:
                                 use_image = None
-                                if idle_job.images:
+                                if idle_job.image:
                                     use_image = None
                                 elif cloud.default_image:
                                     use_image = cloud.default_image

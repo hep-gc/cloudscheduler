@@ -100,9 +100,9 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
 
         # Check image from job, else use cloud default, else global default
         imageobj = None
-        image_dict = self._attr_list_to_dict(job.images)
+        image_dict = self._attr_list_to_dict(job.image)
         try:
-            if job.images and self.name in image_dict.keys():
+            if job.image and self.name in image_dict.keys():
                 imageobj = nova.glance.find_image(image_dict[self.name])
             elif self.default_image:
                 imageobj = nova.glance.find_image(self.default_image)
@@ -139,7 +139,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         # Deal with network if needed
         netid = []
         network = None
-        network_dict = self._attr_list_to_dict(job.networks)
+        network_dict = self._attr_list_to_dict(job.network)
         if network_dict and self.name in network_dict.keys():
             if len(network_dict[self.name].split('-')) == 5:  # uuid
                 netid = [{'net-id': network_dict[self.name]}]
