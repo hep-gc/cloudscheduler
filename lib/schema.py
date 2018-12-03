@@ -194,11 +194,11 @@ condor_jobs = Table('condor_jobs', metadata,
   Column('job_per_core', Integer),
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
-  Column('hold_reason_code', Integer),
-  Column('hold_reason_subcode', Integer),
   Column('last_remote_host', String(64)),
   Column('held_reason', String(64)),
-  Column('hold_job_reason', String(64))
+  Column('hold_job_reason', String(64)),
+  Column('hold_reason_code', Integer),
+  Column('hold_reason_subcode', Integer)
   )
 
 condor_machines = Table('condor_machines', metadata,
@@ -440,66 +440,6 @@ django_session = Table('django_session', metadata,
   Column('session_key', String(40), primary_key=True),
   Column('session_data', String),
   Column('expire_date', Integer)
-  )
-
-silk_profile = Table('silk_profile', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('name', String(300)),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('file_path', String(300)),
-  Column('line_num', Integer),
-  Column('end_line_num', Integer),
-  Column('func_name', String(300)),
-  Column('exception_raised', Integer),
-  Column('dynamic', Integer),
-  Column('request_id', String(36))
-  )
-
-silk_profile_queries = Table('silk_profile_queries', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('profile_id', Integer),
-  Column('sqlquery_id', Integer)
-  )
-
-silk_request = Table('silk_request', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('path', String(190)),
-  Column('query_params', String),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('method', String(10)),
-  Column('start_time', Integer),
-  Column('view_name', String(190)),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('encoded_headers', String),
-  Column('meta_time', Float),
-  Column('meta_num_queries', Integer),
-  Column('meta_time_spent_queries', Float),
-  Column('pyprofile', String),
-  Column('num_sql_queries', Integer),
-  Column('prof_file', String(300))
-  )
-
-silk_response = Table('silk_response', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('status_code', Integer),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('encoded_headers', String),
-  Column('request_id', String(36))
-  )
-
-silk_sqlquery = Table('silk_sqlquery', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('query', String),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('traceback', String),
-  Column('request_id', String(36))
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -868,6 +808,12 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('username', String(32)),
   Column('group_name', String(32)),
   Column('available', String(32))
+  )
+
+view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
+  Column('status', String(7)),
+  Column('cores', Integer),
+  Column('VMs', Integer)
   )
 
 view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,
