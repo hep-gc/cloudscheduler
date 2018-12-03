@@ -511,7 +511,7 @@ def keypair_poller():
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 logging.info("Processing Key pairs from group:cloud - %s" % cloud_name)
-                session = _get_openstack_session(cloud)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s" % cloud_name)
                     continue
