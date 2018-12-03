@@ -355,13 +355,24 @@ def image_poller():
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing Images from group:cloud -  %s::%s" % (group_name, cloud_name))
-                session = _get_openstack_session(cloud)
+                if cloud.authurl+cloud.project not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing Images from cloud - %s" % cloud_name)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     continue
 
                 # Retrieve all images for this cloud.
@@ -369,12 +380,12 @@ def image_poller():
                 try:
                     image_list =  nova.glance.list()
                 except Exception as exc:
-                    logging.error("Failed to retrieve image data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
                     continue
 
                 if image_list is False:
-                    logging.info("No images defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.info("No images defined for %s, skipping this cloud..." %  cloud_name)
                     continue
 
                 uncommitted_updates = 0
@@ -384,37 +395,41 @@ def image_poller():
                     else:
                         size = image.size
 
-                    img_dict = {
-                        'group_name': cloud.group_name,
-                        'cloud_name': cloud.cloud_name,
-                        'container_format': image.container_format,
-                        'disk_format': image.disk_format,
-                        'min_ram': image.min_ram,
-                        'id': image.id,
-                        'size': size,
-                        'visibility': image.visibility,
-                        'min_disk': image.min_disk,
-                        'name': image.name,
-                        'last_updated': new_poll_time
-                        }
+                    for groups in unique_cloud_dict[cloud]['groups']:
+                        group_n = groups[0]
+                        cloud_n = groups[1]
 
-                    img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
-                    if unmapped:
-                        logging.error("Unmapped attributes found during mapping, discarding:")
-                        logging.error(unmapped)
+                        img_dict = {
+                            'group_name': group_n,
+                            'cloud_name': cloud_n,
+                            'container_format': image.container_format,
+                            'disk_format': image.disk_format,
+                            'min_ram': image.min_ram,
+                            'id': image.id,
+                            'size': size,
+                            'visibility': image.visibility,
+                            'min_disk': image.min_disk,
+                            'name': image.name,
+                            'last_updated': new_poll_time
+                            }
 
-                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                        continue
+                        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                        if unmapped:
+                            logging.error("Unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)
 
-                    new_image = IMAGE(**img_dict)
-                    try:
-                        db_session.merge(new_image)
-                        uncommitted_updates += 1
-                    except Exception as exc:
-                        logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_name, cloud_name, image.name))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
+
+                        new_image = IMAGE(**img_dict)
+                        try:
+                            db_session.merge(new_image)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
 
                 del nova
                 if abort_cycle:
@@ -425,7 +440,7 @@ def image_poller():
                         db_session.commit()
                         logging.info("Image updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.exception("Failed to commit image updates for %s::%s, aborting cycle..." % (group_name, cloud_name))
+                        logging.exception("Failed to commit image updates for %s, aborting cycle..." % cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
