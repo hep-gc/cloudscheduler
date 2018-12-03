@@ -497,13 +497,23 @@ def keypair_poller():
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing Key pairs from group:cloud -  %s::%s" % (group_name, cloud_name))
+                if cloud.authurl+cloud.project not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing Key pairs from group:cloud - %s" % cloud_name)
                 session = _get_openstack_session(cloud)
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s" % (group_name, cloud_name))
+                    logging.error("Failed to establish session with %s" % cloud_name)
                     continue
 
                 # setup openstack api objects
@@ -516,32 +526,36 @@ def keypair_poller():
                     # get keypairs and add them to database
                     cloud_keys = nova.keypairs.list()
                 except Exception as exc:
-                    logging.error("Failed to poll key pairs from nova, skipping %s::%s" % (group_name, cloud_name))
+                    logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
                     logging.error(exc)
                     continue
 
                 uncommitted_updates = 0
                 for key in cloud_keys:
-                    key_dict = {
-                        "cloud_name":  cloud.cloud_name,
-                        "group_name":  cloud.group_name,
-                        "key_name":    key.name,
-                        "fingerprint": key.fingerprint
-                    }
                     fingerprint_list.append(key.fingerprint)
+                    for groups in unique_cloud_dict[cloud]['groups']:
+                        group_n = groups[0]
+                        cloud_n = groups[1]
+                        key_dict = {
+                            "cloud_name":  cloud_n,
+                            "group_name":  group_n,
+                            "key_name":    key.name,
+                            "fingerprint": key.fingerprint
+                        }
+                        
 
-                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, key.name, key_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                        continue
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
 
-                    new_key = KEYPAIR(**key_dict)
-                    try:
-                        db_session.merge(new_key)
-                        uncommitted_updates += 1
-                    except Exception as exc:
-                        logging.exception("Failed to merge keypair entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, key.name))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                        new_key = KEYPAIR(**key_dict)
+                        try:
+                            db_session.merge(new_key)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge keypair entry for %s::%s, aborting cycle..." % (cloud_n, key.name))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
 
                 del nova
                 if abort_cycle:
@@ -552,7 +566,7 @@ def keypair_poller():
                         db_session.commit()
                         logging.info("Keypair updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % (group_name, cloud_name))
+                        logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
