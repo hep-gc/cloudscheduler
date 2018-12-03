@@ -7,7 +7,7 @@ select unix_timestamp();
 create or replace view view_vm_kill_retire_priority_idle as
 
 select
-group_name,
+cv.group_name,
 cloud_name,
 vmid,
 machine,
@@ -16,8 +16,8 @@ case when my_current_time is null then
 else
     my_current_time - entered_current_state
 end as priority
-from view_vms
-where foreign_vm=0
-group by group_name,cloud_name,vmid
+from csv2_vms as cv
+left outer join condor_machines as cm on
+    cv.hostname=substring_index(cm.machine,'.',1)
 order by priority desc
 ;
