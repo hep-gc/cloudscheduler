@@ -3,111 +3,88 @@
 ** (used/total), cores, disk, ram, swap, and condor retire controls.
 */
 create or replace view view_vms as
-
 /*
 ** Retrieve information.
 */
-
 select
-
-cv.*,
-cf.name as flavor_name,
-cpp.condor_slots,
-cdp.condor_slots_used,
-cpp.machine,
-cdp.my_current_time,
-cdp.entered_current_state,
-cpp.idle_time,
-cpp.retire_request_time,
-cpp.retired_time,
-case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
-cores,
-disk + ephemeral_disk as disk,
-ram,
-swap,
-case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))!=substring_index(cv.hostname, '--', 2) then
-    'foreign'
-else
-    case when cv.manual_control = 1 then
-        'manual'
+    cv.*,
+    cf.name as flavor_name,
+    cm.condor_slots,
+    cm.condor_slots_used,
+    cm.machine,
+    cm.my_current_time,
+    cm.entered_current_state,
+    cm.idle_time,
+    cm.retire_request_time,
+    cm.retired_time,
+    case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
+    cores,
+    disk + ephemeral_disk as disk,
+    ram,
+    swap,
+    case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))!=substring_index(cv.hostname, '--', 2) then
+        'foreign'
     else
-        case when cv.status = 'ERROR' then
-            'error'
+        case when cv.manual_control = 1 then
+            'manual'
         else
-            case when cv.power_status = 1 and ifnull(cpp.retire_request_time,0) != 0 then
-                'retiring'
+            case when cv.status = 'ERROR' then
+                'error'
             else
-                case when cv.status = 'BUILD' then
-                    'starting'
+                case when cv.power_status = 1 and ifnull(cm.retire_request_time,0) != 0 then
+                    'retiring'
                 else
-                    case when cv.power_status = 1 and cv.status = 'ACTIVE' and cpp.condor_slots is null then
-                        'unregistered'
+                    case when cv.status = 'BUILD' then
+                        'starting'
                     else
-                        case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cdp.condor_slots_used,0) < 1 then
-                            'idle'
+                        case when cv.power_status = 1 and cv.status = 'ACTIVE' and cm.condor_slots is null then
+                            'unregistered'
                         else
-                            case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cdp.condor_slots_used,0) > 0 then
-                                'running'
+                            case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cm.condor_slots_used,0) < 1 then
+                                'idle'
                             else
-                                'other'
+                                case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cm.condor_slots_used,0) > 0 then
+                                    'running'
+                                else
+                                    'other'
+                                end
                             end
                         end
                     end
                 end
             end
         end
-    end
-end as 'poller_status'
-
+    end as 'poller_status'
 from csv2_vms as cv
-
 left outer join cloud_flavors as cf on
     cv.group_name=cf.group_name and
     cv.cloud_name=cf.cloud_name and
     cv.flavor_id=cf.id
-
 left outer join (
     select
-
-    substring_index(machine,'--',1) as group_name,
-    substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
-    substring_index(machine,'.',1) as hostname,
-    machine,
-    total_slots as condor_slots,
-    idle_time,
-    retire_request_time,
-    retired_time
-
-    from condor_machines
-
-    where  slot_type="Partitionable"
-    ) as cpp /* condor_primary_partition */
-
-on
-    cv.group_name=cpp.group_name and
-    cv.cloud_name=cpp.cloud_name and
-    cv.hostname=cpp.hostname
-
-left outer join (
-    select
-
-    substring_index(machine,'--',1) as group_name,
-    substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
-    substring_index(machine,'.',1) as hostname,
-    max(my_current_time) as my_current_time,
-    max(entered_current_state) as entered_current_state,
-    sum(case when activity="Busy" then 1 else 0 end) as condor_slots_used
-
-    from condor_machines
-
-    where  slot_type="Dynamic"
-
-    group by machine
-    ) as cdp /* condor_dynamic_partitions */
-
-on
-    cv.group_name=cdp.group_name and
-    cv.cloud_name=cdp.cloud_name and
-    cv.hostname=cdp.hostname
-
+        substring_index(machine,'--',1) as group_name,
+        substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
+        substring_index(machine,'.',1) as hostname,
+        machine,
+        sum(case when slot_type='Partitionable' then total_slots else 0 end) as condor_slots,
+        max(case when slot_type='Partitionable' then idle_time else 0 end) as idle_time,
+        max(case when slot_type='Partitionable' then retire_request_time else 0 end) as retire_request_time,
+        max(case when slot_type='Partitionable' then retired_time else 0 end) as retired_time,
+        max(case when slot_type='Dynamic' then my_current_time else 0 end) as my_current_time,
+        max(case when slot_type='Dynamic' then entered_current_state else 0 end)  as entered_current_state,
+        sum(case when slot_type='Dynamic' and activity="Busy" then 1 else 0 end) as condor_slots_used
+    from condor_machines as cmr
+    left outer join csv2_configuration as c on
+        c.category='SQL' and
+        c.config_key='csv2_host_id' and
+        substring_index(substring_index(cmr.machine, '--', 3), '--', -1)=c.config_value
+    group by 
+        group_name,
+        cloud_name,
+        hostname,
+        machine
+    ) as cm on
+    cv.group_name=cm.group_name and
+    cv.cloud_name=cm.cloud_name and
+    cv.hostname=cm.hostname
 ;
