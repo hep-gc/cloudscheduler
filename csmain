@@ -167,7 +167,7 @@ def main():
                             continue
                         log.debug("Taking a look at booting on: %s", cloud.cloud_name)
                         log.debug("Using Flavor: %s", cloud.flavor)
-                        log.debug("num jobs per flavor: %s", num_jobs_per_flavor_possible)
+                        log.debug("num jobs per flavor: %s, flavor slots: %s", num_jobs_per_flavor_possible, cloud.flavor_slots)
                         # Need to redo this calculation for each cloud / flavor because it may change
                         num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
                         log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
@@ -447,11 +447,12 @@ def check_unregistered_machines(group, config):
         except Exception as ex:
             log.exception("Problem going through %s unregistered VMs: %s", group, ex)
     if to_terminate:
-        log.debug((len(to_terminate)))
-        log.debug(to_terminate)
+        log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
         update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
         for vm in update_result:
+            log.debug("Update flag on %s", vm.hostname)
             vm.terminate = 1
+            config.db_session.merge(vm)
     log.debug("Done checking %s unregistered VMs.", group)
     try:
         config.db_close()
