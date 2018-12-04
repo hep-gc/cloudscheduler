@@ -177,12 +177,12 @@ def update(request):
         else:
             count = 0
             if fields['vm_hosts'] != '':
-                if fields['vm_hosts'] == 'ALL':
-                    s = select([csv2_vms]).where(csv2_vms.c.group_name == active_user.active_group)
+                if fields['vm_hosts'] == 'all':
+                    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
                     vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
                 else:
                     fields['hostname'] = fields['vm_hosts']
-                    s = select([csv2_vms]).where(csv2_vms.c.group_name == active_user.active_group)
+                    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
                     vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
                 for vm in vm_list:
