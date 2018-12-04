@@ -51,7 +51,7 @@ def _get_neutron_client(session):
     return neutron
 
 def _get_nova_client(session):
-    nova = novaclient.Client("2", session=session)
+    nova = novaclient.Client("2", session=session, timeout=10)
     return nova
 
 def _get_openstack_session(cloud):
@@ -897,6 +897,7 @@ def vm_poller():
                         vm_list = nova.servers.list()
                     except Exception as exc:
                         logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                        logging.error("Exception type: %s" % type(exc))
                         logging.error(exc)
                         if group_name + cloud_name not in failure_dict:
                             failure_dict[group_name+cloud_name] = 1
