@@ -883,11 +883,11 @@ def vm_poller():
                     if session is False:
                         logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         if group_name + cloud_name not in failure_dict:
-                            failure_dict[group_name+cloud_name] = 0
+                            failure_dict[group_name+cloud_name] = 1
                         else:
                             failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
                         if failure_dict[group_name+cloud_name] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting")
+                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" % (group_name, cloud_name))
                             return False
                         continue
 
@@ -899,11 +899,11 @@ def vm_poller():
                         logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         logging.error(exc)
                         if group_name + cloud_name not in failure_dict:
-                            failure_dict[group_name+cloud_name] = 0
+                            failure_dict[group_name+cloud_name] = 1
                         else:
                             failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
                         if failure_dict[group_name+cloud_name] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting")
+                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" % (group_name, cloud_name))
                             return False
                         continue
 
