@@ -40,6 +40,12 @@
   text-align: right;
 }
 
+.bottom-right {
+  position: fixed;
+  right: 10;
+  bottom: 50;
+  text-align: center;
+}
 
 
 .dropdown {
