@@ -58,6 +58,10 @@
   content: "-";
 }
 
+table td {
+  vertical-align: top;
+}
+
 .meta-div {
   width: 150px;
   overflow: hidden;
@@ -68,16 +72,6 @@ iframe {
   width: 100%;
   height: 95%;
   border: 0;
-}
-
-.hide-iframe {
-  position: fixed;
-  top:60;
-  bottom:0;
-  left:700;
-  right:10;
-  max-height: 0;
-  overflow: auto;
 }
 
 
@@ -127,9 +121,11 @@ iframe {
 .tab2 input:checked ~ .tab2-hide {
   position: fixed;
   max-height: 100vh;
-  top:60;
-  bottom:0;
-  left:800;
-  right:10;
+  top: 60px;
+  bottom: 0;
+  right: 0;
+  width: 1%;
   overflow: auto;
+  z-index: 2;
 }
+

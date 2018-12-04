@@ -51,7 +51,8 @@
 
     <div class="toggle-button">
         <label for="toggle-row">
-            <img src="{% static "csv2/expand.svg" %}" alt="expand rows">
+            <span class="expand-symbol">&#x21a8;</span>
+            <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
         </label>
     </div>
 
@@ -163,7 +164,6 @@
                 <th class="native-style">Retiring</th>
                 <th class="native-style">Manual</th>
                 <th class="native-style">Error</th>
-                <th class="native-style">Other</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -177,11 +177,13 @@
                         </tr>
                     </table>
                 </th>
+                <th class="native-style">RAM</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
                 <th class="foreign-style">Foreign<br>VMs</th>
                 <th class="foreign-style">Foreign<br>Cores</th>
+                <th class="foreign-style">RAM</th>
 
                 <th class="col-spacer">&nbsp;</th>
 
@@ -195,6 +197,7 @@
                         </tr>
                     </table>
                 </th>
+                <th class="total-style">RAM</th>
 
 
                 <th class="col-spacer">&nbsp;</th>
@@ -209,6 +212,7 @@
                         </tr>
                     </table>
                 </th>
+
                 <!--
                 <th class="native-style">Slots<br>Used Cores</th>
                 <th class="native-style">Slots<br>Idle Cores</th>
@@ -280,11 +284,6 @@
                         {% endif %}
 
 
-                        {% if cloud.VMs_other == 0 %}
-                            <td class="zero-style">0</td>
-                        {% else %}
-                            <td class="more-style"><a onclick="pass_url('{{cloud.cloud_name}}::other::')" href="#vms-overlay">{{cloud.VMs_other}}</td>
-                        {% endif %}
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -304,7 +303,12 @@
                         {% else %}
                             <td class="manual-style">{{cloud.cores_limit}}</td>
                         {% endif %}
-
+                        
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
+                            {% endwith %}
+                        </td>
 
 
                         <td class="col-spacer">&nbsp;</td>
@@ -324,6 +328,12 @@
                             <td class="more-style">{{ cloud.cores_foreign }}</a></td>
                         {% endif %}
 
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
+                            {% endwith %}
+                        </td>
+
                         <td class="col-spacer">&nbsp;</td>
 
 
@@ -339,9 +349,14 @@
                         {% if cloud.cores_max == 0 %}
                             <td class="zero-style">0</td>
                         {% else %}
-                            <td class="more-style">{{ cloud.cores_max }}</a></td>
+                            <td class="more-style">{{ cloud.cores_quota }}</a></td>
                         {% endif %}
 
+                        <td>
+                            {% with total=cloud.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                            {% endwith %}                        
+                        </td>
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -364,6 +379,8 @@
                             <td class="more-style">{{cloud.slot_idle_core_count}}</td>
                         {% endif %}
 
+                        
+
                     </tr>
 
 
@@ -378,7 +395,6 @@
                         <td><!--Retiring--></td>
                         <td><!--Manual--></td>
                         <td><!--Error--></td>
-                        <td><!--Other--></td>
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -388,19 +404,43 @@
                         {% else %}
                             <p>Using User Limit</p>
                         {% endif %}
-
-
+                        </td>
+                        <td>
+                            {% with ram=cloud.ram_native total=cloud.ram_quota %}
+                                {% if cloud.ram_quota > 1048576 %}
+                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                {% else %}
+                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                {% endif %}
+                            {% endwith %}
+                        </td>
 
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Foreign VMs--></td>
                         <td><!--Foreign Cores--></td>
-
+                        <td>
+                            {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
+                                {% if cloud.ram_quota > 1048576 %}
+                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                {% else %}
+                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                {% endif %}
+                            {% endwith %}
+                        </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Total Cores--></td>
                         <td><!--Cores Quota--></td>
-                        
+                        <td>
+                            {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
+                                {% if cloud.ram_quota > 1048576 %}
+                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                {% else %}
+                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                {% endif %}
+                            {% endwith %}
+                        </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">
@@ -434,13 +474,13 @@
             {% endfor %}
             -->
             <tr>
-                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td colspan="9" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
@@ -503,11 +543,6 @@
                 {% endif %}
 
 
-                {% if cloud_total_list.VMs_other == 0 %}
-                    <td class="zero-style">0</td>
-                {% else %}
-                    <td class="more-style"><a onclick="pass_url('::other::')" href="#vms-overlay">{{cloud_total_list.VMs_other}}</a></td>
-                {% endif %}
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -523,6 +558,11 @@
                 {% else %}
                     <td class="more-style">{{cloud_total_list.cores_limit}}</td>
                 {% endif %}
+                    <td>
+                        {% with total=cloud_total_list.ram_quota %}
+                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native }}"></meter>
+                        {% endwith %}
+                    </td>
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -539,13 +579,24 @@
                     <td class="more-style"><a href="#">{{cloud_total_list.cores_foreign}}</a></td>
                 {% endif %}
 
+                    <td>
+                        {% with total=cloud_total_list.ram_quota %}
+                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_foreign }}"></meter>
+                        {% endwith %}
+                    </td>
 
                 <td class="col-spacer">&nbsp;</td>
                 <!--*******************************************************-->
                 <td class="bold-style">{{cloud_total_list.cores_native_foreign}}</td>
                 <!--*******************************************************-->
 
-                <td class="bold-style">{{cloud_total_list.cores_idle_native_foreign}}</td>
+                <td class="bold-style">{{cloud_total_list.cores_quota}}</td>
+
+                <td>
+                    {% with total=cloud_total_list.ram_quota %}
+                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native_foreign }}"></meter>
+                    {% endwith %}
+                </td>
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -581,23 +632,46 @@
                 <td><!--Retiring--></td>
                 <td><!--Manual--></td>
                 <td><!--Error--></td>
-                <td><!--Other--></td>
 
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Used Cores--></td>
                 <td><!--Cores Limit--></td>
-
+                <td>
+                    {% with ram=cloud_total_list.ram_native total=cloud_total_list.ram_quota %}
+                        {% if cloud_total_list.ram_quota > 1048576 %}
+                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                        {% else %}
+                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                        {% endif %}
+                    {% endwith %}
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Foreign VMs--></td>
                 <td><!--Foreign Cores--></td>
-
+                <td>
+                    {% with ram=cloud_total_list.ram_foreign total=cloud_total_list.ram_quota %}
+                        {% if cloud_total_list.ram_quota > 1048576 %}
+                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                        {% else %}
+                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                        {% endif %}
+                    {% endwith %}                    
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td><!--Total Cores--></td>
                 <td><!--Cores Quota--></td>
-                
+                <td>
+                    {% with ram=cloud_total_list.ram_native_foreign total=cloud_total_list.ram_quota %}
+                        {% if cloud_total_list.ram_quota > 1048576 %}
+                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                        {% else %}
+                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                        {% endif %}
+                    {% endwith %}                    
+                </td>
                 <td class="col-spacer">&nbsp;</td>
 
                 <td colspan="2">
@@ -616,13 +690,13 @@
 
 
             <tr class="bottom-row">
-                <td colspan="10" class="row-spacer">&nbsp;</td>
+                <td colspan="9" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
-                <td colspan="2" class="row-spacer">&nbsp;</td>
+                <td colspan="3" class="row-spacer">&nbsp;</td>
                 <td class="col-spacer">&nbsp;</td>
                 <td colspan="3" class="row-spacer">&nbsp;</td>
             </tr>
@@ -632,6 +706,7 @@
     </div>
 </div>
 
+<!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
 
 <div class="system-div">
     <table class="system-services">
@@ -650,68 +725,71 @@
             <tr>
                 <td tooltip="{{ system_list.csv2_status_msg }}">
                 {% if system_list.csv2_status_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <!--<img src="{% static "csv2/running.svg" %}" alt="Running">-->
+                    <span class="green-symbol">&#x2714;</span>
+                    </td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
                 <td tooltip="{{ system_list.csv2_main_msg }}">
                 {% if system_list.csv2_main_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
                 <td tooltip="{{ system_list.mariadb_msg }}">
                 {% if system_list.mariadb_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span>
+                    </td>
                 {% endif %}
 
 
                 {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
                     <td tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count != 0%}
                     <td tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
-                    <span class="orange-dot"></span></td>
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
                     <td tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count == 0%}
                     <td tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count != 0%}
                     <td tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
-                    <span class="orange-dot"></span></td>
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
                     <td tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count == 0%}
                     <td tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count != 0%}
                     <td tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
-                    <span class="orange-dot"></span></td>
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
                     <td tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
 
                 <td tooltip="{{ system_list.condor_msg }}">
                 {% if system_list.condor_status == 1 %}
-                    <span class="green-dot"></span></td>
+                    <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-dot"></span></td>
+                    <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
@@ -750,9 +828,11 @@
     </table>
 
     <div class="refresh-button">
-        <div id="CDTimer">???</div>
-        <img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
-        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">
+        <span id="CDTimer">???</span>
+        <span class="reload-symbol" onClick="window.location.reload()">&#x27f3;</span>
+        <span class="stop-symbol" onClick="stop_refresh()">&#x270b;</span>
+        <!--<img src="{% static "csv2/refresh.svg" %}" alt="Refresh now" onClick="window.location.reload()"> 
+        <img src="{% static "csv2/stop.svg" %}" alt="Stop refresh" onClick="stop_refresh()">-->
     </div>
 </div>
 

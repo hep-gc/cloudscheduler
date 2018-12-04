@@ -70,145 +70,170 @@
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
                             {% csrf_token %}
-                            <table>
-                                <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
-                                <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+                            <table><tr><td>
+
+                                <table>
+                                    <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                    <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
 
 
-                                <input type="hidden" name="enabled" value="0" />
+                                    <input type="hidden" name="enabled" value="0" />
 
-                                <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
-                                <td>
-                                {% if cloud.enabled == 1%}
-                                    <input type="checkbox" name="enabled" value="1" checked/>
-                                {% else %}
-                                    <input type="checkbox" name="enabled" value="1" />
-                                {% endif %}
-                                </td></tr>
-
-                                <tr class="highlight3"><td><label for="authurl">URL</label></td>
-                                <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
-                                <tr class="highlight3"><td><label for="project">Project</label></td>
-                                <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                                <tr class="highlight3"><td><label for="username">Username</label></td>
-                                <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
-                                <tr class="highlight3"><td><label for="password">Password</label></td>
-                                <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
-
-                                <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                                <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                                <tr class="highlight3"><td><label for="region">Region</label></td>
-                                <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                                <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
-                                <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                                <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
-                                <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
-
-
-
-                                <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
-                                <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
-
-
-                                <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
-                                <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
-
-
-
-                                <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
-                                <td><select name="vm_keyname" class="dropdown"/>
-                                <option value=""></option>
-                                {% for key in keypairs_list %}
-                                    {% if key.cloud_name == cloud.cloud_name%}
-                                        {% if key.key_name == cloud.vm_keyname %}
-                                            <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
-                                        {% else %}
-                                            <option value="{{ key.key_name }}">{{ key.key_name }}</option>
-                                        {% endif %}
-                                    {% endif %}   
-                                {% endfor %}
-
-                                <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
-                                <td><select name="vm_network" class="dropdown"/>
-                                <option value=""></option>
-                                {% for network in network_list %}
-                                    {% if network.cloud_name == cloud.cloud_name%}
-                                        {% if network.name == cloud.vm_network %}
-                                            <option value="{{ network.name }}" selected>{{ network.name }}</option>
-                                        {% else %}
-                                            <option value="{{ network.name }}">{{ network.name }}</option>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-
-
-                                <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
-                                <td><select name="vm_image" class="dropdown"/>
-                                <option value=""></option>
-                                {% for image in image_list %}
-                                    {% if image.cloud_name == cloud.cloud_name%}
-                                        {% if image.name == cloud.vm_image %}
-                                            <option value="{{ image.name }}" selected>{{ image.name }}</option>
-                                        {% else %}
-                                            <option value="{{ image.name }}">{{ image.name }}</option>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-
-
-                                <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
-                                <td><select name="vm_flavor" class="dropdown"/>
-                                <option value=""></option>
-                                {% for flavor in flavor_list %}
-                                    {% if flavor.cloud_name == cloud.cloud_name%}
-                                        {% if flavor.name == cloud.vm_flavor %}
-                                            <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
-                                        {% else %}
-                                            <option value="{{ flavor.name }}">{{ flavor.name }}</option>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-
-
-
-                                <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                                <td><select name="cloud_type" class="dropdown"/>
-                                {% for type in type_list %}
-                                    {% if cloud.cloud_type == type.cloud_type %}
-                                        <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                    <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
+                                    <td>
+                                    {% if cloud.enabled == 1%}
+                                        <input type="checkbox" name="enabled" value="1" checked/>
                                     {% else %}
-                                        <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                        <input type="checkbox" name="enabled" value="1" />
                                     {% endif %}
-                                {% endfor %}
+                                    </td></tr>
 
-                                <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
-                                <td>
-                                    <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" onchange="cores_ctl.value=cores_slider.value" />
-                                    <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" onchange="cores_slider.value=cores_ctl.value" />
-                                    / {{cloud.cores_max}}
-                                </td>
-                                <!--<td>
-                                    {% if cloud.cores_ctl == -1 %}
-                                    Using Quota
-                                    {% endif %}
-                                </td>--></tr>
+                                    <tr class="highlight3"><td><label for="authurl">URL</label></td>
+                                    <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="project">Project</label></td>
+                                    <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="username">Username</label></td>
+                                    <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="password">Password</label></td>
+                                    <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
 
-                                <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
-                                <td>
-                                    <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" onchange="ram_ctl.value=ram_slider.value" />
-                                    <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" onchange="ram_slider.value=ram_ctl.value" />
-                                    / {{cloud.ram_max}}
-                                </td>
-                                <!--<td>
-                                    {% if cloud.ram_ctl == -1 %}
-                                    Using Quota
-                                    {% endif %}
-                                </td>--></tr>
+                                    <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
+                                    <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="region">Region</label></td>
+                                    <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
+                                    <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
+                                    <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-                                <tr><td><input type="submit" value="Update Cloud" /></td>
-                                <td><a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a></td></tr>
-                            </table>
+
+                                    <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
+                                    <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
+                                </table>
+
+                            <td>    
+
+                                <table>
+                                    <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
+                                    <td><select name="cloud_type" class="dropdown"/>
+                                    {% for type in type_list %}
+                                        {% if cloud.cloud_type == type.cloud_type %}
+                                            <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                        {% else %}
+                                            <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td></tr>
+                                
+
+
+                                    <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
+                                    <td><select name="vm_keyname" class="dropdown"/>
+                                    <option value=""></option>
+                                    {% for key in keypairs_list %}
+                                        {% if key.cloud_name == cloud.cloud_name%}
+                                            {% if key.key_name == cloud.vm_keyname %}
+                                                <option value="{{ key.key_name }}" selected>{{ key.key_name }}</option>
+                                            {% else %}
+                                                <option value="{{ key.key_name }}">{{ key.key_name }}</option>
+                                            {% endif %}
+                                        {% endif %}   
+                                    {% endfor %}
+
+                                    <tr class="highlight3"><td><label for="vm_network">VM Network</label></td>
+                                    <td><select name="vm_network" class="dropdown"/>
+                                    <option value=""></option>
+                                    {% for network in network_list %}
+                                        {% if network.cloud_name == cloud.cloud_name%}
+                                            {% if network.name == cloud.vm_network %}
+                                                <option value="{{ network.name }}" selected>{{ network.name }}</option>
+                                            {% else %}
+                                                <option value="{{ network.name }}">{{ network.name }}</option>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td></tr>
+
+
+                                    <tr class="highlight3"><td><label for="vm_image">VM Image</label></td>
+                                    <td><select name="vm_image" class="dropdown"/>
+                                    <option value=""></option>
+                                    {% for image in image_list %}
+                                        {% if image.cloud_name == cloud.cloud_name%}
+                                            {% if image.name == cloud.vm_image %}
+                                                <option value="{{ image.name }}" selected>{{ image.name }}</option>
+                                            {% else %}
+                                                <option value="{{ image.name }}">{{ image.name }}</option>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td></tr>
+
+                                    <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
+                                    <td><select name="vm_flavor" class="dropdown"/>
+                                    <option value=""></option>
+                                    {% for flavor in flavor_list %}
+                                        {% if flavor.cloud_name == cloud.cloud_name%}
+                                            {% if flavor.name == cloud.vm_flavor %}
+                                                <option value="{{ flavor.name }}" selected>{{ flavor.name }}</option>
+                                            {% else %}
+                                                <option value="{{ flavor.name }}">{{ flavor.name }}</option>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td></tr>
+
+                                    <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
+                                    <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
+
+
+                                </table>
+
+                                <br>
+
+                                <table>
+                                    <tr class="highlight2"><td><label for="cores_softmax">Cores Softmax</label></td>
+                                    <td><input type="text" name="cores_softmax" value="{{cloud.cores_softmax}}" /></td></tr>
+
+                                    <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
+                                    <td>
+                                        
+                                        <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" oninput="cores_ctl.value=cores_slider.value" />
+                                        <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" oninput="cores_slider.value=cores_ctl.value" />
+                                        / {{cloud.cores_max}}
+                                    </td></tr>
+                                    <!--<td>
+                                        {% if cloud.cores_ctl == -1 %}
+                                        Using Quota
+                                        {% endif %}
+                                    </td></tr>-->
+
+                                    <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
+                                    <td>
+                                        <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" oninput="ram_ctl.value=ram_slider.value" />
+                                        <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" oninput="ram_slider.value=ram_ctl.value" />
+                                        / {{cloud.ram_max}} KB
+                                    </td></tr>
+                                    <!--<td>
+                                        {% if cloud.ram_ctl == -1 %}
+                                        Using Quota
+                                        {% endif %}
+                                    </td></tr>-->
+
+                                </table>
+                            </td></tr>
+
+                            <tr>
+                                <td class="left"><input type="submit" value="Update Cloud" /></td>
+                                <td></td>
+                            </tr>
+
+                        </table>
                         </form>
+
+                        <div class="bottom-right">
+                            <a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a>
+                        </div>
 
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">

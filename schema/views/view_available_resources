@@ -36,6 +36,16 @@ from (
         username,
         password,
 
+        case when ifnull(n04.vm_flavor,'')!='' then
+            concat(n04.cloud_name, ':', n04.vm_flavor)
+        else
+            case when ifnull(cgd.vm_flavor,'')!='' then
+                concat(n04.cloud_name, ':', cgd.vm_flavor)
+            else
+                null
+            end
+        end as default_flavor,
+
         case when ifnull(n04.vm_image,'')!='' then
             n04.vm_image
         else
@@ -96,38 +106,40 @@ from (
             ram_max
         end as ram_max,
 
-        n05.cores_used,
-        n05.ram_used,
+        ifnull(n05.cores_used,0) as cores_used,
+        ifnull(n05.ram_used,0) as ram_used,
 
         id as flavor_id,
-        name as flavor_name,
+        concat(n04.cloud_name, ':', name) as flavor,
         cf.cores as flavor_cores,
-        cf.ram as flavor_ram
+        cf.disk + cf.ephemeral_disk as flavor_disk,
+        cf.ram as flavor_ram,
+        cf.swap as flavor_swap
 
         from (
             /* n04 - Get all the enabled clouds together with the used cores, disk, ram, and swap (n05)  */
             select
-            group_name,
-            cloud_name,
-            cloud_type,
-            cores_ctl,
-            cores_softmax,
-            ram_ctl,
-            region,
-            spot_price,
-            authurl,
-            project_domain_name,
-            project,
-            user_domain_name,
-            username,
-            password,
-            cacertificate,
-            keyname
-            vm_flavor,
-            vm_image,
-            vm_keep_alive,
-            vm_keyname,
-            vm_network 
+                group_name,
+                cloud_name,
+                cloud_type,
+                cores_ctl,
+                cores_softmax,
+                ram_ctl,
+                region,
+                spot_price,
+                authurl,
+                project_domain_name,
+                project,
+                user_domain_name,
+                username,
+                password,
+                cacertificate,
+                keyname,
+                vm_flavor,
+                vm_image,
+                vm_keep_alive,
+                vm_keyname,
+                vm_network 
             from csv2_clouds
             where enabled=1
             ) as n04
@@ -139,25 +151,25 @@ from (
         left outer join (
             /* n05 - For each cloud, calculate total used cores, disk, ram, and swap */
             select
-            group_name,
-            cloud_name,
-            sum(cores) as cores_used,
-            sum(disk) as disk_used,
-            sum(ram) as ram_used,
-            sum(swap) as swap_used
+                group_name,
+                cloud_name,
+                sum(cores) as cores_used,
+                sum(disk) as disk_used,
+                sum(ram) as ram_used,
+                sum(swap) as swap_used
             from (
                 /* n06 - For each flavor, calculate total used cores, disk, ram, and swap */
                 select
-                n07.*,
-                cores*count as cores,
-                disk*count as disk,
-                ram*count as ram,
-                swap*count as swap
+                    n07.*,
+                    cores*count as cores,
+                    disk*count as disk,
+                    ram*count as ram,
+                    swap*count as swap
                 from (
                     /* n07 - Retain only native VM groups */
                     select
-                    n08.*,
-                    config_value
+                        n08.*,
+                        config_value
                     from (
                         /* n08 - Get groups of VMs and counts */
                         select
@@ -188,6 +200,9 @@ from (
             n04.group_name=cf.group_name and
             n04.cloud_name=cf.cloud_name
         ) as n03
+    where
+        n03.default_flavor is null or
+        n03.default_flavor = n03.flavor
     ) as n02
 where flavor_slots>0
 ;
