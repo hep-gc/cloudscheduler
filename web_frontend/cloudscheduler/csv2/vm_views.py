@@ -43,13 +43,13 @@ VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'poller_status':                                                ['native', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
+        'poller_status':                                                ['native', 'idle', 'starting', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'vm_hosts':                                                     'ignore',
+#       'vm_hosts':                                                     'ignore',
         },
     }
 
@@ -177,9 +177,13 @@ def update(request):
         else:
             count = 0
             if fields['vm_hosts'] != '':
-                fields['hostname'] = fields['vm_hosts']
-                s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) & (view_vms.c.foreign_vm == 0))
-                vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+                if fields['vm_hosts'] == 'ALL':
+                    s = select([csv2_vms]).where(csv2_vms.c.group_name == active_user.active_group)
+                    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
+                else:
+                    fields['hostname'] = fields['vm_hosts']
+                    s = select([csv2_vms]).where((csv2_vms.c.group_name == active_user.active_group) & (csv2_vms.c.foreign_vm == 0))
+                    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
                 for vm in vm_list:
                     if fields['vm_option'] == 'kill':
