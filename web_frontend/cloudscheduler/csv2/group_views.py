@@ -237,7 +237,7 @@ def defaults(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc == 0:
-        if request.method == 'POST':
+        if request.method == 'POST' and 'group' not in request.POST:
                 # Validate input fields.
                 rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_DEFAULTS_KEYS], ['csv2_group_defaults'], active_user)
                 
