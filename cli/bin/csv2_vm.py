@@ -116,9 +116,9 @@ def update(gvar):
     Modify a VM in the active group.
     """
 
-    mandatory = ['-vo']
+    mandatory = ['-vh', '-vo']
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-s', '-vh', '-vS', '-xA']
+    optional = ['-cn', '-g', '-H', '-h', '-s', '-vS', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
