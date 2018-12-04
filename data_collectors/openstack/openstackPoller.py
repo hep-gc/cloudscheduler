@@ -845,6 +845,7 @@ def vm_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
     
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
@@ -881,6 +882,13 @@ def vm_poller():
                     session = _get_openstack_session(cloud)
                     if session is False:
                         logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                        if group_name + cloud_name not in failure_dict:
+                            failure_dict[group_name+cloud_name] = 0
+                        else:
+                            failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
+                        if failure_dict[group_name+cloud_name] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting")
+                            return False
                         continue
 
                     # Retrieve VM list for this cloud.
@@ -890,12 +898,22 @@ def vm_poller():
                     except Exception as exc:
                         logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         logging.error(exc)
+                        if group_name + cloud_name not in failure_dict:
+                            failure_dict[group_name+cloud_name] = 0
+                        else:
+                            failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
+                        if failure_dict[group_name+cloud_name] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting")
+                            return False
                         continue
 
                     if vm_list is False:
                         logging.info("No VMs defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         del nova
                         continue
+
+                    # if we get here the connection to openstack has been succussful and we can remove the error status
+                    failure_dict.pop(group_name+cloud_name, None)
 
                     # Process VM list for this cloud.
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1060,7 +1078,7 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time)
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict)
 
             logging.info("Completed VM poller cycle")
             config.db_close()
