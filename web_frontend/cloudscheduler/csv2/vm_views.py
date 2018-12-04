@@ -49,7 +49,7 @@ VM_KEYS = {
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-#       'vm_hosts':                                                     'ignore',
+        'vm_hosts':                                                     'lowercase',
         },
     }
 
@@ -182,7 +182,7 @@ def update(request):
                     vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
                 else:
                     fields['hostname'] = fields['vm_hosts']
-                    s = select([csv2_vms]).where((csv2_vms.c.group_name == active_user.active_group) & (csv2_vms.c.foreign_vm == 0))
+                    s = select([csv2_vms]).where(csv2_vms.c.group_name == active_user.active_group)
                     vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
                 for vm in vm_list:
