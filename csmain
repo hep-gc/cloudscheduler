@@ -396,6 +396,7 @@ def check_idle_machines(group, config):
         update_result = config.db_session.query(machines).filter(machines.machine.in_(idle_list))
         for row in update_result:
             row.retire_request_time = int(time.time())
+            config.db_session.merge(row)
         # TODO Update csv2_vms table with a retired flag on that vm
     try:
         config.db_close()
