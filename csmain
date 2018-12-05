@@ -328,6 +328,7 @@ def check_idle_time(group, config):
                                                              machines.total_slots == 1)
     for machine in unclaimed_idle_machines:
         machine.idle_time = int(time.time())
+        config.db_session.merge(machine)
         log.debug("%s detected doing nothing - set idle_time.", machine.machine)
     try:
         config.db_close()
@@ -359,6 +360,7 @@ def check_idle_time_unset(group, config):
         if machine.total_slots != 1 or machine.state != "Unclaimed" or machine.activity != "Idle":
             log.debug("%s detected change - unset idle_time.", machine.machine)
             machine.idle_time = None
+            config.db_session.merge(machine)
     try:
         config.db_close()
     except Exception as ex:
