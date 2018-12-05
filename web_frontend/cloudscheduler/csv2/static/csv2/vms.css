@@ -4,12 +4,17 @@
 }
 
 .vm-div {
+  position: absolute;
   display: block;
-  height: 89%;
+
+  width: 100%;
+  top: 0px;
+  bottom: 30px;
+
   overflow-y: visible;
   overflow-x: visible;
-  position: static;
-  width: 100%;
+
+
 }
 
 .vm-div form {
@@ -26,8 +31,12 @@
 
 .button {
   border: none;
+  /*
+
   border-radius: 8px;
   box-shadow: 0 -17px 6px 0 rgba(0,0,0,0.2) inset;
+
+  */
   color: white;
   cursor: pointer;
   display: inline-block;
@@ -39,10 +48,11 @@
   width: 197px;
 }
 
+/*
 .button-shadow:hover {
   box-shadow: 0 17px 6px 0 rgba(0,0,0,0.2) inset;
 }
-
+*/
 .greyed-button {
   opacity: 0.4;
   cursor: not-allowed;
@@ -62,11 +72,12 @@
 }
 
 .vm-table {
+  position: absolute;
+  left: 0px;
   display: block;
 }
 
 .vm-table table {
-  display: block;
   overflow-x: scroll;
   padding-bottom: 1px;
   table-layout: fixed;
@@ -77,21 +88,21 @@
   padding: 5px;
 }
 
+/*
 .vm-table thead {
   display: block;
-  margin-left:12px; /* In order to allign with the scroll bar on the left side */
+  margin-left:12px; 
   width: 1670px;
 }
-
+*/
 .vm-table th {
   background-color: powderblue;
-  box-shadow: 0 -2px 6px 0 rgba(0,0,0,0.2) inset;
   color: black;
   cursor: pointer;
   font-size: 16px;
   text-align: center;
 }
-
+/*
 .vm-table tbody {
   direction: rtl;
   display: block;
@@ -99,8 +110,8 @@
   overflow-y: scroll;
   width: 1680px;
 }
-
-.vm-table tbody > tr:nth-child(even) {
+*/
+.vm-table tr:nth-child(even) {
   background-color: var(--alternate_row_background_color);
 }
 
