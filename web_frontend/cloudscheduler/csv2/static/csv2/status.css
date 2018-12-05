@@ -297,20 +297,20 @@ input#toggle-row:checked ~ table tr.extra-row {
 }
 
 .popup {
+  position: relative;
   margin: 70px auto;
   padding: 10px;
-  background: #fff;
   border-radius: 5px;
-  width: 80%;
-  height: 80%;
-  position: relative;
+  background: #fff;
+  width: 90%;
+  height: 85%;
 }
 
 
 .popup .close {
   position: absolute;
-  top: 20px;
-  right: 30px;
+  top: -15px;
+  right: -15px;
   font-size: 30px;
   font-weight: bold;
   text-decoration: none;
@@ -320,7 +320,7 @@ input#toggle-row:checked ~ table tr.extra-row {
   color: #06D85F;
 }
 .popup .content {
-  width: 95%;
+  width: 100%;
   height: 100%;
   overflow: auto;
 }

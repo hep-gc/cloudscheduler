@@ -26,10 +26,10 @@
 
         {% if "foreign" not in request.path %}
           <div class="vm-buttons">
-            <button class="button button-shadow control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
-            <button class="button button-shadow control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
-            <button class="button button-shadow retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
-            <button class="button button-shadow kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
+            <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
+            <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
+            <button class="button retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
+            <button class="button kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
           </div>
         {% else %}
         <!-- Grey-out the action buttons if looking at foreing VMs -->
@@ -43,42 +43,41 @@
 
         <div class=vm-table>
           <table id="vmsTable">
-            <thead>
               <tr>
-                <th style="width:25px"><input id="select-all" type="checkbox"/></th>
-                <th onclick="sortTable(8)" style="width:150px">Cloud &#8597;</th>
-                <th onclick="sortTable(7)" style="width:100px">Project &#8597;</th>
-                <th onclick="sortTable(6)" style="width:450px">Hostname &#8597;</th>
-                <th onclick="sortTable(5)" style="width:100px">Status &#8597;</th>
-                <th onclick="sortTable(4)" style="width:220px">Status Changed Time &#8597;</th>
-                <th onclick="sortTable(3)" style="width:150px">Flavor Name &#8597;</th>
-                <th onclick="sortTable(2)" style="width:100px">Slots &#8597;</th>
-                <th onclick="sortTable(1)" style="width:150px">Slots Used &#8597;</th>
-                <th onclick="sortTable(0)" style="width:90px">Cores &#8597;</th>
+                <th><input id="select-all" type="checkbox"/></th>
+                <th onclick="sortTable(1)">Cloud &#8597;</th>
+                <th onclick="sortTable(2)">Project &#8597;</th>
+                <th onclick="sortTable(3)">Hostname &#8597;</th>
+                <th onclick="sortTable(4)">Status &#8597;</th>
+                <th onclick="sortTable(5)">Status Changed Time &#8597;</th>
+                <th onclick="sortTable(6)">Flavor Name &#8597;</th>
+                <th onclick="sortTable(7)">Slots &#8597;</th>
+                <th onclick="sortTable(8)">Slots Used &#8597;</th>
+                <th onclick="sortTable(9)">Cores &#8597;</th>
               </tr>
-            </thead>
             <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
-            <tbody>
+
               {% for vm in vm_list %}
                 <tr>
-                  <td style="width:90px">{{vm.cores}}</td>
-                  <td style="width:150px">{{vm.condor_slots_used}}</td>
-                  <td style="width:100px">{{vm.condor_slots}}</td>
-                  <td style="width:150px">{{vm.flavor_name}}</td>
-                  <td style="width:220px">{{vm.status_changed_time}}</td>
-                  <td style="width:100px">{{vm.poller_status}}</td>
-                  <td style="width:450px">{{vm.hostname}}</td>
-                  <td style="width:100px">{{vm.project}}</td>
-                  <td style="width:150px">{{vm.cloud_name}}</td>
-                  <td style="width:25px"><input type="checkbox" name="hostname.{{ forloop.counter }}" value={{vm.hostname}}></td>
+                  <td><input type="checkbox" name="hostname.{{ forloop.counter }}" value={{vm.hostname}}></td>
+                  <td>{{vm.cloud_name}}</td>
+                  <td>{{vm.project}}</td>
+                  <td>{{vm.hostname}}</td>
+                  <td>{{vm.poller_status}}</td>
+                  <td>{{vm.status_changed_time}}</td>
+                  <td>{{vm.flavor_name}}</td>
+                  <td>{{vm.condor_slots}}</td>
+                  <td>{{vm.condor_slots_used}}</td>
+                  <td>{{vm.cores}}</td>
                 </tr>
               {% endfor %}
-            </tbody>
+
           </table>
         </div>
       </form>
     </div>
     <!-- Footer -->
+
     <div class="footer"
         {% if response_code == 1 %}
             <tr><td><b>Error: {{ message }}</b></td></tr>
