@@ -263,7 +263,6 @@ def flavor_poller():
                     logging.info("No flavors defined for %s, skipping this cloud..." % cloud_name)
                     continue
 
-                # if we get here the connection was successful and we can remove failures from this authurl
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
@@ -338,7 +337,7 @@ def flavor_poller():
                 continue
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict)
+            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -436,7 +435,6 @@ def image_poller():
                     logging.info("No images defined for %s, skipping this cloud..." %  cloud_name)
                     continue
 
-                # if we get here the connection was successful and we can remove failures from this authurl
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
@@ -506,7 +504,7 @@ def image_poller():
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict)
+            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -605,7 +603,6 @@ def keypair_poller():
                             return False
                     continue
 
-                # if we get here the connection was successful and we can remove failures from this authurl
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
@@ -659,7 +656,7 @@ def keypair_poller():
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-            delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict)
+            delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -711,7 +708,7 @@ def limit_poller():
                 session = _get_openstack_session(cloud)
                 if session is False:
                     logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
-                    if cloud.authurl not in failure_dict:
+                    if group_name+cloud_name not in failure_dict:
                         failure_dict[group_name+cloud_name] = 1
                     else:
                         failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
@@ -735,7 +732,7 @@ def limit_poller():
                         failure_dict[group_name+cloud_name] = 1
                     else:
                         failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
-                    if failure_dict[cloud.authurl] > 3: #should be configurable
+                    if failure_dict[group_name+cloud_name] > 3: #should be configurable
                         logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" %  (group_name, cloud_name))
                         return False
                     continue
@@ -790,7 +787,7 @@ def limit_poller():
                     break
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict)
+            delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -857,12 +854,12 @@ def network_poller():
                 except Exception as exc:
                     logging.error("Failed to retrieve networks from neutron, skipping %s::%s" % (group_name, cloud_name))
                     logging.error(exc)
-                    if cloud.authurl not in failure_dict:
-                        failure_dict[cloud.authurl] = 1
+                    if group_name+cloud_name not in failure_dict:
+                        failure_dict[group_name+cloud_name] = 1
                     else:
-                        failure_dict[cloud.authurl] = failure_dict[cloud.authurl] + 1
-                    if failure_dict[cloud.authurl] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % cloud.authurl)
+                        failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
+                    if failure_dict[group_name+cloud_name] > 3: #should be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" % (group_name, cloud_name))
                         return False
                     continue
 
@@ -925,7 +922,7 @@ def network_poller():
                 continue
 
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-            delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict)
+            delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -1019,7 +1016,7 @@ def vm_poller():
                         else:
                             failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
                         if failure_dict[group_name+cloud_name] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % (group_name, cloud_name))
+                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" % (group_name, cloud_name))
                             return False
                         continue
 
@@ -1194,7 +1191,7 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict)
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict)
 
             logging.info("Completed VM poller cycle")
             config.db_close()
