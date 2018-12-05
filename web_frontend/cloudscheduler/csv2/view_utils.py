@@ -423,7 +423,7 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
         cols = {}
         for col in dict(row):
             if col not in prune:
-                if convert and col in convert:
+                if convert and col in convert and dict(row)[col] != None:
                     if convert[col] == 'datetime':
                         cols[col] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(dict(row)[col]))
                 else:
