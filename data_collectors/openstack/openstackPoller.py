@@ -46,12 +46,12 @@ from cinderclient import client as cinclient
 
 ## Poller sub-functions.
 
-def _get_neutron_client(session):
-    neutron = neuclient.Client(session=session)
+def _get_neutron_client(session, region=None):
+    neutron = neuclient.Client(session=session, region_name=region, timeout=10)
     return neutron
 
-def _get_nova_client(session):
-    nova = novaclient.Client("2", session=session, timeout=10)
+def _get_nova_client(session, region=None):
+    nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
 
 def _get_openstack_session(cloud):
@@ -163,14 +163,14 @@ def command_poller():
                     continue
 
                 # Terminate the VM.
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=cloud.region)
                 try:
                     nova.servers.delete(vm.vmid)
                     logging.info("VM Terminated: %s, updating db entry", (vm.hostname,))
                     vm.terminate = 2
                     db_session.merge(vm)
                 except Exception as exc:
-                    logging.exception("Failed to terminate VM: %s", vm.hostname)
+                    logging.error("Failed to terminate VM: %s", vm.hostname)
                     logging.error(exc)
 
             last_poll_time = new_poll_time
@@ -211,13 +211,13 @@ def flavor_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
 
             for cloud in unique_cloud_dict:
@@ -239,7 +239,7 @@ def flavor_poller():
                         continue
 
                 # setup OpenStack api objects
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 # Retrieve all flavours for this cloud.
                 try:
@@ -387,13 +387,13 @@ def image_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
@@ -414,7 +414,7 @@ def image_poller():
                     continue
 
                 # Retrieve all images for this cloud.
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                 try:
                     image_list =  nova.glance.list()
                 except Exception as exc:
@@ -555,13 +555,13 @@ def keypair_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
@@ -582,7 +582,7 @@ def keypair_poller():
                     continue
 
                 # setup openstack api objects
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 #setup fingerprint list
                 fingerprint_list = []
@@ -721,7 +721,7 @@ def limit_poller():
                     continue
 
                 # Retrieve limit list for the current cloud.
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=cloud.region)
 
                 limits_dict = {}
                 try:
@@ -851,7 +851,7 @@ def network_poller():
                     continue
 
                 # Retrieve network list.
-                neutron = _get_neutron_client(session)
+                neutron = _get_neutron_client(session, region=cloud.region)
                 try:
                     net_list = neutron.list_networks()['networks']
                 except Exception as exc:
@@ -1007,7 +1007,7 @@ def vm_poller():
                         continue
 
                     # Retrieve VM list for this cloud.
-                    nova = _get_nova_client(session)
+                    nova = _get_nova_client(session, region=cloud.region)
                     try:
                         vm_list = nova.servers.list()
                     except Exception as exc:
