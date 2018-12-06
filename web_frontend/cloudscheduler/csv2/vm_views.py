@@ -165,7 +165,7 @@ def update(request):
             verb = 'killed'
         elif fields['vm_option'] == 'retire':
             table = tables['condor_machines']
-            verb = 'retired'
+            verb = 'retired or unregistered'
         elif fields['vm_option'] == 'manctl':
             table = tables['csv2_vms']
             verb = 'set to manual control'
@@ -196,6 +196,9 @@ def update(request):
                     if fields['vm_option'] == 'kill':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
                     elif fields['vm_option'] == 'retire':
+                        if vm['poller_status'] == 'unregistered':
+                            count += 1
+                            continue
                         update = table.update().where((table.c.slot_type == 'Partitionable') & (table.c.machine.like('%s%%' % vm['hostname']))).values({'retire_request_time': int(time.time())})
                     elif fields['vm_option'] == 'manctl':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
