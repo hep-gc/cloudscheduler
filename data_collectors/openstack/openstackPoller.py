@@ -6,6 +6,7 @@ import time
 import sys
 import os
 import datetime
+import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -766,7 +767,7 @@ def limit_poller():
 
                 # Process limit list for the current cloud.
                 for groups in unique_cloud_dict[cloud]['groups']:
-                    limits_dict = shared_limits_dict.copy()
+                    limits_dict = copy.deepcopy(shared_limits_dict)
                     group_n = groups[0]
                     cloud_n = groups[1]
 
@@ -872,7 +873,7 @@ def network_poller():
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 logging.info("Processing networks from cloud - %s" % cloud_name)
-                session = _get_openstack_session(cloud)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -959,7 +960,7 @@ def network_poller():
                         db_session.commit()
                         logging.info("Network updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new networks for %s, aborting cycle..."  cloud_name)
+                        logging.error("Failed to commit new networks for %s, aborting cycle..." %  cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
