@@ -701,24 +701,39 @@ def limit_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             uncommitted_updates = 0
+
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing Limits from group:cloud -  %s::%s" % (group_name, cloud_name))
-                session = _get_openstack_session(cloud)
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing limits from group:cloud - %s" % cloud_name)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
-                    if group_name+cloud_name not in failure_dict:
-                        failure_dict[group_name+cloud_name] = 1
-                    else:
-                        failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
-                    if failure_dict[group_name+cloud_name] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" % (group_name, cloud_name))
-                        return False
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                    logging.error("Failed to establish session with %s" % cloud_name)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 # Retrieve limit list for the current cloud.
-                nova = _get_nova_client(session, region=cloud.region)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 limits_dict = {}
                 try:
@@ -728,46 +743,56 @@ def limit_poller():
                 except Exception as exc:
                     logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (group_name, cloud_name))
                     logging.error(exc)
-                    if group_name+cloud_name not in failure_dict:
-                        failure_dict[group_name+cloud_name] = 1
-                    else:
-                        failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
-                    if failure_dict[group_name+cloud_name] > 3: #should be configurable
-                        logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" %  (group_name, cloud_name))
-                        return False
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 if limits_dict is False:
-                    logging.info("No limits defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
                     continue
 
-                failure_dict.pop(group_name+cloud_name, None)
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
 
                 # Process limit list for the current cloud.
-                limits_dict['group_name'] = cloud.group_name
-                limits_dict['cloud_name'] = cloud.cloud_name
-                limits_dict['last_updated'] = int(time.time())
-                limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
-                if unmapped:
-                    logging.error("Unmapped attributes found during mapping, discarding:")
-                    logging.error(unmapped)
+                for groups in unique_cloud_dict[cloud]['groups']:
+                    group_n = groups[0]
+                    cloud_n = groups[1]
 
-                if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                    continue
+                    limits_dict['group_name'] = group_n
+                    limits_dict['cloud_name'] = cloud_n
+                    limits_dict['last_updated'] = int(time.time())
+                    limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
 
-                for limit in limits_dict:
-                    if "-1" in str(limits_dict[limit]):
-                        limits_dict[limit] = config.no_limit_default
+                    if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
 
-                new_limits = LIMIT(**limits_dict)
-                try:
-                    db_session.merge(new_limits)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_name, cloud_name))
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+                    for limit in limits_dict:
+                        if "-1" in str(limits_dict[limit]):
+                            limits_dict[limit] = config.no_limit_default
+
+                    new_limits = LIMIT(**limits_dict)
+                    try:
+                        db_session.merge(new_limits)
+                        uncommitted_updates += 1
+                    except Exception as exc:
+                        logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_n, cloud_n))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
 
             del nova
             if abort_cycle:
