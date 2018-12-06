@@ -40,11 +40,53 @@
             <button class="button greyed-button button-shadow kill-button" disabled>Kill VMs</button>
           </div>
         {% endif %}
+        <!--
+        <table>
+          <tr class="header-row">
+            <th class="native-style">All States</th>
+            <th class="native-style">Starting</th>
+            <th class="native-style">Unreg.</th>
+            <th class="native-style">Idle</th>                
+            <th class="native-style">Running</th>
+            <th class="native-style">Retiring</th>
+            <th class="native-style">Manual</th>
+            <th class="native-style">Error</th>
+          </tr>
+          <tr>
+            <td>
+              <input type="checkbox" name="all" value="1" checked/>
+            </td>
+            <td>
+              <input type="checkbox" name="starting" onclick="filter('starting');"/>
+            </td>
+            <td>
+              <input type="checkbox" name="unreg" value="1"/>
+            </td>
+            <td>
+              <input type="checkbox" name="idle" value="1"/>
+            </td>
+            <td>
+              <input type="checkbox" name="running" value="1"/>
+            </td>
+            <td>
+              <input type="checkbox" name="retiring" value="1"/>
+            </td>
+            <td>
+              <input type="checkbox" name="manual" value="1"/>
+            </td>
+            <td>
+              <input type="checkbox" name="error" value="1"/>
+            </td>
+          </tr>
+        </table>
+        -->
+
+
 
         <div class=vm-table>
           <table id="vmsTable">
               <tr>
-                <th><input id="select-all" type="checkbox"/></th>
+                <th><input type="checkbox" id="select-all"/></th>
                 <th onclick="sortTable(1)">Cloud &#8597;</th>
                 <th onclick="sortTable(2)">Project &#8597;</th>
                 <th onclick="sortTable(3)">Hostname &#8597;</th>
@@ -60,15 +102,15 @@
               {% for vm in vm_list %}
                 <tr>
                   <td><input type="checkbox" name="hostname.{{ forloop.counter }}" value={{vm.hostname}}></td>
-                  <td>{{vm.cloud_name}}</td>
-                  <td>{{vm.project}}</td>
-                  <td>{{vm.hostname}}</td>
-                  <td>{{vm.poller_status}}</td>
-                  <td>{{vm.status_changed_time}}</td>
-                  <td>{{vm.flavor_name}}</td>
-                  <td>{{vm.condor_slots}}</td>
-                  <td>{{vm.condor_slots_used}}</td>
-                  <td>{{vm.cores}}</td>
+                  <td id="{{vm.cloud_name}}">{{vm.cloud_name}}</td>
+                  <td id="{{vm.project}}">{{vm.project}}</td>
+                  <td id="{{vm.hostname}}">{{vm.hostname}}</td>
+                  <td id="{{vm.poller_status}}">{{vm.poller_status}}</td>
+                  <td id="{{vm.status_changed_time}}">{{vm.status_changed_time}}</td>
+                  <td id="{{vm.flavor_name}}">{{vm.flavor_name}}</td>
+                  <td id="{{vm.condor_slots}}">{{vm.condor_slots}}</td>
+                  <td id="{{vm.condor_slots_used}}">{{vm.condor_slots_used}}</td>
+                  <td id="{{vm.cores}}">{{vm.cores}}</td>
                 </tr>
               {% endfor %}
 
@@ -87,6 +129,34 @@
     </div>
 
     <script type="text/javascript">
+
+
+
+    function filter(id_tag) {
+        // Declare variables
+        var input, filter, ul, li, x, i;
+        input = document.getElementById("search-" + id_tag)
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("ul-" + id_tag);
+        li = ul.getElementsByTagName('li');
+
+        // Loop through all list items, and hide those who don't match the search query
+        for (i = 0; i < li.length; i++) {
+
+            x = li[i].getElementsByTagName('input')[0];
+            if (x.value.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+                document.getElementById("myCheck").checked = true;
+
+            } else {
+                document.getElementById("myCheck").checked = false;
+
+                //li[i].style.display = "none";
+            }
+        }
+    }
+
+
       // For the "select all checkbox"
       function checkToggle(event) {
         var changed = event.target,
@@ -96,7 +166,6 @@
           ).filter(function(check) {
             return check !== selectAll;
           });
-
         if (changed === selectAll) {
           checkboxes.forEach(function(check) {
             check.checked = selectAll.checked;
@@ -105,11 +174,11 @@
           var allChecked = checkboxes.filter(function(check) {
             return check.checked;
           }).length === checkboxes.length;
-
           selectAll.checked = allChecked;
         }
-
       }
+
+
 
       var tableElement = document.querySelector('table');
       tableElement.addEventListener('change', checkToggle);
