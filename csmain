@@ -255,10 +255,11 @@ def verify_idle_jobs(group, config):
     for job in jobs:
         try:
             job.hold_job_reason = bad_jobs[job.global_job_id]
+            config.db_session.merge(job)
         except KeyError:
             continue
     try:
-        config.db_close()
+        config.db_close(commit=True)
     except Exception as ex:
         log.exception(ex)
     log.debug("Done Verify jobs.")
@@ -331,7 +332,7 @@ def check_idle_time(group, config):
         config.db_session.merge(machine)
         log.debug("%s detected doing nothing - set idle_time.", machine.machine)
     try:
-        config.db_close()
+        config.db_close(commit=True)
     except Exception as ex: #  sqlalchemy.exc.InternalError pymysql.err.InternalError Deadlock
         log.exception(ex)
 
@@ -362,7 +363,7 @@ def check_idle_time_unset(group, config):
             machine.idle_time = None
             config.db_session.merge(machine)
     try:
-        config.db_close()
+        config.db_close(commit=True)
     except Exception as ex:
         log.exception(ex)
 
@@ -401,7 +402,7 @@ def check_idle_machines(group, config):
             config.db_session.merge(row)
         # TODO Update csv2_vms table with a retired flag on that vm
     try:
-        config.db_close()
+        config.db_close(commit=True)
     except Exception as ex:
         log.exception(ex)
     # Return dict of cloud names with number of idle machine classads
@@ -458,7 +459,7 @@ def check_unregistered_machines(group, config):
             config.db_session.merge(vm)
     log.debug("Done checking %s unregistered VMs.", group)
     try:
-        config.db_close()
+        config.db_close(commit=True)
     except Exception as ex:
         log.exception(ex)
     return new_vms
