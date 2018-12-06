@@ -176,7 +176,7 @@ def add(request):
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
-            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']]])
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
                 return list(request, selector='-', response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
@@ -237,7 +237,7 @@ def defaults(request):
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc == 0:
-        if request.method == 'POST':
+        if request.method == 'POST' and 'group' not in request.POST:
                 # Validate input fields.
                 rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_DEFAULTS_KEYS], ['csv2_group_defaults'], active_user)
                 
@@ -248,7 +248,7 @@ def defaults(request):
                     rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
                 
                 if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']]])
+                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
                 
                 if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
                     rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])

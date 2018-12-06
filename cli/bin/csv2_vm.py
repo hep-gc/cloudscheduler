@@ -94,6 +94,9 @@ def list(gvar):
             'flavor_id/Flavor ID',
             'task/Task',
             'power_status/Power Status',
+            'start_time/Start Time',
+            'retire_request_time/Retire Request Time',
+            'retired_time/Retired Time',
             'terminate/Terminate',
             'terminate_time/Terminate Time',
             'status_changed_time/Status Change Time',
@@ -116,9 +119,9 @@ def update(gvar):
     Modify a VM in the active group.
     """
 
-    mandatory = ['-vo']
+    mandatory = ['-vh', '-vo']
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-s', '-vh', '-vS', '-xA']
+    optional = ['-cn', '-g', '-H', '-h', '-s', '-vS', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

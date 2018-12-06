@@ -298,20 +298,7 @@ def _requests(gvar, request, form_data={}):
             )
 
     else:
-        print(
-            '***\n' \
-            '*** Please identify the URL (-sa | --server-address) of the server with which you wish to communicate. Servers\n' \
-            '*** require either certificate (-sC | --server-grid-cert, -sK | --server-grid-key) or username/password (-su |\n' \
-            '*** --server-user, -spw | --server-password) authentication. These options can be saved for multiple servers\n' \
-            '*** by name (there is always a "default" server) using the following command:\n' \
-            '***\n' \
-            '***     %s defaults set -s <sever_name> -sa <server_address> ...\n' \
-            '***\n' \
-            '*** Subsequently, commands will be directed to the last server selected via the (-s | --server)\n' \
-            '*** argument.\n' \
-            '***' % gvar['command_name']
-            )
-        exit(1)
+        _requests_no_credentials_error(gvar)
 
     try:
         response = _r.json()
@@ -380,6 +367,32 @@ def _requests(gvar, request, form_data={}):
         gvar['user_groups'] = response['user_groups']
 
     return response
+
+#-------------------------------------------------------------------------------
+              
+def _requests_no_credentials_error(gvar):
+    """
+    Print no server or credentials error and exit.
+    """
+
+    print(
+        '***\n' \
+        '*** Please identify the URL (-sa | --server-address, eg. "-sa https://mycsv2.example.ca") of the server with which\n' \
+        '*** you wish to communicate. Servers require either certificate (-sC | --server-grid-cert, -sK | --server-grid-key)\n' \
+        '*** or username/password (-su | --server-user, -spw | --server-password) authentication. These options can be saved\n' \
+        '*** for multiple servers by name using the following command:\n' \
+        '***\n' \
+        '***     %s defaults set -s <sever_name> -sa <server_address> ...\n' \
+        '***\n' \
+        '*** Subsequently, commands will be directed to the last server selected via the (-s | --server) argument.\n' \
+        '***\n' \
+        '*** For more information, enter the following command:\n' \
+        '***\n' \
+        '***     %s -H\n' \
+        '***\n' \
+        '***' % (gvar['command_name'], gvar['command_name'])
+        )
+    exit(1)
 
 #-------------------------------------------------------------------------------
               

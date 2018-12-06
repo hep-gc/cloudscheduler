@@ -6,6 +6,7 @@ import time
 import sys
 import os
 import datetime
+import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -46,12 +47,12 @@ from cinderclient import client as cinclient
 
 ## Poller sub-functions.
 
-def _get_neutron_client(session):
-    neutron = neuclient.Client(session=session)
+def _get_neutron_client(session, region=None):
+    neutron = neuclient.Client(session=session, region_name=region, timeout=10)
     return neutron
 
-def _get_nova_client(session):
-    nova = novaclient.Client("2", session=session)
+def _get_nova_client(session, region=None):
+    nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
 
 def _get_openstack_session(cloud):
@@ -163,14 +164,14 @@ def command_poller():
                     continue
 
                 # Terminate the VM.
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=cloud.region)
                 try:
                     nova.servers.delete(vm.vmid)
                     logging.info("VM Terminated: %s, updating db entry", (vm.hostname,))
                     vm.terminate = 2
                     db_session.merge(vm)
                 except Exception as exc:
-                    logging.exception("Failed to terminate VM: %s", vm.hostname)
+                    logging.error("Failed to terminate VM: %s", vm.hostname)
                     logging.error(exc)
 
             last_poll_time = new_poll_time
@@ -195,6 +196,7 @@ def flavor_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
@@ -210,13 +212,13 @@ def flavor_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
 
             for cloud in unique_cloud_dict:
@@ -225,10 +227,20 @@ def flavor_poller():
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                    continue
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
+                        continue
 
                 # setup OpenStack api objects
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 # Retrieve all flavours for this cloud.
                 try:
@@ -236,11 +248,26 @@ def flavor_poller():
                 except Exception as exc:
                     logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 if flav_list is False:
-                    logging.info("No flavors defined for %s::%s, skipping this cloud..." % cloud_name)
+                    logging.info("No flavors defined for %s, skipping this cloud..." % cloud_name)
                     continue
+
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
 
                 # Process flavours for this cloud.
                 uncommitted_updates = 0
@@ -311,7 +338,7 @@ def flavor_poller():
                 continue
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -344,6 +371,7 @@ def image_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
@@ -359,13 +387,13 @@ def image_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
@@ -373,20 +401,45 @@ def image_poller():
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 # Retrieve all images for this cloud.
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                 try:
                     image_list =  nova.glance.list()
                 except Exception as exc:
                     logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 if image_list is False:
                     logging.info("No images defined for %s, skipping this cloud..." %  cloud_name)
                     continue
+
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
 
                 uncommitted_updates = 0
                 for image in image_list:
@@ -452,7 +505,7 @@ def image_poller():
                 continue
 
             # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id')
+            delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -486,6 +539,7 @@ def keypair_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
@@ -500,13 +554,13 @@ def keypair_poller():
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
-                if cloud.authurl+cloud.project not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project] = {
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
                         'cloud_obj': cloud,
                         'groups': [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    unique_cloud_dict[cloud.authurl+cloud.project]['groups'].append((cloud.group_name, cloud.cloud_name))
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
@@ -514,10 +568,20 @@ def keypair_poller():
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s" % cloud_name)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 # setup openstack api objects
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 #setup fingerprint list
                 fingerprint_list = []
@@ -528,7 +592,22 @@ def keypair_poller():
                 except Exception as exc:
                     logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
                     logging.error(exc)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
+
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
 
                 uncommitted_updates = 0
                 for key in cloud_keys:
@@ -566,7 +645,7 @@ def keypair_poller():
                         db_session.commit()
                         logging.info("Keypair updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new keypairs for %s::%s, aborting cycle..."  % cloud_name)
+                        logging.error("Failed to commit new keypairs for %s, aborting cycle..."  % cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -578,7 +657,7 @@ def keypair_poller():
                 continue
 
             # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-            delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -610,6 +689,7 @@ def limit_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
@@ -622,77 +702,119 @@ def limit_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             uncommitted_updates = 0
+
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing Limits from group:cloud -  %s::%s" % (group_name, cloud_name))
-                session = _get_openstack_session(cloud)
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing limits from cloud - %s" % cloud_name)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                    logging.error("Failed to establish session with %s" % cloud_name)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 # Retrieve limit list for the current cloud.
-                nova = _get_nova_client(session)
+                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
-                limits_dict = {}
+                shared_limits_dict = {}
                 try:
                     limit_list = nova.limits.get().absolute
                     for limit in limit_list:
-                        limits_dict[limit.name] = [limit.value]
+                        shared_limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
-                    logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (group_name, cloud_name))
+                    logging.error("Failed to retrieve limits from nova, skipping %s" %  cloud_name)
                     logging.error(exc)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
-                if limits_dict is False:
-                    logging.info("No limits defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                if shared_limits_dict is False:
+                    logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
                     continue
+
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
 
                 # Process limit list for the current cloud.
-                limits_dict['group_name'] = cloud.group_name
-                limits_dict['cloud_name'] = cloud.cloud_name
-                limits_dict['last_updated'] = int(time.time())
-                limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
-                if unmapped:
-                    logging.error("Unmapped attributes found during mapping, discarding:")
-                    logging.error(unmapped)
+                for groups in unique_cloud_dict[cloud]['groups']:
+                    limits_dict = copy.deepcopy(shared_limits_dict)
+                    group_n = groups[0]
+                    cloud_n = groups[1]
 
-                if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    limits_dict['group_name'] = group_n
+                    limits_dict['cloud_name'] = cloud_n
+                    limits_dict['last_updated'] = int(time.time())
+                    limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+                    if unmapped:
+                        logging.error("Unmapped attributes found during mapping, discarding:")
+                        logging.error(unmapped)
+
+                    if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        continue
+
+                    for limit in limits_dict:
+                        if "-1" in str(limits_dict[limit]):
+                            limits_dict[limit] = config.no_limit_default
+
+                    new_limits = LIMIT(**limits_dict)
+                    try:
+                        db_session.merge(new_limits)
+                        uncommitted_updates += 1
+                    except Exception as exc:
+                        logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_n, cloud_n))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+                del nova
+                if abort_cycle:
+                    config.db_close()
+                    del db_session
+                    time.sleep(config.sleep_interval_limit)
                     continue
 
-                for limit in limits_dict:
-                    if "-1" in str(limits_dict[limit]):
-                        limits_dict[limit] = config.no_limit_default
-
-                new_limits = LIMIT(**limits_dict)
-                try:
-                    db_session.merge(new_limits)
-                    uncommitted_updates += 1
-                except Exception as exc:
-                    logging.exception("Failed to merge limits for %s::%s, aborting cycle..." % (group_name, cloud_name))
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
-
-            del nova
-            if abort_cycle:
-                config.db_close()
-                del db_session
-                time.sleep(config.sleep_interval_limit)
-                continue
-
-            if uncommitted_updates > 0:
-                try:
-                    db_session.commit()
-                    logging.info("Limit updates committed: %d" % uncommitted_updates)
-                except Exception as exc:
-                    logging.error("Failed to commit new limits for %s::%s, aborting cycle..."  % (group_name, cloud_name))
-                    logging.error(exc)
-                    abort_cycle = True
-                    break
+                if uncommitted_updates > 0:
+                    try:
+                        db_session.commit()
+                        logging.info("Limit updates committed: %d" % uncommitted_updates)
+                    except Exception as exc:
+                        logging.error("Failed to commit new limits for %s, aborting cycle..."  % cloud_name)
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
 
             # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-            delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time)
+            delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -724,6 +846,7 @@ def network_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
@@ -735,59 +858,98 @@ def network_poller():
 
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
             for cloud in cloud_list:
-                group_name = cloud.group_name
-                cloud_name = cloud.cloud_name
-                logging.info("Processing networks from group:cloud -  %s::%s" % (group_name, cloud_name))
-                session = _get_openstack_session(cloud)
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.info("Processing networks from cloud - %s" % cloud_name)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 # Retrieve network list.
-                neutron = _get_neutron_client(session)
+                neutron = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                 try:
                     net_list = neutron.list_networks()['networks']
                 except Exception as exc:
-                    logging.error("Failed to retrieve networks from neutron, skipping %s::%s" % (group_name, cloud_name))
+                    logging.error("Failed to retrieve networks from neutron, skipping %s" %  cloud_name)
                     logging.error(exc)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
+                            return False
                     continue
 
                 if net_list is False:
-                    logging.info("No networks defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                    logging.info("No networks defined for %s, skipping this cloud..." % cloud_name)
                     continue
+
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
 
                 uncommitted_updates = 0
                 for network in net_list:
-                    network_dict = {
-                        'group_name': cloud.group_name,
-                        'cloud_name': cloud.cloud_name,
-                        'name': network['name'],
-                        'subnets': ''.join(network['subnets']),
-                        'tenant_id': network['tenant_id'],
-                        'router:external': network['router:external'],
-                        'shared': network['shared'],
-                        'id': network['id'],
-                        'last_updated': int(time.time())
-                    }
+                    for groups in unique_cloud_dict[cloud]['groups']:
+                        group_n = groups[0]
+                        cloud_n = groups[1]
+                        network_dict = {
+                            'group_name': group_n,
+                            'cloud_name': cloud_n,
+                            'name': network['name'],
+                            'subnets': ''.join(network['subnets']),
+                            'tenant_id': network['tenant_id'],
+                            'router:external': network['router:external'],
+                            'shared': network['shared'],
+                            'id': network['id'],
+                            'last_updated': int(time.time())
+                        }
 
-                    network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
-                    if unmapped:
-                        logging.error("Unmapped attributes found during mapping, discarding:")
-                        logging.error(unmapped)
+                        network_dict, unmapped = map_attributes(src="os_networks", dest="csv2", attr_dict=network_dict)
+                        if unmapped:
+                            logging.error("Unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)
 
-                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, network['name'], network_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                        continue
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['name'], network_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
 
-                    new_network = NETWORK(**network_dict)
-                    try:
-                        db_session.merge(new_network)
-                        uncommitted_updates += 1
-                    except Exception as exc:
-                        logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_name, cloud_name, network['name']))
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                        new_network = NETWORK(**network_dict)
+                        try:
+                            db_session.merge(new_network)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, network['name']))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
 
                 del neutron
                 if abort_cycle:
@@ -798,7 +960,7 @@ def network_poller():
                         db_session.commit()
                         logging.info("Network updates committed: %d" % uncommitted_updates)
                     except Exception as exc:
-                        logging.error("Failed to commit new networks for %s::%s, aborting cycle..."  % (group_name, cloud_name))
+                        logging.error("Failed to commit new networks for %s, aborting cycle..." %  cloud_name)
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -810,7 +972,7 @@ def network_poller():
                 continue
 
             # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-            delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time)
+            delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
@@ -845,6 +1007,7 @@ def vm_poller():
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
+    failure_dict = {}
     
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
@@ -881,21 +1044,39 @@ def vm_poller():
                     session = _get_openstack_session(cloud)
                     if session is False:
                         logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                        if group_name+cloud_name not in failure_dict:
+                            failure_dict[group_name+cloud_name] = 1
+                        else:
+                            failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
+                        if failure_dict[group_name+cloud_name] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % (group_name, cloud_name))
+                            return False
                         continue
 
                     # Retrieve VM list for this cloud.
-                    nova = _get_nova_client(session)
+                    nova = _get_nova_client(session, region=cloud.region)
                     try:
                         vm_list = nova.servers.list()
                     except Exception as exc:
                         logging.error("Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
+                        logging.error("Exception type: %s" % type(exc))
                         logging.error(exc)
+                        if group_name+cloud_name not in failure_dict:
+                            failure_dict[group_name+cloud_name] = 1
+                        else:
+                            failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
+                        if failure_dict[group_name+cloud_name] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s::%s, manual action required, exiting" % (group_name, cloud_name))
+                            return False
                         continue
 
                     if vm_list is False:
                         logging.info("No VMs defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         del nova
                         continue
+
+                    # if we get here the connection to openstack has been succussful and we can remove the error status
+                    failure_dict.pop(group_name+cloud_name, None)
 
                     # Process VM list for this cloud.
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1060,7 +1241,7 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time)
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict)
 
             logging.info("Completed VM poller cycle")
             config.db_close()
