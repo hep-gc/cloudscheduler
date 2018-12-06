@@ -4,7 +4,7 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import requests
+from csv2_common import requests, _requests_no_credentials_error
 
 import os
 import sys
@@ -265,12 +265,20 @@ def main(args):
         gvar['server'] = _fd.read()
         _fd.close()
 
+    # If the selected server settings don't actually exist, ignore the selected server.
+    if not os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])) and gvar['object'] != 'defaults' and gvar['action'] != 'set':
+        gvar['server'] = '-'
+
     if gvar['server'] == '-':
         if 'server-address' in gvar['command_args']:
             gvar['user_settings'] = {}
         else:
-            print('Error: No server specified and no server address (URL) provided.')
-            exit(1)
+            if not gvar['object'] and not gvar['action'] and (gvar['command_args']['long-help'] or gvar['command_args']['help']):
+                gvar['user_settings'] = gvar['command_args']
+                gvar['super_user'] = 0
+                csv2_help.help(gvar)
+            else:
+                _requests_no_credentials_error(gvar)
     else:
         if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])):
             _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
