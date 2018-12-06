@@ -741,7 +741,7 @@ def limit_poller():
                     for limit in limit_list:
                         shared_limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
-                    logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (group_name, cloud_name))
+                    logging.error("Failed to retrieve limits from nova, skipping %s" %  cloud_name)
                     logging.error(exc)
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
