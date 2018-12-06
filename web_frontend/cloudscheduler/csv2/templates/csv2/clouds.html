@@ -68,7 +68,7 @@
                     <label class="highlight3" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
-                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'">
+                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'" autocomplete="nope">
                             {% csrf_token %}
                             <table><tr><td>
 
@@ -95,7 +95,7 @@
                                     <tr class="highlight3"><td><label for="username">Username</label></td>
                                     <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
                                     <tr class="highlight3"><td><label for="password">Password</label></td>
-                                    <td><input type="password" name="password" placeholder="Update password" value="" /></td></tr>
+                                    <td><input type="password" name="password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                     <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
