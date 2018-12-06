@@ -764,13 +764,13 @@ def table_fields(Fields, Table, Columns, selection):
 
 #-------------------------------------------------------------------------------
 
-def validate_by_filtered_table_entries(config, value, field, table_name, column_name, filter_list):
+def validate_by_filtered_table_entries(config, value, field, table_name, column_name, filter_list, allow_value_list=False):
     """
     This function validates that a value is present in a filtered table column
     
     Arguments:
 
-    value       - the value to be validated.
+    value       - the value or list of values (see allow_value_list option) to be validated.
     field       - the name of the field being validated(for error message only).
     table_name  - the name of the table.
     column_name - then name of the column.
@@ -795,13 +795,23 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
         if column_name in row and (not row[column_name] in options):
             options.append(row[column_name])
 
-    if value in options:
+    if allow_value_list:
+        values = value.split(',')
+        for val in values:
+            if val not in options:
+                msg = 'specified value in list of values does not exist: {}={}'.format(field, val)
+                for filter in filter_list:
+                    msg += ', {}={}'.format(filter[0], filter[1])
+                return 1, msg
         return 0, None
     else:
-        msg = 'specified item does not exist: {}={}'.format(field, value)
-        for filter in filter_list:
-            msg += ', {}={}'.format(filter[0], filter[1])
-        return 1, msg
+        if value in options:
+            return 0, None
+        else:
+            msg = 'specified item does not exist: {}={}'.format(field, value)
+            for filter in filter_list:
+                msg += ', {}={}'.format(filter[0], filter[1])
+            return 1, msg
 
 #-------------------------------------------------------------------------------
 
