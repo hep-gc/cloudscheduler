@@ -136,6 +136,8 @@ def main(args):
             ('-ca',  '--cloud-address', True),
             ('-cc',  '--config-category', True),
             ('-ce',  '--cloud-enabled', True),
+            ('-cfe', '--cloud-flavor-exclusion', True),
+            ('-cfo', '--cloud-flavor-option', True),
             ('-cn',  '--cloud-name', True),
             ('-cpw', '--cloud-password', True),
             ('-cP',  '--cloud-project-domain', True),
