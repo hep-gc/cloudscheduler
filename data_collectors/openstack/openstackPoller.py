@@ -735,11 +735,11 @@ def limit_poller():
                 # Retrieve limit list for the current cloud.
                 nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
-                limits_dict = {}
+                shared_limits_dict = {}
                 try:
                     limit_list = nova.limits.get().absolute
                     for limit in limit_list:
-                        limits_dict[limit.name] = [limit.value]
+                        shared_limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
                     logging.error("Failed to retrieve limits from nova, skipping %s::%s" % (group_name, cloud_name))
                     logging.error(exc)
@@ -755,7 +755,7 @@ def limit_poller():
                             return False
                     continue
 
-                if limits_dict is False:
+                if shared_limits_dict is False:
                     logging.info("No limits defined for %s, skipping this cloud..." % cloud_name)
                     continue
 
@@ -766,6 +766,7 @@ def limit_poller():
 
                 # Process limit list for the current cloud.
                 for groups in unique_cloud_dict[cloud]['groups']:
+                    limits_dict = shared_limits_dict.copy()
                     group_n = groups[0]
                     cloud_n = groups[1]
 
