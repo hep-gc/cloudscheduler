@@ -1,0 +1,5 @@
+.TP
+\fB\-CSV \fIcomma-separated-list-of-columns\fR, \fB\-\-comma-separeted-values \fIcomma-separated-list-of-columns\fR
+Requests that the values for the specified columns be printed as a list of comma separated values.
+An empty specification, eg. "-CSV ''", will return all columns; this can be combined with the "-ok" parameter to request only the key columns.
+
