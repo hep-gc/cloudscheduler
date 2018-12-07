@@ -5,6 +5,7 @@ DB utilities and configuration.
 import os
 import socket
 import yaml
+import time
 
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import Session
@@ -146,3 +147,23 @@ class Config:
         except Exception as ex:
             return 1, ex
 
+
+#-------------------------------------------------------------------------------
+
+    def incr_cloud_error(self, group_name, cloud_name):
+        CLOUD = self.db_map.classes.csv2_clouds
+        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name=cloud_name)[0]
+        cloud.error_count = cloud.error_count + 1
+        cloud.error_time = time.time()
+        self.db_session.commit()
+        return 1
+
+
+#-------------------------------------------------------------------------------
+
+    def reset_cloud_error(self, group_name, cloud_name):
+        CLOUD = self.db_map.classes.csv2_clouds
+        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name=cloud_name)[0]
+        cloud.error_count = 0
+        self.db_session.commit()
+        return 1
