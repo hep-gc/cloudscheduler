@@ -152,9 +152,12 @@ class Config:
 
     def incr_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
-        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name=cloud_name)[0]
+        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
+        if cloud.error_count is None:
+            cloud.error_count = 0
         cloud.error_count = cloud.error_count + 1
         cloud.error_time = time.time()
+        self.db_session.merge(cloud)
         self.db_session.commit()
         return 1
 
@@ -163,7 +166,8 @@ class Config:
 
     def reset_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
-        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name=cloud_name)[0]
+        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
         cloud.error_count = 0
+        self.db_session.merge(cloud)
         self.db_session.commit()
         return 1
