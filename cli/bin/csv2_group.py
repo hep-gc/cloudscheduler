@@ -79,7 +79,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -178,7 +178,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -374,7 +374,7 @@ def metadata_list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
