@@ -235,8 +235,8 @@ def flavor_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
                 # setup OpenStack api objects
@@ -256,8 +256,8 @@ def flavor_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 if flav_list is False:
@@ -268,6 +268,7 @@ def flavor_poller():
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
                     failure_dict.pop(grp_nm+cld_nm, None)
+                    config.reset_cloud_error(grp_nm, cld_nm)
 
                 # Process flavours for this cloud.
                 uncommitted_updates = 0
@@ -409,8 +410,8 @@ def image_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 # Retrieve all images for this cloud.
@@ -428,8 +429,8 @@ def image_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 if image_list is False:
@@ -440,6 +441,7 @@ def image_poller():
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
                     failure_dict.pop(grp_nm+cld_nm, None)
+                    config.reset_cloud_error(grp_nm, cld_nm)
 
                 uncommitted_updates = 0
                 for image in image_list:
@@ -576,8 +578,8 @@ def keypair_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 # setup openstack api objects
@@ -600,14 +602,15 @@ def keypair_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
                     failure_dict.pop(grp_nm+cld_nm, None)
+                    config.reset_cloud_error(grp_nm, cld_nm)
 
                 uncommitted_updates = 0
                 for key in cloud_keys:
@@ -720,7 +723,6 @@ def limit_poller():
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                    logging.error("Failed to establish session with %s" % cloud_name)
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
@@ -729,8 +731,8 @@ def limit_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 # Retrieve limit list for the current cloud.
@@ -752,8 +754,8 @@ def limit_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 if shared_limits_dict is False:
@@ -764,6 +766,7 @@ def limit_poller():
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
                     failure_dict.pop(grp_nm+cld_nm, None)
+                    config.reset_cloud_error(grp_nm, cld_nm)
 
                 # Process limit list for the current cloud.
                 for groups in unique_cloud_dict[cloud]['groups']:
@@ -884,8 +887,8 @@ def network_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 # Retrieve network list.
@@ -903,8 +906,8 @@ def network_poller():
                         else:
                             failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
                         if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, exiting" % grp_nm+cld_nm)
-                            return False
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
                     continue
 
                 if net_list is False:
@@ -915,6 +918,7 @@ def network_poller():
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
                     failure_dict.pop(grp_nm+cld_nm, None)
+                    config.reset_cloud_error(grp_nm, cld_nm)
 
                 uncommitted_updates = 0
                 for network in net_list:
