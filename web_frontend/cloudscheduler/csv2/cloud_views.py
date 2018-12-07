@@ -48,6 +48,8 @@ CLOUD_KEYS = {
         'cloud_name':                           'lowerdash',
         'cloud_type':                           ('csv2_cloud_types', 'cloud_type'),
         'enabled':                              'dboolean',
+        'flavor_name':                          'ignore',
+        'flavor_option':                        ['add', 'delete'],
         'cores_ctl':                            'integer',
         'cores_softmax':                        'integer',
         'metadata_name':                        'ignore',
@@ -126,6 +128,68 @@ METADATA_LIST_KEYS = {
         'group':                                'ignore',
         },
     }
+
+#-------------------------------------------------------------------------------
+
+@silkp(name="Cloud Manage Metadata Exclusions")
+def manage_cloud_flavor_exclusions(tables, active_group, cloud_name, flavor_names, option=None):
+    """
+    Ensure all the specified flavor exclusions (flavor_names) and only the specified
+    flavor exclusions are defined for the specified cloud. The specified cloud and
+    exclusions have all been pre-verified.
+    """
+
+    table = tables['csv2_cloud_flavor_exclusions']
+
+    # if there is only one flavor_name, make it a list anyway
+    if flavor_names:
+        if isinstance(flavor_names, str):
+            flavor_name_list = flavor_names.split(',')
+        else:
+            flavor_name_list = flavor_names
+    else:
+        flavor_name_list = []
+
+    # Retrieve the list of flavor exclusions the cloud already has.
+    exclusions=[]
+    
+    s = select([table]).where((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name))
+    exclusion_list = qt(config.db_connection.execute(s))
+
+    for row in exclusion_list:
+        exclusions.append(row['flavor_name'])
+
+    if not option or option == 'add':
+        # Get the list of flavor exclusions (flavor_names) specified that the cloud doesn't already have.
+        add_exclusions = diff_lists(flavor_name_list, exclusions)
+
+        # Add the missing exclusions.
+        for flavor_name in add_exclusions:
+            rc, msg = config.db_session_execute(table.insert().values(group_name=active_group, cloud_name=cloud_name, flavor_name=flavor_name))
+            if rc != 0:
+                return 1, msg
+
+    if not option:
+        # Get the list of flavor exclusions (flavor_names) that the cloud currently has but were not specified.
+        remove_exclusions = diff_lists(exclusions, flavor_name_list)
+        
+        # Remove the extraneous exclusions.
+        for flavor_name in remove_exclusions:
+            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.flavor_name==flavor_name)))
+            if rc != 0:
+                return 1, msg
+
+    elif option == 'delete':
+        # Get the list of flavor exclusions (flavor_names) that the cloud currently has and were specified.
+        remove_exclusions = diff_lists(flavor_name_list, exclusions, option='and')
+        
+        # Remove the extraneous exclusions.
+        for flavor_name in remove_exclusions:
+            rc, msg = config.db_session_execute(table.delete((table.c.group_name==active_group) & (table.c.cloud_name==cloud_name) & (table.c.flavor_name==flavor_name)))
+            if rc != 0:
+                return 1, msg
+
+    return 0, None
 
 #-------------------------------------------------------------------------------
 
@@ -273,10 +337,16 @@ def add(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0: 
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud add %s' % (lno('CV01'), msg), active_user=active_user, user_groups=user_groups)
+
+        if 'flavor_name' in fields and fields['flavor_name']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['flavor_name'], 'flavor_name', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
@@ -291,7 +361,7 @@ def add(request):
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
-            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
@@ -315,6 +385,10 @@ def add(request):
         if rc != 0:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # Add the cloud's flavor exclusions.
+        if 'flavor_name' in fields:
+            rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'])
 
         # Add the cloud's group metadata exclusions.
         if 'metadata_name' in fields:
@@ -1106,10 +1180,16 @@ def update(request):
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV34'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s cloud update %s' % (lno('CV35'), msg), active_user=active_user, user_groups=user_groups)
+
+        if 'flavor_name' in fields and fields['flavor_name']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['flavor_name'], 'flavor_name', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
@@ -1124,7 +1204,7 @@ def update(request):
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
-            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups)
@@ -1145,36 +1225,59 @@ def update(request):
         # update the cloud.
         table = tables['csv2_clouds']
         cloud_updates = table_fields(fields, table, columns, 'update')
-        if len(cloud_updates) > 0:
+        updates = len(cloud_updates)
+        if updates > 0:
             rc, msg = config.db_session_execute(table.update().where((table.c.group_name==fields['group_name']) & (table.c.cloud_name==fields['cloud_name'])).values(cloud_updates))
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV36'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # Update the cloud's flavor exclusions.
+        if request.META['HTTP_ACCEPT'] == 'application/json':
+            if 'flavor_name' in fields:
+                updates += 1
+                if 'flavor_option' in fields and fields['flavor_option'] == 'delete':
+                    rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'], option='delete')
+                else:
+                    rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'], option='add')
+
         else:
-            if 'metadata_name' not in fields:
-                config.db_close()
-                return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'), active_user=active_user, user_groups=user_groups)
+            updates += 1
+            if 'flavor_name' in fields:
+                rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['flavor_name'])
+            else:
+                rc, msg = manage_cloud_flavor_exclusions(tables, fields['group_name'], fields['cloud_name'], None)
+
+        if rc != 0:
+            config.db_close()
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         # Update the cloud's group metadata exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
             if 'metadata_name' in fields:
+                updates += 1
                 if 'metadata_option' in fields and fields['metadata_option'] == 'delete':
                     rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='delete')
                 else:
                     rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'], option='add')
 
         else:
+            updates += 1
             if 'metadata_name' in fields:
                 rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
             else:
                 rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], None)
 
-        if rc == 0:
+        if rc != 0:
+            config.db_close()
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        if updates > 0:
             config.db_close(commit=True)
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
             config.db_close()
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s update group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'), active_user=active_user, user_groups=user_groups)
 
     ### Bad request.
     else:

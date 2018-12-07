@@ -43,11 +43,15 @@ def build_inventory_for_condor(inventory, db_session, group_resources_class):
     for cloud in cloud_list:
         set_inventory_group_and_cloud(inventory, cloud.group_name, "-",)
 
-def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None):
+def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None):
     inventory_deletions = []
     logging.info("Delete Cycle - checking database for consistency")
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
+            if failure_dict is not None:
+                if group_name+cloud_name in failure_dict: 
+                    logging.info("Skipping deletes on %s::%s due to polling failures" %  (group_name, cloud_name))
+                    continue
             if type == 'VM':
                 obsolete_items = db_session.query(base_class).filter(
                     base_class.group_name == group_name,

@@ -43,13 +43,13 @@ VM_KEYS = {
     'auto_active_group': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'poller_status':                                                ['native', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
+        'poller_status':                                                ['native', 'idle', 'starting', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
         'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
         'group':                                                        'ignore',
-        'vm_hosts':                                                     'ignore',
+        'vm_hosts':                                                     'lowercase',
         },
     }
 
@@ -103,7 +103,14 @@ def list(
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={'status_changed_time': 'datetime', 'last_updated': 'datetime'})
+    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
+        'start_time': 'datetime',
+        'status_changed_time': 'datetime',
+        'retire_request_time': 'datetime',
+        'retired_time': 'datetime',
+        'terminate_time': 'datetime',
+        'last_updated': 'datetime'
+        })
 
     # Retrieve available Clouds.
     s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
@@ -158,7 +165,7 @@ def update(request):
             verb = 'killed'
         elif fields['vm_option'] == 'retire':
             table = tables['condor_machines']
-            verb = 'retired'
+            verb = 'retired or unregistered'
         elif fields['vm_option'] == 'manctl':
             table = tables['csv2_vms']
             verb = 'set to manual control'
@@ -177,14 +184,21 @@ def update(request):
         else:
             count = 0
             if fields['vm_hosts'] != '':
-                fields['hostname'] = fields['vm_hosts']
-                s = select([view_vms]).where((view_vms.c.group_name == active_user.active_group) & (view_vms.c.foreign_vm == 0))
-                vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
+                if fields['vm_hosts'] == 'all':
+                    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+                    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status'], fields, aliases=ALIASES))
+                else:
+                    fields['hostname'] = fields['vm_hosts']
+                    s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
+                    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'hostname', 'poller_status'], fields, aliases=ALIASES))
 
                 for vm in vm_list:
                     if fields['vm_option'] == 'kill':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
                     elif fields['vm_option'] == 'retire':
+                        if vm['poller_status'] == 'unregistered':
+                            count += 1
+                            continue
                         update = table.update().where((table.c.slot_type == 'Partitionable') & (table.c.machine.like('%s%%' % vm['hostname']))).values({'retire_request_time': int(time.time())})
                     elif fields['vm_option'] == 'manctl':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})

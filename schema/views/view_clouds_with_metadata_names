@@ -7,10 +7,38 @@ create or replace view view_clouds_with_metadata_names as
 select
 
 vc.*,
+flavor_exclusions,
+flavor_names,
 group_exclusions,
 metadata_names
 
 from view_clouds as vc
+left outer join (
+    select
+    
+    group_name,
+    cloud_name,
+    group_concat(flavor_name) as flavor_exclusions
+    
+    from csv2_cloud_flavor_exclusions as ccfe
+    group by group_name,cloud_name
+    ) cfe /* cloud flavor exceptions */
+
+    on vc.group_name=cfe.group_name and vc.cloud_name=cfe.cloud_name
+
+left outer join (
+    select
+    
+    group_name,
+    cloud_name,
+    group_concat(name) as flavor_names
+    
+    from cloud_flavors
+    group by group_name,cloud_name
+    ) as cf /* cloud flavors */
+
+    on vc.group_name=cf.group_name and vc.cloud_name=cf.cloud_name
+
 left outer join (
     select
     
@@ -36,7 +64,6 @@ left outer join (
     ) as cm /* cloud metadata */
 
     on vc.group_name=cm.group_name and vc.cloud_name=cm.cloud_name
-
 
 order by vc.group_name,vc.cloud_name
 

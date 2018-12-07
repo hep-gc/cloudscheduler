@@ -105,6 +105,10 @@ def set(gvar):
     # Check for missing arguments or help required.
     check_keys(gvar, mandatory, required, optional, not_optional=not_optional, requires_server=False)
 
+    # If this is the user's first server, make it the default.
+    if len(os.listdir('%s/.csv2' % gvar['home_dir'])) < 1:
+        gvar['set_default_server'] = True
+
     # Make the server directory, if necessary.
     if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
         os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']), mode=0o700)  

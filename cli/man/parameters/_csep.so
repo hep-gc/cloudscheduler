@@ -1,0 +1,5 @@
+.TP
+\fB\-CSEP \fIseparator\fR, \fB\-\-comma-separeted-values-separator \fIseparator\fR
+Specifies the column separator character to be used by the -CSV parameter when printing the result.
+By default, a comma (",") is used.
+

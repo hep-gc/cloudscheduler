@@ -7,6 +7,8 @@ import os
 KEY_MAP = {
     '-ca':  'authurl',
     '-ce':  'enabled',
+    '-cfe': 'flavor_name',
+    '-cfo': 'flavor_option',
     '-cpw': 'password',
     '-cn':  'cloud_name',
     '-cp':  'project',
@@ -60,7 +62,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
     required = []
-    optional = ['-ce', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
+    optional = ['-ce', '-cfe', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -137,7 +139,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -188,6 +190,8 @@ def list(gvar):
             'cascading_vm_keyname/Keyname/Cascading Default',
             'cascading_vm_network/Network/Cascading Default',
             'cacertificate/CA Certificate',
+            'flavor_exclusions/Flavor Exclusions/Cloud',
+            'flavor_names/Flavors/Cloud',
             'group_exclusions/Group Exclusions/Metadata',
             'metadata_names/Filenames/Metadata',
             ],
@@ -201,7 +205,7 @@ def status(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -278,7 +282,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -312,7 +316,7 @@ def metadata_collation(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -475,7 +479,7 @@ def metadata_list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

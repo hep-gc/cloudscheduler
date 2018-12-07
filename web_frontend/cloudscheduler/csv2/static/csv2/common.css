@@ -7,7 +7,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 1rem;
+  height: 30px;
   background-color: #efefef;
   text-align: center;
 }
@@ -40,6 +40,12 @@
   text-align: right;
 }
 
+.bottom-right {
+  position: fixed;
+  right: 10;
+  bottom: 50;
+  text-align: center;
+}
 
 
 .dropdown {

@@ -30,7 +30,7 @@ def config(gvar):
 
     mandatory = []
     required = []
-    optional = ['-c', '-cc', '-dci', '-djg', '-eg', '-g', '-H', '-h', '-lf', '-ll', '-nld', '-NV', '-ok', '-r', '-s', '-sic', '-siC', '-sif', '-sii', '-sij', '-sik', '-sil', '-sim', '-sin', '-siv', '-sml', '-sms', '-V', '-VC', '-xA']
+    optional = ['-c', '-cc', '-CSEP', '-CSV', '-dci', '-djg', '-eg', '-g', '-H', '-h', '-lf', '-ll', '-nld', '-NV', '-ok', '-r', '-s', '-sic', '-siC', '-sif', '-sii', '-sij', '-sik', '-sil', '-sim', '-sin', '-siv', '-sml', '-sms', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

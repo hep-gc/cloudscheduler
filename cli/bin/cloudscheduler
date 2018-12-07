@@ -4,7 +4,7 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import requests
+from csv2_common import requests, _requests_no_credentials_error
 
 import os
 import sys
@@ -130,102 +130,106 @@ def main(args):
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
-            ('-bk',  '--backup-key', True),
-            ('-br',  '--backup-repository', True),
-            ('-c',   '--cacerts', True),
-            ('-ca',  '--cloud-address', True),
-            ('-cc',  '--config-category', True),
-            ('-ce',  '--cloud-enabled', True),
-            ('-cn',  '--cloud-name', True),
-            ('-cpw', '--cloud-password', True),
-            ('-cP',  '--cloud-project-domain', True),
-            ('-cp',  '--cloud-project', True),
-            ('-cr',  '--cloud-region', True),
-            ('-csp', '--cloud-spot-price', True),
-            ('-ct',  '--cloud-type', True),
-            ('-cU',  '--cloud-user-domain', True),
-            ('-cu',  '--cloud-user', True),
-            ('-dci', '--delete_cycle_interval', True),
-            ('-djg', '--default_job_group', True),
-            ('-ds',  '--default-server', False),   #### special case in _args() ###
-            ('-eg',  '--enable_glint', True),
-            ('-f',   '--file-path', True),
-            ('-g',   '--group', True),
-            ('-gm',  '--group-manager', True),
-            ('-gme', '--group-metadata-exclusion', True),
-            ('-gmo', '--group-metadata-option', True),
-            ('-gn',  '--group-name', True),
-            ('-go',  '--group-option', True),
-            ('-H',   '--long-help', False),
-            ('-h',   '--help', False),
-            ('-jc',  '--job-cores', True),
-            ('-jd',  '--job-disk', True),
-            ('-jh',  '--job-hold', True),
-            ('-jI',  '--job-id', True),
-            ('-ji',  '--job-image', True),
-            ('-jp',  '--job-priority', True),
-            ('-jR',  '--job-requirements', True),
-            ('-jr',  '--job-ram', True),
-            ('-jrc', '--job-request-cpus', True),
-            ('-jrd', '--job-request-disk', True),
-            ('-jrr', '--job-request-ram', True),
-            ('-jrs', '--job-request-swap', True),
-            ('-jS',  '--job-status', True),
-            ('-js',  '--job-swap', True),
-            ('-jtc', '--job-target-clouds', True),
-            ('-ju',  '--job-user', True),
-            ('-lf',  '--log_file', True),
-            ('-ll',  '--log_level', True),
-            ('-me',  '--metadata-enabled', True),
-            ('-mmt', '--metadata-mime-type', True),
-            ('-mn',  '--metadata-name', True),
-            ('-mp',  '--metadata-priority', True),
-            ('-nld', '--no_limit_default', True),
-            ('-NV',  '--no-view', False),
-            ('-ok',  '--only-keys', False),
-            ('-r',   '--rotate', False),
-            ('-s',   '--server', True),
-            ('-sa',  '--server-address', True),
-            ('-sC',  '--server-grid-cert', True),
-            ('-sic', '--sleep_interval_cleanup', True),
-            ('-siC', '--sleep_interval_command', True),
-            ('-sif', '--sleep_interval_flavor', True),
-            ('-sii', '--sleep_interval_image', True),
-            ('-sij', '--sleep_interval_job', True),
-            ('-sik', '--sleep_interval_keypair', True),
-            ('-sil', '--sleep_interval_limit', True),
-            ('-sim', '--sleep_interval_machine', True),
-            ('-sin', '--sleep_interval_network', True),
-            ('-siv', '--sleep_interval_vm', True),
-            ('-sK',  '--server-grid-key', True),
-            ('-sml', '--sleep-interval-main-long', True),
-            ('-sms', '--sleep-interval-main-short', True),
-            ('-spw', '--server-password', True),
-            ('-SU',  '--super-user', True),
-            ('-su',  '--server-user', True),
-            ('-te',  '--text-editor', True),
-            ('-ucn', '--user-common-name', True),
-            ('-un',  '--username', True),
-            ('-uo',  '--user-option', True),
-            ('-upw', '--user-password', True),
-            ('-V',   '--view', True),
-            ('-VC',  '--view-columns', False),
-            ('-vc',  '--vm-cores', True),
-            ('-vcs',  '--vm-cores-softmax', True),
-            ('-vd',  '--vm-disk', True),
-            ('-vF',  '--vm-foreign', True),
-            ('-vf',  '--vm-flavor', True),
-            ('-vi',  '--vm-image', True),
-            ('-vh',  '--vm-hosts', True),
-            ('-vk',  '--vm-keyname', True),
-            ('-vka', '--vm-keep-alive', True),
-            ('-vn',  '--vm-network', True),
-            ('-vo',  '--vm-option', True),
-            ('-vr',  '--vm-ram', True),
-            ('-vS',  '--vm-status', True),
-            ('-vs',  '--vm-swap', True),
-            ('-xA',  '--expose-API', False),
-            ('-Y',   '--yes', False),
+            ('-bk',   '--backup-key', True),
+            ('-br',   '--backup-repository', True),
+            ('-c',    '--cacerts', True),
+            ('-ca',   '--cloud-address', True),
+            ('-cc',   '--config-category', True),
+            ('-ce',   '--cloud-enabled', True),
+            ('-cfe',  '--cloud-flavor-exclusion', True),
+            ('-cfo',  '--cloud-flavor-option', True),
+            ('-cn',   '--cloud-name', True),
+            ('-cpw',  '--cloud-password', True),
+            ('-cP',   '--cloud-project-domain', True),
+            ('-cp',   '--cloud-project', True),
+            ('-cr',   '--cloud-region', True),
+            ('-CSV',  '--comma-separated-values', True),
+            ('-CSEP', '--comma-separated-values-separator', True),
+            ('-csp',  '--cloud-spot-price', True),
+            ('-ct',   '--cloud-type', True),
+            ('-cU',   '--cloud-user-domain', True),
+            ('-cu',   '--cloud-user', True),
+            ('-dci',  '--delete_cycle_interval', True),
+            ('-djg',  '--default_job_group', True),
+            ('-ds',   '--default-server', False),   #### special case in _args() ###
+            ('-eg',   '--enable_glint', True),
+            ('-f',    '--file-path', True),
+            ('-g',    '--group', True),
+            ('-gm',   '--group-manager', True),
+            ('-gme',  '--group-metadata-exclusion', True),
+            ('-gmo',  '--group-metadata-option', True),
+            ('-gn',   '--group-name', True),
+            ('-go',   '--group-option', True),
+            ('-H',    '--long-help', False),
+            ('-h',    '--help', False),
+            ('-jc',   '--job-cores', True),
+            ('-jd',   '--job-disk', True),
+            ('-jh',   '--job-hold', True),
+            ('-jI',   '--job-id', True),
+            ('-ji',   '--job-image', True),
+            ('-jp',   '--job-priority', True),
+            ('-jR',   '--job-requirements', True),
+            ('-jr',   '--job-ram', True),
+            ('-jrc',  '--job-request-cpus', True),
+            ('-jrd',  '--job-request-disk', True),
+            ('-jrr',  '--job-request-ram', True),
+            ('-jrs',  '--job-request-swap', True),
+            ('-jS',   '--job-status', True),
+            ('-js',   '--job-swap', True),
+            ('-jtc',  '--job-target-clouds', True),
+            ('-ju',   '--job-user', True),
+            ('-lf',   '--log_file', True),
+            ('-ll',   '--log_level', True),
+            ('-me',   '--metadata-enabled', True),
+            ('-mmt',  '--metadata-mime-type', True),
+            ('-mn',   '--metadata-name', True),
+            ('-mp',   '--metadata-priority', True),
+            ('-nld',  '--no_limit_default', True),
+            ('-NV',   '--no-view', False),
+            ('-ok',   '--only-keys', False),
+            ('-r',    '--rotate', False),
+            ('-s',    '--server', True),
+            ('-sa',   '--server-address', True),
+            ('-sC',   '--server-grid-cert', True),
+            ('-sic',  '--sleep_interval_cleanup', True),
+            ('-siC',  '--sleep_interval_command', True),
+            ('-sif',  '--sleep_interval_flavor', True),
+            ('-sii',  '--sleep_interval_image', True),
+            ('-sij',  '--sleep_interval_job', True),
+            ('-sik',  '--sleep_interval_keypair', True),
+            ('-sil',  '--sleep_interval_limit', True),
+            ('-sim',  '--sleep_interval_machine', True),
+            ('-sin',  '--sleep_interval_network', True),
+            ('-siv',  '--sleep_interval_vm', True),
+            ('-sK',   '--server-grid-key', True),
+            ('-sml',  '--sleep-interval-main-long', True),
+            ('-sms',  '--sleep-interval-main-short', True),
+            ('-spw',  '--server-password', True),
+            ('-SU',   '--super-user', True),
+            ('-su',   '--server-user', True),
+            ('-te',   '--text-editor', True),
+            ('-ucn',  '--user-common-name', True),
+            ('-un',   '--username', True),
+            ('-uo',   '--user-option', True),
+            ('-upw',  '--user-password', True),
+            ('-V',    '--view', True),
+            ('-VC',   '--view-columns', False),
+            ('-vc',   '--vm-cores', True),
+            ('-vcs',   '--vm-cores-softmax', True),
+            ('-vd',   '--vm-disk', True),
+            ('-vF',   '--vm-foreign', True),
+            ('-vf',   '--vm-flavor', True),
+            ('-vi',   '--vm-image', True),
+            ('-vh',   '--vm-hosts', True),
+            ('-vk',   '--vm-keyname', True),
+            ('-vka',  '--vm-keep-alive', True),
+            ('-vn',   '--vm-network', True),
+            ('-vo',   '--vm-option', True),
+            ('-vr',   '--vm-ram', True),
+            ('-vS',   '--vm-status', True),
+            ('-vs',   '--vm-swap', True),
+            ('-xA',   '--expose-API', False),
+            ('-Y',    '--yes', False),
             ),
         'command_name': os.path.basename(args[0]),
         'cookies': dict(),
@@ -247,28 +251,43 @@ def main(args):
     # Save or load the user's server specification.
     gvar['server'] = '-'
     if 'server' in gvar['command_args']:
-        gvar['server'] = gvar['command_args']['server']
-        if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])):
+        if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['command_args']['server'])) or (gvar['object'] == 'defaults' and gvar['action'] == 'set'):
+            gvar['server'] = gvar['command_args']['server']
             _fd = open('/tmp/.csv2_%s' % os.getppid(), 'w')
             _fd.write(gvar['server'])
             _fd.close()
+        else:
+            if len(os.listdir('%s/.csv2' % gvar['home_dir'])) > 0:
+               print('Error: the specified server "%s" does not exist in your defaults.' % gvar['command_args']['server'])
+               exit(1)
 
-    elif os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
-        _fd = open('/tmp/.csv2_%s' % os.getppid())
-        gvar['server'] = _fd.read()
-        _fd.close()
+    else:
+        if os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
+            _fd = open('/tmp/.csv2_%s' % os.getppid())
+            tmp_server = _fd.read()
+            _fd.close()
 
-    elif os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
-        _fd = open('%s/.csv2/default_server' % gvar['home_dir'])
-        gvar['server'] = _fd.read()
-        _fd.close()
+            if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], tmp_server)):
+                gvar['server'] = tmp_server
+
+        if gvar['server'] == '-' and os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
+            _fd = open('%s/.csv2/default_server' % gvar['home_dir'])
+            tmp_server = _fd.read()
+            _fd.close()
+
+            if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], tmp_server)):
+                gvar['server'] = tmp_server
 
     if gvar['server'] == '-':
         if 'server-address' in gvar['command_args']:
             gvar['user_settings'] = {}
         else:
-            print('Error: No server specified and no server address (URL) provided.')
-            exit(1)
+            if not gvar['object'] and not gvar['action'] and (gvar['command_args']['long-help'] or gvar['command_args']['help']):
+                gvar['user_settings'] = gvar['command_args']
+                gvar['super_user'] = 0
+                csv2_help.help(gvar)
+            else:
+                _requests_no_credentials_error(gvar)
     else:
         if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])):
             _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))

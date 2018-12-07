@@ -235,6 +235,12 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('condor', String(64))
   )
 
+csv2_cloud_flavor_exclusions = Table('csv2_cloud_flavor_exclusions', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('flavor_name', String(128), primary_key=True)
+  )
+
 csv2_cloud_metadata = Table('csv2_cloud_metadata', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
@@ -740,6 +746,8 @@ view_clouds_with_metadata_names = Table('view_clouds_with_metadata_names', metad
   Column('server_meta_max', Integer),
   Column('cores_idle', Integer),
   Column('ram_idle', Integer),
+  Column('flavor_exclusions', String),
+  Column('flavor_names', String),
   Column('group_exclusions', String),
   Column('metadata_names', String)
   )
