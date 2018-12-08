@@ -162,6 +162,8 @@ def main(args):
             ('-go',   '--group-option', True),
             ('-H',    '--long-help', False),
             ('-h',    '--help', False),
+            ('-htcf', '--htcondor-fqdn', True),
+            ('-htcn', '--htcondor-name', True),
             ('-jc',   '--job-cores', True),
             ('-jd',   '--job-disk', True),
             ('-jh',   '--job-hold', True),

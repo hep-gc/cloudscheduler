@@ -1,0 +1,4 @@
+.TP
+\fB\-cfe \fIflavor_name_list\fR[,...], \fB\-\-cloud-flavor-exclusion \fIflavor_name_list\fR[,...]
+The \fIflavor_name_list\fR is a comma separated list of flavor names existing on the cloud that are to be ignored when starting VMs.
+This parameter, used in conjuction with the "-cfo" option, will add or delete flavors from the flavor list to be ignored.
