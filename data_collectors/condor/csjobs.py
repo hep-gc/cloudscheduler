@@ -30,7 +30,7 @@ from sqlalchemy.ext.automap import automap_base
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
-    keys_to_trim = []
+    keys_to_trim = ["Owner"]
     for key in dict_to_trim:
         if key == "group_name":
             continue
@@ -93,7 +93,11 @@ def job_poller():
                 # build group_users dict
                 users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
                 grp_defaults = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                user_list = list(grp_defaults.htcondor_other_submitters)
+                htcondor_other_submitters = grp_defaults.htcondor_other_submitters
+                if htcondor_other_submitters is not None:
+                    user_list = list(grp_defaults.htcondor_other_submitters)
+                else:
+                    user_list = []
                 # need to append users from group defaultts (htcondor_supplementary_submitters) here
                 # alternatively we can just have 2 lists and check both wich would save on memory if there was a ton of users but cost cycles
                 for usr in users:
@@ -230,7 +234,7 @@ def job_poller():
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_job)
 
     except Exception as exc:
-        logging.error("Command consumer while loop exception, process terminating...")
+        logging.exception("Job Poller while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
         del db_session
