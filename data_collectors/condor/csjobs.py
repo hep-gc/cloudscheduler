@@ -79,11 +79,18 @@ def job_poller():
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            condor_host_groups = {}
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
+                if group.condor_central_manager not in condor_host_groups:
+                    condor_host_groups[group.condor_central_manager] = [group.group_name]
+                else:
+                    condor_host_groups[group.condor_central_manager].append(group.group_name)
 
             uncommitted_updates = 0
+            forgein_jobs = 0
             for condor_host in condor_hosts_set:
+                forgein_jobs = 0
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
@@ -124,11 +131,20 @@ def job_poller():
                             grp_name = re.search(pattern, job_dict['Requirements'])
                             job_dict['group_name'] = grp_name.group(2)
                         except Exception as exc:
-                            logging.error("No group name found in requirements expression... setting default.")
-                            job_dict['group_name'] = config.default_job_group
+                            logging.error("No group name found in requirements expression... ignoring foreign job.")
+                            forgein_jobs = forgein_jobs+1
+                            continue
                     else:
-                        logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
-                        job_dict['group_name'] = config.default_job_group
+                        logging.info("No requirements attribute found, not a csv2 job... ignoring foreign job.")
+                        forgein_jobs = forgein_jobs+1
+                        continue
+
+                    #check group_name is valid for this host
+                    if job_dict['group_name'] not in condor_host_groups[condor_host]:
+                        # not a valid group for this host
+                        logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
+                        forgein_jobs = forgein_jobs+1
+                        continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
                     # this should resolve the expression or us an alternative if unable
@@ -158,6 +174,9 @@ def job_poller():
                         logging.error(exc)
                         abort_cycle = True
                         break
+                        
+                if forgein_jobs > 0:
+                        logging.info("Ignored %s forgein jobs" % forgein_jobs)
 
                 if abort_cycle:
                     del condor_session
