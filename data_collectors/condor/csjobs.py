@@ -98,7 +98,7 @@ def job_poller():
                     condor_session = htcondor.Schedd(scheddAd)
 
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
+                    logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
                     continue
 
@@ -170,7 +170,7 @@ def job_poller():
                         db_session.merge(new_job)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge job entry, aborting cycle...")
+                        logging.error("Failed to merge job entry, aborting cycle...")
                         logging.error(exc)
                         abort_cycle = True
                         break
@@ -189,7 +189,7 @@ def job_poller():
                     db_session.commit()
                     logging.info("Job updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
-                    logging.exception("Failed to commit new jobs, aborting cycle...")
+                    logging.error("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
                     config.db_close()
                     time.sleep(config.sleep_interval_job)
@@ -209,7 +209,7 @@ def job_poller():
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_job)
 
     except Exception as exc:
-        logging.exception("Command consumer while loop exception, process terminating...")
+        logging.error("Command consumer while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
         del db_session
@@ -261,13 +261,13 @@ def command_poller():
                                 db_session.commit()
                                 uncommitted_updates = 0
                             except Exception as exc:
-                                logging.exception("Failed to commit batch of job changes, aborting cycle...")
+                                logging.error("Failed to commit batch of job changes, aborting cycle...")
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
 
                     except Exception as exc:
-                        logging.exception("Failed to hold job, rebooting command poller...")
+                        logging.error("Failed to hold job, rebooting command poller...")
                         logging.error(exc)
                         exit(1)
 
@@ -282,7 +282,7 @@ def command_poller():
                 try:
                     db_session.commit()
                 except Exception as exc:
-                    logging.exception("Failed to commit job changes, aborting cycle...")
+                    logging.error("Failed to commit job changes, aborting cycle...")
                     logging.error(exc)
                     del condor_session
                     config.db_close()
