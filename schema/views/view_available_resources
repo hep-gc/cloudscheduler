@@ -56,13 +56,13 @@ from (
             end
         end as default_image,
 
-        case when ifnull(n04.vm_keep_alive,'')!='' then
+        case when ifnull(n04.vm_keep_alive,-1)!=-1 then
             n04.vm_keep_alive
         else
-            case when ifnull(cgd.vm_keep_alive,'')!='' then
+            case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
                 cgd.vm_keep_alive
             else
-                null
+                0
             end
         end as keep_alive,
 
