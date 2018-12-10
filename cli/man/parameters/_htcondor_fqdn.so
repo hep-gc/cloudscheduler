@@ -1,0 +1,6 @@
+.TP
+\fB\-htcf \fIhtcondor-central-manager-fqdn\fR, \fB\-\-htcondor-fqdn \fIhtcondor-central-manager-fqdn\fR
+Specifies the fully qualified domain name (FQDN) of the server hosting your HTCondor central manager.
+This server will be queried for both HTCondor jobs and machines, and VMs created to run the jobs discovered
+will be contextualized to use this server.
+
