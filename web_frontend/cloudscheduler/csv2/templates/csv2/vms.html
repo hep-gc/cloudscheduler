@@ -177,6 +177,8 @@
               txtValue = td.textContent || td.innerText;
               if (txtValue == filter) {
                 tr[i].style.display = "table-row";
+                tr[i].getElementsByTagName("input")[0].disabled = false;
+
               }
             }
           }
@@ -188,6 +190,8 @@
               txtValue = td.textContent || td.innerText;
               if (txtValue == filter) {
                 tr[i].style.display = "none";
+                tr[i].getElementsByTagName("input")[0].disabled = true;
+
               } 
             }
           }

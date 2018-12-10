@@ -139,7 +139,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -205,7 +205,7 @@ def status(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -316,7 +316,7 @@ def metadata_collation(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -479,7 +479,7 @@ def metadata_list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

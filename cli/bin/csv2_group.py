@@ -5,24 +5,26 @@ import filecmp
 import os
 
 KEY_MAP = {
-    '-gn':  'group_name',
-    '-gm':  'condor_central_manager',
-    '-me':  'enabled',
-    '-mmt': 'mime_type',
-    '-mn':  'metadata_name',
-    '-mp':  'priority',
-    '-jc':  'job_cpus',
-    '-jd':  'job_disk',
-    '-jed': 'job_scratch',
-    '-jr':  'job_ram',
-    '-js':  'job_swap',
-    '-un':  'username',
-    '-uo':  'user_option',
-    '-vf':  'vm_flavor',
-    '-vi':  'vm_image',
-    '-vka': 'vm_keep_alive',
-    '-vk':  'vm_keyname',
-    '-vn':  'vm_network',
+    '-gn':   'group_name',
+    '-gm':   'condor_central_manager',
+    '-htcf': 'htcondor_fqdn',
+    '-htcn': 'htcondor_name',
+    '-me':   'enabled',
+    '-mmt':  'mime_type',
+    '-mn':   'metadata_name',
+    '-mp':   'priority',
+    '-jc':   'job_cpus',
+    '-jd':   'job_disk',
+    '-jed':  'job_scratch',
+    '-jr':   'job_ram',
+    '-js':   'job_swap',
+    '-un':   'username',
+    '-uo':   'user_option',
+    '-vf':   'vm_flavor',
+    '-vi':   'vm_image',
+    '-vka':  'vm_keep_alive',
+    '-vk':   'vm_keyname',
+    '-vn':   'vm_network',
     }
 
 def _filter_by_group_name_and_or_metadata_name(gvar, qs):
@@ -79,7 +81,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-H', '-h', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htcn', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -111,6 +113,8 @@ def defaults(gvar):
         response['defaults_list'],
         [
             'group_name/Group,k',
+            'htcondor_fqdn/FQDN/HTCondor',
+            'htcondor_name/Name/HTCondor',
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
@@ -178,7 +182,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -374,7 +378,7 @@ def metadata_list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

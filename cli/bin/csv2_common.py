@@ -401,8 +401,8 @@ def show_active_user_groups(gvar, response):
     Print the server response header.
     """
 
-    if not gvar['user_settings']['view-columns']:
-        print('Server: %s, Active User: %s, Active Group: %s, User\'s Groups: %s' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
+    if 'comma-separated-values' not in gvar['user_settings'] and not gvar['user_settings']['view-columns']:
+        print('\033[1mServer: %s, Active User: %s, Active Group: %s, User\'s Groups: %s\033[0m' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
 
 #-------------------------------------------------------------------------------
               
@@ -479,10 +479,19 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         else:
             gvar['display_size'] = [24, 80]
 
+    if 'comma-separated-values' in gvar['user_settings']:
+        if gvar['user_settings']['comma-separated-values'] == '':
+            comma_separated_values = []
+        else:
+            comma_separated_values = gvar['user_settings']['comma-separated-values'].split(',')
+
     for column_def in columns:
         w1 = column_def.split(',')
         w2 = w1[0].split('/')
         column = w2[0]
+
+        if 'comma-separated-values' in gvar['user_settings'] and len(comma_separated_values)>0 and column not in comma_separated_values:
+            continue
 
         # Set default value for header.
         if len(w2) < 2:
@@ -594,70 +603,79 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         else:
             lists.append(_row)
 
-    if gvar['user_settings']['rotate']:
-        segments = [ {'SH': False, 'table': Rotated_Table, 'columns': ['key', 'value'], 'headers': ['Key', 'Value']} ]
-
-    else:
-        segments = [ {'SH': False, 'table': Table, 'columns': [], 'super_headers': [],  'super_header_lengths': [], 'headers': [], 'length': 1} ]
-
-        if len(Table['columns_segment']) > 0:
-            for column in Table['columns_segment']:
-                # If the next column causes segment to exceed the display width, start a new segment.
-                if segments[-1]['length'] + 3 + Table['lengths'][column] > gvar['display_size'][1] - 5:
-                    _show_table_set_segment(segments[-1], None)
-                    segments.append({'SH': False, 'table': Table, 'columns': [], 'super_headers': [],  'super_header_lengths': [], 'headers': [], 'length': 1})
-
-                # If starting a new segment, add all the common (key) columns.
-                if segments[-1]['length'] == 1:
-                    for common_column in Table['columns_common']:
-                        _show_table_set_segment(segments[-1], common_column)
-                    _show_table_set_segment(segments[-1], None)
-
-                # Process the current (segment) column.
-                _show_table_set_segment(segments[-1], column)
-            _show_table_set_segment(segments[-1], None)
-
+    if 'comma-separated-values' in gvar['user_settings']:
+        if 'comma-separated-value-separator' in gvar['user_settings']:
+            separator =  gvar['user_settings']['comma-separated-value-separator']
         else:
-            # The table consists of only common (key) columns; add them all.
-            for common_column in Table['columns_common']:
-                _show_table_set_segment(segments[-1], common_column)
-            _show_table_set_segment(segments[-1], None)
-
-    for ix in range(len(segments)):
-        column_underscore = []
-        for column in segments[ix]['columns']:
-            column_underscore.append('-' * (segments[ix]['table']['lengths'][column] + 2))
-        ruler = '+%s+' % '+'.join(column_underscore)
-
-        if title:
-            if len(segments) > 1:
-                print('\n%s (%s/%s)' % (title, ix+1, len(segments)))
-            else:
-                print('\n%s' % title)
-        else:
-            if len(segments) > 1:
-                print('\n (%s/%s)' % (ix+1, len(segments)))
-            else:
-                print('\n')
-
-        print(ruler)
-        if segments[ix]['SH']:
-            print('+ %s +' % ' | '.join(segments[ix]['super_headers']))
-            print('+ %s +' % ' | '.join(segments[ix]['headers']))
-        else:
-            print('+ %s +' % ' | '.join(_show_table_pad(segments[ix]['columns'], segments[ix]['table']['headers'], segments[ix]['table']['lengths'])))
-        print(ruler)
+            separator = ','
 
         for row in lists:
-            if gvar['user_settings']['rotate'] and not allow_null and row[1] == '-':
-                continue
+            print(str(separator).join(str(ix) for ix in row))
+    else:
+        if gvar['user_settings']['rotate']:
+            segments = [ {'SH': False, 'table': Rotated_Table, 'columns': ['key', 'value'], 'headers': ['Key', 'Value']} ]
 
-            print('| %s |' % ' | '.join(_show_table_pad(segments[ix]['columns'], row, segments[ix]['table']['lengths'], values_xref=segments[ix]['table']['xref'])))
+        else:
+            segments = [ {'SH': False, 'table': Table, 'columns': [], 'super_headers': [],  'super_header_lengths': [], 'headers': [], 'length': 1} ]
 
-        print(ruler)
+            if len(Table['columns_segment']) > 0:
+                for column in Table['columns_segment']:
+                    # If the next column causes segment to exceed the display width, start a new segment.
+                    if segments[-1]['length'] + 3 + Table['lengths'][column] > gvar['display_size'][1] - 5:
+                        _show_table_set_segment(segments[-1], None)
+                        segments.append({'SH': False, 'table': Table, 'columns': [], 'super_headers': [],  'super_header_lengths': [], 'headers': [], 'length': 1})
 
-    print('Rows: %s' % len(_qs))
-    gvar['tables_shown'] += 1
+                    # If starting a new segment, add all the common (key) columns.
+                    if segments[-1]['length'] == 1:
+                        for common_column in Table['columns_common']:
+                            _show_table_set_segment(segments[-1], common_column)
+                        _show_table_set_segment(segments[-1], None)
+
+                    # Process the current (segment) column.
+                    _show_table_set_segment(segments[-1], column)
+                _show_table_set_segment(segments[-1], None)
+
+            else:
+                # The table consists of only common (key) columns; add them all.
+                for common_column in Table['columns_common']:
+                    _show_table_set_segment(segments[-1], common_column)
+                _show_table_set_segment(segments[-1], None)
+
+        for ix in range(len(segments)):
+            column_underscore = []
+            for column in segments[ix]['columns']:
+                column_underscore.append('-' * (segments[ix]['table']['lengths'][column] + 2))
+            ruler = '+%s+' % '+'.join(column_underscore)
+
+            if title:
+                if len(segments) > 1:
+                    print('\n%s (%s/%s)' % (title, ix+1, len(segments)))
+                else:
+                    print('\n%s' % title)
+            else:
+                if len(segments) > 1:
+                    print('\n (%s/%s)' % (ix+1, len(segments)))
+                else:
+                    print('\n')
+
+            print(ruler)
+            if segments[ix]['SH']:
+                print('+ %s +' % ' | '.join(segments[ix]['super_headers']))
+                print('+ %s +' % ' | '.join(segments[ix]['headers']))
+            else:
+                print('+ %s +' % ' | '.join(_show_table_pad(segments[ix]['columns'], segments[ix]['table']['headers'], segments[ix]['table']['lengths'])))
+            print(ruler)
+
+            for row in lists:
+                if gvar['user_settings']['rotate'] and not allow_null and row[1] == '-':
+                    continue
+
+                print('| %s |' % ' | '.join(_show_table_pad(segments[ix]['columns'], row, segments[ix]['table']['lengths'], values_xref=segments[ix]['table']['xref'])))
+
+            print(ruler)
+
+        print('Rows: %s' % len(_qs))
+        gvar['tables_shown'] += 1
 
 #-------------------------------------------------------------------------------
               
