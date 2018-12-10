@@ -21,6 +21,7 @@ from lib.db_config import Config
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
+from sqlalchemy import distinct
 
 
 def main():
@@ -63,7 +64,7 @@ def main():
                           csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
-            group_resources = config.db_session.query(view_available_resources).filter(view_clouds.c.group_name == csgroup.group_name)
+            group_resources = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == csgroup.group_name).group_by(view_available_resources.c.cloud_name)
             Group_metadata = config.db_map.classes.csv2_group_metadata
             group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
@@ -167,7 +168,7 @@ def main():
                     runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]['count']
                 for flavor in num_vm_jobs_per_flavor_total:
                     (cloud_name, flavor_name) = flavor.split(':')
-                    runnable_job_count_totals -=
+                    #runnable_job_count_totals -=
                 log.debug("Runnable_job_count before: %s", runnable_job_count)
                 runnable_job_count -= idle_job.running  # Subtract the already running jobs
                 runnable_job_count -= idle_job.idle  # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
