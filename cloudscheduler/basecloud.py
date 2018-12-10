@@ -77,9 +77,10 @@ class BaseCloud(ABC):
                         self.name.replace('_', '-').lower(), '--',
                         str(self.config.csv2_host_id), '--',
                         str(uuid.uuid4().node)])
-        for vm in self.vms.values():
-            if name == vm.hostname:
-                name = self._generate_next_name()
+        # TODO different way to check name collision?
+        #for vm in self.vms.values():
+        #    if name == vm.hostname:
+        #        name = self._generate_next_name()
         return name
 
     def prepare_userdata(self, group_yaml, yaml_list, template_dict):

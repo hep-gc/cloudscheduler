@@ -168,8 +168,10 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             pass
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
+            raise novaclient.exceptions.OverLimit
         except Exception as ex:
             self.log.exception(ex)
+            raise Exception
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
             engine = self._get_db_engine()
