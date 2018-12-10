@@ -9,6 +9,7 @@ KEY_MAP = {
     '-gm':   'condor_central_manager',
     '-htcf': 'htcondor_fqdn',
     '-htcn': 'htcondor_name',
+    '-htcu': 'htcondor_other_submitters',
     '-me':   'enabled',
     '-mmt':  'mime_type',
     '-mn':   'metadata_name',
@@ -81,7 +82,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htcn', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htcn', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -115,6 +116,7 @@ def defaults(gvar):
             'group_name/Group,k',
             'htcondor_fqdn/FQDN/HTCondor',
             'htcondor_name/Name/HTCondor',
+            'htcondor_other_submitters/Users/HTCondor',
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',
