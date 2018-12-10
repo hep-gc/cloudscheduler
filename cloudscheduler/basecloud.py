@@ -27,7 +27,7 @@ class BaseCloud(ABC):
         self.name = name
         self.group = group
         self.enabled = True
-        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms}
+        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms} if vms else None
         self.extrayaml = extrayaml
         self.metadata = metadata  # Should a be list of tuples with (name, select statement, mime type) already in order
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])

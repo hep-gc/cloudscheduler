@@ -63,8 +63,7 @@ def main():
                           csgroup.group_name)
 
             # Setup the resources for group and sort out their group and cloud specific yamls
-            group_resources = config.db_session.query(view_clouds).filter(view_clouds.c.group_name == csgroup.group_name,
-                                                                         view_clouds.c.enabled == 1)
+            group_resources = config.db_session.query(view_available_resources).filter(view_clouds.c.group_name == csgroup.group_name)
             Group_metadata = config.db_map.classes.csv2_group_metadata
             group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                            Group_metadata.enabled == 1)
@@ -130,23 +129,45 @@ def main():
                     clouds_matching = config.db_session.query(view_available_resources).filter(
                         view_available_resources.c.flavor.in_(flavor_list))
                 num_jobs_per_flavor_possible = {}
+                num_jobs_per_flavor_max = {}
+                num_vm_jobs_per_flavor_total = {}
                 for cloud_match in clouds_matching:
                     cpu = cloud_match.flavor_cores / idle_job.request_cpus_min
+                    cpu_max = cloud_match.flavor_cores / idle_job.request_cpus_max
+                    vm_cpu_total = idle_job.request_cpus_total / cloud_match.flavor_cores
                     ram = cloud_match.flavor_ram / idle_job.request_ram_min
+                    ram_max = cloud_match.flavor_ram / idle_job.request_ram_max
+                    vm_ram_total = idle_job.request_ram_total / cloud_match.flavor_ram
                     disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
+                    disk_max = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_max else None
+                    vm_disk_total = idle_job.request_disk_total / cloud_match.flavor_disk if idle_job.request_disk_total else None
                     jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
+                    jobs_possible_max = int(min(cpu_max,ram_max,disk_max)) if disk_max else int(min(cpu_max,ram_max))
+                    vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total)) if vm_disk_total else int(max(vm_cpu_total, vm_ram_total))
                     if jobs_possible < 1:
                         jobs_possible = 1
+                    if jobs_possible_max < 1:
+                        jobs_possible_max = 1
+                    if vm_jobs_possible_total < 1:
+                        vm_jobs_possible_total = 1
                     num_jobs_per_flavor_possible[cloud_match.flavor] = jobs_possible
-                log.debug("num jobs per flavor: %s", num_jobs_per_flavor_possible)
+                    num_jobs_per_flavor_max[cloud_match.flavor] = jobs_possible_max
+                    num_vm_jobs_per_flavor_total[cloud_match.flavor] = vm_jobs_possible_total
+                log.debug("num jobs per flavor(min): %s", num_jobs_per_flavor_possible)
+                log.debug("num jobs per flavor(max): %s", num_jobs_per_flavor_max)
+                log.debug("num vms per flavor(total): %s", num_vm_jobs_per_flavor_total)
                 # Now have the amount of jobs that can run on each option
                 # Next get all the VMs for this group with their flavor info - actually could be done outside of loop and re-use it
                 # Need a structure of the groups VMs accessible by the cloud_name and with a count of the flavor
                 # ie vms[cloud-name][flavor] = 6
                 runnable_job_count = 0
+                runnable_job_count_totals = idle_job.running + idle_job.idle
                 for flavor in num_jobs_per_flavor_possible.keys():
                     (cloud_name, flavor_name) = flavor.split(':')
-                    runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]
+                    runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]['count']
+                for flavor in num_vm_jobs_per_flavor_total:
+                    (cloud_name, flavor_name) = flavor.split(':')
+                    runnable_job_count_totals -=
                 log.debug("Runnable_job_count before: %s", runnable_job_count)
                 runnable_job_count -= idle_job.running  # Subtract the already running jobs
                 runnable_job_count -= idle_job.idle  # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
@@ -273,9 +294,13 @@ def count_cloud_flavors(group, config):
     log = logging.getLogger(__name__)
     config.db_open()
     group_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0)
-    vm_cloud_flavors = defaultdict(lambda: defaultdict(int))
+    vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for vm in group_vms:
-        vm_cloud_flavors[vm.cloud_name][vm.flavor_name] += 1
+        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['count'] += 1
+        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['cores'] += vm.cores
+        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['ram'] += vm.ram
+        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['disk'] += vm.disk
+        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['swap'] += vm.swap
     log.debug("Done counting current flavors for group: %s.", group)
     try:
         config.db_close()
