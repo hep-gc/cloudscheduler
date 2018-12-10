@@ -68,6 +68,7 @@ def job_poller():
     CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
     USERS = config.db_map.classes.csv2_user_groups
+    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
@@ -91,7 +92,8 @@ def job_poller():
 
                 # build group_users dict
                 users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
-                user_list = []
+                grp_defaults = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                user_list = list(grp_defaults.htcondor_other_submitters)
                 # need to append users from group defaultts (htcondor_supplementary_submitters) here
                 # alternatively we can just have 2 lists and check both wich would save on memory if there was a ton of users but cost cycles
                 for usr in users:
