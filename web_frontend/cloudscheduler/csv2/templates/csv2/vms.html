@@ -25,22 +25,22 @@
 
 
         <table>
-          <tr class="header-row">
+          <tr class="title-row">
             <!--<th class="native-style">All States</th>-->
-            <th class="native-style">Starting</th>
-            <th class="native-style">Unreg.</th>
-            <th class="native-style">Idle</th>                
-            <th class="native-style">Running</th>
-            <th class="native-style">Retiring</th>
-            <th class="native-style">Manual</th>
-            <th class="native-style">Error</th>
+            <th>Starting</th>
+            <th>Unreg.</th>
+            <th>Idle</th>                
+            <th>Running</th>
+            <th>Retiring</th>
+            <th>Manual</th>
+            <th>Error</th>
             <th></th>
-            <th class="native-style">1</th>
-            <th class="native-style">2</th>
-            <th class="native-style">4</th>
-            <th class="native-style">8</th>
+            <th>1</th>
+            <th>2</th>
+            <th>4</th>
+            <th>8</th>
           </tr>
-          <tr>
+          <tr class="box-row">
             <!--<td>
               <input type="checkbox" id="all states" onchange="filterAll();"/>
             </td>-->
@@ -177,6 +177,8 @@
               txtValue = td.textContent || td.innerText;
               if (txtValue == filter) {
                 tr[i].style.display = "table-row";
+                tr[i].getElementsByTagName("input")[0].disabled = false;
+
               }
             }
           }
@@ -188,6 +190,8 @@
               txtValue = td.textContent || td.innerText;
               if (txtValue == filter) {
                 tr[i].style.display = "none";
+                tr[i].getElementsByTagName("input")[0].disabled = true;
+
               } 
             }
           }

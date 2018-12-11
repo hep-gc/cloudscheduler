@@ -27,7 +27,7 @@ class BaseCloud(ABC):
         self.name = name
         self.group = group
         self.enabled = True
-        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms}
+        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms} if vms else None
         self.extrayaml = extrayaml
         self.metadata = metadata  # Should a be list of tuples with (name, select statement, mime type) already in order
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
@@ -77,9 +77,10 @@ class BaseCloud(ABC):
                         self.name.replace('_', '-').lower(), '--',
                         str(self.config.csv2_host_id), '--',
                         str(uuid.uuid4().node)])
-        for vm in self.vms.values():
-            if name == vm.hostname:
-                name = self._generate_next_name()
+        # TODO different way to check name collision?
+        #for vm in self.vms.values():
+        #    if name == vm.hostname:
+        #        name = self._generate_next_name()
         return name
 
     def prepare_userdata(self, group_yaml, yaml_list, template_dict):

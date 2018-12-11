@@ -25,7 +25,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
     OpenStack Connector class for cloudscheduler
     """
     def __init__(self, resource=None, vms=None, defaultsecuritygroup=None,
-                 defaultnetwork=None, extrayaml=None, metadata=None):
+                 extrayaml=None, metadata=None):
 
         """
         OpenStack constructor
@@ -43,7 +43,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.username = resource.username
         self.password = resource.password
         self.region = resource.region
-        self.keyname = resource.keyname  # default_keyname
+        self.keyname = resource.default_keyname
         self.cacertificate = resource.cacertificate
         self.project = resource.project
         self.userdomainname = resource.user_domain_name
@@ -53,10 +53,10 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             raise Exception
 
         self.default_securitygroup = defaultsecuritygroup  # ???
-        self.default_image = resource.cascading_vm_image  # default_image
-        self.default_flavor = resource.cascading_vm_flavor  # ???
-        self.default_network = resource.cascading_vm_network  # default_network
-        self.keep_alive = resource.cascading_vm_keep_alive   # keep_alive - with this here now can probably remove it from the earlier part of call stack
+        self.default_image = resource.default_image  # default_image
+        self.default_flavor = resource.default_flavor  # ???
+        self.default_network = resource.default_network  # default_network
+        self.keep_alive = resource.keep_alive   # keep_alive - with this here now can probably remove it from the earlier part of call stack
 
     def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
@@ -168,8 +168,10 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             pass
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
+            raise novaclient.exceptions.OverLimit
         except Exception as ex:
             self.log.exception(ex)
+            raise Exception
         if instance:
             self.log.debug("Try to fetch with filter of hostname used")
             engine = self._get_db_engine()

@@ -288,7 +288,9 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('vm_image', String(64)),
   Column('vm_keep_alive', Integer),
   Column('vm_keyname', String(64)),
-  Column('vm_network', String(64))
+  Column('vm_network', String(64)),
+  Column('error_count', Integer),
+  Column('error_time', Integer)
   )
 
 csv2_config = Table('csv2_config', metadata,
@@ -305,6 +307,9 @@ csv2_configuration = Table('csv2_configuration', metadata,
 
 csv2_group_defaults = Table('csv2_group_defaults', metadata,
   Column('group_name', String(32), primary_key=True),
+  Column('htcondor_fqdn', String(128)),
+  Column('htcondor_name', String(128)),
+  Column('htcondor_other_submitters', String(128)),
   Column('job_cpus', Integer),
   Column('job_ram', Integer),
   Column('job_disk', Integer),
@@ -532,6 +537,7 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('ram_used', Integer),
   Column('flavor_id', String(128)),
   Column('flavor', String(161)),
+  Column('flavor_exclude', String(128)),
   Column('flavor_cores', Integer),
   Column('flavor_disk', Integer),
   Column('flavor_ram', Integer),
@@ -799,12 +805,16 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('job_per_core', Integer),
   Column('request_cpus_min', Integer),
   Column('request_cpus_max', Integer),
+  Column('request_cpus_total', Integer),
   Column('request_disk_min', Integer),
   Column('request_disk_max', Integer),
+  Column('request_disk_total', Integer),
   Column('request_ram_min', Integer),
   Column('request_ram_max', Integer),
+  Column('request_ram_total', Integer),
   Column('request_swap_min', Integer),
   Column('request_swap_max', Integer),
+  Column('request_swap_total', Integer),
   Column('queue_date', Integer),
   Column('idle', Integer),
   Column('running', Integer),
@@ -876,6 +886,12 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('username', String(32)),
   Column('group_name', String(32)),
   Column('available', String(32))
+  )
+
+view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
+  Column('status', String(7)),
+  Column('cores', Integer),
+  Column('VMs', Integer)
   )
 
 view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,

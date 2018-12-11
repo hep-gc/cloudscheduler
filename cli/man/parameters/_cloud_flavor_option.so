@@ -1,0 +1,4 @@
+.TP
+\fB\-cfo \fR[\fBadd \fR| \fBdelete\fR], \fB\-\-cloud-flavor-option \fR[\fBadd \fR| \fBdelete\fR]
+Use with \fB\-cfe\fR to \fBadd\fR or \fBdelete\fR flavors from the flavor exclusion list.
+If the "-cfe" parameter is specified and this paremeter is omitted, then \fBadd\fR is assumed.

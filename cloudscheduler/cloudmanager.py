@@ -44,22 +44,13 @@ class CloudManager():
         cloud_vm = self.config.db_map.classes.csv2_vms
 
         for cloud in self.group_resources:
-            cloud_vms = []
-            try:
-                # Do I need the VMs at all ? I don't think  I do.
-                cloud_vms = self.config.db_session.query(cloud_vm).filter(cloud_vm.group_name == self.name,
-                                                       cloud_vm.cloud_name == cloud.cloud_name)
-            except Exception as ex:
-                self.log.exception("Unable to query database: %s", ex)
-
             try:
                 if cloud.cloud_type == 'localhost':
                     newcloud = cloudscheduler.localhostcloud.LocalHostCloud(resource=cloud,
                                                                             metadata=self.metadata[cloud.cloud_name])
                 else:
                     newcloud = cloudscheduler.openstackcloud.\
-                        OpenStackCloud(resource=cloud, vms=cloud_vms,
-                                       metadata=self.metadata[cloud.cloud_name])
+                        OpenStackCloud(resource=cloud, metadata=self.metadata[cloud.cloud_name])
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
             except Exception as ex:

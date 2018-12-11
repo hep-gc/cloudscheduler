@@ -30,7 +30,7 @@ from sqlalchemy.ext.automap import automap_base
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
 def trim_keys(dict_to_trim, key_list):
-    keys_to_trim = []
+    keys_to_trim = ["Owner"]
     for key in dict_to_trim:
         if key == "group_name":
             continue
@@ -45,7 +45,7 @@ def job_poller():
     job_attributes = ["TargetClouds", "JobStatus", "RequestMemory", "GlobalJobId", "HoldReason",
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
-                      "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore",
+                      "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore", "Owner",
                       "EnteredCurrentStatus", "QDate", "HoldReasonCode", "HoldReasonSubCode", "LastRemoteHost" ]
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
@@ -67,6 +67,8 @@ def job_poller():
     JOB = config.db_map.classes.condor_jobs
     CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
+    USERS = config.db_map.classes.csv2_user_groups
+    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
@@ -79,11 +81,34 @@ def job_poller():
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
+            condor_host_groups = {}
+            group_users = {}
             for group in groups:
                 condor_hosts_set.add(group.condor_central_manager)
+                if group.condor_central_manager not in condor_host_groups:
+                    condor_host_groups[group.condor_central_manager] = [group.group_name]
+                else:
+                    condor_host_groups[group.condor_central_manager].append(group.group_name)
+
+                # build group_users dict
+                users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
+                grp_defaults = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                htcondor_other_submitters = grp_defaults.htcondor_other_submitters
+                if htcondor_other_submitters is not None:
+                    user_list = list(grp_defaults.htcondor_other_submitters)
+                else:
+                    user_list = []
+                # need to append users from group defaultts (htcondor_supplementary_submitters) here
+                # alternatively we can just have 2 lists and check both wich would save on memory if there was a ton of users but cost cycles
+                for usr in users:
+                    user_list.append(usr.username)
+
+                group_users[group.group_name] = user_list
 
             uncommitted_updates = 0
+            forgein_jobs = 0
             for condor_host in condor_hosts_set:
+                forgein_jobs = 0
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
@@ -91,7 +116,7 @@ def job_poller():
                     condor_session = htcondor.Schedd(scheddAd)
 
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping: %s" % condor_host)
+                    logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
                     continue
 
@@ -124,11 +149,27 @@ def job_poller():
                             grp_name = re.search(pattern, job_dict['Requirements'])
                             job_dict['group_name'] = grp_name.group(2)
                         except Exception as exc:
-                            logging.error("No group name found in requirements expression... setting default.")
-                            job_dict['group_name'] = config.default_job_group
+                            logging.error("No group name found in requirements expression... ignoring foreign job.")
+                            forgein_jobs = forgein_jobs+1
+                            continue
                     else:
-                        logging.info("No requirements attribute found, likely not a csv2 job.. assigning default job group.")
-                        job_dict['group_name'] = config.default_job_group
+                        logging.info("No requirements attribute found, not a csv2 job... ignoring foreign job.")
+                        forgein_jobs = forgein_jobs+1
+                        continue
+
+                    #check group_name is valid for this host
+                    if job_dict['group_name'] not in condor_host_groups[condor_host]:
+                        # not a valid group for this host
+                        logging.info("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
+                        forgein_jobs = forgein_jobs+1
+                        continue
+
+                    # check if user is valid for this group
+                    if job_dict['Owner'] not in group_users[job_dict['group_name']]:
+                        # this user isn''t registered with this group and thus cannot submit jobs to it
+                        logging.info("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
+                        forgein_jobs = forgein_jobs+1
+                        continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
                     # this should resolve the expression or us an alternative if unable
@@ -154,10 +195,13 @@ def job_poller():
                         db_session.merge(new_job)
                         uncommitted_updates += 1
                     except Exception as exc:
-                        logging.exception("Failed to merge job entry, aborting cycle...")
+                        logging.error("Failed to merge job entry, aborting cycle...")
                         logging.error(exc)
                         abort_cycle = True
                         break
+                        
+                if forgein_jobs > 0:
+                        logging.info("Ignored %s forgein jobs" % forgein_jobs)
 
                 if abort_cycle:
                     del condor_session
@@ -170,7 +214,7 @@ def job_poller():
                     db_session.commit()
                     logging.info("Job updates committed: %d" % uncommitted_updates)
                 except Exception as exc:
-                    logging.exception("Failed to commit new jobs, aborting cycle...")
+                    logging.error("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
                     config.db_close()
                     time.sleep(config.sleep_interval_job)
@@ -190,7 +234,7 @@ def job_poller():
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_job)
 
     except Exception as exc:
-        logging.exception("Command consumer while loop exception, process terminating...")
+        logging.exception("Job Poller while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
         del db_session
@@ -242,13 +286,13 @@ def command_poller():
                                 db_session.commit()
                                 uncommitted_updates = 0
                             except Exception as exc:
-                                logging.exception("Failed to commit batch of job changes, aborting cycle...")
+                                logging.error("Failed to commit batch of job changes, aborting cycle...")
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
 
                     except Exception as exc:
-                        logging.exception("Failed to hold job, rebooting command poller...")
+                        logging.error("Failed to hold job, rebooting command poller...")
                         logging.error(exc)
                         exit(1)
 
@@ -263,7 +307,7 @@ def command_poller():
                 try:
                     db_session.commit()
                 except Exception as exc:
-                    logging.exception("Failed to commit job changes, aborting cycle...")
+                    logging.error("Failed to commit job changes, aborting cycle...")
                     logging.error(exc)
                     del condor_session
                     config.db_close()
