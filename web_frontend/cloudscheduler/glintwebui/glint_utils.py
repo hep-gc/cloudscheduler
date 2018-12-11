@@ -255,7 +255,7 @@ def set_user_groups(config, request):
             user_groups.append(row.group_name)
 
     if not user_groups:
-        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_groups
+        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_group_rows
 
     # if the POST request specified a group, validate and set the specified group as the active group.
     if request.method == 'POST' and 'group' in request.POST:
@@ -265,13 +265,13 @@ def set_user_groups(config, request):
                 active_user.active_group = group_name
                 active_user.save()
             else:
-                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
+                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_group_rows
 
     # if no active group, set first group as default.
     if active_user.active_group is None:
         active_user.active_group = user_groups[0]
         active_user.save()
 
-    return 0, None, active_user, user_groups
+    return 0, None, active_user, user_group_rows
 
 
