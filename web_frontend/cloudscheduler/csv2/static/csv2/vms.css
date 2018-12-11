@@ -3,6 +3,20 @@
   --alternate_row_background_color: #F2F2F2;
 }
 
+
+.title-row {
+  background-color: orange;
+  color: black;
+  font-style: bold;
+  padding: 0px;
+}
+
+.box-row {
+  background-color: grey;
+  color: white;
+  padding: 0px;
+}
+
 .vm-div {
   position: absolute;
   display: block;
@@ -13,8 +27,6 @@
 
   overflow-y: visible;
   overflow-x: visible;
-
-
 }
 
 
