@@ -56,13 +56,13 @@ from (
             end
         end as default_image,
 
-        case when ifnull(n04.vm_keep_alive,'')!='' then
+        case when ifnull(n04.vm_keep_alive,-1)!=-1 then
             n04.vm_keep_alive
         else
-            case when ifnull(cgd.vm_keep_alive,'')!='' then
+            case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
                 cgd.vm_keep_alive
             else
-                null
+                0
             end
         end as keep_alive,
 
@@ -111,6 +111,7 @@ from (
 
         id as flavor_id,
         concat(n04.cloud_name, ':', name) as flavor,
+        ccfe.flavor_name as flavor_exclude,
         cf.cores as flavor_cores,
         cf.disk + cf.ephemeral_disk as flavor_disk,
         cf.ram as flavor_ram,
@@ -199,10 +200,15 @@ from (
         left outer join cloud_flavors as cf on
             n04.group_name=cf.group_name and
             n04.cloud_name=cf.cloud_name
+        left outer join csv2_cloud_flavor_exclusions as ccfe on
+            cf.group_name=ccfe.group_name and
+            cf.cloud_name=ccfe.cloud_name and
+            cf.name=ccfe.flavor_name
         ) as n03
     where
-        n03.default_flavor is null or
-        n03.default_flavor = n03.flavor
+        n03.flavor_exclude is null and
+        (n03.default_flavor is null or
+        n03.default_flavor = n03.flavor)
     ) as n02
 where flavor_slots>0
 ;

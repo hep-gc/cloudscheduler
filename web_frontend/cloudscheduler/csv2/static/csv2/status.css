@@ -139,7 +139,10 @@ td a {
   display: none;
 }
 
-
+.extra-row a {
+  text-decoration: none;
+  color: black;
+}
 
 input#toggle-row:checked ~ table tr.extra-row {
   display: table-row;
@@ -184,12 +187,6 @@ input#toggle-row:checked ~ table tr.extra-row {
   background-color: green;
   color: white;
   padding: 0px;
-}
-
-.title-style a {
-  text-decoration: none;
-  color: black;
-  font-weight: bold;
 }
 
 .disabled-style a {
