@@ -18,7 +18,7 @@ db_config = settings.CSV2_CONFIG
 from .glint_api import repo_connector
 from .glint_utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
     build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, set_user_groups,\
-    check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions. \
+    check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions, \
     getUser, veriftUser, getSuperUserStatus
 
 from .__version__ import version
