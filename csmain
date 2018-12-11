@@ -39,7 +39,7 @@ def main():
 
     while(True):
         # basic scheduling: fifo w/ condor_prioity
-        CSGroups = config.db_map.classes.csv2_groups
+        CSGroups = config.db_map.classes.csv2_group_defaults
         config.db_open()
         # Get all the current csv2_groups
         csv2groups = config.db_session.query(CSGroups)
@@ -220,7 +220,8 @@ def main():
                             usertmp = idle_job.user
                         template_dict = {'cs_user': usertmp,
                                          'cs_group_name': csgroup.group_name,
-                                         'cs_condor_host': csgroup.condor_central_manager}
+                                         'cs_condor_host': csgroup.htcondor_fqdn,
+                                         'cs_condor_name': csgroup.htcondor_name}
                         log.debug(template_dict)
                         try:
                             if cm_group.clouds[cloud.cloud_name].enabled:
