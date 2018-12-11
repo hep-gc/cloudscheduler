@@ -154,7 +154,7 @@ def job_poller():
                             forgein_jobs = forgein_jobs+1
                             if "nogrp" not in job_errors:
                                 job_errors["nogrp"] = 1
-                            else
+                            else:
                                 job_errors["nogrp"] = job_errors["nogrp"] + 1
                             continue
                     else:
@@ -162,7 +162,7 @@ def job_poller():
                         forgein_jobs = forgein_jobs+1
                         if "noreq" not in job_errors:
                             job_errors["noreq"] = 1
-                        else
+                        else:
                             job_errors["noreq"] = job_errors["noreq"] + 1
                         continue
 
@@ -173,7 +173,7 @@ def job_poller():
                         forgein_jobs = forgein_jobs+1
                         if "invalidgrp" not in job_errors:
                             job_errors["invalidgrp"] = 1
-                        else
+                        else:
                             job_errors["invalidgrp"] = job_errors["invalidgrp"] + 1
 
                         continue
@@ -185,7 +185,7 @@ def job_poller():
                         forgein_jobs = forgein_jobs+1
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
-                        else
+                        else:
                             job_errors["invalidusr"] = job_errors["invalidgrp"] + 1
                         continue
 
@@ -207,7 +207,7 @@ def job_poller():
                     if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
-                    logging.info("Adding job %s", job_dict["global_job_id"])
+                    logging.debug("Adding job %s", job_dict["global_job_id"])
                     new_job = JOB(**job_dict)
                     try:
                         db_session.merge(new_job)
