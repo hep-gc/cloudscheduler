@@ -18,7 +18,8 @@ db_config = settings.CSV2_CONFIG
 from .glint_api import repo_connector
 from .glint_utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
     build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, set_user_groups,\
-    check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions
+    check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions. \
+    getUser, veriftUser, getSuperUserStatus
 
 from .__version__ import version
 
@@ -27,26 +28,6 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 logger = logging.getLogger('glintv2')
 
-
-# database must be opened prior to calling this function
-def getUser(request, db_session):
-    user = request.META.get('REMOTE_USER')
-    Glint_User = db_config.db_map.classes.csv2_user
-    auth_user_list = db_session.query(Glint_User)
-    for auth_user in auth_user_list:
-        if user == auth_user.cert_cn or user == auth_user.username:
-            return auth_user
-
-def verifyUser(request, db_session):
-    auth_user = getUser(request, db_session)
-    return bool(auth_user)
-
-def getSuperUserStatus(request, db_session):
-    auth_user = getUser(request, db_session)
-    if auth_user is None:
-        return False
-    else:
-        return auth_user.is_superuser
 
 ''' Index is longer used as it was simply creating overhead, index requests now go directly to project details
 @silkp(name='Images Index')

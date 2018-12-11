@@ -9,25 +9,12 @@ from .__version__ import version
 from django.conf import settings
 db_config = settings.CSV2_CONFIG
 from .glint_utils import get_keypair, delete_keypair, transfer_keypair, \
-                         create_keypair, create_new_keypair, set_user_groups
+                         create_keypair, create_new_keypair, set_user_groups, \
+                         getUser, verifyUser
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 logger = logging.getLogger('glintv2')
-
-# database must be opened prior to calling this function
-def getUser(request, db_session):
-    user = request.META.get('REMOTE_USER')
-    Glint_User = db_config.db_map.classes.csv2_user
-    auth_user_list = db_session.query(Glint_User)
-    for auth_user in auth_user_list:
-        if user == auth_user.cert_cn or user == auth_user.username:
-            return auth_user
-
-def verifyUser(request, db_session):
-    auth_user = getUser(request, db_session)
-    return bool(auth_user)
-
 
 # WEB VIEWS
 @silkp(name='Manage Keys')
