@@ -20,7 +20,7 @@ logger = logging.getLogger('glintv2')
 @silkp(name='Manage Keys')
 def manage_keys(request, group_name=None, message=None):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
     rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
     if group_name is None:
@@ -74,12 +74,12 @@ def manage_keys(request, group_name=None, message=None):
 @silkp(name='Upload Keypair')
 def upload_keypair(request, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
 
     if request.method == 'POST':
          # set up database objects
-        user = getUser(request, db_config.db_session)
+        user = getUser(request, db_config)
         session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         Keypairs = db_config.db_map.classes.cloud_keypairs
@@ -129,11 +129,11 @@ def upload_keypair(request, group_name=None):
 @silkp(name='New Keypair')
 def new_keypair(request, group_name=None,):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
     if request.method == 'POST':
         # set up database objects
-        user = getUser(request, db_config.db_session)
+        user = getUser(request, db_config)
         session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         Keypairs = db_config.db_map.classes.cloud_keypairs
@@ -186,10 +186,10 @@ def new_keypair(request, group_name=None,):
 @silkp(name='Save Keypairs')
 def save_keypairs(request, group_name=None, message=None):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
 
-    user_obj = getUser(request, db_config.db_session)
+    user_obj = getUser(request, db_config)
     if group_name is None:
         group_name = user_obj.active_group
     if group_name is None:

@@ -225,20 +225,20 @@ def get_unique_image_list(group_name):
 
 # database must be opened prior to calling these functions
 #
-def getUser(request, db_session):
+def getUser(request, db_config):
     user = request.META.get('REMOTE_USER')
     Glint_User = db_config.db_map.classes.csv2_user
-    auth_user_list = db_session.query(Glint_User)
+    auth_user_list = db_config.db_session.query(Glint_User)
     for auth_user in auth_user_list:
         if user == auth_user.cert_cn or user == auth_user.username:
             return auth_user
 
-def verifyUser(request, db_session):
-    auth_user = getUser(request, db_session)
+def verifyUser(request, db_config):
+    auth_user = getUser(request, db_config)
     return bool(auth_user)
 
-def getSuperUserStatus(request, db_session):
-    auth_user = getUser(request, db_session)
+def getSuperUserStatus(request, db_config):
+    auth_user = getUser(request, db_config)
     if auth_user is None:
         return False
     else:
