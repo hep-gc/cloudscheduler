@@ -27,7 +27,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
         ['cloudscheduler', 'group', '-s', 'invalid-unit-test']
     )
 
@@ -68,7 +68,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, None, 'user settings for server "invalid-unit-test" does not contain a URL value.',
+        gvar, 1, None, 'Error: the specified server "invalid-unit-test" does not exist in your defaults.',
         ['cloudscheduler', 'group', 'add', '-s', 'invalid-unit-test']
     )
 
