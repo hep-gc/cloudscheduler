@@ -17,7 +17,7 @@ db_config = settings.CSV2_CONFIG
 
 from .glint_api import repo_connector
 from .glint_utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
-    build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, \
+    build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, set_user_groups,\
     check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions
 
 from .__version__ import version
@@ -90,10 +90,11 @@ def project_details(request, group_name=None, message=None):
         raise PermissionDenied
 
     # set up database objects
-    user_obj = getUser(request, db_config.db_session)
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
     Group_Defaults = db_config.db_map.classes.csv2_group_defaults
+
+    rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
 
     
 
@@ -146,7 +147,6 @@ def project_details(request, group_name=None, message=None):
 
     # The image_list is a unique list of images stored in tuples (img_id, img_name)
     # Still need to add detection for images that have different names but the same ID
-    user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
     group_list = []
     for grp in user_groups:
         grp_name = grp.group_name

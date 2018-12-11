@@ -8,7 +8,8 @@ from django.shortcuts import render, redirect
 from .__version__ import version
 from django.conf import settings
 db_config = settings.CSV2_CONFIG
-from .glint_utils import get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
+from .glint_utils import get_keypair, delete_keypair, transfer_keypair, \
+                         create_keypair, create_new_keypair, set_user_groups
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -34,15 +35,16 @@ def manage_keys(request, group_name=None, message=None):
     db_config.db_open()
     if not verifyUser(request, db_config.db_session):
         raise PermissionDenied
-    user_obj = getUser(request, db_config.db_session)
+    rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
 
     session = db_config.db_session
     Group_Resources = db_config.db_map.classes.csv2_clouds
     Keypairs = db_config.db_map.classes.cloud_keypairs
-    User_Group = db_config.db_map.classes.csv2_user_groups
-    user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
+
+    
+
     group_list = []
     for grp in user_groups:
         grp_name = grp.group_name

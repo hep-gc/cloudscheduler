@@ -196,6 +196,36 @@ def parse_pending_transactions(group_name, cloud_name, image_list, user):
         return False
 
 
+def set_user_groups(config, request):
+    active_user = getcsv2User(request)
+    user_groups = config.db_map.classes.csv2_user_groups
+    user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user)
+    user_groups = []
+    if user_group_rows is not None:
+        for row in user_group_rows:
+            user_groups.append(row.group_name)
+
+    if not user_groups:
+        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_groups
+
+    # if the POST request specified a group, validate and set the specified group as the active group.
+    if request.method == 'POST' and 'group' in request.POST:
+        group_name = request.POST.get('group')
+        if group_name and active_user.active_group != group_name:
+            if group_name in user_groups:
+                active_user.active_group = group_name
+                active_user.save()
+            else:
+                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
+
+    # if no active group, set first group as default.
+    if active_user.active_group is None:
+        active_user.active_group = user_groups[0]
+        active_user.save()
+
+    return 0, None, active_user, user_groups
+
+
 # returns a jsonified python dictionary containing the image list for a given project
 # If the image list doesn't exist in redis it returns False
 # Redis info should be moved to a config file
