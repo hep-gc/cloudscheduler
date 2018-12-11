@@ -260,7 +260,6 @@ def main():
                         log.debug("Hit the end of clouds_matching_new, anything boot or nothing?")
                 else:  # We have enough, wait for things to register
                     log.debug("Seem to have enough VMs for the number of idle jobs.")
-                    log.debug("Runnable count: %s", runnable_job_count)
                     continue
         time.sleep(15)  # delay between groups
 
