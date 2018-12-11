@@ -220,9 +220,9 @@ def command_poller():
                                 break
 
                     except Exception as exc:
-                        logging.exception("Failed to retire machine, rebooting command poller...")
                         logging.error(exc)
-                        exit(1)
+                        logging.exception("Failed to issue DaemonsOffPeacefull to  machine: %s, skipping..." % resource.name)
+                        continue
 
             if uncommitted_updates > 0:
                 try:
