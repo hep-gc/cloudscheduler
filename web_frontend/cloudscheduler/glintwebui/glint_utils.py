@@ -246,7 +246,7 @@ def getSuperUserStatus(request, db_config):
 
 
 def set_user_groups(config, request):
-    active_user = getUser(request)
+    active_user = getUser(request, config)
     user_groups = config.db_map.classes.csv2_user_groups
     user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user)
     user_groups = []
