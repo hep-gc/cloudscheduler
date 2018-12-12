@@ -145,7 +145,7 @@ def project_details(request, group_name=None, message=None):
         #'hidden_image_set': hidden_image_set,
         'image_lookup': reverse_img_lookup,
         'message': message,
-        'is_superuser': getSuperUserStatus(request, db_config.db_session),
+        'is_superuser': getSuperUserStatus(request, db_config),
         #'conflict_dict': conflict_dict,
         'version': version,
         'num_tx': num_tx,
