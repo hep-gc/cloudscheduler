@@ -101,10 +101,14 @@ def find_image_by_name(group_name, image_name):
                 #if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
                 if image_dict[cloud][image]['state'] == 'Present':
                     repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
+                    aurl = repo_obj.authurl
+                    prj = repo_obj.project
+                    un = repo_obj.username
+                    pw = repo_obj.password
+                    udn = repo_obj.user_domain_name
+                    pdn = repo_obj.project_domain_name
                     db_config.db_close()
-                    return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
-                        repo_obj.password, image, image_dict[cloud][image]['checksum'],\
-                        repo_obj.user_domain_name, repo_obj.project_domain_name)
+                    return (aurl, prj, un, pw, image, image_dict[cloud][image]['checksum'], udn, pdn)
     db_config.db_close()
     return False
 
