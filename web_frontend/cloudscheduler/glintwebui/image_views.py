@@ -481,7 +481,7 @@ def upload_image(request, group_name=None):
                 'user': user.username,
                 'action':  'upload',
                 'group_name': group_name,
-                'repo': cloud,
+                'cloud_name': cloud,
                 'image_name': image_file.name,
                 'local_path': file_path,
                 'disk_format': disk_format,
