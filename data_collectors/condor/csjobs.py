@@ -85,7 +85,7 @@ def job_poller():
             group_users = {}
             for group in groups:
                 grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                if grp_def.htcondor_name is not None and grp_def.htcondor_name != "":
                     condor_hosts_set.add(grp_def.htcondor_name)
                 else:
                     condor_hosts_set.add(grp_def.htcondor_fqdn)
@@ -288,7 +288,7 @@ def command_poller():
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                if grp_def.htcondor_name is not None and grp_def.htcondor_name != "":
                     condor_hosts_set.add(grp_def.htcondor_name)
                 else:
                     condor_hosts_set.add(grp_def.htcondor_fqdn)
