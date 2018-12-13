@@ -84,7 +84,12 @@ def job_poller():
             condor_host_groups = {}
             group_users = {}
             for group in groups:
-                condor_hosts_set.add(group.condor_central_manager)
+                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                    condor_hosts_set.add(grp_def.htcondor_name)
+                else:
+                    condor_hosts_set.add(grp_def.htcondor_fqdn)
+
                 if group.condor_central_manager not in condor_host_groups:
                     condor_host_groups[group.condor_central_manager] = [group.group_name]
                 else:
@@ -272,6 +277,7 @@ def command_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
+    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     try:
         while True:
@@ -281,6 +287,11 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
+                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                    condor_hosts_set.add(grp_def.htcondor_name)
+                else:
+                    condor_hosts_set.add(grp_def.htcondor_fqdn)
                 condor_hosts_set.add(group.condor_central_manager)
 
             uncommitted_updates = 0
