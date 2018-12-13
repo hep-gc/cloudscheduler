@@ -49,6 +49,7 @@ def machine_poller():
     RESOURCE = config.db_map.classes.condor_machines
     CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
+    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -68,7 +69,11 @@ def machine_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                condor_hosts_set.add(group.condor_central_manager)
+                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                    condor_hosts_set.add(grp_def.htcondor_name)
+                else:
+                    condor_hosts_set.add(grp_def.htcondor_fqdn)
 
             for condor_host in condor_hosts_set:
                 logging.info("Polling condor host: %s" % condor_host)
@@ -175,6 +180,7 @@ def command_poller():
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
+    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
 
     try:
@@ -185,7 +191,11 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                condor_hosts_set.add(group.condor_central_manager)
+                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                    condor_hosts_set.add(grp_def.htcondor_name)
+                else:
+                    condor_hosts_set.add(grp_def.htcondor_fqdn)
             uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 try:

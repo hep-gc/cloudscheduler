@@ -87,13 +87,15 @@ def job_poller():
                 grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
                 if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
                     condor_hosts_set.add(grp_def.htcondor_name)
+                    condor_central_manager = grp_def.htcondor_name
                 else:
                     condor_hosts_set.add(grp_def.htcondor_fqdn)
+                    condor_central_manager = grp_def.htcondor_fqdn
 
-                if group.condor_central_manager not in condor_host_groups:
-                    condor_host_groups[group.condor_central_manager] = [group.group_name]
+                if condor_central_manager not in condor_host_groups:
+                    condor_host_groups[condor_central_manager] = [group.group_name]
                 else:
-                    condor_host_groups[group.condor_central_manager].append(group.group_name)
+                    condor_host_groups[condor_central_manager].append(group.group_name)
 
                 # build group_users dict
                 users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
@@ -288,11 +290,10 @@ def command_poller():
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
                 grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                if grp_def.htcondor_name is not None or grp_def.htcondor_name == "":
+                if grp_def.htcondor_name is not None or grp_def.htcondor_name != "":
                     condor_hosts_set.add(grp_def.htcondor_name)
                 else:
                     condor_hosts_set.add(grp_def.htcondor_fqdn)
-                condor_hosts_set.add(group.condor_central_manager)
 
             uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
