@@ -71,6 +71,7 @@ def command_poller():
             db_session = config.db_session
 
             # Retrieve list of VMs to be terminated.
+            # TODO Can this be restricted to only libcloud / openstack VMs?
             vm_to_destroy = db_session.query(VM).filter(VM.terminate == 1, VM.manual_control != 1)
             for vm in vm_to_destroy:
                 if foreign(vm):
@@ -82,14 +83,9 @@ def command_poller():
                 cloud = db_session.query(CLOUD).filter(
                     CLOUD.group_name == vm.group_name,
                     CLOUD.cloud_name == vm.cloud_name).first()
-                session = _get_openstack_session(cloud)
-                if session is False:
-                    continue
-
-                # Terminate the VM.
-                nova = _get_nova_client(session, region=cloud.region)
+                # TODO Get connection to the libcloud
                 try:
-                    nova.servers.delete(vm.vmid)
+                    # TODO Libcloud terminate
                     logging.info("VM Terminated: %s, updating db entry", (vm.hostname,))
                     vm.terminate = 2
                     db_session.merge(vm)
@@ -133,7 +129,7 @@ def flavor_poller():
             db_session = config.db_session
 
             abort_cycle = False
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "libcloud")
 
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
@@ -150,7 +146,7 @@ def flavor_poller():
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 logging.info("Processing flavours from cloud - %s" % cloud_name)
-                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                session = _# TODO Get libcloud connection
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -167,11 +163,13 @@ def flavor_poller():
                         continue
 
                 # setup OpenStack api objects
-                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                # TODO Get libcloud connection
+                pass
 
                 # Retrieve all flavours for this cloud.
                 try:
-                    flav_list = nova.flavors.list()
+                    # TODO Get list of flavors / instance types
+                    #flav_list = nova.flavors.list()
                 except Exception as exc:
                     logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
@@ -249,7 +247,7 @@ def flavor_poller():
                             abort_cycle = True
                             break
 
-                del nova
+
                 if abort_cycle:
                     break
 
@@ -316,7 +314,7 @@ def image_poller():
             db_session = config.db_session
 
             abort_cycle = False
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "libcloud")
 
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
