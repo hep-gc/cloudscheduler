@@ -75,6 +75,19 @@ def machine_poller():
                 else:
                     condor_hosts_set.add(grp_def.htcondor_fqdn)
 
+            # need to make a data structure so that we can verify the the polled machines actually fit into a valid grp-cloud
+            # need to check:
+            #       - group_name (in both group_name and machine)
+            #       - cloud_name (only in machine?)
+            host_groups = {}
+            for group in groups:
+                cloud_list = []
+                clouds = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name)
+                for cloud in clouds:
+                    cloud_list.append(cloud.cloud_name)
+                host_groups[group.group_name] = cloud_list
+
+
             for condor_host in condor_hosts_set:
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
@@ -106,8 +119,22 @@ def machine_poller():
                 for resource in condor_resources:
                     r_dict = dict(resource)
                     if 'group_name' not in r_dict:
-                        logging.info("Skipping resource with no group_name.")
+                        logging.debug("Skipping resource with no group_name.")
                         continue
+                    if r_dict['group_name'] not in host_groups:
+                        logging.debug("Skipping resource, group did not match any valid groups for this host")
+                        continue
+                    mach_str = r_dict['Machine'].split("--")
+                    # check group name from machine string
+                    if mach_str[0] not in host_groups:
+                        logging.debug("Skipping resource with bad group name in machine string")
+                        continue
+                    # check cloud name form machine string
+                    if mach_str[1] not in host_groups[r_dict['group_name']]:
+                        logging.debug("Skipping resource with cloud name that is invalid for group")
+                        continue
+
+
                     if "Start" in r_dict:
                         r_dict["Start"] = str(r_dict["Start"])
                     r_dict = trim_keys(r_dict, resource_attributes)
