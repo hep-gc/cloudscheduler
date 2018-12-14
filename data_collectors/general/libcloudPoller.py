@@ -331,7 +331,8 @@ def image_poller():
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 logging.info("Processing Images from cloud - %s" % cloud_name)
-                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                # TODO Liblcoud connection/session setup
+                session = None #get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -348,9 +349,11 @@ def image_poller():
                     continue
 
                 # Retrieve all images for this cloud.
-                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                # TODO libcloud connection
+                #nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                 try:
-                    image_list = nova.glance.list()
+                    # TODO Libcloud list images
+                    #image_list = nova.glance.list()
                 except Exception as exc:
                     logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
@@ -490,7 +493,7 @@ def keypair_poller():
             db_session = config.db_session
 
             abort_cycle = False
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "libcloud")
             # build unique cloud list to only query a given cloud once per cycle
             unique_cloud_dict = {}
             for cloud in cloud_list:
