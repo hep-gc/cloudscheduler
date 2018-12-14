@@ -87,7 +87,7 @@ def machine_poller():
                     cloud_list.append(cloud.cloud_name)
                 host_groups[group.group_name] = cloud_list
 
-
+            forgein_machines = 0
             for condor_host in condor_hosts_set:
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
@@ -115,23 +115,44 @@ def machine_poller():
                     continue
 
                 abort_cycle = False
+                machine_errors = {}
                 uncommitted_updates = 0
                 for resource in condor_resources:
                     r_dict = dict(resource)
                     if 'group_name' not in r_dict:
                         logging.debug("Skipping resource with no group_name.")
+                        forgein_machines = forgein_machines + 1
+                        if "nogrp" not in machine_errors:
+                            machine_errors["nogrp"] = 1
+                        else:
+                            machine_errors["nogrp"] = machine_errors["nogrp"] + 1
                         continue
                     if r_dict['group_name'] not in host_groups:
                         logging.debug("Skipping resource, group did not match any valid groups for this host")
+                        forgein_machines = forgein_machines + 1
+                        if "badgrp" not in machine_errors:
+                            machine_errors["badgrp"] = 1
+                        else:
+                            machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
                     mach_str = r_dict['Machine'].split("--")
                     # check group name from machine string
                     if mach_str[0] not in host_groups:
                         logging.debug("Skipping resource with bad group name in machine string")
+                        forgein_machines = forgein_machines + 1
+                        if "badgrp" not in machine_errors:
+                            machine_errors["badgrp"] = 1
+                        else:
+                            machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
                     # check cloud name form machine string
                     if mach_str[1] not in host_groups[r_dict['group_name']]:
                         logging.debug("Skipping resource with cloud name that is invalid for group")
+                        forgein_machines = forgein_machines + 1
+                        if "badcld" not in machine_errors:
+                            machine_errors["badcld"] = 1
+                        else:
+                            machine_errors["badcld"] = machine_errors["badcld"] + 1
                         continue
 
 
@@ -159,6 +180,16 @@ def machine_poller():
                         logging.error(exc)
                         abort_cycle = True
                         break
+                if forgein_machines > 0:
+                    logging.info("Ignored %s forgein machines" % forgein_machines)
+                    if "nogrp" in machine_errors:
+                        logging.info("%s ignored for missing group name" % job_errors["nogrp"])
+                    if "badgrp" in machine_errors:
+                        logging.info("%s ignored for bad group name" % job_errors["badgrp"])
+                    if "badcld" in machine_errors:
+                        logging.info("%s ignored for invalid cloud name" % job_errors["badcld"])
+
+                           
 
                 if abort_cycle:
                     del condor_session
