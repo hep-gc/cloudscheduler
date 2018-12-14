@@ -9,6 +9,7 @@ select
 fwd.group_name,
 fwd.cloud_name,
 fwd.region,
+fwd.cloud_type,
 fwd.spot_price,
 fwd.authurl,
 fwd.cacertificate,
