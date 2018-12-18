@@ -1309,7 +1309,7 @@ if __name__ == '__main__':
         'limit':       limit_poller,
         'network':     network_poller,
         'vm':          vm_poller,
-        'registrar':   service_registrar,
+        #'registrar':   service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', 1, 0)

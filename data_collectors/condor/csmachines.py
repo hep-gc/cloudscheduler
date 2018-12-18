@@ -403,7 +403,7 @@ if __name__ == '__main__':
     process_ids = {
         'command':            command_poller,
         'machine':            machine_poller,
-        'registrar':           service_registrar,
+        #'registrar':           service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', 1, 0)

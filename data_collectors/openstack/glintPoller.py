@@ -299,6 +299,7 @@ if __name__ == '__main__':
     process_ids = {
         'glint image collection': image_collection,
         'defaults_replication':   defaults_replication,
+        #'registrar':              service_registrar,
         }
 
     # Wait for keyboard input to exit
