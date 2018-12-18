@@ -441,26 +441,32 @@ def process_pending_transactions(group_name, json_img_dict):
             repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == transaction['group_name'], Group_Resources.cloud_name == transaction['cloud_name']).first()
 
 
-            rcon = repo_connector(
-                auth_url=repo_obj.authurl,
-                project=repo_obj.project,
-                username=repo_obj.username,
-                password=repo_obj.password,
-                user_domain_name=repo_obj.user_domain_name,
-                project_domain_name=repo_obj.project_domain_name)
-            new_img_id = rcon.create_placeholder_image(
-                transaction['image_name'],
-                transaction['disk_format'],
-                transaction['container_format'])
-            # Make a new img dict
-            new_img_dict = {
-                'name': transaction['image_name'],
-                'state': 'Pending Transfer',
-                'disk_format': transaction['disk_format'],
-                'container_format': transaction['container_format'],
-                'checksum': "No Checksum"
-            }
-            img_dict[transaction['cloud_name']][new_img_id] = new_img_dict
+            try:
+                rcon = repo_connector(
+                    auth_url=repo_obj.authurl,
+                    project=repo_obj.project,
+                    username=repo_obj.username,
+                    password=repo_obj.password,
+                    user_domain_name=repo_obj.user_domain_name,
+                    project_domain_name=repo_obj.project_domain_name)
+                new_img_id = rcon.create_placeholder_image(
+                    transaction['image_name'],
+                    transaction['disk_format'],
+                    transaction['container_format'])
+                # Make a new img dict
+                new_img_dict = {
+                    'name': transaction['image_name'],
+                    'state': 'Pending Transfer',
+                    'disk_format': transaction['disk_format'],
+                    'container_format': transaction['container_format'],
+                    'checksum': "No Checksum"
+                }
+                img_dict[transaction['cloud_name']][new_img_id] = new_img_dict
+            except Exception as exc:
+                logger.info("Unable to create repo object and create placeholder image")
+                logger.info(exc)
+                decrement_transactions()
+                return false
 
             # queue transfer task
             transfer_image.delay(

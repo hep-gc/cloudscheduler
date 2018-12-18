@@ -183,11 +183,11 @@ def machine_poller():
                 if forgein_machines > 0:
                     logging.info("Ignored %s forgein machines" % forgein_machines)
                     if "nogrp" in machine_errors:
-                        logging.info("%s ignored for missing group name" % job_errors["nogrp"])
+                        logging.info("%s ignored for missing group name" % machine_errors["nogrp"])
                     if "badgrp" in machine_errors:
-                        logging.info("%s ignored for bad group name" % job_errors["badgrp"])
+                        logging.info("%s ignored for bad group name" % machine_errors["badgrp"])
                     if "badcld" in machine_errors:
-                        logging.info("%s ignored for invalid cloud name" % job_errors["badcld"])
+                        logging.info("%s ignored for invalid cloud name" % machine_errors["badcld"])
 
                            
 
