@@ -375,7 +375,8 @@ def service_registrar():
         }
         service = SERVICE_CATALOG(**service_dict)
         try:
-            config.db_session.merge()
+            config.db_session.merge(service)
+            config.db_close(commit=True)
         except Exception as exc:
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
