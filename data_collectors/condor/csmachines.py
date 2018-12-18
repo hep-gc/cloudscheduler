@@ -232,7 +232,7 @@ def machine_poller():
 
 def command_poller():
     multiprocessing.current_process().name = "Command Poller"
-    condor_host = socket.gethostname()
+
     # database setup
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
@@ -352,6 +352,41 @@ def command_poller():
         del db_session
 
 
+
+
+def service_registrar():
+    multiprocessing.current_process().name = "Service Registrar"
+
+    # database setup
+    db_category_list = [os.path.basename(sys.argv[0]), "general"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
+
+    service_fqdn = socket.gethostname()
+    service_name = "csv2-machines"
+
+    while True:
+        config.db_open()
+
+        service_dict = {
+            "service":             service_name,
+            "fqdn":                service_fqdn,
+            "flag_htcondor_allow": 1
+        }
+        service = SERVICE_CATALOG(**service_dict)
+        try:
+            config.db_session.merge()
+        except Exception as exc:
+            logging.exception("Failed to merge service catalog entry, aborting...")
+            logging.error(exc)
+            return -1
+        time.sleep(config.sleep_interval_registrar)
+
+    return -1
+
+
+
+
 if __name__ == '__main__':
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     # Don't need db params as each process will create it's own config
@@ -367,6 +402,7 @@ if __name__ == '__main__':
     process_ids = {
         'command':            command_poller,
         'machine':            machine_poller,
+        'registrar':           service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_machines_error_count', 1, 0)
