@@ -1256,6 +1256,38 @@ def vm_poller():
         config.db_close()
         del db_session
 
+
+def service_registrar():
+    multiprocessing.current_process().name = "Service Registrar"
+
+    # database setup
+    db_category_list = [os.path.basename(sys.argv[0]), "general"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
+
+    service_fqdn = socket.gethostname()
+    service_name = "csv2-openstack"
+
+    while True:
+        config.db_open()
+
+        service_dict = {
+            "service":             service_name,
+            "fqdn":                service_fqdn,
+            "flag_htcondor_allow": 1
+        }
+        service = SERVICE_CATALOG(**service_dict)
+        try:
+            config.db_session.merge(service)
+            config.db_close(commit=True)
+        except Exception as exc:
+            logging.exception("Failed to merge service catalog entry, aborting...")
+            logging.error(exc)
+            return -1
+        time.sleep(config.sleep_interval_registrar)
+
+    return -1
+
 ## Main.
 
 if __name__ == '__main__':
@@ -1277,6 +1309,7 @@ if __name__ == '__main__':
         'limit':       limit_poller,
         'network':     network_poller,
         'vm':          vm_poller,
+        'registrar':   service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', 1, 0)
