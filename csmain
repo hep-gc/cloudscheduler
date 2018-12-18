@@ -216,10 +216,14 @@ def main():
                         num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
                         num_vms_to_boot = math.ceil(num_vms_to_boot)
                         log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
+                        if num_vms_to_boot == 0:
+                            log.debug("Don't try to boot anything - continue")
+                            continue
                         # Throttle amount of VMs to boot in one shot - should this be per cloud?
                         if num_vms_to_boot > config.max_start_vm_cloud:
                             num_vms_to_boot = config.max_start_vm_cloud
                             log.debug("Adjusting for max_boot, will only boot: %s vms.", num_vms_to_boot)
+
                         log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, cloud.cloud_name)
                         try:
                             usertmp = idle_job.user.split('@')[0]
@@ -230,6 +234,7 @@ def main():
                                          'cs_condor_host': csgroup.htcondor_fqdn,
                                          'cs_condor_name': csgroup.htcondor_name}
                         log.debug(template_dict)
+
                         try:
                             if cm_group.clouds[cloud.cloud_name].enabled:
                                 use_image = None
@@ -315,16 +320,16 @@ def count_cloud_flavors(group, config):
     """
     log = logging.getLogger(__name__)
     config.db_open()
-    group_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0,
-                                                         view_vms.c.status != 'ERROR', view_vms.c.retire_request_time  == 0,
-                                                         view_vms.c.retire_request_time == None)
+    available = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == group)
     vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-    for vm in group_vms:
-        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['count'] += 1
-        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['cores'] += vm.cores
-        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['ram'] += vm.ram
-        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['disk'] += vm.disk
-        vm_cloud_flavors[vm.cloud_name][vm.flavor_name]['swap'] += vm.swap
+    for res in available:
+        count = res.VMs - res.VMs_in_error - res.VMs_retiring - res.VMs_manual
+        vm_cloud_flavors[res.cloud_name][res.flavor_name]['count'] = count
+        vm_cloud_flavors[res.cloud_name][res.flavor_name]['cores'] = count * res.flavor_cores
+        vm_cloud_flavors[res.cloud_name][res.flavor_name]['ram'] = count * res.flavor_ram
+        vm_cloud_flavors[res.cloud_name][res.flavor_name]['disk'] = count * res.flavor_disk
+        vm_cloud_flavors[res.cloud_name][res.flavor_name]['swap'] = count * res.flavor_swap
+
     log.debug("Done counting current flavors for group: %s.", group)
     try:
         config.db_close()
