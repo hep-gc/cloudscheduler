@@ -1274,7 +1274,7 @@ def service_registrar():
         service_dict = {
             "service":             service_name,
             "fqdn":                service_fqdn,
-            "flag_htcondor_allow": 1
+            "last_updated":        None,
         }
         service = SERVICE_CATALOG(**service_dict)
         try:
@@ -1284,6 +1284,7 @@ def service_registrar():
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
             return -1
+
         time.sleep(config.sleep_interval_registrar)
 
     return -1
@@ -1309,7 +1310,7 @@ if __name__ == '__main__':
         'limit':       limit_poller,
         'network':     network_poller,
         'vm':          vm_poller,
-        #'registrar':   service_registrar,
+        'registrar':   service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', 1, 0)

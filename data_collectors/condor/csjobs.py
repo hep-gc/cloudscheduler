@@ -7,6 +7,7 @@ import re
 import os
 import sys
 import gc
+import socket
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -380,7 +381,7 @@ def service_registrar():
         service_dict = {
             "service":             service_name,
             "fqdn":                service_fqdn,
-            "flag_htcondor_allow": 1
+            "last_updated":         None,
         }
         service = SERVICE_CATALOG(**service_dict)
         try:
@@ -409,7 +410,7 @@ if __name__ == '__main__':
     process_ids = {
         'command':   command_poller,
         'job':       job_poller,
-        #'registrar': service_registrar,
+        'registrar': service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', 1, 0)

@@ -2,12 +2,16 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 import time
+import socket
 import multiprocessing
 from multiprocessing import Process
 import subprocess
 import logging
 import django
 from django.conf import settings
+
+
+from cloudscheduler.lib.db_config import Config
 
 
 from glintwebui.glint_api import repo_connector
@@ -174,7 +178,7 @@ def service_registrar():
         service_dict = {
             "service":             service_name,
             "fqdn":                service_fqdn,
-            "flag_htcondor_allow": 1
+            "last_updated":         None,
         }
         service = SERVICE_CATALOG(**service_dict)
         try:
@@ -299,7 +303,7 @@ if __name__ == '__main__':
     process_ids = {
         'glint image collection': image_collection,
         'defaults_replication':   defaults_replication,
-        #'registrar':              service_registrar,
+        'registrar':              service_registrar,
         }
 
     # Wait for keyboard input to exit
@@ -312,7 +316,7 @@ if __name__ == '__main__':
                         del(processes[process])
                     else:
                         logging.info("Restarting %s process", process)
-                    processes[process] = Process(target=process_ids[procesthuns])
+                    processes[process] = Process(target=process_ids[process])
                     processes[process].start()
                     time.sleep(config.sleep_interval_main_short)
             time.sleep(config.sleep_interval_main_long)
