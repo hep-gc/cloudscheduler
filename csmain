@@ -369,30 +369,6 @@ def count_cloud_flavors(group, config):
     return vm_cloud_flavors
 
 
-def check_registered_condor_machines(group, config):
-    """Query the condor machines for everything belonging to the group to get idea
-    of how many available resources there are for idle jobs - including brand new machines
-    that are in the benchmarking state etc. and use that info to determine if more VMs are needed."""
-    log = logging.getLogger(__name__)
-    try:
-        config.db_open()
-        machines = config.db_map.classes.condor_machines
-        registered_machines = config.db_session.query(machines).filter(machines.group_name == group)
-    except Exception as ex:
-        log.exception(ex)
-        return None
-    machines_dict = defaultdict(int)
-    for machine in registered_machines:
-        log.debug(machine)
-        machines_dict[machine.flavor] += 1
-    log.debug("Done checking registered machines classads: %s", group)
-    try:
-        config.db_close()
-    except Exception as ex:
-        log.exception(ex)
-    return machines_dict
-
-
 def check_idle_time(group, config):
     """
     Determine idle start time of machines to use with keep_alive
