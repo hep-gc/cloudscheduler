@@ -38,14 +38,14 @@ def main():
     #config.db_open()
 
     while(True):
-        # basic scheduling: fifo w/ condor_prioity
         CSGroups = config.db_map.classes.csv2_group_defaults
-        config.db_open()
-        # Get all the current csv2_groups
-        csv2groups = config.db_session.query(CSGroups)
-        #csv2groups = session0.query(CSGroups)
-        #logging.debug(type(csv2groups))
-        #log.debug(type(csv2groups[0]),csv2groups[0])
+        try:
+            config.db_open()
+            csv2groups = config.db_session.query(CSGroups)
+        except sqlalchemy.exc.TimeoutError as ex:
+            log.exception(ex)
+            time.sleep(2)
+            continue
 
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
@@ -89,12 +89,18 @@ def main():
             new_vms = check_unregistered_machines(csgroup.group_name,config)
             current_flavors = count_cloud_flavors(csgroup.group_name, config)
             log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
-            config.db_open()
-            # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
-            # Get the idle jobs for the current group
-            idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs).filter(
-                view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
-                view_groups_of_idle_jobs.c.job_priority)
+            try:
+
+                config.db_open()
+                # Booting up new VMs to fill in any free space on available clouds related to idle queued jobs
+                # Get the idle jobs for the current group
+                idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs).filter(
+                    view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
+                    view_groups_of_idle_jobs.c.job_priority)
+            except Exception as ex:
+                log.exception(ex)
+                time.sleep(2)
+                continue
             log.debug('---------------got idle jobs--------------')
             cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
             for idle_job in idle_jobs_for_group:
@@ -124,13 +130,19 @@ def main():
                     target_cloud_list = []
 
                 # Get All the possible matching clouds
-                if target_cloud_list:
-                    clouds_matching = config.db_session.query(view_available_resources).filter(
-                        view_available_resources.c.flavor.in_(flavor_list),
-                        view_available_resources.c.cloud_name.in_(target_cloud_list))
-                else:
-                    clouds_matching = config.db_session.query(view_available_resources).filter(
-                        view_available_resources.c.flavor.in_(flavor_list))
+                try:
+
+                    if target_cloud_list:
+                        clouds_matching = config.db_session.query(view_available_resources).filter(
+                            view_available_resources.c.flavor.in_(flavor_list),
+                            view_available_resources.c.cloud_name.in_(target_cloud_list))
+                    else:
+                        clouds_matching = config.db_session.query(view_available_resources).filter(
+                            view_available_resources.c.flavor.in_(flavor_list))
+                except Exception as ex:
+                    log.exception(ex)
+                    time.sleep(2)
+                    continue
                 num_jobs_per_flavor_possible = {}
                 num_jobs_per_flavor_max = {}
                 num_vm_jobs_per_flavor_total = {}
@@ -193,13 +205,19 @@ def main():
                     log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
                 #if runnable_job_count < 0: # Need more VMs - try to boot stuff - does this really need to be <= or just < ??? - trying it as < only
                     log.debug("flavor list: %s", flavor_list)
-                    if target_cloud_list:
-                        clouds_matching_new = config.db_session.query(view_available_resources).filter(
-                            view_available_resources.c.flavor.in_(flavor_list),
-                            view_available_resources.c.cloud_name.in_(target_cloud_list))
-                    else:
-                        clouds_matching_new = config.db_session.query(view_available_resources).filter(
-                            view_available_resources.c.flavor.in_(flavor_list))
+                    try:
+
+                        if target_cloud_list:
+                            clouds_matching_new = config.db_session.query(view_available_resources).filter(
+                                view_available_resources.c.flavor.in_(flavor_list),
+                                view_available_resources.c.cloud_name.in_(target_cloud_list))
+                        else:
+                            clouds_matching_new = config.db_session.query(view_available_resources).filter(
+                                view_available_resources.c.flavor.in_(flavor_list))
+                    except Exception as ex:
+                        log.exception(ex)
+                        time.sleep(1)
+                        continue
 
                     for cloud in clouds_matching_new:
                         if cloud.cloud_name in cloud_booted_on:
@@ -290,21 +308,30 @@ def verify_idle_jobs(group, config):
     log = logging.getLogger(__name__)
     log.debug("Verify jobs for group: %s", group)
 
-    config.db_open()
-    idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied).filter(
-        view_condor_jobs_group_defaults_applied.c.group_name == group,
-        view_condor_jobs_group_defaults_applied.c.job_status == 1)
-    bad_jobs = {}
-    for job in idle_jobs_for_group:
-        if not job.image:
-            bad_jobs[job.global_job_id] = "Missing Image"
-    condor_jobs = config.db_map.classes.condor_jobs
-    jobs = config.db_session.query(condor_jobs).filter(condor_jobs.global_job_id.in_(bad_jobs.keys()))
+    try:
+
+        config.db_open()
+        idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied).filter(
+            view_condor_jobs_group_defaults_applied.c.group_name == group,
+            view_condor_jobs_group_defaults_applied.c.job_status == 1)
+        bad_jobs = {}
+        for job in idle_jobs_for_group:
+            if not job.image:
+                bad_jobs[job.global_job_id] = "Missing Image"
+        condor_jobs = config.db_map.classes.condor_jobs
+        jobs = config.db_session.query(condor_jobs).filter(condor_jobs.global_job_id.in_(bad_jobs.keys()))
+    except Exception as ex:
+        log.exception(ex)
+        return
+
     for job in jobs:
         try:
             job.hold_job_reason = bad_jobs[job.global_job_id]
             config.db_session.merge(job)
         except KeyError:
+            continue
+        except Exception as ex:
+            log.exception(ex)
             continue
     try:
         config.db_close(commit=True)
@@ -319,8 +346,12 @@ def count_cloud_flavors(group, config):
     of dict[cloud_name][flavor] = count of that flavor
     """
     log = logging.getLogger(__name__)
-    config.db_open()
-    available = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == group)
+    try:
+        config.db_open()
+        available = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == group)
+    except Exception as ex:
+        log.exception(ex)
+        return None
     vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for res in available:
         count = res.VMs - res.VMs_in_error - res.VMs_retiring - res.VMs_manual
@@ -343,11 +374,14 @@ def check_registered_condor_machines(group, config):
     of how many available resources there are for idle jobs - including brand new machines
     that are in the benchmarking state etc. and use that info to determine if more VMs are needed."""
     log = logging.getLogger(__name__)
-    config.db_open()
+    try:
+        config.db_open()
+        machines = config.db_map.classes.condor_machines
+        registered_machines = config.db_session.query(machines).filter(machines.group_name == group)
+    except Exception as ex:
+        log.exception(ex)
+        return None
     machines_dict = defaultdict(int)
-
-    machines = config.db_map.classes.condor_machines
-    registered_machines = config.db_session.query(machines).filter(machines.group_name == group)
     for machine in registered_machines:
         log.debug(machine)
         machines_dict[machine.flavor] += 1
@@ -374,13 +408,18 @@ def check_idle_time(group, config):
     # if keep alive exceeded set retire flags/time (retire_request_time)
     log = logging.getLogger(__name__)
     log.debug("Check Idle Machines for Keep Alive time for: %s", group)
-    config.db_open()
-    machines = config.db_map.classes.condor_machines
-    unclaimed_idle_machines = config.db_session.query(machines).filter(machines.state == "Unclaimed",
-                                                             machines.activity == "Idle",
-                                                             machines.group_name == group,
-                                                             machines.idle_time == None,
-                                                             machines.total_slots == 1)
+    try:
+        config.db_open()
+        machines = config.db_map.classes.condor_machines
+        unclaimed_idle_machines = config.db_session.query(machines).filter(machines.state == "Unclaimed",
+                                                                 machines.activity == "Idle",
+                                                                 machines.group_name == group,
+                                                                 machines.idle_time == None,
+                                                                 machines.total_slots == 1)
+    except Exception as ex:
+        log.exception(ex)
+        return
+
     for machine in unclaimed_idle_machines:
         machine.idle_time = int(time.time())
         config.db_session.merge(machine)
@@ -406,11 +445,15 @@ def check_idle_time_unset(group, config):
     # if keep alive exceeded set retire flags/time (retire_request_time)
     log = logging.getLogger(__name__)
     log.debug("Unset the idle time if needed for: %s", group)
-    config.db_open()
+    try:
+        config.db_open()
 
-    machines = config.db_map.classes.condor_machines
-    unclaimed_idle_machines = config.db_session.query(machines).filter(machines.group_name == group,
-                                                             machines.idle_time != None)
+        machines = config.db_map.classes.condor_machines
+        unclaimed_idle_machines = config.db_session.query(machines).filter(machines.group_name == group,
+                                                                 machines.idle_time != None)
+    except Exception as ex:
+        log.exception(ex)
+        return
     for machine in unclaimed_idle_machines:
         if machine.total_slots != 1 or machine.state != "Unclaimed" or machine.activity != "Idle":
             log.debug("%s detected change - unset idle_time.", machine.machine)
@@ -430,11 +473,15 @@ def check_idle_machines(group, config):
     """
     log = logging.getLogger(__name__)
     log.debug("Checking %s Idle Machines.", group)
-    config.db_open()
+    try:
+        config.db_open()
 
-    machines = config.db_map.classes.condor_machines
-    unclaimed_idle_machines = config.db_session.query(view_vms).filter(view_vms.c.idle_time != None, view_vms.c.idle_time != 0,
-                                                             view_vms.c.group_name == group)
+        machines = config.db_map.classes.condor_machines
+        unclaimed_idle_machines = config.db_session.query(view_vms).filter(view_vms.c.idle_time != None, view_vms.c.idle_time != 0,
+                                                                 view_vms.c.group_name == group)
+    except Exception as ex:
+        log.exception(ex)
+        return
     machines_dict = defaultdict(int)
     idle_list = []
     for machine in unclaimed_idle_machines:
@@ -469,14 +516,19 @@ def check_unregistered_machines(group, config):
     so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
     log = logging.getLogger(__name__)
     log.debug("Check Unregistered Machines: %s", group)
-    config.db_open()
+    try:
 
-    machines = config.db_map.classes.condor_machines
-    vms = config.db_map.classes.csv2_vms
-    clouds = config.db_map.classes.csv2_clouds
-    group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
-    unregistered_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
+        config.db_open()
+
+        machines = config.db_map.classes.condor_machines
+        vms = config.db_map.classes.csv2_vms
+        clouds = config.db_map.classes.csv2_clouds
+        group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
+        unregistered_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
                                                                                              where(machines.machine.contains(view_vms.c.hostname)))
+    except Exception as ex:
+        log.exception(ex)
+        return
 
     cloud_names = []
     for cloud in group_clouds:
