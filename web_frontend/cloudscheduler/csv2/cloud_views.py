@@ -511,6 +511,7 @@ def list(
         metadata_dict = {}
         keypairs_list = {}
         network_list = {}
+        group_metadata_dict = {}
     else:
         # Get all the images in group:
         s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
@@ -546,6 +547,26 @@ def list(
             prune=['password']    
             )
 
+        # Get the group default metadata list:
+        s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
+        ignore, group_metadata_dict = qt(
+            config.db_connection.execute(s),
+            keys = {
+                'primary': [
+                    'group_name',
+                    ],
+                'secondary': [
+                    'metadata_name',
+                    'metadata_enabled',
+                    'metadata_priority',
+                    'metadata_mime_type'
+                    ]
+                },
+            prune=['password']    
+            )
+
+
+
         config.db_close()
 
     # Position the page.
@@ -572,6 +593,7 @@ def list(
             'cloud_list': cloud_list,
             'type_list': type_list,
             'metadata_dict': metadata_dict,
+            'group_metadata_dict': group_metadata_dict,
             'image_list': image_list,
             'flavor_list': flavor_list,
             'keypairs_list': keypairs_list,
