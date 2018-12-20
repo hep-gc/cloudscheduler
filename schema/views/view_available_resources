@@ -30,8 +30,8 @@ vmc.ram_used,
 fwd.flavor,
 fwd.flavor_id,
 
-case when fwd.cores_max>vmc.cores_used and fwd.ram_max>vmc.ram_used then
-    least((fwd.cores_max-vmc.cores_used) div vmc.flavor_cores, (fwd.ram_max-vmc.ram_used) div vmc.flavor_ram)
+case when fwd.cores_max>ifnull(vmc.cores_used,0) and fwd.ram_max>ifnull(vmc.ram_used,0) then
+    least((fwd.cores_max-ifnull(vmc.cores_used,0)) div fwd.flavor_cores, (fwd.ram_max-ifnull(vmc.ram_used,0)) div fwd.flavor_ram)
 else
     0
 end as flavor_slots,
@@ -192,10 +192,10 @@ left outer join (
             sum(case when cv.manual_control=1 then 1 else 0 end) as VMs_manual,
             sum(case when cv.manual_control=0 and cv.status!='BUILD' and cv.status!='ACTIVE' then 1 else 0 end) as VMs_in_error,
             sum(case when cv.manual_control=0 and cv.status='BUILD' then 1 else 0 end) as VMs_starting,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)>0 then 1 else 0 end) as VMs_retiring,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)<1 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire>0 then 1 else 0 end) as VMs_retiring,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
             sum(slot_count) as slot_count,
             sum(slot_core_count) as slot_core_count,
             sum(slot_idle_core_count) as slot_idle_core_count
@@ -214,7 +214,6 @@ left outer join (
                 substring_index(substring_index(machine, '--', 2), '--', -1) as cloud_name,
                 substring_index(machine, '.', 1) as hostname,
                 flavor,
-                sum(case when slot_type='Partitionable' and ifnull(retire_request_time,0)>0 then 1 else 0 end) as retiring,
                 sum(case when slot_type='Partitionable' then 1 else 0 end) as slot_count,
                 sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
                 sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count

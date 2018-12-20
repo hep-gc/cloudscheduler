@@ -26,6 +26,7 @@ from (
             end as keep_alive,
             vmid,
             hostname,
+            retire as retired,
             unix_timestamp() - start_time - (3600 * config.config_value) as age
         from csv2_vms as cv
         left outer join csv2_clouds as cc on
@@ -44,7 +45,6 @@ from (
         select
             machine,
             count(case when state='Claimed' then 1 else 0 end) as claimed,
-            min(retire_request_time) as retired,
             min(my_current_time-entered_current_state) as age
         from condor_machines
         group

@@ -85,10 +85,10 @@ from (
             sum(case when cv.manual_control=1 then 1 else 0 end) as VMs_manual,
             sum(case when cv.manual_control=0 and cv.status='ERROR' then 1 else 0 end) as VMs_in_error,
             sum(case when cv.manual_control=0 and cv.status='BUILD' then 1 else 0 end) as VMs_starting,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)>0 then 1 else 0 end) as VMs_retiring,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)<1 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and ifnull(retiring,0)<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire>0 then 1 else 0 end) as VMs_retiring,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
             sum(slot_count) as slot_count,
             sum(slot_core_count) as slot_core_count,
             sum(slot_idle_core_count) as slot_idle_core_count
@@ -103,7 +103,6 @@ from (
                 substring_index(machine, '--', 1) as group_name,
                 substring_index(substring_index(machine, '--', 2), '--', -1) as cloud_name,
                 substring_index(machine, '.', 1) as hostname,
-                case when slot_type='Partitionable' and ifnull(retire_request_time,0)>0 then 1 else 0 end as retiring,
                 sum(case when slot_type='Partitionable' then 1 else 0 end) as slot_count,
                 sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
                 sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count

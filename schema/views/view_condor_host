@@ -1,0 +1,18 @@
+create or replace view view_condor_host as 
+select
+    group_name,
+    cloud_name,
+    vmid,
+    retire,
+    terminate,
+    machine,
+    condor_host
+from csv2_vms as cv
+left outer join (
+    select distinct
+        machine,
+        condor_host
+    from condor_machines
+    ) as cm on
+    cv.hostname=substring_index(cm.machine, '.', 1)
+;

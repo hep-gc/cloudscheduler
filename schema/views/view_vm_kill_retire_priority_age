@@ -5,19 +5,47 @@ update condor_machines as cm left outer join (select * from xxx)  as kpl on cm.m
 select unix_timestamp();
 */
 create or replace view view_vm_kill_retire_priority_age as
-
 select
-cv.group_name,
-cloud_name,
-vmid,
-machine,
-case when my_current_time is null then
-    unix_timestamp() - start_time
-else
-    my_current_time - entered_current_state
-end as priority
-from csv2_vms as cv
-left outer join condor_machines as cm on
-    cv.hostname=substring_index(cm.machine,'.',1)
-order by priority desc
+    vms.*,
+    cf.cores as flavor_cores,
+    cf.ram as flavor_ram
+from (
+    select
+        group_name,
+        cloud_name,
+        vmid,
+        flavor_id,
+        machine,
+        sum(killed) as killed,
+        sum(retired) as retired,
+        min(priority) as priority
+    from (
+        select
+            cv.group_name,
+            cloud_name,
+            vmid,
+            flavor_id,
+            machine,
+            case when ifnull(terminate,0)>0 then 1 else 0 end as killed,
+            case when ifnull(retire,0)>0 then 1 else 0 end as retired,
+            case when my_current_time is null then
+                unix_timestamp() - start_time
+            else
+                my_current_time - entered_current_state
+            end as priority
+        from csv2_vms as cv
+        left outer join condor_machines as cm on
+            cv.hostname=substring_index(cm.machine,'.',1)
+        ) as cms
+    group by 
+        group_name,
+        cloud_name,
+        vmid,
+        flavor_id,
+        machine
+    ) as vms
+left outer join cloud_flavors as cf on
+    vms.group_name=cf.group_name and
+    vms.cloud_name=cf.cloud_name and
+    vms.flavor_id=cf.id
 ;
