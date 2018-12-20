@@ -14,6 +14,7 @@ from .view_utils import \
     getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
+    kill_retire, \
     lno, \
     qt, \
     qt_filter_get, \
@@ -1253,6 +1254,14 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV36'), fields['group_name'], fields['cloud_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+        # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
+        if 'cores_ctl' in fields and 'ram_ctl' in fields:
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']])
+        elif 'cores_ctl' in fields:
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], 999999999999])
+        elif 'ram_ctl' in fields:
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [999999999999, fields['ram_ctl']])
 
         # Update the cloud's flavor exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
