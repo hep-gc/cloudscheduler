@@ -45,7 +45,8 @@ class Config:
                 db_config['db_name']
                 ),
             isolation_level="READ_COMMITTED",
-            pool_pre_ping=True
+            pool_pre_ping=True,
+            pool_size=0
             )
 
         self.db_connection = None
