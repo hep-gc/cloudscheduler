@@ -17,8 +17,9 @@ db_config = settings.CSV2_CONFIG
 
 from .glint_api import repo_connector
 from .glint_utils import get_unique_image_list, get_images_for_group, parse_pending_transactions, \
-    build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, \
-    check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions
+    build_id_lookup_dict, repo_modified, find_image_by_name, add_cached_image, set_user_groups,\
+    check_cached_images, increment_transactions, check_for_existing_images, get_num_transactions, \
+    getUser, verifyUser, getSuperUserStatus
 
 from .__version__ import version
 
@@ -27,26 +28,6 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 logger = logging.getLogger('glintv2')
 
-
-# database must be opened prior to calling this function
-def getUser(request, db_session):
-    user = request.META.get('REMOTE_USER')
-    Glint_User = db_config.db_map.classes.csv2_user
-    auth_user_list = db_session.query(Glint_User)
-    for auth_user in auth_user_list:
-        if user == auth_user.cert_cn or user == auth_user.username:
-            return auth_user
-
-def verifyUser(request, db_session):
-    auth_user = getUser(request, db_session)
-    return bool(auth_user)
-
-def getSuperUserStatus(request, db_session):
-    auth_user = getUser(request, db_session)
-    if auth_user is None:
-        return False
-    else:
-        return auth_user.is_superuser
 
 ''' Index is longer used as it was simply creating overhead, index requests now go directly to project details
 @silkp(name='Images Index')
@@ -86,14 +67,15 @@ def project_details(request, group_name=None, message=None):
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
     # this means we now have to create a new unique image set that is just the image names
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
 
     # set up database objects
-    user_obj = getUser(request, db_config.db_session)
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
     Group_Defaults = db_config.db_map.classes.csv2_group_defaults
+
+    rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
 
     
 
@@ -146,7 +128,6 @@ def project_details(request, group_name=None, message=None):
 
     # The image_list is a unique list of images stored in tuples (img_id, img_name)
     # Still need to add detection for images that have different names but the same ID
-    user_groups = session.query(User_Group).filter(User_Group.username == user_obj.username)
     group_list = []
     for grp in user_groups:
         grp_name = grp.group_name
@@ -164,7 +145,7 @@ def project_details(request, group_name=None, message=None):
         #'hidden_image_set': hidden_image_set,
         'image_lookup': reverse_img_lookup,
         'message': message,
-        'is_superuser': getSuperUserStatus(request, db_config.db_session),
+        'is_superuser': getSuperUserStatus(request, db_config),
         #'conflict_dict': conflict_dict,
         'version': version,
         'num_tx': num_tx,
@@ -275,11 +256,11 @@ def add_repo(request, group_name):
 @silkp(name='Save Images')
 def save_images(request, group_name):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
     if request.method == 'POST':
         # set up database objects
-        user = getUser(request, db_config.db_session)
+        user = getUser(request, db_config)
         session = db_config.db_session
         Group_Resources = db_config.db_map.classes.csv2_clouds
         
@@ -356,9 +337,9 @@ def resolve_conflict(request, group_name, cloud_name):
 @silkp(name='Download Image')
 def download_image(request, image_name, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
-    user_obj = getUser(request, db_config.db_session)
+    user_obj = getUser(request, db_config)
     if group_name is None:
         group_name = user_obj.active_group
 
@@ -412,9 +393,9 @@ def download_image(request, image_name, group_name=None):
 @silkp(name='Upload Image')
 def upload_image(request, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config.db_session):
+    if not verifyUser(request, db_config):
         raise PermissionDenied
-    user_obj = getUser(request, db_config.db_session)
+    user_obj = getUser(request, db_config)
     if group_name is None:
         group_name = user_obj.active_group
     try:
@@ -493,14 +474,14 @@ def upload_image(request, group_name=None):
 
         # now queue the uploads to the destination clouds
         red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
-        user = getUser(request, db_config.db_session)
+        user = getUser(request, db_config)
         for cloud in cloud_name_list:
             logger.info("Queing image upload to %s", cloud)
             transaction = {
                 'user': user.username,
                 'action':  'upload',
                 'group_name': group_name,
-                'repo': cloud,
+                'cloud_name': cloud,
                 'image_name': image_file.name,
                 'local_path': file_path,
                 'disk_format': disk_format,
@@ -566,7 +547,7 @@ def upload_image(request, group_name=None):
         # now upload it to the destination clouds
         cloud_name_list = request.POST.getlist('clouds')
         red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
-        user = getUser(request, db_config.db_session)
+        user = getUser(request, db_config)
         for cloud in cloud_name_list:
             transaction = {
                 'user': user.username,

@@ -9,7 +9,7 @@
   </head>
 
 
-  <body class="vms-nav">
+  <body>
 
     <!-- {% if err_message is not None %}
         <p style="color:red;">{{err_message}}</p>
@@ -19,7 +19,7 @@
     {% endif %} -->
 
     <!-- <div class="main-div"> -->
-    <div class="vm-div">
+      <div class="filter-div">
 
       <!--<input type="text" id="myInput" onkeyup="filterTable()" placeholder="Search for names..">-->
 
@@ -34,11 +34,17 @@
             <th>Retiring</th>
             <th>Manual</th>
             <th>Error</th>
-            <th></th>
-            <th>1</th>
-            <th>2</th>
-            <th>4</th>
-            <th>8</th>
+            <th colspan="4">
+              <table>
+                <tr>Cores</tr>
+                <tr>
+                  <th>1</th>
+                  <th>2</th>
+                  <th>4</th>
+                  <th>8</th>
+                </tr>
+              </table>
+            </th>
           </tr>
           <tr class="box-row">
             <!--<td>
@@ -65,7 +71,6 @@
             <td>
               <input type="checkbox" id="error" onchange="filterTable('error', 4);" checked/>
             </td>
-            <td></td>
             <td>
               <input type="checkbox" id="1" onchange="filterTable('1', 9);" checked/>
             </td>
@@ -81,38 +86,34 @@
           </tr>
         </table>
 
+        <form method="post">
+          {% csrf_token %}
 
 
-      <form method="post">
-        {% csrf_token %}
+          {% if "foreign" not in request.path %}
 
+              <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
+              <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
+              <button class="button retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
+              <button class="button kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
 
-        {% if "foreign" not in request.path %}
-          <div class="vm-buttons">
-            <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
-            <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
-            <button class="button retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
-            <button class="button kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
-          </div>
-        {% else %}
-        <!-- Grey-out the action buttons if looking at foreing VMs -->
-          <div class="vm-buttons">
-            <button class="button greyed-button button-shadow control-button" disabled>Manual Control</button>
-            <button class="button greyed-button button-shadow control-button" disabled>System Control</button>
-            <button class="button greyed-button button-shadow retire-button" disabled>Retire VMs</button>
-            <button class="button greyed-button button-shadow kill-button" disabled>Kill VMs</button>
-          </div>
-        {% endif %}
+          {% else %}
+          <!-- Grey-out the action buttons if looking at foreing VMs -->
+              <button class="button greyed-button button-shadow control-button" disabled>Manual Control</button>
+              <button class="button greyed-button button-shadow control-button" disabled>System Control</button>
+              <button class="button greyed-button button-shadow retire-button" disabled>Retire VMs</button>
+              <button class="button greyed-button button-shadow kill-button" disabled>Kill VMs</button>
 
+          {% endif %}
+        </div>
 
-
-
+      <div class="vm-div">
 
 
         <div class=vm-table>
           <table id="vmsTable">
               <tr>
-                <th><input type="checkbox" id="select-all"/></th>
+                <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
                 <th onclick="sortTable(1)">Cloud &#8597;</th>
                 <th onclick="sortTable(2)">Project &#8597;</th>
                 <th onclick="sortTable(3)">Hostname &#8597;</th>
@@ -200,6 +201,49 @@
 
 
 
+      // For the "select all checkbox"
+      function selectAll() {
+
+        // Declare variables 
+        var table, tr, td, i, j, check;
+
+        table = document.getElementById("vmsTable");
+        tr = table.getElementsByTagName("tr");
+
+        box = document.getElementById("select-all");
+
+        // Loop through all table rows and find those that match the search query
+        if (box.checked){
+          for (i = 0; i < tr.length; i++) {
+            check = tr[i].getElementsByTagName("input");
+            if( check[0].disabled == false) {
+
+              for(j=0;j<check.length;j++)
+              {
+                if(check[j].type=='checkbox')
+                {
+                 check[j].checked=true;
+                }
+              }
+            }
+          }
+        }
+        else{
+          for (i = 0; i < tr.length; i++) {
+            check = tr[i].getElementsByTagName("input");
+            if( check[0].disabled == false) {
+
+              for(j=0;j<check.length;j++)
+              {
+                if(check[j].type=='checkbox')
+                {
+                 check[j].checked=false;
+                }
+              }
+            }
+          }
+        }
+      }
 
 
       // For the "select all checkbox"
@@ -222,6 +266,7 @@
           selectAll.checked = allChecked;
         }
       }
+
 
 
 

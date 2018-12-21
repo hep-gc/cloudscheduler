@@ -1,214 +1,247 @@
 /*
 ** List group/cloud/flavors in flavor priority order and for each group/cloud/flavor
 ** combination show the number of VMs up and down.
+create or replace view view_t9 as
 */
 create or replace view view_available_resources as
-/* n01 - Retain only those flavors with available slots */
+/* fwdac - flavors with defaults and counts */
 select
-*
+fwd.group_name,
+fwd.cloud_name,
+fwd.region,
+fwd.cloud_type,
+fwd.spot_price,
+fwd.authurl,
+fwd.cacertificate,
+fwd.project_domain_name,
+fwd.project,
+fwd.user_domain_name,
+fwd.username,
+fwd.password,
+fwd.default_flavor,
+fwd.default_image,
+fwd.default_keep_alive,
+fwd.default_keyname,
+fwd.default_network,
+fwd.cores_max,
+vmc.cores_used,
+fwd.ram_max,
+vmc.ram_used,
+fwd.flavor,
+fwd.flavor_id,
+
+case when fwd.cores_max>ifnull(vmc.cores_used,0) and fwd.ram_max>ifnull(vmc.ram_used,0) then
+    least((fwd.cores_max-ifnull(vmc.cores_used,0)) div fwd.flavor_cores, (fwd.ram_max-ifnull(vmc.ram_used,0)) div fwd.flavor_ram)
+else
+    0
+end as flavor_slots,
+
+fwd.flavor_cores,
+fwd.flavor_disk,
+fwd.flavor_ram,
+fwd.flavor_swap,
+ifnull(vmc.VMs,0) as VMs,
+ifnull(vmc.VMs_manual,0) as VMs_manual,
+ifnull(vmc.VMs_retiring,0) as VMs_retiring,
+ifnull(vmc.VMs_in_error,0) as VMs_in_error,
+ifnull(vmc.VMs_starting,0) as VMs_starting,
+ifnull(vmc.VMs_Unregistered,0) as VMs_unregistered,
+ifnull(vmc.VMs_idle,0) as VMs_idle,
+ifnull(vmc.VMs_running,0) as VMs_running
 from (
-    /* n02 - For each flavor, calculate available slots */
+    /* fwd - flavors with defaults */
     select
-    n03.*,
-
-    case when cores_max>cores_used and ram_max>ram_used then
-        least((cores_max-cores_used) div flavor_cores, (ram_max-ram_used) div flavor_ram)
-    else
-        0
-    end as flavor_slots
-
+        cwd.*,
+        concat(cf1.cloud_name, ':', cf1.name) as flavor,
+        cf1.id as flavor_id,
+        cf1.cores as flavor_cores,
+        cf1.disk as flavor_disk,
+        cf1.ram as flavor_ram,
+        cf1.swap as flavor_swap
     from (
-        /* n03 - Append the default image, keep_alive, keyname, network, corex_max,
-        ** ram_max, cores_used, ram_used, flavor_id, flavor_name, flavor_cores, and
-        ** flavor_ram 
-        */
+        /* cwd - cloud with defaults */
         select
-        n04.group_name,
-        n04.cloud_name,
-        cloud_type,
-        region,
-        spot_price,
-        authurl,
-        cacertificate,
-        project_domain_name,
-        project,
-        user_domain_name,
-        username,
-        password,
+            cc.*,
 
-        case when ifnull(n04.vm_flavor,'')!='' then
-            concat(n04.cloud_name, ':', n04.vm_flavor)
-        else
-            case when ifnull(cgd.vm_flavor,'')!='' then
-                concat(n04.cloud_name, ':', cgd.vm_flavor)
+            case when ifnull(cc.vm_flavor,'')!='' then
+                concat(cc.cloud_name, ':', cc.vm_flavor)
             else
-                null
-            end
-        end as default_flavor,
+                case when ifnull(cgd.vm_flavor,'')!='' then
+                    concat(cc.cloud_name, ':', cgd.vm_flavor)
+                else
+                    null
+                end
+            end as default_flavor,
 
-        case when ifnull(n04.vm_image,'')!='' then
-            n04.vm_image
-        else
-            case when ifnull(cgd.vm_image,'')!='' then
-                cgd.vm_image
+            case when ifnull(cc.vm_image,'')!='' then
+                cc.vm_image
             else
-                null
-            end
-        end as default_image,
+                case when ifnull(cgd.vm_image,'')!='' then
+                    cgd.vm_image
+                else
+                    null
+                end
+            end as default_image,
 
-        case when ifnull(n04.vm_keep_alive,-1)!=-1 then
-            n04.vm_keep_alive
-        else
-            case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
-                cgd.vm_keep_alive
+            case when ifnull(cc.vm_keep_alive,-1)!=-1 then
+                cc.vm_keep_alive
             else
-                0
-            end
-        end as keep_alive,
+                case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
+                    cgd.vm_keep_alive
+                else
+                    0
+                end
+            end as default_keep_alive,
 
-        case when ifnull(n04.vm_keyname,'')!='' then
-            n04.vm_keyname
-        else
-            case when ifnull(cgd.vm_keyname,'')!='' then
-                cgd.vm_keyname
+            case when ifnull(cc.vm_keyname,'')!='' then
+                cc.vm_keyname
             else
-                null
-            end
-        end as default_keyname,
+                case when ifnull(cgd.vm_keyname,'')!='' then
+                    cgd.vm_keyname
+                else
+                    null
+                end
+            end as default_keyname,
 
-        case when ifnull(n04.vm_network,'')!='' then
-            n04.vm_network
-        else
-            case when ifnull(cgd.vm_network,'')!='' then
-                cgd.vm_network
+            case when ifnull(cc.vm_network,'')!='' then
+                cc.vm_network
             else
-                null
-            end
-        end as default_network,
+                case when ifnull(cgd.vm_network,'')!='' then
+                    cgd.vm_network
+                else
+                    null
+                end
+            end as default_network,
 
-        case when ifnull(cores_ctl,-1)!=-1 then
-            case when ifnull(cores_softmax,-1)!=-1 then
-                least(cores_ctl, cores_softmax, cores_max)
+            case when ifnull(cores_ctl,-1)!=-1 then
+                case when ifnull(cores_softmax,-1)!=-1 then
+                    least(cores_ctl, cores_softmax, cores_max)
+                else
+                    least(cores_ctl, cores_max)
+                end
             else
-                least(cores_ctl, cores_max)
-            end
-        else
-            case when ifnull(cores_softmax,-1)!=-1 then
-                least(cores_softmax, cores_max)
+                case when ifnull(cores_softmax,-1)!=-1 then
+                    least(cores_softmax, cores_max)
+                else
+                    cores_max
+                end
+            end as cores_max,
+
+            case when ifnull(ram_ctl,-1)!=-1 then
+                least(ram_ctl, ram_max)
             else
-                cores_max
-            end
-        end as cores_max,
+                ram_max
+            end as ram_max
 
-        case when ifnull(ram_ctl,-1)!=-1 then
-            least(ram_ctl, ram_max)
-        else
-            ram_max
-        end as ram_max,
-
-        ifnull(n05.cores_used,0) as cores_used,
-        ifnull(n05.ram_used,0) as ram_used,
-
-        id as flavor_id,
-        concat(n04.cloud_name, ':', name) as flavor,
-        ccfe.flavor_name as flavor_exclude,
-        cf.cores as flavor_cores,
-        cf.disk + cf.ephemeral_disk as flavor_disk,
-        cf.ram as flavor_ram,
-        cf.swap as flavor_swap
-
-        from (
-            /* n04 - Get all the enabled clouds together with the used cores, disk, ram, and swap (n05)  */
-            select
-                group_name,
-                cloud_name,
-                cloud_type,
-                cores_ctl,
-                cores_softmax,
-                ram_ctl,
-                region,
-                spot_price,
-                authurl,
-                project_domain_name,
-                project,
-                user_domain_name,
-                username,
-                password,
-                cacertificate,
-                keyname,
-                vm_flavor,
-                vm_image,
-                vm_keep_alive,
-                vm_keyname,
-                vm_network 
-            from csv2_clouds
-            where enabled=1
-            ) as n04
+        from csv2_clouds as cc
         left outer join csv2_group_defaults as cgd on
-            n04.group_name=cgd.group_name
+            cc.group_name=cgd.group_name
         left outer join cloud_limits as cl on
-            n04.group_name=cl.group_name and
-            n04.cloud_name=cl.cloud_name
+            cc.group_name=cl.group_name and
+            cc.cloud_name=cl.cloud_name
+        where enabled=1
+        ) as cwd
+    join cloud_flavors as cf1 on
+        cwd.group_name=cf1.group_name and
+        cwd.cloud_name=cf1.cloud_name
+    left outer join csv2_cloud_flavor_exclusions as ccfe on
+        cf1.group_name=ccfe.group_name and
+        cf1.cloud_name=ccfe.cloud_name and
+        cf1.name=ccfe.flavor_name
+    where
+        ccfe.flavor_name is null
+    ) as fwd
+left outer join (
+    /* vmc - VM counts */
+    select
+        vms.group_name,
+        vms.cloud_name,
+        vms.flavor,
+        vms.flavor_cores,
+        vms.flavor_disk,
+        vms.flavor_ram,
+        vms.flavor_swap,
+        sum(vms.flavor_cores * ifnull(vms.VMs,0)) as cores_used,
+        sum(vms.flavor_ram * ifnull(vms.VMs,0)) as ram_used,
+        sum(ifnull(vms.VMs,0)) as VMs,
+        sum(ifnull(vms.VMs_manual,0)) as VMs_manual,
+        sum(ifnull(vms.VMs_in_error,0)) as VMs_in_error,
+        sum(ifnull(vms.VMs_starting,0)) as VMs_starting,
+        sum(ifnull(vms.VMs_retiring,0)) as VMs_retiring,
+        sum(ifnull(vms.VMs_unregistered,0)) as VMs_unregistered,
+        sum(ifnull(vms.VMs_idle,0)) as VMs_idle,
+        sum(ifnull(vms.VMs_running,0)) as VMs_running,
+        sum(ifnull(vms.cores_native,0)) as cores_native,
+        sum(ifnull(vms.ram_native,0)) as ram_native,
+        sum(ifnull(vms.slot_count,0)) as slot_count,
+        sum(ifnull(vms.slot_core_count,0)) as slot_core_count,
+        sum(ifnull(vms.slot_idle_core_count,0)) as slot_idle_core_count
+    from (
+        /* vms - VM slots */
+        select
+            cv.group_name,
+            cv.cloud_name,
+            concat(cf.cloud_name, ':', cf.name) as flavor,
+            cores as flavor_cores,
+            disk as flavor_disk,
+            ram as flavor_ram,
+            swap as flavor_swap,
+            count(1) as VMs,
+            sum(cf.cores) as cores_native,
+            sum(cf.ram) as ram_native,
+            sum(case when cv.manual_control=1 then 1 else 0 end) as VMs_manual,
+            sum(case when cv.manual_control=0 and cv.status!='BUILD' and cv.status!='ACTIVE' then 1 else 0 end) as VMs_in_error,
+            sum(case when cv.manual_control=0 and cv.status='BUILD' then 1 else 0 end) as VMs_starting,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire>0 then 1 else 0 end) as VMs_retiring,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
+            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
+            sum(slot_count) as slot_count,
+            sum(slot_core_count) as slot_core_count,
+            sum(slot_idle_core_count) as slot_idle_core_count
+        from csv2_vms as cv
+        left outer join csv2_clouds as cc on
+            cv.group_name=cc.group_name and
+            cv.cloud_name=cc.cloud_name
+        left outer join cloud_flavors as cf on
+            cv.group_name=cf.group_name and
+            cv.cloud_name=cf.cloud_name and
+            cv.flavor_id=cf.id
         left outer join (
-            /* n05 - For each cloud, calculate total used cores, disk, ram, and swap */
+            /* cms - condor machine slots */
             select
+                substring_index(machine, '--', 1) as group_name,
+                substring_index(substring_index(machine, '--', 2), '--', -1) as cloud_name,
+                substring_index(machine, '.', 1) as hostname,
+                flavor,
+                sum(case when slot_type='Partitionable' then 1 else 0 end) as slot_count,
+                sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
+                sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count
+            from condor_machines as cm, (select config_value as csv2_host_id from csv2_configuration where category='SQL' and config_key='csv2_host_id') as cnf
+            where machine like concat('%--', csv2_host_id, '--%')
+            group by
                 group_name,
                 cloud_name,
-                sum(cores) as cores_used,
-                sum(disk) as disk_used,
-                sum(ram) as ram_used,
-                sum(swap) as swap_used
-            from (
-                /* n06 - For each flavor, calculate total used cores, disk, ram, and swap */
-                select
-                    n07.*,
-                    cores*count as cores,
-                    disk*count as disk,
-                    ram*count as ram,
-                    swap*count as swap
-                from (
-                    /* n07 - Retain only native VM groups */
-                    select
-                        n08.*,
-                        config_value
-                    from (
-                        /* n08 - Get groups of VMs and counts */
-                        select
-                        substring_index(substring_index(hostname, '--',3), '--', -1) as csv2,
-                        group_name,
-                        cloud_name,
-                        flavor_id,
-                        count(1) as count
-                        from csv2_vms
-                        group by csv2,group_name,cloud_name,flavor_id
-                        ) as n08
-                    left outer join csv2_configuration as cnf on
-                        cnf.category='SQL' and
-                        cnf.config_key='csv2_host_id' and
-                        n08.csv2=cnf.config_value
-                    where config_value is not null
-                    ) as n07
-                left outer join cloud_flavors as cf on
-                    n07.group_name=cf.group_name and
-                    n07.cloud_name=cf.cloud_name and
-                    n07.flavor_id=cf.id
-                ) as n06
-            group by n06.group_name,n06.cloud_name
-            ) as n05 on
-            n04.group_name=n05.group_name and
-            n04.cloud_name=n05.cloud_name
-        left outer join cloud_flavors as cf on
-            n04.group_name=cf.group_name and
-            n04.cloud_name=cf.cloud_name
-        left outer join csv2_cloud_flavor_exclusions as ccfe on
-            cf.group_name=ccfe.group_name and
-            cf.cloud_name=ccfe.cloud_name and
-            cf.name=ccfe.flavor_name
-        ) as n03
-    where
-        n03.flavor_exclude is null and
-        (n03.default_flavor is null or
-        n03.default_flavor = n03.flavor)
-    ) as n02
-where flavor_slots>0
+                hostname,
+                flavor
+            ) as cms on
+            cv.group_name=cms.group_name and
+            cv.cloud_name=cms.cloud_name and
+            cv.hostname=cms.hostname and
+            concat(cf.cloud_name, ':', cf.name)=cms.flavor
+        where
+            cc.enabled=1
+        group by
+            group_name,
+            cloud_name,
+            flavor
+        ) as vms 
+    group by
+        vms.group_name,
+        vms.cloud_name,
+        flavor
+    ) as vmc on
+    fwd.group_name=vmc.group_name and
+    fwd.cloud_name=vmc.cloud_name and
+    fwd.flavor=vmc.flavor
 ;

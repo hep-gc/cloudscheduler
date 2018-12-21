@@ -189,7 +189,7 @@ input#toggle-row:checked ~ table tr.extra-row {
   padding: 0px;
 }
 
-.disabled-style a {
+.disabled-style {
   text-decoration: none;
   color: maroon;
   font-weight: bold;
@@ -416,8 +416,8 @@ input#toggle-row:checked ~ table tr.extra-row {
 
 #CDTimer {
   position: absolute;
-  bottom: 37px;
-  right: 93px;
+  bottom: 33px;
+  right: 70px;
   z-index:100;
   font-weight: bold;
   color: red;

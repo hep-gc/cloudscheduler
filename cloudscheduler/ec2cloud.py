@@ -1,9 +1,9 @@
 """
-EC2 API Cloud Connector Module.
+EC2 API Cloud Connector Module. Using Apache Libcloud
 """
 
-import boto3
-import botocore
+#import boto3
+#import botocore
 from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 

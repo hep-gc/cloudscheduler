@@ -15,8 +15,6 @@ select
     cm.my_current_time,
     cm.entered_current_state,
     cm.idle_time,
-    cm.retire_request_time,
-    cm.retired_time,
     case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
     cores,
     disk + ephemeral_disk as disk,
@@ -31,7 +29,7 @@ select
             case when cv.status = 'ERROR' then
                 'error'
             else
-                case when cv.power_status = 1 and ifnull(cm.retire_request_time,0) != 0 then
+                case when cv.power_status = 1 and cv.retire != 0 then
                     'retiring'
                 else
                     case when cv.status = 'BUILD' then
@@ -68,8 +66,6 @@ left outer join (
         machine,
         sum(case when slot_type='Partitionable' then total_slots else 0 end) as condor_slots,
         max(case when slot_type='Partitionable' then idle_time else 0 end) as idle_time,
-        max(case when slot_type='Partitionable' then retire_request_time else 0 end) as retire_request_time,
-        max(case when slot_type='Partitionable' then retired_time else 0 end) as retired_time,
         max(case when slot_type='Dynamic' then my_current_time else 0 end) as my_current_time,
         max(case when slot_type='Dynamic' then entered_current_state else 0 end)  as entered_current_state,
         sum(case when slot_type='Dynamic' and activity="Busy" then 1 else 0 end) as condor_slots_used

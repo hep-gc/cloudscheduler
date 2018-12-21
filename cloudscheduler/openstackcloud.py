@@ -56,7 +56,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         self.default_image = resource.default_image  # default_image
         self.default_flavor = resource.default_flavor  # ???
         self.default_network = resource.default_network  # default_network
-        self.keep_alive = resource.keep_alive   # keep_alive - with this here now can probably remove it from the earlier part of call stack
+        self.keep_alive = resource.default_keep_alive   # keep_alive - with this here now can probably remove it from the earlier part of call stack
 
     def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, image=None):
         """

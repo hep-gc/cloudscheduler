@@ -121,6 +121,7 @@ def main(args):
                 _w[1][:8] == 'datetime' or \
                 _w[1][:7] == 'decimal' or \
                 _w[1][:8] == 'smallint' or \
+                _w[1][:9] == 'timestamp' or \
                 _w[1][:7] == 'tinyint':
                     _stdout.append(" Integer")
 

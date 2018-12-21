@@ -4,6 +4,7 @@
 }
 
 
+
 .title-row {
   background-color: orange;
   color: black;
@@ -18,43 +19,37 @@
 }
 
 .vm-div {
-  position: absolute;
+  position: relative;
   display: block;
 
   width: 100%;
-  top: 0px;
+  top: 10px;
   bottom: 30px;
 
   overflow-y: visible;
   overflow-x: visible;
 }
 
-
+.filter-div {  
+  display: inline-block;
+}
 
 .vm-buttons {
-  display: block;
-  margin-left:15px; /* In order to allign with the scroll bar on the left side */
-  padding-bottom: 2px;
-  position: static;
+  display: inline-block;
 }
 
 .button {
   border: none;
-  /*
 
-  border-radius: 8px;
-  box-shadow: 0 -17px 6px 0 rgba(0,0,0,0.2) inset;
-
-  */
   color: white;
   cursor: pointer;
-  display: inline-block;
-  font-size: 16px;
+
+  font-size: 14px;
   font-weight: bold;
-  padding: 8px 24px;
+  padding: 4px 4px;
   text-align: center;
   text-decoration: none;
-  width: 197px;
+
 }
 
 /*

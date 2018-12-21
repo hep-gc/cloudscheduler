@@ -1,0 +1,59 @@
+create or replace view view_idle_vms as
+select
+*
+from (
+    select
+        group_name,
+        cloud_name,
+        keep_alive,
+        vmid,
+        machine,
+        claimed,
+        retired,
+        least(ifnull(cm.age,0), cv.age) as age
+    from (
+        select
+            cv.group_name,
+            cv.cloud_name,
+            case when ifnull(cc.vm_keep_alive,-1)!=-1 then
+                cc.vm_keep_alive
+            else
+                case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
+                    cgd.vm_keep_alive
+                else
+                    0
+                end
+            end as keep_alive,
+            vmid,
+            hostname,
+            retire as retired,
+            unix_timestamp() - start_time - (3600 * config.config_value) as age
+        from csv2_vms as cv
+        left outer join csv2_clouds as cc on
+            cv.group_name=cc.group_name and
+            cv.cloud_name=cc.cloud_name
+        left outer join csv2_group_defaults as cgd on
+            cc.group_name=cgd.group_name
+        join csv2_configuration as config on
+            config.category='SQL' and
+            config.config_key='UTC_delta_hours'
+        where
+            manual_control=0 and
+            status='ACTIVE' 
+        ) as cv
+    left outer join (
+        select
+            machine,
+            count(case when state='Claimed' then 1 else 0 end) as claimed,
+            min(my_current_time-entered_current_state) as age
+        from condor_machines
+        group
+            by machine
+        ) as cm on
+        cv.hostname=substring_index(cm.machine, '.', 1)
+    ) as ivms
+where
+   machine is not null and 
+   claimed < 1 and 
+   age>keep_alive
+;

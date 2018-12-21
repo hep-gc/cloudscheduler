@@ -7,6 +7,7 @@ import re
 import os
 import sys
 import gc
+import socket
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -61,8 +62,6 @@ def job_poller():
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
-    if config.default_job_group is None:
-        config.default_job_group = ""
 
     JOB = config.db_map.classes.condor_jobs
     CLOUDS = config.db_map.classes.csv2_clouds
@@ -84,18 +83,25 @@ def job_poller():
             condor_host_groups = {}
             group_users = {}
             for group in groups:
-                condor_hosts_set.add(group.condor_central_manager)
-                if group.condor_central_manager not in condor_host_groups:
-                    condor_host_groups[group.condor_central_manager] = [group.group_name]
+                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                if grp_def.htcondor_name is not None and grp_def.htcondor_name != "":
+                    condor_hosts_set.add(grp_def.htcondor_name)
+                    condor_central_manager = grp_def.htcondor_name
                 else:
-                    condor_host_groups[group.condor_central_manager].append(group.group_name)
+                    condor_hosts_set.add(grp_def.htcondor_fqdn)
+                    condor_central_manager = grp_def.htcondor_fqdn
+
+                if condor_central_manager not in condor_host_groups:
+                    condor_host_groups[condor_central_manager] = [group.group_name]
+                else:
+                    condor_host_groups[condor_central_manager].append(group.group_name)
 
                 # build group_users dict
                 users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
                 grp_defaults = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
                 htcondor_other_submitters = grp_defaults.htcondor_other_submitters
                 if htcondor_other_submitters is not None:
-                    user_list = list(grp_defaults.htcondor_other_submitters)
+                    user_list = grp_defaults.htcondor_other_submitters.split(',')
                 else:
                     user_list = []
                 # need to append users from group defaultts (htcondor_supplementary_submitters) here
@@ -139,6 +145,7 @@ def job_poller():
 
                 # Process job data & insert/update jobs in Database
                 abort_cycle = False
+                job_errors = {}
                 for job_ad in job_list:
                     job_dict = dict(job_ad)
                     if "Requirements" in job_dict:
@@ -149,26 +156,43 @@ def job_poller():
                             grp_name = re.search(pattern, job_dict['Requirements'])
                             job_dict['group_name'] = grp_name.group(2)
                         except Exception as exc:
-                            logging.error("No group name found in requirements expression... ignoring foreign job.")
+                            logging.debug("No group name found in requirements expression... ignoring foreign job.")
                             forgein_jobs = forgein_jobs+1
+                            if "nogrp" not in job_errors:
+                                job_errors["nogrp"] = 1
+                            else:
+                                job_errors["nogrp"] = job_errors["nogrp"] + 1
                             continue
                     else:
-                        logging.info("No requirements attribute found, not a csv2 job... ignoring foreign job.")
+                        logging.debug("No requirements attribute found, not a csv2 job... ignoring foreign job.")
                         forgein_jobs = forgein_jobs+1
+                        if "noreq" not in job_errors:
+                            job_errors["noreq"] = 1
+                        else:
+                            job_errors["noreq"] = job_errors["noreq"] + 1
                         continue
 
                     #check group_name is valid for this host
                     if job_dict['group_name'] not in condor_host_groups[condor_host]:
                         # not a valid group for this host
-                        logging.info("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
+                        logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
                         forgein_jobs = forgein_jobs+1
+                        if "invalidgrp" not in job_errors:
+                            job_errors["invalidgrp"] = 1
+                        else:
+                            job_errors["invalidgrp"] = job_errors["invalidgrp"] + 1
+
                         continue
 
                     # check if user is valid for this group
                     if job_dict['Owner'] not in group_users[job_dict['group_name']]:
                         # this user isn''t registered with this group and thus cannot submit jobs to it
-                        logging.info("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
+                        logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
                         forgein_jobs = forgein_jobs+1
+                        if "invalidusr" not in job_errors:
+                            job_errors["invalidusr"] = 1
+                        else:
+                            job_errors["invalidusr"] = job_errors["invalidgrp"] + 1
                         continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
@@ -189,7 +213,7 @@ def job_poller():
                     if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
-                    logging.info("Adding job %s", job_dict["global_job_id"])
+                    logging.debug("Adding job %s", job_dict["global_job_id"])
                     new_job = JOB(**job_dict)
                     try:
                         db_session.merge(new_job)
@@ -201,7 +225,16 @@ def job_poller():
                         break
                         
                 if forgein_jobs > 0:
-                        logging.info("Ignored %s forgein jobs" % forgein_jobs)
+                    logging.info("Ignored %s forgein jobs" % forgein_jobs)
+                    if "nogrp" in job_errors:
+                        logging.info("%s ignored for missing group name" % job_errors["nogrp"])
+                    if "noreq" in job_errors:
+                        logging.info("%s ignored for missing requirements string" % job_errors["noreq"])
+                    if "invalidgrp" in job_errors:
+                        logging.info("%s ignored for submitting to invalid group for host" % job_errors["invalidgrp"])
+                    if "invalidusr" in job_errors:
+                        logging.info("%s ignored for submitting to a group without permission" % job_errors["invalidusr"])
+
 
                 if abort_cycle:
                     del condor_session
@@ -245,6 +278,7 @@ def command_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
+    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     try:
         while True:
@@ -254,7 +288,11 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                condor_hosts_set.add(group.condor_central_manager)
+                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
+                if grp_def.htcondor_name is not None and grp_def.htcondor_name != "":
+                    condor_hosts_set.add(grp_def.htcondor_name)
+                else:
+                    condor_hosts_set.add(grp_def.htcondor_fqdn)
 
             uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
@@ -326,6 +364,38 @@ def command_poller():
         db_session.close()
 
 
+def service_registrar():
+    multiprocessing.current_process().name = "Service Registrar"
+
+    # database setup
+    db_category_list = [os.path.basename(sys.argv[0]), "general"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
+
+    service_fqdn = socket.gethostname()
+    service_name = "csv2-jobs"
+
+    while True:
+        config.db_open()
+
+        service_dict = {
+            "service":             service_name,
+            "fqdn":                service_fqdn,
+            "last_updated":         None,
+        }
+        service = SERVICE_CATALOG(**service_dict)
+        try:
+            config.db_session.merge(service)
+            config.db_close(commit=True)
+        except Exception as exc:
+            logging.exception("Failed to merge service catalog entry, aborting...")
+            logging.error(exc)
+            return -1
+        time.sleep(config.sleep_interval_registrar)
+
+    return -1
+
+
 if __name__ == '__main__':
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
@@ -338,8 +408,9 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'command':            command_poller,
-        'job':                job_poller,
+        'command':   command_poller,
+        'job':       job_poller,
+        'registrar': service_registrar,
         }
 
     previous_count, current_count = set_orange_count(logging, config, 'csv2_jobs_error_count', 1, 0)

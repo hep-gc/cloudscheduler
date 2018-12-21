@@ -44,7 +44,7 @@ VM_KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
         'poller_status':                                                ['native', 'idle', 'starting', 'manual', 'error', 'unregistered', 'retiring', 'running', 'other'],
-        'vm_option':                                                    ['kill', 'retire', 'manctl', 'sysctl'],
+        'vm_option':                                                    ['kill', 'retain', 'retire', 'manctl', 'sysctl'],
 
         'cloud_name':                                                   'ignore',
         'csrfmiddlewaretoken':                                          'ignore',
@@ -106,8 +106,7 @@ def list(
     vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
         'start_time': 'datetime',
         'status_changed_time': 'datetime',
-        'retire_request_time': 'datetime',
-        'retired_time': 'datetime',
+        'retire_time': 'datetime',
         'terminate_time': 'datetime',
         'last_updated': 'datetime'
         })
@@ -165,7 +164,13 @@ def update(request):
             verb = 'killed'
         elif fields['vm_option'] == 'retire':
             table = tables['condor_machines']
-            verb = 'retired or unregistered'
+            verb = 'retired'
+        elif fields['vm_option'] == 'retain':
+            if fields['vm_hosts'].isnumeric():
+                verb = 'killed or retired'
+            else:
+                config.db_close()
+                return list(request, response_code=1, message='%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno('VV98'))
         elif fields['vm_option'] == 'manctl':
             table = tables['csv2_vms']
             verb = 'set to manual control'
@@ -178,9 +183,10 @@ def update(request):
         # Retrieve VM information.
         if fields['vm_hosts'].isnumeric():
             if 'cloud_name' in fields:
-                count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'idle', 'retire', fields['vm_hosts'])
+                count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'])
+#               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000])
             else:
-                count = kill_retire(config, active_user.active_group, '-', 'idle', 'retire', fields['vm_hosts'])
+                count = kill_retire(config, active_user.active_group, '-', fields['vm_option'], fields['vm_hosts'])
         else:
             count = 0
             if fields['vm_hosts'] != '':
@@ -196,10 +202,7 @@ def update(request):
                     if fields['vm_option'] == 'kill':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
                     elif fields['vm_option'] == 'retire':
-                        if vm['poller_status'] == 'unregistered':
-                            count += 1
-                            continue
-                        update = table.update().where((table.c.slot_type == 'Partitionable') & (table.c.machine.like('%s%%' % vm['hostname']))).values({'retire_request_time': int(time.time())})
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1})
                     elif fields['vm_option'] == 'manctl':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
                     elif fields['vm_option'] == 'sysctl':

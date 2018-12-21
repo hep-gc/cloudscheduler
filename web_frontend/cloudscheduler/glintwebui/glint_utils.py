@@ -101,10 +101,14 @@ def find_image_by_name(group_name, image_name):
                 #if image_dict[cloud][image]['state'] == 'Present' and image_dict[cloud][image]['hidden'] is False:
                 if image_dict[cloud][image]['state'] == 'Present':
                     repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
+                    aurl = repo_obj.authurl
+                    prj = repo_obj.project
+                    un = repo_obj.username
+                    pw = repo_obj.password
+                    udn = repo_obj.user_domain_name
+                    pdn = repo_obj.project_domain_name
                     db_config.db_close()
-                    return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
-                        repo_obj.password, image, image_dict[cloud][image]['checksum'],\
-                        repo_obj.user_domain_name, repo_obj.project_domain_name)
+                    return (aurl, prj, un, pw, image, image_dict[cloud][image]['checksum'], udn, pdn)
     db_config.db_close()
     return False
 
@@ -223,5 +227,56 @@ def get_unique_image_list(group_name):
     return sorted(image_set, key=lambda s: s.lower())
 
 
+# database must be opened prior to calling these functions
+#
+def getUser(request, db_config):
+    user = request.META.get('REMOTE_USER')
+    Glint_User = db_config.db_map.classes.csv2_user
+    auth_user_list = db_config.db_session.query(Glint_User)
+    for auth_user in auth_user_list:
+        if user == auth_user.cert_cn or user == auth_user.username:
+            return auth_user
+
+def verifyUser(request, db_config):
+    auth_user = getUser(request, db_config)
+    return bool(auth_user)
+
+def getSuperUserStatus(request, db_config):
+    auth_user = getUser(request, db_config)
+    if auth_user is None:
+        return False
+    else:
+        return auth_user.is_superuser
+
+
+def set_user_groups(config, request):
+    active_user = getUser(request, config)
+    user_groups = config.db_map.classes.csv2_user_groups
+    user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
+    user_groups = []
+    if user_group_rows is not None:
+        for row in user_group_rows:
+            user_groups.append(row.group_name)
+
+    if not user_groups:
+        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_group_rows
+
+    # if the POST request specified a group, validate and set the specified group as the active group.
+    if request.method == 'POST' and 'group' in request.POST:
+        group_name = request.POST.get('group')
+        if group_name and active_user.active_group != group_name:
+            if group_name in user_groups:
+                active_user.active_group = group_name
+                config.db_session.merge(active_user)
+                config.db_session.commit()
+            else:
+                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_group_rows
+
+    # if no active group, set first group as default.
+    if active_user.active_group is None:
+        active_user.active_group = user_groups[0]
+        active_user.save()
+
+    return 0, None, active_user, user_group_rows
 
 

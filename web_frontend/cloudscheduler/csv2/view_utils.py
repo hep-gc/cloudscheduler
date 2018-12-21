@@ -49,29 +49,48 @@ def getSuperUserStatus(request):
 
 #-------------------------------------------------------------------------------
 
-def kill_retire(config, group_name, cloud_name, age_idle, option, count):
+def kill_retire(config, group_name, cloud_name, option, count):
     from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
 
-    # Retrieve the list of VMs to retire or retain.
-    if option == 'retire':
-        asc_desc_limit_count = 'desc limit %s' % count
-    elif option == 'retain':
-        asc_desc_limit_count = 'asc limit %s, 999999999999' % count
-    else:
-        asc_desc_limit_count = 'asc limit %s, 999999999999' % count
-
-    if cloud_name == '-':
-        s = 'create or replace table kill_retire_priority_list as select * from view_vm_kill_retire_priority_%s where group_name="%s" order by priority %s;' % (age_idle, group_name, asc_desc_limit_count)
-    else:
-        s = 'create or replace table kill_retire_priority_list as select * from view_vm_kill_retire_priority_%s where group_name="%s" and cloud_name="%s" order by priority %s;' % (age_idle, group_name, cloud_name, asc_desc_limit_count)
-
-    config.db_connection.execute(s)
-
-    # Of the VMs to be shutdown, kill the idle ones and retire the busy ones.
-    config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.hostname=kpl.hostname set terminate=1 where machine is null;')
-    config.db_connection.execute('update condor_machines as cm left outer join (select * from kill_retire_priority_list) as kpl on cm.machine=kpl.machine set retire_request_time=my_current_time where machine is not null;')
+    # Process "control [cores, ram]".
+    if option == 'control':
+        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, count[0], count[1])
+        config.db_connection.execute(s)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1 where kpl.machine is null;')
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1 where kpl.machine is not null;')
     
-    retired_list = qt(config.db_connection.execute('select count(*) from kill_retire_priority_list;'))
+    # Process "kill N".
+    elif option == 'kill':
+        if cloud_name == '-':
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, count)
+        else:
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
+
+        config.db_connection.execute(s)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1;')
+
+    # Process "retire N".
+    elif option == 'retire':
+        if cloud_name == '-':
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, count)
+        else:
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
+
+        config.db_connection.execute(s)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1;')
+
+    # Process "retain N".
+    elif option == 'retain':
+        if cloud_name == '-':
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, count)
+        else:
+            s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, cloud_name, count)
+
+        config.db_connection.execute(s)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1 where kpl.machine is null;')
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1 where kpl.machine is not null;')
+    
+    retired_list = qt(config.db_connection.execute('select count(*) as count from kill_retire_priority_list;'))
     return retired_list[0]['count']
 
 #-------------------------------------------------------------------------------

@@ -61,7 +61,6 @@ GROUP_KEYS = {
         'floating_ips_ctl':                           'reject',
         },
     'not_empty': [
-        'condor_central_manager',
         'htcondor_fqdn',
         ],
     }

@@ -290,6 +290,55 @@
                 </div>
 
 
+
+                <div class="tab">
+                    <input id="exclusions-{{cloud.cloud_name}}" type="radio" name="tabs">
+                    <label class="highlight5" for="exclusions-{{cloud.cloud_name}}">Exclusions</label>
+                    <div class="tab-content exclusion-div">
+
+
+
+
+                        <div class="tab2">
+
+
+
+                            <table>
+                                
+                                <tr class="highlight2">
+                                    <td>
+                                        <label for="meta-exclude">Users</label>
+                                    </td>
+                                </tr>
+
+                            {% for meta in group_metadata_dict %}
+                                <tr><td></td><td class="highlight2"><input type="checkbox" name="meta.{{ forloop.counter }}" value="{{ meta }}" checked/>{{ meta }}</input></td></tr>
+                            {% endfor %}
+
+                                <tr>
+                                    <td>
+                                        <input type="submit" value="Update Exclusions" />
+                                    </td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                        <br>
+
+                        <div class="tab2">
+                            {% for flavor in flavor_list %}
+                                {{flavor.name }}
+                            {% endfor %}
+                        </div>
+
+                    </div>
+
+
+                </div>
+
             </div>
 
         </div>

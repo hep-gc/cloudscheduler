@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import sys
 import time
+import socket
 import multiprocessing
 from multiprocessing import Process
 import subprocess
@@ -9,9 +10,9 @@ import logging
 import django
 from django.conf import settings
 
-from celery import Celery
-from celery.utils.log import get_task_logger
+
 from cloudscheduler.lib.db_config import Config
+
 
 from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
@@ -160,6 +161,38 @@ def defaults_replication():
             time_slept = time_slept + 30
 
 
+def service_registrar():
+    multiprocessing.current_process().name = "Service Registrar"
+
+    # database setup
+    db_category_list = [os.path.basename(sys.argv[0]), "general"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
+
+    service_fqdn = socket.gethostname()
+    service_name = "csv2-glint"
+
+    while True:
+        config.db_open()
+
+        service_dict = {
+            "service":             service_name,
+            "fqdn":                service_fqdn,
+            "last_updated":         None,
+        }
+        service = SERVICE_CATALOG(**service_dict)
+        try:
+            config.db_session.merge(service)
+            config.db_close(commit=True)
+        except Exception as exc:
+            logging.exception("Failed to merge service catalog entry, aborting...")
+            logging.error(exc)
+            return -1
+        time.sleep(config.sleep_interval_registrar)
+
+    return -1
+
+
 '''
 keypair dict structure
 
@@ -270,6 +303,7 @@ if __name__ == '__main__':
     process_ids = {
         'glint image collection': image_collection,
         'defaults_replication':   defaults_replication,
+        'registrar':              service_registrar,
         }
 
     # Wait for keyboard input to exit
