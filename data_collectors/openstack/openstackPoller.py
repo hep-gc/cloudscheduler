@@ -126,64 +126,6 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
 
 ## Poller functions.
 
-# Process VM commands.
-def command_poller():
-    multiprocessing.current_process().name = "VM Commands"
-    last_poll_time = 0
-    vm_poller_id = "vm_poller_" + str(socket.getfqdn())
-
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
-
-    VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_map.classes.csv2_clouds
-
-    cycle_start_time = 0
-    new_poll_time = 0
-    poll_time_history = [0,0,0,0]
-
-    try:
-        while True:
-            logging.info("Beginning command poller cycle")
-            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
-            db_session = config.db_session
-            
-            # Retrieve list of VMs to be terminated.
-            vm_to_destroy = db_session.query(VM).filter(VM.terminate == 1, VM.manual_control != 1)
-            for vm in vm_to_destroy:
-                if foreign(vm):
-                    logging.info("skipping foreign VM %s marked for termination... - %s::%s" % (vm.hostname, vm.group_name, vm.cloud_name))
-                    continue
-
-                # Get session with hosting cloud.
-                cloud = db_session.query(CLOUD).filter(
-                    CLOUD.group_name == vm.group_name,
-                    CLOUD.cloud_name == vm.cloud_name).first()
-                session = _get_openstack_session(cloud)
-                if session is False:
-                    continue
-
-                # Terminate the VM.
-                nova = _get_nova_client(session, region=cloud.region)
-                try:
-                    nova.servers.delete(vm.vmid)
-                    logging.info("VM Terminated: %s, updating db entry", (vm.hostname,))
-                    vm.terminate = 2
-                    db_session.merge(vm)
-                except Exception as exc:
-                    logging.error("Failed to terminate VM: %s", vm.hostname)
-                    logging.error(exc)
-
-            last_poll_time = new_poll_time
-            config.db_close(commit=True) # may need to batch these commits if we are attempting to terminate a lot of vms at once or the database sesion will time out
-            del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_command)
-
-    except Exception as exc:
-        logging.exception("Command poller cycle while loop exception, process terminating...")
-        logging.error(exc)
-        config.db_close()
-        del db_session
 
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
@@ -1303,7 +1245,6 @@ if __name__ == '__main__':
 
     processes = {}
     process_ids = {
-        'command':     command_poller,
         'flavor':      flavor_poller,
         'image':       image_poller,
         'keypair':     keypair_poller,
