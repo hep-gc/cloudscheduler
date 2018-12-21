@@ -376,34 +376,40 @@ def command_poller():
                     if session is False:
                         continue
 
-                    # terminate the vm
-                    nova = _get_nova_client(session, region=cloud.region)
-                    try:
-                        nova.servers.delete(vm_row.vmid)
-                        logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
-                        vm_row.terminate = 2
-                        db_session.merge(vm_row)
-                    except Exception as exc:
-                        logging.error("Failed to terminate VM: %s", vm_row.hostname)
-                        logging.error(exc)
+                    if cloud.cloud_type == "openstack":
 
-                    # Now that the machine is terminated, we can speed up operations by invalidating the related classads
-                    logging.info("Removing classads for machine %s" % resource.machine)
-                    try:
-                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
-                        master_list.append(condor_classad)
+                        # terminate the vm
+                        nova = _get_nova_client(session, region=cloud.region)
+                        try:
+                            nova.servers.delete(vm_row.vmid)
+                            logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
+                            vm_row.terminate = 2
+                            db_session.merge(vm_row)
+                        except Exception as exc:
+                            logging.error("Failed to terminate VM: %s", vm_row.hostname)
+                            logging.error(exc)
 
-                        # this could be a list of adds if a machine has many slots
-                        condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.name)
-                        for classad in condor_classads:
-                            startd_list.append(classad)
-                    except IndexError as exc:
-                        pass
-                    except Exception as exc:
-                        logging.exception("Failed to retrieve machine classads, aborting...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                        # Now that the machine is terminated, we can speed up operations by invalidating the related classads
+                        logging.info("Removing classads for machine %s" % resource.machine)
+                        try:
+                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                            master_list.append(condor_classad)
+
+                            # this could be a list of adds if a machine has many slots
+                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.name)
+                            for classad in condor_classads:
+                                startd_list.append(classad)
+                        except IndexError as exc:
+                            pass
+                        except Exception as exc:
+                            logging.exception("Failed to retrieve machine classads, aborting...")
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+                    else:
+                        # Other cloud types will need to be implemented here to terminate any vms not from openstack
+                        logging.info("Vm not from openstack cloud, skipping...")
+                        continue
 
                 if abort_cycle:
                     abort_cycle = False
