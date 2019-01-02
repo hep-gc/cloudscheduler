@@ -6,14 +6,8 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from django.contrib.auth.models import User #to get auth_user table
-from .models import user as csv2_user
-
 from .view_utils import \
     diff_lists, \
-    getAuthUser, \
-    getcsv2User, \
-    getSuperUserStatus, \
     kill_retire, \
     lno, \
     qt, \
@@ -324,12 +318,13 @@ def add(request):
     to add a cloud to a given group.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -416,13 +411,14 @@ def delete(request):
     to be deleted.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
-
+        
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
@@ -480,11 +476,11 @@ def list(
     attributes=None
     ):
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -603,12 +599,13 @@ def metadata_add(request):
     to add to a given group/cloud.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -655,11 +652,11 @@ def metadata_add(request):
 @requires_csrf_token
 def metadata_collation(request):
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -702,12 +699,13 @@ def metadata_delete(request):
     to add to a given group/cloud.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -746,11 +744,12 @@ def metadata_delete(request):
 @silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
 def metadata_fetch(request, selector=None):
-    if not verifyUser(request):
-        raise PermissionDenied
 
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied    
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -803,11 +802,11 @@ def metadata_fetch(request, selector=None):
 @requires_csrf_token
 def metadata_list(request):
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -856,11 +855,12 @@ def metadata_list(request):
 @silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
 def metadata_new(request, selector=None):
-    if not verifyUser(request):
-        raise PermissionDenied
 
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -908,13 +908,14 @@ def metadata_update(request):
     to add to a given group/cloud.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
-
+        
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
@@ -978,11 +979,11 @@ def status(request, group_name=None):
     VM status, job status, and machine status should all be available for a given group on this page
     """
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -1166,7 +1167,10 @@ def update(request):
     to update a given cloud.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
@@ -1179,8 +1183,6 @@ def update(request):
             # remove the password field.
             del request.POST['password']
 
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)

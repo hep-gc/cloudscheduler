@@ -6,13 +6,8 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from django.contrib.auth.models import User #to get auth_user table
-from .models import user as csv2_user
 
 from .view_utils import \
-    getAuthUser, \
-    getcsv2User, \
-    getSuperUserStatus, \
     lno, \
     qt, \
     render, \
@@ -88,11 +83,11 @@ def list(
     attributes=None
     ):
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied    
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
