@@ -59,16 +59,17 @@ def prepare(request):
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
-    config.db_close()
+    
 
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
-            'super_user': getSuperUserStatus(request),
+            'super_user': getSuperUserStatus(request, config),
             'user_groups': user_groups,
             'response_code': 0,
             'message': None
     }
+    config.db_close()
     print("Prepare time: %f.5" % time.time())
 
 

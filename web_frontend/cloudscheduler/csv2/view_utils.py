@@ -29,9 +29,11 @@ def getAuthUser(request):
 #-------------------------------------------------------------------------------
 
 # returns the csv2 user object matching the authorized user from header metadata
-def getcsv2User(request):
+def getcsv2User(request, db_config):
     authorized_user = getAuthUser(request)
-    csv2_user_list = csv2_user.objects.all()
+    # need to get user objects from database here
+    Csv2_User = db_config.db_map.classes.csv2_user
+    csv2_user_list = db_config.db_session.query(Csv2_User)
     for user in csv2_user_list:
         if user.username == authorized_user or user.cert_cn == authorized_user:
             return user
@@ -39,9 +41,11 @@ def getcsv2User(request):
 
 #-------------------------------------------------------------------------------
 
-def getSuperUserStatus(request):
+def getSuperUserStatus(request, db_config):
     authorized_user = getAuthUser(request)
-    csv2_user_list = csv2_user.objects.all()
+    # need to get user objects from database here
+    Csv2_User = db_config.db_map.classes.csv2_user
+    csv2_user_list = db_config.db_session.query(Csv2_User)
     for user in csv2_user_list:
         if user.username == authorized_user or user.cert_cn == authorized_user:
             return user.is_superuser
@@ -724,14 +728,14 @@ def service_msg(service_name):
 def set_user_groups(config, request):
     active_user = getcsv2User(request)
     user_groups = config.db_map.classes.csv2_user_groups
-    user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user)
+    user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
     user_groups = []
     if user_group_rows is not None:
         for row in user_group_rows:
             user_groups.append(row.group_name)
 
     if not user_groups:
-        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_groups
+        return 1,'user "%s" is not a member of any group.' % active_user.username,active_user,user_groups
 
     # if the POST request specified a group, validate and set the specified group as the active group.
     if request.method == 'POST' and 'group' in request.POST:
@@ -1139,15 +1143,7 @@ def _validate_fields_pw_check(pw1, pw2=None):
 
 #-------------------------------------------------------------------------------
 
-def verifyUser(request):
-    auth_user = getAuthUser(request)
-
-    csv2_user_list = csv2_user.objects.all()
-    #try to find a user that has "auth_user" as username or cert_cn
-    # the uniqueness here will be forced on user creation
-    for user in csv2_user_list:
-        if user.username == auth_user or user.cert_cn == auth_user:
-            return True
-
-    return False
+def verifyUser(request, db_config):
+    auth_user = getcsv2User(request, db_config)
+    return bool(auth_user)
 
