@@ -549,22 +549,8 @@ def list(
             )
 
         # Get the group default metadata list:
-        s = select([view_groups_with_metadata_info]).where(csv2_group_defaults.c.group_name==active_user.active_group)
-        ignore, group_metadata_dict = qt(
-            config.db_connection.execute(s),
-            keys = {
-                'primary': [
-                    'group_name',
-                    ],
-                'secondary': [
-                    'metadata_name',
-                    'metadata_enabled',
-                    'metadata_priority',
-                    'metadata_mime_type'
-                    ]
-                },
-            prune=['password']    
-            )
+        s = select([view_groups_with_metadata_info]).where(view_groups_with_metadata_info.c.group_name==active_user.active_group)
+        group_metadata_dict = qt(config.db_connection.execute(s))
 
 
 
