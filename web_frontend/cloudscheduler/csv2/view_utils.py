@@ -726,7 +726,7 @@ def service_msg(service_name):
 #-------------------------------------------------------------------------------
 
 def set_user_groups(config, request):
-    active_user = getcsv2User(request)
+    active_user = getcsv2User(request, config)
     user_groups = config.db_map.classes.csv2_user_groups
     user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
     user_groups = []

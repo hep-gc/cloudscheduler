@@ -550,7 +550,6 @@ def list(
 
 
 
-        config.db_close()
 
     # Position the page.
     obj_act_id = request.path.split('/')
@@ -587,6 +586,7 @@ def list(
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/clouds.html', context)
 
 #-------------------------------------------------------------------------------
@@ -1132,13 +1132,6 @@ def status(request, group_name=None):
 
 
 
-
-
-
-
-    config.db_close()
-
-
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
@@ -1154,6 +1147,7 @@ def status(request, group_name=None):
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/status.html', context)
 
 

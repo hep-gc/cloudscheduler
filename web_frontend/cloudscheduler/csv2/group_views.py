@@ -316,7 +316,6 @@ def defaults(request):
             prune=['password']    
             )
 
-    config.db_close()
 
     # Render the page.
     context = {
@@ -334,6 +333,7 @@ def defaults(request):
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/group_defaults.html', context)
 
 
@@ -810,7 +810,6 @@ def metadata_list(request):
     # Retrieve cloud/metadata information.
     s = select([csv2_group_metadata]).where(csv2_group_metadata.c.group_name == active_user.active_group)
     group_metadata_list = qt(config.db_connection.execute(s))
-    config.db_close()
 
     # Render the page.
     context = {
@@ -823,6 +822,7 @@ def metadata_list(request):
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/group_metadata_list.html', context)
 
 #-------------------------------------------------------------------------------
@@ -930,7 +930,7 @@ def update(request):
     """
 
     # open the database.
-       config.db_open()
+    config.db_open()
 
     if not verifyUser(request, config):
         raise PermissionDenied

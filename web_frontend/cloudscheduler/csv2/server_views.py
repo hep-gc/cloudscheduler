@@ -153,8 +153,6 @@ def configuration(request):
         response_code = 0
 
 
-    config.db_close()
-
     # Render the page.
     context = {
             'active_user': active_user,
@@ -167,5 +165,6 @@ def configuration(request):
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/server_config.html', context)
 

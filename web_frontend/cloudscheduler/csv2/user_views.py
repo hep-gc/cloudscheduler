@@ -295,8 +295,6 @@ def list(
     s = select([csv2_groups])
     group_list = qt(config.db_connection.execute(s))
 
-    config.db_close()
-
     # Position the page.
     obj_act_id = request.path.split('/')
     if user:
@@ -327,6 +325,7 @@ def list(
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/users.html', context)
 
 #-------------------------------------------------------------------------------
@@ -371,8 +370,6 @@ def settings(request):
     else:
         message='%s %s' % (lno('UV17'), msg)
 
-    config.db_close()
-
     if message[:2] != 'UV':
         response_code = 0
     else:
@@ -388,6 +385,7 @@ def settings(request):
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/user_settings.html', context)
 
 #-------------------------------------------------------------------------------
