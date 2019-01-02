@@ -485,6 +485,29 @@ def check_idle_machines(group, config):
     # Return dict of cloud names with number of idle machine classads
     return machines_dict
 
+def check_view_idle_vms(group, config):
+    """Query view_idle_vms and retire as needed."""
+    log = logging.getLogger(__name__)
+    log.debug("check_view_idle_vms")
+    try:
+        config.db_open()
+        idle_vms = config.db_map.view_idle_vms
+        results = config.db_session.query(idle_vms).filter(group == idle_vms.c.group_name,
+                                                           idle_vms.c.retired == 0,
+                                                           idle_vms.c.terminate == 0)
+        vmids = []
+        for res in results:
+            vmids.append(res.vmid)
+        if vmids:
+            log.debug("Setting retire flag on %s VMs.", len(vmids))
+            vms = config.db_map.csv2_vms
+            update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
+            for row in update_result:
+                row.retire = 1
+                config.db_session.merge(row)
+    except Exception as ex:
+        log.exception(ex)
+        return
 
 def check_unregistered_machines(group, config):
     """Query the condor machines and cloud VMs to sort out which ones have failed to register correctly.

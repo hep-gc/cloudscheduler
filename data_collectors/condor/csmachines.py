@@ -277,7 +277,7 @@ def command_poller():
     GROUPS = config.db_map.classes.csv2_groups
     GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
     VM = config.db_map.classes.csv2_vms
-    CLOUD = config.db_classes.csv2_clouds
+    CLOUD = config.db_map.classes.csv2_clouds
 
 
     try:
@@ -307,14 +307,14 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(view_condor_host.condor_host==condor_host, view_condor_host.retire==1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.condor_host==condor_host, view_condor_host.c.retire==1):
                     logging.info("Retiring machine %s" % resource.name)
                     try:
                         condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                         #get vm entry and update retire = 2
-                        vm_row = db.session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid=resource.vmid)[0]
+                        vm_row = db.session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire=2
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
@@ -356,7 +356,7 @@ def command_poller():
                 master_list = []
                 startd_list = []
                 #get list of vm/machines from this condor host
-                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.condor_host == condor_host, view_condor_host.terminate == 1)
+                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.condor_host == condor_host, view_condor_host.c.terminate == 1)
                 for resource in redundant_machine_list:
 
                     # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
