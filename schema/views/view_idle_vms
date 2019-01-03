@@ -8,8 +8,9 @@ from (
         keep_alive,
         vmid,
         machine,
-        claimed,
-        retired,
+        ifnull(claimed,0) as claimed,
+        retire,
+        terminate,
         least(ifnull(cm.age,0), cv.age) as age
     from (
         select
@@ -26,7 +27,8 @@ from (
             end as keep_alive,
             vmid,
             hostname,
-            retire as retired,
+            retire,
+            terminate,
             unix_timestamp() - start_time - (3600 * config.config_value) as age
         from csv2_vms as cv
         left outer join csv2_clouds as cc on
@@ -53,7 +55,6 @@ from (
         cv.hostname=substring_index(cm.machine, '.', 1)
     ) as ivms
 where
-   machine is not null and 
    claimed < 1 and 
    age>keep_alive
 ;
