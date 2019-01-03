@@ -743,14 +743,16 @@ def set_user_groups(config, request):
         if group_name and active_user.active_group != group_name:
             if group_name in user_groups:
                 active_user.active_group = group_name
-                active_user.save()
+                config.db_session.merge(active_user)
+                config.db_session.commit()
             else:
                 return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
 
     # if no active group, set first group as default.
     if active_user.active_group is None:
         active_user.active_group = user_groups[0]
-        active_user.save()
+        config.db_session.merge(active_user)
+        config.db_session.commit()
 
     return 0, None, active_user, user_groups
 
