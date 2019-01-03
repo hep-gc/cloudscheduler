@@ -9,7 +9,7 @@ import sys
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.schema import view_redundant_machines
+from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
@@ -24,6 +24,43 @@ import classad
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
+
+
+def _get_nova_client(session, region=None):
+    nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
+    return nova
+
+def _get_openstack_session(cloud):
+    authsplit = cloud.authurl.split('/')
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        return False
+    if version == 2:
+        session = _get_openstack_session_v1_v2(
+            auth_url=cloud.authurl,
+            username=cloud.username,
+            password=cloud.password,
+            project=cloud.project)
+    else:
+        session = _get_openstack_session_v1_v2(
+            auth_url=cloud.authurl,
+            username=cloud.username,
+            password=cloud.password,
+            project=cloud.project,
+            user_domain=cloud.user_domain_name,
+            project_domain_name=cloud.project_domain_name)
+    if session is False:
+        logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
+        if version == 2:
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s",
+                          (cloud.authurl, cloud.username, cloud.project))
+        else:
+            logging.error(
+                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
+                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
+    return session
 
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
@@ -239,6 +276,8 @@ def command_poller():
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
     GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
+    VM = config.db_map.classes.csv2_vms
+    CLOUD = config.db_map.classes.csv2_clouds
 
 
     try:
@@ -268,14 +307,16 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.condor_host==condor_host, view_condor_host.c.retire==1):
                     logging.info("Retiring machine %s" % resource.name)
                     try:
-                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
+                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
-                        resource.retired_time = int(time.time())
-                        db_session.merge(resource)
+                        #get vm entry and update retire = 2
+                        vm_row = db.session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+                        vm_row.retire=2
+                        db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
                             try:
@@ -304,27 +345,71 @@ def command_poller():
                     time.sleep(config.sleep_interval_command)
                     continue
 
-
+            # Now do the same thing for vms that need to be terminated
+            # Query view for list of vms to terminate
+            # Get vm_row for terminate
+            # issue terminate, update vm_row
+            # invalidate classads related to that vm
+            
             for condor_host in condor_hosts_set:
                 # Query database for machines with no associated VM.
                 master_list = []
                 startd_list = []
-                redundant_machine_list = db_session.query(view_redundant_machines).filter(view_redundant_machines.c.condor_host == condor_host)
+                #get list of vm/machines from this condor host
+                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.condor_host == condor_host, view_condor_host.c.terminate == 1)
                 for resource in redundant_machine_list:
-                    logging.info("Removing classads for machine %s" % resource.name)
-                    try:
-                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
-                        master_list.append(condor_classad)
 
-                        condor_classad = condor_session.query(startd_type, 'Name=="%s"' % resource.name)[0]
-                        startd_list.append(condor_classad)
-                    except IndexError as exc:
-                        pass
+                    # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
+                    try:
+                        vm_row = db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
                     except Exception as exc:
-                        logging.exception("Failed to retrieve machine classads, aborting...")
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                        logging.error("Unable retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
+                        continue
+                    if vm_row.manual_control == 1:
+                        logging.info("VM %s uner manual control, skipping terminate..." % resource.vmid)
+
+                    # Get session with hosting cloud.
+                    cloud = db_session.query(CLOUD).filter(
+                        CLOUD.group_name == vm_row.group_name,
+                        CLOUD.cloud_name == vm_row.cloud_name).first()
+                    session = _get_openstack_session(cloud)
+                    if session is False:
+                        continue
+
+                    if cloud.cloud_type == "openstack":
+
+                        # terminate the vm
+                        nova = _get_nova_client(session, region=cloud.region)
+                        try:
+                            nova.servers.delete(vm_row.vmid)
+                            logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
+                            vm_row.terminate = 2
+                            db_session.merge(vm_row)
+                        except Exception as exc:
+                            logging.error("Failed to terminate VM: %s", vm_row.hostname)
+                            logging.error(exc)
+
+                        # Now that the machine is terminated, we can speed up operations by invalidating the related classads
+                        logging.info("Removing classads for machine %s" % resource.machine)
+                        try:
+                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                            master_list.append(condor_classad)
+
+                            # this could be a list of adds if a machine has many slots
+                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.name)
+                            for classad in condor_classads:
+                                startd_list.append(classad)
+                        except IndexError as exc:
+                            pass
+                        except Exception as exc:
+                            logging.exception("Failed to retrieve machine classads, aborting...")
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+                    else:
+                        # Other cloud types will need to be implemented here to terminate any vms not from openstack
+                        logging.info("Vm not from openstack cloud, skipping...")
+                        continue
 
                 if abort_cycle:
                     abort_cycle = False

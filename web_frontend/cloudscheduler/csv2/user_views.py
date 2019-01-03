@@ -3,10 +3,8 @@ config = settings.CSV2_CONFIG
 
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
-from .models import user as csv2_user
 
 from .view_utils import \
-    getAuthUser, \
     getcsv2User, \
     getSuperUserStatus, \
     lno, \
@@ -111,14 +109,15 @@ def add(request):
     Add a new user.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
-    if not getSuperUserStatus(request):
+    if not getSuperUserStatus(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -176,14 +175,15 @@ def delete(request):
     Delete a user.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
-    if not getSuperUserStatus(request):
+    if not getSuperUserStatus(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -235,13 +235,13 @@ def list(
     List users.
     """
 
-    if not verifyUser(request):
-        raise PermissionDenied
-    if not getSuperUserStatus(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
+    if not getSuperUserStatus(request, config):
+        raise PermissionDenied    
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -295,8 +295,6 @@ def list(
     s = select([csv2_groups])
     group_list = qt(config.db_connection.execute(s))
 
-    config.db_close()
-
     # Position the page.
     obj_act_id = request.path.split('/')
     if user:
@@ -327,6 +325,7 @@ def list(
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/users.html', context)
 
 #-------------------------------------------------------------------------------
@@ -337,11 +336,11 @@ def settings(request):
     Unprivileged update user (password change).
     """
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # open the database.
     config.db_open()
+
+    if not verifyUser(request, config):
+        raise PermissionDenied
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -356,7 +355,7 @@ def settings(request):
                 if rc == 0:
                     config.db_close(commit=True)
                     request.session.delete()
-                    update_session_auth_hash(request, getcsv2User(request))
+                    update_session_auth_hash(request, getcsv2User(request, config))
                     message = 'user "%s" successfully updated.' % fields['username']
                 else:
                     message = '%s user update, "%s" failed - %s.' % (lno('UV14'), active_user, message)
@@ -370,8 +369,6 @@ def settings(request):
 
     else:
         message='%s %s' % (lno('UV17'), msg)
-
-    config.db_close()
 
     if message[:2] != 'UV':
         response_code = 0
@@ -388,6 +385,7 @@ def settings(request):
             'enable_glint': config.enable_glint
         }
 
+    config.db_close()
     return render(request, 'csv2/user_settings.html', context)
 
 #-------------------------------------------------------------------------------
@@ -398,14 +396,15 @@ def update(request):
     Update a user.
     """
 
-    if not verifyUser(request):
+    # open the database.
+    config.db_open()
+
+    if not verifyUser(request, config):
         raise PermissionDenied
-    if not getSuperUserStatus(request):
+    if not getSuperUserStatus(request, config):
         raise PermissionDenied
 
     if request.method == 'POST':
-        # open the database.
-        config.db_open()
 
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
