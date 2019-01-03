@@ -221,8 +221,8 @@ condor_machines = Table('condor_machines', metadata,
   Column('slot_cpus', Integer),
   Column('total_slots', Integer),
   Column('idle_time', Integer),
-  Column('retire_request_time', Integer),
-  Column('retired_time', Integer)
+  Column('deprecated-retire_request_time', Integer),
+  Column('deprecated-retired_time', Integer)
   )
 
 csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
@@ -351,6 +351,13 @@ csv2_poll_times = Table('csv2_poll_times', metadata,
   Column('last_poll', Integer)
   )
 
+csv2_service_catalog = Table('csv2_service_catalog', metadata,
+  Column('service', String(64), primary_key=True),
+  Column('fqdn', String(128), primary_key=True),
+  Column('last_updated', Integer),
+  Column('flag_htcondor_allow', Integer)
+  )
+
 csv2_system_status = Table('csv2_system_status', metadata,
   Column('id', Integer, primary_key=True),
   Column('csv2_main_status', Integer),
@@ -386,7 +393,9 @@ csv2_user = Table('csv2_user', metadata,
   Column('password', String(128)),
   Column('is_superuser', Integer),
   Column('join_date', Integer),
-  Column('active_group', String(128))
+  Column('active_group', String(128)),
+  Column('flag_global_status', Integer),
+  Column('status_refresh_interval', Integer)
   )
 
 csv2_user_groups = Table('csv2_user_groups', metadata,
@@ -410,6 +419,8 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
+  Column('retire', Integer),
+  Column('retire_time', Integer),
   Column('terminate', Integer),
   Column('terminate_time', Integer),
   Column('status_changed_time', Integer),
@@ -765,6 +776,16 @@ view_clouds_with_metadata_names = Table('view_clouds_with_metadata_names', metad
   Column('metadata_names', String)
   )
 
+view_condor_host = Table('view_condor_host', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
+  Column('vmid', String(128)),
+  Column('retire', Integer),
+  Column('terminate', Integer),
+  Column('machine', String(256)),
+  Column('condor_host', String(64))
+  )
+
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
   Column('global_job_id', String(128)),
   Column('group_name', String(32)),
@@ -846,6 +867,18 @@ view_groups_with_metadata_names = Table('view_groups_with_metadata_names', metad
   Column('metadata_names', String)
   )
 
+view_idle_vms = Table('view_idle_vms', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
+  Column('keep_alive', Integer),
+  Column('vmid', String(128)),
+  Column('machine', String(256)),
+  Column('claimed', Integer),
+  Column('retire', Integer),
+  Column('terminate', Integer),
+  Column('age', Float)
+  )
+
 view_job_status = Table('view_job_status', metadata,
   Column('group_name', String(32)),
   Column('Jobs', Integer),
@@ -905,8 +938,13 @@ view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', met
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
+  Column('flavor_id', String(128)),
   Column('machine', String(256)),
-  Column('priority', Integer)
+  Column('killed', Integer),
+  Column('retired', Integer),
+  Column('priority', Integer),
+  Column('flavor_cores', Integer),
+  Column('flavor_ram', Integer)
   )
 
 view_vm_kill_retire_priority_idle = Table('view_vm_kill_retire_priority_idle', metadata,
@@ -914,6 +952,8 @@ view_vm_kill_retire_priority_idle = Table('view_vm_kill_retire_priority_idle', m
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
   Column('machine', String(256)),
+  Column('killed', Integer),
+  Column('retired', Integer),
   Column('priority', Integer)
   )
 
@@ -933,6 +973,8 @@ view_vms = Table('view_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
+  Column('retire', Integer),
+  Column('retire_time', Integer),
   Column('terminate', Integer),
   Column('terminate_time', Integer),
   Column('status_changed_time', Integer),
@@ -944,8 +986,6 @@ view_vms = Table('view_vms', metadata,
   Column('my_current_time', Integer),
   Column('entered_current_state', Integer),
   Column('idle_time', Integer),
-  Column('retire_request_time', Integer),
-  Column('retired_time', Integer),
   Column('foreign_vm', Integer),
   Column('cores', Integer),
   Column('disk', Integer),

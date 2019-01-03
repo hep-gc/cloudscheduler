@@ -11,6 +11,7 @@ import cloudscheduler.jobmanager
 import cloudscheduler.cloudmanager
 
 from lib.schema import view_vms
+from lib.schema import view_idle_vms
 from lib.schema import view_groups_of_idle_jobs
 from lib.schema import view_available_resources
 from lib.schema import view_condor_jobs_group_defaults_applied
@@ -158,13 +159,12 @@ def main():
                 log.debug("Resource requests for job: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus, total_ram, total_disk)
                 for flavor in flavor_list:
                     cloud_nm, flv_name = flavor.split(':')
-
-                    log.debug('subtract existing resources for cloud: %s. %s VMs with flavor: %s, C: %s, M: %s, D: %s', cloud_nm, current_flavors[cloud_nm][flv_name]['count'], flv_name,
-                              current_flavors[cloud_nm][flv_name]['cores'], current_flavors[cloud_nm][flv_name]['ram'],
-                              current_flavors[cloud_nm][flv_name]['disk'])
-                    total_cpus -= current_flavors[cloud_nm][flv_name]['cores']
-                    total_ram -=  current_flavors[cloud_nm][flv_name]['ram']
-                    total_disk -= current_flavors[cloud_nm][flv_name]['disk']
+                    log.debug('subtract existing resources for cloud: %s. %s VMs with flavor: %s, C: %s, M: %s, D: %s', cloud_nm, current_flavors[cloud_nm][flavor]['count'], flv_name,
+                              current_flavors[cloud_nm][flavor]['cores'], current_flavors[cloud_nm][flavor]['ram'],
+                              current_flavors[cloud_nm][flavor]['disk'])
+                    total_cpus -= current_flavors[cloud_nm][flavor]['cores']
+                    total_ram -=  current_flavors[cloud_nm][flavor]['ram']
+                    total_disk -= current_flavors[cloud_nm][flavor]['disk']
                 log.debug("Resource requests After checking current: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus,
                           total_ram, total_disk)
                 if total_ram > 0 or total_cpus > 0 or total_disk > 0:
@@ -297,7 +297,8 @@ def main():
                 else:  # We have enough, wait for things to register
                     log.debug("Seem to have enough VMs for the number of idle jobs.")
                     continue
-                config.db_close()
+                    
+            config.db_close()
         time.sleep(15)  # delay between groups
 
 
@@ -361,11 +362,13 @@ def count_cloud_flavors(group, config):
     vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for res in available:
         count = res.VMs - res.VMs_in_error - res.VMs_retiring - res.VMs_manual
-        vm_cloud_flavors[res.cloud_name][res.flavor_name]['count'] = count
-        vm_cloud_flavors[res.cloud_name][res.flavor_name]['cores'] = count * res.flavor_cores
-        vm_cloud_flavors[res.cloud_name][res.flavor_name]['ram'] = count * res.flavor_ram
-        vm_cloud_flavors[res.cloud_name][res.flavor_name]['disk'] = count * res.flavor_disk
-        vm_cloud_flavors[res.cloud_name][res.flavor_name]['swap'] = count * res.flavor_swap
+        # TODO flavor_name gone - only have flavor with the cloud:name format
+        # TODO Can the nested structure go away and just use flavor?
+        vm_cloud_flavors[res.cloud_name][res.flavor]['count'] = count
+        vm_cloud_flavors[res.cloud_name][res.flavor]['cores'] = count * res.flavor_cores
+        vm_cloud_flavors[res.cloud_name][res.flavor]['ram'] = count * res.flavor_ram
+        vm_cloud_flavors[res.cloud_name][res.flavor]['disk'] = count * res.flavor_disk
+        vm_cloud_flavors[res.cloud_name][res.flavor]['swap'] = count * res.flavor_swap
 
     log.debug("Done counting current flavors for group: %s.", group)
     try:
@@ -497,10 +500,10 @@ def check_view_idle_vms(group, config):
     log.debug("check_view_idle_vms")
     try:
         config.db_open()
-        idle_vms = config.db_map.view_idle_vms
-        results = config.db_session.query(idle_vms).filter(group == idle_vms.c.group_name,
-                                                           idle_vms.c.retired == 0,
-                                                           idle_vms.c.terminate == 0)
+
+        results = config.db_session.query(view_idle_vms).filter(group == view_idle_vms.c.group_name,
+                                                           view_idle_vms.c.retire == 0,
+                                                           view_idle_vms.c.terminate == 0)
         vmids = []
         for res in results:
             vmids.append(res.vmid)
