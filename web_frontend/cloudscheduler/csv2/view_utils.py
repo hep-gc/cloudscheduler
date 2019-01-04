@@ -671,26 +671,14 @@ def render(request, template, context):
     from django.http import HttpResponse
     from sqlalchemy.orm.query import Query
     from sqlalchemy.engine.result import ResultProxy
-    from cloudscheduler.lib.schema import csv2_user
-#   from .models import user as csv2_user
-    import sqlalchemy.ext.automap
     import datetime
     import decimal
     import json
 
     class csv2Encoder(json.JSONEncoder):
         def default(self, obj):
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1", type(obj))
-
-#           if isinstance(obj, csv2_user):
-#               return str(obj)
-#           print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2", type(obj))
-
-            xxx = str(type(obj))
-            if xxx == "<class 'sqlalchemy.ext.automap.csv2_user'>":
-#           if type(obj) == "<class 'sqlalchemy.ext.automap.csv2_user'>":
+            if str(obj.__class__).split("'")[1].split('.')[0] == 'sqlalchemy':
                 return str(obj)
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3", xxx, type(obj))
 
             if isinstance(obj, datetime.date):
                 return str(obj)
