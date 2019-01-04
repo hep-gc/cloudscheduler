@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User #to get auth_user table
+from django.core.exceptions import PermissionDenied
 
 import time
 
@@ -672,16 +673,26 @@ def render(request, template, context):
     from django.db.models.query import QuerySet
     from sqlalchemy.orm.query import Query
     from sqlalchemy.engine.result import ResultProxy
-    from .models import user as csv2_user
+    from cloudscheduler.lib.schema import csv2_user
+#   from .models import user as csv2_user
+    import sqlalchemy.ext.automap
     import datetime
     import decimal
     import json
 
     class csv2Encoder(json.JSONEncoder):
         def default(self, obj):
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1", type(obj))
 
-            if isinstance(obj, csv2_user):
+#           if isinstance(obj, csv2_user):
+#               return str(obj)
+#           print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2", type(obj))
+
+            xxx = str(type(obj))
+            if xxx == "<class 'sqlalchemy.ext.automap.csv2_user'>":
+#           if type(obj) == "<class 'sqlalchemy.ext.automap.csv2_user'>":
                 return str(obj)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3", xxx, type(obj))
 
             if isinstance(obj, datetime.date):
                 return str(obj)
@@ -694,7 +705,7 @@ def render(request, template, context):
 
             if isinstance(obj, Query):
                 fields = {}
-                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata' ]:
                     data = obj.__getattribute__(field)
                     try:
                         json.dumps(data) # this will fail on non-encodable values, like other classes
