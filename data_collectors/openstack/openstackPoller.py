@@ -130,7 +130,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -306,7 +306,7 @@ def image_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
 
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
@@ -476,7 +476,7 @@ def keypair_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -627,7 +627,7 @@ def limit_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -784,7 +784,7 @@ def network_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -944,7 +944,7 @@ def vm_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1204,7 +1204,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -1234,7 +1234,7 @@ def service_registrar():
 ## Main.
 
 if __name__ == '__main__':
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
 
     logging.basicConfig(
         filename=config.log_file,

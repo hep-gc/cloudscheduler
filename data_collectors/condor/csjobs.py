@@ -60,7 +60,7 @@ def job_poller():
     condor_inventory_built = False
     uncommitted_updates = 0
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
 
     JOB = config.db_map.classes.condor_jobs
@@ -275,7 +275,7 @@ def job_poller():
 def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
     GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
@@ -369,7 +369,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -397,7 +397,7 @@ def service_registrar():
 
 
 if __name__ == '__main__':
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
     logging.basicConfig(
         filename=config.log_file,

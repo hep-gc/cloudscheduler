@@ -1,5 +1,4 @@
-from django.contrib.auth.models import User #to get auth_user table
-from .models import user as csv2_user
+from django.core.exceptions import PermissionDenied
 
 import time
 
@@ -670,19 +669,28 @@ def render(request, template, context):
 
     from django.shortcuts import render as django_render
     from django.http import HttpResponse
-    from django.db.models.query import QuerySet
     from sqlalchemy.orm.query import Query
     from sqlalchemy.engine.result import ResultProxy
-    from .models import user as csv2_user
+    from cloudscheduler.lib.schema import csv2_user
+#   from .models import user as csv2_user
+    import sqlalchemy.ext.automap
     import datetime
     import decimal
     import json
 
     class csv2Encoder(json.JSONEncoder):
         def default(self, obj):
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1", type(obj))
 
-            if isinstance(obj, csv2_user):
+#           if isinstance(obj, csv2_user):
+#               return str(obj)
+#           print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2", type(obj))
+
+            xxx = str(type(obj))
+            if xxx == "<class 'sqlalchemy.ext.automap.csv2_user'>":
+#           if type(obj) == "<class 'sqlalchemy.ext.automap.csv2_user'>":
                 return str(obj)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3", xxx, type(obj))
 
             if isinstance(obj, datetime.date):
                 return str(obj)
@@ -695,7 +703,7 @@ def render(request, template, context):
 
             if isinstance(obj, Query):
                 fields = {}
-                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata' ]:
                     data = obj.__getattribute__(field)
                     try:
                         json.dumps(data) # this will fail on non-encodable values, like other classes
@@ -743,14 +751,16 @@ def set_user_groups(config, request):
         if group_name and active_user.active_group != group_name:
             if group_name in user_groups:
                 active_user.active_group = group_name
-                active_user.save()
+                config.db_session.merge(active_user)
+                config.db_session.commit()
             else:
                 return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
 
     # if no active group, set first group as default.
     if active_user.active_group is None:
         active_user.active_group = user_groups[0]
-        active_user.save()
+        config.db_session.merge(active_user)
+        config.db_session.commit()
 
     return 0, None, active_user, user_groups
 

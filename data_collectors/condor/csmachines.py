@@ -62,6 +62,44 @@ def _get_openstack_session(cloud):
                 (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
     return session
 
+
+def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
+    authsplit = auth_url.split('/')
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
+        return False
+    if version == 2:
+        try:
+            auth = v2.Password(
+                auth_url=auth_url,
+                username=username,
+                password=password,
+                tenant_name=project)
+            sess = session.Session(auth=auth, verify=config.cacerts)
+        except Exception as exc:
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+            return False
+        return sess
+    elif version == 3:
+        #connect using keystone v3
+        try:
+            auth = v3.Password(
+                auth_url=auth_url,
+                username=username,
+                password=password,
+                project_name=project,
+                user_domain_name=user_domain,
+                project_domain_name=project_domain_name)
+            sess = session.Session(auth=auth, verify=config.cacerts)
+        except Exception as exc:
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+            return False
+        return sess
+
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
@@ -80,7 +118,7 @@ def machine_poller():
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -271,7 +309,7 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
@@ -308,13 +346,22 @@ def command_poller():
                 # Query database for machines to be retired.
                 abort_cycle = False
                 for resource in db_session.query(view_condor_host).filter(view_condor_host.c.condor_host==condor_host, view_condor_host.c.retire==1):
-                    logging.info("Retiring machine %s" % resource.name)
+                    # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
+                    #index=attribute
+                    #0=group
+                    #1=cloud
+                    #2=vmid
+                    #3=retireflag
+                    #4=terminate flag
+                    #5=machine
+                    #6=condor_host
+                    logging.info("Retiring machine %s" % resource[5])
                     try:
-                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource[5])[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                         #get vm entry and update retire = 2
-                        vm_row = db.session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+                        vm_row = db.session.query(VM).filter(VM.group_name==resource[0], VM.cloud_name==resource[1], VM.vmid==resource[2])[0]
                         vm_row.retire=2
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
@@ -330,7 +377,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to  machine: %s, skipping..." % resource.name)
+                        logging.exception("Failed to issue DaemonsOffPeacefull to  machine: %s, skipping..." % resource[5])
                         continue
 
             if uncommitted_updates > 0:
@@ -444,7 +491,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -475,7 +522,7 @@ def service_registrar():
 
 
 if __name__ == '__main__':
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
     # Don't need db params as each process will create it's own config
 
     logging.basicConfig(
