@@ -62,6 +62,44 @@ def _get_openstack_session(cloud):
                 (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
     return session
 
+
+def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
+    authsplit = auth_url.split('/')
+    try:
+        version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
+    except ValueError:
+        logging.error("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
+        return False
+    if version == 2:
+        try:
+            auth = v2.Password(
+                auth_url=auth_url,
+                username=username,
+                password=password,
+                tenant_name=project)
+            sess = session.Session(auth=auth, verify=config.cacerts)
+        except Exception as exc:
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
+            return False
+        return sess
+    elif version == 3:
+        #connect using keystone v3
+        try:
+            auth = v3.Password(
+                auth_url=auth_url,
+                username=username,
+                password=password,
+                project_name=project,
+                user_domain_name=user_domain,
+                project_domain_name=project_domain_name)
+            sess = session.Session(auth=auth, verify=config.cacerts)
+        except Exception as exc:
+            logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
+            return False
+        return sess
+
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
