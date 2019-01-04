@@ -126,7 +126,7 @@ def image_collection():
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=3)
     Group = config.db_map.classes.csv2_groups
     Group_Defaults = config.db_map.classes.csv2_group_defaults
     Group_Resources = config.db_map.classes.csv2_clouds
@@ -166,7 +166,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -290,7 +290,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
 ## Main.
 
 if __name__ == '__main__':
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=3)
 
     logging.basicConfig(
         filename=config.log_file,
