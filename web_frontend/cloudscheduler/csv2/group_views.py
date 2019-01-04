@@ -548,6 +548,11 @@ def list(
 
     if not getSuperUserStatus(request, config):
         raise PermissionDenied
+    # This is here because without models.py we can't pass around database objects without also passing the
+    # database session. This catches the case where list is called from another view and the database object
+    # the user was quried from is closed
+    if isinstance(active_user, str):
+        active_user = None
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -943,12 +948,14 @@ def update(request):
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
+            active_user=active_user.username
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV41'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:
+            active_user=active_user.username
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV42'), msg), active_user=active_user, user_groups=user_groups)
 
@@ -956,6 +963,7 @@ def update(request):
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
+                active_user=active_user.username
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV43'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
@@ -964,10 +972,12 @@ def update(request):
         if len(group_updates) > 0:
             rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
+                active_user=active_user.username
                 config.db_close()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV44'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
         else:
             if 'username' not in fields:
+                active_user=active_user.username
                 config.db_close()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update must specify at least one field to update.' % lno('GV45'), active_user=active_user, user_groups=user_groups)
 
@@ -987,9 +997,11 @@ def update(request):
                 rc, msg = manage_group_users(config, tables, fields['group_name'], None)
 
         if rc == 0:
+            active_user=active_user.username
             config.db_close(commit=True)
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
+            active_user=active_user.username
             config.db_close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV46'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 

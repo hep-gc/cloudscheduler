@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User #to get auth_user table
 from django.core.exceptions import PermissionDenied
 
 import time
@@ -670,7 +669,6 @@ def render(request, template, context):
 
     from django.shortcuts import render as django_render
     from django.http import HttpResponse
-    from django.db.models.query import QuerySet
     from sqlalchemy.orm.query import Query
     from sqlalchemy.engine.result import ResultProxy
     from cloudscheduler.lib.schema import csv2_user
