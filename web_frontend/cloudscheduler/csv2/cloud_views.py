@@ -481,7 +481,12 @@ def list(
 
     if not verifyUser(request, config):
         raise PermissionDenied
-
+    
+    # This is here because without models.py we can't pass around database objects without also passing the
+    # database session. This catches the case where list is called from another view and the database object
+    # the user was quried from is closed
+    if isinstance(active_user, str):
+        active_user = None
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -1286,11 +1291,13 @@ def update(request):
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
         if updates > 0:
+            act_usr = active_user.username
             config.db_close(commit=True)
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
+            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), active_user=act_usr, user_groups=user_groups, attributes=columns)
         else:
+            act_usr = active_user.username
             config.db_close()
-            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'), active_user=active_user, user_groups=user_groups)
+            return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'), active_user=act_usr, user_groups=user_groups)
 
     ### Bad request.
     else:
