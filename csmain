@@ -39,7 +39,7 @@ def main():
     #config.db_open()
 
     while(True):
-        CSGroups = config.db_map.classes.csv2_group_defaults
+        CSGroups = config.db_map.classes.csv2_groups
         try:
             config.db_open()
             csv2groups = config.db_session.query(CSGroups)
@@ -94,7 +94,7 @@ def main():
             new_vms = check_unregistered_machines(csgroup.group_name,config)
 
             current_flavors = count_cloud_flavors(csgroup.group_name, config)
-            log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
+            #log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
             try:
 
                 config.db_open()
@@ -509,7 +509,7 @@ def check_view_idle_vms(group, config):
             vmids.append(res.vmid)
         if vmids:
             log.debug("Setting retire flag on %s VMs.", len(vmids))
-            vms = config.db_map.csv2_vms
+            vms = config.db_map.classes.csv2_vms
             update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
             for row in update_result:
                 row.retire = 1
@@ -533,8 +533,8 @@ def check_unregistered_machines(group, config):
         vms = config.db_map.classes.csv2_vms
         clouds = config.db_map.classes.csv2_clouds
         group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
-        unregistered_vms = config.db_session.query(view_vms).filter(view_vms.c.group_name == group, view_vms.c.foreign_vm == 0).filter(~exists().
-                                                                                             where(machines.machine.contains(view_vms.c.hostname)))
+        unregistered_vms = config.db_session.query(vms).filter(vms.group_name == group).filter(~exists().
+                                                                                             where(machines.machine.contains(vms.hostname)))
     except Exception as ex:
         log.exception(ex)
         return
@@ -553,14 +553,16 @@ def check_unregistered_machines(group, config):
                 continue
             cname = hostname_split[1]
             if cname in cloud_names: # name prefix matches a valid cloud name
-                if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
+                if int(time.time()) - vm.start_time > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
                     to_terminate.append(vm.vmid)
-                    log.debug("Set terminate flag on vm: %s", vm.hostname)
-                # TODO Check the retired flag and if set terminate right away
+                    log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
+                elif not vm.terminate and vm.retire:
+                    to_terminate.append(vm.vmid)
+                    log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
                 else:
                     log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
                               str(int(time.time()) - vm.last_updated), vm.terminate)
-                    new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_name))
+                    new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
             else:
                 non_cs_vm.append(vm.hostname)
         except Exception as ex:
