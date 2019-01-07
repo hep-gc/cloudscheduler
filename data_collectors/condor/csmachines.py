@@ -19,6 +19,11 @@ from cloudscheduler.lib.poller_functions import \
     start_cycle, \
     wait_cycle
 
+from keystoneclient.auth.identity import v2, v3
+from keystoneauth1 import session
+from keystoneauth1 import exceptions
+from novaclient import client as novaclient
+
 import htcondor
 import classad
 from sqlalchemy import create_engine
@@ -54,12 +59,12 @@ def _get_openstack_session(cloud):
     if session is False:
         logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
         if version == 2:
-            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s",
+            logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s" %
                           (cloud.authurl, cloud.username, cloud.project))
         else:
             logging.error(
-                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s",
-                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
+                "Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s" %
+                (cloud.authurl, cloud.username, cloud.project, cloud.user_domain_name, cloud.project_domain_name))
     return session
 
 
@@ -373,7 +378,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to  machine: %s, skipping..." % resource[5])
+                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, missing classad or condor miscomunication." % resource[5])
                         continue
 
             if uncommitted_updates > 0:
