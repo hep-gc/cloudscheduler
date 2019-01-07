@@ -548,11 +548,6 @@ def list(
 
     if not getSuperUserStatus(request, config):
         raise PermissionDenied
-    # This is here because without models.py we can't pass around database objects without also passing the
-    # database session. This catches the case where list is called from another view and the database object
-    # the user was quried from is closed
-    if isinstance(active_user, str):
-        active_user = None
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
