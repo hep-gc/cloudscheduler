@@ -67,7 +67,6 @@ def job_poller():
     CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
     USERS = config.db_map.classes.csv2_user_groups
-    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
@@ -83,13 +82,12 @@ def job_poller():
             condor_host_groups = {}
             group_users = {}
             for group in groups:
-                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                if grp_def.htcondor_name is not None and grp_def.htcondor_name != "":
-                    condor_hosts_set.add(grp_def.htcondor_name)
-                    condor_central_manager = grp_def.htcondor_name
+                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                    condor_hosts_set.add(group.htcondor_fqdn)
+                    condor_central_manager = group.htcondor_fqdn
                 else:
-                    condor_hosts_set.add(grp_def.htcondor_fqdn)
-                    condor_central_manager = grp_def.htcondor_fqdn
+                    condor_hosts_set.add(group.htcondor_container_hostname)
+                    condor_central_manager = group.htcondor_container_hostname
 
                 if condor_central_manager not in condor_host_groups:
                     condor_host_groups[condor_central_manager] = [group.group_name]
@@ -98,10 +96,9 @@ def job_poller():
 
                 # build group_users dict
                 users = config.db_session.query(USERS).filter(USERS.group_name == group.group_name)
-                grp_defaults = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                htcondor_other_submitters = grp_defaults.htcondor_other_submitters
+                htcondor_other_submitters = group.htcondor_other_submitters
                 if htcondor_other_submitters is not None:
-                    user_list = grp_defaults.htcondor_other_submitters.split(',')
+                    user_list = group.htcondor_other_submitters.split(',')
                 else:
                     user_list = []
                 # need to append users from group defaultts (htcondor_supplementary_submitters) here
@@ -278,7 +275,6 @@ def command_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
-    GROUP_DEFAULTS = config.db_map.classes.csv2_group_defaults
 
     try:
         while True:
@@ -288,11 +284,10 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                grp_def = config.db_session.query(GROUP_DEFAULTS).get(group.group_name)
-                if grp_def.htcondor_name is not None and grp_def.htcondor_name != "":
-                    condor_hosts_set.add(grp_def.htcondor_name)
+                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                    condor_hosts_set.add(group.htcondor_fqdn)
                 else:
-                    condor_hosts_set.add(grp_def.htcondor_fqdn)
+                    condor_hosts_set.add(group.htcondor_container_hostname)
 
             uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
