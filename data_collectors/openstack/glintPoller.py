@@ -128,7 +128,6 @@ def defaults_replication():
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=3)
     Group = config.db_map.classes.csv2_groups
-    Group_Defaults = config.db_map.classes.csv2_group_defaults
     Group_Resources = config.db_map.classes.csv2_clouds
     Keypairs = config.db_map.classes.cloud_keypairs
 
@@ -143,10 +142,10 @@ def defaults_replication():
             cloud_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             img_list = get_images_for_group(group.group_name)
             logging.info("Checking resources for group %s's default image..." % group.group_name)
-            check_and_transfer_image_defaults(session, img_list, group.group_name, Group_Defaults)
+            check_and_transfer_image_defaults(session, img_list, group)
 
             keypair_dict = get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
-            check_and_transfer_keypair_defaults(group.group_name, cloud_list, session, keypair_dict, Keypairs, Group_Defaults)
+            check_and_transfer_keypair_defaults(group, cloud_list, session, keypair_dict, Keypairs)
 
         time_slept = 0
         while(time_slept<config.defaults_sleep_interval):
@@ -235,10 +234,9 @@ def get_composite_key_for_default(key_name, key_dict):
     return False
 
 
-def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_dict, keypair_obj, defaults_obj):
+def check_and_transfer_keypair_defaults(group, cloud_list, db_session, key_dict, keypair_obj, defaults_obj):
     # get default key
-    defaults = db_session.query(defaults_obj).get(group_name)
-    default_key = defaults.vm_keyname
+    default_key = group.vm_keyname
     comp_key = get_composite_key_for_default(default_key, key_dict)
     try:
         default_dict = key_dict[comp_key]
@@ -248,7 +246,7 @@ def check_and_transfer_keypair_defaults(group_name, cloud_list, db_session, key_
         fingerprint = split_key[0]
         key_name = split_key[1]
         default_keypair_src = db_session.query(keypair_obj).filter(
-            keypair_obj.group_name == group_name,
+            keypair_obj.group_name == group.group_name,
             keypair_obj.fingerprint == fingerprint,
             keypair_obj.key_name == key_name).first()
         for cloud in cloud_list:
