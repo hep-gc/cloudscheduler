@@ -263,7 +263,8 @@ def main():
                         template_dict = {'cs_user': usertmp,
                                          'cs_group_name': csgroup.group_name,
                                          'cs_condor_host': csgroup.htcondor_fqdn,
-                                         'cs_condor_name': csgroup.htcondor_name}
+                                         'cs_condor_name': csgroup.htcondor_container_hostname,
+                                         'cs_condor_submitters': csgroup.htcondor_other_submitters,}
                         log.debug(template_dict)
 
                         try:
