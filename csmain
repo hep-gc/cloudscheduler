@@ -51,7 +51,7 @@ def main():
 
         # Get the metadata for groups as json selects with mime_types pre-sorted
         # metadata format: { group : { cloud: [(yaml select, mime_type), (yaml select, mime_type) ] } }
-        metadata = None
+        metadata = {}
         try:
             metadata = json.loads(config.db_connection.execute(select([view_metadata_collation_json])).fetchone().group_metadata)
         except AttributeError as ae:
