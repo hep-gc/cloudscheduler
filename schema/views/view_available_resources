@@ -66,8 +66,8 @@ from (
             case when ifnull(cc.vm_flavor,'')!='' then
                 concat(cc.cloud_name, ':', cc.vm_flavor)
             else
-                case when ifnull(cgd.vm_flavor,'')!='' then
-                    concat(cc.cloud_name, ':', cgd.vm_flavor)
+                case when ifnull(cg.vm_flavor,'')!='' then
+                    concat(cc.cloud_name, ':', cg.vm_flavor)
                 else
                     null
                 end
@@ -76,8 +76,8 @@ from (
             case when ifnull(cc.vm_image,'')!='' then
                 cc.vm_image
             else
-                case when ifnull(cgd.vm_image,'')!='' then
-                    cgd.vm_image
+                case when ifnull(cg.vm_image,'')!='' then
+                    cg.vm_image
                 else
                     null
                 end
@@ -86,8 +86,8 @@ from (
             case when ifnull(cc.vm_keep_alive,-1)!=-1 then
                 cc.vm_keep_alive
             else
-                case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
-                    cgd.vm_keep_alive
+                case when ifnull(cg.vm_keep_alive,-1)!=-1 then
+                    cg.vm_keep_alive
                 else
                     0
                 end
@@ -96,8 +96,8 @@ from (
             case when ifnull(cc.vm_keyname,'')!='' then
                 cc.vm_keyname
             else
-                case when ifnull(cgd.vm_keyname,'')!='' then
-                    cgd.vm_keyname
+                case when ifnull(cg.vm_keyname,'')!='' then
+                    cg.vm_keyname
                 else
                     null
                 end
@@ -106,8 +106,8 @@ from (
             case when ifnull(cc.vm_network,'')!='' then
                 cc.vm_network
             else
-                case when ifnull(cgd.vm_network,'')!='' then
-                    cgd.vm_network
+                case when ifnull(cg.vm_network,'')!='' then
+                    cg.vm_network
                 else
                     null
                 end
@@ -134,8 +134,8 @@ from (
             end as ram_max
 
         from csv2_clouds as cc
-        left outer join csv2_group_defaults as cgd on
-            cc.group_name=cgd.group_name
+        left outer join csv2_groups as cg on
+            cc.group_name=cg.group_name
         left outer join cloud_limits as cl on
             cc.group_name=cl.group_name and
             cc.cloud_name=cl.cloud_name

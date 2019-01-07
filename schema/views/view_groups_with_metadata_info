@@ -6,7 +6,9 @@ create or replace view view_groups_with_metadata_info as
 select
 
 cg.group_name,
-condor_central_manager,
+htcondor_fqdn,
+htcondor_container_hostname,
+htcondor_other_submitters,
 metadata_name,
 enabled as metadata_enabled,
 priority as metadata_priority,

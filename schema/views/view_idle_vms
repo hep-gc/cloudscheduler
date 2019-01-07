@@ -19,8 +19,8 @@ from (
             case when ifnull(cc.vm_keep_alive,-1)!=-1 then
                 cc.vm_keep_alive
             else
-                case when ifnull(cgd.vm_keep_alive,-1)!=-1 then
-                    cgd.vm_keep_alive
+                case when ifnull(cg.vm_keep_alive,-1)!=-1 then
+                    cg.vm_keep_alive
                 else
                     0
                 end
@@ -34,8 +34,8 @@ from (
         left outer join csv2_clouds as cc on
             cv.group_name=cc.group_name and
             cv.cloud_name=cc.cloud_name
-        left outer join csv2_group_defaults as cgd on
-            cc.group_name=cgd.group_name
+        left outer join csv2_groups as cg on
+            cc.group_name=cg.group_name
         join csv2_configuration as config on
             config.category='SQL' and
             config.config_key='UTC_delta_hours'

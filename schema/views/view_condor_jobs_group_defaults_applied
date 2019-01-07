@@ -38,7 +38,7 @@ select
 
 from condor_jobs as cj
 
-left outer join csv2_group_defaults as cgd on
-  cj.group_name=cgd.group_name
+left outer join csv2_groups as cg on
+  cj.group_name=cg.group_name
 
 ;

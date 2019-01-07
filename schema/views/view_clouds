@@ -43,50 +43,50 @@ from (
     cc.vm_network,
 
     case when ifnull(cc.vm_flavor,'')='' then
-        case when ifnull(cgd.vm_flavor,'')='' then
+        case when ifnull(cg.vm_flavor,'')='' then
             null
         else
-            cgd.vm_flavor
+            cg.vm_flavor
         end
     else
         cc.vm_flavor
     end as cascading_vm_flavor,
 
     case when ifnull(cc.vm_image,'')='' then
-        case when ifnull(cgd.vm_image,'')='' then
+        case when ifnull(cg.vm_image,'')='' then
             null
         else
-            cgd.vm_image
+            cg.vm_image
         end
     else
         cc.vm_image
     end as cascading_vm_image,
 
     case when ifnull(cc.vm_keep_alive,'')='' then
-        case when ifnull(cgd.vm_keep_alive,'')='' then
+        case when ifnull(cg.vm_keep_alive,'')='' then
             0
         else
-            cgd.vm_keep_alive
+            cg.vm_keep_alive
         end
     else
         cc.vm_keep_alive
     end as cascading_vm_keep_alive,
 
     case when ifnull(cc.vm_keyname,'')='' then
-        case when ifnull(cgd.vm_keyname,'')='' then
+        case when ifnull(cg.vm_keyname,'')='' then
             null
         else
-            cgd.vm_keyname
+            cg.vm_keyname
         end
     else
         cc.vm_keyname
     end as cascading_vm_keyname,
 
     case when ifnull(cc.vm_network,'')='' then
-        case when ifnull(cgd.vm_network,'')='' then
+        case when ifnull(cg.vm_network,'')='' then
             null
         else
-            cgd.vm_network
+            cg.vm_network
         end
     else
         cc.vm_network
@@ -159,7 +159,7 @@ from (
     ifnull(server_meta_max, 0) as server_meta_max
 
     from csv2_clouds as cc
-    left outer join csv2_group_defaults as cgd on cc.group_name=cgd.group_name
+    left outer join csv2_groups as cg on cc.group_name=cg.group_name
     left outer join cloud_limits as cl on cc.group_name=cl.group_name and cc.cloud_name=cl.cloud_name
     left outer join view_vms as vv on cc.group_name=vv.group_name and cc.cloud_name=vv.cloud_name
 
