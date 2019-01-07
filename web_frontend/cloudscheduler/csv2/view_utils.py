@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 
 import time
+from copy import deepcopy
 
 '''
 UTILITY FUNCTIONS
@@ -749,8 +750,7 @@ def set_user_groups(config, request):
         active_user.active_group = user_groups[0]
         config.db_session.merge(active_user)
         config.db_session.commit()
-
-    return 0, None, active_user, user_groups
+    return 0, None, deepcopy(active_user), user_groups
 
 #-------------------------------------------------------------------------------
 
