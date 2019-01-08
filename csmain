@@ -30,7 +30,7 @@ def main():
     main function.
     """
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=10)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
     if not config:
         print("Problem loading config file.")
     logging.basicConfig(level=config.log_level,
@@ -550,46 +550,47 @@ def check_unregistered_machines(group, config):
         group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
         unregistered_vms = config.db_session.query(vms).filter(vms.group_name == group).filter(~exists().
                                                                                              where(machines.machine.contains(vms.hostname)))
+
+
+        cloud_names = []
+        for cloud in group_clouds:
+            cloud_names.append(cloud.cloud_name)
+        non_cs_vm = []
+        new_vms = defaultdict(list)
+        to_terminate = []
+        log.debug("%s VMs that are unregistered with condor collector:", group)
+        for vm in unregistered_vms:
+            try:
+                hostname_split = vm.hostname.split('--')
+                if len(hostname_split) == 1:
+                    continue
+                cname = hostname_split[1]
+                if cname in cloud_names: # name prefix matches a valid cloud name
+                    if int(time.time()) - vm.start_time > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
+                        to_terminate.append(vm.vmid)
+                        log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
+                    elif not vm.terminate and vm.retire:
+                        to_terminate.append(vm.vmid)
+                        log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
+                    else:
+                        log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
+                                  str(int(time.time()) - vm.last_updated), vm.terminate)
+                        new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
+                else:
+                    non_cs_vm.append(vm.hostname)
+            except Exception as ex:
+                log.exception("Problem going through %s unregistered VMs: %s", group, ex)
+        if to_terminate:
+            log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
+            update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
+            for vm in update_result:
+                log.debug("Update flag on %s", vm.hostname)
+                vm.terminate = 1
+                config.db_session.merge(vm)
     except Exception as ex:
         log.exception(ex)
         config.db_close()
         return
-
-    cloud_names = []
-    for cloud in group_clouds:
-        cloud_names.append(cloud.cloud_name)
-    non_cs_vm = []
-    new_vms = defaultdict(list)
-    to_terminate = []
-    log.debug("%s VMs that are unregistered with condor collector:", group)
-    for vm in unregistered_vms:
-        try:
-            hostname_split = vm.hostname.split('--')
-            if len(hostname_split) == 1:
-                continue
-            cname = hostname_split[1]
-            if cname in cloud_names: # name prefix matches a valid cloud name
-                if int(time.time()) - vm.start_time > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
-                    to_terminate.append(vm.vmid)
-                    log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
-                elif not vm.terminate and vm.retire:
-                    to_terminate.append(vm.vmid)
-                    log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
-                else:
-                    log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
-                              str(int(time.time()) - vm.last_updated), vm.terminate)
-                    new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
-            else:
-                non_cs_vm.append(vm.hostname)
-        except Exception as ex:
-            log.exception("Problem going through %s unregistered VMs: %s", group, ex)
-    if to_terminate:
-        log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
-        update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
-        for vm in update_result:
-            log.debug("Update flag on %s", vm.hostname)
-            vm.terminate = 1
-            config.db_session.merge(vm)
     log.debug("Done checking %s unregistered VMs.", group)
     try:
         config.db_close(commit=True)
