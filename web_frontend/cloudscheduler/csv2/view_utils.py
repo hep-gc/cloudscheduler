@@ -1,7 +1,7 @@
 from django.core.exceptions import PermissionDenied
 
 import time
-from copy import deepcopy
+from sqlalchemy.orm.session import make_transient
 
 '''
 UTILITY FUNCTIONS
@@ -722,8 +722,10 @@ def service_msg(service_name):
 
 #-------------------------------------------------------------------------------
 
-def set_user_groups(config, request):
+def set_user_groups(config, request, super_user=True):
+# active_user = config.db_session.query(csv2_user).filter(username == request_user)
     active_user = getcsv2User(request, config)
+    make_transient(active_user)
     user_groups = config.db_map.classes.csv2_user_groups
     user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
     user_groups = []
@@ -750,7 +752,8 @@ def set_user_groups(config, request):
         active_user.active_group = user_groups[0]
         config.db_session.merge(active_user)
         config.db_session.commit()
-    return 0, None, deepcopy(active_user), user_groups
+
+    return 0, None, active_user, user_groups
 
 #-------------------------------------------------------------------------------
 
