@@ -42,7 +42,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg4')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'condor_central_manager': 'unit-test-group-four.ca'
+            'htcondor_fqdn': 'unit-test-group-four.ca'
         }
     )
 
@@ -51,7 +51,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg5'),
-            'condor_central_manager': 'unit-test-group-five.ca',
+            'htcondor_fqdn': 'unit-test-group-five.ca',
         }
     )
 
@@ -60,7 +60,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg6')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg6'),
-            'condor_central_manager': 'unit-test-group-six.ca',
+            'htcondor_fqdn': 'unit-test-group-six.ca',
         }
     )
 
@@ -69,7 +69,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg7')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg7'),
-            'condor_central_manager': 'unit-test-group-seven.ca',
+            'htcondor_fqdn': 'unit-test-group-seven.ca',
         }
     )
 
