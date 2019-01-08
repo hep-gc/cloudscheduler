@@ -234,7 +234,7 @@ def get_composite_key_for_default(key_name, key_dict):
     return False
 
 
-def check_and_transfer_keypair_defaults(group, cloud_list, db_session, key_dict, keypair_obj, defaults_obj):
+def check_and_transfer_keypair_defaults(group, cloud_list, db_session, key_dict, keypair_obj):
     # get default key
     default_key = group.vm_keyname
     comp_key = get_composite_key_for_default(default_key, key_dict)
