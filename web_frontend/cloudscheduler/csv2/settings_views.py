@@ -2,7 +2,7 @@ from django.conf import settings
 config = settings.CSV2_CONFIG
 
 from django.views.decorators.csrf import requires_csrf_token
-from .view_utils import getSuperUserStatus, render, set_user_groups
+from .view_utils import render, set_user_groups
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
@@ -54,7 +54,7 @@ def prepare(request):
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
@@ -64,7 +64,7 @@ def prepare(request):
     context = {
             'active_user': active_user,
             'active_group': active_user.active_group,
-            'super_user': getSuperUserStatus(request, config),
+            'super_user': active_user.is_superuser,
             'user_groups': user_groups,
             'response_code': 0,
             'message': None

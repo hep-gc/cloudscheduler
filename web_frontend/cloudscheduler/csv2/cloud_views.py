@@ -18,7 +18,6 @@ from .view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    verifyUser
 from collections import defaultdict
 import bcrypt
 
@@ -320,14 +319,12 @@ def add(request):
 
     # open the database.
     config.db_open()
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
 
     if request.method == 'POST':
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), active_user=active_user, user_groups=user_groups)
@@ -413,14 +410,11 @@ def delete(request):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
 
     if request.method == 'POST':
         
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), active_user=active_user, user_groups=user_groups)
@@ -478,13 +472,10 @@ def list(
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
@@ -602,13 +593,9 @@ def metadata_add(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     if request.method == 'POST':
-
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), active_user=active_user, user_groups=user_groups)
@@ -655,11 +642,8 @@ def metadata_collation(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV18'), msg)})
@@ -702,13 +686,11 @@ def metadata_delete(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
 
     if request.method == 'POST':
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV20'), msg), active_user=active_user, user_groups=user_groups)
@@ -747,12 +729,10 @@ def metadata_fetch(request, selector=None):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied    
+   
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
@@ -805,11 +785,8 @@ def metadata_list(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-list, %s' % (lno('CV26'), msg)})
@@ -859,11 +836,8 @@ def metadata_new(request, selector=None):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
@@ -911,13 +885,11 @@ def metadata_update(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
 
     if request.method == 'POST':
         
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), active_user=active_user, user_groups=user_groups)
@@ -982,11 +954,8 @@ def status(request, group_name=None):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV33'), msg), active_user=active_user, user_groups=user_groups)
@@ -1164,9 +1133,6 @@ def update(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     if request.method == 'POST':
 
         # if the password is blank, remove the password field.
@@ -1179,7 +1145,7 @@ def update(request):
 
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV34'), msg), active_user=active_user, user_groups=user_groups)

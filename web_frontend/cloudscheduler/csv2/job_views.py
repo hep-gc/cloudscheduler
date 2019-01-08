@@ -13,8 +13,7 @@ from .view_utils import \
     render, \
     set_user_groups, \
     table_fields, \
-    validate_fields, \
-    verifyUser
+    validate_fields
 from collections import defaultdict
 import bcrypt
 
@@ -84,14 +83,11 @@ def list(
     ):
 
     # open the database.
-    config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied    
+    config.db_open() 
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})

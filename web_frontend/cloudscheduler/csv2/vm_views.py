@@ -15,8 +15,7 @@ from .view_utils import \
     render, \
     set_user_groups, \
     table_fields, \
-    validate_fields, \
-    verifyUser
+    validate_fields
 from collections import defaultdict
 import bcrypt
 import time
@@ -79,9 +78,6 @@ def list(
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
         rc, msg, active_user, user_groups = set_user_groups(config, request)
@@ -138,12 +134,9 @@ def update(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
 
     if request.method == 'POST':
-        
-
+    
         # Retrieve the active user, associated group list and optionally set the active group.
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:

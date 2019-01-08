@@ -6,7 +6,6 @@ from django.contrib.auth import update_session_auth_hash
 
 from .view_utils import \
     getcsv2User, \
-    getSuperUserStatus, \
     lno, \
     manage_user_groups, \
     manage_user_group_verification, \
@@ -14,8 +13,7 @@ from .view_utils import \
     render, \
     set_user_groups, \
     table_fields, \
-    validate_fields, \
-    verifyUser
+    validate_fields
 from collections import defaultdict
 import bcrypt
 
@@ -112,15 +110,10 @@ def add(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), active_user=active_user, user_groups=user_groups)
@@ -178,15 +171,10 @@ def delete(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV07'), msg), active_user=active_user, user_groups=user_groups)
@@ -237,11 +225,6 @@ def list(
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied    
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -339,9 +322,6 @@ def settings(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc == 0:
@@ -399,15 +379,10 @@ def update(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), active_user=active_user, user_groups=user_groups)

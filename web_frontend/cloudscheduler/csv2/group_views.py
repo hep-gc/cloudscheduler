@@ -17,7 +17,6 @@ from .view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields, \
-    verifyUser
 from glintwebui.utils import set_defaults_changed
 from collections import defaultdict
 import bcrypt
@@ -139,16 +138,11 @@ def add(request):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
-        
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
@@ -225,10 +219,6 @@ def defaults(request):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
 
     message = None
     # Retrieve the active user, associated group list and optionally set the active group.
@@ -349,17 +339,11 @@ def delete(request):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
 
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
@@ -543,11 +527,7 @@ def list(
     # open the database.
     config.db_open()
 
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    #need to check for superuser
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
@@ -644,13 +624,10 @@ def metadata_add(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     if request.method == 'POST':
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg)})
@@ -687,13 +664,10 @@ def metadata_delete(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     if request.method == 'POST':
 
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
         if rc != 0:
             config.db_close()
             return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg)})
@@ -741,11 +715,8 @@ def metadata_fetch(request, selector=None):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
@@ -792,11 +763,8 @@ def metadata_list(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
@@ -833,11 +801,8 @@ def metadata_new(request):
     # open the database.
     config.db_open()
 
-    if not verifyUser(request):
-        raise PermissionDenied
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     if rc != 0:
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
@@ -875,9 +840,6 @@ def metadata_update(request):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request):
-        raise PermissionDenied
 
     if request.method == 'POST':
 
@@ -931,17 +893,10 @@ def update(request):
 
     # open the database.
     config.db_open()
-
-    if not verifyUser(request, config):
-        raise PermissionDenied
-
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             active_user=active_user.username
             config.db_close()

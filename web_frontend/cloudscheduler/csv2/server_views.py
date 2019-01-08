@@ -7,7 +7,6 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 from .view_utils import \
-    getSuperUserStatus, \
     lno,  \
     manage_group_users, \
     manage_user_group_verification, \
@@ -16,7 +15,6 @@ from .view_utils import \
     set_user_groups, \
     table_fields, \
     validate_fields, \
-    verifyUser
 
 from collections import defaultdict
 import bcrypt
@@ -101,16 +99,11 @@ def configuration(request):
     """
 
     config.db_open()
-    
-    if not verifyUser(request, config):
-        raise PermissionDenied
-    if not getSuperUserStatus(request, config):
-        raise PermissionDenied
-
-
-    message = None
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
+
+    message = None
+
     if rc == 0:
         if (request.method == 'POST') and ((not 'group' in request.POST) or len(request.POST) > 2):
                 # Validate input fields.
