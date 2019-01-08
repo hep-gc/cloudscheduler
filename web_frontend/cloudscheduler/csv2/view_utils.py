@@ -1,7 +1,6 @@
 from django.core.exceptions import PermissionDenied
 
 import time
-from copy import deepcopy
 
 '''
 UTILITY FUNCTIONS
@@ -21,16 +20,9 @@ def diff_lists(list1,list2, option=None):
         return [x for x in list1 if x not in list2] 
 
 #-------------------------------------------------------------------------------
-
-# Returns the current authorized user from metadata
-def getAuthUser(request):
-    return request.META.get('REMOTE_USER')
-
-#-------------------------------------------------------------------------------
-
 # returns the csv2 user object matching the authorized user from header metadata
 def getcsv2User(request, db_config):
-    authorized_user = getAuthUser(request)
+    authorized_user = request.META.get('REMOTE_USER')
     # need to get user objects from database here
     Csv2_User = db_config.db_map.classes.csv2_user
     csv2_user_list = db_config.db_session.query(Csv2_User)
@@ -38,18 +30,6 @@ def getcsv2User(request, db_config):
         if user.username == authorized_user or user.cert_cn == authorized_user:
             return user
     raise PermissionDenied
-
-#-------------------------------------------------------------------------------
-
-def getSuperUserStatus(request, db_config):
-    authorized_user = getAuthUser(request)
-    # need to get user objects from database here
-    Csv2_User = db_config.db_map.classes.csv2_user
-    csv2_user_list = db_config.db_session.query(Csv2_User)
-    for user in csv2_user_list:
-        if user.username == authorized_user or user.cert_cn == authorized_user:
-            return user.is_superuser
-    return False
 
 #-------------------------------------------------------------------------------
 
@@ -721,8 +701,10 @@ def service_msg(service_name):
     return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read()    
 
 #-------------------------------------------------------------------------------
-
-def set_user_groups(config, request):
+# this function gets and sets the user groups for the active user as well as authenticates the active user
+# if super_user is true and the requesting user doesn't have super user status a permission denied is raised
+# if super user is false then skip the check for super user
+def set_user_groups(config, request, super_user=True):
     active_user = getcsv2User(request, config)
     user_groups = config.db_map.classes.csv2_user_groups
     user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
@@ -750,7 +732,10 @@ def set_user_groups(config, request):
         active_user.active_group = user_groups[0]
         config.db_session.merge(active_user)
         config.db_session.commit()
-    return 0, None, deepcopy(active_user), user_groups
+
+    active_user = dict((col, getattr(active_user, col)) for col in active_user.__table__.columns.keys())
+
+    return 0, None, active_user, user_groups
 
 #-------------------------------------------------------------------------------
 
@@ -1138,10 +1123,4 @@ def _validate_fields_pw_check(pw1, pw2=None):
 
 
     return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
-
-#-------------------------------------------------------------------------------
-
-def verifyUser(request, db_config):
-    auth_user = getcsv2User(request, db_config)
-    return bool(auth_user)
 
