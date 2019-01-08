@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 
 import time
+from sqlalchemy.orm.session import make_transient
 
 '''
 UTILITY FUNCTIONS
@@ -706,6 +707,10 @@ def service_msg(service_name):
 # if super user is false then skip the check for super user
 def set_user_groups(config, request, super_user=True):
     active_user = getcsv2User(request, config)
+    make_transient(active_user)
+    if super_user and not active_user.is_superuser:
+        raise PermissionDenied
+        
     user_groups = config.db_map.classes.csv2_user_groups
     user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
     user_groups = []
@@ -732,8 +737,6 @@ def set_user_groups(config, request, super_user=True):
         active_user.active_group = user_groups[0]
         config.db_session.merge(active_user)
         config.db_session.commit()
-
-    active_user = dict((col, getattr(active_user, col)) for col in active_user.__table__.columns.keys())
 
     return 0, None, active_user, user_groups
 
