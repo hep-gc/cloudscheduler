@@ -6,7 +6,7 @@ import logging
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
 
-class ProcessMonitor
+class ProcessMonitor:
     config = None
     processes = {}
     process_ids = {}
@@ -18,7 +18,7 @@ class ProcessMonitor
     def __init__(self, file_name, pool_size, orange_count_row, process_ids=None):
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', file_name, pool_size=pool_size)
         self.logging = logging.getLogger()
-        self.logging.basicConfig(
+        logging.basicConfig(
             filename=self.config.log_file,
             level=self.config.log_level,
             format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
@@ -35,7 +35,7 @@ class ProcessMonitor
 
     def del_process(self, process_id):
         proc = self.processes[process_id]
-        if is_alive(proc):
+        if self.is_alive(proc):
             proc.join()
         del self.processes[process_id]
         self.process_ids.pop(process_id)
@@ -50,7 +50,7 @@ class ProcessMonitor
     def start_all(self):
         for process in self.process_ids:
             if process not in self.processes or not processes[process].is_alive():
-                if process in processes:
+                if process in self.processes:
                     logging.error("Restarting %s...", process)
                 else:
                     logging.info("Starting %s...", process)
@@ -74,7 +74,7 @@ class ProcessMonitor
     def check_processes(self):
         orange = False
         for process in self.process_ids:
-            if process not in self.processes or not is_alive(process):
+            if process not in self.processes or not self.is_alive(process):
                 if process in self.processes:
                     orange = True
                     logging.error("%s process died, restarting...", process)
@@ -86,4 +86,4 @@ class ProcessMonitor
         if orange:
                 self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+1)
         else:
-            self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, previous_orange_count, current_orange_count-1)
+            self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count-1)
