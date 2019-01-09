@@ -6,9 +6,8 @@ import os
 
 KEY_MAP = {
     '-gn':   'group_name',
-    '-gm':   'condor_central_manager',
     '-htcf': 'htcondor_fqdn',
-    '-htcn': 'htcondor_name',
+    '-htch': 'htcondor_container_hostname',
     '-htcu': 'htcondor_other_submitters',
     '-me':   'enabled',
     '-mmt':  'mime_type',
@@ -50,9 +49,9 @@ def add(gvar):
     Add a group to the active group.
     """
 
-    mandatory = ['-gm', '-gn']
+    mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-s', '-un', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -82,7 +81,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htcn', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -222,7 +221,7 @@ def update(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-gm', '-H', '-h', '-s', '-un', '-uo', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
