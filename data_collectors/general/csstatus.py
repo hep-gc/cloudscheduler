@@ -69,6 +69,7 @@ def status_poller():
                     system_dict[db_service_names[service] + "_status"] = 1
                 else:
                     system_dict[db_service_names[service] + "_status"] = 0
+                    logging.error("Found service %s is dead...", service)
 
                 system_dict["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
 
