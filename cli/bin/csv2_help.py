@@ -1,5 +1,7 @@
 from subprocess import Popen, PIPE
 import os
+import shutil
+import tempfile
 
 def help(gvar, mandatory=None, required=None, options=None, requires_server=True):
     """
@@ -125,12 +127,21 @@ def _long_help(gvar, man_id, man_page):
         elif os.path.isfile('%s/%s.gz' % (man_dir, man_page)):
             help_page = '%s.gz' % man_page
         else:
-            del(help_page)
+            help_page = None
 
         if help_page:
-            p = Popen(['man', '-l', help_page], cwd=man_dir)
+            p = Popen(['man', '-l', help_page], cwd=man_dir, stderr=PIPE)
             p.communicate()
+            if p.returncode == 0:
+                return
+
+            tmp_dir = tempfile.mkdtemp()
+            p = Popen(['cp', '-rp', man_dir, tmp_dir])
+            p.communicate()
+
+            p = Popen(['man', '-l', help_page], cwd='%s/man' % tmp_dir, stderr=PIPE)
+            p.communicate()
+            
+            shutil.rmtree(tmp_dir)
             return
 
-    else:
-        print('Long help requested for "%s". The required man page does not exist.' % man_id)
