@@ -71,7 +71,6 @@ def list(
     selector='::::',
     response_code=0,
     message=None,
-    active_user=None,
     user_groups=None,
     ):
 
@@ -79,11 +78,10 @@ def list(
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
@@ -141,13 +139,13 @@ def update(request):
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
-            return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [VM_KEYS, MANDATORY_KEYS], ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
             config.db_close()
-            return list(request, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), active_user=active_user, user_groups=user_groups)
+            return list(request, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
             table = tables['csv2_vms']

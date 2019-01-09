@@ -77,7 +77,6 @@ def list(
     group_name=None,
     response_code=0,
     message=None,
-    active_user=None,
     user_groups=None,
     attributes=None
     ):
@@ -86,11 +85,10 @@ def list(
     config.db_open() 
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    if not active_user:
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     if not message:
