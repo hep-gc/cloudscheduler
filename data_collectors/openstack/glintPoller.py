@@ -4,15 +4,11 @@ import sys
 import time
 import socket
 import multiprocessing
-from multiprocessing import Process
-import subprocess
 import logging
-import django
 from django.conf import settings
 
-
 from cloudscheduler.lib.db_config import Config
-
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 from glintwebui.glint_api import repo_connector
 from glintwebui.utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
@@ -288,35 +284,26 @@ def check_and_transfer_keypair_defaults(group, cloud_list, db_session, key_dict,
 ## Main.
 
 if __name__ == '__main__':
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=3)
-
-    logging.basicConfig(
-        filename=config.log_file,
-        level=config.log_level,
-        format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
-
-    logging.info("**************************** starting glint image collection *********************************")
-
-    processes = {}
     process_ids = {
         'glint image collection': image_collection,
         'defaults_replication':   defaults_replication,
         'registrar':              service_registrar,
-        }
+    }
+
+    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=8, orange_count_row='csv2_glint_error_count', process_ids=process_ids)
+    config = procMon.get_config()
+    logging = procMon.get_logging()
+
+
+    logging.info("**************************** starting glint image collection *********************************")
+    
 
     # Wait for keyboard input to exit
     try:
+        #start processes
+        procMon.start_all()
         while True:
-            for process in process_ids:
-                if process not in processes or not processes[process].is_alive():
-                    if process in processes:
-                        logging.error("%s process died, restarting...", process)
-                        del(processes[process])
-                    else:
-                        logging.info("Restarting %s process", process)
-                    processes[process] = Process(target=process_ids[process])
-                    processes[process].start()
-                    time.sleep(config.sleep_interval_main_short)
+            procMon.check_processes()
             time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
@@ -325,8 +312,4 @@ if __name__ == '__main__':
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
 
-    for process in processes:
-        try:
-            process.join()
-        except:
-            logging.error("failed to join process %s", process)
+    procMon.join_all()

@@ -7,6 +7,7 @@ import os
 import psutil
 
 from cloudscheduler.lib.db_config import *
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 from cloudscheduler.lib.poller_functions import \
     start_cycle, \
@@ -107,41 +108,29 @@ def status_poller():
 
 
 if __name__ == '__main__':
-    # old config
-    #config = Config(os.path.basename(sys.argv[0]))
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
-    logging.basicConfig(
-        filename=config.log_file,
-        level=config.log_level,
-        format='%(asctime)s - %(processName)-14s - %(levelname)s - %(message)s')
+    process_ids = {
+        'status': status_poller,
+    }
+
+    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=8, orange_count_row='csv2_glint_error_count', process_ids=process_ids)
+    config = procMon.get_config()
+    logging = procMon.get_logging()
 
     logging.info("**************************** starting csstatus *********************************")
 
-    processes = {}
-    process_ids = {
-        'status': status_poller,
-        }
-
     # Wait for keyboard input to exit
     try:
+        #start processes
+        procMon.start_all()
         while True:
-            for process in sorted(process_ids):
-                if process not in processes or not processes[process].is_alive():
-                    if process in processes:
-                        logging.error("%s process died, restarting...", process)
-                        del(processes[process])
-                    else:
-                        logging.info("Restarting %s process", process)
-                    processes[process] = Process(target=process_ids[process])
-                    processes[process].start()
-                    time.sleep(config.sleep_interval_main_short)
+            procMon.check_processes()
             time.sleep(config.sleep_interval_main_long)
+
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
 
-    for process in processes:
-        try:
-            process.join()
-        except:
-            logging.error("failed to join process %s", process)
+    except Exception as ex:
+        logging.exception("Process Died: %s", ex)
+
+    procMon.join_all()

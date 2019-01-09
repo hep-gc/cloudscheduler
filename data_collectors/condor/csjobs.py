@@ -17,7 +17,6 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     build_inventory_for_condor, \
-    set_orange_count, \
     start_cycle, \
     wait_cycle
 
@@ -395,9 +394,9 @@ def service_registrar():
 if __name__ == '__main__':
 
     process_ids = {
-    'command':   command_poller,
-    'job':       job_poller,
-    'registrar': service_registrar,
+        'command':   command_poller,
+        'job':       job_poller,
+        'registrar': service_registrar,
     }
 
     procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
@@ -415,7 +414,6 @@ if __name__ == '__main__':
             procMon.check_processes()
             time.sleep(config.sleep_interval_main_long)
             
-
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
 

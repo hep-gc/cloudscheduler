@@ -1,5 +1,4 @@
 import multiprocessing
-from multiprocessing import Process
 import logging
 import socket
 import time
@@ -10,12 +9,12 @@ import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
-    set_orange_count, \
     start_cycle, \
     wait_cycle
 #   get_last_poll_time_from_database, \
@@ -1234,16 +1233,6 @@ def service_registrar():
 ## Main.
 
 if __name__ == '__main__':
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
-
-    logging.basicConfig(
-        filename=config.log_file,
-        level=config.log_level,
-        format='%(asctime)s - %(processName)-16s - %(levelname)s - %(message)s')
-
-    logging.info("**************************** starting openstack VM poller *********************************")
-
-    processes = {}
     process_ids = {
         'flavor':      flavor_poller,
         'image':       image_poller,
@@ -1252,31 +1241,21 @@ if __name__ == '__main__':
         'network':     network_poller,
         'vm':          vm_poller,
         'registrar':   service_registrar,
-        }
+    }
 
-    previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', 1, 0)
+    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=8, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
+    config = procMon.get_config()
+    logging = procMon.get_logging()
+
+    logging.info("**************************** starting openstack VM poller *********************************")
+
 
     # Wait for keyboard input to exit
     try:
+        #start processes
+        procMon.start_all()
         while True:
-            orange = False
-            for process in process_ids:
-                if process not in processes or not processes[process].is_alive():
-                    if process in processes:
-                        orange = True
-                        logging.error("%s process died, restarting...", process)
-                        del(processes[process])
-                    else:
-                        logging.info("Restarting %s process", process)
-                    processes[process] = Process(target=process_ids[process])
-                    processes[process].start()
-                    time.sleep(config.sleep_interval_main_short)
-
-            if orange:
-                previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', previous_count, current_count+1)
-            else:
-                previous_count, current_count = set_orange_count(logging, config, 'csv2_openstack_error_count', previous_count, current_count-1)
-               
+            procMon.check_processes()
             time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
@@ -1285,8 +1264,4 @@ if __name__ == '__main__':
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
 
-    for process in processes:
-        try:
-            process.join()
-        except:
-            logging.error("failed to join process %s", process.name)
+    procMon.join_all()
