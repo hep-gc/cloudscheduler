@@ -17,8 +17,7 @@ from .view_utils import \
     set_user_groups, \
     table_fields, \
     validate_by_filtered_table_entries, \
-    validate_fields, \
-from collections import defaultdict
+    validate_fields
 import bcrypt
 
 from sqlalchemy import exists

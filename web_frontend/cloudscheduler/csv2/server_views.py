@@ -14,7 +14,7 @@ from .view_utils import \
     render, \
     set_user_groups, \
     table_fields, \
-    validate_fields, \
+    validate_fields
 
 from collections import defaultdict
 import bcrypt
