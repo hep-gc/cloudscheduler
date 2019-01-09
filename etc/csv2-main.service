@@ -7,9 +7,6 @@ Type=simple
 User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/csmain
 Restart=on-abort
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=csv2
 
 [Install]
 WantedBy=multi-user.target

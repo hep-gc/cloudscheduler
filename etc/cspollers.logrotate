@@ -1,4 +1,5 @@
 /var/log/cloudscheduler/csjobs.log {
+  weekly
   su cloudscheduler cloudscheduler
   notifempty
   missingok
@@ -8,6 +9,7 @@
 }
 
 /var/log/cloudscheduler/cscollector.log {
+  weekly
   su cloudscheduler cloudscheduler
   notifempty
   missingok
@@ -17,6 +19,7 @@
 }
 
 /var/log/cloudscheduler/glintPoller.log {
+  weekly
   su cloudscheduler cloudscheduler
   notifempty
   missingok
@@ -26,6 +29,7 @@
 }
 
 /var/log/cloudscheduler/openstackpoller.log {
+  weekly
   su cloudscheduler cloudscheduler
   notifempty
   missingok
@@ -35,6 +39,7 @@
 }
 
 /var/log/cloudscheduler/csstatus.log {
+  weekly
   su cloudscheduler cloudscheduler
   notifempty
   missingok
