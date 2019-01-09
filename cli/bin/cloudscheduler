@@ -163,7 +163,7 @@ def main(args):
             ('-H',    '--long-help', False),
             ('-h',    '--help', False),
             ('-htcf', '--htcondor-fqdn', True),
-            ('-htcn', '--htcondor-name', True),
+            ('-htch', '--htcondor-container-hostname', True),
             ('-htcu', '--htcondor-users', True),
             ('-jc',   '--job-cores', True),
             ('-jd',   '--job-disk', True),
