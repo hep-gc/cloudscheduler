@@ -805,7 +805,12 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
             options.append(row[column_name])
 
     if allow_value_list:
-        values = value.split(',')
+
+        if isinstance(allow_value_list, str):
+            values = value.split(',')
+        else:
+            values = value
+
         for val in values:
             if val not in options:
                 msg = 'specified value in list of values does not exist: {}={}'.format(field, val)
