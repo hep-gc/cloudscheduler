@@ -503,7 +503,8 @@ def service_registrar():
             "service":             service_name,
             "fqdn":                service_fqdn,
             "last_updated":        None,
-            "flag_htcondor_allow": 1
+            "flag_htcondor_allow": 1,
+            "yaml_attribute_name": "cs_condor_remote_machine_poller"
         }
         service = SERVICE_CATALOG(**service_dict)
         try:

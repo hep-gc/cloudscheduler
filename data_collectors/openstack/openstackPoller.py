@@ -1216,6 +1216,7 @@ def service_registrar():
             "service":             service_name,
             "fqdn":                service_fqdn,
             "last_updated":        None,
+            "yaml_attribute_name": "cs_condor_remote_openstack_poller"
         }
         service = SERVICE_CATALOG(**service_dict)
         try:

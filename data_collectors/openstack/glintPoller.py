@@ -173,7 +173,8 @@ def service_registrar():
         service_dict = {
             "service":             service_name,
             "fqdn":                service_fqdn,
-            "last_updated":         None,
+            "last_updated":        None,
+            "yaml_attribute_name": "cs_condor_remote_glint_poller"
         }
         service = SERVICE_CATALOG(**service_dict)
         try:
