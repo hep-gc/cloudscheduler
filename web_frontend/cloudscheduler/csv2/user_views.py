@@ -321,7 +321,7 @@ def settings(request):
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
     if rc == 0:
         if request.method == 'POST':
             # Validate input fields.
