@@ -806,7 +806,7 @@ def validate_by_filtered_table_entries(config, value, field, table_name, column_
 
     if allow_value_list:
 
-        if isinstance(allow_value_list, str):
+        if isinstance(value, str):
             values = value.split(',')
         else:
             values = value

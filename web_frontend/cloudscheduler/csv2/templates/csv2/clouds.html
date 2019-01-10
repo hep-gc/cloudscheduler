@@ -297,41 +297,78 @@
                     <div class="tab-content exclusion-div">
 
 
-
-
                         <div class="tab2">
+                            <input id="exclusions-{{cloud.cloud_name}}-metadata" type="radio" name="tabs2">
+                            <label class="highlight4" for="exclusions-{{cloud.cloud_name}}-metadata">Default metadata</label>
 
+                            <div class="tab2-content">
+                                <form name="{{cloud.cloud_name}}-metadata-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
+                                {% csrf_token %}
+                                    <table>
+                                        <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                        <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+                                        <input type="hidden" name="password" value=""/>
 
+                                    {% for meta in group_metadata_dict %}
+                                        <tr><td class="highlight2"><input type="checkbox" name="metadata_name.{{ forloop.counter }}" value="{{ meta.metadata_name }}" 
+                                            {% for exclusion in group_metadata_exclusion_list%}
+                                                {% if exclusion.cloud_name == cloud.cloud_name and exclusion.metadata_name == meta.metadata_name %}
+                                                    checked
+                                                {% endif %}
+                                            {% endfor %}
+                                        />{{ meta.metadata_name }}</input></td></tr>
+                                    {% endfor %}
 
-                            <table>
-                                
-                                <tr class="highlight2">
-                                    <td>
-                                        <label for="meta-exclude">Users</label>
-                                    </td>
-                                </tr>
+                                        <tr>
+                                            <td>
+                                                <input type="submit" value="Update Metadata Exclusions" />
+                                            </td>
 
-                            {% for meta in group_metadata_dict %}
-                                <tr><td></td><td class="highlight2"><input type="checkbox" name="meta.{{ forloop.counter }}" value="{{ meta }}" checked/>{{ meta }}</input></td></tr>
-                            {% endfor %}
+                                        </tr>
 
-                                <tr>
-                                    <td>
-                                        <input type="submit" value="Update Exclusions" />
-                                    </td>
-
-                                </tr>
-
-                            </table>
-
+                                    </table>
+                                </form>
+                            </div>
                         </div>
 
                         <br>
 
                         <div class="tab2">
-                            {% for flavor in flavor_list %}
-                                {{flavor.name }}
-                            {% endfor %}
+
+                            <input id="exclusions-{{cloud.cloud_name}}-flavors" type="radio" name="tabs2">
+                            <label class="highlight4" for="exclusions-{{cloud.cloud_name}}-flavors">Default flavors</label>
+
+                            <div class="tab2-content">
+                                <form name="{{cloud.cloud_name}}-flavor-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                    <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
+                                    <input type="hidden" name="password" value=""/>
+                                    <table>
+
+                                    {% for flavor in flavor_list %}
+                                        {% if flavor.cloud_name == cloud.cloud_name %}
+                                            <tr><td class="highlight2"><input type="checkbox" name="flavor_name.{{ forloop.counter }}" value="{{ flavor.name }}"
+                                                {% for exclusion in flavor_exclusion_list%}
+                                                    {% if exclusion.cloud_name == cloud.cloud_name and exclusion.flavor_name == flavor.name %}
+                                                        checked
+                                                    {% endif %}
+                                                {% endfor %}
+                                            />{{ flavor.name }}</input></td></tr>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                        <tr>
+                                            <td>
+                                                <input type="submit" value="Update Flavor Exclusions" />
+                                            </td>
+
+                                        </tr>
+
+                                    </table>
+                                </form>
+                            </div>
+
                         </div>
 
                     </div>
