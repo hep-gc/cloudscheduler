@@ -41,7 +41,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV41', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV00', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/update/', form_data={'group': 'invalid-unit-test'}
     )
 
@@ -84,15 +84,15 @@ def main(gvar, user_secret):
         gvar, 1, 'GV44', 'the request did not match any rows.',
         '/group/update/', form_data={
             'group_name': 'invalid-unit-test',
-            'condor_central_manager': 'invalid-unit-test'
+            'htcondor_fqdn': 'invalid-unit-test'
         }
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV42', 'group update parameter "condor_central_manager" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV42', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'condor_central_manager': ''
+            'htcondor_fqdn': ''
         }
     )
 
@@ -100,7 +100,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully updated.'.format(ut_id(gvar, 'gtg4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
-            'condor_central_manager': 'unit-test-group-four-update.ca'
+            'htcondor_fqdn': 'unit-test-group-four-update.ca'
         }
     )
 
@@ -108,7 +108,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'condor_central_manager': 'unit-test-group-four-update.ca'}
+        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
 
     execute_csv2_request(
@@ -132,7 +132,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'condor_central_manager': 'unit-test-group-four-update.ca'}
+        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
 
     execute_csv2_request(
@@ -147,7 +147,7 @@ def main(gvar, user_secret):
         gvar, 0, None, None,
         '/group/list/',
         list='group_list', filter={'group_name': ut_id(gvar, 'gtg4')},
-        values={'group_name': ut_id(gvar, 'gtg4'), 'condor_central_manager': 'unit-test-group-four-update.ca'}
+        values={'group_name': ut_id(gvar, 'gtg4'), 'htcondor_fqdn': 'unit-test-group-four-update.ca'}
     )
 
     execute_csv2_request(

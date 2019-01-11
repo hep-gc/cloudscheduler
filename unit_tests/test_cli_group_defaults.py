@@ -13,7 +13,7 @@ def main(gvar, user_secret):
     
     execute_csv2_command(
         gvar, 0, None, 'Server: unit-test, Active User: {}'.format(ut_id(gvar, '')[:-1]),
-        ['cloudscheduler', 'metadata', 'group-defaults']
+        ['cloudscheduler', 'metadata', 'group-defaults', '-s', 'unit-test']
     )
 
     execute_csv2_command(

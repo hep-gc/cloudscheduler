@@ -29,7 +29,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV00', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/add/', form_data={'group': 'invalid-unit-test'}
     )
 
