@@ -509,6 +509,10 @@ def list(
     # open the database.
     config.db_open()
 
+    if response_code != 0:
+        config.db_close()
+        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': message})
+
     # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
         rc, msg, active_user, user_groups = set_user_groups(config, request)
