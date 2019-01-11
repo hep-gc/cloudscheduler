@@ -217,100 +217,93 @@ def defaults(request):
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
-
-    message = None
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc == 0:
-#       if request.method == 'POST' and 'group' not in request.POST:
+        user_groups_set = True
+        message = None
         if request.method == 'POST':
-                # Validate input fields.
-                rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
-                
-                if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
-                
-                if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
-                
-                if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
-                
-                if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
-                
+            # Validate input fields.
+            rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
+            
+            if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
+            
+            if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
+            
+            if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
+            
+            if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
+            
+            if rc == 0:
+                # Update the group defaults.
+                table = tables['csv2_groups']
+                rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                 if rc == 0:
-                    # Update the group defaults.
-                    table = tables['csv2_groups']
-                    rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
-                    if rc == 0:
-                        config.db_session.commit()
-                        set_defaults_changed(True)
-                        message='group defaults "%s" successfully updated.' % (active_user.active_group)
-                    else:
-                        message='%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
+                    config.db_session.commit()
+                    set_defaults_changed(True)
+                    message = 'group defaults "%s" successfully updated.' % (active_user.active_group)
                 else:
-                    message='%s group defaults update %s.' % (lno('GV07'), msg)
+                    message = '%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
+            else:
+                message = '%s group defaults update %s.' % (lno('GV07'), msg)
     else:
-        message='%s %s' % (lno('GV08'), msg)
+        user_groups_set = False
+        message = '%s %s' % (lno('GV08'), msg)
 
-    if message and message[:2] == 'GV':
-        defaults_list = []
-        response_code = 1
-    else:
+    # Prepare default CLI/Error response.
+    defaults_list = []
+    image_list = []
+    flavor_list = []
+    metadata_dict = {}
+    keypairs_list = []
+    network_list = []
+
+    # If User/Groups successfully set, retrieve group information.
+    if user_groups_set:
         s = select([csv2_groups]).where(csv2_groups.c.group_name==active_user.active_group)
         defaults_list = qt(config.db_connection.execute(s))
-        response_code = 0
 
-    # Retrieve group information.
-    if request.META['HTTP_ACCEPT'] == 'application/json':
-        image_list = {}
-        flavor_list = {}
-        metadata_dict = {}
-        keypairs_list = {}
-        network_list = {}
-    else:
-        # Get all the images in group:
-        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
-        image_list = qt(config.db_connection.execute(s))
+        # And additional information for the web page.
+        if request.META['HTTP_ACCEPT'] != 'application/json':
+            # Get all the images in group:
+            s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+            image_list = qt(config.db_connection.execute(s))
 
-        # Get all the flavors in group:
-        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
-        flavor_list = qt(config.db_connection.execute(s))
+            # Get all the flavors in group:
+            s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+            flavor_list = qt(config.db_connection.execute(s))
 
-        # Get all keynames in group:
-        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-        keypairs_list = qt(config.db_connection.execute(s))
+            # Get all keynames in group:
+            s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+            keypairs_list = qt(config.db_connection.execute(s))
 
-        # Get all networks in group:
-        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
-        network_list = qt(config.db_connection.execute(s))
+            # Get all networks in group:
+            s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+            network_list = qt(config.db_connection.execute(s))
 
-        # Get the group default metadata list:
-        s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
-        group_list, metadata_dict = qt(
-            config.db_connection.execute(s),
-            keys = {
-                'primary': [
-                    'group_name',
-                    ],
-                'secondary': [
-                    'metadata_name',
-                    'metadata_enabled',
-                    'metadata_priority',
-                    'metadata_mime_type'
-                    ]
-                },
-            prune=['password']    
-            )
-
+            # Get the group default metadata list:
+            s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
+            group_list, metadata_dict = qt(
+                config.db_connection.execute(s),
+                keys = {
+                    'primary': [
+                        'group_name',
+                        ],
+                    'secondary': [
+                        'metadata_name',
+                        'metadata_enabled',
+                        'metadata_priority',
+                        'metadata_mime_type'
+                        ]
+                    },
+                prune=['password']    
+                )
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'defaults_list': defaults_list,
@@ -319,7 +312,7 @@ def defaults(request):
             'metadata_dict': metadata_dict,
             'keypairs_list': keypairs_list,
             'network_list': network_list,
-            'response_code': response_code,
+            'response_code': rc,
             'message': message,
             'enable_glint': config.enable_glint
         }
@@ -348,12 +341,6 @@ def delete(request):
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV09'), msg), active_user=active_user, user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS, IGNORE_METADATA_NAME, IGNORE_KEYS], [
@@ -523,12 +510,6 @@ def list(
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-    if rc != 0:
-        config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
-
-    # Retrieve the active user, associated group list and optionally set the active group.
     if not active_user:
         rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
@@ -593,7 +574,7 @@ def list(
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'attributes': attributes,
             'user_groups': user_groups,
@@ -630,10 +611,6 @@ def metadata_add(request):
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
-
-        if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
@@ -674,12 +651,6 @@ def metadata_delete(request):
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
@@ -730,12 +701,6 @@ def metadata_fetch(request, selector=None):
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg)})
-
     # Get mime type list:
     s = select([csv2_mime_types])
     mime_types_list = qt(config.db_connection.execute(s))
@@ -784,12 +749,6 @@ def metadata_list(request):
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
-
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc != 0:
@@ -802,7 +761,7 @@ def metadata_list(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'group_metadata_list': group_metadata_list,
@@ -827,12 +786,6 @@ def metadata_new(request):
     if rc != 0:
         config.db_close()
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
-
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-    if rc != 0:
-        config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV25'), msg), active_user=active_user, user_groups=user_groups)
 
     # Get mime type list:
     s = select([csv2_mime_types])
@@ -875,12 +828,6 @@ def metadata_update(request):
         return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg)})
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
@@ -935,17 +882,9 @@ def update(request):
 
     if request.method == 'POST':
 
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            active_user=active_user.username
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV41'), msg), active_user=active_user, user_groups=user_groups)
-
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups','csv2_user_groups', 'csv2_user,n'], active_user)
         if rc != 0:
-            active_user=active_user.username
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s group update %s' % (lno('GV42'), msg), active_user=active_user, user_groups=user_groups)
 
@@ -977,7 +916,6 @@ def update(request):
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
-                active_user=active_user.username
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV43'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
 
         # Update the group.
@@ -986,12 +924,10 @@ def update(request):
         if len(group_updates) > 0:
             rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
             if rc != 0:
-                active_user=active_user.username
                 config.db_close()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV44'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups)
         else:
             if 'username' not in fields:
-                active_user=active_user.username
                 config.db_close()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group update must specify at least one field to update.' % lno('GV45'), active_user=active_user, user_groups=user_groups)
 
@@ -1011,11 +947,9 @@ def update(request):
                 rc, msg = manage_group_users(config, tables, fields['group_name'], None)
 
         if rc == 0:
-            active_user=active_user.username
             config.db_close(commit=True)
             return list(request, selector=fields['group_name'], response_code=0, message='group "%s" successfully updated.' % (fields['group_name']), active_user=active_user, user_groups=user_groups, attributes=columns)
         else:
-            active_user=active_user.username
             config.db_close()
             return list(request, selector=fields['group_name'], response_code=1, message='%s group update "%s" failed - %s.' % (lno('GV46'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
 
