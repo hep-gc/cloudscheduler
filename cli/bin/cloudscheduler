@@ -155,7 +155,6 @@ def main(args):
             ('-eg',   '--enable_glint', True),
             ('-f',    '--file-path', True),
             ('-g',    '--group', True),
-            ('-gm',   '--group-manager', True),
             ('-gme',  '--group-metadata-exclusion', True),
             ('-gmo',  '--group-metadata-option', True),
             ('-gn',   '--group-name', True),
