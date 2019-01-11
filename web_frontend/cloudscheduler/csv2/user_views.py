@@ -225,6 +225,10 @@ def list(
     # open the database.
     config.db_open()
 
+    if response_code != 0:
+        config.db_close()
+        return render(request, 'csv2/users.html', {'response_code': 1, 'message': message})
+
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc != 0:
@@ -329,12 +333,12 @@ def settings(request):
             if rc == 0:        
                 # Update the user.
                 table = tables['csv2_user']
-                rc, msg = config.db_session_execute(table.update().where(table.c.username==active_user).values(table_fields(fields, table, columns, 'update')))
+                rc, msg = config.db_session_execute(table.update().where(table.c.username==active_user.username).values(table_fields(fields, table, columns, 'update')))
                 if rc == 0:
                     config.db_close(commit=True)
                     request.session.delete()
-                    update_session_auth_hash(request, getcsv2User(request, config))
-                    message = 'user "%s" successfully updated.' % fields['username']
+                    update_session_auth_hash(request, active_user)
+                    message = 'user "%s" successfully updated.' % (fields['username']).username
                 else:
                     message = '%s user update, "%s" failed - %s.' % (lno('UV14'), active_user, message)
 
