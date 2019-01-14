@@ -181,7 +181,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV##', 'invalid metadata name',
+        gvar, 1, 'CV13', 'cloud metadata-add parameter "metadata_name" contains an empty string which is specifically disallowed.',
         '/cloud/metadata-add/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': '',
