@@ -608,14 +608,13 @@ def metadata_add(request):
     # open the database.
     config.db_open()
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
-
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+        if rc != 0:
+            config.db_close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV24'), msg), active_user=active_user, user_groups=user_groups)
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
@@ -648,14 +647,13 @@ def metadata_delete(request):
     # open the database.
     config.db_open()
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
-
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+        if rc != 0:
+            config.db_close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV29'), msg), active_user=active_user, user_groups=user_groups)
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata', 'csv2_group_metadata_exclusions,n'], active_user)
         if rc != 0:
@@ -703,7 +701,7 @@ def metadata_fetch(request, selector=None):
     rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV34'), msg), active_user=active_user, user_groups=user_groups)
 
     # Get mime type list:
     s = select([csv2_mime_types])
@@ -825,14 +823,14 @@ def metadata_update(request):
     # open the database.
     config.db_open()
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
 
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+        if rc != 0:
+            config.db_close()
+            return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV36'), msg), active_user=active_user, user_groups=user_groups)
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
@@ -882,7 +880,7 @@ def update(request):
     rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV00'), msg), active_user=active_user, user_groups=user_groups)
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('GV36'), msg), active_user=active_user, user_groups=user_groups)
 
     if request.method == 'POST':
 

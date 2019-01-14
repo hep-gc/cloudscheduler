@@ -110,10 +110,9 @@ def add(request):
     # open the database.
     config.db_open()
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-
     if request.method == 'POST':
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), user_groups=user_groups)
@@ -171,10 +170,10 @@ def delete(request):
     # open the database.
     config.db_open()
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
 
     if request.method == 'POST':
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV07'), msg), user_groups=user_groups)
@@ -381,10 +380,9 @@ def update(request):
     # open the database.
     config.db_open()
 
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-
     if request.method == 'POST':
+        # Retrieve the active user, associated group list and optionally set the active group.
+        rc, msg, active_user, user_groups = set_user_groups(config, request)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), user_groups=user_groups)
