@@ -1,6 +1,7 @@
 import multiprocessing
 from multiprocessing import Process
 import logging
+import time
 
 
 from cloudscheduler.lib.db_config import Config
@@ -58,8 +59,8 @@ class ProcessMonitor:
                 self.processes[process].start()
 
     def restart_process(self, process):
-        processes[process] = Process(target=process_ids[process])
-        processes[process].start()
+        self.processes[process] = Process(target=self.process_ids[process])
+        self.processes[process].start()
 
     def is_alive(self, process):
         return self.processes[process].is_alive()
@@ -81,7 +82,7 @@ class ProcessMonitor:
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)
-                restart_process(process)
+                self.restart_process(process)
                 time.sleep(self.config.sleep_interval_main_short)
         if orange:
                 self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+1)
