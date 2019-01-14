@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, pool_size=5):
+    def __init__(self, db_yaml, categories, db_config_dict=False, pool_size=5, max_overflow=0):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -47,7 +47,7 @@ class Config:
             isolation_level="READ_COMMITTED",
             pool_pre_ping=True,
             pool_size=pool_size,
-            max_overflow=0
+            max_overflow=max_overflow
             )
 
         self.db_connection = None
