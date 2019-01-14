@@ -98,6 +98,9 @@ METADATA_KEYS = {
         'cloud_name',
         'metadata_name',
         ],
+     'not_empty': [
+        'metadata_name',
+        ],
     }
 
 IGNORE_METADATA_NAME = {
