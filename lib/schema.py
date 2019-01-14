@@ -2,11 +2,6 @@ if 'Table' not in locals() and 'Table' not in globals():
   from sqlalchemy import Table, Column, Float, Integer, String, MetaData, ForeignKey
   metadata = MetaData()
 
-2019_01_04_csv2_groups = Table('2019_01_04_csv2_groups', metadata,
-  Column('group_name', String(32), primary_key=True),
-  Column('condor_central_manager', String)
-  )
-
 archived_condor_jobs = Table('archived_condor_jobs', metadata,
   Column('global_job_id', String(128), primary_key=True),
   Column('group_name', String(128)),
