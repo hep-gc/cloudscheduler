@@ -107,206 +107,207 @@ def main():
                 idle_jobs_for_group = config.db_session.query(view_groups_of_idle_jobs).filter(
                     view_groups_of_idle_jobs.c.group_name == csgroup.group_name).order_by(
                     view_groups_of_idle_jobs.c.job_priority)
+
+                log.debug('---------------got idle jobs--------------')
+                cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
+                for idle_job in idle_jobs_for_group:
+                    if idle_job.idle == 0:
+                        continue
+                    log.debug("Info for current job: Group: %s, Target: %s, User: %s, Flavors: %s",idle_job.group_name, idle_job.target_clouds,
+                              idle_job.user, idle_job.flavors)
+                    # flavors is generated line based on which flavor is the best fit and which clouds have available resources
+                    # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
+
+                    if idle_job.flavors:
+                        flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
+                    else:
+                        continue
+
+
+                    if idle_job.target_clouds:
+                        target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
+                        # Issue #36
+                        if not set(target_cloud_list).intersection(set(cm_group.clouds.keys())):
+                            log.warning("No Target Cloud found in currently available or enabled clouds. for jobs: %s", idle_job)
+                            continue
+                            # TODO Flag job to hold it? these jobs are grouped though, and IDs aren't listed in view, makes it harder to pinpoint them.
+                            # Either need to query them somehow, or see if it's possible for that view to list/include all the IDs in that set. Ask Colin
+
+                    else:
+                        target_cloud_list = []
+
+                    # Get All the possible matching clouds
+                    try:
+
+                        if target_cloud_list:
+                            clouds_matching = config.db_session.query(view_available_resources).filter(
+                                view_available_resources.c.flavor.in_(flavor_list),
+                                view_available_resources.c.cloud_name.in_(target_cloud_list))
+                        else:
+                            clouds_matching = config.db_session.query(view_available_resources).filter(
+                                view_available_resources.c.flavor.in_(flavor_list))
+                    except Exception as ex:
+                        log.exception(ex)
+                        time.sleep(2)
+                        continue
+                    num_jobs_per_flavor_possible = {}
+                    num_jobs_per_flavor_max = {}
+                    num_vm_jobs_per_flavor_total = {}
+
+                    total_cpus = idle_job.request_cpus_total
+                    total_ram = idle_job.request_ram_total
+                    total_disk = idle_job.request_disk_total
+                    log.debug("Resource requests for job: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus, total_ram, total_disk)
+                    for flavor in flavor_list:
+                        cloud_nm, flv_name = flavor.split(':')
+                        log.debug('subtract existing resources for cloud: %s. %s VMs with flavor: %s, C: %s, M: %s, D: %s', cloud_nm, current_flavors[cloud_nm][flavor]['count'], flv_name,
+                                  current_flavors[cloud_nm][flavor]['cores'], current_flavors[cloud_nm][flavor]['ram'],
+                                  current_flavors[cloud_nm][flavor]['disk'])
+                        total_cpus -= current_flavors[cloud_nm][flavor]['cores']
+                        total_ram -=  current_flavors[cloud_nm][flavor]['ram']
+                        total_disk -= current_flavors[cloud_nm][flavor]['disk']
+                    log.debug("Resource requests After checking current: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus,
+                              total_ram, total_disk)
+                    if total_ram > 0 or total_cpus > 0 or total_disk > 0:
+                        # Looks like we need more VMs, but how many?
+                        for cloud_match in clouds_matching:
+                            cpu = cloud_match.flavor_cores / idle_job.request_cpus_min
+                            cpu_max = cloud_match.flavor_cores / idle_job.request_cpus_max
+                            vm_cpu_total = total_cpus / cloud_match.flavor_cores
+                            ram = cloud_match.flavor_ram / idle_job.request_ram_min
+                            ram_max = cloud_match.flavor_ram / idle_job.request_ram_max
+                            vm_ram_total = total_ram / cloud_match.flavor_ram
+                            disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
+                            disk_max = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_max else None
+                            vm_disk_total = total_disk / cloud_match.flavor_disk
+                            jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
+                            jobs_possible_max = int(min(cpu_max,ram_max,disk_max)) if disk_max else int(min(cpu_max,ram_max))
+                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total))
+                            if jobs_possible < 1:
+                                jobs_possible = 1
+                            if jobs_possible_max < 1:
+                                jobs_possible_max = 1
+                            if vm_jobs_possible_total < 1:
+                                vm_jobs_possible_total = 1
+                            num_jobs_per_flavor_possible[cloud_match.flavor] = jobs_possible
+                            num_jobs_per_flavor_max[cloud_match.flavor] = jobs_possible_max
+                            num_vm_jobs_per_flavor_total[cloud_match.flavor] = vm_jobs_possible_total
+                        log.debug("num jobs per flavor(min): %s", num_jobs_per_flavor_possible)
+                        log.debug("num jobs per flavor(max): %s", num_jobs_per_flavor_max)
+                        log.debug("num vms per flavor(total): %s", num_vm_jobs_per_flavor_total)
+                        # Now have the amount of jobs that can run on each option
+                        # Next get all the VMs for this group with their flavor info - actually could be done outside of loop and re-use it
+                        # Need a structure of the groups VMs accessible by the cloud_name and with a count of the flavor
+                        # ie vms[cloud-name][flavor] = 6
+                        runnable_job_count = 0
+                        for flavor in num_jobs_per_flavor_possible.keys():
+                            (cloud_name, flavor_name) = flavor.split(':')
+                            runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]['count']
+
+                        log.debug("Runnable_job_count before: %s", runnable_job_count)
+                        runnable_job_count -= idle_job.running  # Subtract the already running jobs
+                        runnable_job_count -= idle_job.idle  # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
+                        log.debug("Runnable_job_count after: %s", runnable_job_count)
+                        log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
+                    #if runnable_job_count < 0: # Need more VMs - try to boot stuff - does this really need to be <= or just < ??? - trying it as < only
+                        log.debug("flavor list: %s", flavor_list)
+                        try:
+
+                            if target_cloud_list:
+                                clouds_matching_new = config.db_session.query(view_available_resources).filter(
+                                    view_available_resources.c.flavor.in_(flavor_list),
+                                    view_available_resources.c.cloud_name.in_(target_cloud_list)) # .order_by(view_available_resources.c.priority)
+                            else:
+                                clouds_matching_new = config.db_session.query(view_available_resources).filter(
+                                    view_available_resources.c.flavor.in_(flavor_list))  # .order_by(view_available_resources.c.priority)
+                        except Exception as ex:
+                            log.exception(ex)
+                            time.sleep(1)
+                            continue
+
+                        for cloud in clouds_matching_new:
+                            if cloud.cloud_name in cloud_booted_on:
+                                continue
+                            log.debug("Taking a look at booting on: %s", cloud.cloud_name)
+                            log.debug("Using Flavor: %s", cloud.flavor)
+                            log.debug("num jobs per flavor: %s, flavor slots: %s", num_jobs_per_flavor_possible, cloud.flavor_slots)
+                            log.debug("Using Totals counts: %s", num_vm_jobs_per_flavor_total)
+                            # Need to redo this calculation for each cloud / flavor because it may change
+                            #num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
+                            num_vms_to_boot = num_vm_jobs_per_flavor_total[cloud.flavor]
+                            log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
+                            # This is the total wanted, but cloud may not be able to handle that request
+                            num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
+                            num_vms_to_boot = math.ceil(num_vms_to_boot)
+                            log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
+                            if num_vms_to_boot == 0:
+                                log.debug("Don't try to boot anything - continue")
+                                continue
+                            # Throttle amount of VMs to boot in one shot - should this be per cloud?
+                            # TODO To support more load balancing on clouds modify this section to split this amount
+                            # TODO across the clouds of the current cloud priority value. ALternatively figure out some kind of quota usage and sort the results on that similar to csv1
+                            if num_vms_to_boot > config.max_start_vm_cloud:
+                                num_vms_to_boot = config.max_start_vm_cloud
+                                log.debug("Adjusting for max_boot, will only boot: %s vms.", num_vms_to_boot)
+
+                            log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, cloud.cloud_name)
+                            try:
+                                usertmp = idle_job.user.split('@')[0]
+                            except:
+                                usertmp = idle_job.user
+                            template_dict = {'cs_user': usertmp,
+                                             'cs_group_name': csgroup.group_name,
+                                             'cs_condor_host': csgroup.htcondor_fqdn,
+                                             'cs_condor_name': csgroup.htcondor_container_hostname,
+                                             'cs_condor_submitters': csgroup.htcondor_other_submitters,}
+                            log.debug(template_dict)
+
+                            try:
+                                if cm_group.clouds[cloud.cloud_name].enabled:
+                                    use_image = None
+                                    if idle_job.image:
+                                        use_image = None
+                                    elif cloud.default_image:
+                                        use_image = cloud.default_image
+                                    else:
+                                        pass
+
+                                    cm_group.clouds[cloud.cloud_name]\
+                                        .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
+                                                   num=int(num_vms_to_boot),
+                                                   flavor=cloud.flavor,  #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
+                                                   job=idle_job,
+                                                   template_dict=template_dict,
+                                                   image = use_image)
+                                    runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
+                                    # TODO account for new vms in the new total tracking values?
+                                    log.debug('done booting on cloud %s', cloud.cloud_name)
+                                    cloud_booted_on.add(cloud.cloud_name)
+                                    break
+                                #if runnable_job_count < 0:  # Still need more
+                                #    log.debug("Runnable total still negative after booting VMs, try to boot more on another cloud if possible.")
+                                #    continue
+                                #else:
+                                #    log.debug("Seem to have booted enough for this job for now.")
+                                #    break
+
+                            except Exception as ex:
+                                # lets try to disable or dump this cloud for now
+                                log.exception("Disable cloud %s due to exception(later).", cloud.cloud_name)
+                                #cm_group.clouds[cloud_match.cloud_name].enabled = False
+                                # TODO Need logic for re-enable before stopping things and forgetting about them.
+                        else:
+                            log.debug("Hit the end of clouds_matching_new, anything boot or nothing?")
+                    else:  # We have enough, wait for things to register
+                        log.debug("Seem to have enough VMs for the number of idle jobs.")
+                        continue
+
+                config.db_close()
             except Exception as ex:
                 log.exception(ex)
                 config.db_close()
                 time.sleep(2)
                 continue
-            log.debug('---------------got idle jobs--------------')
-            cloud_booted_on = set()  #  Setting this up here now so I can check it and skip over things I boot on due to available slots info will be wrong
-            for idle_job in idle_jobs_for_group:
-                if idle_job.idle == 0:
-                    continue
-                log.debug("Info for current job: Group: %s, Target: %s, User: %s, Flavors: %s",idle_job.group_name, idle_job.target_clouds,
-                          idle_job.user, idle_job.flavors)
-                # flavors is generated line based on which flavor is the best fit and which clouds have available resources
-                # the format is "Group:Cloud:Flavor, Group:Cloud:Flavor" will need to split and use to filter in resources_matching
-                
-                if idle_job.flavors:
-                    flavor_list = [x.strip() for x in idle_job.flavors.split(',')]
-                else:
-                    continue
-
-
-                if idle_job.target_clouds:
-                    target_cloud_list = [x.strip() for x in idle_job.target_clouds.split(',')]
-                    # Issue #36
-                    if not set(target_cloud_list).intersection(set(cm_group.clouds.keys())):
-                        log.warning("No Target Cloud found in currently available or enabled clouds. for jobs: %s", idle_job)
-                        continue
-                        # TODO Flag job to hold it? these jobs are grouped though, and IDs aren't listed in view, makes it harder to pinpoint them.
-                        # Either need to query them somehow, or see if it's possible for that view to list/include all the IDs in that set. Ask Colin
-
-                else:
-                    target_cloud_list = []
-
-                # Get All the possible matching clouds
-                try:
-
-                    if target_cloud_list:
-                        clouds_matching = config.db_session.query(view_available_resources).filter(
-                            view_available_resources.c.flavor.in_(flavor_list),
-                            view_available_resources.c.cloud_name.in_(target_cloud_list))
-                    else:
-                        clouds_matching = config.db_session.query(view_available_resources).filter(
-                            view_available_resources.c.flavor.in_(flavor_list))
-                except Exception as ex:
-                    log.exception(ex)
-                    time.sleep(2)
-                    continue
-                num_jobs_per_flavor_possible = {}
-                num_jobs_per_flavor_max = {}
-                num_vm_jobs_per_flavor_total = {}
-
-                total_cpus = idle_job.request_cpus_total
-                total_ram = idle_job.request_ram_total
-                total_disk = idle_job.request_disk_total
-                log.debug("Resource requests for job: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus, total_ram, total_disk)
-                for flavor in flavor_list:
-                    cloud_nm, flv_name = flavor.split(':')
-                    log.debug('subtract existing resources for cloud: %s. %s VMs with flavor: %s, C: %s, M: %s, D: %s', cloud_nm, current_flavors[cloud_nm][flavor]['count'], flv_name,
-                              current_flavors[cloud_nm][flavor]['cores'], current_flavors[cloud_nm][flavor]['ram'],
-                              current_flavors[cloud_nm][flavor]['disk'])
-                    total_cpus -= current_flavors[cloud_nm][flavor]['cores']
-                    total_ram -=  current_flavors[cloud_nm][flavor]['ram']
-                    total_disk -= current_flavors[cloud_nm][flavor]['disk']
-                log.debug("Resource requests After checking current: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus,
-                          total_ram, total_disk)
-                if total_ram > 0 or total_cpus > 0 or total_disk > 0:
-                    # Looks like we need more VMs, but how many?
-                    for cloud_match in clouds_matching:
-                        cpu = cloud_match.flavor_cores / idle_job.request_cpus_min
-                        cpu_max = cloud_match.flavor_cores / idle_job.request_cpus_max
-                        vm_cpu_total = total_cpus / cloud_match.flavor_cores
-                        ram = cloud_match.flavor_ram / idle_job.request_ram_min
-                        ram_max = cloud_match.flavor_ram / idle_job.request_ram_max
-                        vm_ram_total = total_ram / cloud_match.flavor_ram
-                        disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
-                        disk_max = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_max else None
-                        vm_disk_total = total_disk / cloud_match.flavor_disk
-                        jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
-                        jobs_possible_max = int(min(cpu_max,ram_max,disk_max)) if disk_max else int(min(cpu_max,ram_max))
-                        vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total))
-                        if jobs_possible < 1:
-                            jobs_possible = 1
-                        if jobs_possible_max < 1:
-                            jobs_possible_max = 1
-                        if vm_jobs_possible_total < 1:
-                            vm_jobs_possible_total = 1
-                        num_jobs_per_flavor_possible[cloud_match.flavor] = jobs_possible
-                        num_jobs_per_flavor_max[cloud_match.flavor] = jobs_possible_max
-                        num_vm_jobs_per_flavor_total[cloud_match.flavor] = vm_jobs_possible_total
-                    log.debug("num jobs per flavor(min): %s", num_jobs_per_flavor_possible)
-                    log.debug("num jobs per flavor(max): %s", num_jobs_per_flavor_max)
-                    log.debug("num vms per flavor(total): %s", num_vm_jobs_per_flavor_total)
-                    # Now have the amount of jobs that can run on each option
-                    # Next get all the VMs for this group with their flavor info - actually could be done outside of loop and re-use it
-                    # Need a structure of the groups VMs accessible by the cloud_name and with a count of the flavor
-                    # ie vms[cloud-name][flavor] = 6
-                    runnable_job_count = 0
-                    for flavor in num_jobs_per_flavor_possible.keys():
-                        (cloud_name, flavor_name) = flavor.split(':')
-                        runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]['count']
-
-                    log.debug("Runnable_job_count before: %s", runnable_job_count)
-                    runnable_job_count -= idle_job.running  # Subtract the already running jobs
-                    runnable_job_count -= idle_job.idle  # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
-                    log.debug("Runnable_job_count after: %s", runnable_job_count)
-                    log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
-                #if runnable_job_count < 0: # Need more VMs - try to boot stuff - does this really need to be <= or just < ??? - trying it as < only
-                    log.debug("flavor list: %s", flavor_list)
-                    try:
-
-                        if target_cloud_list:
-                            clouds_matching_new = config.db_session.query(view_available_resources).filter(
-                                view_available_resources.c.flavor.in_(flavor_list),
-                                view_available_resources.c.cloud_name.in_(target_cloud_list)) # .order_by(view_available_resources.c.priority)
-                        else:
-                            clouds_matching_new = config.db_session.query(view_available_resources).filter(
-                                view_available_resources.c.flavor.in_(flavor_list))  # .order_by(view_available_resources.c.priority)
-                    except Exception as ex:
-                        log.exception(ex)
-                        time.sleep(1)
-                        continue
-
-                    for cloud in clouds_matching_new:
-                        if cloud.cloud_name in cloud_booted_on:
-                            continue
-                        log.debug("Taking a look at booting on: %s", cloud.cloud_name)
-                        log.debug("Using Flavor: %s", cloud.flavor)
-                        log.debug("num jobs per flavor: %s, flavor slots: %s", num_jobs_per_flavor_possible, cloud.flavor_slots)
-                        log.debug("Using Totals counts: %s", num_vm_jobs_per_flavor_total)
-                        # Need to redo this calculation for each cloud / flavor because it may change
-                        #num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
-                        num_vms_to_boot = num_vm_jobs_per_flavor_total[cloud.flavor]
-                        log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
-                        # This is the total wanted, but cloud may not be able to handle that request
-                        num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
-                        num_vms_to_boot = math.ceil(num_vms_to_boot)
-                        log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
-                        if num_vms_to_boot == 0:
-                            log.debug("Don't try to boot anything - continue")
-                            continue
-                        # Throttle amount of VMs to boot in one shot - should this be per cloud?
-                        # TODO To support more load balancing on clouds modify this section to split this amount
-                        # TODO across the clouds of the current cloud priority value. ALternatively figure out some kind of quota usage and sort the results on that similar to csv1
-                        if num_vms_to_boot > config.max_start_vm_cloud:
-                            num_vms_to_boot = config.max_start_vm_cloud
-                            log.debug("Adjusting for max_boot, will only boot: %s vms.", num_vms_to_boot)
-
-                        log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, cloud.cloud_name)
-                        try:
-                            usertmp = idle_job.user.split('@')[0]
-                        except:
-                            usertmp = idle_job.user
-                        template_dict = {'cs_user': usertmp,
-                                         'cs_group_name': csgroup.group_name,
-                                         'cs_condor_host': csgroup.htcondor_fqdn,
-                                         'cs_condor_name': csgroup.htcondor_container_hostname,
-                                         'cs_condor_submitters': csgroup.htcondor_other_submitters,}
-                        log.debug(template_dict)
-
-                        try:
-                            if cm_group.clouds[cloud.cloud_name].enabled:
-                                use_image = None
-                                if idle_job.image:
-                                    use_image = None
-                                elif cloud.default_image:
-                                    use_image = cloud.default_image
-                                else:
-                                    pass
-
-                                cm_group.clouds[cloud.cloud_name]\
-                                    .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
-                                               num=int(num_vms_to_boot),
-                                               flavor=cloud.flavor,  #cloud_match.flavor_name, # pass 'tri' instead so it keeps the group:cloud:flavor info?
-                                               job=idle_job,
-                                               template_dict=template_dict,
-                                               image = use_image)
-                                runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
-                                # TODO account for new vms in the new total tracking values?
-                                log.debug('done booting on cloud %s', cloud.cloud_name)
-                                cloud_booted_on.add(cloud.cloud_name)
-                                break
-                            #if runnable_job_count < 0:  # Still need more
-                            #    log.debug("Runnable total still negative after booting VMs, try to boot more on another cloud if possible.")
-                            #    continue
-                            #else:
-                            #    log.debug("Seem to have booted enough for this job for now.")
-                            #    break
-
-                        except Exception as ex:
-                            # lets try to disable or dump this cloud for now
-                            log.exception("Disable cloud %s due to exception(later).", cloud.cloud_name)
-                            #cm_group.clouds[cloud_match.cloud_name].enabled = False
-                            # TODO Need logic for re-enable before stopping things and forgetting about them.
-                    else:
-                        log.debug("Hit the end of clouds_matching_new, anything boot or nothing?")
-                else:  # We have enough, wait for things to register
-                    log.debug("Seem to have enough VMs for the number of idle jobs.")
-                    continue
-                    
-            config.db_close()
         time.sleep(15)  # delay between groups
 
 
