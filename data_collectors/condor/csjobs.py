@@ -83,11 +83,12 @@ def job_poller():
             group_users = {}
             for group in groups:
                 if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_hosts_set.add(group.htcondor_fqdn)
                     condor_central_manager = group.htcondor_fqdn
-                else:
+
+                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
-                    condor_central_manager = group.htcondor_container_hostname
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
 
                 if condor_central_manager not in condor_host_groups:
                     condor_host_groups[condor_central_manager] = [group.group_name]
@@ -170,7 +171,7 @@ def job_poller():
                         continue
 
                     #check group_name is valid for this host
-                    if job_dict['group_name'] not in condor_host_groups[condor_host]:
+                    if job_dict['group_name'] not in condor_host_groups[condor_central_manager]:
                         # not a valid group for this host
                         logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
                         forgein_jobs = forgein_jobs+1
@@ -284,10 +285,10 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
-                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
-                    condor_hosts_set.add(group.htcondor_fqdn)
-                else:
+                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
+                else:
+                    condor_hosts_set.add(group.htcondor_fqdn)
 
             uncommitted_updates = 0
             for condor_host in condor_hosts_set: 
