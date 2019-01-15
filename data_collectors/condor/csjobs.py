@@ -82,13 +82,10 @@ def job_poller():
             condor_host_groups = {}
             group_users = {}
             for group in groups:
+                # the container host name is only needed to issue commands so for the polling loop we always use htcondor_fqdn
                 if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
                     condor_central_manager = group.htcondor_fqdn
-
-                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
-                    condor_hosts_set.add(group.htcondor_container_hostname)
-                else:
-                    condor_hosts_set.add(group.htcondor_fqdn)
+                    condor_hosts_set.add(group.htcondor_fqdn)                   
 
                 if condor_central_manager not in condor_host_groups:
                     condor_host_groups[condor_central_manager] = [group.group_name]
@@ -171,7 +168,7 @@ def job_poller():
                         continue
 
                     #check group_name is valid for this host
-                    if job_dict['group_name'] not in condor_host_groups[condor_central_manager]:
+                    if job_dict['group_name'] not in condor_host_groups[condor_host]:
                         # not a valid group for this host
                         logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
                         forgein_jobs = forgein_jobs+1
@@ -285,6 +282,7 @@ def command_poller():
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
             for group in groups:
+                # for containers we will have to issue the commands directly to the container and not the condor fqdn so here it takes precedence 
                 if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
                     condor_hosts_set.add(group.htcondor_container_hostname)
                 else:
