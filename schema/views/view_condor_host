@@ -1,13 +1,16 @@
 create or replace view view_condor_host as 
 select
-    group_name,
+    cv.group_name,
     cloud_name,
+    htcondor_fqdn,
     vmid,
+    hostname,
     retire,
     terminate,
-    machine,
-    condor_host
+    machine
 from csv2_vms as cv
+left outer join csv2_groups as cg on
+    cv.group_name=cg.group_name
 left outer join (
     select distinct
         machine,
