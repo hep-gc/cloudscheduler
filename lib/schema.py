@@ -775,11 +775,12 @@ view_clouds_with_metadata_names = Table('view_clouds_with_metadata_names', metad
 view_condor_host = Table('view_condor_host', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
+  Column('htcondor_fqdn', String(128)),
   Column('vmid', String(128)),
+  Column('hostname', String(128)),
   Column('retire', Integer),
   Column('terminate', Integer),
-  Column('machine', String(256)),
-  Column('condor_host', String(64))
+  Column('machine', String(256))
   )
 
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
