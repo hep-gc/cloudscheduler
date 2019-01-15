@@ -82,10 +82,15 @@ def job_poller():
             condor_host_groups = {}
             group_users = {}
             for group in groups:
-                # the container host name is only needed to issue commands so for the polling loop we always use htcondor_fqdn
-                if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                if group.htcondor_container_hostname is not None and group.htcondor_container_hostname != "":
+                    condor_central_manager = group.htcondor_container_hostname
+                    condor_hosts_set.add(group.htcondor_container_hostname)
+                elif group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
                     condor_central_manager = group.htcondor_fqdn
-                    condor_hosts_set.add(group.htcondor_fqdn)                   
+                    condor_hosts_set.add(group.htcondor_fqdn)   
+                else:
+                    # no condor location set
+                    continue                
 
                 if condor_central_manager not in condor_host_groups:
                     condor_host_groups[condor_central_manager] = [group.group_name]
