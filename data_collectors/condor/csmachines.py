@@ -344,7 +344,7 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.condor_host==condor_host, view_condor_host.c.retire==1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire==1):
                     # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
                     #index=attribute
                     #0=group
@@ -402,7 +402,7 @@ def command_poller():
                 master_list = []
                 startd_list = []
                 #get list of vm/machines from this condor host
-                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.condor_host == condor_host, view_condor_host.c.terminate == 1)
+                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate == 1)
                 for resource in redundant_machine_list:
 
                     # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
@@ -436,9 +436,15 @@ def command_poller():
                             logging.error(exc)
 
                         # Now that the machine is terminated, we can speed up operations by invalidating the related classads
-                        logging.info("Removing classads for machine %s" % resource.machine)
+                        if resource.machine is not None:
+                            logging.info("Removing classads for machine %s" % resource.machine)
+                        else:
+                            logging.info("Removing classads for machine %s" % resource.hostname)
                         try:
-                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                            if resource.machine is not None and resource.machine is not "":
+                                condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                            else:
+                                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
                             master_list.append(condor_classad)
 
                             # this could be a list of adds if a machine has many slots
