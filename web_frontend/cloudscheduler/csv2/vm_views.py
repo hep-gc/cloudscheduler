@@ -81,7 +81,7 @@ def list(
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': message})
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
@@ -139,7 +139,7 @@ def update(request):
     if request.method == 'POST':
     
         # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
+        rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
         if rc != 0:
             config.db_close()
             return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), user_groups=user_groups)

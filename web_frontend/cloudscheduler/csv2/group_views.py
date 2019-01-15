@@ -88,13 +88,16 @@ METADATA_KEYS = {
         'enabled':                                    'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
-        'metadata_name':                              'lowercase',
+        ' metadata_name':                             'lowercase',
         'mime_type':                                  ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                        'ignore',
         'group':                                      'ignore',
         },
     'mandatory': [
+        'metadata_name',
+        ],
+    'not_empty': [
         'metadata_name',
         ],
     }

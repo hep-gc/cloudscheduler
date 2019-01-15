@@ -42,7 +42,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'ctg1')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'ctg1'),
-            'condor_central_manager': 'unit-test-group-one.ca'
+            'htcondor_fqdn': 'unit-test-group-one.ca'
         }
     )
 
@@ -51,7 +51,7 @@ def main(gvar, user_secret):
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'ctg2')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'ctg2'),
-            'condor_central_manager': 'unit-test-group-two.ca'
+            'htcondor_fqdn': 'unit-test-group-two.ca'
         }
     )
 

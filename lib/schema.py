@@ -305,23 +305,6 @@ csv2_configuration = Table('csv2_configuration', metadata,
   Column('config_value', String(128))
   )
 
-csv2_group_defaults = Table('csv2_group_defaults', metadata,
-  Column('group_name', String(32), primary_key=True),
-  Column('htcondor_fqdn', String(128)),
-  Column('htcondor_name', String(128)),
-  Column('htcondor_other_submitters', String(128)),
-  Column('job_cpus', Integer),
-  Column('job_ram', Integer),
-  Column('job_disk', Integer),
-  Column('job_scratch', Integer),
-  Column('job_swap', Integer),
-  Column('vm_flavor', String(64)),
-  Column('vm_image', String(64)),
-  Column('vm_keep_alive', Integer),
-  Column('vm_keyname', String(64)),
-  Column('vm_network', String(64))
-  )
-
 csv2_group_metadata = Table('csv2_group_metadata', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('metadata_name', String(64), primary_key=True),
@@ -339,7 +322,19 @@ csv2_group_metadata_exclusions = Table('csv2_group_metadata_exclusions', metadat
 
 csv2_groups = Table('csv2_groups', metadata,
   Column('group_name', String(32), primary_key=True),
-  Column('condor_central_manager', String)
+  Column('htcondor_fqdn', String(128)),
+  Column('htcondor_container_hostname', String(128)),
+  Column('htcondor_other_submitters', String(128)),
+  Column('job_cpus', Integer),
+  Column('job_ram', Integer),
+  Column('job_disk', Integer),
+  Column('job_scratch', Integer),
+  Column('job_swap', Integer),
+  Column('vm_flavor', String(64)),
+  Column('vm_image', String(64)),
+  Column('vm_keep_alive', Integer),
+  Column('vm_keyname', String(64)),
+  Column('vm_network', String(64))
   )
 
 csv2_mime_types = Table('csv2_mime_types', metadata,
@@ -355,7 +350,8 @@ csv2_service_catalog = Table('csv2_service_catalog', metadata,
   Column('service', String(64), primary_key=True),
   Column('fqdn', String(128), primary_key=True),
   Column('last_updated', Integer),
-  Column('flag_htcondor_allow', Integer)
+  Column('flag_htcondor_allow', Integer),
+  Column('yaml_attribute_name', String(64))
   )
 
 csv2_system_status = Table('csv2_system_status', metadata,
@@ -854,7 +850,9 @@ view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
 
 view_groups_with_metadata_info = Table('view_groups_with_metadata_info', metadata,
   Column('group_name', String(32)),
-  Column('condor_central_manager', String),
+  Column('htcondor_fqdn', String(128)),
+  Column('htcondor_container_hostname', String(128)),
+  Column('htcondor_other_submitters', String(128)),
   Column('metadata_name', String(64)),
   Column('metadata_enabled', Integer),
   Column('metadata_priority', Integer),
@@ -863,7 +861,9 @@ view_groups_with_metadata_info = Table('view_groups_with_metadata_info', metadat
 
 view_groups_with_metadata_names = Table('view_groups_with_metadata_names', metadata,
   Column('group_name', String(32)),
-  Column('condor_central_manager', String),
+  Column('htcondor_fqdn', String(128)),
+  Column('htcondor_container_hostname', String(128)),
+  Column('htcondor_other_submitters', String(128)),
   Column('metadata_names', String)
   )
 
@@ -926,12 +926,6 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('username', String(32)),
   Column('group_name', String(32)),
   Column('available', String(32))
-  )
-
-view_vm_counts_by_cores = Table('view_vm_counts_by_cores', metadata,
-  Column('status', String(7)),
-  Column('cores', Integer),
-  Column('VMs', Integer)
   )
 
 view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,

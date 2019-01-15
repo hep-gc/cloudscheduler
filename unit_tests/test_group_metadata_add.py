@@ -136,7 +136,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV##', 'invalid metadata name',
+        gvar, 1, 'GV25', 'group metadata-add parameter "metadata_name" contains an empty string which is specifically disallowed.',
         '/group/metadata-add/', form_data={
             'group': ut_id(gvar, 'gtg5'),
             'metadata_name': '',

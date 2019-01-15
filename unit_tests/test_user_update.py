@@ -146,10 +146,10 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'UV19', 'request contained a bad parameter "condor_central_manager".',
+        gvar, 1, 'UV19', 'request contained a bad parameter "htcondor_fqdn".',
         '/user/update/', form_data={
             'username': 'invalid-unit-test',
-            'condor_central_manager': 'invalid-unit-test'
+            'htcondor_fqdn': 'invalid-unit-test'
         }
     )
 
