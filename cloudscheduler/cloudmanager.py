@@ -50,7 +50,7 @@ class CloudManager():
                                                                             metadata=self.metadata[cloud.cloud_name])
                 else:
                     newcloud = cloudscheduler.openstackcloud.\
-                        OpenStackCloud(resource=cloud, metadata=self.metadata[cloud.cloud_name])
+                        OpenStackCloud(resource=cloud, metadata=self.metadata[cloud.cloud_name] if cloud.cloud_name in self.metadata.keys() else None)
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
             except Exception as ex:
