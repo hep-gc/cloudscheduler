@@ -23,15 +23,18 @@ fwd.default_image,
 fwd.default_keep_alive,
 fwd.default_keyname,
 fwd.default_network,
+ru.VMs,
 fwd.cores_max,
-vmc.cores_used,
+ru.cores_used,
+ru.disk_used,
 fwd.ram_max,
-vmc.ram_used,
+ru.ram_used,
+ru.swap_used,
 fwd.flavor,
 fwd.flavor_id,
 
-case when fwd.cores_max>ifnull(vmc.cores_used,0) and fwd.ram_max>ifnull(vmc.ram_used,0) then
-    least((fwd.cores_max-ifnull(vmc.cores_used,0)) div fwd.flavor_cores, (fwd.ram_max-ifnull(vmc.ram_used,0)) div fwd.flavor_ram)
+case when fwd.cores_max>ifnull(ru.cores_used,0) and fwd.ram_max>ifnull(ru.ram_used,0) then
+    least((fwd.cores_max-ifnull(ru.cores_used,0)) div fwd.flavor_cores, (fwd.ram_max-ifnull(ru.ram_used,0)) div fwd.flavor_ram)
 else
     0
 end as flavor_slots,
@@ -39,15 +42,7 @@ end as flavor_slots,
 fwd.flavor_cores,
 fwd.flavor_disk,
 fwd.flavor_ram,
-fwd.flavor_swap,
-ifnull(vmc.VMs,0) as VMs,
-ifnull(vmc.VMs_manual,0) as VMs_manual,
-ifnull(vmc.VMs_retiring,0) as VMs_retiring,
-ifnull(vmc.VMs_in_error,0) as VMs_in_error,
-ifnull(vmc.VMs_starting,0) as VMs_starting,
-ifnull(vmc.VMs_Unregistered,0) as VMs_unregistered,
-ifnull(vmc.VMs_idle,0) as VMs_idle,
-ifnull(vmc.VMs_running,0) as VMs_running
+fwd.flavor_swap
 from (
     /* fwd - flavors with defaults */
     select
@@ -152,96 +147,24 @@ from (
         ccfe.flavor_name is null
     ) as fwd
 left outer join (
-    /* vmc - VM counts */
+    /* ru - Resources used */
     select
-        vms.group_name,
-        vms.cloud_name,
-        vms.flavor,
-        vms.flavor_cores,
-        vms.flavor_disk,
-        vms.flavor_ram,
-        vms.flavor_swap,
-        sum(vms.flavor_cores * ifnull(vms.VMs,0)) as cores_used,
-        sum(vms.flavor_ram * ifnull(vms.VMs,0)) as ram_used,
-        sum(ifnull(vms.VMs,0)) as VMs,
-        sum(ifnull(vms.VMs_manual,0)) as VMs_manual,
-        sum(ifnull(vms.VMs_in_error,0)) as VMs_in_error,
-        sum(ifnull(vms.VMs_starting,0)) as VMs_starting,
-        sum(ifnull(vms.VMs_retiring,0)) as VMs_retiring,
-        sum(ifnull(vms.VMs_unregistered,0)) as VMs_unregistered,
-        sum(ifnull(vms.VMs_idle,0)) as VMs_idle,
-        sum(ifnull(vms.VMs_running,0)) as VMs_running,
-        sum(ifnull(vms.cores_native,0)) as cores_native,
-        sum(ifnull(vms.ram_native,0)) as ram_native,
-        sum(ifnull(vms.slot_count,0)) as slot_count,
-        sum(ifnull(vms.slot_core_count,0)) as slot_core_count,
-        sum(ifnull(vms.slot_idle_core_count,0)) as slot_idle_core_count
-    from (
-        /* vms - VM slots */
-        select
-            cv.group_name,
-            cv.cloud_name,
-            concat(cf.cloud_name, ':', cf.name) as flavor,
-            cores as flavor_cores,
-            disk as flavor_disk,
-            ram as flavor_ram,
-            swap as flavor_swap,
-            count(1) as VMs,
-            sum(cf.cores) as cores_native,
-            sum(cf.ram) as ram_native,
-            sum(case when cv.manual_control=1 then 1 else 0 end) as VMs_manual,
-            sum(case when cv.manual_control=0 and cv.status!='BUILD' and cv.status!='ACTIVE' then 1 else 0 end) as VMs_in_error,
-            sum(case when cv.manual_control=0 and cv.status='BUILD' then 1 else 0 end) as VMs_starting,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire>0 then 1 else 0 end) as VMs_retiring,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<1 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
-            sum(slot_count) as slot_count,
-            sum(slot_core_count) as slot_core_count,
-            sum(slot_idle_core_count) as slot_idle_core_count
-        from csv2_vms as cv
-        left outer join csv2_clouds as cc on
-            cv.group_name=cc.group_name and
-            cv.cloud_name=cc.cloud_name
-        left outer join cloud_flavors as cf on
-            cv.group_name=cf.group_name and
-            cv.cloud_name=cf.cloud_name and
-            cv.flavor_id=cf.id
-        left outer join (
-            /* cms - condor machine slots */
-            select
-                substring_index(machine, '--', 1) as group_name,
-                substring_index(substring_index(machine, '--', 2), '--', -1) as cloud_name,
-                substring_index(machine, '.', 1) as hostname,
-                flavor,
-                sum(case when slot_type='Partitionable' then 1 else 0 end) as slot_count,
-                sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
-                sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count
-            from condor_machines as cm, (select config_value as csv2_host_id from csv2_configuration where category='SQL' and config_key='csv2_host_id') as cnf
-            where machine like concat('%--', csv2_host_id, '--%')
-            group by
-                group_name,
-                cloud_name,
-                hostname,
-                flavor
-            ) as cms on
-            cv.group_name=cms.group_name and
-            cv.cloud_name=cms.cloud_name and
-            cv.hostname=cms.hostname and
-            concat(cf.cloud_name, ':', cf.name)=cms.flavor
-        where
-            cc.enabled=1
-        group by
-            group_name,
-            cloud_name,
-            flavor
-        ) as vms 
+        cv.group_name,
+        cv.cloud_name,
+        sum(1) as VMs,
+        sum(cores) as cores_used,
+        sum(disk+ephemeral_disk) as disk_used,
+        sum(ram) as ram_used,
+        sum(swap) as swap_used
+    from csv2_vms as cv
+    left outer join cloud_flavors as cf on
+        cv.group_name=cf.group_name and
+        cv.cloud_name=cf.cloud_name and
+        cv.flavor_id=cf.id
     group by
-        vms.group_name,
-        vms.cloud_name,
-        flavor
-    ) as vmc on
-    fwd.group_name=vmc.group_name and
-    fwd.cloud_name=vmc.cloud_name and
-    fwd.flavor=vmc.flavor
+        cv.group_name,
+        cv.cloud_name
+    ) as ru on
+    fwd.group_name=ru.group_name and
+    fwd.cloud_name=ru.cloud_name
 ;
