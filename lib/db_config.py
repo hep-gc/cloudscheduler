@@ -6,6 +6,7 @@ import os
 import socket
 import yaml
 import time
+from subprocess import Popen, PIPE
 
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import Session
@@ -16,6 +17,9 @@ class Config:
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
+
+        # Calculate csv2 version
+        self.version = self._calculate_version()
 
         # Retrieve the database configuration.
         if os.path.exists(db_yaml):
@@ -154,7 +158,7 @@ class Config:
 
     def incr_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
-        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
+        cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
         if cloud.error_count is None:
             cloud.error_count = 0
         cloud.error_count = cloud.error_count + 1
@@ -168,8 +172,49 @@ class Config:
 
     def reset_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
-        cloud=self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
+        cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
         cloud.error_count = 0
         self.db_session.merge(cloud)
         self.db_session.commit()
         return 1
+
+#-------------------------------------------------------------------------------
+    def version(self):
+        return self.version
+
+#-------------------------------------------------------------------------------
+
+    def _calculate_version(self):
+        version = None
+
+        path_info = sys.path[0].split('/')
+        path_info_ix = path_info.index('cloudscheduler')
+        cloudscheduler_root_dir = '/'.join(path_info[:path_info_ix+1])
+
+        p = Popen([
+            'git',
+            'tag',
+            '-l'
+            ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+
+        if p.returncode == 0:
+            info = stdout.decode('utf-8').split('\n')
+            if len(info) > 1:
+                version = info[-2]
+            else:
+                # get the commit number via "git log| awk '/^commit/'| wc"   can ignore the WC in favor of a decode & split like above
+                p1 = Popen([
+                    'git',
+                    'log',
+                    '-l'
+                    ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
+                p2 = Popen([
+                    'wc'
+                ], stdin= p1.stdout, stdout=PIPE, stderr=PIPE)
+                stdout, stderr = p2.communicate()
+                if p2.returncode == 0:
+                    info = std.out.decode('utf-8').split()
+                    version = info[0]
+
+        return version
