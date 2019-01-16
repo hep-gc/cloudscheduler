@@ -31,7 +31,6 @@ def main():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
     if not config:
         print("Problem loading config file.")
-    # RS FIXME, hardcoded logfile name, need entry in DB I guess
     logging.basicConfig(filename=config.log_file,
                         level=config.log_level,
                         format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
