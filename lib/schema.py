@@ -551,7 +551,11 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_cores', Integer),
   Column('flavor_disk', Integer),
   Column('flavor_ram', Integer),
-  Column('flavor_swap', Integer)
+  Column('flavor_swap', Integer),
+  Column('flavor_VMs', Integer),
+  Column('flavor_manual', Integer),
+  Column('flavor_error', Integer),
+  Column('flavor_retiring', Integer)
   )
 
 view_cloud_status = Table('view_cloud_status', metadata,

@@ -43,11 +43,10 @@ fwd.flavor_cores,
 fwd.flavor_disk,
 fwd.flavor_ram,
 fwd.flavor_swap,
-fru.flavor_VMs,
-fru.flavor_manual,
-fru.flavor_error,
-fru.flavor_starting,
-fru.flavor_retiring
+ifnull(fru.flavor_VMs,0) as flavor_VMs,
+ifnull(fru.flavor_manual,0) as flavor_manual,
+ifnull(fru.flavor_error,0) as flavor_error,
+ifnull(fru.flavor_retiring,0) as flavor_retiring
 
 from (
     /* fwd - flavors with defaults */
@@ -181,19 +180,13 @@ left outer join (
         cv2.flavor_id,
         sum(1) as flavor_VMs,
         sum(case when cv2.manual_control=1 then 1 else 0 end) as flavor_manual,
-        sum(case when cv2.manual_control=0 and cv2.status='ERROR' then 1 else 0 end) as flavor_in_error,
-        sum(case when cv2.manual_control=0 and cv2.status='BUILD' then 1 else 0 end) as flavor_starting,
-        sum(case when cv2.manual_control=0 and cv2.status='ACTIVE' and cv2.retire>0 then 1 else 0 end) as flavor_retiring,
-        case when 
-        sum(cores) as cores_used,
-        sum(disk+ephemeral_disk) as disk_used,
-        sum(ram) as ram_used,
-        sum(swap) as swap_used
+        sum(case when cv2.manual_control=0 and cv2.status='ERROR' then 1 else 0 end) as flavor_error,
+        sum(case when cv2.manual_control=0 and cv2.status='ACTIVE' and cv2.retire>0 then 1 else 0 end) as flavor_retiring
     from csv2_vms as cv2
     group by
-        cv.group_name,
-        cv.cloud_name,
-        cv.flavor_id
+        cv2.group_name,
+        cv2.cloud_name,
+        cv2.flavor_id
     ) as fru on
     fwd.group_name=fru.group_name and
     fwd.cloud_name=fru.cloud_name and
