@@ -32,7 +32,7 @@ def main():
     if not config:
         print("Problem loading config file.")
     # RS FIXME, hardcoded logfile name, need entry in DB I guess
-    logging.basicConfig(filename="/var/log/cloudscheduler/main.log",
+    logging.basicConfig(filename=config.log_file,
                         level=config.log_level,
                         format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
     log = logging.getLogger(__name__)
