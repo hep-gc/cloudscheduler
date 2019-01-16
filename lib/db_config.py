@@ -202,7 +202,7 @@ class Config:
         if p.returncode == 0:
             info = stdout.decode('utf-8').split('\n')
             if len(info) > 1:
-                version = info[-2]
+                version = "Tag: %s" % info[-2]
             else:
                 # get the commit number via "git log| awk '/^commit/'| wc"   can ignore the WC in favor of a decode & split like above
                 p1 = Popen([
@@ -217,6 +217,6 @@ class Config:
                 stdout, stderr = p2.communicate()
                 if p2.returncode == 0:
                     info = stdout.decode('utf-8').split('\n')
-                    version = len(info)
+                    version = "Build: %s" % len(info)
 
         return version

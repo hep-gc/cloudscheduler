@@ -543,8 +543,9 @@ if __name__ == '__main__':
     procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
+    version = config.get_version()
 
-    logging.info("**************************** starting cscollector *********************************")
+    logging.info("**************************** starting cscollector - Running %s *********************************" % version)
 
     # Wait for keyboard input to exit
     try:
