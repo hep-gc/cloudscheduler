@@ -3,6 +3,7 @@ DB utilities and configuration.
 """
 
 import os
+import sys
 import socket
 import yaml
 import time
@@ -179,7 +180,7 @@ class Config:
         return 1
 
 #-------------------------------------------------------------------------------
-    def version(self):
+    def get_version(self):
         return self.version
 
 #-------------------------------------------------------------------------------
@@ -206,15 +207,16 @@ class Config:
                 # get the commit number via "git log| awk '/^commit/'| wc"   can ignore the WC in favor of a decode & split like above
                 p1 = Popen([
                     'git',
-                    'log',
-                    '-l'
+                    'log'
                     ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
+               
                 p2 = Popen([
-                    'wc'
-                ], stdin= p1.stdout, stdout=PIPE, stderr=PIPE)
+                    'awk',
+                    '/^commit/'
+                    ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
                 stdout, stderr = p2.communicate()
                 if p2.returncode == 0:
-                    info = std.out.decode('utf-8').split()
-                    version = info[0]
+                    info = stdout.decode('utf-8').split('\n')
+                    version = len(info)
 
         return version
