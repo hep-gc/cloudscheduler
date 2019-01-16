@@ -136,6 +136,7 @@ def machine_poller():
     delete_cycle = False
     condor_inventory_built = False
     cycle_count = 0
+    uncommitted_updates = 0
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
