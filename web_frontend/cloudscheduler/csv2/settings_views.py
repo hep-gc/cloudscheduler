@@ -50,7 +50,6 @@ def prepare(request):
     """
     This function returns a minimal response plus a CSRF.
     """
-
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
@@ -75,3 +74,4 @@ def prepare(request):
 
     return render(request, 'csv2/settings.html', context)
 
+#-------------------------------------------------------------------------------
