@@ -364,7 +364,7 @@ def count_cloud_flavors(group, config):
         available = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == group)
         vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         for res in available:
-            count = res.VMs - res.VMs_in_error - res.VMs_retiring - res.VMs_manual
+            count = res.flavor_VMs - res.flavor_error - res.flavor_retiring
             # TODO flavor_name gone - only have flavor with the cloud:name format
             # TODO Can the nested structure go away and just use flavor?
             vm_cloud_flavors[res.cloud_name][res.flavor]['count'] = count
