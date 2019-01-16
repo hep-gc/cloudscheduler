@@ -45,7 +45,7 @@ class CloudManager():
 
         for cloud in self.group_resources:
             try:
-                if cloud.cloud_type == 'localhost':
+                if cloud.cloud_type == 'local':
                     newcloud = cloudscheduler.localhostcloud.LocalHostCloud(resource=cloud,
                                                                             metadata=self.metadata[cloud.cloud_name])
                 else:
