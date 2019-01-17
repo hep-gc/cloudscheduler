@@ -451,7 +451,7 @@ def command_poller():
                             master_list.append(condor_classad)
 
                             # this could be a list of adds if a machine has many slots
-                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.name)
+                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
                             for classad in condor_classads:
                                 startd_list.append(classad)
                         except IndexError as exc:
