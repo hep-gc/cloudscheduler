@@ -166,7 +166,7 @@ def machine_poller():
 
             forgein_machines = 0
             for condor_host in condor_hosts_set:
-                logging.info("Polling condor host: %s" % condor_host)
+                logging.debug("Polling condor host: %s" % condor_host)
                 try:
                     condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
@@ -319,7 +319,7 @@ def command_poller():
 
     try:
         while True:
-            logging.info("Beginning command consumer cycle")
+            logging.debug("Beginning command consumer cycle")
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)

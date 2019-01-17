@@ -35,7 +35,7 @@ def image_collection():
             #term signal detected, break while loop
             logging.info("Term signal detected, shutting down")
             return
-        logging.info("Start Image collection")
+        logging.debug("Start Image collection")
 
         config.db_open()
         session = config.db_session
@@ -46,11 +46,11 @@ def image_collection():
             do_cache_cleanup()
 
         for group in group_list:
-            logging.info("Querying group: %s for cloud resources." % group.group_name)
+            logging.debug("Querying group: %s for cloud resources." % group.group_name)
             repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             image_list = ()
             for repo in repo_list:
-                logging.info("Querying cloud: %s for image data." % repo.cloud_name)
+                logging.debug("Querying cloud: %s for image data." % repo.cloud_name)
                 try:
                     rcon = repo_connector(
                         auth_url=repo.authurl,
@@ -76,11 +76,11 @@ def image_collection():
 
             # now we have the most current version of the image matrix for this group the last
             # thing that needs to be done here is to proccess the PROJECTX_pending_transactions
-            logging.info("Processing pending Transactions for group: %s", group.group_name)
+            logging.debug("Processing pending Transactions for group: %s", group.group_name)
             updated_img_list = process_pending_transactions(
                 group_name=group.group_name,
                 json_img_dict=updated_img_list)
-            logging.info("Proccessing state changes for group: %s", group.group_name)
+            logging.debug("Proccessing state changes for group: %s", group.group_name)
             updated_img_list = process_state_changes(
                 group_name=group.group_name,
                 json_img_dict=updated_img_list)
@@ -94,7 +94,7 @@ def image_collection():
 
 
 
-        logging.info("Image collection complete, entering downtime")
+        logging.debug("Image collection complete, entering downtime")
         config.db_close()
         del session
 
@@ -137,7 +137,7 @@ def defaults_replication():
         for group in group_list:
             cloud_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             img_list = get_images_for_group(group.group_name)
-            logging.info("Checking resources for group %s's default image..." % group.group_name)
+            logging.debug("Checking resources for group %s's default image..." % group.group_name)
             check_and_transfer_image_defaults(session, img_list, group)
 
             keypair_dict = get_keypair_dict(group.group_name, session, Group_Resources, Keypairs)
@@ -264,7 +264,7 @@ def check_and_transfer_keypair_defaults(group, cloud_list, db_session, key_dict,
                 #Default key doesnt exist here and needs to be transferred
                 # get keypair needs group resources entry (cloud)
                 # transfer keypair needs keypair and target group_resources entry (cloud)
-                logging.info("Getting OS keypair...")
+                logging.debug("Getting OS keypair...")
                 os_keypair = get_keypair(comp_key, src_cloud)
                 logging.info("Uploading default keypair to %s" % cloud.cloud_name)
                 transfer_keypair(os_keypair, cloud)

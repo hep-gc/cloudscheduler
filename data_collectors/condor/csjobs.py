@@ -115,7 +115,7 @@ def job_poller():
             foreign_jobs = 0
             for condor_host in condor_hosts_set:
                 foreign_jobs = 0
-                logging.info("Polling condor host: %s" % condor_host)
+                logging.debug("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
                     scheddAd = coll.locate(htcondor.DaemonTypes.Schedd, condor_host)
@@ -281,7 +281,7 @@ def command_poller():
 
     try:
         while True:
-            logging.info("Beginning command consumer cycle")
+            logging.debug("Beginning command consumer cycle")
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
@@ -352,7 +352,7 @@ def command_poller():
                     time.sleep(config.sleep_interval_command)
                     continue
 
-            logging.info("Completed command consumer cycle")
+            logging.debug("Completed command consumer cycle")
             config.db_close()
             time.sleep(config.sleep_interval_command)
 

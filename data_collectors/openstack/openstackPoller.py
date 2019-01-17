@@ -142,7 +142,7 @@ def flavor_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning flavor poller cycle")
+            logging.debug("Beginning flavor poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -164,7 +164,7 @@ def flavor_poller():
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.info("Processing flavours from cloud - %s" % cloud_name)
+                logging.debug("Processing flavours from cloud - %s" % cloud_name)
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
@@ -318,7 +318,7 @@ def image_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning image poller cycle")
+            logging.debug("Beginning image poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -339,7 +339,7 @@ def image_poller():
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.info("Processing Images from cloud - %s" % cloud_name)
+                logging.debug("Processing Images from cloud - %s" % cloud_name)
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
@@ -487,7 +487,7 @@ def keypair_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning keypair poller cycle")
+            logging.debug("Beginning keypair poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -507,7 +507,7 @@ def keypair_poller():
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.info("Processing Key pairs from group:cloud - %s" % cloud_name)
+                logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s" % cloud_name)
@@ -638,7 +638,7 @@ def limit_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning limit poller cycle")
+            logging.debug("Beginning limit poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -660,7 +660,7 @@ def limit_poller():
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.info("Processing limits from cloud - %s" % cloud_name)
+                logging.debug("Processing limits from cloud - %s" % cloud_name)
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
@@ -795,7 +795,7 @@ def network_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
         while True:
-            logging.info("Beginning network poller cycle")
+            logging.debug("Beginning network poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -816,7 +816,7 @@ def network_poller():
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.info("Processing networks from cloud - %s" % cloud_name)
+                logging.debug("Processing networks from cloud - %s" % cloud_name)
                 session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
@@ -959,7 +959,7 @@ def vm_poller():
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
-            logging.info("Beginning VM poller cycle")
+            logging.debug("Beginning VM poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -1186,7 +1186,7 @@ def vm_poller():
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict)
 
-            logging.info("Completed VM poller cycle")
+            logging.debug("Completed VM poller cycle")
             config.db_close()
             del db_session
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_vm)
