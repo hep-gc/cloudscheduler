@@ -11,7 +11,7 @@ from sqlalchemy.sql import func
 ## Poller functions.
 
 def start_cycle(new_poll_time, start_time):
-    logging.info("Beginning poller cycle")
+    logging.debug("Beginning poller cycle")
     start_time = time.time()
     new_poll_time = int(start_time)
     return new_poll_time, start_time
