@@ -16,13 +16,13 @@ from (
         select
             cv.group_name,
             cv.cloud_name,
-            case when ifnull(cc.vm_keep_alive,-1)!=-1 then
+            case when ifnull(cc.vm_keep_alive,-1)>=120 then
                 cc.vm_keep_alive
             else
-                case when ifnull(cg.vm_keep_alive,-1)!=-1 then
+                case when ifnull(cg.vm_keep_alive,-1)>=120 then
                     cg.vm_keep_alive
                 else
-                    0
+                    120
                 end
             end as keep_alive,
             vmid,
