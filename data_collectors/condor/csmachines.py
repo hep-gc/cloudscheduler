@@ -489,7 +489,6 @@ def command_poller():
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 
