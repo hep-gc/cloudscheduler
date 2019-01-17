@@ -994,7 +994,7 @@ def vm_poller():
                         else:
                             failure_dict[group_name+cloud_name] = failure_dict[group_name+cloud_name] + 1
                         if failure_dict[group_name+cloud_name] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, skipping" % (group_name, cloud_name))
+                            logging.error("Failure threshhold limit reached for %s:%s, manual action required, skipping" % (group_name, cloud_name))
                         continue
 
                     # Retrieve VM list for this cloud.
