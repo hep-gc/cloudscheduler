@@ -479,7 +479,7 @@ def command_poller():
                     master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
                     logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
-            logging.info("Completed command consumer cycle")
+            logging.debug("Completed command consumer cycle")
             del condor_session
             config.db_close(commit=True)
             del db_session
