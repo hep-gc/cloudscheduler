@@ -112,9 +112,9 @@ def job_poller():
                 group_users[group.group_name] = user_list
 
             uncommitted_updates = 0
-            forgein_jobs = 0
+            foreign_jobs = 0
             for condor_host in condor_hosts_set:
-                forgein_jobs = 0
+                foreign_jobs = 0
                 logging.info("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
@@ -157,7 +157,7 @@ def job_poller():
                             job_dict['group_name'] = grp_name.group(2)
                         except Exception as exc:
                             logging.debug("No group name found in requirements expression... ignoring foreign job.")
-                            forgein_jobs = forgein_jobs+1
+                            foreign_jobs = foreign_jobs+1
                             if "nogrp" not in job_errors:
                                 job_errors["nogrp"] = 1
                             else:
@@ -165,7 +165,7 @@ def job_poller():
                             continue
                     else:
                         logging.debug("No requirements attribute found, not a csv2 job... ignoring foreign job.")
-                        forgein_jobs = forgein_jobs+1
+                        foreign_jobs = foreign_jobs+1
                         if "noreq" not in job_errors:
                             job_errors["noreq"] = 1
                         else:
@@ -176,7 +176,7 @@ def job_poller():
                     if job_dict['group_name'] not in condor_host_groups[condor_host]:
                         # not a valid group for this host
                         logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
-                        forgein_jobs = forgein_jobs+1
+                        foreign_jobs = foreign_jobs+1
                         if "invalidgrp" not in job_errors:
                             job_errors["invalidgrp"] = 1
                         else:
@@ -188,7 +188,7 @@ def job_poller():
                     if job_dict['Owner'] not in group_users[job_dict['group_name']]:
                         # this user isn''t registered with this group and thus cannot submit jobs to it
                         logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
-                        forgein_jobs = forgein_jobs+1
+                        foreign_jobs = foreign_jobs+1
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
                         else:
@@ -224,8 +224,8 @@ def job_poller():
                         abort_cycle = True
                         break
                         
-                if forgein_jobs > 0:
-                    logging.info("Ignored %s forgein jobs" % forgein_jobs)
+                if foreign_jobs > 0:
+                    logging.info("Ignored %s foreign jobs" % foreign_jobs)
                     if "nogrp" in job_errors:
                         logging.info("%s ignored for missing group name" % job_errors["nogrp"])
                     if "noreq" in job_errors:
