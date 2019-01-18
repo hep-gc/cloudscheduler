@@ -415,7 +415,7 @@ def check_unregistered_machines(group, config):
                     continue
                 cname = hostname_split[1]
                 if cname in cloud_names: # name prefix matches a valid cloud name
-                    if int(time.time()) - vm.start_time > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
+                    if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
                         to_terminate.append(vm.vmid)
                         log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
                     elif not vm.terminate and vm.retire:
@@ -425,8 +425,6 @@ def check_unregistered_machines(group, config):
                         log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
                                   str(int(time.time()) - vm.last_updated), vm.terminate)
                         new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
-                else:
-                    non_cs_vm.append(vm.hostname)
             except Exception as ex:
                 log.exception("Problem going through %s unregistered VMs: %s", group, ex)
         if to_terminate:
