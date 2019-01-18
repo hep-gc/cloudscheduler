@@ -179,7 +179,14 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
             base.prepare(engine, reflect=True)
             db_session = Session(engine)
             Vms = base.classes.csv2_vms
-            list_vms = nova.servers.list(search_opts={'name':hostname})
+            for i in range(0,3):
+                try:
+                    list_vms = nova.servers.list(search_opts={'name':hostname})
+                    break
+                except novaclient.exceptions.BadRequest as ex:
+                    self.log.warning("Bad Request caught, OpenStack db may not be updated yet, retrying")
+                    time.sleep(1)
+
             for vm in list_vms:
                 self.log.debug(vm)
 

@@ -233,7 +233,7 @@ def main():
                             log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
                             # This is the total wanted, but cloud may not be able to handle that request
                             num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
-                            num_vms_to_boot = math.ceil(num_vms_to_boot)
+                            num_vms_to_boot = math.floor(num_vms_to_boot)
                             log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
                             if num_vms_to_boot == 0:
                                 log.debug("Don't try to boot anything - continue")
