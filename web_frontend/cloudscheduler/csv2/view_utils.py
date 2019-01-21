@@ -1071,6 +1071,7 @@ def validate_fields(config, request, fields, tables, active_user):
                 Fields[field_alias] = value
             else: 
                 array_field = field.split('.')
+                print(">>>>>>>>>>>>>>>>>>>", array_field)
                 if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
                     if array_field[0] not in Fields:
                         Fields[array_field[0]] = []

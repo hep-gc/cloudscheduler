@@ -36,7 +36,7 @@ select
     other,
     group_concat(distinct flavor) as flavors
 from (
-    /* n02 - Finalize request specifications and counters */
+    /* jbf - Jobs grouped by flavor */
     select
         group_name,
         target_clouds,
@@ -54,16 +54,16 @@ from (
         flavor_priority,
         min(request_cpus) as request_cpus_min,
         max(request_cpus) as request_cpus_max,
-        sum(request_cpus) as request_cpus_total,
+        sum(request_cpus*count) as request_cpus_total,
         min(request_disk) as request_disk_min,
         max(request_disk) as request_disk_max,
-        sum(request_disk) as request_disk_total,
+        sum(request_disk*count) as request_disk_total,
         min(request_ram) as request_ram_min,
         max(request_ram) as request_ram_max,
-        sum(request_ram) as request_ram_total,
+        sum(request_ram*count) as request_ram_total,
         min(request_swap) as request_swap_min,
         max(request_swap) as request_swap_max,
-        sum(request_swap) as request_swap_total,
+        sum(request_swap*count) as request_swap_total,
         min(queue_date) as queue_date,
         sum(case when job_status=1 then count else 0 end) as idle,
         sum(case when job_status=2 then count else 0 end) as running,
@@ -71,9 +71,9 @@ from (
         sum(case when job_status=5 then count else 0 end) as held,
         sum(case when job_status!=1 and job_status!=2 and job_status!=4 and job_status!=5 then count else 0 end) as other
     from (
-        /* n11 - Get groups of jobs by job_status and attach flavor information */
+        /* gojwf - Groups of jobs with flavor information */
         select
-            n01.*,
+            goj.*,
             var.flavor,
             row_number() over (partition by
                 group_name,
@@ -101,7 +101,7 @@ from (
                 flavor_swap
             ) as flavor_priority
         from (
-            /* n01 - Get groups of jobs by job_status and attach flavor information */
+            /* goj - Groups of jobs by job_status */
             select
                 group_name,
                 target_clouds,
@@ -141,23 +141,31 @@ from (
                 request_disk,
                 request_ram,
                 request_swap
-            ) as n01
+            ) as goj
         join view_available_resources as var on
-            n01.group_name=var.group_name and 
-            case when n01.target_clouds is null or instr(n01.target_clouds, var.cloud_name) > 0 then
-                case when n01.instance_type is null then
-                    case when
-                        n01.request_cpus <= var.flavor_cores and 
-                        n01.request_disk <= var.flavor_disk and 
-                        n01.request_ram  <= var.flavor_ram and 
-                        n01.request_swap <= var.flavor_swap
-                    then 
-                        1
+            goj.group_name=var.group_name and 
+            case when goj.target_clouds is null or instr(goj.target_clouds, var.cloud_name) > 0 then
+                case when goj.instance_type is null then
+                    case when var.default_flavor is null then
+                        case when
+                            goj.request_cpus <= var.flavor_cores and 
+                            goj.request_disk <= var.flavor_disk and 
+                            goj.request_ram  <= var.flavor_ram and 
+                            goj.request_swap <= var.flavor_swap
+                        then 
+                            1
+                        else
+                            0
+                        end
                     else
-                        0
+                        case when var.default_flavor = var.flavor then
+                            1
+                        else
+                            0
+                        end
                     end
                 else
-                    case when n01.instance_type = var.flavor then
+                    case when goj.instance_type = var.flavor then
                         1
                     else
                         0
@@ -166,7 +174,7 @@ from (
             else
                 0
             end > 0 
-        ) as n11
+        ) as gojwf
     where flavor_priority=1
     group by
         group_name,
@@ -182,7 +190,7 @@ from (
         user_data,
         job_per_core,
         flavor
-    ) as n02
+    ) as jbf
 group by
     group_name,
     target_clouds,
@@ -198,12 +206,16 @@ group by
     job_per_core,
     request_cpus_min,
     request_cpus_max,
+    request_cpus_total,
     request_disk_min,
     request_disk_max,
+    request_disk_total,
     request_ram_min,
     request_ram_max,
+    request_ram_total,
     request_swap_min,
     request_swap_max,
+    request_swap_total,
     queue_date,
     idle,
     running,

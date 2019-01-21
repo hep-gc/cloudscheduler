@@ -11,7 +11,7 @@ from sqlalchemy.sql import func
 ## Poller functions.
 
 def start_cycle(new_poll_time, start_time):
-    logging.info("Beginning poller cycle")
+    logging.debug("Beginning poller cycle")
     start_time = time.time()
     new_poll_time = int(start_time)
     return new_poll_time, start_time
@@ -30,10 +30,10 @@ def wait_cycle(start_time, poll_time_history, config_sleep_time):
     avg_cycle_length = avg_cycle_length/len(poll_time_history)
 
     if avg_cycle_length > config_sleep_time:
-        logging.info("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, avg_cycle_length))
+        logging.debug("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, avg_cycle_length))
         time.sleep(avg_cycle_length)
     else:
-        logging.info("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, config_sleep_time))
+        logging.debug("Completed cycle - cycle length: %s, sleeping for %s" % (cycle_length, config_sleep_time))
         time.sleep(config_sleep_time)
     return
 
@@ -45,7 +45,7 @@ def build_inventory_for_condor(inventory, db_session, group_resources_class):
 
 def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None):
     inventory_deletions = []
-    logging.info("Delete Cycle - checking database for consistency")
+    logging.debug("Delete Cycle - checking database for consistency")
     for group_name in inventory:
         for cloud_name in inventory[group_name]:
             if failure_dict is not None:

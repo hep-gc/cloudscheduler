@@ -88,7 +88,7 @@ METADATA_KEYS = {
         'enabled':                                    'dboolean',
         'priority':                                   'integer',
         'metadata':                                   'metadata',
-        ' metadata_name':                             'lowercase',
+        'metadata_name':                             'lowercase',
         'mime_type':                                  ('csv2_mime_types', 'mime_type'),
 
         'csrfmiddlewaretoken':                        'ignore',
@@ -267,6 +267,12 @@ def defaults(request):
     if user_groups_set:
         s = select([csv2_groups]).where(csv2_groups.c.group_name==active_user.active_group)
         defaults_list = qt(config.db_connection.execute(s))
+
+        # Replace None values with "".
+        for defaults in defaults_list:
+            for key, value in defaults.items():
+                if value == None:
+                    defaults_list[0][key]=""
 
         # And additional information for the web page.
         if request.META['HTTP_ACCEPT'] != 'application/json':

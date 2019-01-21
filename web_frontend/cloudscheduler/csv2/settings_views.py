@@ -66,7 +66,8 @@ def prepare(request):
             'super_user': active_user.is_superuser,
             'user_groups': user_groups,
             'response_code': 0,
-            'message': None
+            'message': None,
+            'version': config.get_version() 
     }
     config.db_close()
     print("Prepare time: %f.5" % time.time())

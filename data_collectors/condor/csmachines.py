@@ -166,7 +166,7 @@ def machine_poller():
 
             forgein_machines = 0
             for condor_host in condor_hosts_set:
-                logging.info("Polling condor host: %s" % condor_host)
+                logging.debug("Polling condor host: %s" % condor_host)
                 try:
                     condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
@@ -281,7 +281,6 @@ def machine_poller():
                 except Exception as exc:
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
-                    del condor_session
                     config.db_close()
                     del db_session
                     time.sleep(config.sleep_interval_machine)
@@ -291,7 +290,6 @@ def machine_poller():
                 # Check for deletes
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
-            del condor_session
             config.db_close(commit=True)
             del db_session
             cycle_count = cycle_count + 1
@@ -321,7 +319,7 @@ def command_poller():
 
     try:
         while True:
-            logging.info("Beginning command consumer cycle")
+            logging.debug("Beginning command consumer cycle")
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
@@ -453,7 +451,7 @@ def command_poller():
                             master_list.append(condor_classad)
 
                             # this could be a list of adds if a machine has many slots
-                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.name)
+                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
                             for classad in condor_classads:
                                 startd_list.append(classad)
                         except IndexError as exc:
@@ -481,7 +479,7 @@ def command_poller():
                     master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
                     logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
-            logging.info("Completed command consumer cycle")
+            logging.debug("Completed command consumer cycle")
             del condor_session
             config.db_close(commit=True)
             del db_session
@@ -491,7 +489,6 @@ def command_poller():
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 
