@@ -148,10 +148,10 @@ from (
                 case when goj.instance_type is null then
                     case when var.default_flavor is null then
                         case when
-                            ifnull(goj.request_cpus,0) <= var.flavor_cores and 
-                            ifnull(goj.request_disk / (1024 * 1024),0) <= var.flavor_disk and 
-                            ifnull(goj.request_ram,0) <= var.flavor_ram and 
-                            ifnull(goj.request_swap,0) <= var.flavor_swap
+                            goj.request_cpus <= var.flavor_cores and 
+                            goj.request_disk <= var.flavor_disk and 
+                            goj.request_ram  <= var.flavor_ram and 
+                            goj.request_swap <= var.flavor_swap
                         then 
                             1
                         else
