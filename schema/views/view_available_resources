@@ -55,7 +55,7 @@ from (
         concat(cf1.cloud_name, ':', cf1.name) as flavor,
         cf1.id as flavor_id,
         cf1.cores as flavor_cores,
-        cf1.disk as flavor_disk,
+        cf1.disk + cf1.ephemeral_disk as flavor_disk,
         cf1.ram as flavor_ram,
         cf1.swap as flavor_swap
     from (

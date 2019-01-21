@@ -147,10 +147,10 @@ from (
             case when n01.target_clouds is null or instr(n01.target_clouds, var.cloud_name) > 0 then
                 case when n01.instance_type is null then
                     case when
-                        ifnull(n01.request_cpus,0) <= var.flavor_cores and 
-                        ifnull(n01.request_disk / (1024 * 1024),0) <= var.flavor_disk and 
-                        ifnull(n01.request_ram,0) <= var.flavor_ram and 
-                        ifnull(n01.request_swap,0) <= var.flavor_swap
+                        n01.request_cpus <= var.flavor_cores and 
+                        n01.request_disk <= var.flavor_disk and 
+                        n01.request_ram  <= var.flavor_ram and 
+                        n01.request_swap <= var.flavor_swap
                     then 
                         1
                     else
