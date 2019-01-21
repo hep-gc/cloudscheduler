@@ -271,10 +271,9 @@ def machine_poller():
                 if abort_cycle:
                     del condor_session
                     config.db_close()
-                    del db_session
                     break
 
-            if uncommitted_updates > 0:
+            if 'db_session'in locals() and uncommitted_updates > 0:
                 try:
                     db_session.commit()
                     logging.info("Machine updates committed: %d" % uncommitted_updates)
@@ -282,7 +281,6 @@ def machine_poller():
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
                     config.db_close()
-                    del db_session
                     time.sleep(config.sleep_interval_machine)
                     continue
 
@@ -291,7 +289,8 @@ def machine_poller():
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
                 delete_cycle = False
             config.db_close(commit=True)
-            del db_session
+            if 'db_session' in locals():
+                del db_session
             cycle_count = cycle_count + 1
             if cycle_count > config.delete_cycle_interval:
                 delete_cycle = True
