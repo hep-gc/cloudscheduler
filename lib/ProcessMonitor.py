@@ -24,7 +24,7 @@ class ProcessMonitor:
             level=self.config.log_level,
             format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
         self.orange_count_row = orange_count_row
-        self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 0, 0)
+        self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 1, 0)
         self.process_ids = process_ids
 
     def get_process_ids(self):
