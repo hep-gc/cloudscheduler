@@ -52,9 +52,8 @@ function togglePlot(trace){
 	//else set_refresh(1000*document.getElementById("CDTimer").firstChild.data);
 }
 
-
 function getTraceData(trace){
-	//console.log(trace.dataset.path);
+	console.log(trace.dataset.path);
 	var line = trace.dataset.path.split(" ");
 	//console.log(line);
 	var group = line[0];
@@ -69,6 +68,7 @@ function getTraceData(trace){
 	//console.log(group);
 	//console.log(cloud);
 	//console.log(measurement);
+	console.log(trace.firstChild.data);
 	var newtrace = {
 		type: "scatter",
 		mode: 'lines+markers',
@@ -111,14 +111,30 @@ var TSPlot = {
 		TSPlot.traces = [];
 		Plotly.purge('plotly-TS');
 		document.getElementById("plot").style.display = 'none';
+		console.log(document.getElementById("CDTimer").firstChild.data)
+		var timer_status;
+		if(TimerSwitch == 1) timer_status = "on";
+		else timer_status = "off";
+		//console.log("Timer was "+timer_status);
+		//console.log(1000*document.getElementById("CDTimer").firstChild.data);
 		set_refresh(1000*document.getElementById("CDTimer").firstChild.data);
+		if(TimerSwitch == 1) timer_status = "on";
+		else timer_status = "off";
+		//console.log("Timer now is "+timer_status);
 	},
 
 	show: function(){
 		TSPlot.showing = true;
 		document.getElementById("plot").style.display = 'block';
+		var timer_status;
+		if(TimerSwitch == 1) timer_status = "on";
+		else timer_status = "off";
+		//console.log("Timer was "+timer_status);
 		stop_refresh();
-		
+		//clearTimeout(timer_id);
+		if(TimerSwitch == 1) timer_status = "on";
+		else timer_status = "off";
+		//console.log("Timer now is "+timer_status);
 	}
 
 }//TSPlot
