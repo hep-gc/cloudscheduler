@@ -1132,6 +1132,14 @@ def vm_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
+                        if uncommitted_updates >= config.batch_commit_size:
+                            try:
+                                db_session.commit()
+                                logging.debug("Comitted %s VMs" % uncomitted_updates)
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.error("Error during batch commit of VMs:")
+                                logging.error(exc)
 
                     del nova
                     if abort_cycle:

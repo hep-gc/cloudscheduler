@@ -282,7 +282,6 @@ def machine_poller():
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
                     config.db_close()
-                    del db_session
                     time.sleep(config.sleep_interval_machine)
                     continue
 
