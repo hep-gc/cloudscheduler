@@ -1,0 +1,12 @@
+delimiter //
+create or replace trigger trigger_add_htcondor_partition
+after insert on condor_machines
+for each row
+begin
+    if NEW.slot_type='Partitionable' then
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_slots,0)+1,htcondor_partitionable_slots_timestamp=unix_timestamp() where hostname=substring_index(NEW.machine,'.',1);
+    elseif NEW.slot_type='Dynamic' then
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_slots,0)+1,htcondor_dynamic_slots_timestamp=unix_timestamp() where hostname=substring_index(NEW.machine,'.',1);
+    end if;
+end; //
+delimiter ;

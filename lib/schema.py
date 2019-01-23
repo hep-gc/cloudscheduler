@@ -415,6 +415,9 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
+  Column('htcondor_partitionable_slots', Integer),
+  Column('htcondor_dynamic_slots', Integer),
+  Column('htcondor_slots_timestamp', Integer),
   Column('retire', Integer),
   Column('retire_time', Integer),
   Column('terminate', Integer),
@@ -518,6 +521,12 @@ silk_sqlquery = Table('silk_sqlquery', metadata,
   Column('time_taken', Float),
   Column('traceback', String),
   Column('request_id', String(36))
+  )
+
+test_table = Table('test_table', metadata,
+  Column('hostname', String(128), primary_key=True),
+  Column('htcondor_dynamic_slots', Integer),
+  Column('htcondor_dynamic_slots_changed', Integer)
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -986,5 +995,15 @@ view_vms = Table('view_vms', metadata,
   Column('ram', Integer),
   Column('swap', Integer),
   Column('poller_status', String(12))
+  )
+
+xxx = Table('xxx', metadata,
+  Column('machine', String(256)),
+  Column('changed', Integer)
+  )
+
+yyy = Table('yyy', metadata,
+  Column('machine', String(256)),
+  Column('changed', Integer)
   )
 
