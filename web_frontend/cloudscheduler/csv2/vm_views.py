@@ -103,10 +103,6 @@ def list(
         'last_updated': 'datetime'
         })
 
-    # Retrieve available Clouds.
-    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    cloud_list = qt(config.db_connection.execute(s))
-
     config.db_close()
 
     # Render the page.
@@ -114,8 +110,8 @@ def list(
             'active_user': active_user,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
-            'cloud_list': cloud_list,
             'vm_list': vm_list,
+            'selector' : selector, 
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint
@@ -127,7 +123,10 @@ def list(
 
 @silkp(name="VM Update")
 @requires_csrf_token
-def update(request):
+def update(
+    request, 
+    selector='::::'
+    ):
     """
     Update VMs.
     """
@@ -142,13 +141,13 @@ def update(request):
         rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
         if rc != 0:
             config.db_close()
-            return list(request, response_code=1, message='%s %s' % (lno('VV01'), msg), user_groups=user_groups)
+            return list(request, selector, response_code=1, message='%s %s' % (lno('VV01'), msg), user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [VM_KEYS, MANDATORY_KEYS], ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
             config.db_close()
-            return list(request, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), user_groups=user_groups)
+            return list(request, selector, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
             table = tables['csv2_vms']
@@ -161,7 +160,7 @@ def update(request):
                 verb = 'killed or retired'
             else:
                 config.db_close()
-                return list(request, response_code=1, message='%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno('VV98'))
+                return list(request, selector, response_code=1, message='%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno('VV98'))
         elif fields['vm_option'] == 'manctl':
             table = tables['csv2_vms']
             verb = 'set to manual control'
@@ -169,10 +168,12 @@ def update(request):
             table = tables['csv2_vms']
             verb = 'set to system control'
         else:
-            return list(request, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
+            return list(request, selector, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
 
         # Retrieve VM information.
-        if fields['vm_hosts'].isnumeric():
+        #if fields['vm_hosts'].isnumeric():
+        if isinstance(fields['vm_hosts'], int):
+           
             if 'cloud_name' in fields:
                 count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'])
 #               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000])
@@ -204,15 +205,15 @@ def update(request):
                         count += msg
                     else:
                         config.db_close()
-                        return list(request, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
+                        return list(request, selector, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
         if count > 0:
             config.db_close(commit=True)
         else:
             config.db_close()
 
-        return list(request, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
+        return list(request, selector, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
 
     ### Bad request.
     else:
-        return list(request, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method))
+        return list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method))

@@ -16,7 +16,7 @@
   background-color: grey;
   color: white;
   padding: 0px;
-}
+}z
 
 .vm-div {
   position: relative;
@@ -121,4 +121,9 @@
 
 .vm-table td {
   text-align: center;
+}
+
+.vm-terminated td {
+  background-color: red !important;
+  color: white !important;
 }
