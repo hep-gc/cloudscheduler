@@ -6,14 +6,14 @@
 
 
 .title-row {
-  background-color: orange;
+  background-color: whitesmoke;
   color: black;
   font-style: bold;
   padding: 0px;
 }
 
 .box-row {
-  background-color: grey;
+  background-color: whitesmoke;
   color: white;
   padding: 0px;
 }z
@@ -40,8 +40,6 @@
 
 .button {
   border: none;
-
-  color: white;
   cursor: pointer;
 
   font-size: 14px;
@@ -63,16 +61,25 @@
 }
 
 .retire-button {
-  background-color: #4CAF50;
+  background-color: orange;
+  color: white;
 }
 
 .kill-button {
-  background-color: #f44336;
+  background-color: red;
   color: black;
 }
 
-.control-button {
-  background-color: #4CAF50;
+.manual-button {
+  background-color: green;
+  color: white;
+
+}
+
+.system-button {
+  background-color: blue;
+  color: white;
+
 }
 
 .vm-table {
@@ -121,6 +128,11 @@
 
 .vm-table td {
   text-align: center;
+}
+
+.vm-retired td {
+  background-color: orange !important;
+  color: white !important;
 }
 
 .vm-terminated td {

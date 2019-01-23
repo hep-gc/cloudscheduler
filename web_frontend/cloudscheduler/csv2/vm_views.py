@@ -153,7 +153,7 @@ def update(
             table = tables['csv2_vms']
             verb = 'killed'
         elif fields['vm_option'] == 'retire':
-            table = tables['condor_machines']
+            table = tables['csv2_vms']
             verb = 'retired'
         elif fields['vm_option'] == 'retain':
             if fields['vm_hosts'].isnumeric():
