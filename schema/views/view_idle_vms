@@ -5,6 +5,7 @@ from (
     select
         cv.group_name,
         cv.cloud_name,
+        c.config_value as come_alive,
         case when ifnull(cc.vm_keep_alive,-1)>=120 then
             cc.vm_keep_alive
         else
@@ -22,6 +23,9 @@ from (
         terminate,
         unix_timestamp()-ifnull(htcondor_slots_timestamp,unix_timestamp()) as age
     from csv2_vms as cv
+    join csv2_configuration as c on
+        c.category='SQL' and
+        c.config_key='vm_come_alive'
     left outer join csv2_clouds as cc on
         cv.group_name=cc.group_name and
         cv.cloud_name=cc.cloud_name
@@ -29,5 +33,7 @@ from (
         cc.group_name=cg.group_name
     ) as vms
 where 
-    age>keep_alive
+    (primary_slots is null and age>come_alive) or
+    (primary_slots is not null and dynamic_slots is null and age>keep_alive) or
+    (dynamic_slots=0 and age>keep_alive)
 ;
