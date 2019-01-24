@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""
+Synopsis: utilities/cstrigger redefine
+
+This command is used to redefin csv2 triggers.
+"""
+
+from subprocess import Popen, PIPE
+from tempfile import mkdtemp
+import os
+import sys
+import yaml
+
+REMOVE_BRACKETS = str.maketrans('()', '  ')
+
+def main(args):
+    """
+    Retrieve trigger definitions.
+    """
+
+    if len(args) < 2 or args[1] != 'redefine':
+        print('Synopsis: cstrigger redefine')
+        exit(0)
+
+    gvar = {'triggers': []}
+
+    gvar['cmd_path'] = os.path.realpath(args[0])
+    gvar['path_info'] = gvar['cmd_path'].split('/')
+    gvar['ix'] = gvar['path_info'].index('cloudscheduler')
+    gvar['trigger_dir'] = '%s/schema/triggers' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+
+    for trigger_basename in os.listdir(gvar['trigger_dir']):
+        trigger_path = '%s/%s' % (gvar['trigger_dir'], trigger_basename)
+        if os.path.isfile(trigger_path) and len(trigger_basename) > 8 and trigger_basename[:8] == 'trigger_':
+            gvar['triggers'].append(trigger_basename)
+
+    if args[1] == 'redefine':
+        fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
+        gvar['csv2_config'] = yaml.load(fd.read())
+        fd.close()
+
+        _p1 = Popen(
+            [
+                'mysql',
+                '-u%s' % gvar['csv2_config']['database']['db_user'],
+                '-p%s' % gvar['csv2_config']['database']['db_password'],
+                '-e',
+                'show triggers;',
+                gvar['csv2_config']['database']['db_name']
+                ],
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = _p1.communicate()
+        if _p1.returncode != 0:
+            print('Failed to retrieve trigger list - %s -%s' % (stdout, stderr))
+            exit(1)
+
+        triggers = stdout.decode('utf-8')[:-1].split('\n')
+        for row in triggers[1:]:
+            trigger = row.split()[0]
+            if trigger not in gvar['triggers']:
+                print('Deleting trigger "%s".' % trigger)
+                _p1 = Popen(
+                    [
+                        'mysql',
+                        '-u%s' % gvar['csv2_config']['database']['db_user'],
+                        '-p%s' % gvar['csv2_config']['database']['db_password'],
+                        '-e',
+                        'drop trigger %s;'  % trigger,
+                        gvar['csv2_config']['database']['db_name']
+                        ],
+                    stdout=PIPE,
+                    stderr=PIPE
+                    )
+                stdout, stderr = _p1.communicate()
+                if _p1.returncode != 0:
+                    print('Failed to delete trigger "%s" - %s' % (trigger, stderr.decode('utf-8')))
+                    exit(1)
+
+            for trigger in sorted(gvar['priorities'][priority]):
+                print('Redefining trigger "%s".' % trigger)
+                fd = open(gvar['triggers'][trigger]['path'])
+                _p1 = Popen(
+                    [
+                        'mysql',
+                        '-u%s' % gvar['csv2_config']['database']['db_user'],
+                        '-p%s' % gvar['csv2_config']['database']['db_password'],
+                        gvar['csv2_config']['database']['db_name']
+                        ],
+                    stdin=fd,
+                    stdout=PIPE,
+                    stderr=PIPE
+                    )
+                stdout, stderr = _p1.communicate()
+                if _p1.returncode != 0:
+                    print('Failed to redine trigger "%s" - %s' % (trigger, stderr.decode('utf-8')))
+                    exit(1)
+
+if __name__ == "__main__":
+    main(sys.argv)
