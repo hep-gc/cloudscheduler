@@ -1,0 +1,28 @@
+#!/bin/bash
+    IFS='"' read -r -a pw <<< $(grep db_password /etc/cloudscheduler/cloudscheduler.yaml)
+
+    while true; do
+        clear
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select unix_timestamp();'
+
+        echo -e '\n--- condor_jobs -------------------------'
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select request_cpus,request_disk div (1024*1024) as request_disk,request_ram,sum(case when job_status=1 then 1 else 0 end) as idle,sum(case when job_status=5 then 1 else 0 end) as held,sum(case when job_status!=1 and job_status!=5 then 1 else 0 end) as other from condor_jobs group by request_cpus,request_disk,request_ram;'
+
+        echo -e '\n--- view_groups_of_idle_jobs ------------'
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select group_name,job_per_core,request_cpus_max,request_cpus_total,request_disk_max,request_disk_total,request_ram_max,request_ram_total,request_swap_max,request_swap_total,idle,running,completed,held,other,flavors from view_groups_of_idle_jobs;'
+
+        echo -e '\n--- view_available_resources ------------'
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select group_name,flavor,flavor_slots,flavor_cores,flavor_disk,flavor_ram,flavor_swap,flavor_VMs,flavor_manual,flavor_error,flavor_retiring from view_available_resources;'
+
+        echo -e '\n--- condor_machines ---------------------'
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select machine,slot_type from condor_machines;'
+
+        echo -e '\n--- csv2_vms ----------------------------'
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select group_name,cloud_name,hostname,htcondor_partitionable_slots,htcondor_dynamic_slots,htcondor_slots_timestamp,retire,terminate,status_changed_time,last_updated from csv2_vms;'
+
+        echo -e '\n--- view_idle_vms -----------------------'
+        mysql -u csv2 -p${pw[1]} -r csv2 -e 'select * from view_idle_vms;'
+
+        condor_q -allusers
+        sleep 10
+    done
