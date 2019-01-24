@@ -4,7 +4,7 @@ import logging
 import time
 import sys
 import os
-import inspect
+import requests
 
 from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 
+
 def timeseries_data_transfer():
 
 	multiprocessing.current_process().name = "Time Series Poller"
@@ -27,12 +28,11 @@ def timeseries_data_transfer():
 	# A new row will also need to be added to csv2_system_status to track any crashes/errors that occur in this file
 	# once that new row is added you will need to replace "N/A" with the name of the column for
 	# "orange_count_row" in ProccessMonitor initialization in __main__
-
+	
 
 	config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 	#config.db_open()
 	#db_session = config.db_session
-
 
 	cycle_start_time = 0
 	new_poll_time = 0
@@ -47,34 +47,64 @@ def timeseries_data_transfer():
 			config.db_open()
 			db_session = config.db_session
 			
+			# Query db for cloud status view
 			cloud_status = db_session.query(view_cloud_status)
 			column_list = [item["name"] for item in cloud_status.column_descriptions]
 
+			# Query db for cloud status view
 			job_status = db_session.query(view_job_status)
 			job_column_list = ["jobs","jobs_idle","jobs_running","jobs_complete","jobs_held","jobs_other"]
-			points = []
 			
+			# Points to add to influxdb db
+			data_points = []
+			ts = int(time.time())
+
+			# HTTP request args
+			params = {'db': 'dev3','precision': 's'}
+			url_string = 'http://localhost:8086/write'
+			
+			# Parse cloud data into line protocol for influxdb
 			for line in cloud_status:
-				column = 0
+				column = 2
 				group = line[0]
 				cloud = line[1]
 				for data in line[2:]:
-					print("{0},cloud={1},group={2}, value={3}".format(column_list[column], cloud, group, data))
+					if data == -1 or data is None:
+						column += 1
+						continue
+					new_point = "{0},cloud={1},group={2},server=csv2-dev3 value={3}i {4}".format(column_list[column], cloud, group, data, ts)
+					data_points.append(new_point)
 					column += 1
-			
+
+			# Parse job data into line protocol for influxdb
 			for line in job_status:
 				column = 0
 				group = line[0]
 				for data in line[1:]:
-					print("{0},group={1}, value={2}".format(job_column_list[column], group, data))
+					if data == -1 or data is None:
+						column += 1
+						continue
+					new_point = "{0},group={1},server=csv2-dev3 value={2}i {3}".format(job_column_list[column], group, data, ts)
+					data_points.append(new_point)
 					column += 1
-
-
-
+	
+			data_points = "\n".join(data_points)
+			
+			# POST HTTP request to influxdb
+			try:
+				r = requests.post(url_string, params=params, data=data_points)
+				# Check response status code
+				r.raise_for_status()
+				
+			except Exception as exc:
+				logging.error("HTTP POST request failed to InfluxDB...")
+				logging.error(exc)
+				break
+				
 			config.db_close()
 			del db_session
-
-
+			
+			
 
 			wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
 
