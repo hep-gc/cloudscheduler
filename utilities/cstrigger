@@ -78,24 +78,24 @@ def main(args):
                     print('Failed to delete trigger "%s" - %s' % (trigger, stderr.decode('utf-8')))
                     exit(1)
 
-            for trigger in sorted(gvar['priorities'][priority]):
-                print('Redefining trigger "%s".' % trigger)
-                fd = open(gvar['triggers'][trigger]['path'])
-                _p1 = Popen(
-                    [
-                        'mysql',
-                        '-u%s' % gvar['csv2_config']['database']['db_user'],
-                        '-p%s' % gvar['csv2_config']['database']['db_password'],
-                        gvar['csv2_config']['database']['db_name']
-                        ],
-                    stdin=fd,
-                    stdout=PIPE,
-                    stderr=PIPE
-                    )
-                stdout, stderr = _p1.communicate()
-                if _p1.returncode != 0:
-                    print('Failed to redine trigger "%s" - %s' % (trigger, stderr.decode('utf-8')))
-                    exit(1)
+        for trigger in sorted(gvar['triggers']):
+            print('Redefining trigger "%s".' % trigger)
+            fd = open('%s/%s' % (gvar['trigger_dir'], trigger))
+            _p1 = Popen(
+                [
+                    'mysql',
+                    '-u%s' % gvar['csv2_config']['database']['db_user'],
+                    '-p%s' % gvar['csv2_config']['database']['db_password'],
+                    gvar['csv2_config']['database']['db_name']
+                    ],
+                stdin=fd,
+                stdout=PIPE,
+                stderr=PIPE
+                )
+            stdout, stderr = _p1.communicate()
+            if _p1.returncode != 0:
+                print('Failed to redine trigger "%s" - %s' % (trigger, stderr.decode('utf-8')))
+                exit(1)
 
 if __name__ == "__main__":
     main(sys.argv)
