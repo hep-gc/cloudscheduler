@@ -443,8 +443,8 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
 
             for col in keys['sum']:
                 # Special case for clouds which are disabled:
-                if 'enabled' in cols and 'vms' in cols:
-                    if cols['vms'] > 0:
+                if 'enabled' in cols and 'VMs' in cols:
+                    if cols['VMs'] > 0:
                         enabled = 1
                     else:    
                         enabled = cols['enabled']
