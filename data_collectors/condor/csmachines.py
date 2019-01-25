@@ -119,7 +119,7 @@ def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor", "TotalDisk"]
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
