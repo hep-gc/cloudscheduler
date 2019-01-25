@@ -17,7 +17,8 @@ function update {
         mysql -u csv2 -p${pw[1]} -t csv2 -e 'select unix_timestamp();' > ${tmp}/p0
 
         echo -e '\n--- condor_jobs -------------------------' > ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select request_cpus,request_disk div (1024*1024) as request_disk,request_ram,sum(case when job_status=1 then 1 else 0 end) as idle,sum(case when job_status=5 then 1 else 0 end) as held,sum(case when job_status!=1 and job_status!=5 then 1 else 0 end) as other from condor_jobs group by request_cpus,request_disk,request_ram;' >> ${tmp}/p1
+#       mysql -u csv2 -p${pw[1]} -t csv2 -e 'select request_cpus,request_disk div (1024*1024) as request_disk,request_ram,sum(case when job_status=1 then 1 else 0 end) as idle,sum(case when job_status=5 then 1 else 0 end) as held,sum(case when job_status!=1 and job_status!=5 then 1 else 0 end) as other from condor_jobs group by request_cpus,request_disk,request_ram;' >> ${tmp}/p1
+        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select user,target_clouds,image,instance_type,request_cpus,request_disk div (1024*1024) as request_disk,request_ram,sum(case when job_status=1 then 1 else 0 end) as idle,sum(case when job_status=2 then 1 else 0 end) as running,sum(case when job_status=4 then 1 else 0 end) as completed,sum(case when job_status=5 then 1 else 0 end) as held,sum(case when job_status!=1 and job_status!=2 and job_status!=4 and job_status!=5 then 1 else 0 end) as other from condor_jobs group by request_cpus,request_disk,request_ram;' >> ${tmp}/p1
 
         echo -e '\n--- view_groups_of_idle_jobs ------------' >> ${tmp}/p1
         mysql -u csv2 -p${pw[1]} -t csv2 -e 'select group_name,job_per_core,request_cpus_max,request_cpus_total,request_disk_max,request_disk_total,request_ram_max,request_ram_total,request_swap_max,request_swap_total,idle,running,completed,held,other,flavors from view_groups_of_idle_jobs;' >> ${tmp}/p1
