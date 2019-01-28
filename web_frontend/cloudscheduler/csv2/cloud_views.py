@@ -27,6 +27,7 @@ import sqlalchemy.exc
 #import subprocess
 import os
 import psutil
+import time
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -635,9 +636,33 @@ def metadata_add(request):
 
         # Add the cloud metadata file.
         table = tables['csv2_cloud_metadata']
-        rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
+        payload = table.insert().values(table_fields(fields, table, columns, 'insert'))
+        rc, msg = config.db_session_execute(payload)
         if rc == 0:
             config.db_close(commit=True)
+
+            #**********************************************************************************
+            config.db_open()
+
+            found = False
+            while(found==False):
+
+                s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
+                meta_list = qt(config.db_connection.execute(s))
+                print(">>>>>>metadata>>>>>>>", meta_list)
+                for meta in meta_list:
+                    print(">>>>>>meta1-meta2>>>>>", fields['metadata_name'], meta['metadata_name'])
+                    if fields['metadata_name'] == meta['metadata_name']:
+                        found = True
+                        break
+
+            print("metadata added successfully")
+
+            config.db_close()
+
+
+            #**********************************************************************************
+
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
         else:
             config.db_close()
@@ -726,6 +751,28 @@ def metadata_delete(request):
             )
         if rc == 0:
             config.db_close(commit=True)
+
+            #**********************************************************************************
+
+            config.db_open()
+
+            found = True
+            while(found==True):
+
+                s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
+                meta_list = qt(config.db_connection.execute(s))
+                print(">>>>>>metadata>>>>>>>", meta_list)
+                if not meta_list:
+                    found = False
+
+            print("metadata deleted successfully")
+
+            config.db_close()
+
+
+            #**********************************************************************************
+
+
             return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
         else:
             config.db_close()

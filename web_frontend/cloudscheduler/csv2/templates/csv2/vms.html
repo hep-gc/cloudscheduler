@@ -113,6 +113,7 @@
         <div class=vm-table>
           <table id="vmsTable">
               <tr>
+              <!--
                 <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
                 <th onclick="sortTable(1)">Cloud &#8597;</th>
                 <th onclick="sortTable(2)">Project &#8597;</th>
@@ -123,6 +124,18 @@
                 <th onclick="sortTable(7)">Slots &#8597;</th>
                 <th onclick="sortTable(8)">Slots Used &#8597;</th>
                 <th onclick="sortTable(9)">Cores &#8597;</th>
+              -->
+                <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
+                <th onclick="sortTable(1)">Hostname &#8597;</th>
+                <th onclick="sortTable(2)">Flavor &#8597;</th>
+                <th onclick="sortTable(3)">Cores &#8597;</th>
+                <th onclick="sortTable(4)">Poller Status &#8597;</th>
+                <th onclick="sortTable(5)">Total Slots &#8597;</th>
+                <th onclick="sortTable(6)">Used Slots &#8597;</th>
+                <th onclick="sortTable(7)">Retire &#8597;</th>
+                <th onclick="sortTable(8)">Terminate &#8597;</th>
+                <th onclick="sortTable(9)">Start Time &#8597;</th>
+
               </tr>
             <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
 
@@ -135,6 +148,7 @@
                   <tr>
                 {% endif %}
                   <td><input type="checkbox" name="vm_hosts.{{ forloop.counter }}" value={{vm.hostname}}></td>
+                  <!--
                   <td>{{vm.cloud_name}}</td>
                   <td>{{vm.project}}</td>
                   <td>{{vm.hostname}}</td>
@@ -144,6 +158,17 @@
                   <td>{{vm.condor_slots}}</td>
                   <td>{{vm.condor_slots_used}}</td>
                   <td>{{vm.cores}}</td>
+                  -->
+                  <td>{{vm.hostname}}</td>
+                  <td>{{vm.flavor_name}}</td>
+                  <td>{{vm.cores}}</td>
+                  <td>{{vm.poller_status}}</td>
+                  <td>{{vm.condor_slots}}</td>
+                  <td>{{vm.condor_slots_used}}</td>
+                  <td>{{vm.retire}}</td>
+                  <td>{{vm.terminate}}</td>
+                  <td>{{vm.start_time}}</td>
+ 
                 </tr>
               {% endfor %}
 
