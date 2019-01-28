@@ -919,6 +919,7 @@ view_idle_vms = Table('view_idle_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('come_alive', String(128)),
+  Column('job_alive', String(128)),
   Column('keep_alive', Integer),
   Column('vmid', String(128)),
   Column('hostname', String(128)),
@@ -1073,6 +1074,7 @@ view_vms = Table('view_vms', metadata,
   Column('disk', Integer),
   Column('ram', Integer),
   Column('swap', Integer),
-  Column('poller_status', String(12))
+  Column('poller_status', String(12)),
+  Column('age', Integer)
   )
 
