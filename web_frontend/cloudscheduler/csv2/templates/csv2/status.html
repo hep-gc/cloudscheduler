@@ -236,7 +236,7 @@
                         {% if cloud.VMs_starting == 0 %}
                             <td class="zero-style">0</td>
                         {% else %}
-                            <td class="more-style"><!--<a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">-->{{cloud.VMs_starting}</td>
+                            <td class="more-style"><!--<a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">-->{{cloud.VMs_starting}}</td>
                         {% endif %}
 
 
@@ -385,6 +385,9 @@
 
                     <tr class="extra-row">
                         <td>
+                            {% if cloud.enabled == 0 %}
+                                Cloud disabled
+                            {% endif %}
                             <!--<a href="{{cloud.url}}">&#x2601;</a>-->
                         </td>
                         <td>
@@ -442,9 +445,9 @@
 
                         <td colspan="2">
                         {% if cloud.cores_ctl == -1 %}
-                            <p>Using System Limit</p>
+                            <p>System limit</p>
                         {% else %}
-                            <p>Using User Limit</p>
+                            <p>User limit</p>
                         {% endif %}
                         </td>
                         <td>

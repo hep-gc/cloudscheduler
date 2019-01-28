@@ -203,7 +203,8 @@ def command_poller():
                 for resource in db_session.query(Resource).filter(Resource.condor_host == condor_host, Resource.retire_request_time > Resource.retired_time):
                     logging.info("Retiring machine %s" % resource.name)
                     try:
-                        condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])[0]
+                        condor_classads = condor_session.query(master_type, 'Name=="%s"' % resource.name.split("@")[1])
+                        condor_classad = condor_classads[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                         resource.retired_time = int(time.time())

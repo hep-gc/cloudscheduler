@@ -189,7 +189,7 @@ input#toggle-row:checked ~ table tr.extra-row {
   padding: 0px;
 }
 
-.disabled-style a {
+.disabled-style {
   text-decoration: none;
   color: maroon;
   font-weight: bold;

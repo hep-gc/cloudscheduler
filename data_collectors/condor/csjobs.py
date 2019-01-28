@@ -186,7 +186,7 @@ def job_poller():
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
                         else:
-                            job_errors["invalidusr"] = job_errors["invalidgrp"] + 1
+                            job_errors["invalidusr"] = job_errors["invalidusr"] + 1
                         continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
