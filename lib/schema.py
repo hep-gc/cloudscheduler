@@ -238,7 +238,7 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
 csv2_cloud_aliases = Table('csv2_cloud_aliases', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
-  Column('alias', String(32), primary_key=True)
+  Column('alias_name', String(32), primary_key=True)
   )
 
 csv2_cloud_flavor_exclusions = Table('csv2_cloud_flavor_exclusions', metadata,
