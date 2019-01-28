@@ -217,7 +217,6 @@ condor_machines = Table('condor_machines', metadata,
   Column('entered_current_state', Integer),
   Column('start', String(128)),
   Column('remote_owner', String(128)),
-  Column('total_disk', Integer),
   Column('slot_type', String(128)),
   Column('slot_cpus', Integer),
   Column('total_slots', Integer),
@@ -234,6 +233,12 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('os_networks', String(64)),
   Column('os_vms', String(64)),
   Column('condor', String(64))
+  )
+
+csv2_cloud_aliases = Table('csv2_cloud_aliases', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('alias', String(32), primary_key=True)
   )
 
 csv2_cloud_flavor_exclusions = Table('csv2_cloud_flavor_exclusions', metadata,
@@ -524,6 +529,12 @@ silk_sqlquery = Table('silk_sqlquery', metadata,
   Column('request_id', String(36))
   )
 
+test_table = Table('test_table', metadata,
+  Column('hostname', String(128), primary_key=True),
+  Column('htcondor_dynamic_slots', Integer),
+  Column('htcondor_dynamic_slots_changed', Integer)
+  )
+
 view_available_resources = Table('view_available_resources', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -560,50 +571,6 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_manual', Integer),
   Column('flavor_error', Integer),
   Column('flavor_retiring', Integer)
-  )
-
-view_available_resources2 = Table('view_available_resources2', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('VMs', Integer),
-  Column('cores', Integer),
-  Column('disk', Integer),
-  Column('ram', Integer),
-  Column('swap', Integer)
-  )
-
-view_available_resources3 = Table('view_available_resources3', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('region', String(20)),
-  Column('cloud_type', String(64)),
-  Column('spot_price', Integer),
-  Column('authurl', String(128)),
-  Column('cacertificate', String),
-  Column('project_domain_name', String(20)),
-  Column('project', String(128)),
-  Column('user_domain_name', String(20)),
-  Column('username', String(20)),
-  Column('password', String),
-  Column('default_flavor', String(97)),
-  Column('default_image', String(64)),
-  Column('default_keep_alive', Integer),
-  Column('default_keyname', String(64)),
-  Column('default_network', String(64)),
-  Column('VMs', Integer),
-  Column('cores_max', Integer),
-  Column('cores_used', Integer),
-  Column('disk_used', Integer),
-  Column('ram_max', Integer),
-  Column('ram_used', Integer),
-  Column('swap_used', Integer),
-  Column('flavor', String(161)),
-  Column('flavor_id', String(128)),
-  Column('flavor_slots', Integer),
-  Column('flavor_cores', Integer),
-  Column('flavor_disk', Integer),
-  Column('flavor_ram', Integer),
-  Column('flavor_swap', Integer)
   )
 
 view_cloud_status = Table('view_cloud_status', metadata,
@@ -918,15 +885,13 @@ view_groups_with_metadata_names = Table('view_groups_with_metadata_names', metad
 view_idle_vms = Table('view_idle_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
-  Column('come_alive', String(128)),
   Column('keep_alive', Integer),
   Column('vmid', String(128)),
-  Column('hostname', String(128)),
-  Column('primary_slots', Integer),
-  Column('dynamic_slots', Integer),
+  Column('machine', String(256)),
+  Column('claimed', Integer),
   Column('retire', Integer),
   Column('terminate', Integer),
-  Column('age', Integer)
+  Column('age', Float)
   )
 
 view_job_status = Table('view_job_status', metadata,
@@ -959,41 +924,6 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('name', String(128)),
   Column('entered_current_state', Integer),
   Column('cloud_name', String(32))
-  )
-
-view_t0 = Table('view_t0', metadata,
-  Column('group_name', String(32)),
-  Column('target_clouds', String),
-  Column('instance_type', String(512)),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('image', String),
-  Column('network', String(512)),
-  Column('keep_alive', String(512)),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('ids', String),
-  Column('request_cpus_min', Integer),
-  Column('request_cpus_max', Integer),
-  Column('request_cpus_total', Integer),
-  Column('request_disk_min', Integer),
-  Column('request_disk_max', Integer),
-  Column('request_disk_total', Integer),
-  Column('request_ram_min', Integer),
-  Column('request_ram_max', Integer),
-  Column('request_ram_total', Integer),
-  Column('request_swap_min', Integer),
-  Column('request_swap_max', Integer),
-  Column('request_swap_total', Integer),
-  Column('queue_date', Integer),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer),
-  Column('flavors', String)
   )
 
 view_user_groups = Table('view_user_groups', metadata,
@@ -1052,9 +982,6 @@ view_vms = Table('view_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
-  Column('htcondor_partitionable_slots', Integer),
-  Column('htcondor_dynamic_slots', Integer),
-  Column('htcondor_slots_timestamp', Integer),
   Column('retire', Integer),
   Column('retire_time', Integer),
   Column('terminate', Integer),
@@ -1074,5 +1001,15 @@ view_vms = Table('view_vms', metadata,
   Column('ram', Integer),
   Column('swap', Integer),
   Column('poller_status', String(12))
+  )
+
+xxx = Table('xxx', metadata,
+  Column('machine', String(256)),
+  Column('changed', Integer)
+  )
+
+yyy = Table('yyy', metadata,
+  Column('machine', String(256)),
+  Column('changed', Integer)
   )
 
