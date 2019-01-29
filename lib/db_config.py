@@ -191,32 +191,33 @@ class Config:
         path_info = sys.path[0].split('/')
         path_info_ix = path_info.index('cloudscheduler')
         cloudscheduler_root_dir = '/'.join(path_info[:path_info_ix+1])
-
-        p = Popen([
+        p1 = Popen([
             'git',
-            'tag',
-            '-l'
-            ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p.communicate()
-
-        if p.returncode == 0:
-            info = stdout.decode('utf-8').split('\n')
-            if len(info) > 1:
-                version = "Tag: %s" % info[-2]
-            else:
-                # get the commit number via "git log| awk '/^commit/'| wc"   can ignore the WC in favor of a decode & split like above
-                p1 = Popen([
-                    'git',
-                    'log'
-                    ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
-               
-                p2 = Popen([
-                    'awk',
-                    '/^commit/'
-                    ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
-                stdout, stderr = p2.communicate()
-                if p2.returncode == 0:
-                    info = stdout.decode('utf-8').split('\n')
-                    version = "Build: %s" % len(info)
+            'log',
+            '--decorate'],
+            stdout=PIPE, stderr=PIPE)
+        p2 = Popen([
+            'awk',
+            '/^commit /'],
+            stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p2.communicate()
+        commits = stdout[:-1].decode('utf-8').split('\n')
+        tag_ix = -1
+        for ix in range(len(commits)):
+            words = commits[ix].replace('(',' ').replace(')',' ').replace(',',' ').split()
+            try:
+                words_ix = words.index('tag:')
+            except:
+                words_ix = -1
+            if words_ix > -1:
+                tag = words[words_ix+1]
+                tag_ix = ix
+                break
+        if tag_ix == -1:
+            version = 'Build: %d' % len(commits)
+        elif tag_ix == 0:
+            version = 'Version: %s' % tag
+        else:
+            version = 'Version: %s + %d commits' % (tag, tag_ix)
 
         return version
