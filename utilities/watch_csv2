@@ -30,7 +30,7 @@ function update {
         echo -e '\n--- condor slots (condor_machines)-------' >> ${tmp}/p1
 #       mysql -u csv2 -p${pw[1]} -t csv2 -e 'select machine,slot_type,total_disk div (1024*1024) as total_disk from condor_machines;' >> ${tmp}/p1
 #       mysql -u csv2 -p${pw[1]} -t csv2 -e 'select machine,slot_type,total_disk div (1024*1024) as total_disk,count(1) from condor_machines group by machine,slot_type,total_disk;' >> ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select machine,total_disk div (1024*1024) as total_disk,sum(case when slot_type="Partitionable" then 1 else 0 end) as primary_slots,sum(case when slot_type="Dynamic" then 1 else 0 end) as dynamic_slots from condor_machines group by machine,total_disk;' >> ${tmp}/p1
+        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select machine,min(total_disk div (1024*1024)) as total_disk,sum(case when slot_type="Partitionable" then 1 else 0 end) as primary_slots,sum(case when slot_type="Dynamic" then 1 else 0 end) as dynamic_slots from condor_machines group by machine;' >> ${tmp}/p1
 
         echo -e '\n--- csv2_vms ----------------------------' >> ${tmp}/p1
         mysql -u csv2 -p${pw[1]} -t csv2 -e 'select cv.group_name,cv.cloud_name,cf.name as flavor,hostname,htcondor_partitionable_slots as primary_slots,htcondor_dynamic_slots as dynamic_slots,htcondor_slots_timestamp as slots_timestamp,retire,terminate,status_changed_time,cv.last_updated from csv2_vms as cv left outer join cloud_flavors as cf on cv.group_name=cf.group_name and cv.cloud_name=cf.cloud_name and cv.flavor_id=cf.id;' >> ${tmp}/p1
