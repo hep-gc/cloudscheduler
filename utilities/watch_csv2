@@ -3,7 +3,6 @@ function update {
     clear
     cat ${tmp}/p0
     cat ${tmp}/p1
-    cat ${tmp}/p3
 
     cat ${tmp}/p0 >> /tmp/watch_csv2_${SUDO_USER}.log
     cat ${tmp}/p1 >> /tmp/watch_csv2_${SUDO_USER}.log
@@ -14,7 +13,7 @@ function update {
     IFS='"' read -r -a pw <<< $(grep db_password /etc/cloudscheduler/cloudscheduler.yaml)
 
     while true; do
-        mysql -u csv2 -p${pw[1]} csv2 -e 'select unix_timestamp();' > ${tmp}/p0
+        condor_q -allusers | tail -n +3 > ${tmp}/p0
 
         echo -e '\n--- condor_jobs -------------------------' > ${tmp}/p1
 #       mysql -u csv2 -p${pw[1]} -t csv2 -e 'select request_cpus,request_disk div (1024*1024) as request_disk,request_ram,sum(case when job_status=1 then 1 else 0 end) as idle,sum(case when job_status=5 then 1 else 0 end) as held,sum(case when job_status!=1 and job_status!=5 then 1 else 0 end) as other from condor_jobs group by request_cpus,request_disk,request_ram;' >> ${tmp}/p1
@@ -38,8 +37,6 @@ function update {
 
         echo -e '\n--- view_idle_vms -----------------------' >> ${tmp}/p1
         mysql -u csv2 -p${pw[1]} -t csv2 -e 'select * from view_idle_vms;' >> ${tmp}/p1
-
-        condor_q -allusers > ${tmp}/p3
 
         if [ -e ${tmp}/p2 ]; then
             diff -q ${tmp}/p1 ${tmp}/p2 
