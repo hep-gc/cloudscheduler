@@ -195,7 +195,7 @@ class Config:
             'git',
             'log',
             '--decorate'],
-            stdout=PIPE, stderr=PIPE)
+            cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
         p2 = Popen([
             'awk',
             '/^commit /'],
