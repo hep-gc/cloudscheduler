@@ -217,6 +217,7 @@ condor_machines = Table('condor_machines', metadata,
   Column('entered_current_state', Integer),
   Column('start', String(128)),
   Column('remote_owner', String(128)),
+  Column('total_disk', Integer),
   Column('slot_type', String(128)),
   Column('slot_cpus', Integer),
   Column('total_slots', Integer),
@@ -527,12 +528,6 @@ silk_sqlquery = Table('silk_sqlquery', metadata,
   Column('time_taken', Float),
   Column('traceback', String),
   Column('request_id', String(36))
-  )
-
-test_table = Table('test_table', metadata,
-  Column('hostname', String(128), primary_key=True),
-  Column('htcondor_dynamic_slots', Integer),
-  Column('htcondor_dynamic_slots_changed', Integer)
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -885,13 +880,16 @@ view_groups_with_metadata_names = Table('view_groups_with_metadata_names', metad
 view_idle_vms = Table('view_idle_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
+  Column('come_alive', String(128)),
+  Column('job_alive', String(128)),
   Column('keep_alive', Integer),
   Column('vmid', String(128)),
-  Column('machine', String(256)),
-  Column('claimed', Integer),
+  Column('hostname', String(128)),
+  Column('primary_slots', Integer),
+  Column('dynamic_slots', Integer),
   Column('retire', Integer),
   Column('terminate', Integer),
-  Column('age', Float)
+  Column('age', Integer)
   )
 
 view_job_status = Table('view_job_status', metadata,
@@ -982,6 +980,9 @@ view_vms = Table('view_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
+  Column('htcondor_partitionable_slots', Integer),
+  Column('htcondor_dynamic_slots', Integer),
+  Column('htcondor_slots_timestamp', Integer),
   Column('retire', Integer),
   Column('retire_time', Integer),
   Column('terminate', Integer),
@@ -1000,16 +1001,7 @@ view_vms = Table('view_vms', metadata,
   Column('disk', Integer),
   Column('ram', Integer),
   Column('swap', Integer),
-  Column('poller_status', String(12))
-  )
-
-xxx = Table('xxx', metadata,
-  Column('machine', String(256)),
-  Column('changed', Integer)
-  )
-
-yyy = Table('yyy', metadata,
-  Column('machine', String(256)),
-  Column('changed', Integer)
+  Column('poller_status', String(12)),
+  Column('age', Integer)
   )
 
