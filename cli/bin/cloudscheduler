@@ -235,6 +235,7 @@ def main(args):
             ('-xA',   '--expose-API', False),
             ('-Y',    '--yes', False),
             ),
+        'command_dir': os.path.dirname(os.path.realpath(args[0])),
         'command_name': os.path.basename(args[0]),
         'cookies': dict(),
         'csrf': None,
@@ -325,7 +326,7 @@ def main(args):
             'git',
             'log',
             '--decorate'],
-            stdout=PIPE, stderr=PIPE)
+            cwd='%s' % gvar['command_dir'], stdout=PIPE, stderr=PIPE)
         p2 = Popen([
             'awk',
             '/^commit /'],
