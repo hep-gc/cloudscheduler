@@ -47,11 +47,9 @@ def timeseries_data_transfer():
 			config.db_open()
 			db_session = config.db_session
 			
-			# Query db for cloud status view
+			# Query db for cloud status and job status view
 			cloud_status = db_session.query(view_cloud_status)
 			column_list = [item["name"] for item in cloud_status.column_descriptions]
-
-			# Query db for cloud status view
 			job_status = db_session.query(view_job_status)
 			job_column_list = ["jobs","jobs_idle","jobs_running","jobs_complete","jobs_held","jobs_other"]
 			
