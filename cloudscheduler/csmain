@@ -183,10 +183,10 @@ def main():
                             vm_ram_total = total_ram / cloud_match.flavor_ram
                             disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
                             disk_max = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_max else None
-                            vm_disk_total = total_disk / cloud_match.flavor_disk
+                            vm_disk_total = total_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
                             jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
                             jobs_possible_max = int(min(cpu_max,ram_max,disk_max)) if disk_max else int(min(cpu_max,ram_max))
-                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total))
+                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total)) if vm_disk_total else int(max(vm_cpu_total, vm_ram_total))
                             if jobs_possible < 1:
                                 jobs_possible = 1
                             if jobs_possible_max < 1:
