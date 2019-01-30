@@ -73,7 +73,7 @@ def project_details(request, group_name=None, message=None):
     # set up database objects
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
-    Group_Defaults = db_config.db_map.classes.csv2_group_defaults
+    Groups = db_config.db_map.classes.csv2_groups
 
     rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
 
@@ -91,7 +91,7 @@ def project_details(request, group_name=None, message=None):
             # catches nonetype error
             group_name = "No groups available"
 
-    defaults = session.query(Group_Defaults).get(group_name)
+    defaults = session.query(Groups).get(group_name)
     if defaults.vm_image is None or defaults.vm_image=="":
         default_image = None
     else:
