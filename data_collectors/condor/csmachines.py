@@ -404,7 +404,7 @@ def command_poller():
                 master_list = []
                 startd_list = []
                 #get list of vm/machines from this condor host
-                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate == 1)
+                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate >= 1)
                 for resource in redundant_machine_list:
 
                     # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
@@ -429,12 +429,16 @@ def command_poller():
                         # terminate the vm
                         nova = _get_nova_client(session, region=cloud.region)
                         try:
+                            # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
                             nova.servers.delete(vm_row.vmid)
                             logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
-                            vm_row.terminate = 2
+                            vm_row.terminate = vm_row.terminate + 1
                             db_session.merge(vm_row)
+                            # log here if terminate # /10 = remainder zero
+                            if vm_row.terminate %10 == 0:
+                                logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
                         except Exception as exc:
-                            logging.error("Failed to terminate VM: %s", vm_row.hostname)
+                            logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row.hostname, vm_row.terminate - 1))
                             logging.error(exc)
 
                         # Now that the machine is terminated, we can speed up operations by invalidating the related classads
