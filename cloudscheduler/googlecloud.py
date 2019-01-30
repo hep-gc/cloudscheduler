@@ -4,16 +4,16 @@ Google Compute Engine Connector Module.
 import time
 import googleapiclient.discovery
 
-import cloudscheduler.basecloud
+import basecloud
 
-class GoogleCloud(cloudscheduler.basecloud.BaseCloud):
+class GoogleCloud(basecloud.BaseCloud):
     """
     Cloud Connector class for Google Compute Engine.
     """
 
     def __init__(self, resource, extrayaml):
         """Constructor for GCE."""
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
+        basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
                                                     extrayaml=extrayaml)
 
         self.compute = googleapiclient.discovery.build('compute', 'v1')

@@ -9,10 +9,10 @@ import uuid
 import logging
 from abc import ABC, abstractmethod
 
-import cloudscheduler.vm
-import cloudscheduler.cloud_init_util
+import vm
+import cloud_init_util
 
-from lib.db_config import Config
+from cloudscheduler.lib.db_config import Config
 
 import jinja2
 
@@ -27,7 +27,7 @@ class BaseCloud(ABC):
         self.name = name
         self.group = group
         self.enabled = True
-        self.vms = {x.vmid:cloudscheduler.vm.VM(x) for x in vms} if vms else None
+        self.vms = {x.vmid:vm.VM(x) for x in vms} if vms else None
         self.extrayaml = extrayaml
         self.metadata = metadata  # Should a be list of tuples with (name, select statement, mime type) already in order
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
@@ -91,7 +91,7 @@ class BaseCloud(ABC):
 
         if yaml_list:
             for yam in yaml_list:
-                [name, contents, mimetype] = cloudscheduler.cloud_init_util\
+                [name, contents, mimetype] = cloud_init_util\
                     .read_file_type_pairs(yam)
                 if contents and mimetype:
                     metadata_yamls.append((name,contents,mimetype))
@@ -110,7 +110,7 @@ class BaseCloud(ABC):
                 template_dict['cs_cloud_name'] = self.name
                 yaml_tuple[1] = jinja2.Environment()\
                     .from_string(yaml_tuple[1]).render(template_dict)
-        user_data = cloudscheduler.cloud_init_util \
+        user_data = cloud_init_util \
             .build_multi_mime_message(metadata_yamls)
 
         # with open('/tmp/metadata_test.txt', 'w') as fd:
