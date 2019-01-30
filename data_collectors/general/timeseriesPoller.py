@@ -51,7 +51,7 @@ def timeseries_data_transfer():
 			cloud_status = db_session.query(view_cloud_status)
 			column_list = [item["name"] for item in cloud_status.column_descriptions]
 			job_status = db_session.query(view_job_status)
-			job_column_list = ["jobs","jobs_idle","jobs_running","jobs_complete","jobs_held","jobs_other"]
+			job_column_list = ["jobs","jobs_idle","jobs_running","jobs_completed","jobs_held","jobs_other"]
 			
 			# Points to add to influxdb db
 			data_points = []

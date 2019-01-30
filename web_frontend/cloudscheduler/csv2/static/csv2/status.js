@@ -29,65 +29,56 @@ function togglePlot(trace){
 			}
 		}
 		if(index != -1){
+			/* Remove trace if it is already plotted*/
 			if(TSPlot.traces.length == 1) {
 				TSPlot.hide();
 			}else{
 				Plotly.deleteTraces('plotly-TS', index);
 			}
 		}else{
-			getTraceData(trace);
 			/* Add trace to plot*/
+			getTraceData(trace, true);
 		}
 	}else{
-		document.getElementById("loader").style.display = 'inline-block';
-		//var newtrace = getTraceData(trace);
-		var newtrace = {
-			type: "scatter",
-			mode: 'lines+markers',
-			name: trace.dataset.path,
-			x: [date],
-			y: [trace.firstChild.data]
-		}
+		document.getElementById("loader").style.display = 'inline-block';		
 		/* Create plot*/
 		TSPlot.show();
-		TSPlot.initialize(newtrace);
+		getTraceData(trace, false);
+		//TSPlot.initialize(newtrace);
 	}
 	
 }
 
-function getTraceData(trace){
+/* Fetch trace data from db and add to plot*/
+function getTraceData(trace, showing){
 	var line = trace.dataset.path.split(" ");
 	var group = line[0];
-	var cloud;
 	var measurement;
 	var query;
 	if(line.length == 3){
-		cloud = line[1];
+		var cloud = line[1];
 		measurement = line[2];
 		query = `SELECT * FROM "${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
 	}else{
 		measurement = line[1];
 		query = `SELECT * FROM "${measurement}" WHERE "group"='${group}'`;
 	}
-	/*var newtrace = {
-		type: "scatter",
-		mode: 'lines+markers',
-		name: trace.dataset.path,
-		x: [date],
-		y: [trace.firstChild.data]
-	}*/
-	
-	//fetch('https://csv2-dev3.uvic.ca:8086/query?db=dev3&epoch=s&q='+query,
-	fetch('../../static/csv2/testjson.json',
-		{method: 'GET',
-		 headers: {'Accept': 'application/json'}
+	console.log(query);
+	var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+	fetch('cloud/status/plot',{
+		method: 'POST',
+		headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
+		credentials: 'same-origin',
+		body: query,
 		}
 	)
-	.then(function(response) {
+	.then(function(response){
 		return response.json();
 	})
-	.then(function(myJson) {
-		var responsedata = myJson.results[0].series[0].values
+	.then(function(data){
+		console.log(data);
+		var responsedata = data.results[0].series[0].values;
+		console.log(responsedata);
 		const unpackData = (arr, index) => {
 			var newarr = arr.map(x => x[index]);
 			return newarr
@@ -99,8 +90,12 @@ function getTraceData(trace){
 			x: unpackData(responsedata, 0),
 			y: unpackData(responsedata, responsedata[0].length-1)
 		}
-		return Plotly.addTraces('plotly-TS', aTrace);
-	});	
+		if(showing == true) return Plotly.addTraces('plotly-TS', aTrace);
+		else return TSPlot.initialize(aTrace);
+	})
+	.catch(error => console.log('Error:', error));
+	
+	
 
 }
 
@@ -113,6 +108,7 @@ var TSPlot = {
 		},
 		xaxis: {
 			type: 'date',
+			precision: 'seconds'
 		},
 		margin: {
 			l: 50,
@@ -131,7 +127,7 @@ var TSPlot = {
 		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});	
 	},
 
-
+	/* Hide plot and start timer*/
 	hide: function() {
 		TSPlot.showing = false;
 		TSPlot.traces = [];
@@ -145,6 +141,7 @@ var TSPlot = {
 		else timer_status = "off";
 	},
 
+	/* Show plot and pause timer*/
 	show: function(){
 		TSPlot.showing = true;
 		document.getElementById("plot").style.display = 'block';

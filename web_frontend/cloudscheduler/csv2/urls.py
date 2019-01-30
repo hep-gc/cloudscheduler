@@ -13,6 +13,7 @@ urlpatterns = [
     path('cloud/list/',                            cloud_views.list),
     path('cloud/list/<path:selector>/',            cloud_views.list),
     path('cloud/status/',                          cloud_views.status),
+    path('cloud/status/plot',                      cloud_views.request_ts_data),
     path('cloud/update/',                          cloud_views.update),
     path('cloud/metadata-add/',                    cloud_views.metadata_add),
     path('cloud/metadata-collation/',              cloud_views.metadata_collation),

@@ -4,6 +4,7 @@ config = settings.CSV2_CONFIG
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
+from django.http.response import JsonResponse
 from django.core.exceptions import PermissionDenied
 
 from .view_utils import \
@@ -27,6 +28,7 @@ import sqlalchemy.exc
 #import subprocess
 import os
 import psutil
+import requests
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -1133,6 +1135,25 @@ def status(request, group_name=None):
     config.db_close()
     return render(request, 'csv2/status.html', context)
 
+
+#-------------------------------------------------------------------------------
+
+@silkp(name="Cloud Plot")
+@requires_csrf_token
+def request_ts_data(request):
+    """
+    This function should recieve a post request with a payload of an influxdb query
+    to update the timeseries plot
+    """
+
+    query = request.GET.get('query', None)
+    params = {'db': 'dev3','epoch': 'ms', 'q':request.body}
+    url_string = 'http://localhost:8086/query'
+    r = requests.get(url_string, params=params)
+    # Check response status code
+    r.raise_for_status()
+
+    return JsonResponse(r.json())
 
 #-------------------------------------------------------------------------------
 

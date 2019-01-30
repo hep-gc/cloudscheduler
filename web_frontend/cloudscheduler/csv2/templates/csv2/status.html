@@ -11,9 +11,7 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}">
 
 <meta id="refresher" http-equiv="refresh" content="30">
-<!-- Plotly.js -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
+
 <script type="text/javascript">
     var TimerSwitch = 1;
 	var timer_id;
@@ -308,7 +306,7 @@
                         {% if cloud.cores_native == 0 %}
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="zero-style">0</td>
                         {% elif cloud.cores_ctl == -1 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_ctl" class="sysctl-style">{{cloud.cores_native}}</td>
+                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="sysctl-style">{{cloud.cores_native}}</td>
                         {% else %}
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="manual-style">{{cloud.cores_native}}</td>
                         {% endif %}
@@ -316,7 +314,7 @@
                         {% if cloud.cores_limit == 0 %}
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="zero-style">0</td>
                         {% elif cloud.cores_ctl == -1 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_ctl" class="sysctl-style">{{cloud.cores_limit}}</td>
+                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="sysctl-style">{{cloud.cores_limit}}</td>
                         {% else %}
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style">{{cloud.cores_limit}}</td>
                         {% endif %}
@@ -364,9 +362,9 @@
 
 
                         {% if cloud.cores_max == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_max" class="zero-style">0</td>
+                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="zero-style">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_max" class="more-style">{{ cloud.cores_quota }}</a></td>
+                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="more-style">{{ cloud.cores_quota }}</a></td>
                         {% endif %}
 
                         <td>
@@ -951,7 +949,11 @@
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
-
+{% csrf_token %}
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>-->
+<script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
 <script type="text/javascript">
 	/*Add even listeners once page loads*/
 	addEventListeners("zero-style");
