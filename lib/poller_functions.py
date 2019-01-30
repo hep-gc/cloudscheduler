@@ -3,8 +3,7 @@ import hashlib
 import logging
 import time
 
-from lib.attribute_mapper import map_attributes
-#rom cloudscheduler.lib.attribute_mapper import map_attributes
+from cloudscheduler.lib.attribute_mapper import map_attributes
 
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
