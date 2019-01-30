@@ -1,4 +1,5 @@
-from cloudscheduler.lib.db_config import *
+from lib.db_config import *
+#from cloudscheduler.lib.db_config import *
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
