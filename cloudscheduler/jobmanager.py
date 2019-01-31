@@ -2,7 +2,7 @@
 Old JobManager / container module. Likely to go away since using database for jobs.
 """
 
-from cloudscheduler.job import Job
+from job import Job
 
 # We need to decide on logic for deciding if a job has been scheduled or not yet
 # Unsure if we can rely on the metadata from the job but right now it just defaults to not scheduled

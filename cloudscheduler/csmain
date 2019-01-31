@@ -10,19 +10,19 @@ import logging
 import multiprocessing
 from collections import defaultdict
 
-import cloudscheduler.jobmanager
-import cloudscheduler.cloudmanager
+import cloudmanager
+#import cloudscheduler.cloudmanager
 
 
-from lib.schema import view_idle_vms
-from lib.schema import view_groups_of_idle_jobs
-from lib.schema import view_available_resources
-from lib.schema import view_condor_jobs_group_defaults_applied
-from lib.schema import view_metadata_collation_json
+from cloudscheduler.lib.schema import view_idle_vms
+from cloudscheduler.lib.schema import view_groups_of_idle_jobs
+from cloudscheduler.lib.schema import view_available_resources
+from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
+from cloudscheduler.lib.schema import view_metadata_collation_json
 
-from lib.db_config import Config
+from cloudscheduler.lib.db_config import Config
 
-from lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
@@ -87,7 +87,7 @@ def main():
             for yam in group_yamls:
                 group_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
 
-            cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
+            cm_group = cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
                                                                 group_yamls=group_yaml_list,
                                                                 metadata=metadata[csgroup.group_name] if csgroup.group_name in metadata.keys() else None)
             cm_group.setup()

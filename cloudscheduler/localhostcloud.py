@@ -18,10 +18,10 @@ from email import message_from_file
 import libvirt
 import yaml
 
-import cloudscheduler.basecloud
-import cloudscheduler.config as csconfig
+import basecloud
+import config as csconfig
 
-class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
+class LocalHostCloud(basecloud.BaseCloud):
 
     """
     Localhost Connector class for cloudscheduler
@@ -39,7 +39,7 @@ class LocalHostCloud(cloudscheduler.basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
+        basecloud.BaseCloud.__init__(self, name=resource.cloud_name,
                                                     extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.default_image = defaultimage

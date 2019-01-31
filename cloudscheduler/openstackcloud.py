@@ -16,10 +16,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
-import cloudscheduler.basecloud
-import cloudscheduler.config as csconfig
+#import cloudscheduler.basecloud
+#import cloudscheduler.config as csconfig
+import basecloud
+import config as csconfig
 
-class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
+class OpenStackCloud(basecloud.BaseCloud):
 
     """
     OpenStack Connector class for cloudscheduler
@@ -35,7 +37,7 @@ class OpenStackCloud(cloudscheduler.basecloud.BaseCloud):
         :param defaultnetwork:
         :param extrayaml: The cloud specific yaml
         """
-        cloudscheduler.basecloud.BaseCloud.__init__(self, group=resource.group_name,
+        basecloud.BaseCloud.__init__(self, group=resource.group_name,
                                                     name=resource.cloud_name,
                                                     extrayaml=extrayaml, vms=vms, metadata=metadata)
         self.log = logging.getLogger(__name__)
