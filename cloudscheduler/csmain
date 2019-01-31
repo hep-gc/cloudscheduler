@@ -35,13 +35,13 @@ def main():
     multiprocessing.current_process().name = "csmain"
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
     log = logging.getLogger(__name__)
     logging.basicConfig(filename=config.log_file,
                         level=config.log_level,
                         format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
-
 
     while(True):
         CSGroups = config.db_map.classes.csv2_groups
@@ -154,10 +154,8 @@ def main():
                         log.exception(ex)
                         time.sleep(2)
                         continue
-                    num_jobs_per_flavor_possible = {}
-                    num_jobs_per_flavor_max = {}
-                    num_vm_jobs_per_flavor_total = {}
 
+                    num_vm_jobs_per_flavor_total = {}
                     total_cpus = idle_job.request_cpus_total
                     total_ram = idle_job.request_ram_total
                     total_disk = idle_job.request_disk_total
@@ -175,43 +173,19 @@ def main():
                     if total_ram > 0 or total_cpus > 0 or total_disk > 0:
                         # Looks like we need more VMs, but how many?
                         for cloud_match in clouds_matching:
-                            cpu = cloud_match.flavor_cores / idle_job.request_cpus_min
-                            cpu_max = cloud_match.flavor_cores / idle_job.request_cpus_max
                             vm_cpu_total = total_cpus / cloud_match.flavor_cores
-                            ram = cloud_match.flavor_ram / idle_job.request_ram_min
-                            ram_max = cloud_match.flavor_ram / idle_job.request_ram_max
                             vm_ram_total = total_ram / cloud_match.flavor_ram
-                            disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
-                            disk_max = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_max else None
-                            vm_disk_total = total_disk / cloud_match.flavor_disk
-                            jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
-                            jobs_possible_max = int(min(cpu_max,ram_max,disk_max)) if disk_max else int(min(cpu_max,ram_max))
-                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total))
-                            if jobs_possible < 1:
-                                jobs_possible = 1
-                            if jobs_possible_max < 1:
-                                jobs_possible_max = 1
+                            vm_disk_total = total_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
+                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total)) if vm_disk_total else int(max(vm_cpu_total, vm_ram_total))
                             if vm_jobs_possible_total < 1:
                                 vm_jobs_possible_total = 1
-                            num_jobs_per_flavor_possible[cloud_match.flavor] = jobs_possible
-                            num_jobs_per_flavor_max[cloud_match.flavor] = jobs_possible_max
                             num_vm_jobs_per_flavor_total[cloud_match.flavor] = vm_jobs_possible_total
-                        log.debug("num jobs per flavor(min): %s", num_jobs_per_flavor_possible)
-                        log.debug("num jobs per flavor(max): %s", num_jobs_per_flavor_max)
                         log.debug("num vms per flavor(total): %s", num_vm_jobs_per_flavor_total)
                         # Now have the amount of jobs that can run on each option
                         # Next get all the VMs for this group with their flavor info - actually could be done outside of loop and re-use it
                         # Need a structure of the groups VMs accessible by the cloud_name and with a count of the flavor
                         # ie vms[cloud-name][flavor] = 6
-                        runnable_job_count = 0
-                        for flavor in num_jobs_per_flavor_possible.keys():
-                            (cloud_name, flavor_name) = flavor.split(':')
-                            runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]['count']
 
-                        log.debug("Runnable_job_count before: %s", runnable_job_count)
-                        runnable_job_count -= idle_job.running  # Subtract the already running jobs
-                        runnable_job_count -= idle_job.idle  # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
-                        log.debug("Runnable_job_count after: %s", runnable_job_count)
                         log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
                         log.debug("flavor list: %s", flavor_list)
                         try:
@@ -233,10 +207,9 @@ def main():
                                 continue
                             log.debug("Taking a look at booting on: %s", cloud.cloud_name)
                             log.debug("Using Flavor: %s", cloud.flavor)
-                            log.debug("num jobs per flavor: %s, flavor slots: %s", num_jobs_per_flavor_possible, cloud.flavor_slots)
+                            log.debug("flavor slots: %s", cloud.flavor_slots)
                             log.debug("Using Totals counts: %s", num_vm_jobs_per_flavor_total)
-                            # Need to redo this calculation for each cloud / flavor because it may change
-                            #num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
+
                             num_vms_to_boot = num_vm_jobs_per_flavor_total[cloud.flavor]
                             log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
                             # This is the total wanted, but cloud may not be able to handle that request
@@ -282,8 +255,6 @@ def main():
                                                    job=idle_job,
                                                    template_dict=template_dict,
                                                    image = use_image)
-                                    runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
-                                    # TODO account for new vms in the new total tracking values?
                                     log.debug('done booting on cloud %s', cloud.cloud_name)
                                     cloud_booted_on.add(cloud.cloud_name)
                                     break
@@ -313,7 +284,7 @@ def verify_idle_jobs(group, config):
     Hold jobs that fail the tests."""
     log = logging.getLogger(__name__)
     log.debug("Verify jobs for group: %s", group)
-
+    # TODO Make this stand alone and spin it out into a separate multiprocessing piece
     try:
         config.db_open()
         idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied).filter(
@@ -363,6 +334,7 @@ def count_cloud_flavors(group, config):
             vm_cloud_flavors[res.cloud_name][res.flavor]['disk'] = count * res.flavor_disk
             vm_cloud_flavors[res.cloud_name][res.flavor]['swap'] = count * res.flavor_swap
         log.debug("Done counting current flavors for group: %s.", group)
+        config.db_close()
     except Exception as ex:
         log.exception(ex)
         config.db_close()
@@ -374,6 +346,7 @@ def check_view_idle_vms(group, config):
     """Query view_idle_vms and retire as needed."""
     log = logging.getLogger(__name__)
     log.debug("check_view_idle_vms")
+    # TODO Make this stand alone and spin it out into a separate multiprocessing piece
     try:
         config.db_open()
         results = config.db_session.query(view_idle_vms).filter(group == view_idle_vms.c.group_name,
@@ -401,6 +374,7 @@ def check_unregistered_machines(group, config):
     so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
     log = logging.getLogger(__name__)
     log.debug("Check Unregistered Machines: %s", group)
+    # TODO Make this stand alone and spin it out into a separate multiprocessing piece
     try:
         config.db_open()
         machines = config.db_map.classes.condor_machines
@@ -412,7 +386,7 @@ def check_unregistered_machines(group, config):
         cloud_names = []
         for cloud in group_clouds:
             cloud_names.append(cloud.cloud_name)
-        non_cs_vm = []
+
         new_vms = defaultdict(list)
         to_terminate = []
         log.debug("%s VMs that are unregistered with condor collector:", group)
