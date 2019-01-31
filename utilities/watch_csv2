@@ -1,46 +1,202 @@
-#!/bin/bash
-function update {
-    clear
-    cat ${tmp}/p0
-    cat ${tmp}/p1
+#!/usr/bin/env python3
+"""
+Synopsis: utilities/list_views [ map ]
 
-    cat ${tmp}/p0 >> /tmp/watch_csv2_${SUDO_USER}.log
-    cat ${tmp}/p1 >> /tmp/watch_csv2_${SUDO_USER}.log
-    mv -f ${tmp}/p1 ${tmp}/p2
-}
-    tmp=$(mktemp -d)
-    IFS='"' read -r -a pw <<< $(grep db_password /etc/cloudscheduler/cloudscheduler.yaml)
+This command produces one of two reports: 1. without the "map" option, list the view names 
+in the order they need to be created, or 2. with the "map" option, prints a report showing
+view dependencies.
+"""
 
-    while true; do
-        condor_q -allusers | tail -n +3 > ${tmp}/p0
+from cloudscheduler.lib.db_config import Config
+from subprocess import Popen, PIPE
+import os
+import sys
+import tempfile
+import time
 
-        echo -e '\n--- condor_jobs -------------------------' > ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select user,target_clouds,image,instance_type,request_cpus,request_disk div (1024*1024) as request_disk,request_ram,sum(case when job_status=1 then 1 else 0 end) as idle,sum(case when job_status=2 then 1 else 0 end) as running,sum(case when job_status=4 then 1 else 0 end) as completed,sum(case when job_status=5 then 1 else 0 end) as held,sum(case when job_status!=1 and job_status!=2 and job_status!=4 and job_status!=5 then 1 else 0 end) as other from condor_jobs group by request_cpus,request_disk,request_ram;' >> ${tmp}/p1
+if len(sys.argv) < 2:
+    if sys.stdout.isatty():
+        report_destination = 'terminal'
+    else:
+        print('Error: no option specified and no terminal attached.')
+        exit(1)
 
-        echo -e '\n--- view_groups_of_idle_jobs ------------' >> ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select group_name,job_per_core,request_cpus_max as cpus_max,request_cpus_total as cpus_total,request_disk_max as disk_max,request_disk_total as disk_total,request_ram_max as ram_max,request_ram_total as ram_total,request_swap_max as swap_max,request_swap_total as swap_total,idle,running,completed,held,other,flavors from view_groups_of_idle_jobs;' >> ${tmp}/p1
+else:
+    if sys.argv[1] == '?' or sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1] == 'help':
+        print('\nSynopsis: watch_csv2 [ <option> ]' \
+            '\n\nWhere "<option>" is one of the following:' \
+            '\n   --help - to request this message; other synonyms for this option: help, -h, and ?.' \
+            '\n   append - appends the reports to the system log file.' \
+            '\n   replay - replays the system log file.' \
+            '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.')
+        exit(0)
 
-        echo -e '\n--- view_available_resources ------------' >> ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select group_name,cloud_name,sum(flavor_slots) as flavor_slots,sum(flavor_VMs) as flavor_VMs,sum(flavor_manual) as flavor_manual,sum(flavor_error) as flavor_error,sum(flavor_retiring) as flavor_retiring from view_available_resources group by group_name,cloud_name;' >> ${tmp}/p1
+    elif sys.argv[1] == 'append':
+        report_destination = 'syslog'
 
-        echo -e '\n--- condor slots (condor_machines)-------' >> ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select machine,min(total_disk div (1024*1024)) as total_disk,sum(case when slot_type="Partitionable" then 1 else 0 end) as primary_slots,sum(case when slot_type="Dynamic" then 1 else 0 end) as dynamic_slots from condor_machines group by machine;' >> ${tmp}/p1
+    elif sys.argv[1] == 'replay':
+        report_destination = 'replay'
 
-        echo -e '\n--- csv2_vms ----------------------------' >> ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select cv.group_name,cv.cloud_name,cf.name as flavor,hostname,htcondor_partitionable_slots as primary_slots,htcondor_dynamic_slots as dynamic_slots,htcondor_slots_timestamp as slots_timestamp,retire,terminate,cv.last_updated from csv2_vms as cv left outer join cloud_flavors as cf on cv.group_name=cf.group_name and cv.cloud_name=cf.cloud_name and cv.flavor_id=cf.id;' >> ${tmp}/p1
+    else:
+        print('Error: parameter "%s" is unregognized.' % sys.argv[1])
+        exit(1)
 
-        echo -e '\n--- view_idle_vms -----------------------' >> ${tmp}/p1
-        mysql -u csv2 -p${pw[1]} -t csv2 -e 'select * from view_idle_vms;' >> ${tmp}/p1
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['watch_csv2'], db_config_dict=True)
 
-        if [ -e ${tmp}/p2 ]; then
-            diff -q ${tmp}/p1 ${tmp}/p2 
-            if [ $? == 1 ]; then
-                update
-            else
-                echo "No change." >>/tmp/watch_csv2_${SUDO_USER}.log
-            fi
-        else
-            update
-        fi
-        sleep 10
-    done
+if not os.path.isfile(config.config_file):
+    print('Error: Configuration file "%s" does not exist.' % sys.argv[1])
+    exit(1)
+
+fd = open(config.config_file)
+watch_list = fd.read().replace('\n', ' ').split(';')
+fd.close()
+
+watch = []
+for ix in range(len(watch_list)):
+    watch_words = watch_list[ix].split()
+    if len(watch_words) > 0 and watch_words[0][0] != '#':
+        if watch_words[0] == 'select':
+            from_ix = -1 
+            while True:
+                try:
+                    from_ix = watch_words.index('from', from_ix+1)
+                except ValueError:
+                    break
+
+            watch.append({
+                'id': watch_words[from_ix+1],
+                'ix': ix,
+                'type': 'SQL',
+                'command': watch_list[ix],
+                'diff': '********'
+                })
+
+        else:
+            watch.append({
+                'id': watch_words[0],
+                'ix': ix,
+                'type': 'CMD',
+                'command': watch_words,
+                'diff': '********'
+                })
+       
+del watch_list
+
+if report_destination == 'syslog' or report_destination == 'terminal':
+    while True:
+        query_words = []
+        report = []
+        for cmd in watch:
+            if cmd['type'] == 'CMD':
+                p = Popen(cmd['command'], stdout=PIPE, stderr=PIPE)
+
+            elif cmd['type'] == 'SQL':
+                p = Popen([
+                    'mysql',
+                    '-u',
+                    config.db_config['db_user'],
+                    '-p%s' % config.db_config['db_password'],
+                    config.db_config['db_name'],
+                    '-t',
+                    '-e',
+                    '%s;' % cmd['command']
+                    ],
+                    stdout=PIPE, stderr=PIPE)
+
+            stdout, stderr = p.communicate()
+            if p.returncode == 0:
+                diff = '*'.join(stdout.decode('utf-8').replace('\n', ' ').split())
+                if cmd['diff'] != diff:
+                    cmd['change'] = True
+                    cmd['diff'] = diff
+                    cmd['report'] = ['']
+
+                    lines = stdout.decode('utf-8').split('\n')
+                    for line in lines:
+                        if len(line) > 0:
+                            cmd['report'].append(line)
+
+                    if len(cmd['report']) > 1:
+                        if cmd['type'] == 'SQL':
+                            cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-5)
+                        else:
+                            cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-1)
+                    else:
+                        cmd['report'][0] = '%s (0):' % cmd['id']
+                else:
+                    cmd['change'] = False
+            else:
+                cmd['report'].append('%s:' % cmd['id'])
+                cmd['report'].append('Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr))
+
+        if report_destination == 'terminal':
+            p = Popen(['clear'])
+            p.communicate()
+            
+            for cmd in watch:
+                if cmd['type'] == 'CMD':
+                    print('\n'.join(cmd['report'][1:] + ['']))
+                else:
+                    print('\n'.join(cmd['report'] + ['']))
+
+        elif report_destination == 'syslog':
+            fd = open(config.log_file, 'a')
+
+            for cmd in watch:
+                if cmd['change']:
+                    fd.write('%s\n' % '\n'.join(cmd['report']))
+                else:
+                    fd.write('%s no change.\n' % cmd['id'])
+
+            fd.close()
+
+        time.sleep(config.sleep_time)
+            
+if report_destination == 'replay':
+    watch_xref = {}
+    for ix in range(len(watch)):
+        watch_xref[watch[ix]['id']] = ix
+
+    fd = open(config.log_file)
+    lines = fd.read().split('\n')
+    fd.close()
+
+    temp_file = tempfile.mkstemp()
+    fd = open(temp_file[1], 'a')
+
+    cmd = None
+    for line in lines:
+        words = line.split()
+        if len(words) > 0 and words[0] in watch_xref:
+            if cmd:
+                if watch_xref[words[0]] == 0:
+                    fd.write('\n'*os.get_terminal_size().lines)
+                else:
+                    fd.write('\n')
+
+            cmd = watch[watch_xref[words[0]]]
+        
+            if len(words) > 2 and words[1] == 'no' and words[2] == 'change.':
+                if 'report' in cmd:
+                    if cmd['type'] == 'CMD':
+                        fd.write('\n'.join(cmd['report'][1:] + ['']))
+                    else:
+                        fd.write('\n'.join(cmd['report'] + ['']))
+                continue
+
+            else:
+                cmd['report'] = []
+
+        if cmd:
+            cmd['report'].append(line)
+            if cmd['type'] == 'SQL' or len(cmd['report']) > 1:
+                fd.write('%s\n' % cmd['report'][-1])
+
+    fd.close()
+
+    p = Popen(['less', temp_file[1]])
+    p.communicate()
+
+    p = Popen(['rm', '-f', temp_file[1]])
+    p.communicate()
+

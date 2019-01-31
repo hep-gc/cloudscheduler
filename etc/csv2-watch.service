@@ -1,0 +1,13 @@
+[Unit]
+Description=Logs the cloudscheduler V2 status.
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 /home/crlb/Git/cloudscheduler/utilities/watch_csv2 append
+Restart=on-abort
+
+
+[Install]
+WantedBy=multi-user.target
