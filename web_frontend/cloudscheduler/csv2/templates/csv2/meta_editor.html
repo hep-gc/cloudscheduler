@@ -80,7 +80,11 @@
         <tr>
 
         <td>
+        {% if message == "new-cloud-metadata" or message == "new-group-metadata"%}
+            <input type="submit" id="left" value="Add" >
+        {% else %}
             <input type="submit" id="left" value="Update" >
+        {% endif %}
         </td>
 
     </form>
@@ -112,7 +116,7 @@
             {% endif %}
 
                 <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
-                <input type="submit"  value="Delete {{ metadata_name }}" onclick="parent.location.reload()">
+                <input type="submit"  value="Delete {{ metadata_name }}">
             </form>
         </div>
     </div>

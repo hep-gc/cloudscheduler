@@ -643,7 +643,6 @@ def metadata_add(request):
 
             #**********************************************************************************
             
-            '''
             #This block of code checks to make sure the metadata was successfully added
             config.db_open()
 
@@ -658,7 +657,7 @@ def metadata_add(request):
                         break
 
             config.db_close()
-            '''
+
 
             #**********************************************************************************
 
@@ -760,6 +759,7 @@ def metadata_delete(request):
 
             #**********************************************************************************
 
+            #This block of code checks to make sure the metadata was successfully deleted
             config.db_open()
 
             found = True
@@ -767,11 +767,8 @@ def metadata_delete(request):
 
                 s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
                 meta_list = qt(config.db_connection.execute(s))
-                print(">>>>>>metadata>>>>>>>", meta_list)
                 if not meta_list:
                     found = False
-
-            print("metadata deleted successfully")
 
             config.db_close()
 
@@ -779,7 +776,17 @@ def metadata_delete(request):
             #**********************************************************************************
 
 
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+            #return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+
+            message = 'cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+
+            context = {
+            'message': message,
+            }
+            return render(request, 'csv2/reload_parent.html', context)
+
+
+
         else:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), user_groups=user_groups, attributes=columns)
