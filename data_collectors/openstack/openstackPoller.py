@@ -1135,7 +1135,7 @@ def vm_poller():
                         if uncommitted_updates >= config.batch_commit_size:
                             try:
                                 db_session.commit()
-                                logging.debug("Comitted %s VMs" % uncomitted_updates)
+                                logging.debug("Comitted %s VMs" % uncommitted_updates)
                                 uncommitted_updates = 0
                             except Exception as exc:
                                 logging.error("Error during batch commit of VMs:")
@@ -1154,6 +1154,8 @@ def vm_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
+                if abort_cycle:
+                    break
                 # proccess FVM dict
                 # check if any rows have a zero count and delete them, otherwise update with new count
                 for key in for_vm_dict:
