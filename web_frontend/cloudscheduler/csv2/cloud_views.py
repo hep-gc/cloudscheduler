@@ -642,6 +642,9 @@ def metadata_add(request):
             config.db_close(commit=True)
 
             #**********************************************************************************
+            
+            '''
+            #This block of code checks to make sure the metadata was successfully added
             config.db_open()
 
             found = False
@@ -649,21 +652,24 @@ def metadata_add(request):
 
                 s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
                 meta_list = qt(config.db_connection.execute(s))
-                print(">>>>>>metadata>>>>>>>", meta_list)
                 for meta in meta_list:
-                    print(">>>>>>meta1-meta2>>>>>", fields['metadata_name'], meta['metadata_name'])
                     if fields['metadata_name'] == meta['metadata_name']:
                         found = True
                         break
 
-            print("metadata added successfully")
-
             config.db_close()
-
+            '''
 
             #**********************************************************************************
 
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+            #return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+            message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+
+            context = {
+            'message': message,
+            }
+            return render(request, 'csv2/reload_parent.html', context)
+
         else:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), user_groups=user_groups, attributes=columns)
