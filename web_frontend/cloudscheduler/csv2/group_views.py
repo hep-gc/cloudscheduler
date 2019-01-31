@@ -635,7 +635,14 @@ def metadata_add(request):
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
+
+            message = 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])
+            context = {
+            'message': message,
+            }
+            return render(request, 'csv2/reload_parent.html', context)
+
         else:
             config.db_close()
             return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV26'), active_user.active_group, fields['metadata_name'], msg)})
@@ -689,7 +696,13 @@ def metadata_delete(request):
             )
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
+
+            message = 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])
+            context = {
+            'message': message,
+            }
+            return render(request, 'csv2/reload_parent.html', context)
         else:
             config.db_close()
             return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV31'), active_user.active_group, fields['metadata_name'], msg)})

@@ -642,7 +642,7 @@ def metadata_add(request):
             config.db_close(commit=True)
 
             #**********************************************************************************
-            
+            '''
             #This block of code checks to make sure the metadata was successfully added
             config.db_open()
 
@@ -657,7 +657,7 @@ def metadata_add(request):
                         break
 
             config.db_close()
-
+            '''
 
             #**********************************************************************************
 
@@ -758,7 +758,7 @@ def metadata_delete(request):
             config.db_close(commit=True)
 
             #**********************************************************************************
-
+            '''
             #This block of code checks to make sure the metadata was successfully deleted
             config.db_open()
 
@@ -771,7 +771,7 @@ def metadata_delete(request):
                     found = False
 
             config.db_close()
-
+            '''
 
             #**********************************************************************************
 
