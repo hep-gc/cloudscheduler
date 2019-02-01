@@ -342,7 +342,7 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire==1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire>=1):
                     # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
                     #index=attribute
                     #0=group
@@ -351,19 +351,27 @@ def command_poller():
                     #3=vmid
                     #4=hostname
                     #5=retireflag
-                    #6=terminate flag
-                    #7=machine
-                    logging.info("Retiring machine %s" % resource[7])
+                    #6=retiring flag
+                    #7=terminate flag
+                    #8=machine
+                    # First check if we have already issued a retire & its retiring
+
+                    if resource[5] >= 2 and resource[6] == 1:
+                        #resource has already been retired, skip it
+                        continue
+
+
+                    logging.info("Retiring machine %s" % resource[8])
                     try:
-                        if resource[7] is not None and resource[7] is not "":
-                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource[7])[0]
+                        if resource[7] is not None and resource[8] is not "":
+                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource[8])[0]
                         else:
                             condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource[0], VM.cloud_name==resource[1], VM.vmid==resource[3])[0]
-                        vm_row.retire=2
+                        vm_row.retire = vm_row.retire + 1
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -378,7 +386,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource[7], resource[4]))
+                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource[8], resource[4]))
                         continue
 
             if uncommitted_updates > 0:
