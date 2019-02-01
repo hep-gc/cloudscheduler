@@ -149,7 +149,7 @@ def add(request):
     if request.method == 'POST':
         
         # Validate input fields.
-        rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups', 'csv2_user_groups', 'csv2_user,n'], active_user)
+        rc, msg, fields, tables, columns = validate_fields(config, request, [GROUP_KEYS], ['csv2_groups', 'csv2_user_groups', 'csv2_user,n', 'csv2_group_metadata,n'], active_user)
         if rc != 0:
             config.db_close()
             return list(request, selector='-', response_code=1, message='%s group add %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
@@ -198,6 +198,19 @@ def add(request):
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV04'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
+
+        # Add the default metadata file.
+        filepath = '/opt/cloudscheduler/'
+        filename = 'default.yaml.j2'
+        filedata = open(filepath+filename, "r").read()
+
+        table = tables['csv2_group_metadata']
+        rc, msg = config.db_session_execute(table.insert().values(group_name=fields['group_name'], metadata_name=filename, enabled=1 ,priority=0, metadata=filedata, mime_type="cloud-config"))
+        if rc != 0:
+            config.db_close()
+            return list(request, selector=fields['group_name'], response_code=1, message='%s group add "%s" failed - %s.' % (lno('GV04'), fields['group_name'], msg), active_user=active_user, user_groups=user_groups, attributes=columns)
+
 
         # Commit the updates and return.
         config.db_close(commit=True)
