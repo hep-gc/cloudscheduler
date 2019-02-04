@@ -38,8 +38,8 @@ def transfer_keypair(keypair, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
-    nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
-    return True
+    result = nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
+    return result
 
 def create_keypair(key_name, key_string, cloud):
     sess = _get_keystone_session(cloud)

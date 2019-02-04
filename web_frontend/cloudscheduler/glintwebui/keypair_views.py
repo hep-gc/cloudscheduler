@@ -238,7 +238,8 @@ def save_keypairs(request, group_name=None, message=None):
                         os_keypair = get_keypair(keypair_key, src_cloud)
                         # upload key to current "cloud"
                         logger.info("transferring keypair...")
-                        transfer_keypair(os_keypair, cloud)
+                        result = transfer_keypair(os_keypair, cloud)
+                        logger.info(result)
                         keypair_dict = {
                             "group_name": group_name,
                             "cloud_name": cloud.cloud_name,
