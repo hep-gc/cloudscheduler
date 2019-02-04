@@ -8,9 +8,9 @@ from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 
 
-import cloudscheduler.basecloud
+import basecloud
 
-class EC2Cloud(cloudscheduler.basecloud):
+class EC2Cloud(basecloud):
 
     """
     Cloud Connector class for EC2 API based clouds like AmazonEC2, or OpenNebula.
@@ -18,7 +18,7 @@ class EC2Cloud(cloudscheduler.basecloud):
 
     def __init__(self, resource, vms=None, extrayaml=None):
         """Constructor for ec2 based clouds."""
-        cloudscheduler.basecloud.BaseCloud.__init__(self, name=resource.cloud_name, group = resource.group_name,
+        basecloud.BaseCloud.__init__(self, name=resource.cloud_name, group = resource.group_name,
                                                     extrayaml=extrayaml, vms=vms)
         self.log = logging.getLogger(__name__)
         self.username = resource.username  # Access ID?

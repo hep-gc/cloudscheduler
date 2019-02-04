@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+"""
+Synopsis: utilities/list_views [ map ]
+
+This command produces one of two reports: 1. without the "map" option, list the view names 
+in the order they need to be created, or 2. with the "map" option, prints a report showing
+view dependencies.
+"""
+
+from cloudscheduler.lib.db_config import Config
+from subprocess import Popen, PIPE
+import os
+import sys
+import tempfile
+import time
+
+if len(sys.argv) < 2:
+    if sys.stdout.isatty():
+        report_destination = 'terminal'
+    else:
+        print('Error: no option specified and no terminal attached.')
+        exit(1)
+
+else:
+    if sys.argv[1] == '?' or sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1] == 'help':
+        print('\nSynopsis: watch_csv2 [ <option> ]' \
+            '\n\nWhere "<option>" is one of the following:' \
+            '\n   --help      - (or: -h, help, & ?) to request these help messages.' \
+            '\n   --append    - (or: -a, append) appends periodical reports to the system log file.' \
+            '\n   --enumerate - (or: -e, enumerate) reads the system log file, identifies data' \
+            '\n                 elements by inserting table, row, and column identifiers, and' \
+            '\n                 writing the report to stdout.' \
+            '\n   --replay    - (or: -r, replay) replays the system log file.' \
+            '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.' \
+            '\n\nwatch_csv2 has the following configuration values with the csv2 database:' \
+            '\n   category=watch_csv2, key=config_file - specifies the absolute path of the watch_csv2' \
+            '\n                                          configuration file. This file specifies the' \
+            '\n                                          commands and SQL select statements that are to' \
+            '\n                                          be "watched". Each command/statement must be' \
+            '\n                                          terminated by a semicolon (";").' \
+            '\n   category=watch_csv2, key=log_file    - specifies the absolute path of the watch_csv2' \
+            '\n                                          log file.' \
+            '\n   category=watch_csv2, key=sleep_time  - specifies the number of seconds between periodic' \
+            '\n                                          reports.')
+
+        exit(0)
+
+    elif sys.argv[1] == '--append' or sys.argv[1] == '-a' or sys.argv[1] == 'append':
+        report_destination = 'syslog'
+
+    elif sys.argv[1] == '--enumerate' or sys.argv[1] == '-e' or sys.argv[1] == 'enumerate':
+        report_destination = 'enumerate'
+
+    elif sys.argv[1] == '--replay' or sys.argv[1] == '-r' or sys.argv[1] == 'replay':
+        report_destination = 'replay'
+
+    else:
+        print('Error: parameter "%s" is unregognized.' % sys.argv[1])
+        exit(1)
+
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['watch_csv2'], db_config_dict=True)
+
+if not os.path.isfile(config.config_file):
+    print('Error: Configuration file "%s" does not exist.' % sys.argv[1])
+    exit(1)
+
+fd = open(config.config_file)
+watch_list = fd.read().replace('\n', ' ').split(';')
+fd.close()
+
+watch = []
+for ix in range(len(watch_list)):
+    watch_words = watch_list[ix].split()
+    if len(watch_words) > 0 and watch_words[0][0] != '#':
+        if watch_words[0] == 'select':
+            from_ix = -1 
+            while True:
+                try:
+                    from_ix = watch_words.index('from', from_ix+1)
+                except ValueError:
+                    break
+
+            watch.append({
+                'id': watch_words[from_ix+1],
+                'ix': ix,
+                'type': 'SQL',
+                'command': watch_list[ix],
+                'diff': '********'
+                })
+
+        else:
+            watch.append({
+                'id': watch_words[0],
+                'ix': ix,
+                'type': 'CMD',
+                'command': watch_words,
+                'diff': '********'
+                })
+       
+del watch_list
+
+if report_destination == 'syslog' or report_destination == 'terminal':
+    while True:
+        query_words = []
+        report = []
+        for cmd in watch:
+            if cmd['type'] == 'CMD':
+                p = Popen(cmd['command'], stdout=PIPE, stderr=PIPE)
+
+            elif cmd['type'] == 'SQL':
+                p = Popen([
+                    'mysql',
+                    '-u',
+                    config.db_config['db_user'],
+                    '-p%s' % config.db_config['db_password'],
+                    config.db_config['db_name'],
+                    '-t',
+                    '-e',
+                    '%s;' % cmd['command']
+                    ],
+                    stdout=PIPE, stderr=PIPE)
+
+            stdout, stderr = p.communicate()
+            if p.returncode == 0:
+                diff = '*'.join(stdout.decode('utf-8').replace('\n', ' ').split())
+                if cmd['diff'] != diff:
+                    cmd['change'] = True
+                    cmd['diff'] = diff
+                    cmd['report'] = ['']
+
+                    lines = stdout.decode('utf-8').split('\n')
+                    for line in lines:
+                        if len(line) > 0:
+                            cmd['report'].append(line)
+
+                    if len(cmd['report']) > 1:
+                        if cmd['type'] == 'SQL':
+                            cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-5)
+                        else:
+                            cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-1)
+                    else:
+                        cmd['report'][0] = '%s (0):' % cmd['id']
+                else:
+                    cmd['change'] = False
+            else:
+                cmd['report'].append('%s:' % cmd['id'])
+                cmd['report'].append('Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr))
+
+        if report_destination == 'terminal':
+            p = Popen(['clear'])
+            p.communicate()
+            
+            for cmd in watch:
+                if cmd['type'] == 'CMD':
+                    print('\n'.join(cmd['report'][1:] + ['']))
+                else:
+                    print('\n'.join(cmd['report'] + ['']))
+
+        elif report_destination == 'syslog':
+            fd = open(config.log_file, 'a')
+
+            for cmd in watch:
+                if cmd['change']:
+                    fd.write('%s\n' % '\n'.join(cmd['report']))
+                else:
+                    fd.write('%s no change.\n' % cmd['id'])
+
+            fd.close()
+
+        time.sleep(config.sleep_time)
+            
+if report_destination == 'enumerate':
+    watch_xref = {}
+    for ix in range(len(watch)):
+        watch_xref[watch[ix]['id']] = ix
+
+    fd = open(config.log_file)
+    lines = fd.read().split('\n')
+    fd.close()
+
+    cmd = None
+    for line in lines:
+        words = line.split()
+        if len(words) > 0 and words[0] in watch_xref:
+            cmd_ix = watch_xref[words[0]]
+            row_ix = 0
+        
+
+        if watch[cmd_ix]['type'] == 'CMD':
+            print('%d_%d %s' % (cmd_ix, row_ix, line))
+            row_ix += 1
+        
+        elif watch[cmd_ix]['type'] == 'SQL' and len(words) > 0 and len(words[0]) > 0 and words[0][0] != '+':
+            if row_ix == 0:
+                print('%d_%d %s' % (cmd_ix, row_ix, line))
+            else:
+                cols = line[1:-1].split('|')
+                for col_ix in range(1, len(cols)):
+                    cols[col_ix] = '%d_%d=%s' % (cmd_ix, col_ix, cols[col_ix].strip())
+                print('%d_%d %s' % (cmd_ix, row_ix, ', '.join(cols[1:])))
+            row_ix += 1
+
+if report_destination == 'replay':
+    watch_xref = {}
+    for ix in range(len(watch)):
+        watch_xref[watch[ix]['id']] = ix
+
+    fd = open(config.log_file)
+    lines = fd.read().split('\n')
+    fd.close()
+
+    temp_file = tempfile.mkstemp()
+    fd = open(temp_file[1], 'a')
+
+    cmd = None
+    for line in lines:
+        words = line.split()
+        if len(words) > 0 and words[0] in watch_xref:
+            if cmd:
+                if watch_xref[words[0]] == 0:
+                    fd.write('\n'*os.get_terminal_size().lines)
+                else:
+                    fd.write('\n')
+
+            cmd = watch[watch_xref[words[0]]]
+        
+            if len(words) > 2 and words[1] == 'no' and words[2] == 'change.':
+                if 'report' in cmd:
+                    if cmd['type'] == 'CMD':
+                        fd.write('\n'.join(cmd['report'][1:] + ['']))
+                    else:
+                        fd.write('\n'.join(cmd['report'] + ['']))
+                continue
+
+            else:
+                cmd['report'] = []
+
+        if cmd:
+            cmd['report'].append(line)
+            if cmd['type'] == 'SQL' or len(cmd['report']) > 1:
+                fd.write('%s\n' % cmd['report'][-1])
+
+    fd.close()
+
+    p = Popen(['less', temp_file[1]])
+    p.communicate()
+
+    p = Popen(['rm', '-f', temp_file[1]])
+    p.communicate()
+

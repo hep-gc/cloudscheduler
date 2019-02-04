@@ -6,16 +6,22 @@ select
     vmid,
     hostname,
     retire,
+    case when slots=retiring_slots then 1 else 0 end as retiring,
     terminate,
     machine
 from csv2_vms as cv
 left outer join csv2_groups as cg on
     cv.group_name=cg.group_name
 left outer join (
-    select distinct
+    select
+        machine,
+        condor_host,
+        count(*) as slots,
+        sum(case when activity='Retiring' then 1 else 0 end) as retiring_slots
+    from condor_machines
+    group by
         machine,
         condor_host
-    from condor_machines
     ) as cm on
     cv.hostname=substring_index(cm.machine, '.', 1)
 ;

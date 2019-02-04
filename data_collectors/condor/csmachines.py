@@ -119,7 +119,7 @@ def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor", "TotalDisk"]
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
@@ -342,7 +342,7 @@ def command_poller():
 
                 # Query database for machines to be retired.
                 abort_cycle = False
-                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire==1):
+                for resource in db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn==condor_host, view_condor_host.c.retire>=1):
                     # Since we are querying a view we dont get an automapped object and instead get a 'result' tuple of the following format
                     #index=attribute
                     #0=group
@@ -351,19 +351,27 @@ def command_poller():
                     #3=vmid
                     #4=hostname
                     #5=retireflag
-                    #6=terminate flag
-                    #7=machine
-                    logging.info("Retiring machine %s" % resource[7])
+                    #6=retiring flag
+                    #7=terminate flag
+                    #8=machine
+                    # First check if we have already issued a retire & its retiring
+
+                    if resource[5] >= 2 and resource[6] == 1:
+                        #resource has already been retired, skip it
+                        continue
+
+
+                    logging.info("Retiring machine %s" % resource[8])
                     try:
-                        if resource[7] is not None and resource[7] is not "":
-                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource[7])[0]
+                        if resource[7] is not None and resource[8] is not "":
+                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource[8])[0]
                         else:
                             condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource[0], VM.cloud_name==resource[1], VM.vmid==resource[3])[0]
-                        vm_row.retire=2
+                        vm_row.retire = vm_row.retire + 1
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -378,7 +386,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource[7], resource[4]))
+                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource[8], resource[4]))
                         continue
 
             if uncommitted_updates > 0:
@@ -404,7 +412,7 @@ def command_poller():
                 master_list = []
                 startd_list = []
                 #get list of vm/machines from this condor host
-                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate == 1)
+                redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate >= 1)
                 for resource in redundant_machine_list:
 
                     # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
@@ -429,12 +437,16 @@ def command_poller():
                         # terminate the vm
                         nova = _get_nova_client(session, region=cloud.region)
                         try:
+                            # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
                             nova.servers.delete(vm_row.vmid)
                             logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
-                            vm_row.terminate = 2
+                            vm_row.terminate = vm_row.terminate + 1
                             db_session.merge(vm_row)
+                            # log here if terminate # /10 = remainder zero
+                            if vm_row.terminate %10 == 0:
+                                logging.critical("%s failed terminates on %s user action required" % (vm_row.terminate - 1, vm_row.hostname))
                         except Exception as exc:
-                            logging.error("Failed to terminate VM: %s", vm_row.hostname)
+                            logging.error("Failed to terminate VM: %s, terminates issued: %s" % (vm_row.hostname, vm_row.terminate - 1))
                             logging.error(exc)
 
                         # Now that the machine is terminated, we can speed up operations by invalidating the related classads

@@ -1,45 +1,57 @@
 #!/usr/bin/python3
 
+import os
+import sys
 import copy
 import json
 import math
 import time
 import logging
+import multiprocessing
 from collections import defaultdict
 
-import cloudscheduler.jobmanager
-import cloudscheduler.cloudmanager
+import cloudmanager
+#import cloudscheduler.cloudmanager
 
-from lib.schema import view_idle_vms
-from lib.schema import view_groups_of_idle_jobs
-from lib.schema import view_available_resources
-from lib.schema import view_condor_jobs_group_defaults_applied
-from lib.schema import view_metadata_collation_json
 
-from lib.db_config import Config
+from cloudscheduler.lib.schema import view_idle_vms
+from cloudscheduler.lib.schema import view_groups_of_idle_jobs
+from cloudscheduler.lib.schema import view_available_resources
+from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
+from cloudscheduler.lib.schema import view_metadata_collation_json
+
+from cloudscheduler.lib.db_config import Config
+
+from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
+from sqlalchemy.exc import TimeoutError
 
 
 def main():
     """
     main function.
     """
+    multiprocessing.current_process().name = "csmain"
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
+    log = logging.getLogger(__name__)
     logging.basicConfig(filename=config.log_file,
                         level=config.log_level,
                         format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
-    log = logging.getLogger(__name__)
 
     while(True):
         CSGroups = config.db_map.classes.csv2_groups
         try:
             config.db_open()
             csv2groups = config.db_session.query(CSGroups)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
         except Exception as ex:
             log.exception(ex)
             config.db_close()
@@ -70,6 +82,9 @@ def main():
                 Group_metadata = config.db_map.classes.csv2_group_metadata
                 group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                                Group_metadata.enabled == 1)
+            except TimeoutError as ex:
+                log.exception(ex)
+                sys.exit(1)
             except Exception as ex:
                 log.exception(ex)
                 config.db_close()
@@ -79,7 +94,7 @@ def main():
             for yam in group_yamls:
                 group_yaml_list.append([yam.metadata_name, yam.metadata, yam.mime_type, yam.priority])
 
-            cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
+            cm_group = cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
                                                                 group_yamls=group_yaml_list,
                                                                 metadata=metadata[csgroup.group_name] if csgroup.group_name in metadata.keys() else None)
             cm_group.setup()
@@ -90,9 +105,7 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            #verify_idle_jobs(csgroup.group_name)
-            check_view_idle_vms(csgroup.group_name, config)
-            new_vms = check_unregistered_machines(csgroup.group_name,config)
+            #verify_idle_jobs(csgroup.group_name) # TODO figure out this old function
 
             current_flavors = count_cloud_flavors(csgroup.group_name, config)
             #log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
@@ -142,14 +155,15 @@ def main():
                         else:
                             clouds_matching = config.db_session.query(view_available_resources).filter(
                                 view_available_resources.c.flavor.in_(flavor_list))
+                    except TimeoutError as ex:
+                        log.exception(ex)
+                        sys.exit(1)
                     except Exception as ex:
                         log.exception(ex)
                         time.sleep(2)
                         continue
-                    num_jobs_per_flavor_possible = {}
-                    num_jobs_per_flavor_max = {}
-                    num_vm_jobs_per_flavor_total = {}
 
+                    num_vm_jobs_per_flavor_total = {}
                     total_cpus = idle_job.request_cpus_total
                     total_ram = idle_job.request_ram_total
                     total_disk = idle_job.request_disk_total
@@ -167,43 +181,19 @@ def main():
                     if total_ram > 0 or total_cpus > 0 or total_disk > 0:
                         # Looks like we need more VMs, but how many?
                         for cloud_match in clouds_matching:
-                            cpu = cloud_match.flavor_cores / idle_job.request_cpus_min
-                            cpu_max = cloud_match.flavor_cores / idle_job.request_cpus_max
                             vm_cpu_total = total_cpus / cloud_match.flavor_cores
-                            ram = cloud_match.flavor_ram / idle_job.request_ram_min
-                            ram_max = cloud_match.flavor_ram / idle_job.request_ram_max
                             vm_ram_total = total_ram / cloud_match.flavor_ram
-                            disk = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_min else None
-                            disk_max = cloud_match.flavor_disk / idle_job.request_disk_min if idle_job.request_disk_max else None
-                            vm_disk_total = total_disk / cloud_match.flavor_disk
-                            jobs_possible = int(min([cpu,ram,disk])) if disk else int(min([cpu, ram]))
-                            jobs_possible_max = int(min(cpu_max,ram_max,disk_max)) if disk_max else int(min(cpu_max,ram_max))
-                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total))
-                            if jobs_possible < 1:
-                                jobs_possible = 1
-                            if jobs_possible_max < 1:
-                                jobs_possible_max = 1
+                            vm_disk_total = total_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
+                            vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total)) if vm_disk_total else int(max(vm_cpu_total, vm_ram_total))
                             if vm_jobs_possible_total < 1:
                                 vm_jobs_possible_total = 1
-                            num_jobs_per_flavor_possible[cloud_match.flavor] = jobs_possible
-                            num_jobs_per_flavor_max[cloud_match.flavor] = jobs_possible_max
                             num_vm_jobs_per_flavor_total[cloud_match.flavor] = vm_jobs_possible_total
-                        log.debug("num jobs per flavor(min): %s", num_jobs_per_flavor_possible)
-                        log.debug("num jobs per flavor(max): %s", num_jobs_per_flavor_max)
                         log.debug("num vms per flavor(total): %s", num_vm_jobs_per_flavor_total)
                         # Now have the amount of jobs that can run on each option
                         # Next get all the VMs for this group with their flavor info - actually could be done outside of loop and re-use it
                         # Need a structure of the groups VMs accessible by the cloud_name and with a count of the flavor
                         # ie vms[cloud-name][flavor] = 6
-                        runnable_job_count = 0
-                        for flavor in num_jobs_per_flavor_possible.keys():
-                            (cloud_name, flavor_name) = flavor.split(':')
-                            runnable_job_count += num_jobs_per_flavor_possible[flavor] * current_flavors[cloud_name][flavor_name]['count']
 
-                        log.debug("Runnable_job_count before: %s", runnable_job_count)
-                        runnable_job_count -= idle_job.running  # Subtract the already running jobs
-                        runnable_job_count -= idle_job.idle  # subtract the idle jobs in case there's unregistered, unmatched, or poller delay
-                        log.debug("Runnable_job_count after: %s", runnable_job_count)
                         log.debug("Running: %s, Idle: %s", idle_job.running, idle_job.idle)
                         log.debug("flavor list: %s", flavor_list)
                         try:
@@ -215,6 +205,9 @@ def main():
                             else:
                                 clouds_matching_new = config.db_session.query(view_available_resources).filter(
                                     view_available_resources.c.flavor.in_(flavor_list))  # .order_by(view_available_resources.c.priority)
+                        except TimeoutError as ex:
+                            log.exception(ex)
+                            sys.exit(1)
                         except Exception as ex:
                             log.exception(ex)
                             time.sleep(1)
@@ -225,10 +218,9 @@ def main():
                                 continue
                             log.debug("Taking a look at booting on: %s", cloud.cloud_name)
                             log.debug("Using Flavor: %s", cloud.flavor)
-                            log.debug("num jobs per flavor: %s, flavor slots: %s", num_jobs_per_flavor_possible, cloud.flavor_slots)
+                            log.debug("flavor slots: %s", cloud.flavor_slots)
                             log.debug("Using Totals counts: %s", num_vm_jobs_per_flavor_total)
-                            # Need to redo this calculation for each cloud / flavor because it may change
-                            #num_vms_to_boot = abs(runnable_job_count) / num_jobs_per_flavor_possible[cloud.flavor]
+
                             num_vms_to_boot = num_vm_jobs_per_flavor_total[cloud.flavor]
                             log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
                             # This is the total wanted, but cloud may not be able to handle that request
@@ -274,8 +266,6 @@ def main():
                                                    job=idle_job,
                                                    template_dict=template_dict,
                                                    image = use_image)
-                                    runnable_job_count += num_vms_to_boot * num_jobs_per_flavor_possible[cloud.flavor]
-                                    # TODO account for new vms in the new total tracking values?
                                     log.debug('done booting on cloud %s', cloud.cloud_name)
                                     cloud_booted_on.add(cloud.cloud_name)
                                     break
@@ -292,6 +282,9 @@ def main():
                         continue
 
                 config.db_close()
+            except TimeoutError as ex:
+                log.exception(ex)
+                sys.exit(1)
             except Exception as ex:
                 log.exception(ex)
                 config.db_close()
@@ -305,7 +298,8 @@ def verify_idle_jobs(group, config):
     Hold jobs that fail the tests."""
     log = logging.getLogger(__name__)
     log.debug("Verify jobs for group: %s", group)
-
+    # TODO Review this function to see if it even still works and does what it's supposed to.
+    # TODO Make this stand alone and spin it out into a separate multiprocessing piece
     try:
         config.db_open()
         idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied).filter(
@@ -328,6 +322,9 @@ def verify_idle_jobs(group, config):
                 log.exception(ex)
                 continue
         config.db_close(commit=True)
+    except TimeoutError as ex:
+        log.exception(ex)
+        sys.exit(1)
     except Exception as ex:
         log.exception(ex)
         config.db_close()
@@ -355,6 +352,10 @@ def count_cloud_flavors(group, config):
             vm_cloud_flavors[res.cloud_name][res.flavor]['disk'] = count * res.flavor_disk
             vm_cloud_flavors[res.cloud_name][res.flavor]['swap'] = count * res.flavor_swap
         log.debug("Done counting current flavors for group: %s.", group)
+        config.db_close()
+    except TimeoutError as ex:
+        log.exception(ex)
+        sys.exit(1)
     except Exception as ex:
         log.exception(ex)
         config.db_close()
@@ -362,89 +363,138 @@ def count_cloud_flavors(group, config):
     return vm_cloud_flavors
 
 
-def check_view_idle_vms(group, config):
+def check_view_idle_vms():
     """Query view_idle_vms and retire as needed."""
+    multiprocessing.current_process().name = "csmain_idle_vms"
     log = logging.getLogger(__name__)
-    log.debug("check_view_idle_vms")
-    try:
-        config.db_open()
-        results = config.db_session.query(view_idle_vms).filter(group == view_idle_vms.c.group_name,
-                                                           view_idle_vms.c.retire == 0,
-                                                           view_idle_vms.c.terminate == 0)
-        vmids = []
-        for res in results:
-            vmids.append(res.vmid)
-        if vmids:
-            log.debug("Setting retire flag on %s VMs.", len(vmids))
-            vms = config.db_map.classes.csv2_vms
-            update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
-            for row in update_result:
-                row.retire = 1
-                config.db_session.merge(row)
-        config.db_close(commit=True)
-    except Exception as ex:
-        log.exception(ex)
-        config.db_close()
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config.db_engine.dispose()
+    if not config:
+        print("Problem loading config file.")
         return
+    while True:
+        log.debug("-------------------check_view_idle_vms-------------------")
+        try:
+            config.db_open()
+            results = config.db_session.query(view_idle_vms).filter(view_idle_vms.c.retire == 0,
+                                                                    view_idle_vms.c.terminate == 0)
+            vmids = []
+            for res in results:
+                vmids.append(res.vmid)
+            if vmids:
+                log.debug("Setting retire flag on %s VMs.", len(vmids))
+                vms = config.db_map.classes.csv2_vms
+                update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
+                for row in update_result:
+                    row.retire = 1
+                    config.db_session.merge(row)
+            config.db_close(commit=True)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
+        except Exception as ex:
+            log.exception(ex)
+            config.db_close()
+            return
+        time.sleep(10)  # TODO make configurable.
 
-def check_unregistered_machines(group, config):
+def check_unregistered_machines():
     """Query the condor machines and cloud VMs to sort out which ones have failed to register correctly.
     and take steps to shut those down. There could be problems with shutting down machines cs isn't controlling
     so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
     log = logging.getLogger(__name__)
-    log.debug("Check Unregistered Machines: %s", group)
+    multiprocessing.current_process().name = "csmain_unregistered_vms"
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config.db_engine.dispose()
+    while True:
+        log.debug("--------------------Check Unregistered Machines--------------------")
+        try:
+            config.db_open()
+            machines = config.db_map.classes.condor_machines
+            vms = config.db_map.classes.csv2_vms
+            clouds = config.db_map.classes.csv2_clouds
+            group_clouds = config.db_session.query(clouds)
+            unregistered_vms = config.db_session.query(vms).filter(~exists().
+                                                                   where(machines.machine.contains(vms.hostname)))
+            cloud_names = []
+            for cloud in group_clouds:
+                cloud_names.append(cloud.cloud_name)
+
+            new_vms = defaultdict(list)
+            to_terminate = []
+            log.debug("VMs that are unregistered with condor collector:")
+            for vm in unregistered_vms:
+                try:
+                    hostname_split = vm.hostname.split('--')
+                    if len(hostname_split) == 1:
+                        continue
+                    cname = hostname_split[1]
+                    if cname in cloud_names: # name prefix matches a valid cloud name
+                        if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
+                            to_terminate.append(vm.vmid)
+                            log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
+                        elif not vm.terminate and vm.retire:
+                            to_terminate.append(vm.vmid)
+                            log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
+                        else:
+                            log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
+                                      str(int(time.time()) - vm.last_updated), vm.terminate)
+                            new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
+                except Exception as ex:
+                    log.exception("Problem going through unregistered VMs: %s", ex)
+            if to_terminate:
+                log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
+                update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
+                for vm in update_result:
+                    log.debug("Update flag on %s", vm.hostname)
+                    vm.terminate = 1
+                    config.db_session.merge(vm)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
+        except Exception as ex:
+            log.exception(ex)
+            config.db_close()
+            return
+        log.debug("Done checking unregistered VMs.")
+        try:
+            config.db_close(commit=True)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
+        except Exception as ex:
+            log.exception(ex)
+        time.sleep(10)  # TODO Make configurable ?
+
+if __name__ == '__main__':
+
+    process_ids = {
+        'scheduler': main,
+        'idle_vms': check_view_idle_vms,
+        'unregistered_vms': check_unregistered_machines,
+    }
+
+    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=15,
+                             orange_count_row='csv2_scheduler_error_count', process_ids=process_ids)
+    config = procMon.get_config()
+    log = procMon.get_logging()
+    version = config.get_version()
+
+    log.info(
+        "**************************** starting CSv2 Scheduler processes - Running %s *********************************" % version)
+
+    # Wait for keyboard input to exit
     try:
-        config.db_open()
-        machines = config.db_map.classes.condor_machines
-        vms = config.db_map.classes.csv2_vms
-        clouds = config.db_map.classes.csv2_clouds
-        group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
-        unregistered_vms = config.db_session.query(vms).filter(vms.group_name == group).filter(~exists().
-                                                                                               where(machines.machine.contains(vms.hostname)))
-        cloud_names = []
-        for cloud in group_clouds:
-            cloud_names.append(cloud.cloud_name)
-        non_cs_vm = []
-        new_vms = defaultdict(list)
-        to_terminate = []
-        log.debug("%s VMs that are unregistered with condor collector:", group)
-        for vm in unregistered_vms:
-            try:
-                hostname_split = vm.hostname.split('--')
-                if len(hostname_split) == 1:
-                    continue
-                cname = hostname_split[1]
-                if cname in cloud_names: # name prefix matches a valid cloud name
-                    if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
-                        to_terminate.append(vm.vmid)
-                        log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
-                    elif not vm.terminate and vm.retire:
-                        to_terminate.append(vm.vmid)
-                        log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
-                    else:
-                        log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
-                                  str(int(time.time()) - vm.last_updated), vm.terminate)
-                        new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
-            except Exception as ex:
-                log.exception("Problem going through %s unregistered VMs: %s", group, ex)
-        if to_terminate:
-            log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
-            update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
-            for vm in update_result:
-                log.debug("Update flag on %s", vm.hostname)
-                vm.terminate = 1
-                config.db_session.merge(vm)
+        # start processes
+        procMon.start_all()
+        while True:
+            procMon.check_processes()
+            time.sleep(config.sleep_interval_main_long)
+
+    except (SystemExit, KeyboardInterrupt):
+        log.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
+
     except Exception as ex:
-        log.exception(ex)
-        config.db_close()
-        return
-    log.debug("Done checking %s unregistered VMs.", group)
-    try:
-        config.db_close(commit=True)
-    except Exception as ex:
-        log.exception(ex)
-    return new_vms
+        log.exception("Process Died: %s", ex)
 
-
-
-main()
+    procMon.join_all()

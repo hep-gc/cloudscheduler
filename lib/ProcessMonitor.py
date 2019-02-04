@@ -3,7 +3,6 @@ from multiprocessing import Process
 import logging
 import time
 
-
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
 

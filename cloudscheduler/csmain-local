@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 import os
 import logging
-import cloudscheduler.jobmanager
-import cloudscheduler.cloudmanager
-import cloudscheduler.config as csconfig
+import jobmanager
+import cloudmanager
+import config as csconfig
 
 from lib.schema import condor_jobs
 from lib.schema import view_available_resources
@@ -58,7 +58,7 @@ def main():
             group_yaml_list = []
             for yam in group_yamls:
                 group_yaml_list.append([yam.yaml_name, yam.yaml, yam.mime_type])
-            cm_group = cloudscheduler.cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources, group_yamls=group_yaml_list)
+            cm_group = cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources, group_yamls=group_yaml_list)
             cm_group.setup()
             # At this point I should have a valid set of all the group and cloud specific yaml to use
             # it will still need to be combined with the job yaml - done now in the basecloud prepare_userdata function

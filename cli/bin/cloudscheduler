@@ -12,6 +12,7 @@ import sys
 import yaml
 import json
 
+import csv2_alias
 import csv2_cloud
 import csv2_defaults
 import csv2_group
@@ -37,6 +38,14 @@ def main(args):
     gvar = {
         'action': None,
         'actions': {
+            'alias': [
+                False, # super_user?
+                {
+                    'add':                                csv2_alias.add,
+                    'list':                               csv2_alias.list,
+                    'update':                             csv2_alias.update,
+                    }
+                ],
             'cloud': [
                 False, # super_user?
                 {
@@ -132,6 +141,7 @@ def main(args):
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
+            ('-an',   '--alias-name', True),
             ('-bk',   '--backup-key', True),
             ('-br',   '--backup-repository', True),
             ('-c',    '--cacerts', True),
@@ -141,6 +151,7 @@ def main(args):
             ('-cfe',  '--cloud-flavor-exclusion', True),
             ('-cfo',  '--cloud-flavor-option', True),
             ('-cn',   '--cloud-name', True),
+            ('-co',   '--cloud-option', True),
             ('-cpw',  '--cloud-password', True),
             ('-cP',   '--cloud-project-domain', True),
             ('-cp',   '--cloud-project', True),
@@ -235,6 +246,7 @@ def main(args):
             ('-xA',   '--expose-API', False),
             ('-Y',    '--yes', False),
             ),
+        'command_dir': os.path.dirname(os.path.realpath(args[0])),
         'command_name': os.path.basename(args[0]),
         'cookies': dict(),
         'csrf': None,
@@ -321,34 +333,37 @@ def main(args):
         path_info_ix = path_info.index('cloudscheduler')
         cloudscheduler_root_dir = '/'.join(path_info[:path_info_ix+1])
 
-        p = Popen([
+        p1 = Popen([
             'git',
-            'tag',
-            '-l'
-            ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p.communicate()
+            'log',
+            '--decorate'],
+            cwd='%s' % gvar['command_dir'], stdout=PIPE, stderr=PIPE)
+        p2 = Popen([
+            'awk',
+            '/^commit /'],
+            stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p2.communicate()
+        commits = stdout[:-1].decode('utf-8').split('\n')
+        tag_ix = -1
+        for ix in range(len(commits)):
+            words = commits[ix].replace('(',' ').replace(')',' ').replace(',',' ').split()
+            try:
+                words_ix = words.index('tag:')
+            except:
+                words_ix = -1
+            if words_ix > -1:
+                tag = words[words_ix+1]
+                tag_ix = ix
+                break
 
-        if p.returncode == 0:
-            info = stdout.decode('utf-8').split('\n')
-            if len(info) > 1:
-                gvar['client_version'] = "Tag: %s" % info[-2]
-            else:
-                # get the commit number via "git log| awk '/^commit/'| wc"   can ignore the WC in favor of a decode & split like above
-                p1 = Popen([
-                    'git',
-                    'log'
-                    ], cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
-
-                p2 = Popen([
-                    'awk',
-                    '/^commit/'
-                    ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
-                stdout, stderr = p2.communicate()
-                if p2.returncode == 0:
-                    info = stdout.decode('utf-8').split('\n')
-                    gvar['client_version'] = "Build: %s" % len(info)
+        if tag_ix == -1:
+            gvar['client_version'] = 'Build: %d' % len(commits)
+        elif tag_ix == 0:
+            gvar['client_version'] = 'Version: %s' % tag
+        else:
+            gvar['client_version'] = 'Version: %s + %d commits' % (tag, tag_ix)
                     
-        print("Cloudscheduler command line version: %s\n" % gvar['client_version'])
+        print("Cloudscheduler command line, %s\n" % gvar['client_version'])
 
     # Set active_group and super_user.
     if gvar['object'] == 'defaults' or gvar['object'] == 'helpers' or gvar['object'] == 'metadata':

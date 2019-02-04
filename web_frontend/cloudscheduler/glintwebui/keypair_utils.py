@@ -3,7 +3,8 @@ from keystoneauth1 import session
 from keystoneauth1 import exceptions
 from novaclient import client as novaclient
 
-import glintwebui.config as config
+from cloudscheduler.lib.db_config import Config
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 
 
@@ -37,8 +38,8 @@ def transfer_keypair(keypair, cloud):
     sess = _get_keystone_session(cloud)
     nova = _get_nova_client(sess)
 
-    nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
-    return True
+    result = nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
+    return result
 
 def create_keypair(key_name, key_string, cloud):
     sess = _get_keystone_session(cloud)

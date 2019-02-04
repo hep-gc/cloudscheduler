@@ -5,7 +5,8 @@ import redis
 import logging
 
 
-import glintwebui.config as config
+from cloudscheduler.lib.db_config import Config
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 from .keypair_utils import get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
 
@@ -279,4 +280,19 @@ def set_user_groups(config, request):
 
     return 0, None, active_user, user_group_rows
 
+def __get_image_ids(repo_dict):
+   img_trans_dict = {}
+   for image in repo_dict:
+       img_trans_dict[repo_dict[image]['name']] = image
+   return img_trans_dict
+
+#Searches through the image dict until it finds this image and returns the disk/container formats
+def __get_image_details(group_name, image):
+
+   red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+   proj_dict = json.loads(red.get(group_name))
+   for repo in proj_dict:
+       for img in proj_dict[repo]:
+           if proj_dict[repo][img]['name'] == image:
+               return (proj_dict[repo][img]['disk_format'], proj_dict[repo][img]['container_format'])
 

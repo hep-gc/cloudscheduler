@@ -92,15 +92,15 @@
 
           {% if "foreign" not in request.path %}
 
-              <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="manctl">Manual Control</button>
-              <button class="button control-button" type="submit" formaction="/vm/update/" name="vm_option" value="sysctl">System Control</button>
-              <button class="button retire-button" type="submit" formaction="/vm/update/" name="vm_option" value="retire">Retire VMs</button>
-              <button class="button kill-button" type="submit" formaction="/vm/update/" name="vm_option" value="kill">Kill VMs</button>
+              <button class="button manual-button" type="submit" formaction="/vm/update/{{selector}}/" name="vm_option" value="manctl">Manual Control</button>
+              <button class="button system-button" type="submit" formaction="/vm/update/{{selector}}/" name="vm_option" value="sysctl">System Control</button>
+              <button class="button retire-button" type="submit" formaction="/vm/update/{{selector}}/" name="vm_option" value="retire">Retire VMs</button>
+              <button class="button kill-button" type="submit" formaction="/vm/update/{{selector}}/" name="vm_option" value="kill">Kill VMs</button>
 
           {% else %}
           <!-- Grey-out the action buttons if looking at foreing VMs -->
-              <button class="button greyed-button button-shadow control-button" disabled>Manual Control</button>
-              <button class="button greyed-button button-shadow control-button" disabled>System Control</button>
+              <button class="button greyed-button button-shadow manual-button" disabled>Manual Control</button>
+              <button class="button greyed-button button-shadow system-button" disabled>System Control</button>
               <button class="button greyed-button button-shadow retire-button" disabled>Retire VMs</button>
               <button class="button greyed-button button-shadow kill-button" disabled>Kill VMs</button>
 
@@ -114,30 +114,38 @@
           <table id="vmsTable">
               <tr>
                 <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
-                <th onclick="sortTable(1)">Cloud &#8597;</th>
-                <th onclick="sortTable(2)">Project &#8597;</th>
-                <th onclick="sortTable(3)">Hostname &#8597;</th>
-                <th onclick="sortTable(4)">Status &#8597;</th>
-                <th onclick="sortTable(5)">Status Changed Time &#8597;</th>
-                <th onclick="sortTable(6)">Flavor Name &#8597;</th>
-                <th onclick="sortTable(7)">Slots &#8597;</th>
-                <th onclick="sortTable(8)">Slots Used &#8597;</th>
-                <th onclick="sortTable(9)">Cores &#8597;</th>
+                <th onclick="sortTable(1)">Hostname &#8597;</th>
+                <th onclick="sortTable(2)">Flavor &#8597;</th>
+                <th onclick="sortTable(3)">Cores &#8597;</th>
+                <th onclick="sortTable(4)">Poller Status &#8597;</th>
+                <th onclick="sortTable(5)">Partitionable Slots &#8597;</th>
+                <th onclick="sortTable(6)">Dynamic Slots &#8597;</th>
+                <th onclick="sortTable(7)">Retire &#8597;</th>
+                <th onclick="sortTable(8)">Terminate &#8597;</th>
+                <th onclick="sortTable(9)">Age &#8597;</th>
+
               </tr>
             <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
 
               {% for vm in vm_list %}
-                <tr>
-                  <td><input type="checkbox" name="vm_host.{{ forloop.counter }}" value={{vm.hostname}}></td>
-                  <td>{{vm.cloud_name}}</td>
-                  <td>{{vm.project}}</td>
+                {% if vm.terminate > 0 %}
+                  <tr class="vm-terminated" title="VM queued for termination">
+                {% elif vm.retire > 0 %}
+                  <tr class="vm-retired" title="VM queued to retire">
+                {% else %}
+                  <tr>
+                {% endif %}
+                  <td><input type="checkbox" name="vm_hosts.{{ forloop.counter }}" value={{vm.hostname}}></td>
                   <td>{{vm.hostname}}</td>
-                  <td>{{vm.poller_status}}</td>
-                  <td>{{vm.status_changed_time}}</td>
                   <td>{{vm.flavor_name}}</td>
-                  <td>{{vm.condor_slots}}</td>
-                  <td>{{vm.condor_slots_used}}</td>
                   <td>{{vm.cores}}</td>
+                  <td>{{vm.poller_status}}</td>
+                  <td>{{vm.htcondor_partitionable_slots}}</td>
+                  <td>{{vm.htcondor_dynamic_slots}}</td>
+                  <td>{{vm.retire}}</td>
+                  <td>{{vm.terminate}}</td>
+                  <td>{{vm.age}}</td>
+ 
                 </tr>
               {% endfor %}
 
@@ -146,7 +154,7 @@
       </form>
     </div>
     <!-- Footer -->
-    <!--
+
     <div class="footer"
         {% if response_code == 1 %}
             <tr><td><b>Error: {{ message }}</b></td></tr>
@@ -154,7 +162,7 @@
             <tr><td>{{ message }}</td></tr>
         {% endif %}
     </div>
-    -->
+
     <script type="text/javascript">
 
 

@@ -9,11 +9,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
-import cloudscheduler.openstackcloud
-import cloudscheduler.localhostcloud
-import cloudscheduler.config as csconfig
+import openstackcloud
+import localhostcloud
+import config as csconfig
 
-from lib.db_config import Config
+from cloudscheduler.lib.db_config import Config
 
 class CloudManager():
 
@@ -46,10 +46,10 @@ class CloudManager():
         for cloud in self.group_resources:
             try:
                 if cloud.cloud_type == 'localhost':
-                    newcloud = cloudscheduler.localhostcloud.LocalHostCloud(resource=cloud,
+                    newcloud = localhostcloud.LocalHostCloud(resource=cloud,
                                                                             metadata=self.metadata[cloud.cloud_name])
                 else:
-                    newcloud = cloudscheduler.openstackcloud.\
+                    newcloud = openstackcloud.\
                         OpenStackCloud(resource=cloud, metadata=self.metadata[cloud.cloud_name] if cloud.cloud_name in self.metadata.keys() else None)
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud

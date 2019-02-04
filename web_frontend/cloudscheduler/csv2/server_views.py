@@ -148,7 +148,7 @@ def configuration(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'config_list': config_list,

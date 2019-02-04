@@ -442,7 +442,16 @@ def qt(query, keys=None, prune=[], filter=None, convert=None):
                 ignore, secondary_dict_ptr = _qt(False, secondary_dict_ptr, cols, key)
 
             for col in keys['sum']:
-                if col in cols:
+                # Special case for clouds which are disabled:
+                if 'enabled' in cols and 'VMs' in cols:
+                    if cols['VMs'] > 0:
+                        enabled = 1
+                    else:    
+                        enabled = cols['enabled']
+                else:
+                    enabled = 1
+
+                if col in cols and enabled == 1:
                     if col not in secondary_dict_ptr:
                         secondary_dict_ptr[col] = 0
 
@@ -1071,7 +1080,6 @@ def validate_fields(config, request, fields, tables, active_user):
                 Fields[field_alias] = value
             else: 
                 array_field = field.split('.')
-                print(">>>>>>>>>>>>>>>>>>>", array_field)
                 if len(array_field) > 1 and (array_field[0] in all_columns or array_field[0] in Formats):
                     if array_field[0] not in Fields:
                         Fields[array_field[0]] = []

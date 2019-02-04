@@ -28,7 +28,10 @@ import sqlalchemy.exc
 #import subprocess
 import os
 import psutil
+
 import requests
+import time
+
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
@@ -573,7 +576,7 @@ def list(
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'attributes': attributes,
             'user_groups': user_groups,
@@ -637,10 +640,39 @@ def metadata_add(request):
 
         # Add the cloud metadata file.
         table = tables['csv2_cloud_metadata']
-        rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
+        payload = table.insert().values(table_fields(fields, table, columns, 'insert'))
+        rc, msg = config.db_session_execute(payload)
         if rc == 0:
             config.db_close(commit=True)
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+
+            #**********************************************************************************
+            '''
+            #This block of code checks to make sure the metadata was successfully added
+            config.db_open()
+
+            found = False
+            while(found==False):
+
+                s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
+                meta_list = qt(config.db_connection.execute(s))
+                for meta in meta_list:
+                    if fields['metadata_name'] == meta['metadata_name']:
+                        found = True
+                        break
+
+            config.db_close()
+            '''
+
+            #**********************************************************************************
+
+            #return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+            message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+
+            context = {
+            'message': message,
+            }
+            return render(request, 'csv2/reload_parent.html', context)
+
         else:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), user_groups=user_groups, attributes=columns)
@@ -678,7 +710,7 @@ def metadata_collation(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_metadata_list': cloud_metadata_list,
@@ -728,7 +760,37 @@ def metadata_delete(request):
             )
         if rc == 0:
             config.db_close(commit=True)
-            return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+
+            #**********************************************************************************
+            '''
+            #This block of code checks to make sure the metadata was successfully deleted
+            config.db_open()
+
+            found = True
+            while(found==True):
+
+                s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
+                meta_list = qt(config.db_connection.execute(s))
+                if not meta_list:
+                    found = False
+
+            config.db_close()
+            '''
+
+            #**********************************************************************************
+
+
+            #return list(request, selector=fields['cloud_name'], response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), user_groups=user_groups, attributes=columns)
+
+            message = 'cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+
+            context = {
+            'message': message,
+            }
+            return render(request, 'csv2/reload_parent.html', context)
+
+
+
         else:
             config.db_close()
             return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), user_groups=user_groups, attributes=columns)
@@ -831,7 +893,7 @@ def metadata_list(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_metadata_list': cloud_metadata_list,
@@ -1118,7 +1180,7 @@ def status(request, group_name=None):
 
 
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_status_list': cloud_status_list,

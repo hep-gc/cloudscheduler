@@ -2,10 +2,10 @@
 The Microsoft Azure cloud connection module.
 It should have all the pieces specific to dealing with Azure clouds.
 """
-import cloudscheduler.basecloud
+import basecloud
 
 
-class AzureCloud(cloudscheduler.basecloud.BaseCloud):
+class AzureCloud(basecloud.BaseCloud):
 
     """
     cloudscheduler connection object for Microsoft Azure Clouds.
@@ -17,7 +17,7 @@ class AzureCloud(cloudscheduler.basecloud.BaseCloud):
         :param resource: The row containing all the needed stuff from the database
         :param extrayaml: a tuple holding the cloud specific yaml
         """
-        cloudscheduler.basecloud.BaseCloud.__init__(self,
+        basecloud.BaseCloud.__init__(self,
                                                     name=resource.cloud_name, extrayaml=extrayaml)
 
     def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
