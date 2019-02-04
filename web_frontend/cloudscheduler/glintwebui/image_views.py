@@ -10,7 +10,6 @@ from django.http import HttpResponse
 from django.http import StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
-import glintwebui.config as config
 from django.conf import settings
 db_config = settings.CSV2_CONFIG
 
@@ -473,7 +472,7 @@ def upload_image(request, group_name=None):
                 destination.write(chunk)
 
         # now queue the uploads to the destination clouds
-        red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+        red = redis.StrictRedis(host=db_config.redis_host, port=db_config.redis_port, db=db_config.redis_db)
         user = getUser(request, db_config)
         for cloud in cloud_name_list:
             logger.info("Queing image upload to %s", cloud)
@@ -546,7 +545,7 @@ def upload_image(request, group_name=None):
         disk_format = request.POST.get('disk_format')
         # now upload it to the destination clouds
         cloud_name_list = request.POST.getlist('clouds')
-        red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+        red = redis.StrictRedis(host=db_config.redis_host, port=db_config.redis_port, db=db_config.redis_db)
         user = getUser(request, db_config)
         for cloud in cloud_name_list:
             transaction = {

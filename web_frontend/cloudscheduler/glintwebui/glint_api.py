@@ -3,7 +3,9 @@ from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
 from keystoneauth1 import exceptions
 import glanceclient
-import glintwebui.config as config
+#import glintwebui.config as config
+from cloudscheduler.lib.db_config import Config
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 
 logger = logging.getLogger('glintv2')

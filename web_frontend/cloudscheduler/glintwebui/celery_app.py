@@ -7,7 +7,9 @@ from django.conf import settings
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-import glintwebui.config as config
+#import glintwebui.config as config
+from cloudscheduler.lib.db_config import Config
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 from glintwebui.glint_api import repo_connector
 from .utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
