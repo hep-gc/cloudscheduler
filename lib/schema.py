@@ -300,11 +300,6 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('error_time', Integer)
   )
 
-csv2_config = Table('csv2_config', metadata,
-  Column('config_name', String(64), primary_key=True),
-  Column('yaml', String)
-  )
-
 csv2_configuration = Table('csv2_configuration', metadata,
   Column('category', String(32), primary_key=True),
   Column('config_key', String(32), primary_key=True),
@@ -568,6 +563,12 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_retiring', Integer)
   )
 
+view_cloud_aliases = Table('view_cloud_aliases', metadata,
+  Column('group_name', String(32)),
+  Column('alias_name', String(32)),
+  Column('clouds', String)
+  )
+
 view_cloud_status = Table('view_cloud_status', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -788,6 +789,7 @@ view_condor_host = Table('view_condor_host', metadata,
   Column('vmid', String(128)),
   Column('hostname', String(128)),
   Column('retire', Integer),
+  Column('retiring', Integer),
   Column('terminate', Integer),
   Column('machine', String(256))
   )
