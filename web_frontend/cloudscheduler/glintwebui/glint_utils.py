@@ -5,7 +5,8 @@ import redis
 import logging
 
 
-import glintwebui.config as config
+from cloudscheduler.lib.db_config import Config
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 from .keypair_utils import get_keypair, delete_keypair, transfer_keypair, create_keypair, create_new_keypair
 

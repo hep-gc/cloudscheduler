@@ -5,7 +5,9 @@ from ast import literal_eval
 import json
 import redis
 from glintwebui.glint_api import repo_connector
-import glintwebui.config as config
+#import glintwebui.config as config
+from cloudscheduler.lib.db_config import Config
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
