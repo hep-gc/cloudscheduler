@@ -55,11 +55,7 @@
 .range-btn:hover {
   opacity: 1;
 }
-/*
-.caret{
-	padding-right: 7px;
-}
-*/
+
 .caret {
   border: solid black;
   border-width: 0 2px 2px 0;
@@ -70,7 +66,7 @@
 	}
 
 .space{
-	padding: 4px;
+	padding: 2px;
 }
 
 .dropdown-content {

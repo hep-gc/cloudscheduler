@@ -21,7 +21,7 @@ function dropDown(){
 
 /* Change time range for plot*/
 function selectRange(range){
-	const curr_range = document.getElementsByClassName("range-value");
+	const curr_range = document.getElementsByClassName("range-btn");
 	curr_range[0].innerHTML = range.innerHTML;
 	const dropdowns = document.getElementsByClassName("range");
 	for (var i = 0; i < dropdowns.length; i++) {
@@ -111,9 +111,11 @@ function createQuery(trace,time){
 
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
+	if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+	else var newpath = "/cloud/status/plot";
 	query = createQuery(trace.dataset.path, false);
 	const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-	fetch('cloud/status/plot',{
+	fetch(newpath,{
 		method: 'POST',
 		headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
 		credentials: 'same-origin',
@@ -121,7 +123,10 @@ function getTraceData(trace, showing){
 		}
 	)
 	.then(function(response){
-		return response.json();
+		if(response.ok){
+			return response.json();
+		}
+		throw new Error('HTTP response not was not OK. '+response.status);
 	})
 	.then(function(data){
 		const responsedata = data.results[0].series[0].values;
@@ -246,10 +251,17 @@ var TSPlot = {
 		TSPlot.traces = [];
 		Plotly.purge('plotly-TS');
 		document.getElementById("plot").style.display = 'none';
-		const curr_range = document.getElementsByClassName("range-value");
+		const curr_range = document.getElementsByClassName("range-btn");
 		curr_range[0].innerHTML = 'Last 1 hour';
 		set_refresh(1000*document.getElementById("CDTimer").innerHTML);
 		//clearTimeout(plot_timer);
+		var list = document.getElementsByClassName('plottable');
+		for (i = 0; i < list.length; i++) {
+			var value = list[i];
+			if (value.classList.contains('plotted')) {
+				value.classList.remove('plotted');
+	      		}
+    		}
 	},
 
 	/* Show plot and pause timer*/
