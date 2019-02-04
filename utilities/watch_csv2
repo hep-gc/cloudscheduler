@@ -25,16 +25,33 @@ else:
     if sys.argv[1] == '?' or sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1] == 'help':
         print('\nSynopsis: watch_csv2 [ <option> ]' \
             '\n\nWhere "<option>" is one of the following:' \
-            '\n   --help - to request this message; other synonyms for this option: help, -h, and ?.' \
-            '\n   append - appends the reports to the system log file.' \
-            '\n   replay - replays the system log file.' \
-            '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.')
+            '\n   --help      - (or: -h, help, & ?) to request these help messages.' \
+            '\n   --append    - (or: -a, append) appends periodical reports to the system log file.' \
+            '\n   --enumerate - (or: -e, enumerate) reads the system log file, identifies data' \
+            '\n                 elements by inserting table, row, and column identifiers, and' \
+            '\n                 writing the report to stdout.' \
+            '\n   --replay    - (or: -r, replay) replays the system log file.' \
+            '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.' \
+            '\n\nwatch_csv2 has the following configuration values with the csv2 database:' \
+            '\n   category=watch_csv2, key=config_file - specifies the absolute path of the watch_csv2' \
+            '\n                                          configuration file. This file specifies the' \
+            '\n                                          commands and SQL select statements that are to' \
+            '\n                                          be "watched". Each command/statement must be' \
+            '\n                                          terminated by a semicolon (";").' \
+            '\n   category=watch_csv2, key=log_file    - specifies the absolute path of the watch_csv2' \
+            '\n                                          log file.' \
+            '\n   category=watch_csv2, key=sleep_time  - specifies the number of seconds between periodic' \
+            '\n                                          reports.')
+
         exit(0)
 
-    elif sys.argv[1] == 'append':
+    elif sys.argv[1] == '--append' or sys.argv[1] == '-a' or sys.argv[1] == 'append':
         report_destination = 'syslog'
 
-    elif sys.argv[1] == 'replay':
+    elif sys.argv[1] == '--enumerate' or sys.argv[1] == '-e' or sys.argv[1] == 'enumerate':
+        report_destination = 'enumerate'
+
+    elif sys.argv[1] == '--replay' or sys.argv[1] == '-r' or sys.argv[1] == 'replay':
         report_destination = 'replay'
 
     else:
@@ -152,6 +169,37 @@ if report_destination == 'syslog' or report_destination == 'terminal':
 
         time.sleep(config.sleep_time)
             
+if report_destination == 'enumerate':
+    watch_xref = {}
+    for ix in range(len(watch)):
+        watch_xref[watch[ix]['id']] = ix
+
+    fd = open(config.log_file)
+    lines = fd.read().split('\n')
+    fd.close()
+
+    cmd = None
+    for line in lines:
+        words = line.split()
+        if len(words) > 0 and words[0] in watch_xref:
+            cmd_ix = watch_xref[words[0]]
+            row_ix = 0
+        
+
+        if watch[cmd_ix]['type'] == 'CMD':
+            print('%d_%d %s' % (cmd_ix, row_ix, line))
+            row_ix += 1
+        
+        elif watch[cmd_ix]['type'] == 'SQL' and len(words) > 0 and len(words[0]) > 0 and words[0][0] != '+':
+            if row_ix == 0:
+                print('%d_%d %s' % (cmd_ix, row_ix, line))
+            else:
+                cols = line[1:-1].split('|')
+                for col_ix in range(1, len(cols)):
+                    cols[col_ix] = '%d_%d=%s' % (cmd_ix, col_ix, cols[col_ix].strip())
+                print('%d_%d %s' % (cmd_ix, row_ix, ', '.join(cols[1:])))
+            row_ix += 1
+
 if report_destination == 'replay':
     watch_xref = {}
     for ix in range(len(watch)):
