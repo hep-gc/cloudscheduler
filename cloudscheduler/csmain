@@ -98,9 +98,7 @@ def main():
             # Should return or build up some meta data about what's booting/running
             # To use that info when scheduling idle jobs
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
-            #verify_idle_jobs(csgroup.group_name)
-            check_view_idle_vms(csgroup.group_name, config)
-            new_vms = check_unregistered_machines(csgroup.group_name,config)
+            #verify_idle_jobs(csgroup.group_name) # TODO figure out this old function
 
             current_flavors = count_cloud_flavors(csgroup.group_name, config)
             #log.debug("Group: %s Current flavors: %s", csgroup.group_name, current_flavors)
@@ -284,6 +282,7 @@ def verify_idle_jobs(group, config):
     Hold jobs that fail the tests."""
     log = logging.getLogger(__name__)
     log.debug("Verify jobs for group: %s", group)
+    # TODO Review this function to see if it even still works and does what it's supposed to.
     # TODO Make this stand alone and spin it out into a separate multiprocessing piece
     try:
         config.db_open()
@@ -342,95 +341,106 @@ def count_cloud_flavors(group, config):
     return vm_cloud_flavors
 
 
-def check_view_idle_vms(group, config):
+def check_view_idle_vms():
     """Query view_idle_vms and retire as needed."""
+    multiprocessing.current_process().name = "csmain_idle_vms"
     log = logging.getLogger(__name__)
-    log.debug("check_view_idle_vms")
-    # TODO Make this stand alone and spin it out into a separate multiprocessing piece
-    try:
-        config.db_open()
-        results = config.db_session.query(view_idle_vms).filter(group == view_idle_vms.c.group_name,
-                                                           view_idle_vms.c.retire == 0,
-                                                           view_idle_vms.c.terminate == 0)
-        vmids = []
-        for res in results:
-            vmids.append(res.vmid)
-        if vmids:
-            log.debug("Setting retire flag on %s VMs.", len(vmids))
-            vms = config.db_map.classes.csv2_vms
-            update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
-            for row in update_result:
-                row.retire = 1
-                config.db_session.merge(row)
-        config.db_close(commit=True)
-    except Exception as ex:
-        log.exception(ex)
-        config.db_close()
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config.db_engine.dispose()
+    if not config:
+        print("Problem loading config file.")
         return
+    while True:
+        log.debug("-------------------check_view_idle_vms-------------------")
+        try:
+            config.db_open()
+            results = config.db_session.query(view_idle_vms).filter(view_idle_vms.c.retire == 0,
+                                                                    view_idle_vms.c.terminate == 0)
+            vmids = []
+            for res in results:
+                vmids.append(res.vmid)
+            if vmids:
+                log.debug("Setting retire flag on %s VMs.", len(vmids))
+                vms = config.db_map.classes.csv2_vms
+                update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
+                for row in update_result:
+                    row.retire = 1
+                    config.db_session.merge(row)
+            config.db_close(commit=True)
+        except Exception as ex:
+            log.exception(ex)
+            config.db_close()
+            return
+        time.sleep(10)  # TODO make configurable.
 
-def check_unregistered_machines(group, config):
+def check_unregistered_machines():
     """Query the condor machines and cloud VMs to sort out which ones have failed to register correctly.
     and take steps to shut those down. There could be problems with shutting down machines cs isn't controlling
     so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
     log = logging.getLogger(__name__)
-    log.debug("Check Unregistered Machines: %s", group)
-    # TODO Make this stand alone and spin it out into a separate multiprocessing piece
-    try:
-        config.db_open()
-        machines = config.db_map.classes.condor_machines
-        vms = config.db_map.classes.csv2_vms
-        clouds = config.db_map.classes.csv2_clouds
-        group_clouds = config.db_session.query(clouds).filter(clouds.group_name == group)
-        unregistered_vms = config.db_session.query(vms).filter(vms.group_name == group).filter(~exists().
-                                                                                               where(machines.machine.contains(vms.hostname)))
-        cloud_names = []
-        for cloud in group_clouds:
-            cloud_names.append(cloud.cloud_name)
+    multiprocessing.current_process().name = "csmain_unregistered_vms"
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config.db_engine.dispose()
+    while True:
+        log.debug("--------------------Check Unregistered Machines--------------------")
+        try:
+            config.db_open()
+            machines = config.db_map.classes.condor_machines
+            vms = config.db_map.classes.csv2_vms
+            clouds = config.db_map.classes.csv2_clouds
+            group_clouds = config.db_session.query(clouds)
+            unregistered_vms = config.db_session.query(vms).filter(~exists().
+                                                                   where(machines.machine.contains(vms.hostname)))
+            cloud_names = []
+            for cloud in group_clouds:
+                cloud_names.append(cloud.cloud_name)
 
-        new_vms = defaultdict(list)
-        to_terminate = []
-        log.debug("%s VMs that are unregistered with condor collector:", group)
-        for vm in unregistered_vms:
-            try:
-                hostname_split = vm.hostname.split('--')
-                if len(hostname_split) == 1:
-                    continue
-                cname = hostname_split[1]
-                if cname in cloud_names: # name prefix matches a valid cloud name
-                    if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
-                        to_terminate.append(vm.vmid)
-                        log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
-                    elif not vm.terminate and vm.retire:
-                        to_terminate.append(vm.vmid)
-                        log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
-                    else:
-                        log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
-                                  str(int(time.time()) - vm.last_updated), vm.terminate)
-                        new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
-            except Exception as ex:
-                log.exception("Problem going through %s unregistered VMs: %s", group, ex)
-        if to_terminate:
-            log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
-            update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
-            for vm in update_result:
-                log.debug("Update flag on %s", vm.hostname)
-                vm.terminate = 1
-                config.db_session.merge(vm)
-    except Exception as ex:
-        log.exception(ex)
-        config.db_close()
-        return
-    log.debug("Done checking %s unregistered VMs.", group)
-    try:
-        config.db_close(commit=True)
-    except Exception as ex:
-        log.exception(ex)
-    return new_vms
+            new_vms = defaultdict(list)
+            to_terminate = []
+            log.debug("VMs that are unregistered with condor collector:")
+            for vm in unregistered_vms:
+                try:
+                    hostname_split = vm.hostname.split('--')
+                    if len(hostname_split) == 1:
+                        continue
+                    cname = hostname_split[1]
+                    if cname in cloud_names: # name prefix matches a valid cloud name
+                        if int(time.time()) - vm.last_updated > config.unregistered_machine_time_limit and not vm.terminate: # not registered after some period of time
+                            to_terminate.append(vm.vmid)
+                            log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
+                        elif not vm.terminate and vm.retire:
+                            to_terminate.append(vm.vmid)
+                            log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
+                        else:
+                            log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
+                                      str(int(time.time()) - vm.last_updated), vm.terminate)
+                            new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
+                except Exception as ex:
+                    log.exception("Problem going through unregistered VMs: %s", ex)
+            if to_terminate:
+                log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
+                update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
+                for vm in update_result:
+                    log.debug("Update flag on %s", vm.hostname)
+                    vm.terminate = 1
+                    config.db_session.merge(vm)
+        except Exception as ex:
+            log.exception(ex)
+            config.db_close()
+            return
+        log.debug("Done checking unregistered VMs.")
+        try:
+            config.db_close(commit=True)
+        except Exception as ex:
+            log.exception(ex)
+        time.sleep(10)  # TODO Make configurable ?
 
 if __name__ == '__main__':
 
     process_ids = {
         'scheduler': main,
+        'idle_vms': check_view_idle_vms,
+        'unregistered_vms': check_unregistered_machines,
     }
 
     procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=15,
