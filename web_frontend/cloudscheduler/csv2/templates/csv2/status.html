@@ -18,7 +18,7 @@
 
     function set_refresh(time) {
         TimerSwitch = 1;
-		timerid = setTimeout(function() {
+		timer_id = setTimeout(function() {
             location.reload();
         },time);
 
@@ -61,36 +61,36 @@
 	<!--Range Selection -->
 	<div class="range-dropdown">
 		<button id="range-select" class="range-btn" onclick="dropDown()">
-			<span class="range-value">Last 12 hours</span><span class="caret"></span>
+			Last 1 hour<span class="space"></span><span class="caret"></span>
 		</button>
 		<div id="myDropdown" class="dropdown-content">
 			<div class="column minutes">
-				<a class="range first" data-from="5" data-to="0" href="#">Last 5 minutes</a>
-				<a class="range" data-from="15" data-to="0" href="#">Last 15 minutes</a>
-				<a class="range" data-from="30" data-to="0" href="#">Last 30 minutes</a>
-				<a class="range" data-from="60" data-to="0" href="#">Last 1 hour</a>
-				<a class="range" data-from="180" data-to="0" href="#">Last 3 hours</a>
-				<a class="range" data-from="360" data-to="0" href="#">Last 6 hours</a>
-				<a class="range selected" data-from="720" data-to="0" href="#">Last 12 hours</a>
-				<a class="range" data-from="1440" data-to="0" href="#">Last 24 hours</a>
+				<a class="range first" data-from="5" data-to="0">Last 5 minutes</a>
+				<a class="range" data-from="15" data-to="0">Last 15 minutes</a>
+				<a class="range" data-from="30" data-to="0">Last 30 minutes</a>
+				<a class="range selected" data-from="60" data-to="0">Last 1 hour</a>
+				<a class="range" data-from="180" data-to="0">Last 3 hours</a>
+				<a class="range" data-from="360" data-to="0">Last 6 hours</a>
+				<a class="range" data-from="720" data-to="0">Last 12 hours</a>
+				<a class="range" data-from="1440" data-to="0">Last 24 hours</a>
 			</div>
 			<div class="column days">
-				<a class="range first" data-from="7" data-to="0" href="#">Last 7 days</a>
-				<a class="range" data-from="30" data-to="0" href="#">Last 30 days</a>
-				<a class="range" data-from="60" data-to="0" href="#">Last 60 days</a>
-				<a class="range" data-from="90" data-to="0" href="#">Last 90 days</a>
-				<a class="range" data-from="180" data-to="0" href="#">Last 6 months</a>
-				<a class="range" data-from="365" data-to="0" href="#">Last 1 year</a>
-				<a class="range" data-from="730" data-to="0" href="#">Last 2 years</a>
-				<a class="range" data-from="1825" data-to="0" href="#">Last 5 years</a>
+				<a class="range first" data-from="7" data-to="0">Last 7 days</a>
+				<a class="range" data-from="30" data-to="0">Last 30 days</a>
+				<a class="range" data-from="60" data-to="0">Last 60 days</a>
+				<a class="range" data-from="90" data-to="0">Last 90 days</a>
+				<a class="range" data-from="180" data-to="0">Last 6 months</a>
+				<a class="range" data-from="365" data-to="0">Last 1 year</a>
+				<a class="range" data-from="730" data-to="0">Last 2 years</a>
+				<a class="range" data-from="1825" data-to="0">Last 5 years</a>
 			</div>
 			<div class="column days">
-				<a class="range first" data-from="2" data-to="1" href="#">Yesterday</a>
-				<a class="range" data-from="3" data-to="2" href="#">Day before yesterday</a>
-				<a class="range" data-from="8" data-to="7" href="#">This day last week</a>
-				<a class="range" data-from="14" data-to="7" href="#">Previous week</a>
-				<a class="range" data-from="60" data-to="30" href="#">Previous month</a>
-				<a class="range" data-from="730" data-to="365" href="#">Previous year</a>
+				<a class="range first" data-from="2" data-to="1">Yesterday</a>
+				<a class="range" data-from="3" data-to="2">Day before yesterday</a>
+				<a class="range" data-from="8" data-to="7">This day last week</a>
+				<a class="range" data-from="14" data-to="7">Previous week</a>
+				<a class="range" data-from="60" data-to="30">Previous month</a>
+				<a class="range" data-from="730" data-to="365">Previous year</a>
 			</div>
 		</div>
 	</div>
@@ -989,7 +989,7 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
 <script type="text/javascript">
-	/*Add even listeners once page loads*/
+	/*Add event listeners once page loads*/
 	addEventListeners("plottable");
 	addEventListeners("range");
 

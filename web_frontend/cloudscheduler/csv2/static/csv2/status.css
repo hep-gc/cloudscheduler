@@ -38,6 +38,7 @@
   top: 10px;
 	border: none;
 	font-weight: bold;
+	cursor: default;
 	
 }
 
@@ -54,11 +55,11 @@
 .range-btn:hover {
   opacity: 1;
 }
-
-.range-value{
+/*
+.caret{
 	padding-right: 7px;
 }
-
+*/
 .caret {
   border: solid black;
   border-width: 0 2px 2px 0;
@@ -68,12 +69,20 @@
   -webkit-transform: rotate(45deg);
 	}
 
+.space{
+	padding: 4px;
+}
+
 .dropdown-content {
 	min-width: 450px;
 	-webkit-column-count: 3; /* Chrome, Safari, Opera */
   -moz-column-count: 3; /* Firefox */
   column-count: 3;
+	-webkit-column-gap: 0px;
+	-moz-column-gap: 0px;
 	column-gap: 0px;
+	-moz-column-fill: balance; /* Firefox */
+  column-fill: balance;
   display: none;
   position: absolute;
 	right: 0px;
@@ -107,6 +116,11 @@
 }
 
 .selected {opacity:1;}
+
+.plotted {
+	background-color: rgba(0,128,0,0.13);
+	/*rgba(0,128,0,.15);*/
+}
 
 
 /*****************************************************************/

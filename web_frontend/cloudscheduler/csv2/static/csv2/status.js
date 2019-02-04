@@ -1,3 +1,4 @@
+var date = Date.now();
 
 /* Add click events to table elements and range selection*/
 function addEventListeners(className) {
@@ -5,8 +6,10 @@ function addEventListeners(className) {
 		var i;
 		for (i = 0; i < inputList.length; i++){
 			inputList[i].addEventListener('click', function(){
-				if(className == 'plottable') togglePlot(this);
-				else selectRange(this);
+				if(className == 'plottable'){
+					this.classList.toggle("plotted");
+					togglePlot(this);
+				}else selectRange(this);
 			});
 		}
 }
@@ -19,7 +22,7 @@ function dropDown(){
 /* Change time range for plot*/
 function selectRange(range){
 	const curr_range = document.getElementsByClassName("range-value");
-	curr_range[0].firstChild.data = range.firstChild.data;
+	curr_range[0].innerHTML = range.innerHTML;
 	const dropdowns = document.getElementsByClassName("range");
 	for (var i = 0; i < dropdowns.length; i++) {
 		if (dropdowns[i].classList.contains('selected')) {
@@ -32,13 +35,15 @@ function selectRange(range){
 	var from = new Date();
 	var multiple = 60000;
 	if(range.parentElement.classList.contains("days")) multiple = 86400000;
-	to.setTime(curr-(range.dataset.to*multiple));
+	to.setTime(curr-(range.dataset.to*multiple))
+	to = to.getTime();
 	from.setTime(curr-(range.dataset.from*multiple));
+	from = from.getTime();
 	TSPlot.layout.xaxis.range = [from, to];
 	Plotly.relayout('plotly-TS', TSPlot.layout);
 }
 
-// Close the dropdown menu if the user clicks outside of it
+/* Close the range dropdown menu*/
 window.onclick = function(event) {
 	if (!event.target.matches('.range-btn') && document.getElementsByClassName("dropdown-content")[0].classList.contains('show')) {
 		var dropdowns = document.getElementsByClassName("dropdown-content");
@@ -59,7 +64,6 @@ window.onclick = function(event) {
 
 /* Toggle traces, show plot*/
 function togglePlot(trace){
-	console.log(trace.dataset.path);
 	if(TSPlot.showing == true){
 		/* Check if trace is already plotted*/
 		var x;
@@ -85,22 +89,29 @@ function togglePlot(trace){
 		TSPlot.show();
 		getTraceData(trace, false);
 	}
-	
+}
+
+/* Construct query for db*/
+function createQuery(trace,time){
+	const line = trace.split(" ");
+	const group = line[0];
+	var query = `SELECT time,value FROM `
+	if(line.length == 3){
+		var cloud = line[1];
+		var measurement = line[2];
+		query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
+	}else{
+		var measurement = line[1];
+		query += `"${measurement}" WHERE "group"='${group}'`;
+	}if (time == true){
+		query += `AND time > ${date}ms`;
+	}
+	return query;
 }
 
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
-	const line = trace.dataset.path.split(" ");
-	const group = line[0];
-	if(line.length == 3){
-		var cloud = line[1];
-		var measurement = line[2];
-		var query = `SELECT time,value FROM "${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
-	}else{
-		var cloud = 'total';
-		var measurement = line[1];
-		var query = `SELECT time,value FROM "${measurement}" WHERE "group"='${group}'`;
-	}
+	query = createQuery(trace.dataset.path, false);
 	const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 	fetch('cloud/status/plot',{
 		method: 'POST',
@@ -120,7 +131,6 @@ function getTraceData(trace, showing){
 		}
 	    	const newtrace = {
 			type: 'scatter',
-			mode: 'lines',
 			name: trace.dataset.path,
 			x: unpackData(responsedata, 0),
 			y: unpackData(responsedata, 1)
@@ -130,8 +140,73 @@ function getTraceData(trace, showing){
 	})
 	.catch(error => console.log('Error:', error));
 	
-	
+}
 
+/* Refresh plot every 30 seconds with new data from db if looking at last hour >
+var plot_timer;
+function refresh_plot() {
+	plot_timer = setTimeout(function() {
+		console.log("to "+TSPlot.layout.xaxis.range[1]);
+		console.log("from "+TSPlot.layout.xaxis.range[0]);
+		console.log(TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]);
+		if((TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]) <= 3600000 && TSPlot.layout.xaxis.range[1] == date){
+			console.log("yes");
+			var traces = TSPlot.traces;
+			var newdata = {
+				y: [],
+				x: []
+			};
+			var index = [];
+			for (var i = 0; i < traces.length; i++){
+				index.push(i);
+				var query = createQuery(traces[i].name,true)
+				const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+				fetch('cloud/status/plot',{
+					method: 'POST',
+					headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
+					credentials: 'same-origin',
+					body: query,
+					}
+				)
+				.then(function(response){
+					return response.json();
+				})
+				.then(function(data){
+					const responsedata = data.results[0].series[0].values;
+					const unpackData = (arr, index) => {
+						var newarr = arr.map(x => x[index]);
+						return newarr
+					}
+					var updatetrace = {
+						x: unpackData(responsedata, 0),
+						y: unpackData(responsedata, 1)
+					}
+					/* Update trace
+					newdata.y.push(unpackData(responsedata, 1));
+					newdata.x.push(unpackData(responsedata, 0));*/
+					/* Update plot range*/
+					//var ready = false;
+					//if(i == traces.length -1) ready = true;
+				/*	return updateTraces(newdata, index);
+				})
+				.catch(error => console.log('Error:', error));
+			}
+		}		
+		refresh_plot();
+	},30000);
+}*/
+
+/* Update plot traces with new data*/
+function updateTraces(newdata, index){
+	console.log(index);
+	if (newdata.y.length == index.length){
+		Plotly.extendTraces('plotly-TS', newdata, index);
+		if(TSPlot.layout.xaxis.range[1] == date){
+			date = Date.now();
+			TSPlot.layout.xaxis.range[1] = date; 
+			Plotly.relayout('plotly-TS', TSPlot.layout);
+		}
+	}
 }
 
 
@@ -157,9 +232,9 @@ var TSPlot = {
 
 	/* Create new plot with trace in div*/
 	initialize: function(trace) {
-		var to = Date.now();
+		var to = date;
 		var from = new Date();
-		from.setTime(to-43200000);
+		from = from.setTime(to-3600000);
 		TSPlot.layout.xaxis.range = [from, to];
 		TSPlot.traces = [trace];		
 		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});	
@@ -171,40 +246,22 @@ var TSPlot = {
 		TSPlot.traces = [];
 		Plotly.purge('plotly-TS');
 		document.getElementById("plot").style.display = 'none';
-		var timer_status;
-		if(TimerSwitch == 1) timer_status = "on";
-		else timer_status = "off";
-		set_refresh(1000*document.getElementById("CDTimer").firstChild.data);
-		if(TimerSwitch == 1) timer_status = "on";
-		else timer_status = "off";
+		const curr_range = document.getElementsByClassName("range-value");
+		curr_range[0].innerHTML = 'Last 1 hour';
+		set_refresh(1000*document.getElementById("CDTimer").innerHTML);
+		//clearTimeout(plot_timer);
 	},
 
 	/* Show plot and pause timer*/
 	show: function(){
 		TSPlot.showing = true;
 		document.getElementById("plot").style.display = 'block';
-		var timer_status;
-		if(TimerSwitch == 1) timer_status = "on";
-		else timer_status = "off";
+		clearTimeout(timer_id);
 		stop_refresh();
-		if(TimerSwitch == 1) timer_status = "on";
-		else timer_status = "off";
+		//refresh_plot();
 	}
 
 }//TSPlot
 
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
 
