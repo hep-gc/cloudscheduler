@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
 
 from .view_utils import \
+    diff_lists, \
     getcsv2User, \
     lno, \
     qt, \
@@ -30,7 +31,7 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 CLOUD_ALIAS_KEYS = {
     # Named argument formats (anything else is a string).
-#   'auto_active_group': True,
+    'auto_active_group': True,
     'format': {
         'alias_name':          'lowercase',
 
@@ -51,7 +52,7 @@ LIST_KEYS = {
 
 #-------------------------------------------------------------------------------
 
-def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=None):
+def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=None, new_alias=True):
     """
     Ensure all the specified clouds and only the specified clouds are
     members of the specified cloud alias. The specified cloud alias and clouds
@@ -74,11 +75,18 @@ def manage_cloud_aliases(config, tables, group_name, alias_name, clouds, option=
     # Retrieve the list of clouds the cloud alias already has.
     db_clouds=[]
     
-    s = select([table]).where(table.c.alias_name==alias_name)
-    cloud_list = qt(config.db_connection.execute(s))
+    s = select([table]).where((table.c.group_name==group_name) & (table.c.alias_name==alias_name))
+    alias_list = qt(config.db_connection.execute(s))
 
-    for row in cloud_list:
+    for row in alias_list:
         db_clouds.append(row['cloud_name'])
+
+    if new_alias:
+       if len(db_clouds) > 0:
+          return 1, 'specified alias already exists.'
+    else:
+       if len(db_clouds) < 1:
+          return 1, 'specified alias does not exist.'
 
     if not option or option == 'add':
         # Get the list of clouds specified that the alias doesn't already have.
@@ -138,7 +146,7 @@ def add(request):
 
         # Verify specified clouds exist.
         if 'cloud_name' in fields and fields['cloud_name']:
-            rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['alias_name'], response_code=1, message='%s cloud alias add, "%s" failed - %s.' % (lno('AV96'), fields['alias_name'], msg), user_groups=user_groups)
@@ -147,10 +155,10 @@ def add(request):
         rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'])
         if rc == 0:
             config.db_close(commit=True)
-            return list(request, selector=fields['alias_name'], response_code=0, message='cloud alias "%s" successfully added.' % (fields['alias_name']), user_groups=user_groups)
+            return list(request, selector=fields['alias_name'], response_code=0, message='cloud alias "%s.%s" successfully added.' % (active_user.active_group, fields['alias_name']), user_groups=user_groups)
         else:
             config.db_close()
-            return list(request, selector=fields['alias_name'], response_code=1, message='%s cloud alias add "%s" failed - %s.' % (lno('AV05'), fields['alias_name'], msg), user_groups=user_groups)
+            return list(request, selector=fields['alias_name'], response_code=1, message='%s cloud alias add "%s.%s" failed - %s.' % (lno('AV05'), active_user.active_group, fields['alias_name'], msg), user_groups=user_groups)
                     
     ### Bad request.
     else:
@@ -198,7 +206,7 @@ def list(
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'alias_list': alias_list,
@@ -236,7 +244,7 @@ def update(request):
 
         # Verify specified clouds exist.
         if 'cloud_name' in fields and fields['cloud_name']:
-            rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 return list(request, selector=fields['alias_name'], response_code=1, message='%s cloud alias update, "%s" failed - %s.' % (lno('AV96'), fields['alias_name'], msg), user_groups=user_groups)
@@ -244,22 +252,22 @@ def update(request):
         # Update the cloud alias.
         if request.META['HTTP_ACCEPT'] == 'application/json':
             if 'cloud_option' in fields and fields['cloud_option'] == 'delete':
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option='delete')
+                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option='delete', new_alias=False)
             else:
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option='add')
+                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], option='add', new_alias=False)
 
         else:
             if 'cloud_name' in fields:
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'])
+                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'], new_alias=False)
             else:
-                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], None)
+                rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], None, new_alias=False)
 
         if rc == 0:
             config.db_close(commit=True)
-            return list(request, selector=fields['alias_name'], response_code=0, message='cloud alias "%s" successfully updated.' % (fields['alias_name']), user_groups=user_groups)
+            return list(request, selector=fields['alias_name'], response_code=0, message='cloud alias "%s.%s" successfully updated.' % (active_user.active_group, fields['alias_name']), user_groups=user_groups)
         else:
             config.db_close()
-            return list(request, selector=fields['alias_name'], response_code=1, message='%s cloud alias group update "%s.%s" failed - %s.' % (lno('AV24'), fields['alias_name'], fields['group_name'], msg), user_groups=user_groups)
+            return list(request, selector=fields['alias_name'], response_code=1, message='%s cloud alias group update "%s.%s" failed - %s.' % (lno('AV24'), fields['group_name'], fields['alias_name'], msg), user_groups=user_groups)
 
     ### Bad request.
     else:

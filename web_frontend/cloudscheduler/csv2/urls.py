@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.urls import path
 
-from . import cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
+from . import alias_views, cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
 
 urlpatterns = [
 
