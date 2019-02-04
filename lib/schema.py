@@ -174,6 +174,7 @@ condor_jobs = Table('condor_jobs', metadata,
   Column('global_job_id', String(128), primary_key=True),
   Column('group_name', String(32)),
   Column('target_clouds', String),
+  Column('target_alias', String(128)),
   Column('job_status', Integer),
   Column('request_cpus', Integer),
   Column('request_ram', Integer),
@@ -346,6 +347,14 @@ csv2_mime_types = Table('csv2_mime_types', metadata,
 csv2_poll_times = Table('csv2_poll_times', metadata,
   Column('process_id', String(64), primary_key=True),
   Column('last_poll', Integer)
+  )
+
+csv2_service_catalog = Table('csv2_service_catalog', metadata,
+  Column('service', String(64), primary_key=True),
+  Column('fqdn', String(128), primary_key=True),
+  Column('last_updated', Integer),
+  Column('flag_htcondor_allow', Integer),
+  Column('yaml_attribute_name', String(64))
   )
 
 csv2_system_status = Table('csv2_system_status', metadata,
