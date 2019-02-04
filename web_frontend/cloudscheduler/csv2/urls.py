@@ -1,18 +1,23 @@
 from django.conf.urls import url
 from django.urls import path
 
-from . import cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
+from . import alias_views, cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
 
 urlpatterns = [
 
     path('',                                       cloud_views.status),
 
 
+    path('alias/add/',                             alias_views.add),
+    path('alias/list/',                            alias_views.list),
+    path('alias/update/',                          alias_views.update),
+
     path('cloud/add/',                             cloud_views.add),
     path('cloud/delete/',                          cloud_views.delete),
     path('cloud/list/',                            cloud_views.list),
     path('cloud/list/<path:selector>/',            cloud_views.list),
     path('cloud/status/',                          cloud_views.status),
+    path('cloud/status/plot',                      cloud_views.request_ts_data),
     path('cloud/update/',                          cloud_views.update),
     path('cloud/metadata-add/',                    cloud_views.metadata_add),
     path('cloud/metadata-collation/',              cloud_views.metadata_collation),

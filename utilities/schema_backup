@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Back up the structure of all tables in the csv2 database. For those tables listed in
 gvar['backup_data'] (see the main function) also backup the data.
 """
+from cloudscheduler.lib.db_config import Config
 from subprocess import Popen, PIPE
 from tempfile import mkdtemp
 import os
@@ -20,21 +21,21 @@ def backup(gvar, table, data=False):
 
     print(table)
 
-    if table in gvar['backup_data']:
+    if table in gvar['table_config']['global']:
         backup_cmd = [
             'mysqldump',
-            '-u%s' % gvar['csv2_config']['database']['db_user'],
-            '-p%s' % gvar['csv2_config']['database']['db_password'],
-            gvar['csv2_config']['database']['db_name'],
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
+            gvar['db_config'].db_config['db_name'],
             table
             ]
     else:
         backup_cmd = [
             'mysqldump',
-            '-u%s' % gvar['csv2_config']['database']['db_user'],
-            '-p%s' % gvar['csv2_config']['database']['db_password'],
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
             '--no-data',
-            gvar['csv2_config']['database']['db_name'],
+            gvar['db_config'].db_config['db_name'],
             table
             ]
 
@@ -50,7 +51,7 @@ def backup(gvar, table, data=False):
         exit(1)
 
     _fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
-    _fd.write(stdout)
+    _fd.write(stdout.decode('utf-8'))
     _fd.close()
 
     if os.path.isfile('%s/%s' % (gvar['backup_dir'], table)):
@@ -79,7 +80,7 @@ def backup(gvar, table, data=False):
     else:
         stdout = 'missing'
 
-    if stdout != '':
+    if stdout.decode('utf-8') != '':
         _p1 = Popen(
             [
                 'mv',
@@ -99,14 +100,13 @@ def backup(gvar, table, data=False):
 
 def main(args):
     """
-    Retrieve the table list from the database, and for each table buckup the structure and,
-    if listed in the gvar['backup_data'] variable, backup the data and structure.
+    Retrieve the table list from the database, and for each table backup the structure and,
+    if listed in the gvar['table_config']['global'] variable, backup the data as well.
     """
+
     gvar = { 'cmd_path': os.path.abspath(args[0]) }
 
-    fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
-    gvar['csv2_config'] = yaml.load(fd.read())
-    fd.close()
+    gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_dict=True)
     
     gvar['path_info'] = gvar['cmd_path'].split('/')
     gvar['ix'] = gvar['path_info'].index('cloudscheduler')
@@ -119,19 +119,19 @@ def main(args):
     gvar['config_file_path'] = '%s/etc/schema_backup.conf' % '/'.join(gvar['path_info'][:gvar['ix']+1])
     if os.path.isfile(gvar['config_file_path']):
         fd = open(gvar['config_file_path'])
-        gvar['backup_data'] = fd.read().split('\n')
+        gvar['table_config'] = yaml.load(fd.read())
         fd.close()
     else:
-       gvar['backup_data'] = []
+        gvar['table_config'] = {'global': []}
 
     _p1 = Popen(
         [
             'mysql',
-            '-u%s' % gvar['csv2_config']['database']['db_user'],
-            '-p%s' % gvar['csv2_config']['database']['db_password'],
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
             '-e',
             'show tables;',
-            gvar['csv2_config']['database']['db_name']
+            gvar['db_config'].db_config['db_name']
             ],
         stdout=PIPE,
         stderr=PIPE
@@ -152,9 +152,9 @@ def main(args):
 
     print('csv2 schema-backup starting...')
 
-    tables = stdout.split()
+    tables = stdout.decode('utf-8').split('\n')
     for table in tables:
-        if len(table) < 5 or table[:5] != 'view_':
+        if len(table) > 0 and (len(table) < 5 or table[:5] != 'view_'):
             backup(gvar, table)
 
 #   shutil.rmtree(gvar['temp_dir'])

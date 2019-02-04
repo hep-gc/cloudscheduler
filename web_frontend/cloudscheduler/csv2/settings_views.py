@@ -61,7 +61,7 @@ def prepare(request):
     
 
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'super_user': active_user.is_superuser,
             'user_groups': user_groups,

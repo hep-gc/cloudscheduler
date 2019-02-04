@@ -26,6 +26,7 @@ from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 from sqlalchemy import exists
 from sqlalchemy.sql import select
+from sqlalchemy.exc import TimeoutError
 
 
 def main():
@@ -48,6 +49,9 @@ def main():
         try:
             config.db_open()
             csv2groups = config.db_session.query(CSGroups)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
         except Exception as ex:
             log.exception(ex)
             config.db_close()
@@ -78,6 +82,9 @@ def main():
                 Group_metadata = config.db_map.classes.csv2_group_metadata
                 group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
                                                                Group_metadata.enabled == 1)
+            except TimeoutError as ex:
+                log.exception(ex)
+                sys.exit(1)
             except Exception as ex:
                 log.exception(ex)
                 config.db_close()
@@ -148,6 +155,9 @@ def main():
                         else:
                             clouds_matching = config.db_session.query(view_available_resources).filter(
                                 view_available_resources.c.flavor.in_(flavor_list))
+                    except TimeoutError as ex:
+                        log.exception(ex)
+                        sys.exit(1)
                     except Exception as ex:
                         log.exception(ex)
                         time.sleep(2)
@@ -195,6 +205,9 @@ def main():
                             else:
                                 clouds_matching_new = config.db_session.query(view_available_resources).filter(
                                     view_available_resources.c.flavor.in_(flavor_list))  # .order_by(view_available_resources.c.priority)
+                        except TimeoutError as ex:
+                            log.exception(ex)
+                            sys.exit(1)
                         except Exception as ex:
                             log.exception(ex)
                             time.sleep(1)
@@ -269,6 +282,9 @@ def main():
                         continue
 
                 config.db_close()
+            except TimeoutError as ex:
+                log.exception(ex)
+                sys.exit(1)
             except Exception as ex:
                 log.exception(ex)
                 config.db_close()
@@ -306,6 +322,9 @@ def verify_idle_jobs(group, config):
                 log.exception(ex)
                 continue
         config.db_close(commit=True)
+    except TimeoutError as ex:
+        log.exception(ex)
+        sys.exit(1)
     except Exception as ex:
         log.exception(ex)
         config.db_close()
@@ -334,6 +353,9 @@ def count_cloud_flavors(group, config):
             vm_cloud_flavors[res.cloud_name][res.flavor]['swap'] = count * res.flavor_swap
         log.debug("Done counting current flavors for group: %s.", group)
         config.db_close()
+    except TimeoutError as ex:
+        log.exception(ex)
+        sys.exit(1)
     except Exception as ex:
         log.exception(ex)
         config.db_close()
@@ -367,6 +389,9 @@ def check_view_idle_vms():
                     row.retire = 1
                     config.db_session.merge(row)
             config.db_close(commit=True)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
         except Exception as ex:
             log.exception(ex)
             config.db_close()
@@ -424,6 +449,9 @@ def check_unregistered_machines():
                     log.debug("Update flag on %s", vm.hostname)
                     vm.terminate = 1
                     config.db_session.merge(vm)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
         except Exception as ex:
             log.exception(ex)
             config.db_close()
@@ -431,6 +459,9 @@ def check_unregistered_machines():
         log.debug("Done checking unregistered VMs.")
         try:
             config.db_close(commit=True)
+        except TimeoutError as ex:
+            log.exception(ex)
+            sys.exit(1)
         except Exception as ex:
             log.exception(ex)
         time.sleep(10)  # TODO Make configurable ?

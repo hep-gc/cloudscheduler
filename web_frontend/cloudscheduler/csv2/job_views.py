@@ -124,7 +124,7 @@ def list(
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'attributes': attributes,
             'user_groups': user_groups,
