@@ -12,6 +12,7 @@ import sys
 import yaml
 import json
 
+import csv2_alias
 import csv2_cloud
 import csv2_defaults
 import csv2_group
@@ -37,6 +38,14 @@ def main(args):
     gvar = {
         'action': None,
         'actions': {
+            'alias': [
+                False, # super_user?
+                {
+                    'add':                                csv2_alias.add,
+                    'list':                               csv2_alias.list,
+                    'update':                             csv2_alias.update,
+                    }
+                ],
             'cloud': [
                 False, # super_user?
                 {
@@ -132,6 +141,7 @@ def main(args):
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
+            ('-an',   '--alias-name', True),
             ('-bk',   '--backup-key', True),
             ('-br',   '--backup-repository', True),
             ('-c',    '--cacerts', True),
@@ -141,6 +151,7 @@ def main(args):
             ('-cfe',  '--cloud-flavor-exclusion', True),
             ('-cfo',  '--cloud-flavor-option', True),
             ('-cn',   '--cloud-name', True),
+            ('-co',   '--cloud-option', True),
             ('-cpw',  '--cloud-password', True),
             ('-cP',   '--cloud-project-domain', True),
             ('-cp',   '--cloud-project', True),
