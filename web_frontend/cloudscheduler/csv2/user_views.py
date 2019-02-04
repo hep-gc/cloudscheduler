@@ -296,7 +296,7 @@ def list(
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'user_list': user_list,
@@ -358,7 +358,7 @@ def settings(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'response_code': response_code,

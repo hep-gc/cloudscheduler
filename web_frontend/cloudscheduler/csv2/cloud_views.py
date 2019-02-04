@@ -572,7 +572,7 @@ def list(
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'attributes': attributes,
             'user_groups': user_groups,
@@ -706,7 +706,7 @@ def metadata_collation(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_metadata_list': cloud_metadata_list,
@@ -889,7 +889,7 @@ def metadata_list(request):
 
     # Render the page.
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_metadata_list': cloud_metadata_list,
@@ -1176,7 +1176,7 @@ def status(request, group_name=None):
 
 
     context = {
-            'active_user': active_user,
+            'active_user': active_user.username,
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'cloud_status_list': cloud_status_list,
