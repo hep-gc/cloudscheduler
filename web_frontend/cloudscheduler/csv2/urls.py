@@ -8,6 +8,10 @@ urlpatterns = [
     path('',                                       cloud_views.status),
 
 
+    path('alias/add/',                             alias_views.add),
+    path('alias/list/',                            alias_views.list),
+    path('alias/update/',                          alias_views.update),
+
     path('cloud/add/',                             cloud_views.add),
     path('cloud/delete/',                          cloud_views.delete),
     path('cloud/list/',                            cloud_views.list),
