@@ -22,7 +22,6 @@ from sqlalchemy.ext.automap import automap_base
 def timeseries_data_transfer():
 
 	multiprocessing.current_process().name = "Time Series Poller"
-	databasename = "dev3"
 
 	# Variable setup goes here for presistant data like cycle times and configuration
 	# You will need to define new poll times for whatever you decide to call this file in csv2_configuration
@@ -54,7 +53,7 @@ def timeseries_data_transfer():
 			ts = int(time.time())
 
 			# HTTP request args
-			params = {'db': databasename,'precision': 's'}
+			params = {'db': 'csv2_timeseries','precision': 's'}
 			url_string = 'http://localhost:8086/write'
 			
 			# Parse cloud data into line protocol for influxdb

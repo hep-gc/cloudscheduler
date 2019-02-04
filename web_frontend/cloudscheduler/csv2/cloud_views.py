@@ -1208,7 +1208,7 @@ def request_ts_data(request):
     to update the timeseries plot
     """
 
-    params = {'db': 'dev3','epoch': 'ms', 'q':request.body}
+    params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body}
     url_string = 'http://localhost:8086/query'
     r = requests.get(url_string, params=params)
     # Check response status code
