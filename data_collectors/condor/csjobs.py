@@ -47,7 +47,8 @@ def job_poller():
                       "RequestDisk", "RequestCpus", "RequestScratch", "RequestSwap", "Requirements",
                       "JobPrio", "ClusterId", "ProcId", "User", "VMInstanceType", "VMNetwork",
                       "VMImage", "VMKeepAlive", "VMMaximumPrice", "VMUserData", "VMJobPerCore", "Owner",
-                      "EnteredCurrentStatus", "QDate", "HoldReasonCode", "HoldReasonSubCode", "LastRemoteHost" ]
+                      "EnteredCurrentStatus", "QDate", "HoldReasonCode", "HoldReasonSubCode", 
+                      "LastRemoteHost", "TargetAlias"]
     # Not in the list that seem to be always returned:
     # FileSystemDomian, MyType, ServerTime, TargetType
     cycle_start_time = 0

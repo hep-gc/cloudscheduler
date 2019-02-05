@@ -187,37 +187,39 @@ class Config:
 
     def _calculate_version(self):
         version = None
-
-        path_info = sys.path[0].split('/')
-        path_info_ix = path_info.index('cloudscheduler')
-        cloudscheduler_root_dir = '/'.join(path_info[:path_info_ix+1])
-        p1 = Popen([
-            'git',
-            'log',
-            '--decorate'],
-            cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
-        p2 = Popen([
-            'awk',
-            '/^commit /'],
-            stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p2.communicate()
-        commits = stdout[:-1].decode('utf-8').split('\n')
-        tag_ix = -1
-        for ix in range(len(commits)):
-            words = commits[ix].replace('(',' ').replace(')',' ').replace(',',' ').split()
-            try:
-                words_ix = words.index('tag:')
-            except:
-                words_ix = -1
-            if words_ix > -1:
-                tag = words[words_ix+1]
-                tag_ix = ix
-                break
-        if tag_ix == -1:
-            version = 'Build: %d' % len(commits)
-        elif tag_ix == 0:
-            version = 'Version: %s' % tag
-        else:
-            version = 'Version: %s + %d commits' % (tag, tag_ix)
+        try:
+            path_info = sys.path[0].split('/')
+            path_info_ix = path_info.index('cloudscheduler')
+            cloudscheduler_root_dir = '/'.join(path_info[:path_info_ix+1])
+            p1 = Popen([
+                'git',
+                'log',
+                '--decorate'],
+                cwd=cloudscheduler_root_dir, stdout=PIPE, stderr=PIPE)
+            p2 = Popen([
+                'awk',
+                '/^commit /'],
+                stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+            stdout, stderr = p2.communicate()
+            commits = stdout[:-1].decode('utf-8').split('\n')
+            tag_ix = -1
+            for ix in range(len(commits)):
+                words = commits[ix].replace('(',' ').replace(')',' ').replace(',',' ').split()
+                try:
+                    words_ix = words.index('tag:')
+                except:
+                    words_ix = -1
+                if words_ix > -1:
+                    tag = words[words_ix+1]
+                    tag_ix = ix
+                    break
+            if tag_ix == -1:
+                version = 'Build: %d' % len(commits)
+            elif tag_ix == 0:
+                version = 'Version: %s' % tag
+            else:
+                version = 'Version: %s + %d commits' % (tag, tag_ix)
+        except Exception as exc:
+            print("Error Determining version")
 
         return version
