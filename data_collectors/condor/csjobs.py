@@ -123,8 +123,29 @@ def job_poller():
                     condor_session = htcondor.Schedd(scheddAd)
 
                 except Exception as exc:
+                    # if we fail we need to mark all these groups as failed so we don't delete the entrys later
+                    fail_count = 0
+                    for group in groups:
+                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                            if group.htcondor_fqdn == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
+                        else:
+                            if group.htcondor_container_hostname == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
                     logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
+                    if fail_count > 3:
+                        logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
 
