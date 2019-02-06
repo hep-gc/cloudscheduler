@@ -24,6 +24,7 @@ from sqlalchemy import exists
 from sqlalchemy.sql import select
 from sqlalchemy.sql import and_
 from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.log_tools import get_frame_info
 import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
@@ -175,10 +176,10 @@ def update(
         if isinstance(fields['vm_hosts'], int):
            
             if 'cloud_name' in fields:
-                count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'])
-#               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000])
+                count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'], updater=get_frame_info())
+#               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], updater=get_frame_info())
             else:
-                count = kill_retire(config, active_user.active_group, '-', fields['vm_option'], fields['vm_hosts'])
+                count = kill_retire(config, active_user.active_group, '-', fields['vm_option'], fields['vm_hosts'], updater=get_frame_info())
         else:
             count = 0
             if fields['vm_hosts'] != '':
@@ -192,9 +193,9 @@ def update(
 
                 for vm in vm_list:
                     if fields['vm_option'] == 'kill':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1})
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1, 'updater': get_frame_info()})
                     elif fields['vm_option'] == 'retire':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1})
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1, 'updater': get_frame_info()})
                     elif fields['vm_option'] == 'manctl':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'manual_control': 1})
                     elif fields['vm_option'] == 'sysctl':
