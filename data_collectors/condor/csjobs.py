@@ -60,6 +60,7 @@ def job_poller():
     cycle_count = 0
     condor_inventory_built = False
     uncommitted_updates = 0
+    failure_dict = {}
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
 
