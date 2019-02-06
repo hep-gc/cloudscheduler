@@ -21,6 +21,7 @@ from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
 from cloudscheduler.lib.schema import view_metadata_collation_json
 
 from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
@@ -387,6 +388,7 @@ def check_view_idle_vms():
                 update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
                 for row in update_result:
                     row.retire = 1
+                    row.updater = get_frame_info()
                     config.db_session.merge(row)
                     log.debug("Set retire flag on %s", row.hostname)
             config.db_close(commit=True)
@@ -449,6 +451,7 @@ def check_unregistered_machines():
                 for vm in update_result:
                     log.debug("Update terminate flag on %s", vm.hostname)
                     vm.terminate = 1
+                    vm.updater = get_frame_info()
                     config.db_session.merge(vm)
         except TimeoutError as ex:
             log.exception(ex)
