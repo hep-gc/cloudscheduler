@@ -10,35 +10,35 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}">
 
-<meta id="refresher" http-equiv="refresh" content="30">
+<!--<meta id="refresher" http-equiv="refresh" content="30">-->
 
 <script type="text/javascript">
+	/* Refresh status table*/
     var TimerSwitch = 1;
-	var timer_id;
 
     function set_refresh(time) {
         TimerSwitch = 1;
-		timer_id = setTimeout(function() {
-			console.log("in set_refresh");
-		   /*     location.reload();*/
-			fetch(location.href,{	
-				method: 'GET',
-				headers: {'Accept': 'text/html'},
-			})	
-				.then((response) => response.text())
-				.then((html) => {
-					console.log(html);
-					var update = html.getElementByID("status");
-					console.log(update);
-		    		//document.getElementById("status").innerHTML = update;
-				})
-				.catch((error) => {
-					console.warn(error);
-				});
-				document.getElementById("status").load(location.href+" #status>*","");
-				refresh_plot();
+	setTimeout(function() {
+		refresh_plot();
+		fetch(location.href,{	
+			method: 'GET',
+			headers: {'Accept': 'text/html'},
+		})	
+		.then((response) => response.text())
+		.then((html) => {
+			var parser = new DOMParser();
+			var doc = parser.parseFromString(html, "text/html");
+    			document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
+			checkForPlottedTraces();
+			TimerVal = 30;
+			initialize()
+    			set_refresh(30000);
+		})
+		.catch((error) => {
+			console.warn(error);
+		});
+		
         },time);
-
         document.getElementById('vms-iframe').src='';
     }
 
@@ -1007,9 +1007,8 @@
 <script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
 <script type="text/javascript">
 	/*Add event listeners once page loads*/
-	addEventListeners("plottable");
-	addEventListeners("range");
-
+	initialize();
+	sessionStorage.clear();
 </script>
 
 <script type="text/javascript">
@@ -1017,12 +1016,13 @@
     /*<![CDATA[*/
     var TimerVal = 30;
     var TimerSPan = document.getElementById("CDTimer");
+    set_refresh(30000);
     function CountDown(){
        setTimeout( "CountDown()", 1000 );
        TimerSPan.innerHTML=TimerVal;
        if(TimerSwitch == 1){TimerVal=TimerVal-1;}
        if (TimerVal<0) { TimerVal=0 }
-    } CountDown()
+    } CountDown();
     /*]]>*/
 
 </script>
