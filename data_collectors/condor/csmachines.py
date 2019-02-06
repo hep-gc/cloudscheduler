@@ -9,6 +9,7 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.schema import view_condor_host
+from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
@@ -372,6 +373,7 @@ def command_poller():
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource[0], VM.cloud_name==resource[1], VM.vmid==resource[3])[0]
                         vm_row.retire = vm_row.retire + 1
+                        vm_row.updater = get_frame_info()
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -438,9 +440,10 @@ def command_poller():
                         nova = _get_nova_client(session, region=cloud.region)
                         try:
                             # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
+                            vm_row.terminate = vm_row.terminate + 1
+                            vm_row.updater = get_frame_info()
                             nova.servers.delete(vm_row.vmid)
                             logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
-                            vm_row.terminate = vm_row.terminate + 1
                             db_session.merge(vm_row)
                             # log here if terminate # /10 = remainder zero
                             if vm_row.terminate %10 == 0:
