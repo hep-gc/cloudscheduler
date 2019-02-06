@@ -140,8 +140,29 @@ def job_poller():
                         projection=job_attributes
                         )
                 except Exception as exc:
+                    # if we fail we need to mark all these groups as failed so we don't delete the entrys later
+                    fail_count = 0
+                    for group in groups:
+                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                            if group.htcondor_fqdn == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
+                        else:
+                            if group.htcondor_container_hostname == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
                     logging.error("Failed to get jobs from condor scheddd object, aborting poll on host: %s" % condor_host)
                     logging.error(exc)
+                    if fail_count > 3:
+                        logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
                 # Process job data & insert/update jobs in Database
@@ -224,6 +245,7 @@ def job_poller():
                         logging.error(exc)
                         abort_cycle = True
                         break
+
                         
                 if foreign_jobs > 0:
                     logging.info("Ignored %s foreign jobs" % foreign_jobs)
@@ -235,6 +257,15 @@ def job_poller():
                         logging.info("%s ignored for submitting to invalid group for host" % job_errors["invalidgrp"])
                     if "invalidusr" in job_errors:
                         logging.info("%s ignored for submitting to a group without permission" % job_errors["invalidusr"])
+
+                # Poll successful, update failure_dict accordingly
+                for group in groups:
+                    if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                        if group.htcondor_fqdn == condor_host:
+                             failure_dict.pop(group.group_name, None)
+                    else:
+                        if group.htcondor_container_hostname == condor_host:
+                            failure_dict.pop(group.group_name, None)
 
 
                 if abort_cycle:
@@ -256,7 +287,7 @@ def job_poller():
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time)
+                delete_obsolete_database_items('Jobs', inventory, db_session, JOB, 'global_job_id', poll_time=new_poll_time, failure_dict=failure_dict)
                 delete_cycle = False
 
             config.db_close()

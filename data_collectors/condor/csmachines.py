@@ -317,7 +317,7 @@ def machine_poller():
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
+                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
                 delete_cycle = False
             config.db_close(commit=True)
             if 'db_session' in locals():
