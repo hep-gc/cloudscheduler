@@ -391,6 +391,10 @@ def command_poller():
                         #resource has already been retired, skip it
                         continue
 
+                    if config.retire_off:
+                        logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
+                        continue
+
 
                     logging.info("Retiring machine %s" % resource[8])
                     try:
@@ -465,6 +469,9 @@ def command_poller():
                         continue
 
                     if cloud.cloud_type == "openstack":
+                        if config.terminate_off:
+                            logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                            continue
 
                         # terminate the vm
                         nova = _get_nova_client(session, region=cloud.region)
