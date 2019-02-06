@@ -137,11 +137,13 @@ def machine_poller():
     condor_inventory_built = False
     cycle_count = 0
     uncommitted_updates = 0
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
@@ -185,10 +187,30 @@ def machine_poller():
                         projection=resource_attributes
                          )
                 except Exception as exc:
-                    # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
-                    # instead of simpyl handling the error and trying again
+                    # if we fail we need to mark all these groups as failed so we don't delete the entrys later
+                    fail_count = 0
+                    for group in groups:
+                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                            if group.htcondor_fqdn == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
+                        else:
+                            if group.htcondor_container_hostname == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
+
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
                     logging.error(exc)
+                    if fail_count > 3:
+                        logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
                 abort_cycle = False
@@ -266,8 +288,16 @@ def machine_poller():
                     if "badcld" in machine_errors:
                         logging.info("%s ignored for invalid cloud name" % machine_errors["badcld"])
 
-                           
+                # Poll successful, update failure_dict accordingly
+                for group in groups:
+                    if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                        if group.htcondor_fqdn == condor_host:
+                             failure_dict.pop(group.group_name, None)
+                    else:
+                        if group.htcondor_container_hostname == condor_host:
+                            failure_dict.pop(group.group_name, None)
 
+                           
                 if abort_cycle:
                     del condor_session
                     config.db_close()
