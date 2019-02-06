@@ -388,6 +388,7 @@ def check_view_idle_vms():
                 for row in update_result:
                     row.retire = 1
                     config.db_session.merge(row)
+                    log.debug("Set retire flag on %s", row.hostname)
             config.db_close(commit=True)
         except TimeoutError as ex:
             log.exception(ex)
@@ -446,7 +447,7 @@ def check_unregistered_machines():
                 log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
                 update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
                 for vm in update_result:
-                    log.debug("Update flag on %s", vm.hostname)
+                    log.debug("Update terminate flag on %s", vm.hostname)
                     vm.terminate = 1
                     config.db_session.merge(vm)
         except TimeoutError as ex:
