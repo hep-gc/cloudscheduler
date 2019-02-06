@@ -14,6 +14,7 @@ function addEventListeners(className) {
 		}
 }
 
+/* Range selection dropdown*/
 function dropDown(){
 	document.getElementById("range-select").classList.toggle("selected");
 	document.getElementById("myDropdown").classList.toggle("show");
@@ -22,7 +23,7 @@ function dropDown(){
 /* Change time range for plot*/
 function selectRange(range){
 	const curr_range = document.getElementsByClassName("range-btn");
-	curr_range[0].innerHTML = range.innerHTML;
+	curr_range[0].innerHTML = range.innerHTML+'<span class="space"></span><span class="caret"></span>';
 	const dropdowns = document.getElementsByClassName("range");
 	for (var i = 0; i < dropdowns.length; i++) {
 		if (dropdowns[i].classList.contains('selected')) {
@@ -30,14 +31,13 @@ function selectRange(range){
       		}
 	}
 	range.classList.toggle("selected");
-	const curr = Date.now();
 	var to = new Date();
 	var from = new Date();
 	var multiple = 60000;
 	if(range.parentElement.classList.contains("days")) multiple = 86400000;
-	to.setTime(curr-(range.dataset.to*multiple))
+	to.setTime(date-(range.dataset.to*multiple))
 	to = to.getTime();
-	from.setTime(curr-(range.dataset.from*multiple));
+	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
 	TSPlot.layout.xaxis.range = [from, to];
 	Plotly.relayout('plotly-TS', TSPlot.layout);
@@ -104,7 +104,7 @@ function createQuery(trace,time){
 		var measurement = line[1];
 		query += `"${measurement}" WHERE "group"='${group}'`;
 	}if (time == true){
-		query += `AND time > ${date}ms`;
+		query += `AND time > ${TSPlot.layout.xaxis.range[1]}ms`;
 	}
 	return query;
 }
@@ -147,24 +147,28 @@ function getTraceData(trace, showing){
 	
 }
 
-/* Refresh plot every 30 seconds with new data from db if looking at last hour >
+
+/* Refresh plot every 30 seconds with new data from db*/
 var plot_timer;
 function refresh_plot() {
 	plot_timer = setTimeout(function() {
-		console.log("to "+TSPlot.layout.xaxis.range[1]);
-		console.log("from "+TSPlot.layout.xaxis.range[0]);
-		console.log(TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]);
-		if((TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]) <= 3600000 && TSPlot.layout.xaxis.range[1] == date){
-			console.log("yes");
-			var traces = TSPlot.traces;
-			var newdata = {
-				y: [],
-				x: []
-			};
-			var index = [];
-			for (var i = 0; i < traces.length; i++){
-				index.push(i);
-				var query = createQuery(traces[i].name,true)
+		if(TSPlot.showing == true){
+			/* Only refresh if plot is showing and current range is Last hour or less*/
+			if((TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]) <= 3600000 && TSPlot.layout.xaxis.range[1] == date){
+				date = Date.now();
+				var traces = TSPlot.traces;
+				var newdata = {
+					y: [],
+					x: []
+				};
+				var index = [];
+				var query = createQuery(traces[0].name,true)
+				index.push(0);
+				for (var i = 1; i < traces.length; i++){
+					index.push(i);
+					query += ';'
+					query += createQuery(traces[i].name,true)
+				}
 				const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 				fetch('cloud/status/plot',{
 					method: 'POST',
@@ -177,41 +181,57 @@ function refresh_plot() {
 					return response.json();
 				})
 				.then(function(data){
-					const responsedata = data.results[0].series[0].values;
-					const unpackData = (arr, index) => {
-						var newarr = arr.map(x => x[index]);
-						return newarr
+					for(var k = 0; k < traces.length; k++){
+						const responsedata = data.results[k].series[0].values;
+						const unpackData = (arr, index) => {
+							var newarr = arr.map(x => x[index]);
+							return newarr
+						}
+						var updatetrace = {
+							x: unpackData(responsedata, 0),
+							y: unpackData(responsedata, 1)
+						}
+					
+						/* Update trace*/
+						newdata.y.push(unpackData(responsedata, 1));
+						newdata.x.push(unpackData(responsedata, 0));
 					}
-					var updatetrace = {
-						x: unpackData(responsedata, 0),
-						y: unpackData(responsedata, 1)
-					}
-					/* Update trace
-					newdata.y.push(unpackData(responsedata, 1));
-					newdata.x.push(unpackData(responsedata, 0));*/
 					/* Update plot range*/
-					//var ready = false;
-					//if(i == traces.length -1) ready = true;
-				/*	return updateTraces(newdata, index);
+					return updateTraces(newdata, index);
 				})
 				.catch(error => console.log('Error:', error));
-			}
-		}		
+			/*
+				fetch(location.href,{	
+					method: 'GET',
+					headers: {'Accept': 'text/html'},
+				})	
+		    		.then((response) => response.text())
+		    		.then((html) => {
+					doc = new DOMParser().parseFromString(html, "text/html");
+					//console.log(document.getElementById("status"));
+					//console.log(html);
+					var update = doc.querySelector("#status").innerHTML;
+					console.log(update);
+					document.getElementById("status").innerHTML = update;
+					addEventListeners("plottable");
+					addEventListeners("range");
+		    		})
+		    		.catch((error) => {
+						console.warn(error);
+					});*/
+			}					
+			
+		}
 		refresh_plot();
 	},30000);
-}*/
+	
+}
 
 /* Update plot traces with new data*/
 function updateTraces(newdata, index){
-	console.log(index);
-	if (newdata.y.length == index.length){
-		Plotly.extendTraces('plotly-TS', newdata, index);
-		if(TSPlot.layout.xaxis.range[1] == date){
-			date = Date.now();
-			TSPlot.layout.xaxis.range[1] = date; 
-			Plotly.relayout('plotly-TS', TSPlot.layout);
-		}
-	}
+	Plotly.extendTraces('plotly-TS', newdata, index);
+	TSPlot.layout.xaxis.range[1] = date; 
+	Plotly.relayout('plotly-TS', TSPlot.layout);
 }
 
 
@@ -242,7 +262,8 @@ var TSPlot = {
 		from = from.setTime(to-3600000);
 		TSPlot.layout.xaxis.range = [from, to];
 		TSPlot.traces = [trace];		
-		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});	
+		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});
+		refresh_plot();	
 	},
 
 	/* Hide plot and start timer*/
@@ -252,15 +273,13 @@ var TSPlot = {
 		Plotly.purge('plotly-TS');
 		document.getElementById("plot").style.display = 'none';
 		const curr_range = document.getElementsByClassName("range-btn");
-		curr_range[0].innerHTML = 'Last 1 hour';
+		curr_range[0].innerHTML = 'Last 1 hour<span class="space"></span><span class="caret"></span>';
 		set_refresh(1000*document.getElementById("CDTimer").innerHTML);
-		//clearTimeout(plot_timer);
-		var list = document.getElementsByClassName('plottable');
+		clearTimeout(plot_timer);
+		var list = document.getElementsByClassName('plotted');
 		for (i = 0; i < list.length; i++) {
 			var value = list[i];
-			if (value.classList.contains('plotted')) {
-				value.classList.remove('plotted');
-	      		}
+			value.classList.remove('plotted');
     		}
 	},
 
@@ -270,7 +289,6 @@ var TSPlot = {
 		document.getElementById("plot").style.display = 'block';
 		clearTimeout(timer_id);
 		stop_refresh();
-		//refresh_plot();
 	}
 
 }//TSPlot

@@ -114,8 +114,7 @@
 .selected {opacity:1;}
 
 .plotted {
-	background-color: rgba(0,128,0,0.13);
-	/*rgba(0,128,0,.15);*/
+	background-color: rgba(0,128,0,0.15);
 }
 
 
@@ -179,6 +178,7 @@
 
 
 
+
 .status-table td:hover {
   background-color: grey;
   opacity: 50%;
@@ -203,8 +203,6 @@
   width: 100%;
   z-index: -1;
 }
-
-
 
 
 .ram-meter {

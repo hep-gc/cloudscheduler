@@ -19,7 +19,24 @@
     function set_refresh(time) {
         TimerSwitch = 1;
 		timer_id = setTimeout(function() {
-            location.reload();
+			console.log("in set_refresh");
+		   /*     location.reload();*/
+			fetch(location.href,{	
+				method: 'GET',
+				headers: {'Accept': 'text/html'},
+			})	
+				.then((response) => response.text())
+				.then((html) => {
+					console.log(html);
+					var update = html.getElementByID("status");
+					console.log(update);
+		    		//document.getElementById("status").innerHTML = update;
+				})
+				.catch((error) => {
+					console.warn(error);
+				});
+				document.getElementById("status").load(location.href+" #status>*","");
+				refresh_plot();
         },time);
 
         document.getElementById('vms-iframe').src='';
@@ -99,7 +116,7 @@
 </div>
 
 
-<div class="status-div">
+<div class="status-div" id="status">
 
     <div class="toggle-button">
         <label for="toggle-row">
@@ -134,9 +151,9 @@
                     {% endif %}
 
                     {% if cloud.Idle == 0 %}
-                        <td data-path="{{cloud.group_name}} jobs_idle" class="zero-style plottable">0</td>
+                        <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="zero-style plottable">0</td>
                     {% else %}
-                        <td data-path="{{cloud.group_name}} jobs_idle" class="more-style plottable"><a href="#">{{cloud.Idle}}</a></td>
+                        <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="more-style plottable"><a href="#">{{cloud.Idle}}</a></td>
                     {% endif %}
 
                     {% if cloud.Running == 0 %}
@@ -444,7 +461,7 @@
                         </td>
                         <td>
                         {% if cloud.VMs > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
@@ -724,7 +741,7 @@
 
                 <td>
                 {% if cloud_total_list.VMs > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::native::')" href="#vms-overlay">&#x2637;</a>
+                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
                 {% endif %}
                 </td>
 
@@ -984,7 +1001,7 @@
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
-{% csrf_token %}
+
 <!-- Plotly.js -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
