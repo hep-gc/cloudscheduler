@@ -176,10 +176,10 @@ def update(
         if isinstance(fields['vm_hosts'], int):
            
             if 'cloud_name' in fields:
-                count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'], updater=get_frame_info())
-#               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], updater=get_frame_info())
+                count = kill_retire(config, active_user.active_group, fields['cloud_name'], fields['vm_option'], fields['vm_hosts'], get_frame_info())
+#               count = kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [50,1000000], get_frame_info())
             else:
-                count = kill_retire(config, active_user.active_group, '-', fields['vm_option'], fields['vm_hosts'], updater=get_frame_info())
+                count = kill_retire(config, active_user.active_group, '-', fields['vm_option'], fields['vm_hosts'], get_frame_info())
         else:
             count = 0
             if fields['vm_hosts'] != '':

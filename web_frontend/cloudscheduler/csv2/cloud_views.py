@@ -1303,11 +1303,11 @@ def update(request):
 
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
         if 'cores_ctl' in fields and 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], updater=get_frame_info())
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
         elif 'cores_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], 999999999999], updater=get_frame_info())
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], 999999999999], get_frame_info())
         elif 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [999999999999, fields['ram_ctl']], updater=get_frame_info())
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [999999999999, fields['ram_ctl']], get_frame_info())
 
         # Update the cloud's flavor exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
