@@ -44,6 +44,19 @@ def main():
     logging.basicConfig(filename=config.log_file,
                         level=config.log_level,
                         format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
+    service_catalog_yaml_fqdns = {}
+    try:
+        config.db_open()
+        service_catalog = config.db_map.classes.csv2_service_catalog
+        services = config.db_session.query(service_catalog)
+        for service in services:
+            service_catalog_yaml_fqdns[service.yaml_attribute_name] = service.fqdn
+    except TimeoutError as ex:
+        log.exception(ex)
+        sys.exit(1)
+    except Exception as ex:
+        log.exception(ex)
+
 
     while(True):
         CSGroups = config.db_map.classes.csv2_groups
@@ -248,6 +261,7 @@ def main():
                                              'cs_condor_host': csgroup.htcondor_fqdn,
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
                                              'cs_condor_submitters': csgroup.htcondor_other_submitters,}
+                            template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 
                             try:
