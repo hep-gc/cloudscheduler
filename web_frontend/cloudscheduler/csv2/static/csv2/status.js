@@ -134,6 +134,7 @@ function createQuery(trace,time){
 function getTraceData(trace, showing){
 	if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 	else var newpath = "/cloud/status/plot";
+	var nullvalues = [];
 	query = createQuery(trace.dataset.path, false);
 	const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 	fetch(newpath,{
@@ -150,17 +151,37 @@ function getTraceData(trace, showing){
 		}throw new Error('HTTP response not was not OK. '+response.status);
 	})
 	.then(function(data){
-		/* Parse response into trace object*/
+		/* Parse response into trace object. Add null values between points where no data
+		   exists for more than 70s to show gaps in plot*/
 		const responsedata = data.results[0].series[0].values;
+		var addindex = [];
+		var addtime = [];
+		var k = 0;
 		const unpackData = (arr, index) => {
-			var newarr = arr.map(x => x[index]);
+			var newarr = arr.map((x, ind) => {
+				if(index == 0 && ind < arr.length-1){
+					if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 70000){
+						addtime.push(arr[ind][index] + 15000);
+						addindex.push(ind+1);
+					}
+				}
+				return x[index];
+			});
 			return newarr
 		}
+		var newarrayx = unpackData(responsedata,0);
+		for(var f = 0; f<addindex.length; f++){
+			newarrayx.splice(addindex[f]+f,0,addtime[f]);
+		}
+		var newarrayy = unpackData(responsedata,1);
+		for(var f = 0; f<addindex.length; f++){
+			newarrayy.splice(addindex[f]+f,0,null);
+		}
 	    	const newtrace = {
-			type: 'scatter',
+			mode: 'scatter',
 			name: trace.dataset.path,
-			x: unpackData(responsedata, 0),
-			y: unpackData(responsedata, 1)
+			x: newarrayx,
+			y: newarrayy
 		}
 		/* If plot is showing, add trace to plot, otherwise create plot with trace*/
 		if(showing == true) return Plotly.addTraces('plotly-TS', newtrace);
@@ -202,7 +223,6 @@ function checkForPlottedTraces(){
 
 
 /* Refresh plot every 30 seconds with new data from db*/
-//var plot_timer;
 function refresh_plot() {
 	if(TSPlot.showing == true){
 		/* Only refresh if plot is showing and current range is Last hour or less*/
@@ -221,8 +241,10 @@ function refresh_plot() {
 				query += ';'
 				query += createQuery(traces[i].name,true)
 			}
+			if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+			else var newpath = "/cloud/status/plot";
 			const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-			fetch('cloud/status/plot',{
+			fetch(newpath,{
 				method: 'POST',
 				headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
 				credentials: 'same-origin',
@@ -292,7 +314,7 @@ var TSPlot = {
 			r: 50,
 			t: 40,
 			b: 40
-		}
+		},
 	},
 
 	showing: false,
@@ -325,6 +347,13 @@ var TSPlot = {
 			value.classList.remove('plotted');
 		}
 		sessionStorage.clear();
+		const dropdowns = document.getElementsByClassName("range");
+		for (var i = 0; i < dropdowns.length; i++) {
+			if (dropdowns[i].classList.contains('selected')) {
+				dropdowns[i].classList.remove('selected');
+      			}
+		}
+		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
 	},
 
 	/* Show plot*/
