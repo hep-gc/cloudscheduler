@@ -392,7 +392,7 @@ csv2_user = Table('csv2_user', metadata,
   Column('password', String(128)),
   Column('is_superuser', Integer),
   Column('join_date', Integer),
-  Column('active_group', String(128)),
+  Column('default_group', String(32)),
   Column('flag_global_status', Integer),
   Column('status_refresh_interval', Integer)
   )
@@ -426,7 +426,8 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('terminate', Integer),
   Column('terminate_time', Integer),
   Column('status_changed_time', Integer),
-  Column('last_updated', Integer)
+  Column('last_updated', Integer),
+  Column('updater', String(128))
   )
 
 csv2_vms_foreign = Table('csv2_vms_foreign', metadata,
@@ -829,6 +830,7 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('group_name', String(32)),
+  Column('target_alias_clouds', String),
   Column('target_clouds', String),
   Column('instance_type', String(512)),
   Column('requirements', String(512)),
@@ -933,7 +935,7 @@ view_user_groups = Table('view_user_groups', metadata,
   Column('password', String(128)),
   Column('is_superuser', Integer),
   Column('join_date', Integer),
-  Column('active_group', String(128)),
+  Column('default_group', String(32)),
   Column('user_groups', String),
   Column('available_groups', String)
   )
@@ -992,6 +994,7 @@ view_vms = Table('view_vms', metadata,
   Column('terminate_time', Integer),
   Column('status_changed_time', Integer),
   Column('last_updated', Integer),
+  Column('updater', String(128)),
   Column('flavor_name', String(128)),
   Column('condor_slots', Integer),
   Column('condor_slots_used', Integer),

@@ -37,7 +37,7 @@ from (
         left outer join condor_machines as cm on
             cv.hostname=substring_index(cm.machine,'.',1)
         ) as cms
-    group by 
+    group by
         group_name,
         cloud_name,
         vmid,
