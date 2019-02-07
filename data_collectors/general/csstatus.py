@@ -72,20 +72,20 @@ def status_poller():
                     system_dict[db_service_names[service] + "_status"] = 0
                     logging.error("Found service %s is dead...", service)
 
-                system_dict["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
+            system_dict["load"] = round(100*( os.getloadavg()[0] / os.cpu_count() ),1)
 
-                system_dict["ram"] = psutil.virtual_memory().percent
-                system_dict["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
-                system_dict["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
+            system_dict["ram"] = psutil.virtual_memory().percent
+            system_dict["ram_size"] = round(psutil.virtual_memory().total/1000000000 , 1)
+            system_dict["ram_used"] = round(psutil.virtual_memory().used/1000000000 , 1)
 
-                system_dict["swap"] = psutil.swap_memory().percent
-                system_dict["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
-                system_dict["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
+            system_dict["swap"] = psutil.swap_memory().percent
+            system_dict["swap_size"] = round(psutil.swap_memory().total/1000000000 , 1)
+            system_dict["swap_used"] = round(psutil.swap_memory().used/1000000000 , 1)
 
 
-                system_dict["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
-                system_dict["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
-                system_dict["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
+            system_dict["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
+            system_dict["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
+            system_dict["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
             new_status = STATUS(**system_dict)
             try:
