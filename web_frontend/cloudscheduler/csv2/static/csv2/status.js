@@ -1,10 +1,11 @@
 var date = Date.now();
 
 function initialize(){
-	/*Add event listeners once page loads*/
+	/* Add event listeners once page loads*/
 	addEventListeners("plottable");
 	addEventListeners("range");
 }
+
 
 /* Add click events to table elements and range selection*/
 function addEventListeners(className) {
@@ -19,6 +20,7 @@ function addEventListeners(className) {
 			});
 		}
 }
+
 
 /* Range selection dropdown*/
 function dropDown(){
@@ -37,6 +39,7 @@ function selectRange(range){
       		}
 	}
 	range.classList.toggle("selected");
+	/* Calculate new range*/
 	var to = new Date();
 	var from = new Date();
 	var multiple = 60000;
@@ -45,9 +48,11 @@ function selectRange(range){
 	to = to.getTime();
 	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
+	/* Update plot with new range*/
 	TSPlot.layout.xaxis.range = [from, to];
 	Plotly.relayout('plotly-TS', TSPlot.layout);
 }
+
 
 /* Close the range dropdown menu*/
 window.onclick = function(event) {
@@ -68,6 +73,7 @@ window.onclick = function(event) {
 	}
 }
 
+
 /* Toggle traces, show plot*/
 function togglePlot(trace){
 	if(TSPlot.showing == true){
@@ -85,6 +91,7 @@ function togglePlot(trace){
 				TSPlot.hide();
 			}else{
 				Plotly.deleteTraces('plotly-TS', index);
+				/* Store plotted traces for refresh*/
 				var trace_array = [];
 				for(var y = 0; y < TSPlot.traces.length; y++){
 					trace_array.push(TSPlot.traces[y].name)
@@ -92,6 +99,7 @@ function togglePlot(trace){
 				sessionStorage.setItem("traces", JSON.stringify(trace_array));
 			}
 		}else{
+			/* Plot new trace*/
 			getTraceData(trace, true);
 		}
 	}else{
@@ -102,11 +110,12 @@ function togglePlot(trace){
 	}
 }
 
+
 /* Construct query for db*/
 function createQuery(trace,time){
 	const line = trace.split(" ");
 	const group = line[0];
-	var query = `SELECT time,value FROM `
+	var query = `SELECT time,value FROM `;
 	if(line.length == 3){
 		var cloud = line[1];
 		var measurement = line[2];
@@ -119,6 +128,7 @@ function createQuery(trace,time){
 	}
 	return query;
 }
+
 
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
@@ -134,12 +144,13 @@ function getTraceData(trace, showing){
 		}
 	)
 	.then(function(response){
+		/* Check response status code*/
 		if(response.ok){
 			return response.json();
-		}
-		throw new Error('HTTP response not was not OK. '+response.status);
+		}throw new Error('HTTP response not was not OK. '+response.status);
 	})
 	.then(function(data){
+		/* Parse response into trace object*/
 		const responsedata = data.results[0].series[0].values;
 		const unpackData = (arr, index) => {
 			var newarr = arr.map(x => x[index]);
@@ -151,10 +162,12 @@ function getTraceData(trace, showing){
 			x: unpackData(responsedata, 0),
 			y: unpackData(responsedata, 1)
 		}
+		/* If plot is showing, add trace to plot, otherwise create plot with trace*/
 		if(showing == true) return Plotly.addTraces('plotly-TS', newtrace);
 		else return TSPlot.initialize(newtrace);
 	}).then(function(data){
 		if(showing == true){
+			/* Store plotted traces for refresh*/
 			var trace_array = [];
 			for(var y = 0; y < TSPlot.traces.length; y++){
 				trace_array.push(TSPlot.traces[y].name)
@@ -163,69 +176,37 @@ function getTraceData(trace, showing){
 		}
 	})
 	.catch(error => console.log('Error:', error));
-	
 }
 
-/* Refresh status table every 30s*/
-/*var TimerSwitch = 1;
-function set_refresh(time) {
-	TimerSwitch = 1;
-	setTimeout(function() {
-		refresh_plot();
-		fetch(location.href,{	
-			method: 'GET',
-			headers: {'Accept': 'text/html'},
-		})	
-		.then((response) => response.text())
-		.then((html) => {
-			var parser = new DOMParser();
-			var doc = parser.parseFromString(html, "text/html");
-			document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
-			checkForPlottedTraces();
-			TimerVal = 30;
-			set_refresh(30000);
-		})
-		.catch((error) => {
-			console.warn(error);
-		});
-	
-	},time);
-	document.getElementById('vms-iframe').src='';
-}
 
-function stop_refresh() {
-	TimerSwitch = 0;
-	window.stop();
-}
-
-function pass_url(url) {
-	stop_refresh();
-	document.getElementById('vms-iframe').src='/vm/list/'+url;
-}*/
-
+/* On refresh, check for plotted traces to update colour in status table*/
 function checkForPlottedTraces(){
 	if (typeof(Storage) !== "undefined"){
 		if(sessionStorage.length != 0){
-			var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
-			for(var x = 0; x < plotted_traces.length; x++){
-				var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
+			var traces = sessionStorage.getItem("traces").split(",");
+			if(traces.length == 1){
+				var plotted_traces = sessionStorage.getItem("traces");
+				var stat = document.querySelectorAll('td[data-path='+plotted_traces+']');
 				stat[0].classList.toggle("plotted");
 			}
+			else{
+				var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
+				for(var x = 0; x < plotted_traces.length; x++){
+					var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
+					stat[0].classList.toggle("plotted");
+				}
+			}
 		}
-	}else console.log("Sorry! No Web Storage support..");
-	
-	
+	}
 }
 
 
 /* Refresh plot every 30 seconds with new data from db*/
-var plot_timer;
+//var plot_timer;
 function refresh_plot() {
-
 	if(TSPlot.showing == true){
 		/* Only refresh if plot is showing and current range is Last hour or less*/
-		if((TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]) <= 3600000 && TSPlot.layout.xaxis.range[1] == date){
-			date = Date.now();
+		if((TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]) <= 3600000 && (TSPlot.layout.xaxis.range[1] >= date)){
 			var traces = TSPlot.traces;
 			var newdata = {
 				y: [],
@@ -234,6 +215,7 @@ function refresh_plot() {
 			var index = [];
 			var query = createQuery(traces[0].name,true)
 			index.push(0);
+			/* Create string of queries for db*/
 			for (var i = 1; i < traces.length; i++){
 				index.push(i);
 				query += ';'
@@ -248,10 +230,19 @@ function refresh_plot() {
 				}
 			)
 			.then(function(response){
-				return response.json();
+				/* Check response status code*/
+				if(response.ok){
+					return response.json();
+				}throw new Error('HTTP response not was not OK. '+response.status)
 			})
 			.then(function(data){
+				/* Parse response into arrays of new points*/
+				var new_points = true;
 				for(var k = 0; k < traces.length; k++){
+					if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
+						new_points = false;
+						break;
+					}
 					const responsedata = data.results[k].series[0].values;
 					const unpackData = (arr, index) => {
 						var newarr = arr.map(x => x[index]);
@@ -262,23 +253,27 @@ function refresh_plot() {
 						y: unpackData(responsedata, 1)
 					}
 				
-					/* Update trace*/
+					/* Update new data for traces*/
 					newdata.y.push(unpackData(responsedata, 1));
 					newdata.x.push(unpackData(responsedata, 0));
 				}
-				/* Update plot range*/
-				return updateTraces(newdata, index);
+				/* Update plot with new data*/
+				if(new_points == true) return updateTraces(newdata, index);
+				else return;
 			})
 			.catch(error => console.log('Error:', error));
 		}					
-		
 	}
 }
 
-/* Update plot traces with most recent data points*/
+
+/* Update plot traces with most recent data points and new range*/
 function updateTraces(newdata, index){
 	Plotly.extendTraces('plotly-TS', newdata, index);
+	date = Date.now();
+	var diff = date - TSPlot.layout.xaxis.range[1];
 	TSPlot.layout.xaxis.range[1] = date; 
+	TSPlot.layout.xaxis.range[0] += diff;
 	Plotly.relayout('plotly-TS', TSPlot.layout);
 }
 
@@ -311,7 +306,6 @@ var TSPlot = {
 		TSPlot.layout.xaxis.range = [from, to];
 		TSPlot.traces = [trace];		
 		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});
-		//refresh_plot();
 		sessionStorage.setItem("traces", JSON.stringify(trace.name));
 	},
 
@@ -323,6 +317,7 @@ var TSPlot = {
 		document.getElementById("plot").style.display = 'none';
 		const curr_range = document.getElementsByClassName("range-btn");
 		curr_range[0].innerHTML = 'Last 1 hour<span class="space"></span><span class="caret"></span>';
+		/* Remove indication of plotted traces*/
 		var list = document.getElementsByClassName('plotted');
 		var init_length = list.length;
 		for (var i = 0; i < init_length; i++) {
@@ -341,4 +336,3 @@ var TSPlot = {
 }//TSPlot
 
 	
-

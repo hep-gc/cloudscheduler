@@ -15,10 +15,10 @@
 <script type="text/javascript">
 	/* Refresh status table*/
     var TimerSwitch = 1;
-
+	var timer_id;
     function set_refresh(time) {
         TimerSwitch = 1;
-	setTimeout(function() {
+	timer_id = setTimeout(function() {
 		refresh_plot();
 		fetch(location.href,{	
 			method: 'GET',
@@ -44,6 +44,7 @@
 
     function stop_refresh() {
         TimerSwitch = 0;
+	clearTimeout(timer_id);
         window.stop();
     }
 
