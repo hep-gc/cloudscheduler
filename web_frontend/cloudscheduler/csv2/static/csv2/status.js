@@ -148,7 +148,7 @@ function getTraceData(trace, showing){
 		/* Check response status code*/
 		if(response.ok){
 			return response.json();
-		}throw new Error('HTTP response not was not OK. '+response.status);
+		}throw new Error('HTTP response not was not OK :( '+response.status);
 	})
 	.then(function(data){
 		/* Parse response into trace object. Add null values between points where no data
@@ -204,18 +204,10 @@ function getTraceData(trace, showing){
 function checkForPlottedTraces(){
 	if (typeof(Storage) !== "undefined"){
 		if(sessionStorage.length != 0){
-			var traces = sessionStorage.getItem("traces").split(",");
-			if(traces.length == 1){
-				var plotted_traces = sessionStorage.getItem("traces");
-				var stat = document.querySelectorAll('td[data-path='+plotted_traces+']');
+			var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
+			for(var x = 0; x < plotted_traces.length; x++){
+				var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
 				stat[0].classList.toggle("plotted");
-			}
-			else{
-				var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
-				for(var x = 0; x < plotted_traces.length; x++){
-					var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
-					stat[0].classList.toggle("plotted");
-				}
 			}
 		}
 	}
@@ -255,7 +247,7 @@ function refresh_plot() {
 				/* Check response status code*/
 				if(response.ok){
 					return response.json();
-				}throw new Error('HTTP response not was not OK. '+response.status)
+				}throw new Error('HTTP response not was not OK :( '+response.status)
 			})
 			.then(function(data){
 				/* Parse response into arrays of new points*/
@@ -328,7 +320,9 @@ var TSPlot = {
 		TSPlot.layout.xaxis.range = [from, to];
 		TSPlot.traces = [trace];		
 		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});
-		sessionStorage.setItem("traces", JSON.stringify(trace.name));
+		var traces = [];
+		traces.push(trace.name);
+		sessionStorage.setItem("traces", JSON.stringify(traces));
 	},
 
 	/* Hide plot*/
