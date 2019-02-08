@@ -25,20 +25,20 @@
                     </div>
                 </form>
             </li>
-            <li><a class="status-nav" href="/cloud/status/">Status</a></li>
-            <li><a class="clouds-nav" href="/cloud/list/">Clouds</a></li>
-            <li><a class="alias-nav" href="/alias/list/">Aliases</a></li>
-            <li><a class="defaults-nav" href="/group/defaults/">Defaults</a></li>
+            <li><a class="status-nav" href="/cloud/status/?{{active_group}}">Status</a></li>
+            <li><a class="clouds-nav" href="/cloud/list/?{{active_group}}">Clouds</a></li>
+            <li><a class="alias-nav" href="/alias/list/?{{active_group}}">Aliases</a></li>
+            <li><a class="defaults-nav" href="/group/defaults/?{{active_group}}">Defaults</a></li>
             {% if enable_glint %}
-                <li><a class="images-nav" href="/images/">Images</a></li>
-                <li><a class="keys-nav" href="/keypairs/">Keys</a></li>
+                <li><a class="images-nav" href="/images/?{{active_group}}">Images</a></li>
+                <li><a class="keys-nav" href="/keypairs/?{{active_group}}">Keys</a></li>
             {% endif %}
         </div>
         <div class="float-right">
 
-                <li><a class="users-nav" href="/user/list/">Users</a></li>
-                <li><a class="groups-nav" href="/group/list/">Groups</a></li>
-                <li><a class="config-nav" href="/server/config/">Config</a></li>
+                <li><a class="users-nav" href="/user/list/?{{active_group}}">Users</a></li>
+                <li><a class="groups-nav" href="/group/list/?{{active_group}}">Groups</a></li>
+                <li><a class="config-nav" href="/server/config/?{{active_group}}">Config</a></li>
 
                 <!--<li class="nav-button">Admin
                     <ul class="sub-menu">
