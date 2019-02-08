@@ -76,7 +76,7 @@ class ProcessMonitor:
         orange = False
         for process in self.process_ids:
             if process not in self.processes or not self.is_alive(process):
-                if process in self.processes
+                if process in self.processes:
                     orange = True
                     logging.error("%s process died, restarting...", process)
                     del self.processes[process]
