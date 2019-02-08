@@ -2,6 +2,7 @@ import multiprocessing
 from multiprocessing import Process
 import logging
 import time
+import subprocess
 
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
@@ -58,6 +59,12 @@ class ProcessMonitor:
                 self.processes[process].start()
 
     def restart_process(self, process):
+        # Capture tail of log when process has to restart
+        proc = subprocess.Popen(['tail', '-n', 50, self.config.log_file], stdout=subprocess.PIPE)
+        lines = proc.stdout.readlines()
+        timestamp = int(time.time())
+        with open(''.join[self.config.log_file, '-', timestamp]) as f:
+            f.write(lines)
         self.processes[process] = Process(target=self.process_ids[process])
         self.processes[process].start()
 
