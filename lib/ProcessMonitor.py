@@ -2,6 +2,7 @@ import multiprocessing
 from multiprocessing import Process
 import logging
 import time
+import datetime
 import subprocess
 
 from cloudscheduler.lib.db_config import Config
@@ -60,11 +61,12 @@ class ProcessMonitor:
 
     def restart_process(self, process):
         # Capture tail of log when process has to restart
-        proc = subprocess.Popen(['tail', '-n', 50, self.config.log_file], stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['tail', '-n', '50', self.config.log_file], stdout=subprocess.PIPE)
         lines = proc.stdout.readlines()
-        timestamp = int(time.time())
-        with open(''.join[self.config.log_file, '-', timestamp]) as f:
-            f.write(lines)
+        timestamp = str(datetime.date.today())
+        with open(''.join([self.config.log_file, '-', timestamp]), 'wb') as f:
+            for line in lines:
+                f.write(line)
         self.processes[process] = Process(target=self.process_ids[process])
         self.processes[process].start()
 
