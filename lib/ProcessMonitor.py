@@ -66,16 +66,17 @@ class ProcessMonitor:
 
     def join_all(self):
         for proc in self.processes:
+            pro = self.processes[proc]
             try:
-                proc.join()
+                pro.join()
             except:
-                logging.error("failed to join process %s", proc.name)
+                logging.error("failed to join process %s", pro.name)
 
     def check_processes(self):
         orange = False
         for process in self.process_ids:
             if process not in self.processes or not self.is_alive(process):
-                if process in self.processes:
+                if process in self.processes
                     orange = True
                     logging.error("%s process died, restarting...", process)
                     del self.processes[process]
