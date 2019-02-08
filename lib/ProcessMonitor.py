@@ -49,7 +49,7 @@ class ProcessMonitor:
 
     def start_all(self):
         for process in self.process_ids:
-            if process not in self.processes or not processes[process].is_alive():
+            if process not in self.processes or not self.processes[process].is_alive():
                 if process in self.processes:
                     logging.error("Restarting %s...", process)
                 else:
