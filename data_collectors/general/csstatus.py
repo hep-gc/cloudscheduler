@@ -26,7 +26,7 @@ def _service_msg(service_name):
 def status_poller():
     multiprocessing.current_process().name = "Status Poller"
 
-    services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines","csv2-status, "mariadb", "condor"]
+    services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines", "csv2-status", "mariadb", "condor"]
     db_service_names = {
                        "csv2-main":      "csv2_main", 
                        "csv2-openstack": "csv2_openstack", 
