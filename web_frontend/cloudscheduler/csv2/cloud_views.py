@@ -24,6 +24,8 @@ import bcrypt
 from sqlalchemy import exists
 from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
+from cloudscheduler.lib.log_tools import get_frame_info
+
 import sqlalchemy.exc
 #import subprocess
 import os
@@ -328,13 +330,13 @@ def add(request):
     config.db_open()
 
 
-    if request.method == 'POST':
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), user_groups=user_groups)
 
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV00'), msg), user_groups=user_groups)
+    if request.method == 'POST':
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
@@ -418,13 +420,13 @@ def delete(request):
     # open the database.
     config.db_open()
 
-    if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), user_groups=user_groups)
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV05'), msg), user_groups=user_groups)
 
+    if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS, IGNORE_METADATA_NAME], ['csv2_clouds', 'csv2_cloud_metadata', 'csv2_group_metadata_exclusions'], active_user)
         if rc != 0:
@@ -612,13 +614,13 @@ def metadata_add(request):
     # open the database.
     config.db_open()
 
-    if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), user_groups=user_groups)
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV12'), msg), user_groups=user_groups)
 
+    if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata', 'csv2_clouds,n'], active_user)
         if rc != 0:
@@ -669,7 +671,8 @@ def metadata_add(request):
             message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             context = {
-            'message': message,
+                'response_code': 0,
+                'message': message,
             }
             return render(request, 'csv2/reload_parent.html', context)
 
@@ -734,14 +737,13 @@ def metadata_delete(request):
     # open the database.
     config.db_open()
 
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV20'), msg), user_groups=user_groups)
 
     if request.method == 'POST':
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV20'), msg), user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
@@ -785,7 +787,8 @@ def metadata_delete(request):
             message = 'cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             context = {
-            'message': message,
+                'response_code': 0,
+                'message': message,
             }
             return render(request, 'csv2/reload_parent.html', context)
 
@@ -807,7 +810,6 @@ def metadata_fetch(request, selector=None):
 
     # open the database.
     config.db_open()
-   
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user, user_groups = set_user_groups(config, request, False)
@@ -962,16 +964,14 @@ def metadata_update(request):
 
     # open the database.
     config.db_open()
-
+    
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), user_groups=user_groups)
 
     if request.method == 'POST':
-        
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV28'), msg), user_groups=user_groups)
-
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_cloud_metadata'], active_user)
         if rc != 0:
@@ -1111,15 +1111,15 @@ def status(request, group_name=None):
 
 
     system_list = {}
-
-    system_list["csv2_status_msg"] = service_msg("csv2-status")
-    if 'running' in system_list["csv2_status_msg"]:
-        system_list["csv2_status_status"] = 1
-        # get system status
-        s = select([csv2_system_status])
-        system_list.update(qt(config.db_connection.execute(s))[0])
+    # First get rows from csv2_system_status, if rows are out of date, do manual update
+    s = select([csv2_system_status])
+    query_result = qt(config.db_connection.execute(s))[0]
+    if time.time() - query_result["last_updated"] < 120:
+        # it has been updated in the last minute and we can just take it and go
+        system_list.update(query_result)
 
     else:
+        system_list["csv2_status_msg"] = service_msg("csv2-status")
         system_list["csv2_status_status"] = 0
 
         # Determine the csv2 service statuses and put them in a list
@@ -1229,6 +1229,12 @@ def update(request):
     # open the database.
     config.db_open()
 
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV34'), msg), user_groups=user_groups)
+
     if request.method == 'POST':
 
         # if the password is blank, remove the password field.
@@ -1239,12 +1245,6 @@ def update(request):
             # remove the password field.
             del request.POST['password']
 
-
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV34'), msg), user_groups=user_groups)
 
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_KEYS], ['csv2_clouds', 'csv2_cloud_flavor_exclusions,n', 'csv2_group_metadata,n', 'csv2_group_metadata_exclusions,n'], active_user)
@@ -1301,11 +1301,11 @@ def update(request):
 
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
         if 'cores_ctl' in fields and 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']])
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
         elif 'cores_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], 999999999999])
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], 999999999999], get_frame_info())
         elif 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [999999999999, fields['ram_ctl']])
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [999999999999, fields['ram_ctl']], get_frame_info())
 
         # Update the cloud's flavor exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':

@@ -15,18 +15,13 @@ import time
 
 @requires_csrf_token
 def log_out(request):
-    """
-    Stub for user log out.
-    """
-
-    logout(request)
 
     context = {
             'response_code': 0,
             'message': None
     }
 
-    return render(request, 'csv2/status.html', context)
+    return render(request, 'csv2/logout.html', context)
 
 #-------------------------------------------------------------------------------
 

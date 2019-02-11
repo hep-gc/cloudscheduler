@@ -6,7 +6,6 @@ from django.contrib.auth import update_session_auth_hash
 
 from .view_utils import \
     diff_lists, \
-    getcsv2User, \
     lno, \
     qt, \
     render, \
@@ -200,9 +199,17 @@ def list(
             config.db_close()
             return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias list, %s' % (lno('AV13'), msg)})
 
-    # Retrieve the cloud alias list.
-    s = select([view_cloud_aliases])
+    # Retrieve the cloud alias view.
+    s = select([view_cloud_aliases]).where(view_cloud_aliases.c.group_name == active_user.active_group)
     alias_list = qt(config.db_connection.execute(s))
+
+    # Retrieve the cloud alias table.
+    s = select([csv2_cloud_aliases]).where(csv2_cloud_aliases.c.group_name == active_user.active_group)
+    cloud_alias_list = qt(config.db_connection.execute(s))
+
+    # Retrieve the cloud table.
+    s = select([csv2_clouds]).where(csv2_clouds.c.group_name == active_user.active_group)
+    cloud_list = qt(config.db_connection.execute(s))
 
     # Render the page.
     context = {
@@ -210,6 +217,8 @@ def list(
             'active_group': active_user.active_group,
             'user_groups': user_groups,
             'alias_list': alias_list,
+            'cloud_alias_list': cloud_alias_list,
+            'cloud_list': cloud_list,
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint

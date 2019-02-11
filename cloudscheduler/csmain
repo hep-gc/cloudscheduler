@@ -21,6 +21,7 @@ from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
 from cloudscheduler.lib.schema import view_metadata_collation_json
 
 from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
@@ -43,6 +44,19 @@ def main():
     logging.basicConfig(filename=config.log_file,
                         level=config.log_level,
                         format="%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s")
+    service_catalog_yaml_fqdns = {}
+    try:
+        config.db_open()
+        service_catalog = config.db_map.classes.csv2_service_catalog
+        services = config.db_session.query(service_catalog)
+        for service in services:
+            service_catalog_yaml_fqdns[service.yaml_attribute_name] = service.fqdn
+    except TimeoutError as ex:
+        log.exception(ex)
+        sys.exit(1)
+    except Exception as ex:
+        log.exception(ex)
+
 
     while(True):
         CSGroups = config.db_map.classes.csv2_groups
@@ -247,6 +261,7 @@ def main():
                                              'cs_condor_host': csgroup.htcondor_fqdn,
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
                                              'cs_condor_submitters': csgroup.htcondor_other_submitters,}
+                            template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 
                             try:
@@ -387,6 +402,7 @@ def check_view_idle_vms():
                 update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
                 for row in update_result:
                     row.retire = 1
+                    row.updater = get_frame_info()
                     config.db_session.merge(row)
                     log.debug("Set retire flag on %s", row.hostname)
             config.db_close(commit=True)
@@ -449,6 +465,7 @@ def check_unregistered_machines():
                 for vm in update_result:
                     log.debug("Update terminate flag on %s", vm.hostname)
                     vm.terminate = 1
+                    vm.updater = get_frame_info()
                     config.db_session.merge(vm)
         except TimeoutError as ex:
             log.exception(ex)

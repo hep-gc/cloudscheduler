@@ -5,6 +5,7 @@ create or replace view view_groups_of_idle_jobs as
 /* n03 - Group Job/Clouds per unique resource requirements, concatenating flavors */
 select
     group_name,
+    target_alias_clouds,
     target_clouds,
     instance_type,
     requirements,
@@ -39,6 +40,7 @@ from (
     /* jbf - Jobs grouped by flavor */
     select
         group_name,
+        target_alias_clouds,
         target_clouds,
         instance_type,
         requirements,
@@ -77,6 +79,7 @@ from (
             var.flavor,
             row_number() over (partition by
                 group_name,
+                target_alias_clouds,
                 cloud_name,
                 target_clouds,
                 job_status,
@@ -101,9 +104,10 @@ from (
                 flavor_swap
             ) as flavor_priority
         from (
-            /* goj - Groups of jobs by job_status */
+            /* goj - Groups of jobs */
             select
-                group_name,
+                gocj.group_name,
+                clouds as target_alias_clouds,
                 target_clouds,
                 instance_type,
                 job_status,
@@ -111,27 +115,6 @@ from (
                 job_priority,
                 user,
                 image,
-                network,
-                keep_alive,
-                max_price,
-                user_data,
-                job_per_core,
-                ifnull(request_cpus,0) as request_cpus,
-                ifnull(request_disk / (1024 * 1024),0) as request_disk,
-                ifnull(request_ram,0) as request_ram,
-                ifnull(request_swap,0) as request_swap,
-                min(q_date) as queue_date,
-                count(1) as count
-            from condor_jobs
-            group by
-                group_name,
-                target_clouds,
-                job_status,
-                requirements,
-                job_priority,
-                user,
-                image,
-                instance_type,
                 network,
                 keep_alive,
                 max_price,
@@ -140,36 +123,89 @@ from (
                 request_cpus,
                 request_disk,
                 request_ram,
-                request_swap
+                request_swap,
+                queue_date,
+                count
+            from (
+                /* gocj - Groups of condor jobs */
+                select
+                    group_name,
+                    target_alias,
+                    target_clouds,
+                    instance_type,
+                    job_status,
+                    requirements,
+                    job_priority,
+                    user,
+                    image,
+                    network,
+                    keep_alive,
+                    max_price,
+                    user_data,
+                    job_per_core,
+                    ifnull(request_cpus,0) as request_cpus,
+                    ifnull(request_disk / (1024 * 1024),0) as request_disk,
+                    ifnull(request_ram,0) as request_ram,
+                    ifnull(request_swap,0) as request_swap,
+                    min(q_date) as queue_date,
+                    count(1) as count
+                from condor_jobs
+                group by
+                    group_name,
+                    target_alias,
+                    target_clouds,
+                    job_status,
+                    requirements,
+                    job_priority,
+                    user,
+                    image,
+                    instance_type,
+                    network,
+                    keep_alive,
+                    max_price,
+                    user_data,
+                    job_per_core,
+                    request_cpus,
+                    request_disk,
+                    request_ram,
+                    request_swap
+                ) as gocj
+            left outer join view_cloud_aliases as vca on
+                gocj.group_name=vca.group_name and
+                gocj.target_alias=vca.alias_name
             ) as goj
         join view_available_resources as var on
             goj.group_name=var.group_name and 
-            case when goj.target_clouds is null or instr(goj.target_clouds, var.cloud_name) > 0 then
-                case when goj.instance_type is null then
-                    case when var.default_flavor is null then
-                        case when
-                            goj.request_cpus <= var.flavor_cores and 
-                            goj.request_disk <= var.flavor_disk and 
-                            goj.request_ram  <= var.flavor_ram and 
-                            goj.request_swap <= var.flavor_swap
-                        then 
-                            1
+            case when goj.target_alias_clouds is null or instr(goj.target_alias_clouds, var.cloud_name) > 0 then
+                case when goj.target_clouds is null or instr(goj.target_clouds, var.cloud_name) > 0 then
+                    case when goj.instance_type is null then
+                        case when var.default_flavor is null then
+                            case when
+                                goj.request_cpus <= var.flavor_cores and 
+                                goj.request_disk <= var.flavor_disk and 
+                                goj.request_ram  <= var.flavor_ram and 
+                                goj.request_swap <= var.flavor_swap
+                            then 
+                                1
+                            else
+                                0
+                            end
                         else
-                            0
+                            case when var.default_flavor = var.flavor then
+                                1
+                            else
+                                0
+                            end
                         end
                     else
-                        case when var.default_flavor = var.flavor then
+                        case when goj.instance_type = var.flavor then
                             1
                         else
                             0
                         end
                     end
                 else
-                    case when goj.instance_type = var.flavor then
-                        1
-                    else
-                        0
-                    end
+                    0
                 end
             else
                 0

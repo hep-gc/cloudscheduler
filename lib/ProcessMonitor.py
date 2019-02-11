@@ -2,6 +2,8 @@ import multiprocessing
 from multiprocessing import Process
 import logging
 import time
+import datetime
+import subprocess
 
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
@@ -49,7 +51,7 @@ class ProcessMonitor:
 
     def start_all(self):
         for process in self.process_ids:
-            if process not in self.processes or not processes[process].is_alive():
+            if process not in self.processes or not self.processes[process].is_alive():
                 if process in self.processes:
                     logging.error("Restarting %s...", process)
                 else:
@@ -58,6 +60,16 @@ class ProcessMonitor:
                 self.processes[process].start()
 
     def restart_process(self, process):
+        # Capture tail of log when process has to restart
+        try:
+            proc = subprocess.Popen(['tail', '-n', '50', self.config.log_file], stdout=subprocess.PIPE)
+            lines = proc.stdout.readlines()
+            timestamp = str(datetime.date.today())
+            with open(''.join([self.config.log_file, '-', timestamp]), 'wb') as f:
+                for line in lines:
+                    f.write(line)
+        except Exception as ex:
+            self.logging.exception(ex)
         self.processes[process] = Process(target=self.process_ids[process])
         self.processes[process].start()
 
@@ -66,10 +78,11 @@ class ProcessMonitor:
 
     def join_all(self):
         for proc in self.processes:
+            pro = self.processes[proc]
             try:
-                proc.join()
+                pro.join()
             except:
-                logging.error("failed to join process %s", proc.name)
+                logging.error("failed to join process %s", pro.name)
 
     def check_processes(self):
         orange = False

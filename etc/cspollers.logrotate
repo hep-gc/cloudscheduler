@@ -5,20 +5,10 @@
   missingok
   compress
   copytruncate
-  create 0664 cloudscheduler cloudscheduler
+  create 0644 cloudscheduler cloudscheduler
 }
 
-/var/log/cloudscheduler/cscollector.log {
-  weekly
-  su cloudscheduler cloudscheduler
-  notifempty
-  missingok
-  compress
-  copytruncate
-  create 0664 cloudscheduler cloudscheduler
-}
-
-/var/log/cloudscheduler/glintPoller.log {
+/var/log/cloudscheduler/csmachines.log {
   weekly
   su cloudscheduler cloudscheduler
   notifempty
@@ -38,6 +28,16 @@
   create 0644 cloudscheduler cloudscheduler
 }
 
+/var/log/cloudscheduler/main.log {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+
 /var/log/cloudscheduler/csstatus.log {
   weekly
   su cloudscheduler cloudscheduler
@@ -47,3 +47,14 @@
   copytruncate
   create 0644 cloudscheduler cloudscheduler
 }
+
+/var/log/cloudscheduler/watch_csv2.logging {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+

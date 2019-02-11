@@ -9,6 +9,7 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.schema import view_condor_host
+from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
@@ -137,11 +138,13 @@ def machine_poller():
     condor_inventory_built = False
     cycle_count = 0
     uncommitted_updates = 0
+    failure_dict = {}
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+
             config.db_open()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
@@ -185,10 +188,30 @@ def machine_poller():
                         projection=resource_attributes
                          )
                 except Exception as exc:
-                    # Due to some unknown issues with condor we've changed this to a hard reboot of the poller
-                    # instead of simpyl handling the error and trying again
+                    # if we fail we need to mark all these groups as failed so we don't delete the entrys later
+                    fail_count = 0
+                    for group in groups:
+                        if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                            if group.htcondor_fqdn == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
+                        else:
+                            if group.htcondor_container_hostname == condor_host:
+                                if group.group_name not in failure_dict:
+                                    failure_dict[group.group_name] = 1
+                                    fail_count = failure_dict[group.group_name]
+                                else:
+                                    failure_dict[group.group_name] = failure_dict[group.group_name] + 1
+                                    fail_count = failure_dict[group.group_name]
+
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
                     logging.error(exc)
+                    if fail_count > 3:
+                        logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
                 abort_cycle = False
@@ -266,8 +289,16 @@ def machine_poller():
                     if "badcld" in machine_errors:
                         logging.info("%s ignored for invalid cloud name" % machine_errors["badcld"])
 
-                           
+                # Poll successful, update failure_dict accordingly
+                for group in groups:
+                    if group.htcondor_fqdn is not None and group.htcondor_fqdn != "":
+                        if group.htcondor_fqdn == condor_host:
+                             failure_dict.pop(group.group_name, None)
+                    else:
+                        if group.htcondor_container_hostname == condor_host:
+                            failure_dict.pop(group.group_name, None)
 
+                           
                 if abort_cycle:
                     del condor_session
                     config.db_close()
@@ -286,7 +317,7 @@ def machine_poller():
 
             if delete_cycle:
                 # Check for deletes
-                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time)
+                delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
                 delete_cycle = False
             config.db_close(commit=True)
             if 'db_session' in locals():
@@ -360,6 +391,10 @@ def command_poller():
                         #resource has already been retired, skip it
                         continue
 
+                    if config.retire_off:
+                        logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
+                        continue
+
 
                     logging.info("Retiring machine %s" % resource[8])
                     try:
@@ -372,6 +407,7 @@ def command_poller():
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource[0], VM.cloud_name==resource[1], VM.vmid==resource[3])[0]
                         vm_row.retire = vm_row.retire + 1
+                        vm_row.updater = get_frame_info()
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -433,14 +469,18 @@ def command_poller():
                         continue
 
                     if cloud.cloud_type == "openstack":
+                        if config.terminate_off:
+                            logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                            continue
 
                         # terminate the vm
                         nova = _get_nova_client(session, region=cloud.region)
                         try:
                             # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
+                            vm_row.terminate = vm_row.terminate + 1
+                            vm_row.updater = get_frame_info()
                             nova.servers.delete(vm_row.vmid)
                             logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
-                            vm_row.terminate = vm_row.terminate + 1
                             db_session.merge(vm_row)
                             # log here if terminate # /10 = remainder zero
                             if vm_row.terminate %10 == 0:
