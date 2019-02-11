@@ -13,7 +13,7 @@
 <!--<meta id="refresher" http-equiv="refresh" content="30">-->
 
 <script type="text/javascript">
-	/* Refresh status table*/
+	/* Refresh status table and system services display*/
     var TimerSwitch = 1;
 	var timer_id;
     function set_refresh(time) {
@@ -28,12 +28,13 @@
 			/* Check response status code*/
 			if(response.ok){
 				return response.text();
-			}throw new Error('HTTP response not was not OK :( '+response.status);
+			}throw new Error('HTTP response not was not OK :( -> '+response.status);
 		})
 		.then((html) => {
 			var parser = new DOMParser();
 			var doc = parser.parseFromString(html, "text/html");
     			document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
+			document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
 			checkForPlottedTraces();
 			TimerVal = 30;
 			initialize();
@@ -874,7 +875,7 @@
 <!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
 
 <div class="system-div">
-    <table class="system-services">
+    <table class="system-services" id="system-services">
         <!--<colgroup>
         <col class="red" span="1" />
         <col class="clear" span="5" />

@@ -6,7 +6,6 @@
 /*****************************************************************/
 
 .plot-div {
-  top: 62px;
 	left: 2px;
   position: relative;
 }
@@ -125,7 +124,7 @@
 /*****************************************************************/
 .status-div {
   position: relative;
-  top: 64px;
+  top: 0px;
   bottom: 100px;
   right: 2px;
   left: 2px;
@@ -454,12 +453,24 @@ input#toggle-row:checked ~ table tr.extra-row {
 /*                       sys stats styling                       */
 /*****************************************************************/
 
+html {
+  height: 100%;
+}
+
+body.status-nav{
+	position: absolute;
+	top: 64px;
+	padding-bottom: 129px;
+	overflow: auto;
+}
+
 .system-div {
   position: fixed;
-  bottom: 0;
+	bottom: 0;
   width: 100%;
   background-color: white;
   opacity: 1.0;
+	z-index: 1;
 }
 
 .system-services {

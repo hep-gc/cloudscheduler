@@ -24,6 +24,7 @@ html *
   top: 0px;
   margin: 0px 0;
   background-color: black;
+  z-index: 1;
 }
 
 .top-nav ul {

@@ -148,7 +148,7 @@ function getTraceData(trace, showing){
 		/* Check response status code*/
 		if(response.ok){
 			return response.json();
-		}throw new Error('HTTP response not was not OK :( '+response.status);
+		}throw new Error('HTTP response not was not OK :( -> '+response.status);
 	})
 	.then(function(data){
 		/* Parse response into trace object. Add null values between points where no data
@@ -196,7 +196,10 @@ function getTraceData(trace, showing){
 			sessionStorage.setItem("traces", JSON.stringify(trace_array));
 		}
 	})
-	.catch(error => console.log('Error:', error));
+	.catch(error => {
+		console.log('Error:', error)
+		TSPlot.hide();		
+	});
 }
 
 
@@ -247,7 +250,7 @@ function refresh_plot() {
 				/* Check response status code*/
 				if(response.ok){
 					return response.json();
-				}throw new Error('HTTP response not was not OK :( '+response.status)
+				}throw new Error('HTTP response not was not OK :( -> '+response.status)
 			})
 			.then(function(data){
 				/* Parse response into arrays of new points*/
