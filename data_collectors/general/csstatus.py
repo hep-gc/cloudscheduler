@@ -26,12 +26,13 @@ def _service_msg(service_name):
 def status_poller():
     multiprocessing.current_process().name = "Status Poller"
 
-    services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines", "mariadb", "condor"]
+    services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines","csv2-status, "mariadb", "condor"]
     db_service_names = {
                        "csv2-main":      "csv2_main", 
                        "csv2-openstack": "csv2_openstack", 
                        "csv2-jobs":      "csv2_jobs", 
                        "csv2-machines":  "csv2_machines", 
+                       "csv2-status":    "csv2_status", 
                        "mariadb":        "mariadb", 
                        "condor":         "condor"
                    }
@@ -86,6 +87,8 @@ def status_poller():
             system_dict["disk"] = round(100*(psutil.disk_usage('/').used / psutil.disk_usage('/').total),1)
             system_dict["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
             system_dict["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
+
+            system_dict["last_updated"] = time.time()
 
             new_status = STATUS(**system_dict)
             try:
