@@ -1,0 +1,171 @@
+
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+    {% load template_utils %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/aliass.css" %}">
+
+    <script type="text/javascript" src="{% static "csv2/common.js" %}"></script>
+
+
+
+</head>
+
+<body class="alias-nav" onpageshow="show_alias('{{current_alias}}')">
+<!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
+<div class="main-div">
+    <div class="menu">
+        {% for alias in alias_list %}
+        
+            <!--https://codepen.io/nathanlong/pen/mBrvn-->
+            
+            <div id="{{alias.alias_name}}"> <a href="#{{alias.alias_name}}" class="menu-link">{{alias.alias_name}}</a>
+                <div class="menu-target menu-position">
+                <form name="{{alias.alias_name}}" action="/alias/update/" method="post">
+                {% csrf_token %}
+                
+                
+
+                    <input type="hidden" name="group" value="{{ active_group }}" />
+                    <input type="hidden" name="alias_name" value="{{ alias.alias_name }}" />
+
+                    <table>
+                        
+                        <tr class="highlight2">
+                            <td>
+                                <label for="user_alias">Clouds</label>
+                            </td>
+                            <td>
+
+                            </td>
+                                <div id="ul-alias-{{alias.alias_name}}" class="highlight2">
+                                    
+
+                                    {% for cloud in cloud_list %}
+
+                                        <tr><td></td><td class="highlight2"><input type="checkbox" name="cloud_name.{{ forloop.counter }}" value="{{ cloud.cloud_name }}"
+                                        {% for cloud_alias in cloud_alias_list %}
+                                            {% if alias.alias_name == cloud_alias.alias_name and cloud.cloud_name == cloud_alias.cloud_name%}
+                                                checked
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        />{{ cloud.cloud_name }}</input></td></tr>
+                                    {% endfor %}
+
+                                </div>
+                            </td>
+                        </tr>
+                        <!--https://www.w3schools.com/howto/howto_js_filter_lists.asp-->
+
+                        <tr>
+                            <td>
+                                <input type="submit" value="Update" />
+                            </td>
+
+                            <td>
+                                <!--
+                                <a href="#delete-{{alias.alias_name}}"><button type="button">Delete</button></a>
+                                -->
+                            </td>
+
+                        </tr>
+
+                        
+                        
+
+                    </table>
+
+
+                    
+                </form>
+                </div>
+                
+            </div>
+        
+
+        {% endfor %}
+
+
+        <div id="add-alias"> <a href="#add-alias" class="menu-link">+</a>
+            <div class="menu-target menu-position">
+                <form name="add_alias" action="/alias/add/" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="group" value="{{ active_group }}" />
+
+                    <table>
+                        <tr class="highlight1">
+                            <td>
+                                <label for="alias_name">alias name</label>
+                            </td>
+                            <td>
+                                <input type="text" name="alias_name" id="" value="" />
+                            </td>
+                        </tr>
+
+                        <tr class="highlight2">
+                            <td>
+                                <label for="user_aliass">Users</label>
+                            </td>
+                            <td>
+
+                            </td>
+                                <div id="ul-alias-{{alias.alias_name}}" class="highlight2">
+                                    
+                                    {% for cloud in cloud_list %}
+                                        <tr><td></td><td class="highlight2"><input type="checkbox" name="cloud_name.{{ forloop.counter }}" value="{{ cloud.cloud_name }}"/>{{ cloud.cloud_name }}</input></td></tr>
+                                    {% endfor %}
+
+
+                                </div>
+                            </td>
+                        </tr>
+
+
+
+
+                        <tr>
+                            <td>
+                                <input type="submit" value="Add" />
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    {% for alias in alias_list %}
+    <div id="delete-{{alias.alias_name}}" class="modalDialog">
+        <div>
+            <a href="#{{alias.alias_name}}" title="Close" class="close">X</a>
+            <form name="{{alias.alias_name}}" action="/alias/delete/" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="alias_name" id="" value="{{alias.alias_name}}" />
+                <input type="submit" value="Delete alias: {{alias.alias_name}}" />
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<div class="footer"
+    {% if response_code == 1 %}
+        <tr><td><b>Error: {{ message }}</b></td></tr>
+    {% elif message is not None %}
+        <tr><td>{{ message }}</td></tr>
+    {% endif %}
+</div>
+
+
+
+</body>

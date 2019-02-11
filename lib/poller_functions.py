@@ -50,7 +50,10 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
         for cloud_name in inventory[group_name]:
             if failure_dict is not None:
                 if group_name+cloud_name in failure_dict: 
-                    logging.info("Skipping deletes on %s::%s due to polling failures" %  (group_name, cloud_name))
+                    logging.info("Skipping deletes on %s::%s due to cloud polling failures" %  (group_name, cloud_name))
+                    continue
+                if group_name in failure_dict:
+                    logging.info("Skipping deletes on %s due to condor polling failures" %  group_name)
                     continue
             if type == 'VM':
                 obsolete_items = db_session.query(base_class).filter(
