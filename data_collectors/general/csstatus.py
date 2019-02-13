@@ -5,6 +5,8 @@ import time
 import sys
 import os
 import psutil
+from subprocess import Popen, PIPE
+
 
 from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
@@ -21,7 +23,15 @@ from sqlalchemy.ext.automap import automap_base
 
 
 def _service_msg(service_name):
-    return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read() 
+    # there is a special case where service_name is csv2_status and the following os command won't get rid of problem characters
+    if service_name == "csv2-status":
+        # handle it differently
+        file = os.popen("service "+service_name+" status | grep 'Active'")
+        status = file.read()
+        return status.splitlines()[0][11:]
+    else:
+        return os.popen("service "+service_name+" status | grep 'Active' | cut -c12-").read()
+
 
 def status_poller():
     multiprocessing.current_process().name = "Status Poller"
@@ -88,7 +98,7 @@ def status_poller():
             system_dict["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
             system_dict["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
-            system_dict["last_updated"] = time.time()
+            system_dict["last_updated"] = int(time.time())
 
             new_status = STATUS(**system_dict)
             try:
