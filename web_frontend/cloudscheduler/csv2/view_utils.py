@@ -22,18 +22,6 @@ def diff_lists(list1,list2, option=None):
         return [x for x in list1 if x not in list2] 
 
 #-------------------------------------------------------------------------------
-# returns the csv2 user object matching the authorized user from header metadata
-def getcsv2User(request, db_config):
-    authorized_user = request.META.get('REMOTE_USER')
-    # need to get user objects from database here
-    Csv2_User = db_config.db_map.classes.csv2_user
-    csv2_user_list = db_config.db_session.query(Csv2_User)
-    for user in csv2_user_list:
-        if user.username == authorized_user or user.cert_cn == authorized_user:
-            return user
-    raise PermissionDenied
-
-#-------------------------------------------------------------------------------
 
 def kill_retire(config, group_name, cloud_name, option, count, updater):
     from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
@@ -42,8 +30,8 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
     if option == 'control':
         s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, count[0], count[1])
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater=%s where kpl.machine is null;' % updater)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater=%s where kpl.machine is not null;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
     
     # Process "kill N".
     elif option == 'kill':
@@ -53,7 +41,7 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater=%s;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s";' % updater)
 
     # Process "retire N".
     elif option == 'retire':
@@ -63,7 +51,7 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater=%s;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s";' % updater)
 
     # Process "retain N".
     elif option == 'retain':
@@ -73,8 +61,8 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater=%s where kpl.machine is null;' % updater)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater=%s where kpl.machine is not null;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
     
     retired_list = qt(config.db_connection.execute('select count(*) as count from kill_retire_priority_list;'))
     return retired_list[0]['count']
@@ -715,40 +703,74 @@ def service_msg(service_name):
 # this function gets and sets the user groups for the active user as well as authenticates the active user
 # if super_user is true and the requesting user doesn't have super user status a permission denied is raised
 # if super user is false then skip the check for super user
+#-------------------------------------------------------------------------------
 def set_user_groups(config, request, super_user=True):
-    active_user = getcsv2User(request, config)
-    make_transient(active_user)
-    if super_user and not active_user.is_superuser:
+    from cloudscheduler.lib.schema import view_user_groups
+    from sqlalchemy.sql import select
+
+    class active_user:
+        def __init__(self, config, request):
+            remote_user = request.META.get('REMOTE_USER')
+            table = view_user_groups
+            csv2_user = config.db_connection.execute(select([table]).where((table.c.username==remote_user) | (table.c.cert_cn==remote_user)))
+
+            for user in csv2_user:
+                self.username = user['username']
+                self.cert_cn = user['cert_cn']
+                self.is_superuser = user['is_superuser']
+                self.join_date = user['join_date']
+                self.active_group = '-'
+                self.default_group = user['default_group']
+
+                if user['user_groups'] and len(user['user_groups']) > 0:
+                    self.user_groups = user['user_groups'].split(',')
+                else:
+                    self.user_groups = []
+
+                if user['available_groups'] and len(user['available_groups']) > 1:
+                    self.available_groups = user['available_groups'].split(',')
+                else:
+                    self.available_groups = []
+
+                self.args = []
+                self.kwargs = {}
+                break
+
+            if not user:
+                raise PermissionDenied
+
+            if request.method == 'GET':
+                for key_val in request.META.get('QUERY_STRING').split('&'):
+                    if len(key_val) > 0:
+                        words = key_val.split('=', 1)
+                        if len(words) > 1:
+                            self.kwargs[words[0].strip()] = words[1].strip()
+                        else:
+                            self.args.append(words[0].strip())
+
+            elif request.method == 'POST' and 'group' in request.POST:
+                self.args.append(request.POST['group'])
+               
+
+    new_active_user = active_user(config, request)
+
+    if super_user and not new_active_user.is_superuser:
         raise PermissionDenied
-        
-    user_groups = config.db_map.classes.csv2_user_groups
-    user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
-    user_groups = []
-    if user_group_rows is not None:
-        for row in user_group_rows:
-            user_groups.append(row.group_name)
 
-    if not user_groups:
-        return 1,'user "%s" is not a member of any group.' % active_user.username,active_user,user_groups
+    if len(new_active_user.user_groups) < 1:
+        return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
 
-    # if the POST request specified a group, validate and set the specified group as the active group.
-    if request.method == 'POST' and 'group' in request.POST:
-        group_name = request.POST.get('group')
-        if group_name and active_user.active_group != group_name:
-            if group_name in user_groups:
-                active_user.active_group = group_name
-                config.db_session.merge(active_user)
-                config.db_session.commit()
-            else:
-                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_groups
+    if len(new_active_user.args) > 0:
+        new_active_user.active_group = new_active_user.args[0]
+    elif new_active_user.default_group and new_active_user.default_group != '-':
+        new_active_user.active_group = new_active_user.default_group
+    else:
+        new_active_user.active_group = new_active_user.user_groups[0]
 
-    # if no active group, set first group as default.
-    if active_user.active_group is None:
-        active_user.active_group = user_groups[0]
-        config.db_session.merge(active_user)
-        config.db_session.commit()
+    if new_active_user.active_group not in new_active_user.user_groups:
+        return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
 
-    return 0, None, active_user, user_groups
+    return 0, None, new_active_user, new_active_user.user_groups
 
 #-------------------------------------------------------------------------------
 
@@ -959,6 +981,9 @@ def validate_fields(config, request, fields, tables, active_user):
     Fields = {}
     if request.method == 'POST':
         for field in sorted(request.POST):
+            if field == 'group':
+                continue
+
             if Options['accept_primary_keys_only'] and field not in primary_key_columns:
                 if not (field in Formats and Formats[field] == 'ignore'):
                     return 1, 'request contained superfluous parameter "%s".' % field, None, None, None

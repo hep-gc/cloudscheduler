@@ -130,13 +130,13 @@ def add(request):
     # open the database.
     config.db_open()
 
-    if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('AV00'), msg), user_groups=user_groups)
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('AV00'), msg), user_groups=user_groups)
 
+    if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
         if rc != 0:
@@ -238,13 +238,13 @@ def update(request):
     # open the database.
     config.db_open()
 
-    if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('AV18'), msg), user_groups=user_groups)
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('AV18'), msg), user_groups=user_groups)
 
+    if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
         if rc != 0:
