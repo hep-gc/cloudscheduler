@@ -25,20 +25,23 @@ DROP TABLE IF EXISTS `csv2_system_status`;
 CREATE TABLE `csv2_system_status` (
   `id` int(1) NOT NULL,
   `csv2_main_status` tinyint(1) NOT NULL,
-  `csv2_main_msg` varchar(512) NOT NULL,
+  `csv2_main_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
   `mariadb_status` tinyint(1) NOT NULL,
-  `mariadb_msg` varchar(512) NOT NULL,
+  `mariadb_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
   `csv2_openstack_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_openstack_status` tinyint(1) NOT NULL,
-  `csv2_openstack_msg` varchar(512) NOT NULL,
+  `csv2_openstack_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
   `csv2_jobs_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_jobs_status` tinyint(1) NOT NULL,
-  `csv2_jobs_msg` varchar(512) NOT NULL,
+  `csv2_jobs_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
   `csv2_machines_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_machines_status` tinyint(1) NOT NULL,
-  `csv2_machines_msg` varchar(512) NOT NULL,
+  `csv2_machines_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
+  `csv2_status_error_count` int(11) NOT NULL,
+  `csv2_status_status` tinyint(4) NOT NULL,
+  `csv2_status_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
   `condor_status` tinyint(1) NOT NULL,
-  `condor_msg` varchar(512) NOT NULL,
+  `condor_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
   `load` float NOT NULL,
   `ram` float NOT NULL,
   `ram_size` float NOT NULL,
@@ -49,6 +52,7 @@ CREATE TABLE `csv2_system_status` (
   `disk` float NOT NULL,
   `disk_size` float NOT NULL,
   `disk_used` float NOT NULL,
+  `last_updated` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -62,4 +66,4 @@ CREATE TABLE `csv2_system_status` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-01 14:09:46
+-- Dump completed on 2019-02-13  8:55:07

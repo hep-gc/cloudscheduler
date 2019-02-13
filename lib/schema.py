@@ -372,6 +372,9 @@ csv2_system_status = Table('csv2_system_status', metadata,
   Column('csv2_machines_error_count', Integer),
   Column('csv2_machines_status', Integer),
   Column('csv2_machines_msg', String(512)),
+  Column('csv2_status_error_count', Integer),
+  Column('csv2_status_status', Integer),
+  Column('csv2_status_msg', String(512)),
   Column('condor_status', Integer),
   Column('condor_msg', String(512)),
   Column('load', Float),
@@ -383,7 +386,8 @@ csv2_system_status = Table('csv2_system_status', metadata,
   Column('swap_used', Float),
   Column('disk', Float),
   Column('disk_size', Float),
-  Column('disk_used', Float)
+  Column('disk_used', Float),
+  Column('last_updated', Integer)
   )
 
 csv2_user = Table('csv2_user', metadata,
