@@ -14,7 +14,7 @@ def main(gvar, user_secret):
     
     cloud_requests_cleanup.main(gvar)
 
-    # unprivileged user in no groups
+    # 07 unprivileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu1')),
         '/user/add/', form_data={
@@ -25,7 +25,7 @@ def main(gvar, user_secret):
         }
     )
     
-    # privileged user in no groups
+    # 08 privileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu2')),
         '/user/add/', form_data={
@@ -37,7 +37,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # group with users
+    # 09 group with users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'ctg1')),
         '/group/add/', form_data={
@@ -46,7 +46,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # group without users
+    # 10 group without users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'ctg2')),
         '/group/add/', form_data={
@@ -55,7 +55,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # unprivileged user in ctg1
+    # 11 unprivileged user in ctg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu3')),
         '/user/add/', form_data={
@@ -67,7 +67,7 @@ def main(gvar, user_secret):
         }
     )
     
-    # privileged user in ctg1
+    # 12 privileged user in ctg1
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'ctu4')),
         '/user/add/', form_data={
@@ -80,7 +80,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # cloud to be deleted in test_cloud_delete
+    # 13 cloud to be deleted in test_cloud_delete
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
         '/cloud/add/', form_data={
@@ -96,7 +96,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # cloud to be listed in test_cloud_list
+    # 14 cloud to be listed in test_cloud_list
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2')),
         '/cloud/add/', form_data={
@@ -112,7 +112,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # cloud to be changed in test_cloud_update, test_cloud_metadata_add, test_cloud_metadata_delete
+    # 15 cloud to be changed in test_cloud_update, test_cloud_metadata_add, test_cloud_metadata_delete
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3')),
         '/cloud/add/', form_data={
@@ -128,7 +128,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # metadata to be deleted in test_cloud_metadata_delete
+    # 16 metadata to be deleted in test_cloud_metadata_delete
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty2')),
         '/cloud/metadata-add/', form_data={
@@ -139,7 +139,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # metadata to be updated in test_cloud_metadata_update
+    # 17 metadata to be updated in test_cloud_metadata_update
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3')),
         '/cloud/metadata-add/', form_data={
@@ -150,7 +150,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # metadata to be updated in test_cloud_metadata_update
+    # 18 metadata to be updated in test_cloud_metadata_update
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc3'), ut_id(gvar, 'cty3.yaml')),
         '/cloud/metadata-add/', form_data={
@@ -161,7 +161,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # metadata to be fetched in test_cloud_metadata_fetch and test_cloud_metadata_list
+    # 19 metadata to be fetched in test_cloud_metadata_fetch and test_cloud_metadata_list
     execute_csv2_request(
         gvar, 0, None, 'cloud metadata file "{}::{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc2'), ut_id(gvar, 'cty1')),
         '/cloud/metadata-add/', form_data={
@@ -172,6 +172,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    # 20
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty1')),
         '/group/metadata-add/', form_data={
@@ -182,7 +183,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
-    # group metadata for metadata exceptions in test_cloud_add and test_cloud_update
+    # 21 group metadata for metadata exceptions in test_cloud_add and test_cloud_update
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty2')),
         '/group/metadata-add/', form_data={
@@ -193,6 +194,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
+    # 22
     execute_csv2_request(
         gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'cty3')),
         '/group/metadata-add/', form_data={
