@@ -51,7 +51,7 @@ def help(gvar, mandatory=None, required=None, options=None, requires_server=True
                 print('*   -su  |  --server-user')
                 print('*')
                 print('* These messages are displayed because you have not used the "cloudscheduler defaults set" command to save')
-                print('* the server address and your identity for the server "%s".' % gvar['server'])
+                print('* the server address and your identity for the server "%s".' % gvar['pid_defaults']['server'])
                 print('*')
 
             if mandatory:
