@@ -1113,12 +1113,17 @@ def status(request, group_name=None):
     system_list = {}
     # First get rows from csv2_system_status, if rows are out of date, do manual update
     s = select([csv2_system_status])
-    query_result = qt(config.db_connection.execute(s))[0]
-    if time.time() - query_result["last_updated"] < 120:
-        # it has been updated in the last minute and we can just take it and go
-        system_list.update(query_result)
-
-    else:
+    try:
+        query_result = qt(config.db_connection.execute(s))[0]
+        
+        if time.time() - query_result["last_updated"] < 120:
+            # it has been updated in the last minute and we can just take it and go
+            system_list.update(query_result)
+        else:
+            # throw exception
+            raise Exception("System status info out of date, need to calculate manually")
+    except:
+        
         system_list["csv2_status_msg"] = service_msg("csv2-status")
         system_list["csv2_status_status"] = 0
 
