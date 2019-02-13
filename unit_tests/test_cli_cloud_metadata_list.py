@@ -104,7 +104,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-list', '-ok'],
-        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename']
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata', 'Filename']
     )
 
     execute_csv2_command(
@@ -115,19 +115,19 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-list', '-NV'],
-        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Enabled', 'Priority', 'MIME', 'Type']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-list', '-V', 'endabled'],
-        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename']
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata', 'Filename']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-list'],
-        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename']
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata', 'Filename']
     )
 
     execute_csv2_command(
@@ -139,7 +139,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-list', '-V', ''],
-        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata Filename', 'Enabled', 'Priority', 'MIME Type']
+        list='Clouds/Metadata', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Enabled', 'Priority', 'MIME', 'Type']
     )
 
 if __name__ == "__main__":

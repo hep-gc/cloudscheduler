@@ -74,7 +74,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-collation', '-ok'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename']
+        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename']
     )
 
     execute_csv2_command(
@@ -85,25 +85,25 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-collation', '-NV'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename', 'Priority', 'Type']
+        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Priority', 'Type']
     )
     
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-collation', '-V', 'type'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename', 'Type']
+        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Type']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-collation'],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename', 'Type']
+        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Type']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'metadata-collation', '-V', ''],
-        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata Filename', 'Priority', 'Type']
+        list='Clouds/Metadata Collation', columns=['Group', 'Cloud', 'Metadata', 'Filename', 'Priority', 'Type']
     )
 
     execute_csv2_command(

@@ -90,7 +90,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-NV'],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Metadata', 'Flavor', 'Image', 'Keep Alive', 'Group Exclusions', 'Filenames', 'CA Certificate']
+        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project', 'Domain', 'Project', 'User', 'Domain', 'User', 'Region', 'Spot', 'Price', 'Cloud', 'Type', 'Control', 'SoftMax', 'Max', 'Control', 'RAM', 'Cloud', 'Default', 'Cascading', 'Default', 'Cloud', 'Group', 'Cloud', 'Max', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'CA', 'Certificate', 'Flavor', 'Exclusions', 'Cloud', 'Metadata', 'Group', 'Cloud', 'Flavors', 'Group', 'Exclusions', 'Filenames']
     )
 
     execute_csv2_command(
@@ -113,8 +113,8 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'cloud', 'list', '-V', ''],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project Domain', 'Project', 'User Domain', 'User', 'Region', 'Spot Price', 'Cloud Type', 'Keyname', 'Control', 'Max', 'VM', 'Metadata', 'Flavor', 'Image', 'Keep Alive', 'Group Exclusions', 'Filenames', 'CA Certificate']
+        ['cloudscheduler', 'cloud', 'list', '-NV'],
+        list='Clouds', columns= ['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project', 'Domain', 'Project', 'User', 'Domain', 'User', 'Region', 'Spot', 'Price', 'Cloud', 'Type', 'Control', 'SoftMax', 'Max', 'Control', 'RAM', 'Cloud', 'Default', 'Cascading', 'Default', 'Cloud', 'Group', 'Cloud', 'Max', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'CA', 'Certificate', 'Flavor', 'Exclusions', 'Cloud', 'Metadata', 'Group', 'Cloud', 'Flavors', 'Group', 'Exclusions', 'Filenames']
     )
 
 if __name__ == "__main__":

@@ -106,21 +106,21 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'group', 'list', '-NV'],
-        list='Groups', columns=['Group', 'Central Manager', 'Metadata Filenames']
+        list='Groups', columns=['Group', 'Central', 'Manager', 'Metadata', 'Filenames']
     )
 
     # 017
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'group', 'list', '-V', 'metadata_names'],
-        list='Groups', columns=['Group', 'Metadata Filenames']
+        list='Groups', columns=['Group', 'Metadata', 'Filenames']
     )
 
     # 018
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'group', 'list'],
-        list='Groups', columns=['Group', 'Metadata Filenames']
+        list='Groups', columns=['Group', 'Metadata', 'Filenames']
     )
 
     # 019
@@ -134,7 +134,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'group', 'list', '-V', ''],
-        list='Groups', columns=['Group', 'Central Manager', 'Metadata Filenames']
+        list='Groups', columns=['Group', 'Central', 'Manager', 'Metadata', 'Filenames']
     )
 
 if __name__ == "__main__":
