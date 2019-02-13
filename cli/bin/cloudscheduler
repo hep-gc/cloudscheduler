@@ -4,7 +4,7 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import requests, _requests_no_credentials_error
+from csv2_common import requests, requests_no_credentials_error, update_pid_defaults
 
 import os
 import sys
@@ -36,6 +36,8 @@ def main(args):
 
     # Initialize global variables.
     gvar = {
+        'pid_file': '/tmp/.csv2_%s' % os.getppid(),
+        'active_group': '-',
         'action': None,
         'actions': {
             'alias': [
@@ -260,41 +262,38 @@ def main(args):
     # Retrieve arguments.
     gvar['command_args'] = _args(gvar, args[1:])
 
+    # Retrieve (or initialise) process defaults.
+    if os.path.isfile(gvar['pid_file']):
+        gvar['pid_defaults_update'] = False
+        fd = open(gvar['pid_file'])
+        gvar['pid_defaults'] = yaml.load(fd.read())
+        fd.close()
+    else:
+        update_pid_defaults(gvar)
+
     # Ensure a minimal user settings exists.
     if not os.path.exists('%s/.csv2' % gvar['home_dir']):
         os.makedirs('%s/.csv2' % gvar['home_dir'], mode=0o700)  
 
     # Save or load the user's server specification.
-    gvar['server'] = '-'
     if 'server' in gvar['command_args']:
         if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['command_args']['server'])) or (gvar['object'] == 'defaults' and gvar['action'] == 'set'):
-            gvar['server'] = gvar['command_args']['server']
-            _fd = open('/tmp/.csv2_%s' % os.getppid(), 'w')
-            _fd.write(gvar['server'])
-            _fd.close()
+            update_pid_defaults(gvar, server=gvar['command_args']['server'])
         else:
             if len(os.listdir('%s/.csv2' % gvar['home_dir'])) > 0:
                print('Error: the specified server "%s" does not exist in your defaults.' % gvar['command_args']['server'])
                exit(1)
 
     else:
-        if os.path.isfile('/tmp/.csv2_%s' % os.getppid()):
-            _fd = open('/tmp/.csv2_%s' % os.getppid())
-            tmp_server = _fd.read()
-            _fd.close()
+        if gvar['pid_defaults']['server'] == '-' and os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
+            fd = open('%s/.csv2/default_server' % gvar['home_dir'])
+            tmp_server = fd.read()
+            fd.close()
 
             if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], tmp_server)):
-                gvar['server'] = tmp_server
+                update_pid_defaults(gvar, server=tmp_server)
 
-        if gvar['server'] == '-' and os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
-            _fd = open('%s/.csv2/default_server' % gvar['home_dir'])
-            tmp_server = _fd.read()
-            _fd.close()
-
-            if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], tmp_server)):
-                gvar['server'] = tmp_server
-
-    if gvar['server'] == '-':
+    if gvar['pid_defaults']['server'] == '-':
         if 'server-address' in gvar['command_args']:
             gvar['user_settings'] = {}
         else:
@@ -303,12 +302,12 @@ def main(args):
                 gvar['super_user'] = 0
                 csv2_help.help(gvar)
             else:
-                _requests_no_credentials_error(gvar)
+                requests_no_credentials_error(gvar)
     else:
-        if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server'])):
-            _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']))
-            gvar['user_settings'] = yaml.load(_fd)
-            _fd.close()
+        if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server'])):
+            fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server']))
+            gvar['user_settings'] = yaml.load(fd)
+            fd.close()
         else:
             gvar['user_settings'] = {}
 
@@ -365,13 +364,12 @@ def main(args):
                     
         print("Cloudscheduler command line, %s\n" % gvar['client_version'])
 
-    # Set active_group and super_user.
+    # Set non-super_user and no user_groups.
     if gvar['object'] == 'defaults' or gvar['object'] == 'helpers' or gvar['object'] == 'metadata':
-        gvar['active_group'] = '-'
         gvar['super_user'] = False
         gvar['user_groups'] = []
     else:
-        response = requests(gvar, '/settings/prepare/')
+        response = requests(gvar, '/settings/prepare?')
 
 
 #   print(">>>>>", gvar['active_group'], gvar['super_user'])

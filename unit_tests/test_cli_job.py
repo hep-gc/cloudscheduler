@@ -100,7 +100,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'job', 'list', '-ok'],
-        list='Jobs', columns=['Group', 'Job ID']
+        list='Jobs', columns=['Group', 'Job', 'ID']
     )
 
     execute_csv2_command(
@@ -111,25 +111,25 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'job', 'list', '-NV'],
-        list='Jobs', columns=['Requested', 'Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Clouds', 'Cloud', 'Instance Type', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Scratch (GBs)', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Hold Job']
+        list='Jobs', columns=['Requested', 'Group', 'Job', 'ID', 'Cluster', 'ID', 'Process', 'ID', 'User', 'User', 'Data', 'Requirements', 'Target', 'Clouds', 'Cloud', 'Instance', 'Type', 'CPUs', 'RAM', '{MBs}', 'Disk', '{GBs}', 'Swap', '(GBs)', 'Jobs', 'per', 'Core', 'Image', 'Job', 'Job', 'Status', 'Flags', 'Group', 'Job', 'ID', 'Network', 'Priority', 'Status', 'Code', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep', 'Alive', '(seconds)', 'Max', 'Spot', 'Price', 'Group', 'Job', 'ID', 'State', 'Change', 'Date', 'Queued', 'Date', 'Held', 'Job', 'Reason']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'job', 'list', '-V', 'cluster_id,proc_id,user'],
-        list='Jobs', columns=['Group', 'Job ID', 'Cluster ID', 'Process ID', 'User']
+        list='Jobs', columns=['Group', 'Job', 'ID', 'Cluster', 'ID', 'Process', 'ID', 'User']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'job', 'list'],
-        list='Jobs', columns=['Group', 'Job ID', 'Cluster ID', 'Process ID', 'User']
+        list='Jobs', columns=['Group', 'Job', 'ID', 'Cluster', 'ID', 'Process', 'ID', 'User']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'job', 'list', '-V', ''],
-        list='Jobs', columns=['Requested', 'Group', 'Job ID', 'Cluster ID', 'Process ID', 'User', 'User Data', 'Requirements', 'Target Clouds', 'Cloud', 'Instance Type', 'CPUs', 'RAM {MBs}', 'Disk {GBs}', 'Scratch (GBs)', 'Swap (GBs)', 'Jobs per Core', 'Image', 'Network', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep Alive (seconds)', 'Max Spot Price', 'State Change Date', 'Queued Date', 'Hold Job']
+        list='Jobs', columns=['Requested', 'Group', 'Job', 'ID', 'Cluster', 'ID', 'Process', 'ID', 'User', 'User', 'Data', 'Requirements', 'Target', 'Clouds', 'Cloud', 'Instance', 'Type', 'CPUs', 'RAM', '{MBs}', 'Disk', '{GBs}', 'Swap', '(GBs)', 'Jobs', 'per', 'Core', 'Image', 'Job', 'Job', 'Status', 'Flags', 'Group', 'Job', 'ID', 'Network', 'Priority', 'Status', 'Code', 'Idle', 'Running', 'Completed', 'Held', 'Other', 'Keep', 'Alive', '(seconds)', 'Max', 'Spot', 'Price', 'Group', 'Job', 'ID', 'State', 'Change', 'Date', 'Queued', 'Date', 'Held', 'Job', 'Reason']
     )
 
     execute_csv2_command(
