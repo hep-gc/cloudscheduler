@@ -1,0 +1,13 @@
+create or replace view view_cloud_aliases as
+select
+    group_name,
+    alias_name,
+    group_concat(cloud_name order by cloud_name) as clouds
+from csv2_cloud_aliases as cca
+group by 
+    group_name,
+    alias_name
+order by
+    group_name,
+    alias_name
+;
