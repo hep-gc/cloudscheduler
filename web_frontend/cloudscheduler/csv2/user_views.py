@@ -5,7 +5,6 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth import update_session_auth_hash
 
 from .view_utils import \
-    getcsv2User, \
     lno, \
     manage_user_groups, \
     manage_user_group_verification, \
@@ -110,13 +109,13 @@ def add(request):
     # open the database.
     config.db_open()
 
-    if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), user_groups=user_groups)
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV00'), msg), user_groups=user_groups)
 
+    if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS], ['csv2_user', 'csv2_groups,n', 'csv2_user_groups,n'], active_user)
         if rc != 0:
@@ -171,13 +170,13 @@ def delete(request):
     config.db_open()
 
 
-    if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV07'), msg), user_groups=user_groups)
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV07'), msg), user_groups=user_groups)
 
+    if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS, {'accept_primary_keys_only': True}], ['csv2_user', 'csv2_user_groups,n'], active_user)
         if rc != 0:
@@ -380,21 +379,13 @@ def update(request):
     # open the database.
     config.db_open()
 
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    if rc != 0:
+        config.db_close()
+        return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), user_groups=user_groups)
+
     if request.method == 'POST':
-        # Retrieve the active user, associated group list and optionally set the active group.
-        rc, msg, active_user, user_groups = set_user_groups(config, request)
-        if rc != 0:
-            config.db_close()
-            return list(request, selector='-', response_code=1, message='%s %s' % (lno('UV18'), msg), user_groups=user_groups)
-
-
-        #if request.POST['not_superuser']:
-            #if 'is_superuser' not in request.POST:
-                #request.POST['is_superuser'] = 1
-            #del request.POST['not_superuser']
-
-        #request.POST['is_superuser'] = 1
-
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS], ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:

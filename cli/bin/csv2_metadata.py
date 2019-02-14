@@ -111,7 +111,7 @@ def _conditionally_restore_a_file(gvar, path, metadata):
             elif 'show'[:len(rsp)] == rsp.lower():
                 expanded_work_path = _expand(gvar, work_path)
                 expanded_restore_path = _expand(gvar, restore_path)
-                print('< server (%s), > backup' % gvar['server'])
+                print('< server (%s), > backup' % gvar['pid_defaults']['server'])
                 p = Popen(
                     [
                         'diff',
@@ -389,15 +389,15 @@ def _set_host(gvar, servers, server):
     elif 'server-user' in gvar['user_settings']:
         gvar['user_settings']['server-user'] = servers['settings'][server]['server-user']
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
-            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['server']))
+            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
         else:
             gvar['user_settings']['server-password'] = servers['settings'][server]['server-password']
 
     if 'server-address' in servers['settings'][server]:
-        gvar['server'] = server
+        gvar['pid_defaults']['server'] = server
         return servers['settings'][server]['server-address'][8:], '%s/%s' % (gvar['user_settings']['backup-repository'], servers['settings'][server]['server-address'][8:])
     else:
-        gvar['server'] = None
+        gvar['pid_defaults']['server'] = None
         return None, None
 
 def _update_git(gvar, msg):
@@ -530,7 +530,7 @@ def backup(gvar):
                 _create_backup_file(gvar, '%s/groups/%s/clouds/%s/metadata/%s' % (host_dir, metadata['group_name'], metadata['cloud_name'], metadata['metadata_name']), metadata)
 
         # Restore the server's initial group.
-        response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
+        response = requests(gvar, '/settings/prepare?%s' % servers['initial_server_group'])
 
     _update_git(gvar, 'post-backup')
 
@@ -630,7 +630,7 @@ def restore(gvar):
                 _conditionally_restore_a_file(gvar, '%s/groups/%s/clouds/%s/metadata/%s' % (host_dir, metadata['group_name'], metadata['cloud_name'], metadata['metadata_name']), metadata)
 
         # Restore the server's initial group.
-        response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
+        response = requests(gvar, '/settings/prepare?%s' % servers['initial_server_group'])
 
     # Scan remaining backup files building an inventory to restore.
     remaining_inventory = {}
@@ -673,7 +673,7 @@ def restore(gvar):
                 _conditionally_restore_a_file(gvar, path, None)
 
         # Restore the server's initial group.
-        response = requests(gvar, '/settings/prepare/', {'group': servers['initial_server_group']})
+        response = requests(gvar, '/settings/prepare?%s' % servers['initial_server_group'])
 
     _update_git(gvar, 'post-restore')
 

@@ -20,18 +20,18 @@ def delete(gvar):
     # Check for missing arguments or help required.
     check_keys(gvar, mandatory, required, optional, requires_server=False)
 
-    if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
+    if os.path.isdir('%s/.csv2/%s' % (gvar['home_dir'], gvar['pid_defaults']['server'])):
         # Confirm settings delete.
         if not gvar['user_settings']['yes']:
-            print('Are you sure you want to delete the settings for server "%s"? (yes|..)' % gvar['server'])
+            print('Are you sure you want to delete the settings for server "%s"? (yes|..)' % gvar['pid_defaults']['server'])
             _reply = input()
             if _reply != 'yes':
-                print('%s settings delete "%" cancelled.' % gvar['server'] % gvar['command_name'])
+                print('%s settings delete "%" cancelled.' % gvar['pid_defaults']['server'] % gvar['command_name'])
                 exit(0)
 
-        shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']))
+        shutil.rmtree('%s/.csv2/%s' % (gvar['home_dir'], gvar['pid_defaults']['server']))
     else:
-        print('Error: Settings for server "%s" do not exist.' % gvar['server'])
+        print('Error: Settings for server "%s" do not exist.' % gvar['pid_defaults']['server'])
         exit(1)
 
 def list(gvar):
@@ -110,19 +110,19 @@ def set(gvar):
         gvar['set_default_server'] = True
 
     # Make the server directory, if necessary.
-    if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['server'])):
-        os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['server']), mode=0o700)  
+    if not os.path.exists('%s/.csv2/%s' % (gvar['home_dir'], gvar['pid_defaults']['server'])):
+        os.makedirs('%s/.csv2/%s' % (gvar['home_dir'], gvar['pid_defaults']['server']), mode=0o700)  
 
     # Write the default server file.
     if gvar['set_default_server']:
         _fd = open('%s/.csv2/default_server' % gvar['home_dir'], 'w')
-        _fd.write(gvar['server'])
+        _fd.write(gvar['pid_defaults']['server'])
         _fd.close()
         os.chmod('%s/.csv2/default_server' % gvar['home_dir'], 0o600)
 
     # Write the settings file.
-    _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 'w')
+    _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server']), 'w')
     _fd.write(yaml.dump(gvar['user_settings']))
     _fd.close()
-    os.chmod('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['server']), 0o600)
+    os.chmod('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server']), 0o600)
 

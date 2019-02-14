@@ -99,11 +99,10 @@ def configuration(request):
     """
 
     config.db_open()
-    # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
-
     message = None
 
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user, user_groups = set_user_groups(config, request)
     if rc == 0:
         if (request.method == 'POST') and ((not 'group' in request.POST) or len(request.POST) > 2):
                 # Validate input fields.

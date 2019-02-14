@@ -235,17 +235,17 @@ def requests(gvar, request, form_data={}):
     if form_data and not gvar['csrf']:
         response = _requests(gvar, '/settings/prepare/')
     
-    # Group change requested but the request is not a POST.
-    elif not form_data and 'group' in gvar['command_args']:
-        if not gvar['csrf']:
-            response = _requests(gvar, '/settings/prepare/')
-    
-        response = _requests(gvar,
-                '/settings/prepare/',
-                form_data = {
-                    'group': gvar['user_settings']['group'],
-                    }       
-            ) 
+#   # Group change requested but the request is not a POST.
+#   elif not form_data and 'group' in gvar['command_args']:
+#       if not gvar['csrf']:
+#           response = _requests(gvar, '/settings/prepare/')
+#   
+#       response = _requests(gvar,
+#               '/settings/prepare/',
+#               form_data = {
+#                   'group': gvar['user_settings']['group'],
+#                   }       
+#           ) 
         
     # Perform the callers request.
     return _requests(gvar, request, form_data=form_data)
@@ -259,27 +259,22 @@ def _requests(gvar, request, form_data={}):
     
     from getpass import getpass
     import os
-    import requests as py_requests
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
     if 'server-address' not in gvar['user_settings']:
-        print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
+        print('Error: user settings for server "%s" does not contain a URL value.' % gvar['pid_defaults']['server'])
         exit(1)
-
-    if form_data:
-        _function = py_requests.post
-        _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
-    else:
-        _function = py_requests.get
-        _form_data = {}
 
     if 'server-grid-cert' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['server-grid-cert']) and \
         'server-grid-key' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['server-grid-key']):
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-grid-cert'])
+
         _r = _function(
-            '%s%s' % (gvar['user_settings']['server-address'], request),
+            _request,
             headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
             cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
@@ -288,9 +283,12 @@ def _requests(gvar, request, form_data={}):
 
     elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
-            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['server']))
+            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
+
         _r = _function(
-            '%s%s' % (gvar['user_settings']['server-address'], request),
+            _request,
             headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
             auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
@@ -298,15 +296,30 @@ def _requests(gvar, request, form_data={}):
             )
 
     else:
-        _requests_no_credentials_error(gvar)
+        requests_no_credentials_error(gvar)
 
     try:
         response = _r.json()
     except:
         if _r.status_code:
-            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, %s.' % (gvar['server'], _r.status_code, py_requests.status_codes._codes[_r.status_code][0])}
+            response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s, %s.' % (gvar['pid_defaults']['server'], _r.status_code, py_requests.status_codes._codes[_r.status_code][0])}
         else:
-            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+            response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['pid_defaults']['server']}
+
+    if 'Set-Cookie' in _r.headers:
+        new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+        if new_csrf[1]:
+            gvar['cookies'] = _r.cookies
+            gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+
+    if 'active_group' in response:
+        gvar['active_group'] = response['active_group']
+
+    if 'active_user' in response and 'active_group' in response:
+        update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
+
+    if 'super_user' in response:
+        gvar['super_user'] = response['super_user']
 
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
@@ -351,18 +364,6 @@ def _requests(gvar, request, form_data={}):
         print('Error: %s' % response['message'])
         exit(1)
 
-    if 'Set-Cookie' in _r.headers:
-        new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
-        if new_csrf[1]:
-            gvar['cookies'] = _r.cookies
-            gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
-
-    if 'active_group' in response:
-        gvar['active_group'] = response['active_group']
-
-    if 'super_user' in response:
-        gvar['super_user'] = response['super_user']
-
     if 'user_groups' in response:
         gvar['user_groups'] = response['user_groups']
 
@@ -370,7 +371,40 @@ def _requests(gvar, request, form_data={}):
 
 #-------------------------------------------------------------------------------
               
-def _requests_no_credentials_error(gvar):
+def _requests_insert_controls(gvar, request, form_data, server_address, server_user):
+    """
+    Add controls (csrf, group, etc.) to python request.
+    """
+
+    import requests as py_requests
+
+    if form_data:
+        _function = py_requests.post
+        _request = '%s%s' % (server_address, request)
+
+        if 'group' in gvar['command_args']:
+            _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf'], 'group': gvar['user_settings']['group']}}
+        else:
+            if server_address in gvar['pid_defaults']['server_addresses'] and server_user in gvar['pid_defaults']['server_addresses'][server_address]:
+                _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf'], 'group': gvar['pid_defaults']['server_addresses'][server_address][server_user]}}
+            else:
+                _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
+
+    else:
+        _function = py_requests.get
+
+        if request[:-1] == '/' and 'group' in gvar['command_args']:
+            _request = '%s%s?%s' % (server_address, request[:-1], gvar['user_settings']['group'])
+        else:
+            _request = '%s%s' % (server_address, request)
+
+        _form_data = {}
+
+    return _function, _request, _form_data
+
+#-------------------------------------------------------------------------------
+              
+def requests_no_credentials_error(gvar):
     """
     Print no server or credentials error and exit.
     """
@@ -402,7 +436,7 @@ def show_active_user_groups(gvar, response):
     """
 
     if 'comma-separated-values' not in gvar['user_settings'] and not gvar['user_settings']['view-columns']:
-        print('\033[1mServer: %s, Active User: %s, Active Group: %s, User\'s Groups: %s\033[0m' % (gvar['server'], response['active_user'], response['active_group'], response['user_groups']))
+        print('\033[1mServer: %s, Active User: %s, Active Group: %s, User\'s Groups: %s\033[0m' % (gvar['pid_defaults']['server'], response['active_user'], response['active_group'], response['user_groups']))
 
 #-------------------------------------------------------------------------------
               
@@ -791,6 +825,42 @@ def _show_table_set_segment_super_headers(segment):
         segment['headers'].append('   '.join(_show_table_pad(segment['columns'][segment['SH_low_ix']:], segment['table']['headers'], segment['table']['lengths'], justify='centre')))
         segment['super_header_lengths'].append(len(segment['headers'][-1]))
         segment['super_headers'].append(_show_table_pad([column], segment['table']['super_headers'], {column: segment['super_header_lengths'][-1]}, justify='centre')[0])
+
+#-------------------------------------------------------------------------------
+
+def update_pid_defaults(gvar, server=None, server_address=None, user=None, group=None):
+    """
+    If the process defaults have changed, update and re-write the pid_file.
+
+    """
+
+    import yaml
+
+    updated = False
+
+    if 'pid_defaults' not in gvar:
+        gvar['pid_defaults'] = {'server': '-', 'server_addresses': {}}
+        updated = True
+
+    if server and gvar['pid_defaults']['server'] != server:
+        gvar['pid_defaults']['server'] = server
+        updated = True
+
+    if server_address:
+        if server_address not in gvar['pid_defaults']['server_addresses']:
+            gvar['pid_defaults']['server_addresses'][server_address] = {}
+            updated = True
+
+        if user and group:
+            if user not in gvar['pid_defaults']['server_addresses'][server_address] or \
+                (user in gvar['pid_defaults']['server_addresses'][server_address] and gvar['pid_defaults']['server_addresses'][server_address][user] != group):
+                gvar['pid_defaults']['server_addresses'][server_address][user] = group
+                updated = True
+
+    if updated:
+        fd = open(gvar['pid_file'], 'w')
+        fd.write(yaml.dump(gvar['pid_defaults']))
+        fd.close()
 
 #-------------------------------------------------------------------------------
 

@@ -57,14 +57,14 @@ def main(gvar, user_secret):
 
     # 7
     execute_csv2_request(
-        gvar, 1, 'GV07', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV01', 'request contained a bad parameter "invalid-unit-test".',
         '/group/defaults/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     # 8
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_cpus" must be an integer value.',
+        gvar, 1, 'GV01', 'default update/list value specified for "job_cpus" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_cpus': 'invalid-unit-test'
@@ -74,7 +74,7 @@ def main(gvar, user_secret):
 
     # 9
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_ram" must be an integer value.',
+        gvar, 1, 'GV01', 'default update/list value specified for "job_ram" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_ram': 'invalid-unit-test'
@@ -84,7 +84,7 @@ def main(gvar, user_secret):
 
     # 10
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_disk" must be an integer value.',
+        gvar, 1, 'GV01', 'default update/list value specified for "job_disk" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_disk': 'invalid-unit-test'
@@ -94,7 +94,7 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_request(
-        gvar, 1, 'GV07', 'request contained a rejected/bad parameter "job_scratch".',
+        gvar, 1, 'GV01', 'request contained a rejected/bad parameter "job_scratch".',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_scratch': 'invalid-unit-test'
@@ -104,7 +104,7 @@ def main(gvar, user_secret):
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "job_swap" must be an integer value.',
+        gvar, 1, 'GV01', 'default update/list value specified for "job_swap" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'job_swap': 'invalid-unit-test'
@@ -114,7 +114,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'GV07', 'group defaults update value specified for "vm_keep_alive" must be an integer value.',
+        gvar, 1, 'GV01', 'default update/list value specified for "vm_keep_alive" must be an integer value.',
         '/group/defaults/', form_data={
             'group': ut_id(gvar, 'gtg4'),
             'vm_keep_alive': 'invalid-unit-test'

@@ -121,30 +121,30 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'server', 'config', '-ok'],
-        list='Server Configuration', columns=['Category', 'Config Key']
+        list='Server Configuration', columns=['Category', 'Config', 'Key']
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'server config, table #1 columns: keys=category,config_key, columns=type,value',
+        gvar, 0, None, 'server config, table #1 columns: keys=category,config_key, columns=config_type,config_value',
         ['cloudscheduler', 'server', 'config', '-VC']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'server', 'config', '-NV'],
-        list='Server Configuration', columns=['Category', 'Config Key', 'Type', 'Value']
+        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Type', 'Config', 'Value']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
-        ['cloudscheduler', 'server', 'config', '-V', 'value'],
-        list='Server Configuration', columns=['Category', 'Config Key', 'Value']
+        ['cloudscheduler', 'server', 'config', '-V', 'config_value'],
+        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Value']
     )
 
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'server', 'config'],
-        list='Server Configuration', columns=['Category', 'Config Key', 'Value']
+        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Value']
     )
 
     execute_csv2_command(
@@ -156,7 +156,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'server', 'config', '-V', ''],
-        list='Server Configuration', columns=['Category', 'Config Key', 'Type', 'Value']
+        list='Server Configuration', columns=['Category', 'Config', 'Key', 'Config', 'Type', 'Config', 'Value']
     )
 
 if __name__ == "__main__":

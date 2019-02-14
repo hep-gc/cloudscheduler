@@ -109,6 +109,7 @@ def main():
                 if s is None:
                     if n.startswith(obj):
                         exec('import {}'.format(f), globals(), locals())
+                        gvar['ut_count'][1] = 0
                         print('\n*** Testing {} ***\n'.format(n))
                         exec('{}.main(gvar, user_secret)'.format(f), globals(), locals())
                 else:
@@ -124,12 +125,12 @@ def main():
             print('Error setting up or cleaning up tests. Run with -v flag to see output.')
             exit(hidden_gvar['ut_failed'])
     if user_options['run_all']:
-        print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count']-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
+        print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count'][0]-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
         exit(gvar['ut_failed'])
 
     total_failed = 0
     for ((_, n), s) in user_options['tests']:
-        print('Test {} run={}, skipped={}, failed={}.'.format(n, s['ut_count']-s['ut_skipped'], s['ut_skipped'], s['ut_failed']))
+        print('Test {} run={}, skipped={}, failed={}.'.format(n, s['ut_count'][0]-s['ut_skipped'], s['ut_skipped'], s['ut_failed']))
         total_failed += s['ut_failed']
     exit(total_failed)
 

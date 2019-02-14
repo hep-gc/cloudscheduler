@@ -11,71 +11,84 @@ def main(gvar, user_secret):
         else:
             initialize_csv2_request(gvar, argv[0])
     
+    # 01
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 401, unauthorized.',
         '/user/delete/',
         server_user='invalid-unit-test', server_pw=user_secret
     )
 
+    # 02
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/user/delete/',
         server_user=ut_id(gvar, 'utu1'), server_pw=user_secret
     )
 
+    # 03
     execute_csv2_request(
-        gvar, 1, 'UV12', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
+        gvar, 1, 'UV07', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'utu2')),
         '/user/delete/',
         server_user=ut_id(gvar, 'utu2'), server_pw=user_secret
     )
 
+    # 04
     execute_csv2_request(
         gvar, 2, None, 'HTTP response code 403, forbidden.',
         '/user/delete/',
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
+    # 05
     execute_csv2_request(
         gvar, 1, 'UV11', 'invalid method "GET" specified.',
         '/user/delete/'
     )
 
+    # 06
     execute_csv2_request(
         gvar, 1, 'UV07', 'cannot switch to invalid group "invalid-unit-test".',
         '/user/delete/', form_data={'group': 'invalid-unit-test'}
     )
 
+    # 07
     execute_csv2_request(
         gvar, 1, 'UV07', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
         '/user/delete/', form_data={'group': ut_id(gvar, 'utg2')}
     )
 
+    # 08
     execute_csv2_request(
         gvar, 1, 'UV08', 'request contained superfluous parameter "invalid-unit-test".',
         '/user/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
+    # 09
     execute_csv2_request(
         gvar, 1, 'UV08', 'value specified for "username" must be all lower case.',
         '/user/delete/', form_data={'username': 'Invalid-unit-test'}
     )
 
+    # 10
     execute_csv2_request(
         gvar, 1, 'UV08', 'request contained superfluous parameter "password".',
         '/user/delete/', form_data={'password': 'invalid-unit-test'}
     )
 
+    # 11
     execute_csv2_request(
         gvar, 1, 'UV08', 'request did not contain mandatory parameter "username".',
         '/user/delete/', form_data={'group': ut_id(gvar, 'utg1')},
         server_user=ut_id(gvar, 'utu4'), server_pw=user_secret
     )
 
+    # 12
     execute_csv2_request(
         gvar, 1, 'UV10', 'the request did not match any rows.',
         '/user/delete/', form_data={'username': 'invalid-unit-test'}
     )
 
+    # 13
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully deleted.'.format(ut_id(gvar, 'utu5')),
         '/user/delete/', form_data={'username': ut_id(gvar, 'utu5')}

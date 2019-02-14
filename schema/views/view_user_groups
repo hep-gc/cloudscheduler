@@ -10,7 +10,7 @@ cucg.cert_cn,
 cucg.password,
 cucg.is_superuser,
 cucg.join_date,
-cucg.active_group,
+cucg.default_group,
 group_concat(case when cug.username=cug.username then cucg.group_name else Null end order by cucg.group_name) as user_groups,
 group_concat(case when cug.username is null then cucg.group_name else Null end order by cucg.group_name) as available_groups
 

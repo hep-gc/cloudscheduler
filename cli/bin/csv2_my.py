@@ -45,7 +45,7 @@ def settings(gvar):
         print(response['message'])
 
     if 'server' not in gvar['command_args']:
-        gvar['command_args']['server'] = gvar['server']
+        gvar['command_args']['server'] = gvar['pid_defaults']['server']
 
     gvar['user_settings']['server-password'] = gvar['user_settings']['user-password']
     del gvar['user_settings']['user-password']

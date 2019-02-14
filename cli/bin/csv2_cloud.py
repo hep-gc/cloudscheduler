@@ -420,7 +420,7 @@ def metadata_edit(gvar):
     # Ensure the fetch directory structure exists.
     fetch_dir = '%s/.csv2/%s/files/%s/%s/metadata' % (
         gvar['home_dir'],
-        gvar['server'],
+        gvar['pid_defaults']['server'],
         response['group_name'],
         response['cloud_name'] 
         )

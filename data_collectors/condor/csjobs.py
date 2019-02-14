@@ -207,6 +207,13 @@ def job_poller():
                             else:
                                 job_errors["nogrp"] = job_errors["nogrp"] + 1
                             continue
+                        # Look for a cloud_alias in requirements string
+                        try:
+                            pattern = '(cloud_alias is")(.*?)(")'
+                            cloud_alias = re.search(pattern, job_dict['Requirements'])
+                            job_dict['cloud_alias'] = cloud_alias.group(2)
+                        except Exception as exc:
+                            logging.debug("No alias found in requirements expression")
                     else:
                         logging.debug("No requirements attribute found, not a csv2 job... ignoring foreign job.")
                         foreign_jobs = foreign_jobs+1
