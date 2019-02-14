@@ -49,6 +49,67 @@ function selectRange(range){
 	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
 	/* Update plot with new range*/
+	/*if((TSPlot.layout.xaxis.range[0] >= from) || (from <= (date-604800000))){
+		var traces = TSPlot.traces;
+		var newdata = {
+			y: [],
+			x: []
+		};
+		var index = [];
+		var query = createQuery(traces[0].name,from, true)
+		index.push(0);
+		// Create string of queries for db
+		for (var i = 1; i < traces.length; i++){
+			index.push(i);
+			query += ';'
+			query += createQuery(traces[i].name,from, true)
+		}
+		if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+		else var newpath = "/cloud/status/plot";
+		const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+		fetch(newpath,{
+			method: 'POST',
+			headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
+			credentials: 'same-origin',
+			body: query,
+			}
+		)
+		.then(function(response){
+			//* Check response status code
+			if(response.ok){
+				return response.json();
+			}throw new Error('Could not update range :( HTTP response not was not OK -> '+response.status)
+		})
+		.then(function(data){
+			//* Parse response into arrays of new points
+			var new_points = true;
+			for(var k = 0; k < traces.length; k++){
+				if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
+					new_points = false;
+					break;
+				}
+				const responsedata = data.results[k].series[0].values;
+				const unpackData = (arr, index) => {
+					var newarr = arr.map(x => x[index]);
+					return newarr
+				}
+				var updatetrace = {
+					x: unpackData(responsedata, 0),
+					y: unpackData(responsedata, 1)
+				}
+			
+				// Update new data for traces
+				newdata.y.push(unpackData(responsedata, 1));
+				newdata.x.push(unpackData(responsedata, 0));
+			}
+			/// Update plot with new data
+			if(new_points == true){
+				Plotly.prependTraces('plotly-TS',newdata, index);
+				return updateTraces(newdata, index);
+			}else return;
+		})
+		.catch(error => console.warn(error));
+	}*/
 	TSPlot.layout.xaxis.range = [from, to];
 	Plotly.relayout('plotly-TS', TSPlot.layout);
 }
@@ -112,10 +173,11 @@ function togglePlot(trace){
 
 
 /* Construct query for db*/
-function createQuery(trace,time){
+function createQuery(trace,time,showing){
 	const line = trace.split(" ");
 	const group = line[0];
 	var query = `SELECT time,value FROM `;
+	//console.log(typeof TSPlot.layout.xaxis.range[1]);
 	if(line.length == 3){
 		var cloud = line[1];
 		var measurement = line[2];
@@ -123,9 +185,13 @@ function createQuery(trace,time){
 	}else{
 		var measurement = line[1];
 		query += `"${measurement}" WHERE "group"='${group}'`;
-	}if (time == true){
-		query += `AND time > ${TSPlot.layout.xaxis.range[1]}ms`;
-	}
+	}if (time == 30){
+		query += ` AND time > ${TSPlot.layout.xaxis.range[1]}ms`;
+	}/*else if(time <= 604800000 && (!(showing) || TSPlot.layout.xaxis.range[1] == date)){
+		query += ` AND time >= ${date-604800000}ms`;
+	}else{
+		query +=  ` AND time <= ${date-604800000}ms`;
+	}*/
 	return query;
 }
 
@@ -135,7 +201,8 @@ function getTraceData(trace, showing){
 	if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 	else var newpath = "/cloud/status/plot";
 	var nullvalues = [];
-	query = createQuery(trace.dataset.path, false);
+	if(showing == true) query = createQuery(trace.dataset.path, (TSPlot.layout.xaxis.range[1]-TSPlot.layout.xaxis.range[0]), showing);
+	else query = createQuery(trace.dataset.path, 3600, showing);
 	const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 	fetch(newpath,{
 		method: 'POST',
@@ -148,7 +215,7 @@ function getTraceData(trace, showing){
 		/* Check response status code*/
 		if(response.ok){
 			return response.json();
-		}throw new Error('HTTP response not was not OK :( -> '+response.status);
+		}throw new Error('Could not get trace :( HTTP response not was not OK -> '+response.status);
 	})
 	.then(function(data){
 		/* Parse response into trace object. Add null values between points where no data
@@ -157,6 +224,7 @@ function getTraceData(trace, showing){
 		var addindex = [];
 		var addtime = [];
 		var k = 0;
+		
 		const unpackData = (arr, index) => {
 			var newarr = arr.map((x, ind) => {
 				if(index == 0 && ind < arr.length-1){
@@ -164,6 +232,13 @@ function getTraceData(trace, showing){
 						addtime.push(arr[ind][index] + 15000);
 						addindex.push(ind+1);
 					}
+				/*}else if((index == 1) && (showing == true)){
+					//console.log(newarrayx[ind]);
+					//console.log((TSPlot.layout.xaxis.range[0] <= newarrayx[index]));
+					if((maxy < x[index]) && (TSPlot.layout.xaxis.range[0] <= newarrayx[ind])){
+						maxy = x[index];
+						TSPlot.layout.yaxis.range[1] = maxy+1;
+					}*/
 				}
 				return x[index];
 			});
@@ -178,14 +253,17 @@ function getTraceData(trace, showing){
 			newarrayy.splice(addindex[f]+f,0,null);
 		}
 	    	const newtrace = {
-			mode: 'scatter',
+			type: 'scatter',
+			mode: 'lines',
 			name: trace.dataset.path,
 			x: newarrayx,
 			y: newarrayy
 		}
 		/* If plot is showing, add trace to plot, otherwise create plot with trace*/
-		if(showing == true) return Plotly.addTraces('plotly-TS', newtrace);
-		else return TSPlot.initialize(newtrace);
+		if(showing == true){
+			Plotly.relayout('plotly-TS', TSPlot.layout);
+			return Plotly.addTraces('plotly-TS', newtrace);
+		}else return TSPlot.initialize(newtrace);
 	}).then(function(data){
 		if(showing == true){
 			/* Store plotted traces for refresh*/
@@ -197,7 +275,7 @@ function getTraceData(trace, showing){
 		}
 	})
 	.catch(error => {
-		console.log('Error:', error)
+		console.warn(error);
 		TSPlot.hide();		
 	});
 }
@@ -205,7 +283,7 @@ function getTraceData(trace, showing){
 
 /* On refresh, check for plotted traces to update colour in status table*/
 function checkForPlottedTraces(){
-	if (typeof(Storage) !== "undefined"){
+	if (typeof (Storage) !== "undefined"){
 		if(sessionStorage.length != 0){
 			var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
 			for(var x = 0; x < plotted_traces.length; x++){
@@ -228,13 +306,13 @@ function refresh_plot() {
 				x: []
 			};
 			var index = [];
-			var query = createQuery(traces[0].name,true)
+			var query = createQuery(traces[0].name, 30,true)
 			index.push(0);
 			/* Create string of queries for db*/
 			for (var i = 1; i < traces.length; i++){
 				index.push(i);
 				query += ';'
-				query += createQuery(traces[i].name,true)
+				query += createQuery(traces[i].name,30,true)
 			}
 			if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 			else var newpath = "/cloud/status/plot";
@@ -250,7 +328,7 @@ function refresh_plot() {
 				/* Check response status code*/
 				if(response.ok){
 					return response.json();
-				}throw new Error('HTTP response not was not OK :( -> '+response.status)
+				}throw new Error('Could not update trace(s) :( HTTP response not was not OK -> '+response.status)
 			})
 			.then(function(data){
 				/* Parse response into arrays of new points*/
@@ -278,7 +356,7 @@ function refresh_plot() {
 				if(new_points == true) return updateTraces(newdata, index);
 				else return;
 			})
-			.catch(error => console.log('Error:', error));
+			.catch(error => console.warn(error));
 		}					
 	}
 }
@@ -299,7 +377,7 @@ function updateTraces(newdata, index){
 var TSPlot = {
 	layout: {
 		yaxis: {
-			rangemode: "tozero"
+			rangemode: "tozero",
 		},
 		xaxis: {
 			type: 'date',

@@ -6,6 +6,8 @@ import sys
 import os
 import requests
 
+from cloudscheduler.web_frontend.cloudscheduler.csv2.view_utils import qt
+
 from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.schema import view_cloud_status
@@ -15,6 +17,7 @@ from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import select
 from sqlalchemy.ext.automap import automap_base
 
 
@@ -47,6 +50,7 @@ def timeseries_data_transfer():
 			column_list = [item["name"] for item in cloud_status.column_descriptions]
 			job_status = db_session.query(view_job_status)
 			job_column_list = ["jobs","jobs_idle","jobs_running","jobs_completed","jobs_held","jobs_other"]
+			groups = []
 			
 			# Points to add to influxdb db
 			data_points = []
@@ -60,6 +64,8 @@ def timeseries_data_transfer():
 			for line in cloud_status:
 				column = 2
 				group = line[0]
+				if( not (group in groups)):
+					groups.append(group)
 				cloud = line[1]
 				for data in line[2:]:
 					if data == -1 or data is None:
@@ -80,7 +86,53 @@ def timeseries_data_transfer():
 					new_point = "{0},group={1} value={2}i {3}".format(job_column_list[column], group, data, ts)
 					data_points.append(new_point)
 					column += 1
-	
+
+			# Collect totals
+			for group in groups:
+				# get cloud status per group
+				s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
+				#cloud_status = db_session.select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
+				#console.log(cloud_status);
+				cloud_status_list = qt(config.db_connection.execute(s))
+
+				# calculate the totals for all rows
+				cloud_status_list_totals = qt(cloud_status_list, keys={
+					'primary': ['group_name'],
+					'sum': [
+						'VMs',
+						'VMs_starting',
+						'VMs_unregistered',
+						'VMs_idle',
+						'VMs_running',
+						'VMs_retiring',
+						'VMs_manual',
+						'VMs_in_error',
+						'Foreign_VMs',
+						'cores_limit',
+						'cores_foreign',
+	 					'cores_idle',
+						'cores_native',
+						'cores_native_foreign',
+						'cores_quota',
+						'ram_quota',
+						'ram_foreign',
+						'ram_idle',
+						'ram_native',
+						'ram_native_foreign',
+						'slot_count',
+						'slot_core_count',
+						'slot_idle_core_count'
+					]
+				})
+
+				cloud_total_list = cloud_status_list_totals[0]
+				group = cloud_total_list['group_name']
+				for measurement in list(cloud_total_list.keys())[1:]:
+					if cloud_total_list[measurement] == -1 or cloud_total_list[measurement] is None:
+						continue
+					new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, cloud_total_list[measurement], ts, '_total')
+					data_points.append(new_point)
+
 			data_points = "\n".join(data_points)
 			
 			# POST HTTP request to influxdb
