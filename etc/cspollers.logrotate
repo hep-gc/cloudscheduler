@@ -49,7 +49,8 @@
 }
 
 /var/log/cloudscheduler/watch_csv2.logging {
-  weekly
+  daily
+  rotate 7
   su cloudscheduler cloudscheduler
   notifempty
   missingok

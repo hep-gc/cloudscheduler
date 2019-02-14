@@ -12,6 +12,12 @@ import socket
 import sys
 import yaml
 
+def decode(gvar, obj):
+    if isinstance(obj, str):
+        return obj
+    else:
+        return obj.decode('utf-8')
+    
 def backup(gvar, table, data=False):
     """
     Perform backup, with or without data. The backup is performed to a temporary directory
@@ -51,7 +57,7 @@ def backup(gvar, table, data=False):
         exit(1)
 
     _fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
-    _fd.write(stdout.decode('utf-8'))
+    _fd.write(decode(gvar, stdout))
     _fd.close()
 
     if os.path.isfile('%s/%s' % (gvar['backup_dir'], table)):
@@ -80,7 +86,7 @@ def backup(gvar, table, data=False):
     else:
         stdout = 'missing'
 
-    if stdout.decode('utf-8') != '':
+    if decode(gvar, stdout) != '':
         _p1 = Popen(
             [
                 'mv',
@@ -152,7 +158,7 @@ def main(args):
 
     print('csv2 schema-backup starting...')
 
-    tables = stdout.decode('utf-8').split('\n')
+    tables = decode(gvar, stdout).split('\n')
     for table in tables:
         if len(table) > 0 and (len(table) < 5 or table[:5] != 'view_'):
             backup(gvar, table)
