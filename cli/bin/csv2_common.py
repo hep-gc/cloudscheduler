@@ -258,6 +258,7 @@ def _requests(gvar, request, form_data={}):
     """
     
     from getpass import getpass
+    import requests as py_requests
     import os
 
     EXTRACT_CSRF = str.maketrans('=;', '  ')
@@ -393,8 +394,14 @@ def _requests_insert_controls(gvar, request, form_data, server_address, server_u
     else:
         _function = py_requests.get
 
-        if request[:-1] == '/' and 'group' in gvar['command_args']:
-            _request = '%s%s?%s' % (server_address, request[:-1], gvar['user_settings']['group'])
+        if request[-1] == '/':
+            if 'group' in gvar['command_args']:
+                _request = '%s%s?%s' % (server_address, request[:-1], gvar['user_settings']['group'])
+            else:
+                if server_address in gvar['pid_defaults']['server_addresses'] and server_user in gvar['pid_defaults']['server_addresses'][server_address]:
+                    _request = '%s%s?%s' % (server_address, request[:-1], gvar['pid_defaults']['server_addresses'][server_address][server_user])
+                else:
+                    _request = '%s%s' % (server_address, request)
         else:
             _request = '%s%s' % (server_address, request)
 
