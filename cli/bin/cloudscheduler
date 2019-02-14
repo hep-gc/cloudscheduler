@@ -369,7 +369,7 @@ def main(args):
         gvar['super_user'] = False
         gvar['user_groups'] = []
     else:
-        response = requests(gvar, '/settings/prepare?')
+        response = requests(gvar, '/settings/prepare/')
 
 
 #   print(">>>>>", gvar['active_group'], gvar['super_user'])
