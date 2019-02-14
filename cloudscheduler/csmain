@@ -260,7 +260,8 @@ def main():
                                              'cs_group_name': csgroup.group_name,
                                              'cs_condor_host': csgroup.htcondor_fqdn,
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
-                                             'cs_condor_submitters': csgroup.htcondor_other_submitters,}
+                                             'cs_condor_submitters': csgroup.htcondor_other_submitters,
+                                             'cs_cloud_alias': idle_job.target_alias_clouds}
                             template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 
