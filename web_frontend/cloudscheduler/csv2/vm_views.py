@@ -206,7 +206,7 @@ def update(
         else:
             config.db_close()
 
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group})
+        return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group})
 #       return list(request, selector, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
 
     ### Bad request.
