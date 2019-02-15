@@ -36,26 +36,15 @@
         </div>
         <div class="float-right">
 
+            {% if is_superuser %}
                 <li><a class="users-nav" href="/user/list/?{{active_group}}">Users</a></li>
                 <li><a class="groups-nav" href="/group/list/?{{active_group}}">Groups</a></li>
                 <li><a class="config-nav" href="/server/config/?{{active_group}}">Config</a></li>
+            {% endif %}
 
-                <!--<li class="nav-button">Admin
-                    <ul class="sub-menu">
-                        <li><a class="groups-nav" href="/group/list/">Groups</a></li>
-                        <li><a class="users-nav" href="/user/list/">Users</a></li>
-                    </ul>
-                </li>-->
-
+            <li><a class="settings-nav" href="/user/settings/">User Settings</a></li>
             <li><a class="" href="/settings/log-out">Log out</a></li>
-            <!--
-            <li class="nav-button">{{ active_user }}
-                <ul class="sub-menu">
-                    <li><a class="" href="#">Settings</a></li>
-                    <li><a class="" href="#">Logout</a></li>
-                </ul>
-            </li>
-            -->
+
             <li class="spacer"> </li>
         </div>
     </ul>

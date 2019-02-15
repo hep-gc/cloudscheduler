@@ -260,7 +260,8 @@ def main():
                                              'cs_group_name': csgroup.group_name,
                                              'cs_condor_host': csgroup.htcondor_fqdn,
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
-                                             'cs_condor_submitters': csgroup.htcondor_other_submitters,}
+                                             'cs_condor_submitters': csgroup.htcondor_other_submitters,
+                                             'cs_cloud_alias': idle_job.target_alias_clouds}
                             template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 
@@ -489,7 +490,7 @@ if __name__ == '__main__':
     process_ids = {
         'scheduler': main,
         'idle_vms': check_view_idle_vms,
-        'unregistered_vms': check_unregistered_machines,
+        #'unregistered_vms': check_unregistered_machines,  #  No longer dealing with killing VMs. 
     }
 
     procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=15,

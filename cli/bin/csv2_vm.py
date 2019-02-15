@@ -40,16 +40,15 @@ def _selector(gvar):
     Internal function to return a valid selector value based on the user paramaters.
     """
 
-    selector = ['', '', '']
+    selector = {}
     if 'cloud-name' in gvar['user_settings']:
-        selector[0] = gvar['user_settings']['cloud-name']
+        selector['cloud_name'] = gvar['user_settings']['cloud-name']
+    if 'vm-hosts' in gvar['user_settings']:
+        selector['hostname'] = gvar['user_settings']['vm-hosts']
     if 'vm-status' in gvar['user_settings']:
-        selector[1] = gvar['user_settings']['vm-status']
-    if 'vm-hostname' in gvar['user_settings']:
-        selector[2] = gvar['user_settings']['vm-hostname']
+        selector['poller_status'] = gvar['user_settings']['vm-status']
 
-    return '::'.join(selector)
-
+    return selector
 
 def list(gvar):
     """
@@ -67,7 +66,7 @@ def list(gvar):
     check_keys(gvar, mandatory, required, optional)
 
     # Retrieve data (possibly after changing the group).
-    response = requests(gvar, '/vm/list/%s' % _selector(gvar))
+    response = requests(gvar, '/vm/list/', query_data=_selector(gvar))
     
     if response['message']:
         print(response['message'])

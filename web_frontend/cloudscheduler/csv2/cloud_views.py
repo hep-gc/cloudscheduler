@@ -595,7 +595,9 @@ def list(
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser 
+
         }
 
     config.db_close()
@@ -719,7 +721,9 @@ def metadata_collation(request):
             'cloud_metadata_list': cloud_metadata_list,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser 
+
         }
 
     return render(request, 'csv2/cloud_metadata_list.html', context)
@@ -842,7 +846,9 @@ def metadata_fetch(request, selector=None):
                         'mime_types_list': mime_types_list,
                         'response_code': 0,
                         'message': None,
-                        'enable_glint': config.enable_glint
+                        'enable_glint': config.enable_glint,
+                        'is_superuser': active_user.is_superuser 
+
                         }
 
                     config.db_close()
@@ -903,7 +909,9 @@ def metadata_list(request):
             'cloud_metadata_names': cloud_metadata_names,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser 
+
         }
 
     return render(request, 'csv2/metadata-list.html', context)
@@ -942,7 +950,8 @@ def metadata_new(request, selector=None):
             'mime_types_list': mime_types_list,
             'response_code': 0,
             'message': "new-cloud-metadata",
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser
             }
 
         config.db_close()
@@ -1196,7 +1205,8 @@ def status(request, group_name=None):
             'slot_total_list': slot_total_list,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser
         }
 
     config.db_close()
