@@ -221,7 +221,8 @@ def list(
             'cloud_list': cloud_list,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser
         }
 
     config.db_close()

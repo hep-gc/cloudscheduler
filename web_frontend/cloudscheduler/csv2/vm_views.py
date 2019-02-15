@@ -105,7 +105,8 @@ def list(request):
             'vm_list': vm_list,
             'response_code': 0,
             'message': '',
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser
         }
 
     return render(request, 'csv2/vms.html', context)

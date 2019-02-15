@@ -784,7 +784,8 @@ def metadata_fetch(request, selector=None):
                     'mime_types_list': mime_types_list,
                     'response_code': 0,
                     'message': None,
-                    'enable_glint': config.enable_glint
+                    'enable_glint': config.enable_glint,
+                    'is_superuser': active_user.is_superuser
                     }
 
                 config.db_close()
@@ -830,7 +831,8 @@ def metadata_list(request):
             'group_metadata_list': group_metadata_list,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser
         }
 
     config.db_close()
@@ -866,7 +868,8 @@ def metadata_new(request):
         'mime_types_list': mime_types_list,
         'response_code': 0,
         'message': "new-group-metadata",
-        'enable_glint': config.enable_glint
+        'enable_glint': config.enable_glint,
+        'is_superuser': active_user.is_superuser
         }
 
     config.db_close()

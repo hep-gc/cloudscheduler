@@ -131,7 +131,8 @@ def list(
             'job_list': job_list,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser
         }
 
     return render(request, 'csv2/jobs.html', context)
