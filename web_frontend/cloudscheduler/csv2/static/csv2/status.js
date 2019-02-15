@@ -3,7 +3,6 @@ var date = Date.now();
 function initialize(){
 	/* Add event listeners once page loads*/
 	addEventListeners("plottable");
-	addEventListeners("range");
 }
 
 
@@ -11,7 +10,8 @@ function initialize(){
 function addEventListeners(className) {
 	var inputList = document.getElementsByClassName(className);
 		var i;
-		for (i = 0; i < inputList.length; i++){
+		var list_length = inputList.length;
+		for (i = 0; i < list_length; i++){
 			inputList[i].addEventListener('click', function(){
 				if(className == 'plottable'){
 					this.classList.toggle("plotted");
@@ -30,6 +30,7 @@ function dropDown(){
 
 /* Change time range for plot*/
 function selectRange(range){
+	console.log("select range");
 	const curr_range = document.getElementsByClassName("range-btn");
 	curr_range[0].innerHTML = range.innerHTML+'<span class="space"></span><span class="caret"></span>';
 	const dropdowns = document.getElementsByClassName("range");
@@ -49,24 +50,27 @@ function selectRange(range){
 	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
 	/* Update plot with new range*/
-	/*if((TSPlot.layout.xaxis.range[0] >= from) || (from <= (date-604800000))){
+	//if((TSPlot.layout.xaxis.range[0] >= from) || (from <= (date-604800000))){
+	if((date-from) > 604800000){
+		console.log(date-from);
 		var traces = TSPlot.traces;
 		var newdata = {
 			y: [],
 			x: []
 		};
 		var index = [];
-		var query = createQuery(traces[0].name,from, true)
+		var query = createQuery(traces[0].name,from, true);
 		index.push(0);
 		// Create string of queries for db
 		for (var i = 1; i < traces.length; i++){
 			index.push(i);
 			query += ';'
-			query += createQuery(traces[i].name,from, true)
+			query += createQuery(traces[i].name,from,true)
 		}
 		if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 		else var newpath = "/cloud/status/plot";
 		const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+		console.log("Fetching data for newest range");
 		fetch(newpath,{
 			method: 'POST',
 			headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
@@ -81,7 +85,43 @@ function selectRange(range){
 			}throw new Error('Could not update range :( HTTP response not was not OK -> '+response.status)
 		})
 		.then(function(data){
-			//* Parse response into arrays of new points
+			
+			/* Parse response into trace object. Add null values between points where no data
+		   	   exists for more than 70s to show gaps in plot*/
+			const responsedata = data.results[0].series[0].values;
+			var addindex = [];
+			var addtime = [];
+			var k = 0;
+			
+			const unpackData = (arr, index) => {
+				var newarr = arr.map((x, ind) => {
+					if(index == 0 && ind < arr.length-1){
+						if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 70000){
+							addtime.push(arr[ind][index] + 15000);
+							addindex.push(ind+1);
+						}
+					}
+					return x[index];
+				});
+				return newarr
+			}
+			var newarrayx = unpackData(responsedata,0);
+			for(var f = 0; f<addindex.length; f++){
+				newarrayx.splice(addindex[f]+f,0,addtime[f]);
+			}
+			var newarrayy = unpackData(responsedata,1);
+			for(var f = 0; f<addindex.length; f++){
+				newarrayy.splice(addindex[f]+f,0,null);
+			}
+		    	/*const updatedtrace = {
+				x: newarrayx,
+				y: newarrayy
+			}*/
+			newdata.y.push(newarrayy);
+			newdata.x.push(newarrayx);
+			Plotly.prependTraces('plotly-TS',newdata, index);
+			return updateTraces(newdata, index);
+			/* Parse response into arrays of new points
 			var new_points = true;
 			for(var k = 0; k < traces.length; k++){
 				if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
@@ -106,12 +146,18 @@ function selectRange(range){
 			if(new_points == true){
 				Plotly.prependTraces('plotly-TS',newdata, index);
 				return updateTraces(newdata, index);
-			}else return;
+			}else return;*/
+		})
+		.then(function(response){
+			TSPlot.layout.xaxis.range = [from, to];
+			Plotly.relayout('plotly-TS', TSPlot.layout);
 		})
 		.catch(error => console.warn(error));
-	}*/
-	TSPlot.layout.xaxis.range = [from, to];
-	Plotly.relayout('plotly-TS', TSPlot.layout);
+	}
+	else{
+		TSPlot.layout.xaxis.range = [from, to];
+		Plotly.relayout('plotly-TS', TSPlot.layout);
+	}
 }
 
 
@@ -173,37 +219,43 @@ function togglePlot(trace){
 
 
 /* Construct query for db*/
-function createQuery(trace,time,showing){
+function createQuery(trace,from,showing){
 	const line = trace.split(" ");
-	const group = line[0];
-	var query = `SELECT time,value FROM `;
-	//console.log(typeof TSPlot.layout.xaxis.range[1]);
-	if(line.length == 3){
-		var cloud = line[1];
-		var measurement = line[2];
-		query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
-	}else{
-		var measurement = line[1];
-		query += `"${measurement}" WHERE "group"='${group}'`;
-	}if (time == 30){
-		query += ` AND time > ${TSPlot.layout.xaxis.range[1]}ms`;
-	}/*else if(time <= 604800000 && (!(showing) || TSPlot.layout.xaxis.range[1] == date)){
-		query += ` AND time >= ${date-604800000}ms`;
-	}else{
-		query +=  ` AND time <= ${date-604800000}ms`;
-	}*/
-	return query;
+	if(line.length == 1){
+		var measurement = line[0];
+		var query = `SELECT time,value FROM "${measurement}"`;
+	}
+	else{
+		const group = line[0];
+		var query = `SELECT time,value FROM `;
+		//console.log(typeof TSPlot.layout.xaxis.range[1]);
+		if(line.length == 3){
+			var cloud = line[1];
+			var measurement = line[2];
+			query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
+		}else{
+			var measurement = line[1];
+			query += `"${measurement}" WHERE "group"='${group}'`;
+		}if (from == 30){
+			query += ` AND time >= ${TSPlot.layout.xaxis.range[1]}ms`;
+		
+		}else if (showing == false || (date-from) <= 604800000){
+			query += ` AND time >= ${date-604800000}ms`;
+		}else /*if ((date-from) > 604800000)*/{
+			query += ` AND time < ${date-604800000}ms`;
+		}	
+	}return query;
 }
-
 
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
 	if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 	else var newpath = "/cloud/status/plot";
 	var nullvalues = [];
-	if(showing == true) query = createQuery(trace.dataset.path, (TSPlot.layout.xaxis.range[1]-TSPlot.layout.xaxis.range[0]), showing);
+	if(showing == true) query = createQuery(trace.dataset.path, TSPlot.layout.xaxis.range[0], showing);
 	else query = createQuery(trace.dataset.path, 3600, showing);
 	const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+	console.log("Fetching data for new trace");
 	fetch(newpath,{
 		method: 'POST',
 		headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
@@ -276,7 +328,7 @@ function getTraceData(trace, showing){
 	})
 	.catch(error => {
 		console.warn(error);
-		TSPlot.hide();		
+		if(showing == false) TSPlot.hide();		
 	});
 }
 
@@ -317,6 +369,7 @@ function refresh_plot() {
 			if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 			else var newpath = "/cloud/status/plot";
 			const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+			console.log("Fetching to update next 30s");
 			fetch(newpath,{
 				method: 'POST',
 				headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},

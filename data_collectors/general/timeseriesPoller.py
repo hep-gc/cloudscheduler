@@ -33,6 +33,8 @@ def timeseries_data_transfer():
 	# "orange_count_row" in ProccessMonitor initialization in __main__
 	config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
+	
+
 	cycle_start_time = 0
 	new_poll_time = 0
 	poll_time_history = [0,0,0,0]
@@ -45,6 +47,10 @@ def timeseries_data_transfer():
 			config.db_open()
 			db_session = config.db_session
 			
+			STATUS = config.db_map.classes.csv2_system_status
+			statuses = db_session.query(STATUS)
+
+
 			# Query db for cloud status and job status view
 			cloud_status = db_session.query(view_cloud_status)
 			column_list = [item["name"] for item in cloud_status.column_descriptions]
@@ -59,6 +65,10 @@ def timeseries_data_transfer():
 			# HTTP request args
 			params = {'db': 'csv2_timeseries','precision': 's'}
 			url_string = 'http://localhost:8086/write'
+
+			for status in statuses:
+				new_point = "csv2_status_status value={0}i {1}".format(status.csv2_status_status, ts)
+				data_points.append(new_point)
 			
 			# Parse cloud data into line protocol for influxdb
 			for line in cloud_status:

@@ -888,7 +888,7 @@
             </tr>
 
             <tr>
-                <td tooltip="{{ system_list.csv2_status_msg }}">
+                <td data-path="csv2_status_status" class="plottable" tooltip="{{ system_list.csv2_status_msg }}">
                 {% if system_list.csv2_status_status == 1 %}
                     <!--<img src="{% static "csv2/running.svg" %}" alt="Running">-->
                     <span class="green-symbol">&#x2714;</span>
@@ -1017,6 +1017,7 @@
 <script type="text/javascript">
 	/*Add event listeners once page loads*/
 	initialize();
+	addEventListeners("range");
 	sessionStorage.clear();
 
 	/*<![CDATA[*/
