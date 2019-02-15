@@ -73,7 +73,7 @@ def list(request):
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
@@ -104,7 +104,7 @@ def list(request):
             'user_groups': active_user.user_groups,
             'vm_list': vm_list,
             'response_code': 0,
-            'message': '',
+            'message': None,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser
         }
@@ -127,10 +127,10 @@ def update(
     config.db_open()
     
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('VV01'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group})
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('VV01'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return list(request, selector, response_code=1, message='%s %s' % (lno('VV01'), msg), user_groups=user_groups)
 
     if request.method == 'POST':
@@ -138,7 +138,7 @@ def update(
         rc, msg, fields, tables, columns = validate_fields(config, request, [VM_KEYS, MANDATORY_KEYS], ['csv2_vms,n', 'condor_machines,n'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update %s' % (lno('VV02'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group})
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update %s' % (lno('VV02'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #           return list(request, selector, response_code=1, message='%s vm update %s' % (lno('VV02'), msg), user_groups=user_groups)
 
         if fields['vm_option'] == 'kill':
@@ -152,7 +152,7 @@ def update(
                 verb = 'killed or retired'
             else:
                 config.db_close()
-                return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno('VV98'), 'active_user': active_user.username, 'active_group': active_user.active_group})
+                return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno('VV98'), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #               return list(request, selector, response_code=1, message='%s vm update, the "--vm-hosts" parameter must be numeric when "--vm-option retain" is specified.' % lno('VV98'))
         elif fields['vm_option'] == 'manctl':
             table = tables['csv2_vms']
@@ -161,7 +161,7 @@ def update(
             table = tables['csv2_vms']
             verb = 'set to system control'
         else:
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group})
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #           return list(request, selector, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
 
         # Retrieve VM information.
@@ -186,7 +186,7 @@ def update(
 
                 for vm in vm_list:
                     if fields['vm_option'] == 'kill':
-                        update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 1, 'updater': get_frame_info()})
+                        update = table.update().where(table.c.vmid == vm['vmid']).values({'terminate': 2, 'updater': get_frame_info()})
                     elif fields['vm_option'] == 'retire':
                         update = table.update().where(table.c.vmid == vm['vmid']).values({'retire': 1, 'updater': get_frame_info()})
                     elif fields['vm_option'] == 'manctl':
@@ -199,7 +199,7 @@ def update(
                         count += msg
                     else:
                         config.db_close()
-                        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group})
+                        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #                       return list(request, selector, response_code=1, message='%s vm update (%s) failed - %s' % (lno('VV04'), fields['vm_option'], msg))
 
         if count > 0:
@@ -207,10 +207,10 @@ def update(
         else:
             config.db_close()
 
-        return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group})
+        return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return list(request, selector, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
 
     ### Bad request.
     else:
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group})
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return list(request, selector, response_code=1, message='%s vm update, invalid method "%s" specified.' % (lno('VV05'), request.method))

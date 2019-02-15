@@ -30,8 +30,9 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
     if option == 'control':
         s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, count[0], count[1])
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s";' % updater)
     
     # Process "kill N".
     elif option == 'kill':
@@ -41,7 +42,7 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s";' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater="%s";' % updater)
 
     # Process "retire N".
     elif option == 'retire':
@@ -61,8 +62,9 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s";' % updater)
     
     retired_list = qt(config.db_connection.execute('select count(*) as count from kill_retire_priority_list;'))
     return retired_list[0]['count']
@@ -732,6 +734,9 @@ def set_user_groups(config, request, super_user=True):
                 else:
                     self.available_groups = []
 
+                self.flag_global_status = user['flag_global_status']
+                self.status_refresh_interval = user['status_refresh_interval']
+
                 self.args = []
                 self.kwargs = {}
                 break
@@ -758,7 +763,8 @@ def set_user_groups(config, request, super_user=True):
         raise PermissionDenied
 
     if len(new_active_user.user_groups) < 1:
-        return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
+#       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
+        return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
 
     if len(new_active_user.args) > 0:
         new_active_user.active_group = new_active_user.args[0]
@@ -768,9 +774,11 @@ def set_user_groups(config, request, super_user=True):
         new_active_user.active_group = new_active_user.user_groups[0]
 
     if new_active_user.active_group not in new_active_user.user_groups:
-        return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
+#       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
+        return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
 
-    return 0, None, new_active_user, new_active_user.user_groups
+#   return 0, None, new_active_user, new_active_user.user_groups
+    return 0, None, new_active_user
 
 #-------------------------------------------------------------------------------
 
