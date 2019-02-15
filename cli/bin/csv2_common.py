@@ -225,7 +225,7 @@ def qc_filter_get(columns, values, aliases=None, and_or='and'):
 
 #-------------------------------------------------------------------------------
               
-def requests(gvar, request, form_data={}):
+def requests(gvar, request, form_data={}, query_data={}):
     """
     Make RESTful requests via the _requests function and return the response. This function will
     obtain a CSRF (for POST requests) prior to making the atual request.
@@ -235,24 +235,12 @@ def requests(gvar, request, form_data={}):
     if form_data and not gvar['csrf']:
         response = _requests(gvar, '/settings/prepare/')
     
-#   # Group change requested but the request is not a POST.
-#   elif not form_data and 'group' in gvar['command_args']:
-#       if not gvar['csrf']:
-#           response = _requests(gvar, '/settings/prepare/')
-#   
-#       response = _requests(gvar,
-#               '/settings/prepare/',
-#               form_data = {
-#                   'group': gvar['user_settings']['group'],
-#                   }       
-#           ) 
-        
     # Perform the callers request.
-    return _requests(gvar, request, form_data=form_data)
+    return _requests(gvar, request, form_data=form_data, query_data=query_data)
 
 #-------------------------------------------------------------------------------
               
-def _requests(gvar, request, form_data={}):
+def _requests(gvar, request, form_data={}, query_data={}):
     """
     Make RESTful request and return response.
     """
@@ -272,7 +260,7 @@ def _requests(gvar, request, form_data={}):
         'server-grid-key' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['server-grid-key']):
 
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-grid-cert'])
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-grid-cert'])
 
         _r = _function(
             _request,
@@ -286,7 +274,7 @@ def _requests(gvar, request, form_data={}):
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
             gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
 
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
 
         _r = _function(
             _request,
@@ -325,11 +313,10 @@ def _requests(gvar, request, form_data={}):
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
             "  py_requests.%s(\n" \
-            "    %s%s,\n" \
+            "    %s,\n" \
             "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
                 _function.__name__,
-                gvar['user_settings']['server-address'],
-                request,
+                _request,
                 gvar['user_settings']['server-address'],
                 )
             )
@@ -372,7 +359,7 @@ def _requests(gvar, request, form_data={}):
 
 #-------------------------------------------------------------------------------
               
-def _requests_insert_controls(gvar, request, form_data, server_address, server_user):
+def _requests_insert_controls(gvar, request, form_data, query_data, server_address, server_user):
     """
     Add controls (csrf, group, etc.) to python request.
     """
@@ -394,17 +381,30 @@ def _requests_insert_controls(gvar, request, form_data, server_address, server_u
     else:
         _function = py_requests.get
 
-        if request[-1] == '/':
-            if 'group' in gvar['command_args']:
+        if 'group' in gvar['command_args']:
+            if request[-1] == '/':
                 _request = '%s%s?%s' % (server_address, request[:-1], gvar['user_settings']['group'])
             else:
-                if server_address in gvar['pid_defaults']['server_addresses'] and server_user in gvar['pid_defaults']['server_addresses'][server_address]:
+                _request = '%s%s?%s' % (server_address, request, gvar['user_settings']['group'])
+        else:
+            if server_address in gvar['pid_defaults']['server_addresses'] and server_user in gvar['pid_defaults']['server_addresses'][server_address]:
+                if request[-1] == '/':
                     _request = '%s%s?%s' % (server_address, request[:-1], gvar['pid_defaults']['server_addresses'][server_address][server_user])
                 else:
-                    _request = '%s%s' % (server_address, request)
-        else:
-            _request = '%s%s' % (server_address, request)
+                    _request = '%s%s?%s' % (server_address, request, gvar['pid_defaults']['server_addresses'][server_address][server_user])
+            else:
+                _request = '%s%s' % (server_address, request)
 
+        if query_data:
+            query_list = []
+            for key in sorted(query_data):
+                query_list.append('%s=%s' % (key, query_data[key]))
+
+            if _request[-1] == '/':
+               _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
+            else:
+               _request = '%s&%s' % (_request, '&'.join(query_list))
+        
         _form_data = {}
 
     return _function, _request, _form_data
