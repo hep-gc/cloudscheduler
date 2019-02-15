@@ -106,7 +106,9 @@ ul.sub-menu li:hover{
 .config-nav a.config-nav,
 .images-nav a.images-nav,
 .keys-nav a.keys-nav,
-.vms-nav a.vms-nav
+.vms-nav a.vms-nav,
+.settings-nav a.settings-nav
+
 {
   background: green;
   color:white;
