@@ -301,6 +301,11 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('error_time', Integer)
   )
 
+csv2_config = Table('csv2_config', metadata,
+  Column('config_name', String(64), primary_key=True),
+  Column('yaml', String)
+  )
+
 csv2_configuration = Table('csv2_configuration', metadata,
   Column('category', String(32), primary_key=True),
   Column('config_key', String(32), primary_key=True),
@@ -939,6 +944,8 @@ view_user_groups = Table('view_user_groups', metadata,
   Column('password', String(128)),
   Column('is_superuser', Integer),
   Column('join_date', Integer),
+  Column('flag_global_status', Integer),
+  Column('status_refresh_interval', Integer),
   Column('default_group', String(32)),
   Column('user_groups', String),
   Column('available_groups', String)
