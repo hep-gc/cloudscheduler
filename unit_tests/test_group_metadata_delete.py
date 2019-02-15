@@ -20,7 +20,7 @@ def main(gvar, user_secret):
 
     # 02
     execute_csv2_request(
-        gvar, 1, 'GV29', 'invalid method "GET" specified.',
+        gvar, 1, 'GV29', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
@@ -115,6 +115,13 @@ def main(gvar, user_secret):
         '/cloud/list/',
         list='cloud_list', filter={'cloud_name': ut_id(gvar, 'gtc1')},
         values={'cloud_name': ut_id(gvar, 'gtc1'), 'group_name': ut_id(gvar, 'gtg5'), 'group_exclusions': None},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    # 13
+    execute_csv2_request(
+        gvar, 1, 'GV32', 'group metadata_delete, invalid method "GET" specified.',
+        '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 

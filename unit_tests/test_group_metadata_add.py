@@ -20,7 +20,7 @@ def main(gvar, user_secret):
 
     # 02
     execute_csv2_request(
-        gvar, 1, 'GV24', 'invalid method "GET" specified.',
+        gvar, 1, 'GV24', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/metadata-add/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
@@ -230,6 +230,13 @@ def main(gvar, user_secret):
         '/group/metadata-list/', form_data={'group': ut_id(gvar, 'gtg5')},
         list='group_metadata_list', filter={'metadata_name': ut_id(gvar, 'gty1.yaml')},
         values={'metadata_name': ut_id(gvar, 'gty1.yaml'), 'enabled': 0, 'metadata': '- example: yaml', 'group_name': ut_id(gvar, 'gtg5'), 'priority': 1, 'mime_type': 'cloud-config'},
+        server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
+    )
+
+    # 22
+    execute_csv2_request(
+        gvar, 1, 'GV27', 'group metadata_add, invalid method "GET" specified.',
+        '/group/metadata-add/',
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
