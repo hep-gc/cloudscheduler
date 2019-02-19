@@ -392,7 +392,7 @@ def command_poller():
 
                     # First check if we have already issued a retire & its retiring
 
-                    if resource[7] >= 2 and resource[8] == 1:
+                    if resource.retire >= 2 and resource.retiring == 1:
                         #resource has already been retired, skip it
                         continue
 
@@ -411,16 +411,16 @@ def command_poller():
                         continue
 
 
-                    logging.info("Retiring machine %s" % resource[10])
+                    logging.info("Retiring machine %s" % resource.machine)
                     try:
-                        if resource[9] is not None and resource[10] is not "":
-                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource[10])[0]
+                        if resource.terminate is not None and resource.machine is not "":
+                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
                         else:
                             condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
                         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
 
                         #get vm entry and update retire = 2
-                        vm_row = db_session.query(VM).filter(VM.group_name==resource[0], VM.cloud_name==resource[1], VM.vmid==resource[3])[0]
+                        vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire = vm_row.retire + 1
                         vm_row.updater = get_frame_info()
                         db_session.merge(vm_row)
@@ -437,7 +437,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource[10], resource[4]))
+                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
                         continue
 
             if uncommitted_updates > 0:
