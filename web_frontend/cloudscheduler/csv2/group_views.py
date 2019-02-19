@@ -254,57 +254,32 @@ def defaults(request):
             if rc != 0:
                 config.db_close()
                 return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno('GV01'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-#               return_list(request, selector='-', response_code=1, message='%s default update/list %s' % (lno('GV01'), msg), active_user=active_user, user_groups=user_groups)
 
 
-
-            '''
-            # Update the group defaults.
-            table = tables['csv2_groups']
-            group_updates = table_fields(fields, table, columns, 'update')
-            if len(group_updates) > 0:
-                rc, msg = config.db_session_execute(table.update().where(table.c.group_name==fields['group_name']).values(group_updates), allow_no_rows=False)
-                if rc != 0:
-                    config.db_close()
-                    return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV44'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            '''
-
-
-
-
-
-
-
-
-
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", fields)
-            # Make sure group is not in fields, as this can only happen when changing groups...
-            if 'group' not in fields:
+            if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             
-                if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
-                
-                if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
-                
-                if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
-                
-                if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
-                    rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
-                
+            if rc == 0 and ('vm_image' in fields) and (fields['vm_image']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
+            
+            if rc == 0 and ('vm_keyname' in fields) and (fields['vm_keyname']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
+            
+            if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
+            
+            if rc == 0:
+                # Update the group defaults.
+                table = tables['csv2_groups']
+                rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                 if rc == 0:
-                    # Update the group defaults.
-                    table = tables['csv2_groups']
-                    rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
-                    if rc == 0:
-                        config.db_session.commit()
-                        set_defaults_changed(True)
-                        message = 'group defaults "%s" successfully updated.' % (active_user.active_group)
-                    else:
-                        message = '%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
+                    config.db_session.commit()
+                    set_defaults_changed(True)
+                    message = 'group defaults "%s" successfully updated.' % (active_user.active_group)
                 else:
-                    message = '%s group defaults update %s.' % (lno('GV07'), msg)
+                    message = '%s group defaults update "%s" failed - %s.' % (lno('GV06'), active_user.active_group, msg)
+            else:
+                message = '%s group defaults update %s.' % (lno('GV07'), msg)
     else:
         user_groups_set = False
         message = '%s %s' % (lno('GV08'), msg)

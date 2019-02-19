@@ -33,7 +33,7 @@
         {% endif %}
 
 
-            <input type="hidden" name="group_name" value="{{ group_name }}">
+            <input type="hidden" name="group" value="{{ group_name }}">
 
         {% if cloud_name %}
             <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
@@ -109,7 +109,7 @@
             {% endif %}
 
             {% csrf_token %}
-                <input type="hidden" name="group_name" value="{{ group_name }}">
+                <input type="hidden" name="group" value="{{ group_name }}">
 
             {% if cloud_name %}
                 <input type="hidden" name="cloud_name" value="{{ cloud_name }}">
