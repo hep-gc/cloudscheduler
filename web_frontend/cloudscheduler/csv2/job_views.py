@@ -71,35 +71,22 @@ LIST_KEYS = {
 
 @silkp(name="Job List")
 @requires_csrf_token
-def list(
-    request,
-    selector=None,
-    group_name=None,
-    response_code=0,
-    message=None,
-    user_groups=None,
-    attributes=None
-    ):
+def list(request):
 
     # open the database.
     config.db_open() 
 
-    if response_code != 0:
-        config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': message})
-
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
-    if not message:
-        rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
-        if rc != 0:
-            config.db_close()
-            return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
+    rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
@@ -107,30 +94,14 @@ def list(
 
     config.db_close()
     
-#   # Position the page.
-#   obj_act_id = request.path.split('/')
-#   if selector:
-#       if selector == '-':
-#           current_cloud = ''
-#       else:
-#           current_cloud = selector
-#   elif len(obj_act_id) > 3 and len(obj_act_id[3]) > 0:
-#       current_cloud = str(obj_act_id[3])
-#   else:
-#       if len(cloud_list) > 0:
-#           current_cloud = str(cloud_list[0]['cloud_name'])
-#       else:
-#           current_cloud = ''
-
     # Render the page.
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
-            'attributes': attributes,
-            'user_groups': user_groups,
+            'user_groups': active_user.user_groups,
             'job_list': job_list,
-            'response_code': response_code,
-            'message': message,
+            'response_code': 0,
+            'message': None,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser
         }

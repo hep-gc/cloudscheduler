@@ -102,7 +102,7 @@ def configuration(request):
     message = None
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user, user_groups = set_user_groups(config, request)
+    rc, msg, active_user = set_user_groups(config, request)
     if rc == 0:
         if (request.method == 'POST') and ((not 'group' in request.POST) or len(request.POST) > 2):
                 # Validate input fields.
@@ -149,7 +149,7 @@ def configuration(request):
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
-            'user_groups': user_groups,
+            'user_groups': active_user.user_groups,
             'config_list': config_list,
             'config_categories': config_categories,
             'response_code': response_code,
