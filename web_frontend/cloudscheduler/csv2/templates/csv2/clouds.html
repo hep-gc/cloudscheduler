@@ -73,7 +73,7 @@
                             <table><tr><td>
 
                                 <table>
-                                    <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                    <input type="hidden" name="group" value="{{ cloud.group_name }}">
                                     <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
 
 
@@ -305,7 +305,7 @@
                                 <form name="{{cloud.cloud_name}}-metadata-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
                                 {% csrf_token %}
                                     <table>
-                                        <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                        <input type="hidden" name="group" value="{{ cloud.group_name }}">
                                         <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
                                         <input type="hidden" name="password" value=""/>
 
@@ -341,7 +341,7 @@
                             <div class="tab2-content">
                                 <form name="{{cloud.cloud_name}}-flavor-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
                                     {% csrf_token %}
-                                    <input type="hidden" name="group_name" value="{{ cloud.group_name }}">
+                                    <input type="hidden" name="group" value="{{ cloud.group_name }}">
                                     <input type="hidden" name="cloud_name" value="{{cloud.cloud_name}}" />
                                     <input type="hidden" name="password" value=""/>
                                     <table>
