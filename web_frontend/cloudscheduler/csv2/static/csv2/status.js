@@ -107,7 +107,7 @@ function selectRange(range){
 				newdata.x.push(newarrayx);
 			}
 			/* If there were no new points for all traces*/
-			if(nonewpoints == index.length) return response;
+			if(nonewpoints == index.length) return data;
 			else{
 				Plotly.prependTraces('plotly-TS', newdata, index);
 				return updateTraces(newdata, index);
@@ -189,45 +189,59 @@ function togglePlot(trace){
 function createQuery(trace, from, to, showing){
 	const line = trace.split(" ");
 	var query = `SELECT time,value FROM `;
+	var services = false;
 	/* If trace is for service status*/
 	if(line.length == 1){
+		services = true;
 		var measurement = line[0];
 		query += `"${measurement}"`;
+	}//else{
+	const group = line[0];
+	if(line.length == 3){
+		var cloud = line[1];
+		var measurement = line[2];
+		query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
+	}else if(!services){
+		var measurement = line[1];
+		query += `"${measurement}" WHERE "group"='${group}'`;
+	}
+	/* If requesting newest 30s of data*/
+	if (from == 30){
+		if(!services) query += ` AND time >= ${TSPlot.layout.xaxis.range[1]}ms`;
+		else query += ` WHERE time >= ${TSPlot.layout.xaxis.range[1]}ms`;
+	/* Default request is last 7 days*/
+	}else if (showing == false || (date-from) <= 604800000){
+		if(!services) query += ` AND time >= ${date-604800000}ms`;
+		else query += ` WHERE time >= ${date-604800000}ms`;
 	}else{
-		const group = line[0];
-		if(line.length == 3){
-			var cloud = line[1];
-			var measurement = line[2];
-			query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
-		}else{
-			var measurement = line[1];
-			query += `"${measurement}" WHERE "group"='${group}'`;
-		}
-		/* If requesting newest 30s of data*/
-		if (from == 30){
-			query += ` AND time >= ${TSPlot.layout.xaxis.range[1]}ms`;
-		/* Default request is last 7 days*/
-		}else if (showing == false || (date-from) <= 604800000){
-			query += ` AND time >= ${date-604800000}ms`;
-		}else{
-			/* Check if trace is already plotted*/
-			var index = -1;
-			for(var x = 0; x < TSPlot.traces.length; x++){
-				if (TSPlot.traces[x].name == trace){
-					index = x;
-					break;
-				}
+		/* Check if trace is already plotted*/
+		var index = -1;
+		for(var x = 0; x < TSPlot.traces.length; x++){
+			if (TSPlot.traces[x].name == trace){
+				index = x;
+				break;
 			}
-			/* If trace is already plotted*/
-			if(index != -1){
+		}
+		/* If trace is already plotted*/
+		if(index != -1){
+			if(!services){
 				if(from > TSPlot.layout.xaxis.range[0])	query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
 				else query += ` AND time >= ${from}ms AND time < ${to}ms`;
 			}else{
+				if(from > TSPlot.layout.xaxis.range[0])	query += ` WHERE time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
+				else query += ` WHERE time >= ${from}ms AND time < ${to}ms`;
+			}
+		}else{
+			if(!services){
 				if(from > TSPlot.layout.xaxis.range[0])	query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
 				else query += ` AND time >= ${from}ms AND time < ${date}ms`;
+			}else{
+				if(from > TSPlot.layout.xaxis.range[0])	query += ` WHERE time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
+				else query += ` WHERE time >= ${from}ms AND time < ${date}ms`;
 			}
-		}	
-	}
+		}
+	}	
+	//}
 	return query;
 }
 

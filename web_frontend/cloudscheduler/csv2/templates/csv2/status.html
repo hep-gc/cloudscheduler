@@ -380,7 +380,7 @@
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style plottable">{{cloud.cores_limit}}</td>
                         {% endif %}
                         
-                        <td>
+                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native" class="plottable">
                             {% with total=cloud.ram_quota %}
                                 <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
                             {% endwith %}
@@ -404,7 +404,7 @@
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="more-style plottable">{{ cloud.cores_foreign }}</a></td>
                         {% endif %}
 
-                        <td>
+                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign" class="plottable">
                             {% with total=cloud.ram_quota %}
                                 <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
                             {% endwith %}
@@ -428,7 +428,7 @@
                             <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="more-style plottable">{{ cloud.cores_quota }}</a></td>
                         {% endif %}
 
-                        <td>
+                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign" class="plottable">
                             {% with total=cloud.ram_quota %}
                                 <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
                             {% endwith %}                        
@@ -681,7 +681,7 @@
                 {% else %}
                     <td data-path="{{cloud_total_list.group_name}} cores_limit_total" class="more-style plottable">{{cloud_total_list.cores_limit}}</td>
                 {% endif %}
-                    <td>
+                    <td data-path="{{cloud_total_list.group_name}} ram_native_total" class="plottable">
                         {% with total=cloud_total_list.ram_quota %}
                             <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native }}"></meter>
                         {% endwith %}
@@ -702,7 +702,7 @@
                     <td data-path="{{cloud_total_list.group_name}} cores_foreign_total" class="more-style plottable">{{cloud_total_list.cores_foreign}}</td>
                 {% endif %}
 
-                    <td>
+                    <td data-path="{{cloud_total_list.group_name}} ram_foreign_total" class="plottable">
                         {% with total=cloud_total_list.ram_quota %}
                             <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_foreign }}"></meter>
                         {% endwith %}
@@ -715,7 +715,7 @@
 
                 <td data-path="{{cloud_total_list.group_name}} cores_quota_total" class="more-style bold-style plottable">{{cloud_total_list.cores_quota}}</td>
 
-                <td>
+                <td data-path="{{cloud_total_list.group_name}} ram_native_foreign_total" class="plottable">
                     {% with total=cloud_total_list.ram_quota %}
                         <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native_foreign }}"></meter>
                     {% endwith %}
