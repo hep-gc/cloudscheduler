@@ -897,14 +897,14 @@
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
-                <td data-path="csv2_main_status" tooltip="{{ system_list.csv2_main_msg }}">
+                <td data-path="csv2_main_status" class="plottable" tooltip="{{ system_list.csv2_main_msg }}">
                 {% if system_list.csv2_main_status == 1 %}
                     <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
-                <td data-path="mariadb_status" tooltip="{{ system_list.mariadb_msg }}">
+                <td data-path="mariadb_status" class="plottable" tooltip="{{ system_list.mariadb_msg }}">
                 {% if system_list.mariadb_status == 1 %}
                     <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
@@ -914,43 +914,43 @@
 
 
                 {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
-                    <td data-path="csv2_openstack_status" tooltip="{{ system_list.csv2_openstack_msg }}">
+                    <td data-path="csv2_openstack_status" class="plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
                     <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count != 0%}
-                    <td data-path="csv2_openstack_status" tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
+                    <td data-path="csv2_openstack_status" class="plottable" tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
                     <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
-                    <td data-path="csv2_openstack_status" tooltip="{{ system_list.csv2_openstack_msg }}">
+                    <td data-path="csv2_openstack_status" class="plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count == 0%}
-                    <td data-path="csv2_jobs_status" tooltip="{{ system_list.csv2_jobs_msg }}">
+                    <td data-path="csv2_jobs_status" class="plottable" tooltip="{{ system_list.csv2_jobs_msg }}">
                     <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count != 0%}
-                    <td data-path="csv2_jobs_status" tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
+                    <td data-path="csv2_jobs_status" class="plottable" tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
                     <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
-                    <td data-path="csv2_jobs_status" tooltip="{{ system_list.csv2_jobs_msg }}">
+                    <td data-path="csv2_jobs_status" class="plottable" tooltip="{{ system_list.csv2_jobs_msg }}">
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count == 0%}
-                    <td data-path="csv2_machines_status" tooltip="{{ system_list.csv2_machines_msg }}">
+                    <td data-path="csv2_machines_status" class="plottable" tooltip="{{ system_list.csv2_machines_msg }}">
                     <span class="green-symbol">&#x2714;</span></td>
                 {% elif system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count != 0%}
-                    <td data-path="csv2_machines_status" tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
+                    <td data-path="csv2_machines_status" class="plottable" tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
                     <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
-                    <td data-path="csv2_machines_status" tooltip="{{ system_list.csv2_machines_msg }}">
+                    <td data-path="csv2_machines_status" class="plottable" tooltip="{{ system_list.csv2_machines_msg }}">
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
 
 
-                <td data-path="condor_status" tooltip="{{ system_list.condor_msg }}">
+                <td data-path="condor_status" tooltip="{{ system_list.condor_msg }}" class="plottable">
                 {% if system_list.condor_status == 1 %}
                     <span class="green-symbol">&#x2714;</span></td>
                 {% else %}
@@ -960,13 +960,13 @@
 
                 <td class="col-spacer">&nbsp;</td>
 
-                <td tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
+                <td data-path="load" class="plottable" tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
 
-                <td tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
+                <td data-path="ram_used" class="plottable" tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
  
-                <td tooltip="{{ system_list.swap_used }} / {{ system_list.swap_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.swap }}"></meter></td>
+                <td data-path="swap_used" class="plottable" tooltip="{{ system_list.swap_used }} / {{ system_list.swap_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.swap }}"></meter></td>
 
-                <td tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
+                <td data-path="disk_used" class="plottable" tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
 
             </tr>
             <tr>

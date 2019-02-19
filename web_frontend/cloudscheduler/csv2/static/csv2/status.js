@@ -25,7 +25,9 @@ function addEventListeners(className) {
 
 /* Range selection dropdown*/
 function dropDown(){
-	document.getElementById("range-select").classList.add("selected");
+	if(!document.getElementById("myDropdown").classList.contains("show"))
+		document.getElementById("range-select").classList.add("selected");
+	else document.getElementById("range-select").classList.remove("selected");
 	document.getElementById("myDropdown").classList.toggle("show");
 }
 
@@ -142,7 +144,7 @@ window.onclick = function(event) {
 	      		}
     		}
 		if(k == true){
-			document.getElementById("range-select").classList.remove("selected");
+			document.getElementsByClassName("range-btn")[0].classList.remove("selected");
 		}
 	}
 }

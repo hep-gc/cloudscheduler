@@ -50,13 +50,33 @@ def timeseries_data_transfer():
 			STATUS = config.db_map.classes.csv2_system_status
 			statuses = db_session.query(STATUS)
 
-
 			# Query db for cloud status and job status view
 			cloud_status = db_session.query(view_cloud_status)
 			column_list = [item["name"] for item in cloud_status.column_descriptions]
 			job_status = db_session.query(view_job_status)
-			job_column_list = ["jobs","jobs_idle","jobs_running","jobs_completed","jobs_held","jobs_other"]
+			job_column_list = [
+				"jobs",
+				"jobs_idle",
+				"jobs_running",
+				"jobs_completed",
+				"jobs_held",
+				"jobs_other"
+			]
 			groups = []
+			service_status_list = [
+				'csv2_main_status',
+				'mariadb_status',
+				'csv2_openstack_status',
+				'csv2_jobs_status',
+				'csv2_machines_status',
+				'csv2_status_status',
+				'csv2_status_error_count',
+				'condor_status',
+				'load',
+				'ram_used',
+				'swap_used',
+				'disk_used'
+			]
 			
 			# Points to add to influxdb db
 			data_points = []
@@ -65,10 +85,14 @@ def timeseries_data_transfer():
 			# HTTP request args
 			params = {'db': 'csv2_timeseries','precision': 's'}
 			url_string = 'http://localhost:8086/write'
-
+			
+			# Parse serivce status data into line protocol for influxdb
 			for status in statuses:
-				new_point = "csv2_status_status value={0}i {1}".format(status.csv2_status_status, ts)
-				data_points.append(new_point)
+				status_dict = vars(status)
+				for column in status_dict:
+					if(column in service_status_list):
+						new_point = "{0} value={1} {2}".format(column, status_dict[column], ts)
+						data_points.append(new_point)
 			
 			# Parse cloud data into line protocol for influxdb
 			for line in cloud_status:
@@ -101,8 +125,6 @@ def timeseries_data_transfer():
 			for group in groups:
 				# get cloud status per group
 				s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
-				#cloud_status = db_session.select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
-				#console.log(cloud_status);
 				cloud_status_list = qt(config.db_connection.execute(s))
 
 				# calculate the totals for all rows
