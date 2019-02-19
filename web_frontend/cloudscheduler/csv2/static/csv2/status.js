@@ -1,3 +1,4 @@
+/* Timestamp of last refresh*/
 var date = Date.now();
 
 /* Add event listeners once page loads*/
@@ -100,11 +101,10 @@ function selectRange(range){
 				/* Add nulls to beginning and end of new data*/
 				newarrayx.unshift(newarrayx[0]-15000);
 				newarrayy.unshift(null);
+				newarrayx.push(newarrayx[newarrayx.length-1]+15000);
+				newarrayy.push(null);
 				newdata.y.push(newarrayy);
 				newdata.x.push(newarrayx);
-				newdata.x[i].push((newdata.x[i][newdata.x[i].length -1])+15000);
-				newdata.y[i].push(null);
-
 			}
 			/* If there were no new points for all traces*/
 			if(nonewpoints == index.length) return response;
@@ -332,67 +332,65 @@ function checkForPlottedTraces(){
 
 /* Refresh plot every 30 seconds with new data from db*/
 function refresh_plot() {
+	/* Only refresh if plot is showing*/
 	if(TSPlot.showing == true){
-		/* Only refresh if plot is showing and current range is Last hour or less*/
-		if((TSPlot.layout.xaxis.range[1] - TSPlot.layout.xaxis.range[0]) <= 3600000 && (TSPlot.layout.xaxis.range[1] >= date)){
-			var traces = TSPlot.traces;
-			var newdata = {
-				y: [],
-				x: []
-			};
-			var index = [];
-			var query = createQuery(traces[0].name, 30, 0, true)
-			index.push(0);
-			/* Create string of queries for db*/
-			for (var i = 1; i < traces.length; i++){
-				index.push(i);
-				query += ';'
-				query += createQuery(traces[i].name, 30, 0, true);
+		var traces = TSPlot.traces;
+		var newdata = {
+			y: [],
+			x: []
+		};
+		var index = [];
+		var query = createQuery(traces[0].name, 30, 0, true)
+		index.push(0);
+		/* Create string of queries for db*/
+		for (var i = 1; i < traces.length; i++){
+			index.push(i);
+			query += ';'
+			query += createQuery(traces[i].name, 30, 0, true);
+		}
+		if(window.location.pathname == "/cloud/status/") var newpath = "plot";
+		else var newpath = "/cloud/status/plot";
+		const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+		fetch(newpath,{
+			method: 'POST',
+			headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
+			credentials: 'same-origin',
+			body: query,
 			}
-			if(window.location.pathname == "/cloud/status/") var newpath = "plot";
-			else var newpath = "/cloud/status/plot";
-			const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-			fetch(newpath,{
-				method: 'POST',
-				headers: {'Accept': 'application/json', 'X-CSRFToken': csrftoken},
-				credentials: 'same-origin',
-				body: query,
+		)
+		.then(function(response){
+			/* Check response status code*/
+			if(response.ok){
+				return response.json();
+			}throw new Error('Could not update trace(s) :( HTTP response not was not OK -> '+response.status)
+		})
+		.then(function(data){
+			/* Parse response into arrays of new points*/
+			var new_points = true;
+			for(var k = 0; k < traces.length; k++){
+				if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
+					new_points = false;
+					break;
 				}
-			)
-			.then(function(response){
-				/* Check response status code*/
-				if(response.ok){
-					return response.json();
-				}throw new Error('Could not update trace(s) :( HTTP response not was not OK -> '+response.status)
-			})
-			.then(function(data){
-				/* Parse response into arrays of new points*/
-				var new_points = true;
-				for(var k = 0; k < traces.length; k++){
-					if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
-						new_points = false;
-						break;
-					}
-					const responsedata = data.results[k].series[0].values;
-					const unpackData = (arr, index) => {
-						var newarr = arr.map(x => x[index]);
-						return newarr
-					}
-					var updatetrace = {
-						x: unpackData(responsedata, 0),
-						y: unpackData(responsedata, 1)
-					}
-				
-					/* Update new data for traces*/
-					newdata.y.push(unpackData(responsedata, 1));
-					newdata.x.push(unpackData(responsedata, 0));
+				const responsedata = data.results[k].series[0].values;
+				const unpackData = (arr, index) => {
+					var newarr = arr.map(x => x[index]);
+					return newarr
 				}
-				/* Update plot with new data*/
-				if(new_points == true) return updateTraces(newdata, index);
-				else return;
-			})
-			.catch(error => console.warn(error));
-		}					
+				var updatetrace = {
+					x: unpackData(responsedata, 0),
+					y: unpackData(responsedata, 1)
+				}
+			
+				/* Update new data for traces*/
+				newdata.y.push(unpackData(responsedata, 1));
+				newdata.x.push(unpackData(responsedata, 0));
+			}
+			/* Update plot with new data*/
+			if(new_points == true) return updateTraces(newdata, index);
+			else return;
+		})
+		.catch(error => console.warn(error));					
 	}
 }
 
@@ -400,11 +398,14 @@ function refresh_plot() {
 /* Update plot traces with most recent data points and new range*/
 function updateTraces(newdata, index){
 	Plotly.extendTraces('plotly-TS', newdata, index);
-	date = Date.now();
-	var diff = date - TSPlot.layout.xaxis.range[1];
-	TSPlot.layout.xaxis.range[1] = date; 
-	TSPlot.layout.xaxis.range[0] += diff;
-	Plotly.relayout('plotly-TS', TSPlot.layout);
+	/* Only update range if if looking at last 12 hours or less*/
+	if(TSPlot.layout.xaxis.range[1] >= date && (date - TSPlot.layout.xaxis.range[0]) <= 43200000){
+		date = Date.now();
+		var diff = date - TSPlot.layout.xaxis.range[1];
+		TSPlot.layout.xaxis.range[1] = date; 
+		TSPlot.layout.xaxis.range[0] += diff;
+		Plotly.relayout('plotly-TS', TSPlot.layout);
+	}
 }
 
 
@@ -469,5 +470,3 @@ var TSPlot = {
 	}
 
 }//TSPlot
-
-	
