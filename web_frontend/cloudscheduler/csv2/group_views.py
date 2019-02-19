@@ -253,7 +253,7 @@ def defaults(request):
             rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_GROUP_KEYS], ['csv2_groups'], active_user)
             if rc != 0:
                 config.db_close()
-                return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno('GV01'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s default update/list %s' % (lno('GV01'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
 
             if rc == 0 and ('vm_flavor' in fields) and (fields['vm_flavor']):
