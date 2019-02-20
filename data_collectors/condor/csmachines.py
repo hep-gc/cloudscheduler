@@ -392,21 +392,18 @@ def command_poller():
 
                     #check if retire >1 and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire > 1:
-                        if resource[6] is None or resource[6]<1:
-                            # issue condor off -- will happen below
-                            pass
-                        elif (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                        if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
-                                vm_row = db_session.query(VM).filter(VM.group_name, VM.cloud_name, VM.vmid=)[0]
+                                vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                                 vm_row.terminate = 1
                                 vm_row.updater = get_frame_info()
                                 db_session.merge(vm_row)
                                 uncommitted_updates = uncommitted_updates + 1
                             except:
                                 # unable to get VM row error
-                                logging.error("%s ready to be terminated but unable to locate vm_row", % resource.vmid)
+                                logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
                                 continue
 
                     if resource.retire >= 2 and resource.retiring == 1:
