@@ -1276,4 +1276,4 @@ if __name__ == '__main__':
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
 
-    procMon.join_all()
+    procMon.kill_join_all()
