@@ -386,6 +386,8 @@
                     {% csrf_token %}
                     <div class="menu-position">
                         <table>
+                            <input type="hidden" name="group" value="{{active_group}}">
+
                             <tr class="highlight3"><td><label for="cloud_name">Cloud name</label></td>
                             <td><input type="text" name="cloud_name" value="" /></td></tr>
 
