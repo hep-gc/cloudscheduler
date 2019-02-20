@@ -387,24 +387,31 @@ def command_poller():
                     #8=retiring flag
                     #9=terminate flag
                     #10=machine
-                    # we shouldnt need to access by index, code should be changed for readability
-                    #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[6], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
-
-                    # First check if we have already issued a retire & its retiring
-
-                    if resource.retire >= 2 and resource.retiring == 1:
-                        #resource has already been retired, skip it
-                        continue
+                    #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
+                    # First check the slots to see if its time to terminate this machine
 
                     #check if retire >1 and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire > 1:
                         if resource[6] is None or resource[6]<1:
-                            # if we get in here the vm is not in retiring state yet for some reason
                             # issue condor off -- will happen below
                             pass
                         elif (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
-                            # set terminate=1.
-                            resource.terminate = 1
+                            # set terminate=1
+                            # need to get vm classad because we can't update via the view.
+                            try:
+                                vm_row = db_session.query(VM).filter(VM.group_name, VM.cloud_name, VM.vmid=)[0]
+                                vm_row.terminate = 1
+                                vm_row.updater = get_frame_info()
+                                db_session.merge(vm_row)
+                                uncommitted_updates = uncommitted_updates + 1
+                            except:
+                                # unable to get VM row error
+                                logging.error("%s ready to be terminated but unable to locate vm_row", % resource.vmid)
+                                continue
+
+                    if resource.retire >= 2 and resource.retiring == 1:
+                        #resource has already been retired and is in retiring state, skip it
+                        continue
 
                     if config.retire_off:
                         logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
