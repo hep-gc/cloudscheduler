@@ -388,7 +388,7 @@ def command_poller():
                     #9=terminate flag
                     #10=machine
                     # we shouldnt need to access by index, code should be changed for readability
-                    logging.info("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource.primary_slots, resource.dynamic_slots, resource.retire, resource.retiring, resource.terminate, resource.machine))
+                    #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[6], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
 
                     # First check if we have already issued a retire & its retiring
 
@@ -398,11 +398,11 @@ def command_poller():
 
                     #check if retire >1 and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire > 1:
-                        if resource.htcondor_dynamic_slots<1 or resource.htcondor_dynamic_slots is None:
+                        if resource[6] is None or resource[6]<1:
                             # if we get in here the vm is not in retiring state yet for some reason
                             # issue condor off -- will happen below
                             pass
-                        elif (resource.htcondor_dynamic_slots<1 or resource.htcondor_dynamic_slots is None) and (resource.htcondor_partitionable_slots<1 or resource.htcondor_partitionable_slots is None):
+                        elif (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
                             # set terminate=1.
                             resource.terminate = 1
 
@@ -465,11 +465,11 @@ def command_poller():
                 #get list of vm/machines from this condor host
                 redundant_machine_list = db_session.query(view_condor_host).filter(view_condor_host.c.htcondor_fqdn == condor_host, view_condor_host.c.terminate >= 1)
                 for resource in redundant_machine_list:
-
-                    #before starting the terminate process check to see all the partitionable/dynamic slots have gone away
-                    if resource.terminate == 1 and resource.htcondor_dynamic_slots >= 1 and resource.htcondor_partitionable_slots >=1:
-                        logging.info("VM still has active slots, skipping terminate on %s" % resource.vmid)
-                        continue
+                    if resource[6] is not None:
+                        if resource[5] is not None:
+                            if resource.terminate == 1 and resource[6] >= 1 and resource[5] >=1:
+                                logging.info("VM still has active slots, skipping terminate on %s" % resource.vmid)
+                                continue
 
 
                     # we need the relevent vm row to check if its in manual mode and if not, terminate and update termination status
