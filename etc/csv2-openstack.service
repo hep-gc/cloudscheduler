@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/openstack/openstackPoller.py
-Restart=on-abort
+Restart=always
 
 
 [Install]

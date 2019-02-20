@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=condor
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/csjobs.py
-Restart=on-abort
+Restart=always
 
 
 [Install]
