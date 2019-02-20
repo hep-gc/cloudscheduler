@@ -7,7 +7,7 @@
 
 .plot-div {
 	left: 2px;
-  position: relative;
+	position: relative;
 }
 
 #plotly-TS {
@@ -459,7 +459,7 @@ html {
 
 body.status-nav{
 	position: absolute;
-	top: 64px;
+	top: 62px;
 	padding-bottom: 129px;
 	overflow: auto;
 }
