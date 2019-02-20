@@ -1052,7 +1052,10 @@ def status(request, group_name=None):
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
+
+    #rc, msg, active_user, user_groups = set_user_groups(config, request, False)
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
+
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV33'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
