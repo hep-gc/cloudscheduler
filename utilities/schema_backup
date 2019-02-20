@@ -6,6 +6,7 @@ gvar['backup_data'] (see the main function) also backup the data.
 from cloudscheduler.lib.db_config import Config
 from subprocess import Popen, PIPE
 from tempfile import mkdtemp
+import datetime
 import os
 import shutil
 import socket
@@ -18,7 +19,7 @@ def decode(gvar, obj):
     else:
         return obj.decode('utf-8')
     
-def backup(gvar, table, data=False):
+def backup(gvar, table, backup_dir, data=False):
     """
     Perform backup, with or without data. The backup is performed to a temporary directory
     and only moved to the permanent directory if the table has changed. Since the backup
@@ -27,7 +28,7 @@ def backup(gvar, table, data=False):
 
     print(table)
 
-    if table in gvar['table_config']['global']:
+    if data:
         backup_cmd = [
             'mysqldump',
             '-u%s' % gvar['db_config'].db_config['db_user'],
@@ -60,11 +61,11 @@ def backup(gvar, table, data=False):
     _fd.write(decode(gvar, stdout))
     _fd.close()
 
-    if os.path.isfile('%s/%s' % (gvar['backup_dir'], table)):
+    if os.path.isfile('%s/%s' % (backup_dir, table)):
         _p1 = Popen(
             [
                 'diff',
-                '%s/%s' % (gvar['backup_dir'], table),
+                '%s/%s' % (backup_dir, table),
                 '%s/%s' % (gvar['temp_dir'], table)
                 ],
             stdout=PIPE,
@@ -92,7 +93,7 @@ def backup(gvar, table, data=False):
                 'mv',
                 '-f',
                 '%s/%s' % (gvar['temp_dir'], table),
-                '%s/%s' % (gvar['backup_dir'], table)
+                '%s/%s' % (backup_dir, table)
                 ],
             stdout=PIPE,
             stderr=PIPE
@@ -130,6 +131,9 @@ def main(args):
     else:
         gvar['table_config'] = {'global': []}
 
+    if 'local_backup_dir' in gvar['table_config']:
+        gvar['local_backup_dir'] = '%s/%s' % (gvar['table_config']['local_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+
     _p1 = Popen(
         [
             'mysql',
@@ -156,12 +160,30 @@ def main(args):
         print('Failed to retrieve table list.')
         exit(1)
 
-    print('csv2 schema-backup starting...')
+    print('\ncsv2 schema-backup starting...')
 
     tables = decode(gvar, stdout).split('\n')
     for table in tables:
         if len(table) > 0 and (len(table) < 5 or table[:5] != 'view_'):
-            backup(gvar, table)
+            if 'global' in gvar['table_config'] and table in gvar['table_config']['global']:
+                backup(gvar, table, gvar['backup_dir'], data=True)
+            else:
+                backup(gvar, table, gvar['backup_dir'])
+
+    print('\ncsv2 schema-backup starting local backups...')
+
+    if 'local_backup_dir' in gvar and 'local' in gvar['table_config'] and len(gvar['table_config']['local']) > 0:
+        os.makedirs(gvar['local_backup_dir'], 0o640)
+
+        try:
+            os.unlink('%s/latest' % gvar['table_config']['local_backup_dir'])
+        except:
+            pass
+
+        os.symlink(gvar['local_backup_dir'], '%s/latest' % gvar['table_config']['local_backup_dir'])
+
+        for table in gvar['table_config']['local']:
+            backup(gvar, table, gvar['local_backup_dir'], data=True)
 
 #   shutil.rmtree(gvar['temp_dir'])
     print('csv2 schema-backup completed.')
