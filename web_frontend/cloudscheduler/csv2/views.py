@@ -14,7 +14,7 @@ WEB REQUEST VIEWS
 
 def index(request):
     config.db_open()
-    rc, msg, active_user, user_groups = set_user_groups(config, request, False)
+    rc, msg, active_user, user_groups = set_user_groups(config, request, super_user=False)
     config.db_close()
     return HttpResponse("Hello, %s. You're at the cloudscheduler v2 index." % active_user.username)
 

@@ -32,6 +32,9 @@ if config.enable_profiling:
     SILKY_PYTHON_PROFILER = True
     SILKY_PYTHON_PROFILER_BINARY = True
     SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
+    SILKY_MAX_RECORDED_REQUESTS = 250 #for a large scale test this should probably be higher but this should be plenty for us
+    SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
+    # command to manually clear request log: python3 manage.py silk_clear_request_log
 
 ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
                  "csv2-dev.heprc.uvic.ca",
