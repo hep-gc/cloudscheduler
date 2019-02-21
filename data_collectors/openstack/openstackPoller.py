@@ -945,7 +945,7 @@ def security_group_poller():
     failure_dict = {}
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
         while True:
             logging.debug("Beginning security group poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
@@ -990,7 +990,7 @@ def security_group_poller():
 
                 # Retrieve all flavours for this cloud.
                 try:
-                    sec_grp_list =  neu.list_security_groups())
+                    sec_grp_list =  neu.list_security_groups()
                 except Exception as exc:
                     logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
                     logging.error(exc)
@@ -1018,7 +1018,7 @@ def security_group_poller():
 
                 # Process security groups for this cloud.
                 uncommitted_updates = 0
-                for sec_grp in sec_grp_list:
+                for sec_grp in sec_grp_list["security_groups"]:
                     for groups in unique_cloud_dict[cloud]['groups']:
                         group_n = groups[0]
                         cloud_n = groups[1]
@@ -1036,7 +1036,7 @@ def security_group_poller():
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp.name, sec_grp_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.log_level<20)):
                             continue
 
                         new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
@@ -1069,7 +1069,7 @@ def security_group_poller():
                 continue
 
             # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-            delete_obsolete_database_items('sec_grp', inventory, db_session, sec_grp, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
+            delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict)
 
             config.db_close()
             del db_session
