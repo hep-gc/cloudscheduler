@@ -22,7 +22,7 @@ from (
         htcondor_dynamic_slots as dynamic_slots,
         retire,
         terminate,
-        unix_timestamp()-ifnull(htcondor_slots_timestamp,unix_timestamp()) as age
+        unix_timestamp()-ifnull(htcondor_slots_timestamp,cv.last_updated) as age
     from csv2_vms as cv
     join csv2_configuration as c1 on
         c1.category='SQL' and
