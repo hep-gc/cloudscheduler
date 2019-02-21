@@ -445,7 +445,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
+                        logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
                         continue
 
             if uncommitted_updates > 0:
