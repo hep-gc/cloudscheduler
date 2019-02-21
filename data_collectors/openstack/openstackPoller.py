@@ -5,6 +5,7 @@ import time
 import sys
 import os
 import datetime
+from dateutil import tz
 import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
@@ -1093,8 +1094,12 @@ def vm_poller():
                                     floating_ips.append(addr['addr'])
                         strt_time = vm.__dict__["OS-SRV-USG:launched_at"]
                         try:
+                            from_zone = tz.gettz('UTC')
+                            to_zone = tz.gettz('America/Vancouver')
                             dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
-                            vm_start_time = dt_strt_time.strftime('%s')
+                            dt_strt_time = dt_strt_time.replace(tzinfo=from_zone)
+                            local_strt_time = dt_strt_time.astimezone(to_zone)
+                            vm_start_time = local_strt_time.strftime('%s')
                         except:
                             logging.info("No start time because VM still booting: %s, %s - setting start time equal to current time." % (type(strt_time), strt_time))
                             vm_start_time = new_poll_time
