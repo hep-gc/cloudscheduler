@@ -257,8 +257,8 @@ function parseData(responsedata){
 	const unpackData = (arr, index) => {
 		var newarr = arr.map((x, ind) => {
 			if(index == 0 && ind < arr.length-1){
-				/* If gap between two timestamps is > 70s*/
-				if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 70000){
+				/* If gap between two timestamps is > 45s*/
+				if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 45000){
 					addtime.push(arr[ind][index] + 15000);
 					addindex.push(ind+1);
 				}
@@ -413,6 +413,14 @@ function refresh_plot() {
 
 /* Update plot traces with most recent data points and new range*/
 function updateTraces(newdata, index){
+	/* If last plotted data point was 55s or more ago, insert null to show break in plot*/
+	for(var k = 0; k < index.length; k++){
+		var len = TSPlot.traces[k].x.length -1;
+		if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
+			newdata.x[k].unshift((TSPlot.traces[k].x[len]) + 1000);
+			newdata.y[k].unshift(null);
+		}
+	}
 	Plotly.extendTraces('plotly-TS', newdata, index);
 	/* Only update range if if looking at last 12 hours or less*/
 	if(TSPlot.layout.xaxis.range[1] >= date && (date - TSPlot.layout.xaxis.range[0]) <= 43200000){
