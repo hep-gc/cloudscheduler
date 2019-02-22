@@ -76,6 +76,15 @@ class ProcessMonitor:
     def is_alive(self, process):
         return self.processes[process].is_alive()
 
+    def kill_join_all(self):
+        for proc in self.processes:
+            pro = self.processes[proc]
+            try:
+                pro.terminate()
+                pro.join()
+            except:
+                logging.error("failed to join process %s", pro.name)
+
     def join_all(self):
         for proc in self.processes:
             pro = self.processes[proc]

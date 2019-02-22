@@ -5,6 +5,7 @@ import time
 import sys
 import os
 import datetime
+from dateutil import tz
 import copy
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
@@ -929,7 +930,159 @@ def network_poller():
         config.db_close()
         del db_session
 
-# Retrieve VMs.
+
+def security_group_poller():
+    multiprocessing.current_process().name = "Security Group Poller"
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+
+    SECURITY_GROUP = config.db_map.classes.cloud_security_groups
+    CLOUD = config.db_map.classes.csv2_clouds
+
+    cycle_start_time = 0
+    new_poll_time = 0
+    poll_time_history = [0,0,0,0]
+    failure_dict = {}
+
+    try:
+        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
+        while True:
+            logging.debug("Beginning security group poller cycle")
+            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+            config.db_open()
+            db_session = config.db_session
+
+            abort_cycle = False
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
+            for cloud in cloud_list:
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+
+
+            for cloud in unique_cloud_dict:
+                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                logging.debug("Processing security groups from cloud - %s" % cloud_name)
+                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                if session is False:
+                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
+                        continue
+
+                # setup OpenStack api objects
+                neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+
+                # Retrieve all flavours for this cloud.
+                try:
+                    sec_grp_list =  neu.list_security_groups()
+                except Exception as exc:
+                    logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
+                    logging.error(exc)
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        if grp_nm+cld_nm not in failure_dict:
+                            failure_dict[grp_nm+cld_nm] = 1
+                        else:
+                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                            config.incr_cloud_error(grp_nm, cld_nm)
+                    continue
+
+                if sec_grp_list is False:
+                    logging.info("No security groups defined for %s, skipping this cloud..." % cloud_name)
+                    continue
+
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    failure_dict.pop(grp_nm+cld_nm, None)
+                    config.reset_cloud_error(grp_nm, cld_nm)
+
+                # Process security groups for this cloud.
+                uncommitted_updates = 0
+                for sec_grp in sec_grp_list["security_groups"]:
+                    for groups in unique_cloud_dict[cloud]['groups']:
+                        group_n = groups[0]
+                        cloud_n = groups[1]
+
+                        sec_grp_dict = {
+                            'group_name': group_n,
+                            'cloud_name': cloud_n,
+                            'name': sec_grp["name"],
+                            'id': sec_grp["id"],
+                            'last_updated': new_poll_time
+                            }
+
+                        flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
+                        if unmapped:
+                            logging.error("Unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)
+
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
+
+                        new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
+                        try:
+                            db_session.merge(new_sec_grp)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, sec_grp.name))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+
+                del neu
+                if abort_cycle:
+                    break
+
+                if uncommitted_updates > 0:
+                    try:        
+                        db_session.commit()
+                        logging.info("Security group updates committed: %d" % uncommitted_updates)
+                    except Exception as exc:
+                        logging.exception("Failed to commit security group updates for %s, aborting cycle..." % cloud_name)
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.sleep_interval_sec_grp)
+                continue
+
+            # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
+            delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict)
+
+            config.db_close()
+            del db_session
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
+
+    except Exception as exc:
+        logging.exception("sec_grp poller cycle while loop exception, process terminating...")
+        logging.error(exc)
+        config.db_close()
+        del db_session
+
+
+
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
     #Base = automap_base()
@@ -1093,8 +1246,12 @@ def vm_poller():
                                     floating_ips.append(addr['addr'])
                         strt_time = vm.__dict__["OS-SRV-USG:launched_at"]
                         try:
+                            from_zone = tz.gettz('UTC')
+                            to_zone = tz.gettz('America/Vancouver')
                             dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
-                            vm_start_time = dt_strt_time.strftime('%s')
+                            dt_strt_time = dt_strt_time.replace(tzinfo=from_zone)
+                            local_strt_time = dt_strt_time.astimezone(to_zone)
+                            vm_start_time = local_strt_time.strftime('%s')
                         except:
                             logging.info("No start time because VM still booting: %s, %s - setting start time equal to current time." % (type(strt_time), strt_time))
                             vm_start_time = new_poll_time
@@ -1245,16 +1402,17 @@ def service_registrar():
 
 if __name__ == '__main__':
     process_ids = {
-        'flavor':      flavor_poller,
-        'image':       image_poller,
-        'keypair':     keypair_poller,
-        'limit':       limit_poller,
-        'network':     network_poller,
-        'vm':          vm_poller,
-        'registrar':   service_registrar,
+        'flavor':                flavor_poller,
+        'image':                 image_poller,
+        'keypair':               keypair_poller,
+        'limit':                 limit_poller,
+        'network':               network_poller,
+        'vm':                    vm_poller,
+        'registrar':             service_registrar,
+        'security_group_poller': security_group_poller
     }
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=8, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=9, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
@@ -1276,4 +1434,4 @@ if __name__ == '__main__':
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
 
-    procMon.join_all()
+    procMon.kill_join_all()

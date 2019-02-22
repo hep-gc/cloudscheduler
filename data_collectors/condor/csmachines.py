@@ -390,26 +390,27 @@ def command_poller():
                     #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
                     # First check the slots to see if its time to terminate this machine
 
-                    #check if retire >1 and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
-                    if resource.retire > 1:
-                        if resource[6] is None or resource[6]<1:
-                            # issue condor off -- will happen below
-                            pass
-                        elif (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                    #check if retire flag set  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
+                    if resource.retire >= 1:
+                        if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
-                                vm_row = db_session.query(VM).filter(VM.group_name, VM.cloud_name, VM.vmid=)[0]
+                                logging.info("slots are zero or null on %s, setting terminate" % resource.vmid)
+                                vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                                 vm_row.terminate = 1
                                 vm_row.updater = get_frame_info()
                                 db_session.merge(vm_row)
                                 uncommitted_updates = uncommitted_updates + 1
+
+                                # since this vm is already ready for termination we can continue here instead of issuing the condor_off
+                                continue
                             except:
                                 # unable to get VM row error
-                                logging.error("%s ready to be terminated but unable to locate vm_row", % resource.vmid)
+                                logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
                                 continue
 
-                    if resource.retire >= 2 and resource.retiring == 1:
+                    if (resource.retire >= 2 and resource.retiring == 1) or resource.terminate>=1:
                         #resource has already been retired and is in retiring state, skip it
                         continue
 
@@ -444,7 +445,7 @@ def command_poller():
 
                     except Exception as exc:
                         logging.error(exc)
-                        logging.exception("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
+                        logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
                         continue
 
             if uncommitted_updates > 0:
@@ -637,4 +638,4 @@ if __name__ == '__main__':
     except Exception as ex:
         logging.exception("Process Died: %s", ex)
 
-    procMon.join_all()
+    procMon.kill_join_all()
