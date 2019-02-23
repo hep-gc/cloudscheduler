@@ -20,6 +20,8 @@
 		TimerSwitch = 1;
 		timer_id = setTimeout(function() {
 			refresh_plot();
+			TimerVal = 30;
+	    		set_refresh(30000);
 			fetch(location.href,{	
 				method: 'GET',
 				headers: {'Accept': 'text/html'},
@@ -36,14 +38,10 @@
 	    			document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
 				document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
 				checkForPlottedTraces();
-				TimerVal = 30;
 				initialize();
-	    			set_refresh(30000);
 			})
 			.catch((error) => {
 				console.warn(error);
-				TimerVal = 30;
-	    			set_refresh(30000);
 			});
 			
 		},time);

@@ -197,7 +197,7 @@ function createQuery(trace, from, to, showing){
 		services = true;
 		var measurement = line[0];
 		query += `"${measurement}"`;
-	}//else{
+	}
 	const group = line[0];
 	if(line.length == 3){
 		var cloud = line[1];
@@ -208,9 +208,9 @@ function createQuery(trace, from, to, showing){
 		query += `"${measurement}" WHERE "group"='${group}'`;
 	}
 	/* If requesting newest 30s of data*/
-	if (from == 30){
-		if(!services) query += ` AND time >= ${TSPlot.layout.xaxis.range[1]}ms`;
-		else query += ` WHERE time >= ${TSPlot.layout.xaxis.range[1]}ms`;
+	if (to == 0){
+		if(!services) query += ` AND time >= ${from}ms`;
+		else query += ` WHERE time >= ${from}ms`;
 	/* Default request is last 7 days*/
 	}else if (showing == false || (date-from) <= 604800000){
 		if(!services) query += ` AND time >= ${date-604800000}ms`;
@@ -242,8 +242,7 @@ function createQuery(trace, from, to, showing){
 				else query += ` WHERE time >= ${from}ms AND time < ${date}ms`;
 			}
 		}
-	}	
-	//}
+	}
 	return query;
 }
 
@@ -356,13 +355,13 @@ function refresh_plot() {
 			x: []
 		};
 		var index = [];
-		var query = createQuery(traces[0].name, 30, 0, true)
+		var query = createQuery(traces[0].name, traces[0].x[traces[0].x.length-1], 0, true)
 		index.push(0);
 		/* Create string of queries for db*/
 		for (var i = 1; i < traces.length; i++){
 			index.push(i);
 			query += ';'
-			query += createQuery(traces[i].name, 30, 0, true);
+			query += createQuery(traces[i].name, traces[i].x[traces[i].x.length-1], 0, true);
 		}
 		if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 		else var newpath = "/cloud/status/plot";
@@ -385,6 +384,7 @@ function refresh_plot() {
 			var new_points = true;
 			for(var k = 0; k < traces.length; k++){
 				if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
+					console.log("new_points == false");
 					new_points = false;
 					break;
 				}
@@ -417,8 +417,10 @@ function updateTraces(newdata, index){
 	for(var k = 0; k < index.length; k++){
 		var len = TSPlot.traces[k].x.length -1;
 		if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
-			newdata.x[k].unshift((TSPlot.traces[k].x[len]) + 1000);
+			console.log(newdata);
+			newdata.x[k].unshift(newdata.x[k][0] - 1000);
 			newdata.y[k].unshift(null);
+			console.log(newdata);
 		}
 	}
 	Plotly.extendTraces('plotly-TS', newdata, index);

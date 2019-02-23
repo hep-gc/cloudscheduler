@@ -1238,8 +1238,8 @@ def status(request, group_name=None):
 @requires_csrf_token
 def request_ts_data(request):
     """
-    This function should recieve a post request with a payload of an influxdb query
-    to update the timeseries plot
+    This function should receive a post request with a payload of an influxdb query
+    to update the timeseries plot.
     """
 
     params = {'db': 'csv2_timeseries','epoch': 'ms', 'q':request.body}
