@@ -34,6 +34,7 @@ KEY_MAP = {
     '-vk':  'vm_keyname',
     '-vn':  'vm_network',
     '-vr':  'ram_ctl',
+    '-vsg':  'vm_security_groups',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -62,7 +63,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
     required = []
-    optional = ['-ce', '-cfe', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
+    optional = ['-ce', '-cfe', '-cP', '-csp', '-cU', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -282,7 +283,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', '-cp', '-cr', '-csp', '-ct', '-cU', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

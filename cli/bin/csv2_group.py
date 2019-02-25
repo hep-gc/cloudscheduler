@@ -25,6 +25,7 @@ KEY_MAP = {
     '-vka':  'vm_keep_alive',
     '-vk':   'vm_keyname',
     '-vn':   'vm_network',
+    '-vsg':  'vm_security_groups',
     }
 
 def _filter_by_group_name_and_or_metadata_name(gvar, qs):
@@ -51,7 +52,7 @@ def add(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -81,7 +82,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -221,7 +222,7 @@ def update(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

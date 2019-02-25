@@ -245,6 +245,7 @@ def main(args):
             ('-vr',   '--vm-ram', True),
             ('-vS',   '--vm-status', True),
             ('-vs',   '--vm-swap', True),
+            ('-vsg',  '--vm-security-groups', True),
             ('-xA',   '--expose-API', False),
             ('-Y',    '--yes', False),
             ),
