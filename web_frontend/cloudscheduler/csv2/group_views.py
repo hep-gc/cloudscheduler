@@ -183,6 +183,13 @@ def add(request):
                 #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
 
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
+
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
@@ -267,6 +274,9 @@ def defaults(request):
             if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             
+            if rc == 0 and ('vm_security_groups' in fields) and (fields['vm_security_groups']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
+            
             if rc == 0:
                 # Update the group defaults.
                 table = tables['csv2_groups']
@@ -290,6 +300,7 @@ def defaults(request):
     metadata_dict = {}
     keypairs_list = []
     network_list = []
+    security_groups_list = []
 
     # If User/Groups successfully set, retrieve group information.
     if user_groups_set:
@@ -320,6 +331,10 @@ def defaults(request):
             s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
             network_list = qt(config.db_connection.execute(s))
 
+            # Get all security groups in group:
+            s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
+            security_groups_list = qt(config.db_connection.execute(s))
+
             # Get the group default metadata list:
             s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
             group_list, metadata_dict = qt(
@@ -349,6 +364,7 @@ def defaults(request):
             'metadata_dict': metadata_dict,
             'keypairs_list': keypairs_list,
             'network_list': network_list,
+            'security_groups_list': security_groups_list,
             'response_code': rc,
             'message': message,
             'enable_glint': config.enable_glint,
@@ -393,6 +409,7 @@ def delete(request):
                 'csv2_vms',
                 'cloud_keypairs',
                 'cloud_networks',
+                'cloud_security_groups',
                 'cloud_limits',
                 'cloud_images',
                 'cloud_flavors'
@@ -494,6 +511,17 @@ def delete(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+            return list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg))
+
+        # Delete the cloud_security_groups.
+        table = tables['cloud_security_groups']
+        rc, msg = config.db_session_execute(
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            config.db_close()
+            #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group security_groups delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg))
 
         # Delete the cloud_limits.
@@ -990,6 +1018,13 @@ def update(request):
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
+
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
