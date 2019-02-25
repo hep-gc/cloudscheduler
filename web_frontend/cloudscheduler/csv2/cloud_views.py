@@ -495,9 +495,6 @@ def delete(request):
 @requires_csrf_token
 def list(request, active_user=None, response_code=0, message=None):
 
-
-    #print('ggggggggggggggggggggggggggggggggggggggggggggg', request.__dict__)
-
     cloud_list_path = '/cloud/list/'
 
     if request.path!=cloud_list_path and request.META['HTTP_ACCEPT'] == 'application/json':
@@ -507,10 +504,11 @@ def list(request, active_user=None, response_code=0, message=None):
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user = set_user_groups(config, request, super_user=False)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+    if active_user is None:
+        rc, msg, active_user = set_user_groups(config, request, super_user=False)
+        if rc != 0:
+            config.db_close()
+            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields when request is for /cloud/list/.
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)

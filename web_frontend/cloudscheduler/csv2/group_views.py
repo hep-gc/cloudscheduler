@@ -552,22 +552,20 @@ def delete(request):
 @silkp(name='Group List')
 def list(request, active_user=None, response_code=0, message=None):
 
-
-
     group_list_path = '/group/list/'
 
     if request.path!=group_list_path and request.META['HTTP_ACCEPT'] == 'application/json':
         return render(request, 'csv2/clouds.html', {'response_code': response_code, 'message': message, 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-
     # open the database.
     config.db_open()
 
     # Retrieve the active user, associated group list and optionally set the active group.
-    rc, msg, active_user = set_user_groups(config, request)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': msg})
+    if active_user is None:
+        rc, msg, active_user = set_user_groups(config, request)
+        if rc != 0:
+            config.db_close()
+            return render(request, 'csv2/groups.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
