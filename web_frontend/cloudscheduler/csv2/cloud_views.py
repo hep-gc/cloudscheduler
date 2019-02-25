@@ -839,7 +839,7 @@ def metadata_delete(request):
 
 @silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
-def metadata_fetch(request, selector=None):
+def metadata_fetch(request, response_code=0, message=None, metadata_name=None, cloud_name=None):
 
     # open the database.
     config.db_open()
@@ -855,10 +855,19 @@ def metadata_fetch(request, selector=None):
     s = select([csv2_mime_types])
     mime_types_list = qt(config.db_connection.execute(s))
 
+
+    # If we are NOT returning from an update, we are fetching from webpage
+    if metadata_name == None:
+        metadata_name = active_user.kwargs['metadata_name']
+
+    if cloud_name == None:
+        cloud_name = active_user.kwargs['cloud_name']
+
+
     # Retrieve metadata file.
-    if 'cloud_name' in active_user.kwargs and 'metadata_name' in active_user.kwargs:
+    if cloud_name and metadata_name:
         METADATA = config.db_map.classes.csv2_cloud_metadata
-        METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==active_user.kwargs['cloud_name']) & (METADATA.metadata_name==active_user.kwargs['metadata_name']))
+        METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==cloud_name) & (METADATA.metadata_name==metadata_name))
         if METADATAobj:
             for row in METADATAobj:
                 context = {
@@ -870,8 +879,8 @@ def metadata_fetch(request, selector=None):
                     'metadata_mime_type': row.mime_type,
                     'metadata_name': row.metadata_name,
                     'mime_types_list': mime_types_list,
-                    'response_code': 0,
-                    'message': None,
+                    'response_code': response_code,
+                    'message': message,
                     'enable_glint': config.enable_glint,
                     'is_superuser': active_user.is_superuser 
 
@@ -1040,6 +1049,7 @@ def metadata_update(request):
             config.db_close(commit=True)
 
             message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+            '''
             context = {
                     'group_name': fields['group_name'],
                     'cloud_name': fields['cloud_name'],
@@ -1047,8 +1057,9 @@ def metadata_update(request):
                     'response_code': 0,
                     'message': message,
                 }
-
-            return render(request, 'csv2/meta_editor.html', context)
+            '''
+            #return render(request, 'csv2/meta_editor.html', context)
+            return metadata_fetch(request, response_code=0, message=message, metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
         else:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
