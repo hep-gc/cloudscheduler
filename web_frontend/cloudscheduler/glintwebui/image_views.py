@@ -118,12 +118,6 @@ def project_details(request, group_name=None, message=None):
         reverse_img_lookup = None
         # Should render a page here that says no image info available please refresh in 20 seconds
 
-    # The image_list is a unique list of images stored in tuples (img_id, img_name)
-    # Still need to add detection for images that have different names but the same ID
-    group_list = []
-    for grp in user_groups:
-        grp_name = grp.group_name
-        group_list.append(grp_name)
 
     #conflict_dict = get_conflicts_for_group(group_name)
     num_tx = get_num_transactions()
@@ -131,7 +125,7 @@ def project_details(request, group_name=None, message=None):
         num_tx = 0
     context = {
         'active_group': group_name,
-        'user_groups': group_list,
+        'user_groups': user_groups,
         'image_dict': image_dict,
         'image_set': image_set,
         #'hidden_image_set': hidden_image_set,

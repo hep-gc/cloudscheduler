@@ -31,13 +31,6 @@ def manage_keys(request, group_name=None, message=None):
     Group_Resources = db_config.db_map.classes.csv2_clouds
     Keypairs = db_config.db_map.classes.cloud_keypairs
 
-    
-
-    group_list = []
-    for grp in user_groups:
-        grp_name = grp.group_name
-        group_list.append(grp_name)
-
     grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
     key_dict = {}
 
@@ -65,7 +58,7 @@ def manage_keys(request, group_name=None, message=None):
         "active_group": group_name,
         "message": message,
         "enable_glint": True,
-        "user_groups": group_list,
+        "user_groups": user_groups,
         "num_clouds": num_clouds
     }
     # need to create template
