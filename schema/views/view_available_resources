@@ -23,6 +23,7 @@ fwd.default_image,
 fwd.default_keep_alive,
 fwd.default_keyname,
 fwd.default_network,
+fwd.default_security_groups,
 ifnull(ru.VMs,0) as VMs,
 fwd.cores_max,
 ifnull(ru.cores_used,0) as cores_used,
@@ -112,6 +113,16 @@ from (
                     null
                 end
             end as default_network,
+
+            case when ifnull(cc.vm_security_groups,'')!='' then
+                cc.vm_security_groups
+            else
+                case when ifnull(cg.vm_security_groups,'')!='' then
+                    cg.vm_security_groups
+                else
+                    null
+                end
+            end as default_security_groups,
 
             case when ifnull(cores_ctl,-1)!=-1 then
                 case when ifnull(cores_softmax,-1)!=-1 then

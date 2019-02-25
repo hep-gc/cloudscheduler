@@ -381,6 +381,13 @@ def add(request):
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
 
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
+
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
             rc, msg = manage_group_metadata_verification(tables, fields['group_name'], None, fields['metadata_name']) 
@@ -524,6 +531,7 @@ def list(request, active_user=None, response_code=0, message=None):
         metadata_dict = {}
         keypairs_list = {}
         network_list = {}
+        security_groups_list = {}
         group_metadata_dict = {}
         group_metadata_exclusion_list = {}
     else:
@@ -546,6 +554,10 @@ def list(request, active_user=None, response_code=0, message=None):
         # Get all the networks in group:
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
         network_list = qt(config.db_connection.execute(s))
+
+        # Get all the security groups in group:
+        s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
+        security_groups_list = qt(config.db_connection.execute(s))
 
         s = select([view_clouds_with_metadata_info]).where(view_clouds_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
@@ -597,6 +609,7 @@ def list(request, active_user=None, response_code=0, message=None):
             'flavor_exclusion_list': flavor_exclusion_list,
             'keypairs_list': keypairs_list,
             'network_list': network_list,
+            'security_groups_list': security_groups_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
@@ -1318,6 +1331,13 @@ def update(request):
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg))
+
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
