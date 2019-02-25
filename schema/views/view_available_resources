@@ -192,7 +192,7 @@ left outer join (
         sum(1) as flavor_VMs,
         sum(case when cv2.manual_control=1 then 1 else 0 end) as flavor_manual,
         sum(case when cv2.manual_control=0 and cv2.status='ERROR' then 1 else 0 end) as flavor_error,
-        sum(case when cv2.manual_control=0 and cv2.status='ACTIVE' and cv2.retire>0 then 1 else 0 end) as flavor_retiring
+        sum(case when cv2.manual_control=0 and cv2.status='ACTIVE' and cv2.retire>1 then 1 else 0 end) as flavor_retiring
     from csv2_vms as cv2
     group by
         cv2.group_name,
