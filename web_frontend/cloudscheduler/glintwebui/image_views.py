@@ -66,18 +66,15 @@ def project_details(request, group_name=None, message=None):
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
     # this means we now have to create a new unique image set that is just the image names
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-
     # set up database objects
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
     Groups = db_config.db_map.classes.csv2_groups
 
-    rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
+    rc, msg, user_obj = set_user_groups(db_config, request)
+    user_groups = user_obj.user_groups
 
     
-
     if group_name is None:
         group_name = user_obj.active_group
     if group_name is None:
@@ -95,10 +92,6 @@ def project_details(request, group_name=None, message=None):
         default_image = None
     else:
         default_image = defaults.vm_image
-
-    user_obj.active_group = group_name
-    session.merge(user_obj)
-    session.commit()
 
 
     try:
