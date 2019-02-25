@@ -323,9 +323,7 @@ def resolve_conflict(request, group_name, cloud_name):
 @silkp(name='Download Image')
 def download_image(request, image_name, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-    user_obj = getUser(request, db_config)
+    rc, msg, user_obj = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
 
@@ -379,9 +377,7 @@ def download_image(request, image_name, group_name=None):
 @silkp(name='Upload Image')
 def upload_image(request, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-    user_obj = getUser(request, db_config)
+    rc, msg, user_obj = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
     try:

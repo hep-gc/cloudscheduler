@@ -180,10 +180,7 @@ def new_keypair(request, group_name=None,):
 @silkp(name='Save Keypairs')
 def save_keypairs(request, group_name=None, message=None):
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-
-    user_obj = getUser(request, db_config)
+    rc, msg, user_obj = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
     if group_name is None:
