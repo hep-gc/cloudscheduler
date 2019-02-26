@@ -900,7 +900,7 @@ def validate_fields(config, request, fields, tables, active_user):
     ('table', 'column')    - A list of valid options derrived from the named table and column.
     boolean                - A value of True or False will be inserted into the output fields.
     dboolean               - Database boolean values are either 0 or 1; allow and
-                             convert true/false/yes/no.
+                             convert true/false/yes/no/on/off.
     float                  - A floating point value.
     ignore                 - Ignore missing mandatory fields or fields for undefined columns.
     integer                - An integer value.
@@ -1024,9 +1024,9 @@ def validate_fields(config, request, fields, tables, active_user):
 
                 elif Formats[field] == 'dboolean':
                     lower_value = value.lower()
-                    if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
+                    if lower_value == 'true' or lower_value == 'yes' or lower_value == 'on' or lower_value == '1':
                         value = 1
-                    elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
+                    elif lower_value == 'false' or lower_value == 'no' or lower_value == 'off' or lower_value == '0':
                         value = 0
                     else:
                         return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None
