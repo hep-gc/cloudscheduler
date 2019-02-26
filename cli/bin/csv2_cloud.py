@@ -140,7 +140,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -185,18 +185,68 @@ def list(gvar):
             'vm_keep_alive/Keep Alive/Cloud Default',
             'vm_keyname/Keyname/Cloud Default',
             'vm_network/Network/Cloud Default',
+            'vm_security_groups/Security Groups/Cloud Default',
             'cascading_vm_flavor/Flavor/Cascading Default',
             'cascading_vm_image/Image/Cascading Default',
             'cascading_vm_keep_alive/Keep Alive/Cascading Default',
             'cascading_vm_keyname/Keyname/Cascading Default',
             'cascading_vm_network/Network/Cascading Default',
+            'cascading_vm_security_groups/Security Groups/Cascading Default',
             'cacertificate/CA Certificate',
             'flavor_exclusions/Flavor Exclusions/Cloud',
             'flavor_names/Flavors/Cloud',
             'group_exclusions/Group Exclusions/Metadata',
             'metadata_names/Filenames/Metadata',
             ],
-        title="Clouds:",
+        title="Clouds",
+        )
+
+    show_table(
+        gvar,
+        response['flavor_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Flavor',
+            ],
+        title="Flavors",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['image_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Flavor',
+            ],
+        title="Images",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['network_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Flavor',
+            ],
+        title="Networks",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['security_groups_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Security Groups',
+            ],
+        title="Security Groups",
+        optional=True,
         )
 
 def status(gvar):
@@ -234,7 +284,7 @@ def status(gvar):
             'Completed',
             'Other',
         ],
-        title="Job status:",
+        title="Job status",
         )
 
     show_table(
@@ -273,7 +323,7 @@ def status(gvar):
             'cores_foreign/Cores/Foreign',
             'ram_foreign/RAM/Foreign',
         ],
-        title="Cloud status:",
+        title="Cloud status",
         )
 
 def update(gvar):
@@ -346,7 +396,7 @@ def metadata_collation(gvar):
             'priority/Priority',
             'type/Type',
             ],
-        title="Clouds/Metadata Collation:",
+        title="Clouds/Metadata Collation",
         )
 
 def metadata_delete(gvar):
@@ -510,7 +560,7 @@ def metadata_list(gvar):
             'priority/Priority',
             'mime_type/MIME Type',
         ],
-        title="Clouds/Metadata:",
+        title="Clouds/Metadata",
         )
 
 def metadata_load(gvar):

@@ -141,7 +141,7 @@ def list(gvar):
             'is_superuser/Super User',
             'join_date/Joined',
         ],
-        title="Users:",
+        title="Users",
         )
 
 def update(gvar):

@@ -82,7 +82,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-w', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -122,13 +122,62 @@ def defaults(gvar):
             'vm_keep_alive/Keep Alive/VM',
             'vm_keyname/Keyname/VM',
             'vm_network/Network/VM',
+            'vm_security_groups/Security Groups/VM',
             'job_cpus/Cores/Job',
             'job_disk/Disk (GBs)/Job',
             'job_ram/RAM (MBs)/Job',
             'job_swap/Swap (GBs)/Job',
         ],
-        title="Active Group Defaults:",
+        title="Active Group Defaults",
     )
+
+    show_table(
+        gvar,
+        response['flavor_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Flavor',
+            ],
+        title="Flavors",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['image_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Flavor',
+            ],
+        title="Images",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['network_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Flavor',
+            ],
+        title="Networks",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
+        response['security_groups_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'name/Security Groups',
+            ],
+        title="Security Groups",
+        optional=True,
+        )
 
 def delete(gvar):
     """
@@ -209,10 +258,10 @@ def list(gvar):
         group_list,
         [
             'group_name/Group,k',
-            'condor_central_manager/Central Manager',
+            'htcondor_fqdn/HTCondor FQDN',
             'metadata_names/Metadata Filenames',
             ],
-        title="Groups:",
+        title="Groups",
         )
 
 def update(gvar):
@@ -410,7 +459,7 @@ def metadata_list(gvar):
             'priority/Priority',
             'mime_type/MIME Type',
         ],
-        title="Active Group/Metadata:",
+        title="Active Group/Metadata",
         )
 
 def metadata_load(gvar):
