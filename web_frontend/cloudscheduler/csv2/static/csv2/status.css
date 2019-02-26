@@ -123,8 +123,7 @@
 /*                          table styling                        */
 /*****************************************************************/
 .group-name {
-  /*font-size: 18px !important;*/
-  padding: 6px;
+  padding: 8px;
   font-weight: bold;
 }
 

@@ -1092,7 +1092,6 @@ def status(request, group_name=None):
     global_flag = False
     USER = config.db_map.classes.csv2_user
     users = config.db_session.query(USER).filter(USER.username == active_user.username)
-    #active_user.username
     group_list = []
     for user in users:
         if user.flag_global_status == 1:
@@ -1106,7 +1105,6 @@ def status(request, group_name=None):
         for group in active_user.user_groups:
                 # get cloud status per group
                 s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
-                #cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
                 cloud_status_list.append(qt(config.db_connection.execute(s)))
 
                 # calculate the totals for all rows
@@ -1141,22 +1139,8 @@ def status(request, group_name=None):
 
                 cloud_total_list.append(cloud_status_list_totals[0])
 
-                # find the actual cores limit in use
-                '''
-                cloud_total_list['cores_limit'] = 0
-                n=0
-                for cloud in cloud_status_list:
-                    if cloud['cores_ctl'] == -1:
-                        cloud_status_list[n]['cores_limit'] = cloud['cores_native']
-                    else:
-                        cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
-
-                    cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
-                    n=n+1
-                '''
-
                 # get slots type counts
-                s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
+                s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == group)
                 slot_list = qt(
                     config.db_connection.execute(s),
                     )
@@ -1170,7 +1154,7 @@ def status(request, group_name=None):
                     }))
 
                 # get job status per group
-                s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
+                s = select([view_job_status]).where(view_job_status.c.group_name == group)
                 job_status_list.append(qt(config.db_connection.execute(s)))
                 numberofgroups += 1
 
