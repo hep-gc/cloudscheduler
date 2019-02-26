@@ -7,7 +7,10 @@ import os
 import csv2_defaults
 
 KEY_MAP = {
+    '-gn':   'default_group',
     '-upw':  'password',
+    '-sgs':  'flag_global_status',
+    '-sri':  'status_refresh_interval',
     }
 
 def settings(gvar):
@@ -17,7 +20,7 @@ def settings(gvar):
 
     mandatory = []
     required = []
-    optional = ['-H', '-h', '-s', '-upw', '-xA']
+    optional = ['-gn', '-H', '-h', '-s', '-sgs', '-sri', '-upw', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -30,9 +33,9 @@ def settings(gvar):
         optional,
         key_map=KEY_MAP)
 
-    if len(form_data) < 1:
-        print('Error: "%s my settings" requires at least one option to update.' % gvar['command_name'])
-        exit(1)
+#   if len(form_data) < 1:
+#       print('Error: "%s my settings" requires at least one option to update.' % gvar['command_name'])
+#       exit(1)
 
     # Create the user.
     response = requests(
@@ -44,10 +47,27 @@ def settings(gvar):
     if response['message']:
         print(response['message'])
 
-    if 'server' not in gvar['command_args']:
-        gvar['command_args']['server'] = gvar['pid_defaults']['server']
+    if response['response_code'] == 0 and 'user-password' in gvar['user_settings']:
+        if 'server' not in gvar['command_args']:
+            gvar['command_args']['server'] = gvar['pid_defaults']['server']
 
-    gvar['user_settings']['server-password'] = gvar['user_settings']['user-password']
-    del gvar['user_settings']['user-password']
-    csv2_defaults.set(gvar)
+        gvar['user_settings']['server-password'] = gvar['user_settings']['user-password']
+        del gvar['user_settings']['user-password']
+        csv2_defaults.set(gvar)
+
+    # Print report.
+    show_active_user_groups(gvar, response)
+
+    show_table(
+        gvar,
+        response['user_list'],
+        [
+            'username/Group,k',
+            'cert_cn/Cert Common Name',
+            'default_group/Default Group',
+            'flag_global_status/Global Switch/Status',
+            'status_refresh_interval/Refresh Interval/Status',
+            ],
+        title="Settings",
+        )
 

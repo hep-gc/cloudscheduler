@@ -111,7 +111,7 @@ def list(gvar):
             'age/State Age',
             'manual_control/Manual_Control',
         ],
-        title="VMs:",
+        title="VMs",
         )
 
 def update(gvar):

@@ -52,7 +52,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -77,7 +77,18 @@ def list(gvar):
             'alias_name/Alias,k',
             'clouds/Clouds'
             ],
-        title="Aliases:",
+        title="Aliases",
+        )
+
+    show_table(
+        gvar,
+        response['cloud_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Alias,k',
+            ],
+        title="Clouds",
+        optional=True,
         )
 
 def update(gvar):

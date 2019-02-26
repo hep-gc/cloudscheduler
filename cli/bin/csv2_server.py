@@ -66,5 +66,5 @@ def config(gvar):
             'config_type/Type',
             'config_value/Value',
         ],
-        title="Server Configuration:",
+        title="Server Configuration",
     )
