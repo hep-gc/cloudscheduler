@@ -523,40 +523,8 @@ def list(request, active_user=None, response_code=0, message=None):
     if request.META['HTTP_ACCEPT'] == 'application/json':
         s = select([view_clouds_with_metadata_names]).where(view_clouds_with_metadata_names.c.group_name == active_user.active_group)
         cloud_list = qt(config.db_connection.execute(s), prune=['password'])
-        image_list = {}
-        flavor_list = {}
-        flavor_exclusion_list = {}
         metadata_dict = {}
-        keypairs_list = {}
-        network_list = {}
-        security_groups_list = {}
-        group_metadata_dict = {}
-        group_metadata_exclusion_list = {}
     else:
-        # Get all the images in group:
-        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
-        image_list = qt(config.db_connection.execute(s))
-
-        # Get all the flavors in group:
-        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
-        flavor_list = qt(config.db_connection.execute(s))
-
-        # Retrieve the list of flavor exclusions:
-        s = select([csv2_cloud_flavor_exclusions]).where(csv2_cloud_flavor_exclusions.c.group_name==active_user.active_group)
-        flavor_exclusion_list = qt(config.db_connection.execute(s))
-
-        # Get all the keynames in group:
-        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-        keypairs_list = qt(config.db_connection.execute(s))
-
-        # Get all the networks in group:
-        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
-        network_list = qt(config.db_connection.execute(s))
-
-        # Get all the security groups in group:
-        s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
-        security_groups_list = qt(config.db_connection.execute(s))
-
         s = select([view_clouds_with_metadata_info]).where(view_clouds_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
             config.db_connection.execute(s),
@@ -575,13 +543,37 @@ def list(request, active_user=None, response_code=0, message=None):
             prune=['password']    
             )
 
-        # Get the group default metadata list:
-        s = select([view_groups_with_metadata_info]).where(view_groups_with_metadata_info.c.group_name==active_user.active_group)
-        group_metadata_dict = qt(config.db_connection.execute(s))
+    # Get all the images in group:
+    s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+    image_list = qt(config.db_connection.execute(s))
 
-        # Retrieve the list of metadata exclusions:
-        s = select([csv2_group_metadata_exclusions]).where(csv2_group_metadata_exclusions.c.group_name==active_user.active_group)
-        group_metadata_exclusion_list = qt(config.db_connection.execute(s))
+    # Get all the flavors in group:
+    s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+    flavor_list = qt(config.db_connection.execute(s))
+
+    # Retrieve the list of flavor exclusions:
+    s = select([csv2_cloud_flavor_exclusions]).where(csv2_cloud_flavor_exclusions.c.group_name==active_user.active_group)
+    flavor_exclusion_list = qt(config.db_connection.execute(s))
+
+    # Get all the keynames in group:
+    s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+    keypairs_list = qt(config.db_connection.execute(s))
+
+    # Get all the networks in group:
+    s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+    network_list = qt(config.db_connection.execute(s))
+
+    # Get all the security groups in group:
+    s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
+    security_groups_list = qt(config.db_connection.execute(s))
+
+    # Get the group default metadata list:
+    s = select([view_groups_with_metadata_info]).where(view_groups_with_metadata_info.c.group_name==active_user.active_group)
+    group_metadata_dict = qt(config.db_connection.execute(s))
+
+    # Retrieve the list of metadata exclusions:
+    s = select([csv2_group_metadata_exclusions]).where(csv2_group_metadata_exclusions.c.group_name==active_user.active_group)
+    group_metadata_exclusion_list = qt(config.db_connection.execute(s))
 
 
 

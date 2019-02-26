@@ -183,6 +183,13 @@ def add(request):
                 #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
 
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
+
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
@@ -234,7 +241,7 @@ def add(request):
 #-------------------------------------------------------------------------------
 
 @silkp(name='Group Defaults')
-def defaults(request):
+def defaults(request, active_user=None, response_code=0, message=None):
     """
     Update and list group defaults.
     """
@@ -267,6 +274,9 @@ def defaults(request):
             if rc == 0 and ('vm_network' in fields) and (fields['vm_network']):
                 rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             
+            if rc == 0 and ('vm_security_groups' in fields) and (fields['vm_security_groups']):
+                rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
+            
             if rc == 0:
                 # Update the group defaults.
                 table = tables['csv2_groups']
@@ -290,6 +300,7 @@ def defaults(request):
     metadata_dict = {}
     keypairs_list = []
     network_list = []
+    security_groups_list = []
 
     # If User/Groups successfully set, retrieve group information.
     if user_groups_set:
@@ -302,41 +313,45 @@ def defaults(request):
                 if value == None:
                     defaults_list[0][key]=""
 
-        # And additional information for the web page.
-        if request.META['HTTP_ACCEPT'] != 'application/json':
-            # Get all the images in group:
-            s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
-            image_list = qt(config.db_connection.execute(s))
+#       # And additional information for the web page.
+#       if request.META['HTTP_ACCEPT'] != 'application/json':
+        # Get all the images in group:
+        s = select([cloud_images]).where(cloud_images.c.group_name==active_user.active_group)
+        image_list = qt(config.db_connection.execute(s))
 
-            # Get all the flavors in group:
-            s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
-            flavor_list = qt(config.db_connection.execute(s))
+        # Get all the flavors in group:
+        s = select([cloud_flavors]).where(cloud_flavors.c.group_name==active_user.active_group)
+        flavor_list = qt(config.db_connection.execute(s))
 
-            # Get all keynames in group:
-            s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
-            keypairs_list = qt(config.db_connection.execute(s))
+        # Get all keynames in group:
+        s = select([cloud_keypairs]).where(cloud_keypairs.c.group_name==active_user.active_group)
+        keypairs_list = qt(config.db_connection.execute(s))
 
-            # Get all networks in group:
-            s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
-            network_list = qt(config.db_connection.execute(s))
+        # Get all networks in group:
+        s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
+        network_list = qt(config.db_connection.execute(s))
 
-            # Get the group default metadata list:
-            s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
-            group_list, metadata_dict = qt(
-                config.db_connection.execute(s),
-                keys = {
-                    'primary': [
-                        'group_name',
-                        ],
-                    'secondary': [
-                        'metadata_name',
-                        'metadata_enabled',
-                        'metadata_priority',
-                        'metadata_mime_type'
-                        ]
-                    },
-                prune=['password']    
-                )
+        # Get all security_groups in group:
+        s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
+        security_groups_list = qt(config.db_connection.execute(s))
+
+        # Get the group default metadata list:
+        s = select([view_groups_with_metadata_info]).where(csv2_groups.c.group_name==active_user.active_group)
+        group_list, metadata_dict = qt(
+            config.db_connection.execute(s),
+            keys = {
+                'primary': [
+                    'group_name',
+                    ],
+                'secondary': [
+                    'metadata_name',
+                    'metadata_enabled',
+                    'metadata_priority',
+                    'metadata_mime_type'
+                    ]
+                },
+            prune=['password']    
+            )
 
     # Render the page.
     context = {
@@ -349,6 +364,7 @@ def defaults(request):
             'metadata_dict': metadata_dict,
             'keypairs_list': keypairs_list,
             'network_list': network_list,
+            'security_groups_list': security_groups_list,
             'response_code': rc,
             'message': message,
             'enable_glint': config.enable_glint,
@@ -393,6 +409,7 @@ def delete(request):
                 'csv2_vms',
                 'cloud_keypairs',
                 'cloud_networks',
+                'cloud_security_groups',
                 'cloud_limits',
                 'cloud_images',
                 'cloud_flavors'
@@ -495,6 +512,17 @@ def delete(request):
             config.db_close()
             #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s group networks delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg))
+
+        # Delete the cloud_security_groups.
+        table = tables['cloud_security_groups']
+        rc, msg = config.db_session_execute(
+            table.delete(table.c.group_name==fields['group_name']),
+            allow_no_rows=True
+            )
+        if rc != 0:
+            config.db_close()
+            #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group  security groups delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+            return list(request, active_user=active_user, response_code=1, message='%s group  security groups delete "%s" failed - %s.' % (lno('GV17'), fields['group_name'], msg))
 
         # Delete the cloud_limits.
         table = tables['cloud_limits']
@@ -657,15 +685,18 @@ def metadata_add(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+        #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV24'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return list(request, active_user=active_user, selector='-', response_code=1, message='%s %s' % (lno('GV24'), msg), active_user=active_user, user_groups=user_groups)
+        return render(request, 'csv2/reload_parent.html', context)
 
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV25'), msg)})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add %s' % (lno('GV25'), msg)})
+            return render(request, 'csv2/reload_parent.html', context)
+
 
         # Add the group metadata file.
         table = tables['csv2_group_metadata']
@@ -683,11 +714,14 @@ def metadata_add(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV26'), active_user.active_group, fields['metadata_name'], msg)})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-add "%s::%s" failed - %s.' % (lno('GV26'), active_user.active_group, fields['metadata_name'], msg)})
+            return render(request, 'csv2/reload_parent.html', context)
+
 
     ### Bad request.
     else:
         return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_add, invalid method "%s" specified.' % (lno('GV27'), request.method)})
+
 
 #-------------------------------------------------------------------------------
 
@@ -698,6 +732,7 @@ def metadata_delete(request):
     name to be deleted from the given group.
     """
 
+    context = {}
     # open the database.
     config.db_open()
 
@@ -706,7 +741,8 @@ def metadata_delete(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV29'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV29'), msg))
+        #return defaults(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV29'), msg))
+        return render(request, 'csv2/reload_parent.html', context)
 
     if request.method == 'POST':
         # Validate input fields.
@@ -724,7 +760,8 @@ def metadata_delete(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno('GV14'), fields['group_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno('GV14'), fields['group_name'], fields['metadata_name'], msg))
+            #return list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusion for group=%s, metadata=%s failed - %s.' % (lno('GV14'), fields['group_name'], fields['metadata_name'], msg))
+            return render(request, 'csv2/reload_parent.html', context)
 
         # Delete the group metadata file.
         table = tables['csv2_group_metadata']
@@ -746,17 +783,23 @@ def metadata_delete(request):
             return render(request, 'csv2/reload_parent.html', context)
         else:
             config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV31'), active_user.active_group, fields['metadata_name'], msg)})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-delete "%s::%s" failed - %s.' % (lno('GV31'), active_user.active_group, fields['metadata_name'], msg)})
+            return render(request, 'csv2/reload_parent.html', context)
+
 
     ### Bad request.
     else:
-        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
+        #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno('GV32'), request.method)})
+        return render(request, 'csv2/reload_parent.html', context)
+
 
 #-------------------------------------------------------------------------------
 
 @silkp(name='Group Metadata Fetch')
 def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
     
+    context = {}
+
     # open the database.
     config.db_open()
 
@@ -765,7 +808,8 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV34'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV34'), msg))
+        #return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV34'), msg))
+        return render(request, 'csv2/reload_parent.html', context)
 
     # Get mime type list:
     s = select([csv2_mime_types])
@@ -799,10 +843,12 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                 return render(request, 'csv2/meta_editor.html', context)
         
         config.db_close()
-        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, active_user.kwargs['metadata_name'])})
+        #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, file "%s::%s" does not exist.' % (active_user.active_group, active_user.kwargs['metadata_name'])})
+        return render(request, 'csv2/reload_parent.html', context)
 
     config.db_close()
-    return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
+    #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': 'group metadata_fetch, metadata file name omitted.'})
+    return render(request, 'csv2/reload_parent.html', context)
 
 #-------------------------------------------------------------------------------
 
@@ -850,6 +896,8 @@ def metadata_list(request):
 @requires_csrf_token
 def metadata_new(request):
 
+    context = {}
+
     # open the database.
     config.db_open()
 
@@ -858,7 +906,8 @@ def metadata_new(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV00'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV00'), msg))
+        #return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV00'), msg))
+        return render(request, 'csv2/reload_parent.html', context)
 
     # Get mime type list:
     s = select([csv2_mime_types])
@@ -891,6 +940,7 @@ def metadata_update(request):
     This function should recieve a post request with a payload of a metadata file
     as a replacement for the specified file.
     """
+    context = {}
 
     # open the database.
     config.db_open()
@@ -900,14 +950,16 @@ def metadata_update(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s %s' % (lno('GV36'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV36'), msg))
+        #return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('GV36'), msg))
+        return render(request, 'csv2/reload_parent.html', context)
 
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [METADATA_KEYS], ['csv2_group_metadata'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-update %s' % (lno('GV37'), msg)})
+            return render(request, 'csv2/reload_parent.html', context)
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
@@ -932,11 +984,13 @@ def metadata_update(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV38'), active_user.active_group, fields['metadata_name'], msg)})
+            #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" failed - %s.' % (lno('GV38'), active_user.active_group, fields['metadata_name'], msg)})
+            return render(request, 'csv2/reload_parent.html', context)
 
     ### Bad request.
     else:
-        return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
+        #return render(request, 'csv2/group_defaults.html', {'response_code': 1, 'message': '%s group metadata_update, invalid method "%s" specified.' % (lno('GV39'), request.method)})
+        return render(request, 'csv2/reload_parent.html', context)
 
 #-------------------------------------------------------------------------------
 
@@ -970,36 +1024,43 @@ def update(request):
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg))
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV96'), fields['group_name'], msg))
 
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg))
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV97'), fields['group_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']]])
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
+
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV95'), fields['group_name'], msg))
 
         # Validity check the specified users.
         if 'username' in fields:
             rc, msg = manage_user_group_verification(config, tables, fields['username'], None) 
             if rc != 0:
-                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group add, "%s" failed - %s.' % (lno('GV43'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, active_user=active_user, response_code=1, message='%s group add, "%s" failed - %s.' % (lno('GV43'), fields['group_name'], msg))
+                #return render(request, 'csv2/groups.html', {'response_code': 1, 'message': '%s group update, "%s" failed - %s.' % (lno('GV43'), fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s group update, "%s" failed - %s.' % (lno('GV43'), fields['group_name'], msg))
 
         # Update the group.
         table = tables['csv2_groups']
