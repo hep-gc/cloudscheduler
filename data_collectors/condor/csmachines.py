@@ -399,7 +399,14 @@ def command_poller():
                                 logging.info("slots are zero or null on %s, setting terminate" % resource.vmid)
                                 vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                                 vm_row.terminate = 1
-                                vm_row.updater = get_frame_info()
+                                if vm_row.updater is not None:
+                                    old_updater_str = vm_row.updater
+                                    updater_list = old_updater_str.split(',')
+                                    new_updater = get_frame_info() + ":t=1"
+                                    updater_list.insert(0, new_updater)
+                                    vm_row.updater = updater_list[:5]
+                                else:
+                                    vm_row.updater = get_frame_info() + ":t=1"
                                 db_session.merge(vm_row)
                                 uncommitted_updates = uncommitted_updates + 1
 
@@ -430,7 +437,14 @@ def command_poller():
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire = vm_row.retire + 1
-                        vm_row.updater = get_frame_info()
+                        if vm_row.updater is not None:
+                            old_updater_str = vm_row.updater
+                            updater_list = old_updater_str.split(',')
+                            new_updater = get_frame_info() + ":r+"
+                            updater_list.insert(0, new_updater)
+                            vm_row.updater = updater_list[:5]
+                        else:   
+                            vm_row.updater = get_frame_info() + ":r+"
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -508,7 +522,15 @@ def command_poller():
                         try:
                             # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
                             vm_row.terminate = vm_row.terminate + 1
-                            vm_row.updater = get_frame_info()
+                            if vm_row.updater is not None:
+                                old_updater_str = vm_row.updater
+                                updater_list = old_updater_str.split(',')
+                                new_updater = get_frame_info() + ":t+"
+                                updater_list.insert(0, new_updater)
+                                vm_row.updater = updater_list[:5]
+                            else:   
+                                vm_row.updater = get_frame_info() + ":t+"
+
                             nova.servers.delete(vm_row.vmid)
                             logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
                             db_session.merge(vm_row)
