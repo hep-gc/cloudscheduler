@@ -41,6 +41,7 @@ from (
     cc.vm_keep_alive,
     cc.vm_keyname,
     cc.vm_network,
+    cc.vm_security_groups,
 
     case when ifnull(cc.vm_flavor,'')='' then
         case when ifnull(cg.vm_flavor,'')='' then
@@ -91,6 +92,16 @@ from (
     else
         cc.vm_network
     end as cascading_vm_network,
+
+    case when ifnull(cc.vm_security_groups,'')='' then
+        case when ifnull(cg.vm_security_groups,'')='' then
+            null
+        else
+            cg.vm_security_groups
+        end
+    else
+        cc.vm_security_groups
+    end as cascading_vm_security_groups,
 
     authurl,
     project_domain_name,

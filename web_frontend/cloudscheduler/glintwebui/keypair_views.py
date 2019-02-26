@@ -22,20 +22,14 @@ def manage_keys(request, group_name=None, message=None):
     db_config.db_open()
     if not verifyUser(request, db_config):
         raise PermissionDenied
-    rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
+    rc, msg, user_obj = set_user_groups(db_config, request)
+    user_groups = user_obj.user_groups
     if group_name is None:
         group_name = user_obj.active_group
 
     session = db_config.db_session
     Group_Resources = db_config.db_map.classes.csv2_clouds
     Keypairs = db_config.db_map.classes.cloud_keypairs
-
-    
-
-    group_list = []
-    for grp in user_groups:
-        grp_name = grp.group_name
-        group_list.append(grp_name)
 
     grp_resources = session.query(Group_Resources).filter(Group_Resources.group_name == group_name)
     key_dict = {}
@@ -64,7 +58,7 @@ def manage_keys(request, group_name=None, message=None):
         "active_group": group_name,
         "message": message,
         "enable_glint": True,
-        "user_groups": group_list,
+        "user_groups": user_groups,
         "num_clouds": num_clouds
     }
     # need to create template
@@ -186,10 +180,7 @@ def new_keypair(request, group_name=None,):
 @silkp(name='Save Keypairs')
 def save_keypairs(request, group_name=None, message=None):
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-
-    user_obj = getUser(request, db_config)
+    rc, msg, user_obj = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
     if group_name is None:

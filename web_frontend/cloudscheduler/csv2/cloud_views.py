@@ -335,7 +335,7 @@ def add(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV00'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV00'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV00'), msg))
 
     if request.method == 'POST':
 
@@ -344,42 +344,49 @@ def add(request):
         if rc != 0: 
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add %s' % (lno('CV01'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud add %s' % (lno('CV01'), msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud add %s' % (lno('CV01'), msg))
 
         if 'flavor_name' in fields and fields['flavor_name']:
             rc, msg = validate_by_filtered_table_entries(config, fields['flavor_name'], 'flavor_name', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV96'), fields['cloud_name'], msg))
 
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV97'), fields['cloud_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
+
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV95'), fields['cloud_name'], msg))
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
@@ -387,7 +394,7 @@ def add(request):
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg))
 
         # Add the cloud.
         table = tables['csv2_clouds']
@@ -395,7 +402,7 @@ def add(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg))
 
         # Add the cloud's flavor exclusions.
         if 'flavor_name' in fields:
@@ -408,16 +415,16 @@ def add(request):
         if rc == 0:
             config.db_close(commit=True)
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']))
+            return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']))
         else:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s add group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s add group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s add group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV02'), fields['group_name'], fields['cloud_name'], msg))
                     
     ### Bad request.
     else:
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud add, invalid method "%s" specified.' % (lno('CV03'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno('CV03'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno('CV03'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -437,7 +444,7 @@ def delete(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV05'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV05'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV05'), msg))
 
     if request.method == 'POST':
         # Validate input fields.
@@ -445,7 +452,7 @@ def delete(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud delete %s' % (lno('CV06'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud delete %s' % (lno('CV06'), msg))
 
         # Delete any metadata files for the cloud.
         table = tables['csv2_cloud_metadata']
@@ -453,7 +460,7 @@ def delete(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete "%s::%s.*" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete any metadata exclusions files for the cloud.
         table = tables['csv2_group_metadata_exclusions']
@@ -461,7 +468,7 @@ def delete(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s delete group metadata exclusion for cloud "%s::%s" failed - %s.' % (lno('CV07'), fields['group_name'], fields['cloud_name'], msg))
 
         # Delete the cloud.
         table = tables['csv2_clouds']
@@ -471,22 +478,22 @@ def delete(request):
         if rc == 0:
             config.db_close(commit=True)
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']))
+            return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name']))
         else:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud delete "%s::%s" failed - %s.' % (lno('CV08'), fields['group_name'], fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno('CV08'), fields['group_name'], fields['cloud_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud delete "%s::%s" failed - %s.' % (lno('CV08'), fields['group_name'], fields['cloud_name'], msg))
 
     ### Bad request.
     else:
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud delete, invalid method "%s" specified.' % (lno('CV09'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno('CV09'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno('CV09'), request.method))
 
 #-------------------------------------------------------------------------------
 
 @silkp(name='Cloud List')
 @requires_csrf_token
-def list(request, response_code=0, message=None):
+def list(request, active_user=None, response_code=0, message=None):
 
 
     #print('ggggggggggggggggggggggggggggggggggggggggggggg', request.__dict__)
@@ -524,6 +531,7 @@ def list(request, response_code=0, message=None):
         metadata_dict = {}
         keypairs_list = {}
         network_list = {}
+        security_groups_list = {}
         group_metadata_dict = {}
         group_metadata_exclusion_list = {}
     else:
@@ -546,6 +554,10 @@ def list(request, response_code=0, message=None):
         # Get all the networks in group:
         s = select([cloud_networks]).where(cloud_networks.c.group_name==active_user.active_group)
         network_list = qt(config.db_connection.execute(s))
+
+        # Get all the security groups in group:
+        s = select([cloud_security_groups]).where(cloud_security_groups.c.group_name==active_user.active_group)
+        security_groups_list = qt(config.db_connection.execute(s))
 
         s = select([view_clouds_with_metadata_info]).where(view_clouds_with_metadata_info.c.group_name == active_user.active_group)
         cloud_list, metadata_dict = qt(
@@ -597,6 +609,7 @@ def list(request, response_code=0, message=None):
             'flavor_exclusion_list': flavor_exclusion_list,
             'keypairs_list': keypairs_list,
             'network_list': network_list,
+            'security_groups_list': security_groups_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
@@ -626,7 +639,7 @@ def metadata_add(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV12'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV12'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV12'), msg))
 
     if request.method == 'POST':
         # Validate input fields.
@@ -634,7 +647,7 @@ def metadata_add(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-add %s' % (lno('CV13'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-add %s' % (lno('CV13'), msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add %s' % (lno('CV13'), msg))
 
         # Check cloud already exists.
         table = tables['csv2_clouds']
@@ -648,7 +661,7 @@ def metadata_add(request):
 
         if not found:
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno('CV14'), fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno('CV14'), fields['cloud_name']))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add failed, cloud name  "%s" does not exist.' % (lno('CV14'), fields['cloud_name']))
 
         # Add the cloud metadata file.
         table = tables['csv2_cloud_metadata']
@@ -678,7 +691,7 @@ def metadata_add(request):
             #**********************************************************************************
 
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            #return list(request, response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']))
+            #return list(request, active_user=active_user, response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']))
             message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             context = {
@@ -690,12 +703,12 @@ def metadata_add(request):
         else:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add "%s::%s::%s" failed - %s.' % (lno('CV15'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg))
 
     ### Bad request.
     else:
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata_add, invalid method "%s" specified.' % (lno('CV16'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno('CV16'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno('CV16'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -757,7 +770,7 @@ def metadata_delete(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV20'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV20'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV20'), msg))
 
     if request.method == 'POST':
 
@@ -766,7 +779,7 @@ def metadata_delete(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-delete %s' % (lno('CV21'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-delete %s' % (lno('CV21'), msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete %s' % (lno('CV21'), msg))
 
         # Delete the cloud metadata file.
         table = tables['csv2_cloud_metadata']
@@ -800,7 +813,7 @@ def metadata_delete(request):
 
 
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            #return list(request, response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']))
+            #return list(request, active_user=active_user, response_code=0, message='cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']))
 
             message = 'cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
@@ -814,19 +827,19 @@ def metadata_delete(request):
 
         else:
             config.db_close()
-            return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-#           return list(request, selector=fields['cloud_name'], response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), user_groups=user_groups, attributez=columns)
+            #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete "%s::%s::%s" failed - %s.' % (lno('CV22'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg))
 
     ### Bad request.
     else:
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata_delete, invalid method "%s" specified.' % (lno('CV23'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno('CV23'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno('CV23'), request.method))
 
 #-------------------------------------------------------------------------------
 
 @silkp(name="Cloud Metadata Fetch")
 @requires_csrf_token
-def metadata_fetch(request, selector=None):
+def metadata_fetch(request, response_code=0, message=None, metadata_name=None, cloud_name=None):
 
     # open the database.
     config.db_open()
@@ -836,16 +849,25 @@ def metadata_fetch(request, selector=None):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV25'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV25'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV25'), msg))
 
     # Get mime type list:
     s = select([csv2_mime_types])
     mime_types_list = qt(config.db_connection.execute(s))
 
+
+    # If we are NOT returning from an update, we are fetching from webpage
+    if metadata_name == None:
+        metadata_name = active_user.kwargs['metadata_name']
+
+    if cloud_name == None:
+        cloud_name = active_user.kwargs['cloud_name']
+
+
     # Retrieve metadata file.
-    if 'cloud_name' in active_user.kwargs and 'metadata_name' in active_user.kwargs:
+    if cloud_name and metadata_name:
         METADATA = config.db_map.classes.csv2_cloud_metadata
-        METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==active_user.kwargs['cloud_name']) & (METADATA.metadata_name==active_user.kwargs['metadata_name']))
+        METADATAobj = config.db_session.query(METADATA).filter((METADATA.group_name == active_user.active_group) & (METADATA.cloud_name==cloud_name) & (METADATA.metadata_name==metadata_name))
         if METADATAobj:
             for row in METADATAobj:
                 context = {
@@ -857,8 +879,8 @@ def metadata_fetch(request, selector=None):
                     'metadata_mime_type': row.mime_type,
                     'metadata_name': row.metadata_name,
                     'mime_types_list': mime_types_list,
-                    'response_code': 0,
-                    'message': None,
+                    'response_code': response_code,
+                    'message': message,
                     'enable_glint': config.enable_glint,
                     'is_superuser': active_user.is_superuser 
 
@@ -942,7 +964,7 @@ def metadata_new(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV25'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV25'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV25'), msg))
 
     # Get mime type list:
     s = select([csv2_mime_types])
@@ -992,7 +1014,7 @@ def metadata_update(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV28'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV28'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV28'), msg))
 
     if request.method == 'POST':
         # Validate input fields.
@@ -1000,7 +1022,7 @@ def metadata_update(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-update %s' % (lno('CV29'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-update %s' % (lno('CV29'), msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update %s' % (lno('CV29'), msg))
 
         # Update the cloud metadata file.
         table = tables['csv2_cloud_metadata']
@@ -1019,7 +1041,7 @@ def metadata_update(request):
                 metadata_list = qt(config.db_connection.execute(s))
                 if len(metadata_list) != 1:
                     #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-update could not retrieve metadata' % (lno('CV99')), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                    return list(request, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno('CV99')))
+                    return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update could not retrieve metadata' % (lno('CV99')))
                 metadata = metadata_list[0]
             else:
                 metadata = fields['metadata']
@@ -1027,6 +1049,7 @@ def metadata_update(request):
             config.db_close(commit=True)
 
             message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
+            '''
             context = {
                     'group_name': fields['group_name'],
                     'cloud_name': fields['cloud_name'],
@@ -1034,17 +1057,18 @@ def metadata_update(request):
                     'response_code': 0,
                     'message': message,
                 }
-
-            return render(request, 'csv2/meta_editor.html', context)
+            '''
+            #return render(request, 'csv2/meta_editor.html', context)
+            return metadata_fetch(request, response_code=0, message=message, metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
         else:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update "%s::%s::%s" failed - %s.' % (lno('CV30'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg))
 
     ### Bad request.
     else:
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud metadata_update, invalid method "%s" specified.' % (lno('CV31'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno('CV31'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -1064,7 +1088,7 @@ def status(request, group_name=None):
     if rc != 0:
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV33'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-#       return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV33'), msg), user_groups=user_groups)
+
     global_flag = False
     USER = config.db_map.classes.csv2_user
     users = config.db_session.query(USER).filter(USER.username == active_user.username)
@@ -1354,7 +1378,7 @@ def update(request):
     if rc != 0:
         config.db_close()
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV34'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s %s' % (lno('CV34'), msg))
+        return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno('CV34'), msg))
 
     if request.method == 'POST':
 
@@ -1372,42 +1396,49 @@ def update(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update %s' % (lno('CV35'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud update %s' % (lno('CV35'), msg))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud update %s' % (lno('CV35'), msg))
 
         if 'flavor_name' in fields and fields['flavor_name']:
             rc, msg = validate_by_filtered_table_entries(config, fields['flavor_name'], 'flavor_name', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg))
 
         if 'vm_flavor' in fields and fields['vm_flavor']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_flavor'], 'vm_flavor', 'cloud_flavors', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV98'), fields['cloud_name'], msg))
 
         if 'vm_image' in fields and fields['vm_image']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_image'], 'vm_image', 'cloud_images', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV99'), fields['cloud_name'], msg))
 
         if 'vm_keyname' in fields and fields['vm_keyname']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_keyname'], 'vm_keyname', 'cloud_keypairs', 'key_name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg))
 
         if 'vm_network' in fields and fields['vm_network']:
             rc, msg = validate_by_filtered_table_entries(config, fields['vm_network'], 'vm_network', 'cloud_networks', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]])
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg))
+
+        if 'vm_security_groups' in fields and fields['vm_security_groups']:
+            rc, msg = validate_by_filtered_table_entries(config, fields['vm_security_groups'], 'vm_security_groups', 'cloud_security_groups', 'name', [['group_name', fields['group_name']], ['cloud_name', fields['cloud_name']]], allow_value_list=True)
+            if rc != 0:
+                config.db_close()
+                #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV94'), fields['cloud_name'], msg))
 
         # Validity check the specified metadata exclusions.
         if 'metadata_name' in fields:
@@ -1415,7 +1446,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno('CV03'), fields['cloud_name'], msg))
 
         # update the cloud.
         table = tables['csv2_clouds']
@@ -1426,7 +1457,7 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update "%s::%s" failed - %s.' % (lno('CV36'), fields['group_name'], fields['cloud_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-                return list(request, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV36'), fields['group_name'], fields['cloud_name'], msg))
+                return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno('CV36'), fields['group_name'], fields['cloud_name'], msg))
 
         # If either the cores_ctl or the ram_ctl have been modified, call kill_retire to scale current usage.
         if 'cores_ctl' in fields and 'ram_ctl' in fields:
@@ -1455,7 +1486,7 @@ def update(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg))
+            return list(request, active_user=active_user, response_code=1, message='%s update cloud flavor exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['flavor_name'], msg))
 
         # Update the cloud's group metadata exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
@@ -1476,21 +1507,21 @@ def update(request):
         if rc != 0:
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99'), fields['group_name'], fields['cloud_name'], fields['metadata_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99')))
+            return list(request, active_user=active_user, response_code=1, message='%s update group metadata exclusion for cloud "%s::%s::%s" failed - %s.' % (lno('CV99')))
 
         if updates > 0:
             act_usr = active_user.username
             config.db_close(commit=True)
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
+            return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
         else:
             act_usr = active_user.username
             config.db_close()
             #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update must specify at least one field to update.' % lno('CV23'), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            return list(request, response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'))
+            return list(request, active_user=active_user, response_code=1, message='%s cloud update must specify at least one field to update.' % lno('CV23'))
 
     ### Bad request.
     else:
         #return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s cloud update, invalid method "%s" specified.' % (lno('CV37'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV37'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud update, invalid method "%s" specified.' % (lno('CV37'), request.method))
 

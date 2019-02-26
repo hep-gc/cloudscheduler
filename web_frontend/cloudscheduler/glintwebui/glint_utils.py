@@ -250,35 +250,85 @@ def getSuperUserStatus(request, db_config):
         return auth_user.is_superuser
 
 
-def set_user_groups(config, request):
-    active_user = getUser(request, config)
-    user_groups = config.db_map.classes.csv2_user_groups
-    user_group_rows = config.db_session.query(user_groups).filter(user_groups.username==active_user.username)
-    user_groups = []
-    if user_group_rows is not None:
-        for row in user_group_rows:
-            user_groups.append(row.group_name)
+#-------------------------------------------------------------------------------
+# this function gets and sets the user groups for the active user as well as authenticates the active user
+# if super_user is true and the requesting user doesn't have super user status a permission denied is raised
+# if super user is false then skip the check for super user
+#-------------------------------------------------------------------------------
+def set_user_groups(config, request, super_user=True):
+    from cloudscheduler.lib.schema import view_user_groups
+    from sqlalchemy.sql import select
 
-    if not user_groups:
-        return 1,'user "%s" is not a member of any group.' % active_user,active_user,user_group_rows
+    class active_user:
+        def __init__(self, config, request):
+            remote_user = request.META.get('REMOTE_USER')
+            table = view_user_groups
+            csv2_user = config.db_connection.execute(select([table]).where((table.c.username==remote_user) | (table.c.cert_cn==remote_user)))
 
-    # if the POST request specified a group, validate and set the specified group as the active group.
-    if request.method == 'POST' and 'group' in request.POST:
-        group_name = request.POST.get('group')
-        if group_name and active_user.active_group != group_name:
-            if group_name in user_groups:
-                active_user.active_group = group_name
-                config.db_session.merge(active_user)
-                config.db_session.commit()
-            else:
-                return 1,'cannot switch to invalid group "%s".' % group_name, active_user, user_group_rows
+            for user in csv2_user:
+                self.username = user['username']
+                self.cert_cn = user['cert_cn']
+                self.is_superuser = user['is_superuser']
+                self.join_date = user['join_date']
+                self.active_group = '-'
+                self.default_group = user['default_group']
 
-    # if no active group, set first group as default.
-    if active_user.active_group is None:
-        active_user.active_group = user_groups[0]
-        active_user.save()
+                if user['user_groups'] and len(user['user_groups']) > 0:
+                    self.user_groups = user['user_groups'].split(',')
+                else:
+                    self.user_groups = []
 
-    return 0, None, active_user, user_group_rows
+                if user['available_groups'] and len(user['available_groups']) > 1:
+                    self.available_groups = user['available_groups'].split(',')
+                else:
+                    self.available_groups = []
+
+                self.flag_global_status = user['flag_global_status']
+                self.status_refresh_interval = user['status_refresh_interval']
+
+                self.args = []
+                self.kwargs = {}
+                break
+
+            if not user:
+                raise PermissionDenied
+
+            if request.method == 'GET':
+                for key_val in request.META.get('QUERY_STRING').split('&'):
+                    if len(key_val) > 0:
+                        words = key_val.split('=', 1)
+                        if len(words) > 1:
+                            self.kwargs[words[0].strip()] = words[1].strip()
+                        else:
+                            self.args.append(words[0].strip())
+
+            elif request.method == 'POST' and 'group' in request.POST:
+                self.args.append(request.POST['group'])
+               
+
+    new_active_user = active_user(config, request)
+
+    if super_user and not new_active_user.is_superuser:
+        raise PermissionDenied
+
+    if len(new_active_user.user_groups) < 1:
+#       return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user, new_active_user.user_groups
+        return 1,'user "%s" is not a member of any group.' % new_active_user.username, new_active_user
+
+    if len(new_active_user.args) > 0:
+        new_active_user.active_group = new_active_user.args[0]
+    elif new_active_user.default_group and new_active_user.default_group != '-':
+        new_active_user.active_group = new_active_user.default_group
+    else:
+        new_active_user.active_group = new_active_user.user_groups[0]
+
+    if new_active_user.active_group not in new_active_user.user_groups:
+#       return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user, new_active_user.user_groups
+        return 1,'cannot switch to invalid group "%s".' % new_active_user.active_group, new_active_user
+
+#   return 0, None, new_active_user, new_active_user.user_groups
+    return 0, None, new_active_user
+    
 
 def __get_image_ids(repo_dict):
    img_trans_dict = {}

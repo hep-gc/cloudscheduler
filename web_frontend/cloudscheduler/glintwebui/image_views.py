@@ -66,18 +66,15 @@ def project_details(request, group_name=None, message=None):
     # We will instead only use image name, img id will be used as a unique ID inside a given repo
     # this means we now have to create a new unique image set that is just the image names
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-
     # set up database objects
     session = db_config.db_session
     User_Group = db_config.db_map.classes.csv2_user_groups
     Groups = db_config.db_map.classes.csv2_groups
 
-    rc, msg, user_obj, user_groups = set_user_groups(db_config, request)
+    rc, msg, user_obj = set_user_groups(db_config, request)
+    user_groups = user_obj.user_groups
 
     
-
     if group_name is None:
         group_name = user_obj.active_group
     if group_name is None:
@@ -95,10 +92,6 @@ def project_details(request, group_name=None, message=None):
         default_image = None
     else:
         default_image = defaults.vm_image
-
-    user_obj.active_group = group_name
-    session.merge(user_obj)
-    session.commit()
 
 
     try:
@@ -125,12 +118,6 @@ def project_details(request, group_name=None, message=None):
         reverse_img_lookup = None
         # Should render a page here that says no image info available please refresh in 20 seconds
 
-    # The image_list is a unique list of images stored in tuples (img_id, img_name)
-    # Still need to add detection for images that have different names but the same ID
-    group_list = []
-    for grp in user_groups:
-        grp_name = grp.group_name
-        group_list.append(grp_name)
 
     #conflict_dict = get_conflicts_for_group(group_name)
     num_tx = get_num_transactions()
@@ -138,7 +125,7 @@ def project_details(request, group_name=None, message=None):
         num_tx = 0
     context = {
         'active_group': group_name,
-        'user_groups': group_list,
+        'user_groups': user_groups,
         'image_dict': image_dict,
         'image_set': image_set,
         #'hidden_image_set': hidden_image_set,
@@ -336,9 +323,7 @@ def resolve_conflict(request, group_name, cloud_name):
 @silkp(name='Download Image')
 def download_image(request, image_name, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-    user_obj = getUser(request, db_config)
+    rc, msg, user_obj = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
 
@@ -392,9 +377,7 @@ def download_image(request, image_name, group_name=None):
 @silkp(name='Upload Image')
 def upload_image(request, group_name=None):
     db_config.db_open()
-    if not verifyUser(request, db_config):
-        raise PermissionDenied
-    user_obj = getUser(request, db_config)
+    rc, msg, user_obj = set_user_groups(db_config, request)
     if group_name is None:
         group_name = user_obj.active_group
     try:
