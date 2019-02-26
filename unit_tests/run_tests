@@ -123,10 +123,11 @@ def main():
             exec('{}_requests_cleanup.main(hidden_gvar)'.format(obj), globals(), locals())
         if hidden_gvar['ut_failed'] > 0:
             print('Error setting up or cleaning up tests. Run with -v flag to see output.')
-            exit(hidden_gvar['ut_failed'])
+            break
+#           exit(hidden_gvar['ut_failed'])
     if user_options['run_all']:
         print('Test run=%s, skipped=%s, failed=%s.' % (gvar['ut_count'][0]-gvar['ut_skipped'], gvar['ut_skipped'], gvar['ut_failed']))
-        exit(gvar['ut_failed'])
+#       exit(gvar['ut_failed'])
 
     total_failed = 0
     for ((_, n), s) in user_options['tests']:

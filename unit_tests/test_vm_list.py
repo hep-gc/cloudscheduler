@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {}
+        gvar = {'mnomonic': 'VV'}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
