@@ -20,6 +20,8 @@
 		TimerSwitch = 1;
 		timer_id = setTimeout(function() {
 			refresh_plot();
+			TimerVal = 30;
+	    		set_refresh(30000);
 			fetch(location.href,{	
 				method: 'GET',
 				headers: {'Accept': 'text/html'},
@@ -36,14 +38,10 @@
 	    			document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
 				document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
 				checkForPlottedTraces();
-				TimerVal = 30;
 				initialize();
-	    			set_refresh(30000);
 			})
 			.catch((error) => {
 				console.warn(error);
-				TimerVal = 30;
-	    			set_refresh(30000);
 			});
 			
 		},time);
@@ -123,240 +121,557 @@
 	<button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot
 	</button>
 </div>
+{% set index = 0 %}
+{% for group in user_groups %}
+    {% if index >= 0 %}
+    <div class="status-div">
+        {% if global_flag %}
+            <div class="group-name">{{ group|upper }}</div>
+        {% endif %}
+            <div class="toggle-button">
+                <label for="toggle-row-{{group}}">
+                    <span class="expand-symbol">&#x21a8;</span>
+                    <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
+                </label>
+            </div>
+
+            <div class="status-table">
+                <table>
+                  <colgroup>
+                    <col class="red" span="1" />
+                    <col class="clear" span="5" />
+
+                  </colgroup>
+                    <tr class="header-row">
+                        <th class="jobs-style">Jobs</th>
+                        <th class="jobs-style">Idle</th>
+                        <th class="jobs-style">Running</th>
+                        <th class="jobs-style">Completed</th>
+                        <th class="jobs-style">Held</th>
+                        <th class="jobs-style">Other</th>
+
+                    </tr>
+                    {% for group in job_status_list %}
+                        {% if forloop.counter0 == index %}
+                            {% for cloud in group %}
+                            <tr>
+
+                                {% if cloud.Jobs == 0 %}
+                                    <td data-path="{{cloud.group_name}} jobs" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} jobs" class="more-style plottable"><a href="#">{{cloud.Jobs}}</a></td>
+                                {% endif %}
+
+                                {% if cloud.Idle == 0 %}
+                                    <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="more-style plottable"><a href="#">{{cloud.Idle}}</a></td>
+                                {% endif %}
+
+                                {% if cloud.Running == 0 %}
+                                    <td data-path="{{cloud.group_name}} jobs_running" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} jobs_running" class="more-style plottable"><a href="#">{{cloud.Running}}</a></td>
+                                {% endif %}
+
+                                {% if cloud.Completed == 0 %}
+                                    <td data-path="{{cloud.group_name}} jobs_completed" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} jobs_completed" class="more-style plottable"><a href="#">{{cloud.Completed}}</a></td>
+                                {% endif %}
+
+                                {% if cloud.Held == 0 %}
+                                    <td data-path="{{cloud.group_name}} jobs_held" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} jobs_held" class="more-style plottable"><a href="#">{{cloud.Held}}</a></td>
+                                {% endif %}
+
+                                {% if cloud.Other == 0 %}
+                                    <td data-path="{{cloud.group_name}} jobs_other" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} jobs_other" class="more-style plottable"><a href="#">{{cloud.Other}}</a></td>
+                                {% endif %}
+
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                    <tr class="bottom-row">
+                        <td colspan="6"></td>
+                    </tr>
+
+                    </tbody> 
+                </table>
+            </div>
 
 
-<div class="status-div" id="status">
 
-    <div class="toggle-button">
-        <label for="toggle-row">
-            <span class="expand-symbol">&#x21a8;</span>
-            <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
-        </label>
-    </div>
+            <!--
+            https://codepen.io/istro/pen/daker 
+            https://codersblock.com/blog/checkbox-trickery-with-css/
+            -->
 
-    <div class="status-table">
-        <table>
-          <colgroup>
-            <col class="red" span="1" />
-            <col class="clear" span="5" />
+            <!--
+            <input id="how-other" name="how" type="radio">
+            <label for="how-other" class="side-label">Other...</label>
 
-          </colgroup>
-            <tr class="header-row">
-                <th class="jobs-style">Jobs</th>
-                <th class="jobs-style">Idle</th>
-                <th class="jobs-style">Running</th>
-                <th class="jobs-style">Completed</th>
-                <th class="jobs-style">Held</th>
-                <th class="jobs-style">Other</th>
+            <div class="how-other-disclosure">
+              <label for="how-other-explain" class="top-label">Please explain</label>
+              <textarea id="how-other-explain"></textarea>
+            </div>
+            -->
 
-            </tr>
-            {% for cloud in job_status_list %}
-                <tr>
 
-                    {% if cloud.Jobs == 0 %}
-                        <td data-path="{{cloud.group_name}} jobs" class="zero-style plottable">0</td>
-                    {% else %}
-                        <td data-path="{{cloud.group_name}} jobs" class="more-style plottable"><a href="#">{{cloud.Jobs}}</a></td>
+
+            <br>
+            {% set VMstotal = 0 %}
+            {% set VMs_foreign_total = 0 %}
+            <div class="status-table">
+                <input class="toggle-box" id="toggle-row-{{group}}" type="checkbox" autocomplete="on"></input>
+                <table>
+                  <colgroup>
+                    <col class="grey" span="1"/>
+                    <col class="clear" span="22"/>
+                  </colgroup>
+                    <tr class="header-row">
+                        <th class="name-style">Clouds</th>
+                        <th class="native-style">VMs</th>
+                        <th class="native-style">Starting</th>
+                        <th class="native-style">Unreg.</th>
+                        <th class="native-style">Idle</th>                
+                        <th class="native-style">Running</th>
+                        <th class="native-style">Retiring</th>
+                        <th class="native-style">Manual</th>
+                        <th class="native-style">Error</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr colspan="2">Native Cores</tr>
+                                <tr>
+                                    <th>Used</th>
+                                    <th>Limit</th>
+                                </tr>
+                            </table>
+                        </th>
+                        <th class="native-style">RAM</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="foreign-style">Foreign<br>VMs</th>
+                        <th class="foreign-style">Foreign<br>Cores</th>
+                        <th class="foreign-style">RAM</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+
+                        <th class="total-style" colspan="2">
+                            <table>
+                                <tr colspan="2">Global Cores</tr>
+                                <tr>
+                                    <th>Used</th>
+                                    <th>Quota</th>
+                                </tr>
+                            </table>
+                        </th>
+                        <th class="total-style">RAM</th>
+
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="native-style">Slots</th>
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr colspan="2">Slot Cores</tr>
+                                <tr>
+                                    <th>Busy</th>
+                                    <th>Idle</th>
+                                </tr>
+                            </table>
+                        </th>
+
+                        <!--
+                        <th class="native-style">Slots<br>Used Cores</th>
+                        <th class="native-style">Slots<br>Idle Cores</th>
+                        -->
+                    </tr>
+                    {% for group in cloud_status_list %}
+                        {% if forloop.counter0 == index %}
+                        {% for cloud in group %}
+
+                        {% if cloud.enabled == 1 or cloud.VMs > 0 %}
+                            <tr>
+                            {% if cloud.enabled == 1 %}
+                                <td class="bold-style">
+                            {% else %}
+                                <td class="disabled-style">
+                            {% endif %}
+                                {{cloud.cloud_name}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">--></td>
+
+                                {% if cloud.VMs == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="more-style plottable">{{cloud.VMs}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+                                {% if cloud.VMs_starting == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="more-style plottable">{{cloud.VMs_starting}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+                                {% if cloud.VMs_unregistered == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="more-style plottable">{{cloud.VMs_unregistered}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+                                {% if cloud.VMs_idle == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="more-style plottable">{{cloud.VMs_idle}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+                                {% if cloud.VMs_running == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="more-style plottable">{{cloud.VMs_running}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+                                {% if cloud.VMs_retiring == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="more-style plottable">{{cloud.VMs_retiring}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+                                {% if cloud.VMs_manual == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="more-style plottable">{{cloud.VMs_manual}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+                                {% if cloud.VMs_in_error == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="more-style plottable">{{cloud.VMs_in_error}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                {% if cloud.cores_native == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="zero-style plottable">0</td>
+                                {% elif cloud.cores_ctl == -1 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="sysctl-style plottable">{{cloud.cores_native}}</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="manual-style plottable">{{cloud.cores_native}}</td>
+                                {% endif %}
+
+                                {% if cloud.cores_limit == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="zero-style plottable">0</td>
+                                {% elif cloud.cores_ctl == -1 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="sysctl-style plottable">{{cloud.cores_limit}}</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style plottable">{{cloud.cores_limit}}</td>
+                                {% endif %}
+                                
+                                <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native" class="plottable">
+                                    {% with total=cloud.ram_quota %}
+                                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
+                                    {% endwith %}
+                                </td>
+
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                {% if cloud.Foreign_VMs == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="more-style plottable">{{ cloud.Foreign_VMs }}<!--<a onclick="pass_url('{{cloud.cloud_name}}::foreign::')" href="#vms-overlay">--></td>
+                                {% endif %}
+
+
+
+                                {% if cloud.cores_foreign == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="more-style plottable">{{ cloud.cores_foreign }}</a></td>
+                                {% endif %}
+
+                                <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign" class="plottable">
+                                    {% with total=cloud.ram_quota %}
+                                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
+                                    {% endwith %}
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+
+                                <!--******************************-->
+                                {% if cloud.cores_native_foreign == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="more-style plottable">{{ cloud.cores_native_foreign }}</a></td>
+                                {% endif %}
+                                <!--******************************-->
+
+
+                                {% if cloud.cores_max == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="more-style plottable">{{ cloud.cores_quota }}</a></td>
+                                {% endif %}
+
+                                <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign" class="plottable">
+                                    {% with total=cloud.ram_quota %}
+                                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                                    {% endwith %}                        
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+                                {% if cloud.slot_count == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="more-style plottable">{{cloud.slot_count}}</td>
+                                {% endif %}
+
+
+                                {% if cloud.slot_core_count == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="more-style plottable">{{cloud.slot_core_count}}</td>
+                                {% endif %}
+
+                                {% if cloud.slot_idle_core_count == 0 %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="more-style plottable">{{cloud.slot_idle_core_count}}</td>
+                                {% endif %}
+
+                                
+
+                            </tr>
+
+
+
+                            <tr class="extra-row">
+                                <td>
+                                    {% if cloud.enabled == 0 %}
+                                        Cloud disabled
+                                    {% endif %}
+                                    <!--<a href="{{cloud.url}}">&#x2601;</a>-->
+                                </td>
+                                <td>
+                                {% if cloud.VMs > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_starting > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_unregistered > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_idle > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_running > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_retiring > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_manual > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+                                <td>
+                                {% if cloud.VMs_in_error > 0 %}
+                                    <a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">&#x2637;</a>
+                                {% endif %}
+                                </td>
+
+
+
+
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td colspan="2">
+                                {% if cloud.cores_ctl == -1 %}
+                                    <p>System limit</p>
+                                {% else %}
+                                    <p>User limit</p>
+                                {% endif %}
+                                </td>
+                                <td>
+                                    {% with ram=cloud.ram_native total=cloud.ram_quota %}
+                                        {% if cloud.ram_quota > 1048576 %}
+                                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                        {% else %}
+                                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td><!--Foreign VMs--></td>
+                                <td><!--Foreign Cores--></td>
+                                <td>
+                                    {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
+                                        {% if cloud.ram_quota > 1048576 %}
+                                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                        {% else %}
+                                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td><!--Total Cores--></td>
+                                <td><!--Cores Quota--></td>
+                                <td>
+                                    {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
+                                        {% if cloud.ram_quota > 1048576 %}
+                                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                        {% else %}
+                                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td colspan="2">
+                                    <table>
+                                    {% for slot in slot_list%}
+                                        {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                                            <tr>
+                                                <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                                <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </table>
+                                </td>
+                                <td><!--Idle--></td>
+
+                            </tr>                
+                        {% endif %}
+                    {% endfor %}
                     {% endif %}
+                    {% endfor %}
 
-                    {% if cloud.Idle == 0 %}
-                        <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="zero-style plottable">0</td>
-                    {% else %}
-                        <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="more-style plottable"><a href="#">{{cloud.Idle}}</a></td>
-                    {% endif %}
+                    <!--
+                    {% for cloud in cloud_status_list %}
+                        {% if cloud.enabled == 0 and cloud.VMs == 0 %}
+                            <tr class="extra-row">
+                                <td class="disabled-style">{{cloud.cloud_name}}</td>
+                                <td colspan="22"><h3>--- disabled ---</h3></td>
+                            </tr>        
 
-                    {% if cloud.Running == 0 %}
-                        <td data-path="{{cloud.group_name}} jobs_running" class="zero-style plottable">0</td>
-                    {% else %}
-                        <td data-path="{{cloud.group_name}} jobs_running" class="more-style plottable"><a href="#">{{cloud.Running}}</a></td>
-                    {% endif %}
-
-                    {% if cloud.Completed == 0 %}
-                        <td data-path="{{cloud.group_name}} jobs_completed" class="zero-style plottable">0</td>
-                    {% else %}
-                        <td data-path="{{cloud.group_name}} jobs_completed" class="more-style plottable"><a href="#">{{cloud.Completed}}</a></td>
-                    {% endif %}
-
-                    {% if cloud.Held == 0 %}
-                        <td data-path="{{cloud.group_name}} jobs_held" class="zero-style plottable">0</td>
-                    {% else %}
-                        <td data-path="{{cloud.group_name}} jobs_held" class="more-style plottable"><a href="#">{{cloud.Held}}</a></td>
-                    {% endif %}
-
-                    {% if cloud.Other == 0 %}
-                        <td data-path="{{cloud.group_name}} jobs_other" class="zero-style plottable">0</td>
-                    {% else %}
-                        <td data-path="{{cloud.group_name}} jobs_other" class="more-style plottable"><a href="#">{{cloud.Other}}</a></td>
-                    {% endif %}
-
-                </tr>
-            {% endfor %}
-
-            <tr class="bottom-row">
-                <td colspan="6"></td>
-            </tr>
-
-            </tbody> 
-        </table>
-    </div>
-
-
-
-    <!--
-    https://codepen.io/istro/pen/daker 
-    https://codersblock.com/blog/checkbox-trickery-with-css/
-    -->
-
-    <!--
-    <input id="how-other" name="how" type="radio">
-    <label for="how-other" class="side-label">Other...</label>
-
-    <div class="how-other-disclosure">
-      <label for="how-other-explain" class="top-label">Please explain</label>
-      <textarea id="how-other-explain"></textarea>
-    </div>
-    -->
-
-
-
-    <br>
-    {% set VMstotal = 0 %}
-    {% set VMs_foreign_total = 0 %}
-    <div class="status-table">
-        <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
-
-        <table>
-          <colgroup>
-            <col class="grey" span="1"/>
-            <col class="clear" span="22" />
-          </colgroup>
-            <tr class="header-row">
-                <th class="name-style">Clouds</th>
-                <th class="native-style">VMs</th>
-                <th class="native-style">Starting</th>
-                <th class="native-style">Unreg.</th>
-                <th class="native-style">Idle</th>                
-                <th class="native-style">Running</th>
-                <th class="native-style">Retiring</th>
-                <th class="native-style">Manual</th>
-                <th class="native-style">Error</th>
-
-                <th class="col-spacer">&nbsp;</th>
-
-
-                <th class="native-style" colspan="2">
-                    <table>
-                        <tr colspan="2">Native Cores</tr>
+                        {% endif %}
+                    {% endfor %}
+                    -->
+                    
+                    {% for cloud_total_list in cloud_total_lists %}
+                        {% if forloop.counter0 == index %}
                         <tr>
-                            <th>Used</th>
-                            <th>Limit</th>
+                            <td colspan="9" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
                         </tr>
-                    </table>
-                </th>
-                <th class="native-style">RAM</th>
+                     <tr>
+                        <td class="bold-style">Totals</td>
 
-                <th class="col-spacer">&nbsp;</th>
-
-                <th class="foreign-style">Foreign<br>VMs</th>
-                <th class="foreign-style">Foreign<br>Cores</th>
-                <th class="foreign-style">RAM</th>
-
-                <th class="col-spacer">&nbsp;</th>
-
-
-                <th class="total-style" colspan="2">
-                    <table>
-                        <tr colspan="2">Global Cores</tr>
-                        <tr>
-                            <th>Used</th>
-                            <th>Quota</th>
-                        </tr>
-                    </table>
-                </th>
-                <th class="total-style">RAM</th>
-
-
-                <th class="col-spacer">&nbsp;</th>
-
-                <th class="native-style">Slots</th>
-                <th class="native-style" colspan="2">
-                    <table>
-                        <tr colspan="2">Slot Cores</tr>
-                        <tr>
-                            <th>Busy</th>
-                            <th>Idle</th>
-                        </tr>
-                    </table>
-                </th>
-
-                <!--
-                <th class="native-style">Slots<br>Used Cores</th>
-                <th class="native-style">Slots<br>Idle Cores</th>
-                -->
-            </tr>
-            {% for cloud in cloud_status_list %}
-
-                {% if cloud.enabled == 1 or cloud.VMs > 0 %}
-                    <tr>
-                    {% if cloud.enabled == 1 %}
-                        <td class="bold-style">
-                    {% else %}
-                        <td class="disabled-style">
-                    {% endif %}
-                        {{cloud.cloud_name}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">--></td>
-
-                        {% if cloud.VMs == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="more-style plottable">{{cloud.VMs}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">--></td>
-                        {% endif %}
-
-                        {% if cloud.VMs_starting == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="more-style plottable">{{cloud.VMs_starting}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_total" class="more-style plottable">{{cloud_total_list.VMs}}<!--<a onclick="pass_url('::native::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
-                        {% if cloud.VMs_unregistered == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs_starting == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_starting_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="more-style plottable">{{cloud.VMs_unregistered}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_starting_total" class="more-style plottable">{{cloud_total_list.VMs_starting}}<!--<a onclick="pass_url('::starting::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
-                        {% if cloud.VMs_idle == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs_unregistered == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_unregistered_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="more-style plottable">{{cloud.VMs_idle}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_unregistered_total" class="more-style plottable">{{cloud_total_list.VMs_unregistered}}<!--<a onclick="pass_url('::unregistered::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
-                        {% if cloud.VMs_running == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs_idle == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_idle_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="more-style plottable">{{cloud.VMs_running}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_idle_total" class="more-style plottable">{{cloud_total_list.VMs_idle}}<!--<a onclick="pass_url('::idle::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
-                        {% if cloud.VMs_retiring == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs_running == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_running_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="more-style plottable">{{cloud.VMs_retiring}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_running_total" class="more-style plottable">{{cloud_total_list.VMs_running}}<!--<a onclick="pass_url('::running::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
-                        {% if cloud.VMs_manual == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs_retiring == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_retiring_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="more-style plottable">{{cloud.VMs_manual}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_retiring_total" class="more-style plottable">{{cloud_total_list.VMs_retiring}}<!--<a onclick="pass_url('::retiring::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
-                        {% if cloud.VMs_in_error == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.VMs_manual == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_manual_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="more-style plottable">{{cloud.VMs_in_error}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} VMs_manual_total" class="more-style plottable">{{cloud_total_list.VMs_manual}}<!--<a onclick="pass_url('::manual::')" href="#vms-overlay">--></td>
+                        {% endif %}
+
+
+                        {% if cloud_total_list.VMs_in_error == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_in_error_total" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{cloud_total_list.group_name}} VMs_in_error_total" class="more-style plottable">{{cloud_total_list.VMs_in_error}}<!--<a onclick="pass_url('::error::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
@@ -364,155 +679,129 @@
                         <td class="col-spacer">&nbsp;</td>
 
 
-                        {% if cloud.cores_native == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="zero-style plottable">0</td>
-                        {% elif cloud.cores_ctl == -1 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="sysctl-style plottable">{{cloud.cores_native}}</td>
+                        {% if cloud_total_list.cores_native == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} cores_native_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="manual-style plottable">{{cloud.cores_native}}</td>
+                            <td data-path="{{cloud_total_list.group_name}} cores_native_total" class="more-style plottable">{{cloud_total_list.cores_native}}</td>
                         {% endif %}
 
-                        {% if cloud.cores_limit == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="zero-style plottable">0</td>
-                        {% elif cloud.cores_ctl == -1 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="sysctl-style plottable">{{cloud.cores_limit}}</td>
+                        {% if cloud_total_list.cores_limit == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} cores_limit_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style plottable">{{cloud.cores_limit}}</td>
+                            <td data-path="{{cloud_total_list.group_name}} cores_limit_total" class="more-style plottable">{{cloud_total_list.cores_limit}}</td>
                         {% endif %}
-                        
-                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native" class="plottable">
-                            {% with total=cloud.ram_quota %}
-                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
+                            <td data-path="{{cloud_total_list.group_name}} ram_native_total" class="plottable">
+                                {% with total=cloud_total_list.ram_quota %}
+                                    <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native }}"></meter>
+                                {% endwith %}
+                            </td>
+
+                        <td class="col-spacer">&nbsp;</td>
+
+                        {% if cloud_total_list.Foreign_VMs == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} Foreign_VMs_total" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{cloud_total_list.group_name}} Foreign_VMs_total" class="more-style plottable">{{cloud_total_list.Foreign_VMs}}<!--<a onclick="pass_url('::foreign::')" href="#vms-overlay">--></td>
+                        {% endif %}
+
+
+                        {% if cloud_total_list.cores_foreign == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} cores_foreign_total" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{cloud_total_list.group_name}} cores_foreign_total" class="more-style plottable">{{cloud_total_list.cores_foreign}}</td>
+                        {% endif %}
+
+                            <td data-path="{{cloud_total_list.group_name}} ram_foreign_total" class="plottable">
+                                {% with total=cloud_total_list.ram_quota %}
+                                    <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_foreign }}"></meter>
+                                {% endwith %}
+                            </td>
+
+                        <td class="col-spacer">&nbsp;</td>
+                        <!--*******************************************************-->
+                        <td data-path="{{cloud_total_list.group_name}} cores_native_foreign_total" class="more-style bold-style plottable">{{cloud_total_list.cores_native_foreign}}</td>
+                        <!--*******************************************************-->
+
+                        <td data-path="{{cloud_total_list.group_name}} cores_quota_total" class="more-style bold-style plottable">{{cloud_total_list.cores_quota}}</td>
+
+                        <td data-path="{{cloud_total_list.group_name}} ram_native_foreign_total" class="plottable">
+                            {% with total=cloud_total_list.ram_quota %}
+                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native_foreign }}"></meter>
                             {% endwith %}
                         </td>
 
-
                         <td class="col-spacer">&nbsp;</td>
 
-
-                        {% if cloud.Foreign_VMs == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.slot_count == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} slot_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="more-style plottable">{{ cloud.Foreign_VMs }}<!--<a onclick="pass_url('{{cloud.cloud_name}}::foreign::')" href="#vms-overlay">--></td>
+                            <td data-path="{{cloud_total_list.group_name}} slot_count_total" class="more-style plottable">{{cloud_total_list.slot_count}}</td>
                         {% endif %}
 
 
-
-                        {% if cloud.cores_foreign == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.slot_core_count == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} slot_core_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="more-style plottable">{{ cloud.cores_foreign }}</a></td>
+                            <td data-path="{{cloud_total_list.group_name}} slot_core_count_total" class="more-style plottable">{{cloud_total_list.slot_core_count}}</td>
                         {% endif %}
 
-                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign" class="plottable">
-                            {% with total=cloud.ram_quota %}
-                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
-                            {% endwith %}
-                        </td>
-
-                        <td class="col-spacer">&nbsp;</td>
-
-
-                        <!--******************************-->
-                        {% if cloud.cores_native_foreign == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="zero-style plottable">0</td>
+                        {% if cloud_total_list.slot_idle_core_count == 0 %}
+                            <td data-path="{{cloud_total_list.group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="more-style plottable">{{ cloud.cores_native_foreign }}</a></td>
+                            <td data-path="{{cloud_total_list.group_name}} slot_idle_core_count_total" class="more-style plottable">{{cloud_total_list.slot_idle_core_count}}</td>
                         {% endif %}
-                        <!--******************************-->
-
-
-                        {% if cloud.cores_max == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="more-style plottable">{{ cloud.cores_quota }}</a></td>
-                        {% endif %}
-
-                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign" class="plottable">
-                            {% with total=cloud.ram_quota %}
-                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
-                            {% endwith %}                        
-                        </td>
-
-                        <td class="col-spacer">&nbsp;</td>
-
-                        {% if cloud.slot_count == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="more-style plottable">{{cloud.slot_count}}</td>
-                        {% endif %}
-
-
-                        {% if cloud.slot_core_count == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="more-style plottable">{{cloud.slot_core_count}}</td>
-                        {% endif %}
-
-                        {% if cloud.slot_idle_core_count == 0 %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="more-style plottable">{{cloud.slot_idle_core_count}}</td>
-                        {% endif %}
-
-                        
 
                     </tr>
 
 
-
                     <tr class="extra-row">
+                        <td></td>
+
                         <td>
-                            {% if cloud.enabled == 0 %}
-                                Cloud disabled
-                            {% endif %}
-                            <!--<a href="{{cloud.url}}">&#x2601;</a>-->
-                        </td>
-                        <td>
-                        {% if cloud.VMs > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_starting > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_starting > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::starting::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_unregistered > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_unregistered > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::unregistered::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_idle > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_idle > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::idle::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_running > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_running > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::running::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_retiring > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_retiring > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::retiring::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_manual > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_manual > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::manual::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
-                        {% if cloud.VMs_in_error > 0 %}
-                            <a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">&#x2637;</a>
+                        {% if cloud_total_list.VMs_in_error > 0 %}
+                            <a onclick="pass_url('{{cloud_total_list.cloud_name}}::error::')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
@@ -521,55 +810,49 @@
 
                         <td class="col-spacer">&nbsp;</td>
 
-                        <td colspan="2">
-                        {% if cloud.cores_ctl == -1 %}
-                            <p>System limit</p>
-                        {% else %}
-                            <p>User limit</p>
-                        {% endif %}
-                        </td>
+                        <td><!--Used Cores--></td>
+                        <td><!--Cores Limit--></td>
                         <td>
-                            {% with ram=cloud.ram_native total=cloud.ram_quota %}
-                                {% if cloud.ram_quota > 1048576 %}
+                            {% with ram=cloud_total_list.ram_native total=cloud_total_list.ram_quota %}
+                                {% if cloud_total_list.ram_quota > 1048576 %}
                                     {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
                                 {% else %}
                                     {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
                                 {% endif %}
                             {% endwith %}
                         </td>
-
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Foreign VMs--></td>
                         <td><!--Foreign Cores--></td>
                         <td>
-                            {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
-                                {% if cloud.ram_quota > 1048576 %}
+                            {% with ram=cloud_total_list.ram_foreign total=cloud_total_list.ram_quota %}
+                                {% if cloud_total_list.ram_quota > 1048576 %}
                                     {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
                                 {% else %}
                                     {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
                                 {% endif %}
-                            {% endwith %}
+                            {% endwith %}                    
                         </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td><!--Total Cores--></td>
                         <td><!--Cores Quota--></td>
                         <td>
-                            {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
-                                {% if cloud.ram_quota > 1048576 %}
+                            {% with ram=cloud_total_list.ram_native_foreign total=cloud_total_list.ram_quota %}
+                                {% if cloud_total_list.ram_quota > 1048576 %}
                                     {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
                                 {% else %}
                                     {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
                                 {% endif %}
-                            {% endwith %}
+                            {% endwith %}                    
                         </td>
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">
                             <table>
-                            {% for slot in slot_list%}
-                                {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
+                            {% for slot in slot_total_list%}
+                                {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
                                     <tr>
                                         <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                         <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
@@ -580,298 +863,32 @@
                         </td>
                         <td><!--Idle--></td>
 
-                    </tr>                
-                {% endif %}
 
-            {% endfor %}
-
-            <!--
-            {% for cloud in cloud_status_list %}
-                {% if cloud.enabled == 0 and cloud.VMs == 0 %}
-                    <tr class="extra-row">
-                        <td class="disabled-style">{{cloud.cloud_name}}</td>
-                        <td colspan="22"><h3>--- disabled ---</h3></td>
-                    </tr>        
-
-                {% endif %}
-            {% endfor %}
-            -->
-            <tr>
-                <td colspan="9" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-            </tr>
-             <tr>
-                <td class="bold-style">Totals</td>
-
-                {% if cloud_total_list.VMs == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_total" class="more-style plottable">{{cloud_total_list.VMs}}<!--<a onclick="pass_url('::native::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_starting == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_starting_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_starting_total" class="more-style plottable">{{cloud_total_list.VMs_starting}}<!--<a onclick="pass_url('::starting::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_unregistered == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_unregistered_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_unregistered_total" class="more-style plottable">{{cloud_total_list.VMs_unregistered}}<!--<a onclick="pass_url('::unregistered::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_idle == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_idle_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_idle_total" class="more-style plottable">{{cloud_total_list.VMs_idle}}<!--<a onclick="pass_url('::idle::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_running == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_running_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_running_total" class="more-style plottable">{{cloud_total_list.VMs_running}}<!--<a onclick="pass_url('::running::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_retiring == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_retiring_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_retiring_total" class="more-style plottable">{{cloud_total_list.VMs_retiring}}<!--<a onclick="pass_url('::retiring::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_manual == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_manual_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_manual_total" class="more-style plottable">{{cloud_total_list.VMs_manual}}<!--<a onclick="pass_url('::manual::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.VMs_in_error == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_in_error_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} VMs_in_error_total" class="more-style plottable">{{cloud_total_list.VMs_in_error}}<!--<a onclick="pass_url('::error::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-
-                <td class="col-spacer">&nbsp;</td>
-
-
-                {% if cloud_total_list.cores_native == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} cores_native_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} cores_native_total" class="more-style plottable">{{cloud_total_list.cores_native}}</td>
-                {% endif %}
-
-                {% if cloud_total_list.cores_limit == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} cores_limit_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} cores_limit_total" class="more-style plottable">{{cloud_total_list.cores_limit}}</td>
-                {% endif %}
-                    <td data-path="{{cloud_total_list.group_name}} ram_native_total" class="plottable">
-                        {% with total=cloud_total_list.ram_quota %}
-                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native }}"></meter>
-                        {% endwith %}
-                    </td>
-
-                <td class="col-spacer">&nbsp;</td>
-
-                {% if cloud_total_list.Foreign_VMs == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} Foreign_VMs_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} Foreign_VMs_total" class="more-style plottable">{{cloud_total_list.Foreign_VMs}}<!--<a onclick="pass_url('::foreign::')" href="#vms-overlay">--></td>
-                {% endif %}
-
-
-                {% if cloud_total_list.cores_foreign == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} cores_foreign_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} cores_foreign_total" class="more-style plottable">{{cloud_total_list.cores_foreign}}</td>
-                {% endif %}
-
-                    <td data-path="{{cloud_total_list.group_name}} ram_foreign_total" class="plottable">
-                        {% with total=cloud_total_list.ram_quota %}
-                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_foreign }}"></meter>
-                        {% endwith %}
-                    </td>
-
-                <td class="col-spacer">&nbsp;</td>
-                <!--*******************************************************-->
-                <td data-path="{{cloud_total_list.group_name}} cores_native_foreign_total" class="more-style bold-style plottable">{{cloud_total_list.cores_native_foreign}}</td>
-                <!--*******************************************************-->
-
-                <td data-path="{{cloud_total_list.group_name}} cores_quota_total" class="more-style bold-style plottable">{{cloud_total_list.cores_quota}}</td>
-
-                <td data-path="{{cloud_total_list.group_name}} ram_native_foreign_total" class="plottable">
-                    {% with total=cloud_total_list.ram_quota %}
-                        <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud_total_list.ram_quota}}" value="{{ cloud_total_list.ram_native_foreign }}"></meter>
-                    {% endwith %}
-                </td>
-
-                <td class="col-spacer">&nbsp;</td>
-
-                {% if cloud_total_list.slot_count == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} slot_count_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} slot_count_total" class="more-style plottable">{{cloud_total_list.slot_count}}</td>
-                {% endif %}
-
-
-                {% if cloud_total_list.slot_core_count == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} slot_core_count_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} slot_core_count_total" class="more-style plottable">{{cloud_total_list.slot_core_count}}</td>
-                {% endif %}
-
-                {% if cloud_total_list.slot_idle_core_count == 0 %}
-                    <td data-path="{{cloud_total_list.group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
-                {% else %}
-                    <td data-path="{{cloud_total_list.group_name}} slot_idle_core_count_total" class="more-style plottable">{{cloud_total_list.slot_idle_core_count}}</td>
-                {% endif %}
-
-            </tr>
-
-
-            <tr class="extra-row">
-                <td></td>
-
-                <td>
-                {% if cloud_total_list.VMs > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_starting > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::starting::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_unregistered > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::unregistered::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_idle > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::idle::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_running > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::running::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_retiring > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::retiring::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_manual > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::manual::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-                <td>
-                {% if cloud_total_list.VMs_in_error > 0 %}
-                    <a onclick="pass_url('{{cloud_total_list.cloud_name}}::error::')" href="#vms-overlay">&#x2637;</a>
-                {% endif %}
-                </td>
-
-
-
-
-                <td class="col-spacer">&nbsp;</td>
-
-                <td><!--Used Cores--></td>
-                <td><!--Cores Limit--></td>
-                <td>
-                    {% with ram=cloud_total_list.ram_native total=cloud_total_list.ram_quota %}
-                        {% if cloud_total_list.ram_quota > 1048576 %}
-                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
-                        {% else %}
-                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
-                        {% endif %}
-                    {% endwith %}
-                </td>
-                <td class="col-spacer">&nbsp;</td>
-
-                <td><!--Foreign VMs--></td>
-                <td><!--Foreign Cores--></td>
-                <td>
-                    {% with ram=cloud_total_list.ram_foreign total=cloud_total_list.ram_quota %}
-                        {% if cloud_total_list.ram_quota > 1048576 %}
-                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
-                        {% else %}
-                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
-                        {% endif %}
-                    {% endwith %}                    
-                </td>
-                <td class="col-spacer">&nbsp;</td>
-
-                <td><!--Total Cores--></td>
-                <td><!--Cores Quota--></td>
-                <td>
-                    {% with ram=cloud_total_list.ram_native_foreign total=cloud_total_list.ram_quota %}
-                        {% if cloud_total_list.ram_quota > 1048576 %}
-                            {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
-                        {% else %}
-                            {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
-                        {% endif %}
-                    {% endwith %}                    
-                </td>
-                <td class="col-spacer">&nbsp;</td>
-
-                <td colspan="2">
-                    <table>
-                    {% for slot in slot_total_list%}
-                        {% if slot.group_name == active_group and slot.cloud_name == cloud_total_list.cloud_name %}
-                            <tr>
-                                <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                            </tr>
-                        {% endif %}
+                    <tr class="bottom-row">
+                        <td colspan="9" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
-                    </table>
-                </td>
-                <td><!--Idle--></td>
-
-
-            <tr class="bottom-row">
-                <td colspan="9" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-                <td class="col-spacer">&nbsp;</td>
-                <td colspan="3" class="row-spacer">&nbsp;</td>
-            </tr>
-
-            </tbody> 
-        </table>
+                    </tbody> 
+                </table>
+            </div>
+            
     </div>
-</div>
-
+    {% if global_flag %}
+        {% set index += 1 %}
+    {% else %}
+        {% set index = -1 %}
+    {% endif %}
+    {% endif %}
+{% endfor %}
 <!--<div>Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/"              title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"              title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>-->
 
 <div class="system-div">

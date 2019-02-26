@@ -122,9 +122,15 @@
 /*****************************************************************/
 /*                          table styling                        */
 /*****************************************************************/
+.group-name {
+  padding: 8px;
+  font-weight: bold;
+}
+
 .status-div {
   position: relative;
   top: 0px;
+  padding-bottom: 20px;
   bottom: 100px;
   right: 2px;
   left: 2px;
@@ -261,7 +267,7 @@ td a {
   color: black;
 }
 
-input#toggle-row:checked ~ table tr.extra-row {
+input.toggle-box:checked ~ table tr.extra-row {
   display: table-row;
 }
 

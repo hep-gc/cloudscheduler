@@ -197,7 +197,7 @@ function createQuery(trace, from, to, showing){
 		services = true;
 		var measurement = line[0];
 		query += `"${measurement}"`;
-	}//else{
+	}
 	const group = line[0];
 	if(line.length == 3){
 		var cloud = line[1];
@@ -208,9 +208,9 @@ function createQuery(trace, from, to, showing){
 		query += `"${measurement}" WHERE "group"='${group}'`;
 	}
 	/* If requesting newest 30s of data*/
-	if (from == 30){
-		if(!services) query += ` AND time >= ${TSPlot.layout.xaxis.range[1]}ms`;
-		else query += ` WHERE time >= ${TSPlot.layout.xaxis.range[1]}ms`;
+	if (to == 0){
+		if(!services) query += ` AND time >= ${from}ms`;
+		else query += ` WHERE time >= ${from}ms`;
 	/* Default request is last 7 days*/
 	}else if (showing == false || (date-from) <= 604800000){
 		if(!services) query += ` AND time >= ${date-604800000}ms`;
@@ -242,8 +242,7 @@ function createQuery(trace, from, to, showing){
 				else query += ` WHERE time >= ${from}ms AND time < ${date}ms`;
 			}
 		}
-	}	
-	//}
+	}
 	return query;
 }
 
@@ -257,8 +256,8 @@ function parseData(responsedata){
 	const unpackData = (arr, index) => {
 		var newarr = arr.map((x, ind) => {
 			if(index == 0 && ind < arr.length-1){
-				/* If gap between two timestamps is > 70s*/
-				if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 70000){
+				/* If gap between two timestamps is > 45s*/
+				if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 45000){
 					addtime.push(arr[ind][index] + 15000);
 					addindex.push(ind+1);
 				}
@@ -356,13 +355,13 @@ function refresh_plot() {
 			x: []
 		};
 		var index = [];
-		var query = createQuery(traces[0].name, 30, 0, true)
+		var query = createQuery(traces[0].name, traces[0].x[traces[0].x.length-1], 0, true)
 		index.push(0);
 		/* Create string of queries for db*/
 		for (var i = 1; i < traces.length; i++){
 			index.push(i);
 			query += ';'
-			query += createQuery(traces[i].name, 30, 0, true);
+			query += createQuery(traces[i].name, traces[i].x[traces[i].x.length-1], 0, true);
 		}
 		if(window.location.pathname == "/cloud/status/") var newpath = "plot";
 		else var newpath = "/cloud/status/plot";
@@ -385,6 +384,7 @@ function refresh_plot() {
 			var new_points = true;
 			for(var k = 0; k < traces.length; k++){
 				if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
+					console.log("new_points == false");
 					new_points = false;
 					break;
 				}
@@ -413,6 +413,16 @@ function refresh_plot() {
 
 /* Update plot traces with most recent data points and new range*/
 function updateTraces(newdata, index){
+	/* If last plotted data point was 55s or more ago, insert null to show break in plot*/
+	for(var k = 0; k < index.length; k++){
+		var len = TSPlot.traces[k].x.length -1;
+		if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
+			console.log(newdata);
+			newdata.x[k].unshift(newdata.x[k][0] - 1000);
+			newdata.y[k].unshift(null);
+			console.log(newdata);
+		}
+	}
 	Plotly.extendTraces('plotly-TS', newdata, index);
 	/* Only update range if if looking at last 12 hours or less*/
 	if(TSPlot.layout.xaxis.range[1] >= date && (date - TSPlot.layout.xaxis.range[0]) <= 43200000){
