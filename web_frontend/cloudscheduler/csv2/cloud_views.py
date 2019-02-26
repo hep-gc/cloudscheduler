@@ -1065,75 +1065,160 @@ def status(request, group_name=None):
         config.db_close()
         return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno('CV33'), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 #       return list(request, selector='-', response_code=1, message='%s %s' % (lno('CV33'), msg), user_groups=user_groups)
+    global_flag = False
+    USER = config.db_map.classes.csv2_user
+    users = config.db_session.query(USER).filter(USER.username == active_user.username)
+    #active_user.username
+    group_list = []
+    for user in users:
+        if user.flag_global_status == 1:
+            global_flag = True
+    cloud_status_list = []
+    cloud_total_list = []
+    slot_total_list = []
+    job_status_list = []
+    if global_flag == True:
+        numberofgroups = 0
+        for group in active_user.user_groups:
+                # get cloud status per group
+                s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
+                #cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
+                cloud_status_list.append(qt(config.db_connection.execute(s)))
 
-    # get cloud status per group
-    s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
-    #cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
-    cloud_status_list = qt(config.db_connection.execute(s))
+                # calculate the totals for all rows
+                cloud_status_list_totals = qt(cloud_status_list[numberofgroups], keys={
+                    'primary': ['group_name'],
+                    'sum': [
+                        'VMs',
+                        'VMs_starting',
+                        'VMs_unregistered',
+                        'VMs_idle',
+                        'VMs_running',
+                        'VMs_retiring',
+                        'VMs_manual',
+                        'VMs_in_error',
+                        'Foreign_VMs',
+                        'cores_limit',
+                        'cores_foreign',
+                        'cores_idle',
+                        'cores_native',
+                        'cores_native_foreign',
+                        'cores_quota',
+                        'ram_quota',
+                        'ram_foreign',
+                        'ram_idle',
+                        'ram_native',
+                        'ram_native_foreign',
+                        'slot_count',
+                        'slot_core_count',
+                        'slot_idle_core_count'
+                        ]
+                    })
 
-    # calculate the totals for all rows
-    cloud_status_list_totals = qt(cloud_status_list, keys={
-        'primary': ['group_name'],
-        'sum': [
-            'VMs',
-            'VMs_starting',
-            'VMs_unregistered',
-            'VMs_idle',
-            'VMs_running',
-            'VMs_retiring',
-            'VMs_manual',
-            'VMs_in_error',
-            'Foreign_VMs',
-            'cores_limit',
-            'cores_foreign',
-            'cores_idle',
-            'cores_native',
-            'cores_native_foreign',
-            'cores_quota',
-            'ram_quota',
-            'ram_foreign',
-            'ram_idle',
-            'ram_native',
-            'ram_native_foreign',
-            'slot_count',
-            'slot_core_count',
-            'slot_idle_core_count'
-            ]
-        })
+                cloud_total_list.append(cloud_status_list_totals[0])
 
-    cloud_total_list = cloud_status_list_totals[0]
+                # find the actual cores limit in use
+                '''
+                cloud_total_list['cores_limit'] = 0
+                n=0
+                for cloud in cloud_status_list:
+                    if cloud['cores_ctl'] == -1:
+                        cloud_status_list[n]['cores_limit'] = cloud['cores_native']
+                    else:
+                        cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
 
-    # find the actual cores limit in use
-    '''
-    cloud_total_list['cores_limit'] = 0
-    n=0
-    for cloud in cloud_status_list:
-        if cloud['cores_ctl'] == -1:
-            cloud_status_list[n]['cores_limit'] = cloud['cores_native']
-        else:
-            cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
+                    cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
+                    n=n+1
+                '''
 
-        cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
-        n=n+1
-    '''
+                # get slots type counts
+                s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
+                slot_list = qt(
+                    config.db_connection.execute(s),
+                    )
 
-    # get slots type counts
-    s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
-    slot_list = qt(
-        config.db_connection.execute(s),
-        )
+                slot_total_list.append(qt(slot_list, keys={
+                    'primary': ['group_name', 'slot_type', 'slot_id'],
+                    'sum': [
+                        'slot_count',
+                        'core_count'
+                        ]
+                    }))
 
-    slot_total_list = qt(slot_list, keys={
-        'primary': ['group_name', 'slot_type', 'slot_id'],
-        'sum': [
-            'slot_count',
-            'core_count'
-            ]
-        })
+                # get job status per group
+                s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
+                job_status_list.append(qt(config.db_connection.execute(s)))
+                numberofgroups += 1
 
-    # get job status per group
-    s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
-    job_status_list = qt(config.db_connection.execute(s))
+    else:
+        # get cloud status per group
+        s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
+        #cloud_status_list = qt(config.db_connection.execute(s), filter='cols["enabled"] == 1 or cols["VMs"] > 0')
+        cloud_status_list.append(qt(config.db_connection.execute(s)))
+
+        # calculate the totals for all rows
+        cloud_status_list_totals = qt(cloud_status_list[0], keys={
+            'primary': ['group_name'],
+            'sum': [
+                'VMs',
+                'VMs_starting',
+                'VMs_unregistered',
+                'VMs_idle',
+                'VMs_running',
+                'VMs_retiring',
+                'VMs_manual',
+                'VMs_in_error',
+                'Foreign_VMs',
+                'cores_limit',
+                'cores_foreign',
+                'cores_idle',
+                'cores_native',
+                'cores_native_foreign',
+                'cores_quota',
+                'ram_quota',
+                'ram_foreign',
+                'ram_idle',
+                'ram_native',
+                'ram_native_foreign',
+                'slot_count',
+                'slot_core_count',
+                'slot_idle_core_count'
+                ]
+            })
+
+        cloud_total_list.append(cloud_status_list_totals[0])
+
+        # find the actual cores limit in use
+        '''
+        cloud_total_list['cores_limit'] = 0
+        n=0
+        for cloud in cloud_status_list:
+            if cloud['cores_ctl'] == -1:
+                cloud_status_list[n]['cores_limit'] = cloud['cores_native']
+            else:
+                cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
+
+            cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
+            n=n+1
+        '''
+
+        # get slots type counts
+        s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
+        slot_list = qt(
+            config.db_connection.execute(s),
+            )
+
+        slot_total_list.append(qt(slot_list, keys={
+            'primary': ['group_name', 'slot_type', 'slot_id'],
+            'sum': [
+                'slot_count',
+                'core_count'
+                ]
+            }))
+
+        # get job status per group
+        s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
+        job_status_list.append(qt(config.db_connection.execute(s)))
 
 
 
@@ -1217,7 +1302,7 @@ def status(request, group_name=None):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'cloud_status_list': cloud_status_list,
-            'cloud_total_list': cloud_total_list,
+            'cloud_total_lists': cloud_total_list,
             'job_status_list': job_status_list,
             'system_list' : system_list,
             'slot_list' : slot_list,
@@ -1225,7 +1310,8 @@ def status(request, group_name=None):
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser
+            'is_superuser': active_user.is_superuser,
+            'global_flag': global_flag
         }
 
     config.db_close()
