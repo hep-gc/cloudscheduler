@@ -44,12 +44,14 @@
                         {% endif %}
                         </tr>
 
+
+                        <input type="hidden" name="flag_global_status" value="0"/>
                         <tr class="highlight3"><td><label for="flag_global_status">Enabled global view on status page</label></td>
                         <td>
                         {% if user.flag_global_status == 1%}
-                            <input type="checkbox" name="enabled" value="1" checked/>
+                            <input type="checkbox" name="flag_global_status" value="1" checked/>
                         {% else %}
-                            <input type="checkbox" name="enabled" value="1" />
+                            <input type="checkbox" name="flag_global_status" value="1" />
                         {% endif %}
                         </td></tr>
 
