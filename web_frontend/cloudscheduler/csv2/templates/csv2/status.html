@@ -129,7 +129,7 @@
             <div class="group-name">{{ group|upper }}</div>
         {% endif %}
             <div class="toggle-button">
-                <label for="toggle-row{{group}}">
+                <label for="toggle-row-{{group}}">
                     <span class="expand-symbol">&#x21a8;</span>
                     <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
                 </label>
@@ -227,7 +227,7 @@
             {% set VMstotal = 0 %}
             {% set VMs_foreign_total = 0 %}
             <div class="status-table">
-                <input class="toggle-box" id="toggle-row{{group}}" type="checkbox" autocomplete="on"></input>
+                <input class="toggle-box" id="toggle-row-{{group}}" type="checkbox" autocomplete="on"></input>
                 <table>
                   <colgroup>
                     <col class="grey" span="1"/>
