@@ -28,22 +28,20 @@
                 <form name="{{user.username}}" action="/user/settings/" method="post">
                     {% csrf_token %}
                     <table>
-                        <input type="hidden" name="username" value="{{user.username}}" />
 
-                        <!--<tr><td><label for="username">Username</label></td>
-                        <td><input type="text" name="username" id="" value="{{user.username}}" /></td></tr>-->
-                        <!--<tr class="highlight1"><td><label for="password1">New Password</label></td>
+                        <tr class="highlight1"><td><label for="password1">New Password</label></td>
                         <td><input type="password" name="password1" value="" /></td></tr>
                         <tr class="highlight1"><td><label for="password2">Confirm Password</label></td>
                         <td><input type="password" name="password2" value="" /></td></tr>
-                        <tr class="highlight1"><td><label for="cert_cn">Cert CN</label></td>
+                        
+                        <!--<tr class="highlight1"><td><label for="cert_cn">Cert CN</label></td>
                         {% if user.cert_cn is not None %}
                             <td><input type="text" name="cert_cn" value="{{user.cert_cn}}" /></td>
                         {% else %}
                             <td><input type="text" name="cert_cn" value="" /></td>
                         {% endif %}
-                        </tr>
-                        -->
+                        </tr>-->
+                        
 
                         <input type="hidden" name="flag_global_status" value="0"/>
                         <tr class="highlight3"><td><label for="flag_global_status">Enabled global view on status page</label></td>
@@ -71,8 +69,6 @@
                             {% endfor %}
                             </select>
                         </td></tr>
-
-
 
 
                         <tr><td><input type="submit" value="Update user" /></td>
