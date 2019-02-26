@@ -55,9 +55,12 @@ UNPRIVILEGED_USER_KEYS = {
     'unnamed_fields_are_bad': True,
     # Named argument formats (anything else is a string).
     'format': {
-        'password':            'password',
-        'password1':           'password1',
-        'password2':           'password2',
+        'default_group':           'lowerdash',
+        'password':                'password',
+        'password1':               'password1',
+        'password2':               'password2',
+        'status_refresh_interval': 'integer',
+        'flag_global_status':      'dboolean',
 
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
@@ -216,7 +219,7 @@ def delete(request):
     ### Bad request.
     else:
         #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user delete, invalid method "%s" specified.' % (lno('UV11'), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-        return list(request, active_user=active_user, message='%s user delete, invalid method "%s" specified.' % (lno('UV11'), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno('UV11'), request.method))
 
 #-------------------------------------------------------------------------------
 
@@ -337,36 +340,29 @@ def settings(request):
             # Validate input fields.
             rc, msg, fields, tables, columns = validate_fields(config, request, [UNPRIVILEGED_USER_KEYS], ['csv2_user', 'django_session,n'], active_user)
             if rc == 0:        
-                # Update the user.
-                table = tables['csv2_user']
-                rc, msg = config.db_session_execute(table.update().where(table.c.username==active_user.username).values(table_fields(fields, table, columns, 'update')))
+                # Validity check the specified groups.
+                if 'default_group' in fields and fields['default_group'] not in active_user.user_groups:
+                    rc = 1; msg = '%s my settings unable to update default - user is not a member of the specified group (%s).' % (lno('UV99'), fields['default_group'])
+
                 if rc == 0:
-#                   config.db_close(commit=True)
-                    config.db_session.commit()
-                    request.session.delete()
-                    update_session_auth_hash(request, active_user)
-                    message = 'user "%s" successfully updated.' % (fields['username']).username
-                else:
-                    message = '%s user update, "%s" failed - %s.' % (lno('UV14'), active_user, message)
-
+                    # Update the user.
+                    table = tables['csv2_user']
+                    rc, msg = config.db_session_execute(table.update().where(table.c.username==active_user.username).values(table_fields(fields, table, columns, 'update')))
+                    if rc == 0:
+                        config.db_session.commit()
+                        request.session.delete()
+                        update_session_auth_hash(request, active_user)
+                        msg = 'user "%s" successfully updated.' % (fields['username']).username
+                    else:
+                        msg = '%s user update, "%s" failed - %s.' % (lno('UV14'), active_user, message)
             else:
-                message='%s user update, %s' % (lno('UV15'), msg)
-
-        ### Bad request.
-        else:
-            message = '%s user update, invalid method "%s" specified.' % (lno('UV16'), request.method)
-
+                msg ='%s user update, %s' % (lno('UV15'), msg)
     else:
-        message='%s %s' % (lno('UV17'), msg)
-
-    if message[:2] != 'UV':
-        response_code = 0
-    else:
-        response_code = 1
+        msg ='%s %s' % (lno('UV17'), msg)
 
     # Retrieve VM information.
     s = select([csv2_user]).where(csv2_user.c.username == active_user.username)
-    user_list = qt(config.db_connection.execute(s))
+    user_list = qt(config.db_connection.execute(s), prune='password')
 
     # Close the database.
     config.db_close()
@@ -377,8 +373,8 @@ def settings(request):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'user_list': user_list,
-            'response_code': response_code,
-            'message': message,
+            'response_code': rc,
+            'message': msg,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser
         }
