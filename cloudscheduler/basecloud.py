@@ -9,12 +9,11 @@ import uuid
 import logging
 from abc import ABC, abstractmethod
 
-import vm
-import cloud_init_util
+import jinja2
 
+import cloud_init_util
 from cloudscheduler.lib.db_config import Config
 
-import jinja2
 
 class BaseCloud(ABC):
 
@@ -22,30 +21,17 @@ class BaseCloud(ABC):
     Abstract BaseCloud class, meant to be inherited by any specific cloud class for use
     by cloudscheduler.
     """
-    def __init__(self, group, name, vms=None, extrayaml=None, metadata=None):
+    def __init__(self, group, name, extrayaml=None, metadata=None):
         self.log = logging.getLogger(__name__)
         self.name = name
         self.group = group
         self.enabled = True
-        self.vms = {x.vmid:vm.VM(x) for x in vms} if vms else None
         self.extrayaml = extrayaml
-        self.metadata = metadata  # Should a be list of tuples with (name, select statement, mime type) already in order
+        self.metadata = metadata  # list of tuples with (name, select statement, mime type)
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
 
     def __repr__(self):
         return ' : '.join([self.name, self.enabled])
-
-    def num_vms(self):
-        """Return the number of VMs on the cloud."""
-        return len(self.vms)
-
-    def get_vm(self, vmid):
-        """
-        Return the VM object of the given VM ID.
-        :param vmid: ID of the VM you want to get
-        :return: VM Object.
-        """
-        return self.vms[vmid]
 
     @abstractmethod
     def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
@@ -57,13 +43,6 @@ class BaseCloud(ABC):
         :param flavor: the flavor value from database
         """
         assert 0, 'SubClass must implement vm_create()'
-
-    @abstractmethod
-    def vm_destroy(self, vm):
-        """
-        Destroy a VM on the cloud.
-        """
-        assert 0, 'SubClass must implement vm_destroy()'
 
     @abstractmethod
     def vm_update(self):
@@ -83,18 +62,18 @@ class BaseCloud(ABC):
         #        name = self._generate_next_name()
         return name
 
-    def prepare_userdata(self, group_yaml, yaml_list, template_dict):
+    def prepare_userdata(self, yaml_list, template_dict):
         """ yamllist is a list of strings of file:mimetype format
             group_yaml is a list of tuples with name, yaml content, mimetype format"""
 
-        metadata_yamls = []  # also appending the mime type again with it in tuple (name, content, mime type)
+        metadata_yamls = []  # appending the mime type: tuple(name, content, mime type)
 
         if yaml_list:
             for yam in yaml_list:
                 [name, contents, mimetype] = cloud_init_util\
                     .read_file_type_pairs(yam)
                 if contents and mimetype:
-                    metadata_yamls.append((name,contents,mimetype))
+                    metadata_yamls.append((name, contents, mimetype))
 
         # metadata_yamls = []  # also appending the mime type again with it in tuple
         self.config.db_open()
@@ -102,7 +81,9 @@ class BaseCloud(ABC):
             if len(source) != 3:
                 self.log.debug("Problem with view?: %s", source)
                 continue
-            metadata_yamls.append([source[0], self.config.db_connection.execute(source[1]).fetchone()[0], source[2]]) # will be a source[2] with name
+            metadata_yamls.append([source[0],
+                                   self.config.db_connection.execute(source[1]).fetchone()[0],
+                                   source[2]])
         self.config.db_close()
 
         for yaml_tuple in metadata_yamls:

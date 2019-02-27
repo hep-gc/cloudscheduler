@@ -5,13 +5,8 @@ for a given group.
 
 import logging
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.automap import automap_base
-
 import openstackcloud
 import localhostcloud
-import config as csconfig
 
 from cloudscheduler.lib.db_config import Config
 
@@ -46,10 +41,12 @@ class CloudManager():
             try:
                 if cloud.cloud_type == 'localhost':
                     newcloud = localhostcloud.LocalHostCloud(resource=cloud,
-                                                                            metadata=self.metadata[cloud.cloud_name])
+                                                             metadata=self.metadata[cloud.cloud_name])
                 else:
                     newcloud = openstackcloud.\
-                        OpenStackCloud(resource=cloud, metadata=self.metadata[cloud.cloud_name] if cloud.cloud_name in self.metadata.keys() else None)
+                        OpenStackCloud(resource=cloud,
+                                       metadata=self.metadata[cloud.cloud_name]
+                                       if cloud.cloud_name in self.metadata.keys() else None)
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
             except Exception as ex:

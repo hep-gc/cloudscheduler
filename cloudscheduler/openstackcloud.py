@@ -60,7 +60,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.default_network = resource.default_network  # default_network
         self.keep_alive = resource.default_keep_alive   # keep_alive - with this here now can probably remove it from the earlier part of call stack
 
-    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None, template_dict=None, image=None):
+    def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
         Try to boot VMs on OpenStack.
         :param group_yaml_list: yaml from the group owning cloud
@@ -75,8 +75,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         template_dict['cs_flavor'] = flavor
         self.log.debug(template_dict)
         user_data_list = job.user_data.split(',') if job.user_data else []
-        userdata = self.prepare_userdata(group_yaml=group_yaml_list,
-                                         yaml_list=user_data_list,
+        userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
 
         nova = self._get_creds_nova()

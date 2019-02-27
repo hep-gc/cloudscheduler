@@ -276,8 +276,7 @@ def main():
                                         pass
 
                                     cm_group.clouds[cloud.cloud_name]\
-                                        .vm_create(group_yaml_list=copy.deepcopy(cm_group.group_yamls),
-                                                   num=int(num_vms_to_boot),
+                                        .vm_create(num=int(num_vms_to_boot),
                                                    flavor=cloud.flavor,
                                                    job=idle_job,
                                                    template_dict=template_dict,
