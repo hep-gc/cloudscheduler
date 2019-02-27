@@ -168,7 +168,7 @@ def flavor_poller():
 
                 # Retrieve all flavours for this cloud.
                 try:
-                    # TODO Get list of flavors / instance types
+                    # TODO Get list of flavors / instance types via libcloud
                     #flav_list = nova.flavors.list()
                 except Exception as exc:
                     logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
@@ -425,7 +425,6 @@ def image_poller():
                             abort_cycle = True
                             break
 
-                del nova
                 if abort_cycle:
                     break
 
@@ -526,14 +525,16 @@ def keypair_poller():
                     continue
 
                 # setup openstack api objects
-                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                # TODO get libcloud connection/session
+                #nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 # setup fingerprint list
                 fingerprint_list = []
 
                 try:
                     # get keypairs and add them to database
-                    cloud_keys = nova.keypairs.list()
+                    # TODO  get keypairs via libcloud
+                    cloud_keys = None #nova.keypairs.list()
                 except Exception as exc:
                     logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
                     logging.error(exc)
@@ -584,7 +585,6 @@ def keypair_poller():
                             abort_cycle = True
                             break
 
-                del nova
                 if abort_cycle:
                     break
 
@@ -686,11 +686,13 @@ def limit_poller():
                     continue
 
                 # Retrieve limit list for the current cloud.
-                nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                # TODO get libcloud connection
+                nova = None #get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
 
                 shared_limits_dict = {}
                 try:
-                    limit_list = nova.limits.get().absolute
+                    # TODO get limits using libcloud
+                    limit_list = None #nova.limits.get().absolute
                     for limit in limit_list:
                         shared_limits_dict[limit.name] = [limit.value]
                 except Exception as exc:
@@ -751,7 +753,6 @@ def limit_poller():
                         abort_cycle = True
                         break
 
-                del nova
                 if abort_cycle:
                     config.db_close()
                     del db_session
@@ -832,7 +833,8 @@ def network_poller():
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 logging.info("Processing networks from cloud - %s" % cloud_name)
-                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                # TODO get libcloud session
+                session = None #get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                 if session is False:
                     logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -849,9 +851,11 @@ def network_poller():
                     continue
 
                 # Retrieve network list.
-                neutron = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                # TODO get network info from libcloud
+                neutron = None #get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                 try:
-                    net_list = neutron.list_networks()['networks']
+                    # TODO list networks
+                    net_list = None #neutron.list_networks()['networks']
                 except Exception as exc:
                     logging.error("Failed to retrieve networks from neutron, skipping %s" % cloud_name)
                     logging.error(exc)
@@ -915,7 +919,6 @@ def network_poller():
                             abort_cycle = True
                             break
 
-                del neutron
                 if abort_cycle:
                     break
 
@@ -1009,7 +1012,8 @@ def vm_poller():
                     group_name = group.group_name
                     cloud_name = cloud.cloud_name
                     logging.debug("Polling VMs from cloud: %s" % cloud_name)
-                    session = _get_openstack_session(cloud)
+                    # TODO get libcloud connection
+                    session = None #_get_openstack_session(cloud)
                     if session is False:
                         logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (
                         group_name, cloud_name))
@@ -1024,7 +1028,8 @@ def vm_poller():
                         continue
 
                     # Retrieve VM list for this cloud.
-                    nova = _get_nova_client(session, region=cloud.region)
+                    # todo get vm list via libcloud
+                    nova = None #_get_nova_client(session, region=cloud.region)
                     try:
                         vm_list = nova.servers.list()
                     except Exception as exc:
@@ -1173,7 +1178,6 @@ def vm_poller():
                             abort_cycle = True
                             break
 
-                    del nova
                     if abort_cycle:
                         break
 

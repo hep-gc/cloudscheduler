@@ -504,7 +504,7 @@ if __name__ == '__main__':
     process_ids = {
         'scheduler': main,
         'idle_vms': check_view_idle_vms,
-        #'unregistered_vms': check_unregistered_machines,  #  No longer dealing with killing VMs. 
+        #'unregistered_vms': check_unregistered_machines,  #  No longer dealing with killing VMs.
     }
 
     procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=15,
