@@ -1309,7 +1309,8 @@ def status(request, group_name=None):
             'message': None,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
-            'global_flag': global_flag
+            'global_flag': global_flag,
+            'status_refresh_interval': active_user.status_refresh_interval
         }
 
     config.db_close()
