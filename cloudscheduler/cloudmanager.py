@@ -41,7 +41,6 @@ class CloudManager():
         yaml from the database.
         """
         self.config.db_open()
-        cloud_vm = self.config.db_map.classes.csv2_vms
 
         for cloud in self.group_resources:
             try:
