@@ -11,7 +11,11 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}">
 
 <!--<meta id="refresher" http-equiv="refresh" content="30">-->
-
+<script type="text/javascript">
+var refresh_interval = parseInt('{{ status_refresh_interval }}');
+if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
+else if (refresh_interval < 1) stop_refresh;
+</script>
 <script type="text/javascript">
 	/* Refresh status table and system services display*/
 	var TimerSwitch = 1;
@@ -20,8 +24,8 @@
 		TimerSwitch = 1;
 		timer_id = setTimeout(function() {
 			refresh_plot();
-			TimerVal = 30;
-	    		set_refresh(30000);
+			TimerVal = refresh_interval;
+	    		set_refresh(refresh_interval*1000);
 			fetch(location.href,{	
 				method: 'GET',
 				headers: {'Accept': 'text/html'},
@@ -35,7 +39,7 @@
 			.then((html) => {
 				var parser = new DOMParser();
 				var doc = parser.parseFromString(html, "text/html");
-	    			document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
+	    		document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
 				document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
 				checkForPlottedTraces();
 				initialize();
@@ -124,7 +128,7 @@
 {% set index = 0 %}
 {% for group in user_groups %}
     {% if index >= 0 %}
-    <div class="status-div">
+    <div class="status-div" id="status">
         {% if global_flag %}
             <div class="group-name">{{ group|upper }}</div>
         {% endif %}
@@ -1023,13 +1027,14 @@
 
 <div id="vms-overlay" class="overlay">
     <div class="popup">
-        <a class="close" id="timer-count" onclick="set_refresh('30000')" href="#">&times;</a>
+        <a class="close" id="timer-count" onclick="set_refresh('{{status_refresh_interval}}000')" href="#">&times;</a>
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
 
 <!-- Plotly.js -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
 <script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
 <script type="text/javascript">
 	/*Add event listeners once page loads*/
@@ -1038,9 +1043,9 @@
 	sessionStorage.clear();
 
 	/*<![CDATA[*/
-	var TimerVal = 30;
+	var TimerVal = refresh_interval;
 	var TimerSPan = document.getElementById("CDTimer");
-	set_refresh(30000);
+	set_refresh(refresh_interval*1000);
 	function CountDown(){
 	setTimeout( "CountDown()", 1000 );
 	TimerSPan.innerHTML=TimerVal;
