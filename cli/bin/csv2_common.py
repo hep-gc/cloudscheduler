@@ -447,7 +447,7 @@ def show_active_user_groups(gvar, response):
 
 #-------------------------------------------------------------------------------
               
-def show_table(gvar, queryset, columns, allow_null=True, title=None):
+def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=False):
     """
     Print a table from a SQLAlchemy query set.
     """
@@ -482,11 +482,42 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
             fd.write(yaml.dump(gvar['views']))
             fd.close()
 
+    if gvar['user_settings']['rotate']:
+        Rotate = True
+    else:
+        Rotate = False
+
+    skip_optional = True
+    if optional and not gvar['user_settings']['view-columns'] and 'with' in gvar['user_settings']:
+        lower_title = title.lower()
+        words = gvar['user_settings']['with'].lower().split(',')
+        for word in words:
+            try:
+                int_word = int(word)
+            except:
+                int_word = 0
+
+            if int_word > 0 and int_word == gvar['tables_shown']+1 or \
+                word == lower_title[:len(word)]:
+                    skip_optional = False
+                    break
+            
+    if optional and not gvar['user_settings']['view-columns'] and skip_optional:
+        gvar['tables_shown'] += 1
+        return
+
     if not gvar['user_settings']['no-view'] and gvar['object'] in gvar['views'] and gvar['action'] in gvar['views'][gvar['object']]:
         Selections = gvar['views'][gvar['object']][gvar['action']]
-        if Selections == [['-r']]:
-            gvar['user_settings']['rotate'] = True
+        if len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] == ['-']:
+            gvar['tables_shown'] += 1
+            return
+
+        if len(Selections) > gvar['tables_shown'] and Selections[gvar['tables_shown']] == ['-r']:
             Selections = None
+            if Rotate:
+                Rotate = False
+            else:
+                Rotate = True
     else:
         Selections = None
 
@@ -507,7 +538,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         'xref': {}
         }
 
-    if gvar['user_settings']['rotate']:
+    if Rotate:
         Table['max_key_length'] = 3
         Table['max_value_length'] = 5
 
@@ -584,7 +615,18 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
                 columns[0].append(column)
             else:
                 columns[1].append(column)
-        print('%s %s, table #%s columns: keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown']+1, ','.join(Table['columns_common']), ','.join(Table['columns_segment'])))
+        if title:
+            if optional:
+                title_optional = '%s (optional)' % title
+            else:
+                title_optional = title
+
+            print('%s %s, %s. %s: keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown']+1, title_optional, ','.join(Table['columns_common']), ','.join(Table['columns_segment'])))
+        else:
+            if optional:
+                print('%s %s, table #%s (optional): keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown']+1, ','.join(Table['columns_common']), ','.join(Table['columns_segment'])))
+            else:
+                print('%s %s, table #%s: keys=%s, columns=%s' % (gvar['object'], gvar['action'], gvar['tables_shown']+1, ','.join(Table['columns_common']), ','.join(Table['columns_segment'])))
         gvar['tables_shown'] += 1
         return
 
@@ -617,7 +659,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
             else:
                _len = len(_value)
 
-            if gvar['user_settings']['rotate']:
+            if Rotate:
                 if Table['super_headers'][column] == '':
                     lists.append([Table['headers'][column], _value])
                 else:
@@ -639,7 +681,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
                 if Table['lengths'][column] < _len:
                     Table['lengths'][column] = _len
 
-        if gvar['user_settings']['rotate']:
+        if Rotate:
             lists.append(['', ''])
         else:
             lists.append(_row)
@@ -653,7 +695,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
         for row in lists:
             print(str(separator).join(str(ix) for ix in row))
     else:
-        if gvar['user_settings']['rotate']:
+        if Rotate:
             segments = [ {'SH': False, 'table': Rotated_Table, 'columns': ['key', 'value'], 'headers': ['Key', 'Value']} ]
 
         else:
@@ -690,9 +732,9 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
 
             if title:
                 if len(segments) > 1:
-                    print('\n%s (%s/%s)' % (title, ix+1, len(segments)))
+                    print('\n%s: (%s/%s)' % (title, ix+1, len(segments)))
                 else:
-                    print('\n%s' % title)
+                    print('\n%s:' % title)
             else:
                 if len(segments) > 1:
                     print('\n (%s/%s)' % (ix+1, len(segments)))
@@ -708,7 +750,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None):
             print(ruler)
 
             for row in lists:
-                if gvar['user_settings']['rotate'] and not allow_null and row[1] == '-':
+                if Rotate and not allow_null and row[1] == '-':
                     continue
 
                 print('| %s |' % ' | '.join(_show_table_pad(segments[ix]['columns'], row, segments[ix]['table']['lengths'], values_xref=segments[ix]['table']['xref'])))

@@ -54,9 +54,9 @@ def list(gvar):
         fd = open('%s/.csv2/default_server' % gvar['home_dir'])
         default_server = fd.read()
         fd.close
-        report_title = 'Defaults (default server = %s):' % default_server
+        report_title = 'Defaults (default server = %s)' % default_server
     else:
-        report_title = 'Defaults:'
+        report_title = 'Defaults'
 
     # Retrive all possible option names ordered by 'server' and then alphabetically.
     _keys = ['server,k']

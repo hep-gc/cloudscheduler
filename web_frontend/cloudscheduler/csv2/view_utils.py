@@ -23,16 +23,16 @@ def diff_lists(list1,list2, option=None):
 
 #-------------------------------------------------------------------------------
 
-def kill_retire(config, group_name, cloud_name, option, count, updater):
+def kill_retire(config, group_name, cloud_name, option, count, updater_str):
     from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
 
     # Process "control [cores, ram]".
     if option == 'control':
         s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, count[0], count[1])
         config.db_connection.execute(s)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s";' % updater)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater_str)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater_str)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater=substring(concat("%s:r=1,",updater),1,128);' % updater_str)
     
     # Process "kill N".
     elif option == 'kill':
@@ -42,7 +42,7 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater="%s";' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=2, updater=substring(concat("%s:t=2,",updater),1,128);' % updater_str)
 
     # Process "retire N".
     elif option == 'retire':
@@ -52,7 +52,7 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and machine is not null and killed<1 and retired<1 order by priority desc limit %s;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s";' % updater)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater=substring(concat("%s:r=1,",updater),1,128);' % updater_str)
 
     # Process "retain N".
     elif option == 'retain':
@@ -62,9 +62,9 @@ def kill_retire(config, group_name, cloud_name, option, count, updater):
             s = 'create or replace temporary table kill_retire_priority_list as select * from view_vm_kill_retire_priority_age where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc limit %s, 999999999999;' % (group_name, cloud_name, count)
 
         config.db_connection.execute(s)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater)
-#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater)
-        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s";' % updater)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater_str)
+#       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater_str)
+        config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater=substring(concat("%s:r=1,",updater),1,128);' % updater_str)
     
     retired_list = qt(config.db_connection.execute('select count(*) as count from kill_retire_priority_list;'))
     return retired_list[0]['count']
@@ -900,7 +900,7 @@ def validate_fields(config, request, fields, tables, active_user):
     ('table', 'column')    - A list of valid options derrived from the named table and column.
     boolean                - A value of True or False will be inserted into the output fields.
     dboolean               - Database boolean values are either 0 or 1; allow and
-                             convert true/false/yes/no.
+                             convert true/false/yes/no/on/off.
     float                  - A floating point value.
     ignore                 - Ignore missing mandatory fields or fields for undefined columns.
     integer                - An integer value.
@@ -1024,9 +1024,9 @@ def validate_fields(config, request, fields, tables, active_user):
 
                 elif Formats[field] == 'dboolean':
                     lower_value = value.lower()
-                    if lower_value == 'true' or lower_value == 'yes' or lower_value == '1':
+                    if lower_value == 'true' or lower_value == 'yes' or lower_value == 'on' or lower_value == '1':
                         value = 1
-                    elif lower_value == 'false' or lower_value == 'no' or lower_value == '0':
+                    elif lower_value == 'false' or lower_value == 'no' or lower_value == 'off' or lower_value == '0':
                         value = 0
                     else:
                         return 1, 'boolean value specified for "%s" must be one of the following: true, false, yes, no, 1, or 0.' % field, None, None, None

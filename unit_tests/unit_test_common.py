@@ -31,8 +31,8 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
         if (expected_rc != None) and (expected_rc != p.returncode):
             failed = True
 
-        error_code = str(stdout)[9:13]
-        if expected_ec and expected_ec != error_code:
+        error_code = str(stdout)[9:11]
+        if expected_ec and gvar['mnomonic'] != error_code:
             failed = True
 
         list_error = ''
