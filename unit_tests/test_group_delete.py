@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'GV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -41,33 +41,37 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'GV00', 'cannot switch to invalid group "invalid-unit-test".',
-        '/group/delete/', form_data={'group': 'invalid-unit-test'}
+        '/group/delete/', group='invalid-unit-test'
     )
 
     execute_csv2_request(
         gvar, 1, 'GV10', 'group delete request did not contain mandatory parameter "group_name".',
-        '/group/delete/', form_data={'group': ut_id(gvar, 'gtg5')},
+        '/group/delete/', group=ut_id(gvar, 'gtg5'),
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'GV21', 'group delete "invalid-unit-test" failed - the request did not match any rows.',
-        '/group/delete/', form_data={'group_name': 'invalid-unit-test'}
+        '/group/delete/'
+, form_data={'group_name': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV10', 'group delete value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/group/delete/', form_data={'group_name': 'Invalid-Unit-Test'}
+        '/group/delete/'
+, form_data={'group_name': 'Invalid-Unit-Test'}
     )
 
     execute_csv2_request(
         gvar, 1, 'GV10', 'group delete value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
-        '/group/delete/', form_data={'user_option': 'invalid-unit-test'}
+        '/group/delete/'
+, form_data={'user_option': 'invalid-unit-test'}
     )
 
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully deleted.'.format(ut_id(gvar, 'gtg6')),
-        '/group/delete/', form_data={'group_name': ut_id(gvar, 'gtg6')},
+        '/group/delete/'
+, form_data={'group_name': ut_id(gvar, 'gtg6')},
         server_user=ut_id(gvar, 'gtu5'), server_pw=user_secret
     )
 

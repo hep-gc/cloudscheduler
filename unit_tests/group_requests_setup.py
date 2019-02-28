@@ -14,7 +14,7 @@ def main(gvar, user_secret):
 
     group_requests_cleanup.main(gvar)
 
-    # unprivileged user in no groups
+    # 01 unprivileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu1')),
             '/user/add/', form_data={
@@ -25,7 +25,7 @@ def main(gvar, user_secret):
             }
         )
 
-    # privileged user in no groups
+    # 02 privileged user in no groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu2')),
             '/user/add/', form_data={
@@ -37,7 +37,7 @@ def main(gvar, user_secret):
             }
         )
 
-    # group to be changed in group_update
+    # 03 group to be changed in group_update
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg4')),
         '/group/add/', form_data={
@@ -46,7 +46,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # group to be changed in group_yaml_*
+    # 04 group to be changed in group_yaml_*
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg5')),
         '/group/add/', form_data={
@@ -55,7 +55,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # group to be deleted in group_delete
+    # 05 group to be deleted in group_delete
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg6')),
         '/group/add/', form_data={
@@ -64,7 +64,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # group with no users
+    # 06 group with no users
     execute_csv2_request(
         gvar, 0, None, 'group "{}" successfully added.'.format(ut_id(gvar, 'gtg7')),
         '/group/add/', form_data={
@@ -73,7 +73,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # unprivileged user in groups
+    # 07 unprivileged user in groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu3')),
         '/user/add/', form_data={
@@ -86,7 +86,7 @@ def main(gvar, user_secret):
         }
     )
 
-    # privileged user in group gtg5,6
+    # 08 privileged user in group gtg5,6
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu5')),
         '/user/add/', form_data={
@@ -100,48 +100,47 @@ def main(gvar, user_secret):
         }
     )
 
+    # 09
     execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
-        '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
+        gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty4')),
+        '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty4'),
             'metadata': '- example: yaml'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
+    # 10
     execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5')),
-        '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
+        gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5')),
+        '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty5'),
             'metadata': '- example: yaml'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
+    # 11
     execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5.yaml')),
-        '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
+        gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty5.yaml')),
+        '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty5.yaml'),
             'metadata': '- example: yaml'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
-    # metadata to be deleted in a cloud exception
+    # 12 metadata to be deleted in a cloud exception
     execute_csv2_request(
-        gvar, 0, None, 'file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
-        '/group/metadata-add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
+        gvar, 0, None, 'group metadata file "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gty6')),
+        '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': ut_id(gvar, 'gty6'),
             'metadata': '- example: yaml'
         },
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
-    # unprivileged user to be added to groups
+    # 13 unprivileged user to be added to groups
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully added.'.format(ut_id(gvar, 'gtu4')),
         '/user/add/', form_data={
@@ -152,10 +151,10 @@ def main(gvar, user_secret):
         }
     )
 
+    # 14
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully added.'.format(ut_id(gvar, 'gtg5'), ut_id(gvar, 'gtc1')),
-        '/cloud/add/', form_data={
-            'group': ut_id(gvar, 'gtg5'),
+        '/cloud/add/', group=ut_id(gvar, 'gtg5'), form_data={
             'cloud_name': ut_id(gvar, 'gtc1'),
             'authurl': 'group-test-cloud-one.ca',
             'project': 'group-test-cloud-one',

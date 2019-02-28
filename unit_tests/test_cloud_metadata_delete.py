@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'CV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -37,19 +37,19 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/metadata-delete/', form_data={'group': 'invalid-unit-test'},
+        '/cloud/metadata-delete/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/metadata-delete/', form_data={'group': ut_id(gvar, 'ctg2')},
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg2'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV21', 'cloud metadata-delete request did not contain mandatory parameter "cloud_name".',
-        '/cloud/metadata-delete/', form_data={'group': ut_id(gvar, 'ctg1')},
+        '/cloud/metadata-delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
