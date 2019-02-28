@@ -158,7 +158,11 @@ def timeseries_data_transfer():
                 })
 
                 cloud_total_list = cloud_status_list_totals[0]
-                group = cloud_total_list['group_name']
+                try:
+                    group = cloud_total_list['group_name']
+                except Exception as exc:
+                    # dictionary is emtpy and we got a key error
+                    logging.error("Unable to get a cloud_total_list for %s skipping..." % group)
                 for measurement in list(cloud_total_list.keys())[1:]:
                     if cloud_total_list[measurement] == -1 or cloud_total_list[measurement] is None:
                         continue
