@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'GV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -92,7 +92,7 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_command(
-        gvar, 0, None, 'metadata list, table #1 columns: keys=group_name,metadata_name, columns=enabled,priority,mime_type',
+        gvar, 0, None, 'group metadata-list, 1. Active Group/Metadata: keys=group_name,metadata_name, columns=enabled,priority,mime_type',
         ['cloudscheduler', 'metadata', 'list', '-VC']
     )
 

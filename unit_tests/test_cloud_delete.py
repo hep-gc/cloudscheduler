@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'CV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -37,7 +37,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'CV06', 'cloud delete request did not contain mandatory parameter "cloud_name".',
-        '/cloud/delete/', form_data={'group': ut_id(gvar, 'ctg1')},
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -49,55 +49,43 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, 'CV05', 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/delete/', form_data={
-            'cloud_name': 'invalid-unit-test',
-            'group': 'invalid-unit-test'
-        },
+        '/cloud/delete/', group='invalid-unit-test', form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV05', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/delete/', form_data={
-            'cloud_name': 'invalid-unit-test',
-            'group': ut_id(gvar, 'ctg2')
-        },
+        '/cloud/delete/', group=ut_id(gvar, 'ctg2'), form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV06', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/delete/', form_data={'cloud_name': 'Invalid-Unit-Test', 'group': ut_id(gvar, 'ctg1')},
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'Invalid-Unit-Test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV06', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/delete/', form_data={'cloud_name': 'invalid-unit-test-', 'group': ut_id(gvar, 'ctg1')},
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test-'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV06', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
-        '/cloud/delete/', form_data={'cloud_name': 'invalid-unit-test!', 'group': ut_id(gvar, 'ctg1')},
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test!'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, 'CV08', 'the request did not match any rows.',
-        '/cloud/delete/', form_data={
-            'cloud_name': 'invalid-unit-test',
-            'group': ut_id(gvar, 'ctg1')
-        },
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 0, None, 'cloud "{}::{}" successfully deleted.'.format(ut_id(gvar, 'ctg1'), ut_id(gvar, 'ctc1')),
-        '/cloud/delete/', form_data={
-            'cloud_name': ut_id(gvar, 'ctc1'),
-            'group': ut_id(gvar, 'ctg1')
-        },
+        '/cloud/delete/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc1')},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

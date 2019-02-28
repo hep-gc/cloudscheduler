@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'SV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -125,7 +125,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 0, None, 'server config, table #1 columns: keys=category,config_key, columns=config_type,config_value',
+        gvar, 0, None, 'server config, 1. Server Configuration: keys=category,config_key, columns=config_type,config_value',
         ['cloudscheduler', 'server', 'config', '-VC']
     )
 

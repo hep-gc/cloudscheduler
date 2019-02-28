@@ -5,11 +5,12 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'CV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
             initialize_csv2_request(gvar, argv[0])
+
     
     # 01
     execute_csv2_request(
@@ -35,14 +36,14 @@ def main(gvar, user_secret):
     # 04
     execute_csv2_request(
         gvar, 1, 'CV33', 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/status/', form_data={'group': 'invalid-unit-test'},
+        '/cloud/status/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     # 05
     execute_csv2_request(
         gvar, 1, 'CV33', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/status/', form_data={'group': ut_id(gvar, 'ctg2')},
+        '/cloud/status/', group=ut_id(gvar, 'ctg2'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
@@ -54,12 +55,31 @@ def main(gvar, user_secret):
         values={
             'group_name': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'ctc2'),
-            'ram_ctl': -1,
-            'default_flavor': None,
-            'keep_alive': 0,
-            'default_image': None,
+            'VMs': '0',
+            'VMs_manual': '0',
+            'VMs_in_error': '0',
+            'VMs_starting': '0',
+            'VMs_retiring': '0',
+            'VMs_unregistered': '0',
+            'VMs_idle': '0',
+            'VMs_running': '0',
+            'cores_native': '0',
+            'ram_native': '0',
+            'slot_count': '0',
+            'slot_core_count': '0',
+            'slot_idle_core_count': '0',
+            'Foreign_VMs': '0',
             'enabled': 1,
             'cores_ctl': -1,
+            'cores_limit': 0,
+            'cores_quota': None,
+            'cores_foreign': '0',
+            'cores_native_foreign': '0',
+            'ram_ctl': -1,
+            'ram_limit': 0,
+            'ram_quota': None,
+            'ram_foreign': '0',
+            'ram_native_foreign': '0',
         },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

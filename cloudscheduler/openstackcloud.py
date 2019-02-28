@@ -38,8 +38,8 @@ class OpenStackCloud(basecloud.BaseCloud):
         :param extrayaml: The cloud specific yaml
         """
         basecloud.BaseCloud.__init__(self, group=resource.group_name,
-                                                    name=resource.cloud_name,
-                                                    extrayaml=extrayaml, vms=vms, metadata=metadata)
+                                     name=resource.cloud_name,
+                                     extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.authurl = resource.authurl
         self.username = resource.username
@@ -55,10 +55,10 @@ class OpenStackCloud(basecloud.BaseCloud):
             raise Exception
 
         self.default_securitygroup = defaultsecuritygroup  # ???
-        self.default_image = resource.default_image  # default_image
-        self.default_flavor = resource.default_flavor  # ???
-        self.default_network = resource.default_network  # default_network
-        self.keep_alive = resource.default_keep_alive   # keep_alive - with this here now can probably remove it from the earlier part of call stack
+        self.default_image = resource.default_image
+        self.default_flavor = resource.default_flavor
+        self.default_network = resource.default_network
+        self.keep_alive = resource.default_keep_alive
 
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         """
@@ -166,7 +166,6 @@ class OpenStackCloud(basecloud.BaseCloud):
                                            availability_zone=None, nics=netid,
                                            userdata=userdata,
                                            security_groups=None, max_count=num)
-            pass
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
             raise novaclient.exceptions.OverLimit
@@ -179,13 +178,14 @@ class OpenStackCloud(basecloud.BaseCloud):
             base = automap_base()
             base.prepare(engine, reflect=True)
             db_session = Session(engine)
-            Vms = base.classes.csv2_vms
-            for i in range(0,3):
+            vms = base.classes.csv2_vms
+            for _ in range(0, 3):
                 try:
                     list_vms = nova.servers.list(search_opts={'name':hostname})
                     break
                 except novaclient.exceptions.BadRequest as ex:
-                    self.log.warning("Bad Request caught, OpenStack db may not be updated yet, retrying")
+                    self.log.warning("Bad Request caught, OpenStack db may not be updated yet, "
+                                     "retrying")
                     time.sleep(1)
 
             for vm in list_vms:
@@ -206,47 +206,11 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time()),
                 }
-                new_vm = Vms(**vm_dict)
+                new_vm = vms(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
 
         self.log.debug('vm create')
-
-    def vm_destroy(self, vm):
-        """
-        Destroy VM on cloud.
-        :param vm: ID of VM to destroy.
-        """
-        self.log.debug('vm destroy')
-        nova = self._get_creds_nova()
-        try:
-            instance = nova.servers.get(vm.vmid)
-            instance.delete()
-            del self.vms[vm.vmid]
-        except novaclient.exceptions.NotFound as ex:
-            self.log.exception("VM %s not found on %s: Removing from CS: %s",
-                               vm.hostname, self.name, ex)
-            del self.vms[vm.vmid]
-        except Exception as ex:
-            self.log.exception("Unhandled Exception trying to destroy VM: %s: %s",
-                               vm.hostname, ex)
-
-    def vm_update(self):
-        """I don't think this will be needed at all."""
-        self.log.debug('vm update')
-        nova = self._get_creds_nova()
-        try:
-            listvms = nova.servers.list()
-            for ovm in listvms:
-                try:
-                    self.vms[ovm.id].status = ovm.status
-                except KeyError:
-                    pass  # Will need to deal with unexpected vm still there by
-                    # checking hostname and rebuilding vm obj if its a CS booted
-                    # vm - probably have this as a config option since we
-                    # sometimes remove  VMs intentionally
-        except Exception as ex:
-            self.log.exception(ex)
 
     def _get_keystone_session_v2(self):
         """
