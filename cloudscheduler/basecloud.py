@@ -44,12 +44,6 @@ class BaseCloud(ABC):
         """
         assert 0, 'SubClass must implement vm_create()'
 
-    @abstractmethod
-    def vm_update(self):
-        """Probably not needed since the cloud/vm poller will be
-         handling all the status updates in the db"""
-        assert 0, 'SubClass must implement vm_update()'
-
     def _generate_next_name(self):
         """Generate hostnames and check they're not in use."""
         name = ''.join([self.group.replace('_', '-').lower(), '--',
