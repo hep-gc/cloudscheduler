@@ -4,7 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=condor
+Environment=CONDOR_CONFIG=/etc/cloudscheduler/csenvironment.conf
+User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/condor/csjobs.py
 Restart=always
 

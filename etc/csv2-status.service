@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=condor
+User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/general/csstatus.py
 Restart=always
 
