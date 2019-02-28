@@ -14,7 +14,8 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 0, None, 'group "vm-test-group" successfully added.',
-        '/group/add/', form_data={
+        '/group/add/'
+, form_data={
             'group_name': 'vm-test-group',
             'condor_central_manager': 'vm-test-group-one.ca',
             'username': ut_id(gvar, '')[:-1]
@@ -23,8 +24,7 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 0, None, 'cloud "vm-test-group::vm-test-cloud" successfully added.',
-        '/cloud/add/', form_data={
-            'group': 'vm-test-group',
+        '/cloud/add/', group='vm-test-group', form_data={
             'cloud_name': 'vm-test-cloud',
             'authurl': 'vm-test-cloud.ca',
             'project': 'vm-test-cloud',

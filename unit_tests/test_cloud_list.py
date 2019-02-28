@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'CV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -31,13 +31,13 @@ def main(gvar, user_secret):
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "invalid-unit-test".',
-        '/cloud/list/', form_data={'group': 'invalid-unit-test'},
+        '/cloud/list/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
         gvar, 1, None, 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'ctg2')),
-        '/cloud/list/', form_data={'group': ut_id(gvar, 'ctg2')},
+        '/cloud/list/', group=ut_id(gvar, 'ctg2'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 

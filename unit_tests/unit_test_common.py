@@ -5,6 +5,12 @@ def _caller():
         return os.path.basename(inspect.stack()[-4][1]).split('.')[0]
     return os.path.basename(inspect.stack()[-3][1]).split('.')[0]
 
+def decode_bytes(obj):
+    if isinstance(obj, str):
+        return obj
+
+    return obj.decode('utf-8')
+
 def _execute_selections(gvar, request, expected_text, expected_values):
     from unit_test_common import _caller
     
@@ -32,8 +38,10 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
             failed = True
 
         error_code = str(stdout)[9:11]
-        if expected_ec and gvar['mnomonic'] != error_code:
-            failed = True
+        if expected_rc and expected_rc != 0 and expected_ec:
+            truncated_expected_ec = expected_ec[:2]
+            if error_code != truncated_expected_ec:
+                failed = True
 
         list_error = ''
         if list:
@@ -43,15 +51,12 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
                 failed = True
                 list_error = 'list "{}" not found'.format(list)
             elif columns:
-                rows = str(stdout)[list_index:row_index].strip().split('\\n')
-                column_list = []
+                columns_found = []
+                rows = decode_bytes(stdout).split('\n')
                 for row in rows:
-                    if row.startswith('+ '):
-                        for column_name in row[1:-1].split('|'):
-                            for col_name in column_name.strip().split('  '):
-                                if col_name.strip() and (col_name.strip() not in column_list):
-                                    column_list.append(col_name.strip())
-                if set(columns) != set(column_list):
+                    if len(row) > 1 and row[:2] == '+ ':
+                        columns_found += row[2:-2].replace('|', ' ').split()
+                if set(columns) != set(columns_found):
                     failed = True
                     list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, column_list)
 
@@ -78,7 +83,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
     else:
         return 0
 
-def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, form_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None, html=False):
+def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, group=None, form_data={}, query_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
     obtain a CSRF (for POST requests) prior to making the atual request.
@@ -86,26 +91,26 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
     from unit_test_common import _caller, _execute_selections, _requests
 
-    # Retrieve the current user.
-    if server_user and server_pw:
-        current_user = server_user
+#   # Retrieve the current user.
+#   if server_user and server_pw:
+#       current_user = server_user
 
-    elif 'server-grid-cert' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-        'server-grid-key' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-key']):
-        current_user = gvar['user_settings']['server-grid-cert']
+#   elif 'server-grid-cert' in gvar['user_settings'] and \
+#       os.path.exists(gvar['user_settings']['server-grid-cert']) and \
+#       'server-grid-key' in gvar['user_settings'] and \
+#       os.path.exists(gvar['user_settings']['server-grid-key']):
+#       current_user = gvar['user_settings']['server-grid-cert']
 
-    elif 'server-user' in gvar['user_settings']:
-        current_user = gvar['user_settings']['server-user']
-    
-    if current_user not in gvar['active_user_group']:
-        gvar['active_user_group'][current_user] = '-'
+#   elif 'server-user' in gvar['user_settings']:
+#       current_user = gvar['user_settings']['server-user']
+#   
+#   if current_user not in gvar['active_user_group']:
+#       gvar['active_user_group'][current_user] = '-'
 
-    if current_user not in gvar['active_user_group']:
-        gvar['active_user_group'][current_user] = '-'
+#   if current_user not in gvar['active_user_group']:
+#       gvar['active_user_group'][current_user] = '-'
 
-    if _execute_selections(gvar, '%s %s' % (request, form_data), expected_text, values):
+    if _execute_selections(gvar, 'req=%s, group=%s,  form=%s, query=%s' % (request, group, form_data, query_data), expected_text, values):
         if server_user and server_pw:
             gvar['csrf'] = None
             gvar['cookies'] = None
@@ -116,24 +121,24 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
             if not gvar['csrf']:
                 response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
 
-            group_request = request
-            group_form_data = form_data
-
-            if 'group' not in form_data and gvar['active_user_group'][current_user] != '-':
-                group_form_data['group'] = gvar['active_user_group'][current_user]
-        
-        # For GET requests (form_data is null), insert the current active group.
-        else:
-            group_form_data = {}
-            if gvar['active_user_group'][current_user] != '-':
-                if request[-1] == '/':
-                    group_request = '%s?%s' % (request[:-1], gvar['active_user_group'][current_user])
-                else:
-                    group_request = '%s?%s' % (request, gvar['active_user_group'][current_user])
-            else:
-                group_request = request
-
 ###########################################################################################################################
+#           group_request = request
+#           group_form_data = form_data
+
+#           if 'group' not in form_data and gvar['active_user_group'][current_user] != '-':
+#               group_form_data['group'] = gvar['active_user_group'][current_user]
+#       
+#       # For GET requests (form_data is null), insert the current active group.
+#       else:
+#           group_form_data = {}
+#           if gvar['active_user_group'][current_user] != '-':
+#               if request[-1] == '/':
+#                   group_request = '%s?%s' % (request[:-1], gvar['active_user_group'][current_user])
+#               else:
+#                   group_request = '%s?%s' % (request, gvar['active_user_group'][current_user])
+#           else:
+#               group_request = request
+
 #       # Obtain a CSRF as required.
 #       if form_data and not gvar['csrf']:
 #           response = _requests(gvar, '/settings/prepare/', server_user=server_user, server_pw=server_pw)
@@ -154,7 +159,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 ###########################################################################################################################
 
         # Perform the callers request.
-        response = _requests(gvar, group_request, form_data=group_form_data, server_user=server_user, server_pw=server_pw, html=html)
+        response = _requests(gvar, request, group, form_data=form_data, query_data=query_data, server_user=server_user, server_pw=server_pw, html=html)
 
         if server_user and server_pw:
             gvar['csrf'] = None
@@ -162,12 +167,14 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
 
         failed = False
 
-        if (expected_rc != None) and (expected_rc != response['response_code']):
+        if expected_rc and expected_rc != response['response_code']:
             failed = True
 
-        error_code = str(response['message'])[0:4]
-        if expected_ec and expected_ec != error_code:
-            failed = True
+        error_code = str(response['message'])[0:2]
+        if expected_rc and expected_rc != 0 and expected_ec:
+            truncated_expected_ec = expected_ec[:2]
+            if error_code != truncated_expected_ec:
+                failed = True
 
         if expected_text and str(response['message']).find(expected_text) < 0:
             failed = True
@@ -176,13 +183,14 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
-                if server_user in gvar['active_user_group']:
-                    print('    server=%s, user=%s, group=%s' % (gvar['server'], server_user, gvar['active_user_group'][server_user]))
+                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, query_data, expected_rc, expected_ec, expected_text))
+                if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
+                    print('    server=%s, user=%s, group=%s' % (gvar['server'], server_user, gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user]))
                 else:
                     print('    server=%s, user=%s, group=None' % (gvar['server'], server_user))
                 print('    response code=%s' % response['response_code'])
-                print('    error code=%s' % error_code)
+                if response['response_code'] != 0:
+                    print('    error code=%s' % error_code)
                 print('    message=%s\n' % response['message'])
 
             return 1
@@ -264,7 +272,7 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
     if not os.path.isfile('%s/.csv2/unit-test/settings.yaml' % os.path.expanduser('~')):
         raise Exception('You must create a minimal cloudscheduler defaults for server "unit-test" containing the server address and user credentials.')
 
-    gvar['active_user_group'] = {}
+    gvar['active_server_user_group'] = {}
     gvar['command_args'] = {}
     gvar['cookies'] = None
     gvar['csrf'] = None
@@ -294,7 +302,7 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
 
     return
 
-def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, html=False):
+def _requests(gvar, request, group=None, form_data={}, query_data={}, server_user=None, server_pw=None, html=False):
     """
     Make RESTful request and return response.
     """
@@ -309,12 +317,12 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, htm
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['server'])
         exit(1)
 
-    if form_data:
-        _function = py_requests.post
-        _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
-    else:
-        _function = py_requests.get
-        _form_data = {}
+#   if form_data:
+#       _function = py_requests.post
+#       _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
+#   else:
+#       _function = py_requests.get
+#       _form_data = {}
 
     if html:
         headers={'Referer': gvar['user_settings']['server-address']}
@@ -322,8 +330,11 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, htm
         headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']}
 
     if server_user and server_pw:
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, group, form_data, query_data, gvar['user_settings']['server-address'], server_user)
+
         _r = _function(
-            '%s%s' % (gvar['user_settings']['server-address'], request),
+            _request,
+#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             auth=(server_user, server_pw),
             data=_form_data,
@@ -334,8 +345,12 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, htm
         os.path.exists(gvar['user_settings']['server-grid-cert']) and \
         'server-grid-key' in gvar['user_settings'] and \
         os.path.exists(gvar['user_settings']['server-grid-key']):
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, group, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-grid-cert'])
+
         _r = _function(
-            '%s%s' % (gvar['user_settings']['server-address'], request),
+            _request,
+#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
             data=_form_data,
@@ -345,8 +360,12 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, htm
     elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '-':
             gvar['user_settings']['server-password'] = getpass('Enter your csv2 password for server "%s": ' % gvar['server'])
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, group, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
+
         _r = _function(
-            '%s%s' % (gvar['user_settings']['server-address'], request),
+            _request,
+#           '%s%s' % (gvar['user_settings']['server-address'], request),
             headers=headers,
             auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
             data=_form_data,
@@ -374,6 +393,22 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, htm
             response = {'response_code': 2, 'message': 'server "%s", HTTP response code %s.' % (gvar['server'], _r.status_code)}
         else:
             response = {'response_code': 2, 'message': 'server "%s", internal server error.' % gvar['server']}
+
+    if 'Set-Cookie' in _r.headers:
+        new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+        if new_csrf[1]:
+            gvar['cookies'] = _r.cookies
+            gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
+
+    if 'response_code' in _r and _r['response_code'] == 0:
+        if 'active_user' in response and 'active_group' in response:
+            if gvar['user_settings']['server-address'] not in gvar['active_server_user_group']:
+                gvar['active_server_user_group'][gvar['user_settings']['server-address']] = {}
+
+            gvar['active_server_user_group'][gvar['user_settings']['server-address']][response['active_user']] = response['active_group']
+
+    if 'super_user' in response:
+        gvar['super_user'] = response['super_user']
 
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
@@ -414,23 +449,61 @@ def _requests(gvar, request, form_data={}, server_user=None, server_pw=None, htm
                 print("    %s: %s" % (key, response[key]))
         print("    }\n")
 
-    if response['response_code'] == 0:
-        if 'Set-Cookie' in _r.headers:
-            new_csrf = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
-            if new_csrf[1]:
-                gvar['cookies'] = _r.cookies
-                gvar['csrf'] = _r.headers['Set-Cookie'].translate(EXTRACT_CSRF).split()[1]
-
-        if 'active_user' in response:
-            if 'active_group' in response:
-                gvar['active_user_group'][response['active_user']] = response['active_group']
-            else:
-                gvar['active_user_group'][response['active_user']] = '-'
-
-        if 'super_user' in response:
-            gvar['super_user'] = response['super_user']
-
     return response
+
+#-------------------------------------------------------------------------------
+              
+def _requests_insert_controls(gvar, request, group, form_data, query_data, server_address, server_user):
+    """
+    Add controls (csrf, group, etc.) to python request.
+    """
+
+    import requests as py_requests
+
+    if form_data:
+        _function = py_requests.post
+        _request = '%s%s' % (server_address, request)
+
+        if group:
+            _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf'], 'group': group}}
+        else:
+            if server_address in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][server_address]:
+                _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf'], 'group': gvar['active_server_user_group'][server_address][server_user]}}
+            else:
+                _form_data = {**form_data, **{'csrfmiddlewaretoken': gvar['csrf']}}
+
+    else:
+        _function = py_requests.get
+
+        if group:
+            if request[-1] == '/':
+                _request = '%s%s?%s' % (server_address, request[:-1], group)
+            else:
+                _request = '%s%s?%s' % (server_address, request, group)
+        else:    
+            if server_address in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][server_address]:
+                if request[-1] == '/':
+                    _request = '%s%s?%s' % (server_address, request[:-1], gvar['active_server_user_group'][server_address][server_user])
+                else:
+                    _request = '%s%s?%s' % (server_address, request, gvar['active_server_user_group'][server_address][server_user])
+            else:
+                _request = '%s%s' % (server_address, request)
+
+        if query_data:
+            query_list = []
+            for key in sorted(query_data):
+                query_list.append('%s=%s' % (key, query_data[key]))
+
+            if _request[-1] == '/':
+               _request = '%s?%s' % (_request[:-1], '&'.join(query_list))
+            else:
+               _request = '%s&%s' % (_request, '&'.join(query_list))
+        
+        _form_data = {}
+
+    return _function, _request, _form_data
+
+#-------------------------------------------------------------------------------
 
 def ut_id(gvar, IDs):
     ids = IDs.split(',')

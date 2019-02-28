@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'GV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -122,7 +122,7 @@ def main(gvar, user_secret):
 
     # 19
     execute_csv2_command(
-        gvar, 0, None, 'metadata group-defaults, table #1 columns: keys=group_name, columns=htcondor_fqdn,htcondor_name,htcondor_other_submitters,vm_flavor,vm_image,vm_keep_alive,vm_keyname,vm_network,job_cpus,job_disk,job_ram,job_swap',
+        gvar, 0, None, 'metadata group-defaults, 1. Active Group Defaults: keys=group_name, columns=htcondor_fqdn,htcondor_name,htcondor_other_submitters,vm_flavor,vm_image,vm_keep_alive,vm_keyname,vm_network,vm_security_groups,job_cpus,job_disk,job_ram,job_swap\\nmetadata group-defaults, 2. Flavors (optional): keys=group_name,cloud_name, columns=name\\nmetadata group-defaults, 3. Images (optional): keys=group_name,cloud_name, columns=name\\nmetadata group-defaults, 4. Networks (optional): keys=group_name,cloud_name, columns=name\\nmetadata group-defaults, 5. Security Groups (optional): keys=group_name,cloud_name, columns=name',
         ['cloudscheduler', 'metadata', 'group-defaults', '-VC']
     )
 

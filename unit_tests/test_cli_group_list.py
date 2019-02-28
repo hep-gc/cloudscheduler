@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'GV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -98,7 +98,7 @@ def main(gvar, user_secret):
 
     # 015
     execute_csv2_command(
-        gvar, 0, None, 'group list, table #1 columns: keys=group_name, columns=condor_central_manager,metadata_names',
+        gvar, 0, None, 'group list, 1. Groups: keys=group_name, columns=htcondor_fqdn,metadata_names',
         ['cloudscheduler', 'group', 'list', '-VC']
     )
 

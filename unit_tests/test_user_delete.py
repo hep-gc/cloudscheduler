@@ -5,7 +5,7 @@ from sys import argv
 
 def main(gvar, user_secret):
     if not gvar:
-        gvar = {'mnomonic': 'UV'}
+        gvar = {}
         if len(argv) > 1:
             initialize_csv2_request(gvar, argv[0], selections=argv[1])
         else:
@@ -48,37 +48,40 @@ def main(gvar, user_secret):
     # 06
     execute_csv2_request(
         gvar, 1, 'UV07', 'cannot switch to invalid group "invalid-unit-test".',
-        '/user/delete/', form_data={'group': 'invalid-unit-test'}
+        '/user/delete/', group='invalid-unit-test'
     )
 
     # 07
     execute_csv2_request(
         gvar, 1, 'UV07', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
-        '/user/delete/', form_data={'group': ut_id(gvar, 'utg2')}
+        '/user/delete/', group=ut_id(gvar, 'utg2')
     )
 
     # 08
     execute_csv2_request(
         gvar, 1, 'UV08', 'request contained superfluous parameter "invalid-unit-test".',
-        '/user/delete/', form_data={'invalid-unit-test': 'invalid-unit-test'}
+        '/user/delete/'
+, form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
     # 09
     execute_csv2_request(
         gvar, 1, 'UV08', 'value specified for "username" must be all lower case.',
-        '/user/delete/', form_data={'username': 'Invalid-unit-test'}
+        '/user/delete/'
+, form_data={'username': 'Invalid-unit-test'}
     )
 
     # 10
     execute_csv2_request(
         gvar, 1, 'UV08', 'request contained superfluous parameter "password".',
-        '/user/delete/', form_data={'password': 'invalid-unit-test'}
+        '/user/delete/'
+, form_data={'password': 'invalid-unit-test'}
     )
 
     # 11
     execute_csv2_request(
         gvar, 1, 'UV08', 'request did not contain mandatory parameter "username".',
-        '/user/delete/', form_data={'group': ut_id(gvar, 'utg1')},
+        '/user/delete/', group=ut_id(gvar, 'utg1'),
         server_user=ut_id(gvar, 'utu4'), server_pw=user_secret
     )
 
