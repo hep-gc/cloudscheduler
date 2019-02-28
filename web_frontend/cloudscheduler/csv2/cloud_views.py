@@ -1121,7 +1121,7 @@ def status(request, group_name=None):
             ]
         })
 
-    cloud_total_list = cloud_status_list_totals[0]
+    cloud_total_list = cloud_status_list_totals
 
     # find the actual cores limit in use
     '''

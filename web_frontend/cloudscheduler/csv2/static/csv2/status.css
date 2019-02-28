@@ -225,10 +225,9 @@ td a {
     width:100%;
 }
 
-.toggle-button {
+.status-div .toggle-button {
   position: absolute;
-  right: 10px;
-  top: 30px;
+  right: 5px;
   width:30px;
   max-width:30px;
 }
