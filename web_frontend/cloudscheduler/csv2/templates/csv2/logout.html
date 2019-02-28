@@ -10,9 +10,10 @@
 		function logout(){
 
 			var ajax = new XMLHttpRequest();
+                        var logout_url = "https://logmeout:123456@"+window.location.hostname+"/settings/log-out";
 
 			//Send bogus credentials to logout the user:
-			ajax.open("GET", "https://logmeout:123456@csv2-dev.heprc.uvic.ca/settings/log-out", true);
+			ajax.open("GET", logout_url, true);
 			ajax.send();
 
 			ajax.onreadystatechange = function() {
