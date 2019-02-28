@@ -311,11 +311,6 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('error_time', Integer)
   )
 
-csv2_config = Table('csv2_config', metadata,
-  Column('config_name', String(64), primary_key=True),
-  Column('yaml', String)
-  )
-
 csv2_configuration = Table('csv2_configuration', metadata,
   Column('category', String(32), primary_key=True),
   Column('config_key', String(32), primary_key=True),
@@ -391,6 +386,9 @@ csv2_system_status = Table('csv2_system_status', metadata,
   Column('csv2_status_error_count', Integer),
   Column('csv2_status_status', Integer),
   Column('csv2_status_msg', String(512)),
+  Column('csv2_timeseries_error_count', Integer),
+  Column('csv2_timeseries_status', Integer),
+  Column('csv2_timeseries_msg', String(512)),
   Column('condor_status', Integer),
   Column('condor_msg', String(512)),
   Column('load', Float),
