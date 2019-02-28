@@ -27,8 +27,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.sql import func
 
-from libcloud.compute.types import Provider
-from libcloud.compute.providers import get_driver
+import boto3
 
 
 # The purpose of this file is to get some information from the various registered

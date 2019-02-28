@@ -326,17 +326,17 @@ write_files:
 
         # set up condor ccb if only private networking is available
         setup_ccb_ec2() {
-            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
+            LOCAL_ADDRESS=`hostname -i`
             EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
             echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
         }
         setup_ccb_gce() {
-            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
+            LOCAL_ADDRESS=`hostname -i`
             EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/attributes/hostname`
             echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
         }
         setup_ccb_azure() {
-            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
+            LOCAL_ADDRESS=`hostname -i`
             EXTHOSTNAME=`hostname`
             echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
         }
