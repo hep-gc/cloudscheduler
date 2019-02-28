@@ -311,6 +311,11 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('error_time', Integer)
   )
 
+csv2_config = Table('csv2_config', metadata,
+  Column('config_name', String(64), primary_key=True),
+  Column('yaml', String)
+  )
+
 csv2_configuration = Table('csv2_configuration', metadata,
   Column('category', String(32), primary_key=True),
   Column('config_key', String(32), primary_key=True),
