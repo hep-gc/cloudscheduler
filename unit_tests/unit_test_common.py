@@ -58,7 +58,7 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
                         columns_found += row[2:-2].replace('|', ' ').split()
                 if set(columns) != set(columns_found):
                     failed = True
-                    list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, column_list)
+                    list_error = 'columns expected:{}\n\t\tcolumns found:{}'.format(columns, columns_found)
 
         if expected_text and str(stdout).find(expected_text) < 0:
             failed = True
