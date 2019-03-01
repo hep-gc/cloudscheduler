@@ -405,11 +405,11 @@ def command_poller():
                                 if vm_row.updater is not None:
                                     old_updater_str = vm_row.updater
                                     updater_list = old_updater_str.split(',')
-                                    new_updater = get_frame_info() + ":t=1"
+                                    new_updater = get_frame_info() + ":t1"
                                     updater_list.insert(0, new_updater)
                                     vm_row.updater = str(updater_list[:333]).replace("'", "")[1:-1]
                                 else:
-                                    vm_row.updater = str(get_frame_info() + ":t=1")
+                                    vm_row.updater = str(get_frame_info() + ":t1")
                                 db_session.merge(vm_row)
                                 db_session.commit()
                                 #uncommitted_updates = uncommitted_updates + 1

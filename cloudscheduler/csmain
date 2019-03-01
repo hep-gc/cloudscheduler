@@ -405,11 +405,11 @@ def check_view_idle_vms():
                     if row.updater is not None:
                         old_updater_str = row.updater
                         updater_list = old_updater_str.split(',')
-                        new_updater = get_frame_info() + ":r=1"
+                        new_updater = get_frame_info() + ":r1"
                         updater_list.insert(0, new_updater)
                         row.updater = str(updater_list[:3]).replace("'", "")[1:-1]
                     else:  
-                        row.updater = get_frame_info() + ":r=1"
+                        row.updater = get_frame_info() + ":r"
                     config.db_session.merge(row)
                     log.debug("Set retire flag on %s", row.hostname)
             config.db_close(commit=True)
