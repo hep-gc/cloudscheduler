@@ -17,7 +17,9 @@ from cloudscheduler.lib.poller_functions import \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     start_cycle, \
-    wait_cycle
+    wait_cycle, \
+    listen_for_event, \
+    stop_listening_for_event
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -947,6 +949,7 @@ def security_group_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
         while True:
+            stop_listening_for_event(os.get_pid(), "insert_csv2_clouds")
             logging.debug("Beginning security group poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
@@ -1073,7 +1076,13 @@ def security_group_poller():
 
             config.db_close()
             del db_session
+            listen_for_event(os.get_pid(), "insert_csv2_clouds")
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
+
+            except KeyboardInterrupt:
+                # sigint recieved, cancel the sleep and start the loop
+                continue
+
 
     except Exception as exc:
         logging.exception("sec_grp poller cycle while loop exception, process terminating...")

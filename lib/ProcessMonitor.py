@@ -109,3 +109,12 @@ class ProcessMonitor:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+1)
         else:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count-1)
+
+
+    def _cleanup_event_pids(self, pid):
+        path = config.signal_dir_path
+        event_dirs = os.walk(path)
+        for epath in event_dirs:
+            pid_path = epath[0] + "/" + pid
+            if os.path.isfile(pid_path):
+                os.unlink(pid_path)
