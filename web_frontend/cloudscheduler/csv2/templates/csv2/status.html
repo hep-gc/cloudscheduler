@@ -335,7 +335,7 @@ else if (refresh_interval < 1) stop_refresh;
                         
                         {% if global_flag or not global_flag and cloud.group_name == active_group %}
                             {% if cloud.enabled == 1 or cloud.VMs > 0 %}
-
+                                {% comment %}
                                 {% if not forloop.counter0 == 0 and not prev_name == cloud.group_name %}
                                     <tr>
                                         <td colspan="10" class="row-spacer">&nbsp;</td>
@@ -350,8 +350,7 @@ else if (refresh_interval < 1) stop_refresh;
                                     </tr>
                                 {% endif %}
                                 {% set prev_name = cloud.group_name %}
-
-
+                                {% endcomment %}
                                 <tr>
                                     <td class="group-name bold-style">{{cloud.group_name}}</td>
 
@@ -673,8 +672,13 @@ else if (refresh_interval < 1) stop_refresh;
 
                     {% if not global_flag %}
                         {% set group_total = cloud_total_list %}
+                        {% set group_name = cloud_total_list.group_name %}
                     {% else %}
                         {% set group_total = global_total_list %}
+                        {% for group in user_groups %}
+                            <input type='hidden' name='groups_total' value={{group}} />
+                        {% endfor %}
+                        {% set group_name = "groups_total" %}
                     {% endif %}
 
                         {% comment %} 
@@ -688,58 +692,58 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="bold-style">Totals</td>
 
                         {% if group_total.VMs == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_total" class="more-style plottable">{{group_total.VMs}}<!--<a onclick="pass_url('::native::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_total" class="more-style plottable">{{group_total.VMs}}<!--<a onclick="pass_url('::native::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_starting == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_starting_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_starting_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_starting_total" class="more-style plottable">{{group_total.VMs_starting}}<!--<a onclick="pass_url('::starting::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_starting_total" class="more-style plottable">{{group_total.VMs_starting}}<!--<a onclick="pass_url('::starting::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_unregistered == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_unregistered_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_unregistered_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_unregistered_total" class="more-style plottable">{{group_total.VMs_unregistered}}<!--<a onclick="pass_url('::unregistered::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_unregistered_total" class="more-style plottable">{{group_total.VMs_unregistered}}<!--<a onclick="pass_url('::unregistered::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_idle == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_idle_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_idle_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_idle_total" class="more-style plottable">{{group_total.VMs_idle}}<!--<a onclick="pass_url('::idle::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_idle_total" class="more-style plottable">{{group_total.VMs_idle}}<!--<a onclick="pass_url('::idle::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_running == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_running_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_running_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_running_total" class="more-style plottable">{{group_total.VMs_running}}<!--<a onclick="pass_url('::running::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_running_total" class="more-style plottable">{{group_total.VMs_running}}<!--<a onclick="pass_url('::running::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_retiring == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_retiring_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_retiring_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_retiring_total" class="more-style plottable">{{group_total.VMs_retiring}}<!--<a onclick="pass_url('::retiring::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_retiring_total" class="more-style plottable">{{group_total.VMs_retiring}}<!--<a onclick="pass_url('::retiring::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_manual == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_manual_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_manual_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_manual_total" class="more-style plottable">{{group_total.VMs_manual}}<!--<a onclick="pass_url('::manual::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_manual_total" class="more-style plottable">{{group_total.VMs_manual}}<!--<a onclick="pass_url('::manual::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_in_error == 0 %}
-                            <td data-path="{{group_total.group_name}} VMs_in_error_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} VMs_in_error_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} VMs_in_error_total" class="more-style plottable">{{group_total.VMs_in_error}}<!--<a onclick="pass_url('::error::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_in_error_total" class="more-style plottable">{{group_total.VMs_in_error}}<!--<a onclick="pass_url('::error::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
@@ -748,17 +752,17 @@ else if (refresh_interval < 1) stop_refresh;
 
 
                         {% if group_total.cores_native == 0 %}
-                            <td data-path="{{group_total.group_name}} cores_native_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} cores_native_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} cores_native_total" class="more-style plottable">{{group_total.cores_native}}</td>
+                            <td data-path="{{group_name}} cores_native_total" class="more-style plottable">{{group_total.cores_native}}</td>
                         {% endif %}
 
                         {% if group_total.cores_limit == 0 %}
-                            <td data-path="{{group_total.group_name}} cores_limit_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} cores_limit_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} cores_limit_total" class="more-style plottable">{{group_total.cores_limit}}</td>
+                            <td data-path="{{group_name}} cores_limit_total" class="more-style plottable">{{group_total.cores_limit}}</td>
                         {% endif %}
-                            <td data-path="{{group_total.group_name}} ram_native_total" class="plottable">
+                            <td data-path="{{group_name}} ram_native_total" class="plottable">
                                 {% with total=group_total.ram_quota %}
                                     <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native }}"></meter>
                                 {% endwith %}
@@ -767,19 +771,19 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="col-spacer">&nbsp;</td>
 
                         {% if group_total.Foreign_VMs == 0 %}
-                            <td data-path="{{group_total.group_name}} Foreign_VMs_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} Foreign_VMs_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} Foreign_VMs_total" class="more-style plottable">{{group_total.Foreign_VMs}}<!--<a onclick="pass_url('::foreign::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} Foreign_VMs_total" class="more-style plottable">{{group_total.Foreign_VMs}}<!--<a onclick="pass_url('::foreign::')" href="#vms-overlay">--></td>
                         {% endif %}
 
 
                         {% if group_total.cores_foreign == 0 %}
-                            <td data-path="{{group_total.group_name}} cores_foreign_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} cores_foreign_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} cores_foreign_total" class="more-style plottable">{{group_total.cores_foreign}}</td>
+                            <td data-path="{{group_name}} cores_foreign_total" class="more-style plottable">{{group_total.cores_foreign}}</td>
                         {% endif %}
 
-                            <td data-path="{{group_total.group_name}} ram_foreign_total" class="plottable">
+                            <td data-path="{{group_name}} ram_foreign_total" class="plottable">
                                 {% with total=group_total.ram_quota %}
                                     <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_foreign }}"></meter>
                                 {% endwith %}
@@ -787,12 +791,12 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <td class="col-spacer">&nbsp;</td>
                         <!--*******************************************************-->
-                        <td data-path="{{group_total.group_name}} cores_native_foreign_total" class="more-style bold-style plottable">{{group_total.cores_native_foreign}}</td>
+                        <td data-path="{{group_name}} cores_native_foreign_total" class="more-style bold-style plottable">{{group_total.cores_native_foreign}}</td>
                         <!--*******************************************************-->
 
-                        <td data-path="{{group_total.group_name}} cores_quota_total" class="more-style bold-style plottable">{{group_total.cores_quota}}</td>
+                        <td data-path="{{group_name}} cores_quota_total" class="more-style bold-style plottable">{{group_total.cores_quota}}</td>
 
-                        <td data-path="{{group_total.group_name}} ram_native_foreign_total" class="plottable">
+                        <td data-path="{{group_name}} ram_native_foreign_total" class="plottable">
                             {% with total=group_total.ram_quota %}
                                 <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native_foreign }}"></meter>
                             {% endwith %}
@@ -801,22 +805,22 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="col-spacer">&nbsp;</td>
 
                         {% if group_total.slot_count == 0 %}
-                            <td data-path="{{group_total.group_name}} slot_count_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} slot_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} slot_count_total" class="more-style plottable">{{group_total.slot_count}}</td>
+                            <td data-path="{{group_name}} slot_count_total" class="more-style plottable">{{group_total.slot_count}}</td>
                         {% endif %}
 
 
                         {% if group_total.slot_core_count == 0 %}
-                            <td data-path="{{group_total.group_name}} slot_core_count_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} slot_core_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} slot_core_count_total" class="more-style plottable">{{group_total.slot_core_count}}</td>
+                            <td data-path="{{group_name}} slot_core_count_total" class="more-style plottable">{{group_total.slot_core_count}}</td>
                         {% endif %}
 
                         {% if group_total.slot_idle_core_count == 0 %}
-                            <td data-path="{{group_total.group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
+                            <td data-path="{{group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_total.group_name}} slot_idle_core_count_total" class="more-style plottable">{{group_total.slot_idle_core_count}}</td>
+                            <td data-path="{{group_name}} slot_idle_core_count_total" class="more-style plottable">{{group_total.slot_idle_core_count}}</td>
                         {% endif %}
 
                     </tr>

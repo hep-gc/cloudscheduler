@@ -292,6 +292,10 @@ input.toggle-box:checked ~ table tr.extra-row {
   color: black;
 }
 
+.total-heading{
+  background-color: lightgrey;
+}
+
 .native-style {
   background-color: powderblue;
   color: black;

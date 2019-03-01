@@ -199,7 +199,53 @@ function createQuery(trace, from, to, showing){
 		query += `"${measurement}"`;
 	}
 	const group = line[0];
-	if(line.length == 3){
+
+	if (group == 'groups_total'){
+		var groups = [];
+		var l = document.getElementsByName(group);
+		var len = l.length
+		for (var k = 0; k < len; k++){
+			groups.push(l[k].value);
+		}
+		var measurement = line[1];
+		var Query = `SELECT time,SUM("value") FROM "${measurement}" WHERE `;
+		for (var g = 0; g < groups.length; g++){
+			Query += `"group"='${groups[g]}'`;
+			if(g != groups.length-1){
+				Query += ` OR `;
+			}
+		}
+		/* If requesting newest 30s of data*/
+		if (to == 0){
+			Query += `AND time >= ${from}ms`;
+		
+		/* Default request is last 7 days*/
+		}else if (showing == false || (date-from) <= 604800000){
+			Query += ` AND time >= ${date-604800000}ms`;
+		}else{
+			/* Check if trace is already plotted*/
+			var index = -1;
+			for(var x = 0; x < TSPlot.traces.length; x++){
+				if (TSPlot.traces[x].name == trace){
+					index = x;
+					break;
+				}
+			}
+			/* If trace is already plotted*/
+			if(index != -1){
+				if(from > TSPlot.layout.xaxis.range[0])	Query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
+				else Query += ` AND time >= ${from}ms AND time < ${to}ms`;
+			}else{
+				if(from > TSPlot.layout.xaxis.range[0])	Query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
+				else Query += ` AND time >= ${from}ms AND time < ${date}ms`;
+			}
+		}
+		Query += ` GROUP BY time(30s)`;
+		return Query;
+	}
+
+
+	else if(line.length == 3){
 		var cloud = line[1];
 		var measurement = line[2];
 		query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
@@ -256,8 +302,8 @@ function parseData(responsedata){
 	const unpackData = (arr, index) => {
 		var newarr = arr.map((x, ind) => {
 			if(index == 0 && ind < arr.length-1){
-				/* If gap between two timestamps is > 45s*/
-				if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 45000){
+				/* If gap between two timestamps is > 55s*/
+				if((Math.abs(arr[ind+1][index] - arr[ind][index])) > 55000){
 					addtime.push(arr[ind][index] + 15000);
 					addindex.push(ind+1);
 				}
@@ -303,7 +349,7 @@ function getTraceData(trace, showing){
 	.then(function(data){
 		/* Parse response into trace object.*/
 		if(!(typeof (data.results[0]) !== 'undefined') || !(typeof (data.results[0].series) !== 'undefined')){
-			throw `Sorry! That trace: '${trace.dataset.path}' does not exist`;
+			throw `That trace: '${trace.dataset.path}' does not exist`;
 		}
 		const newarrays = parseData(data.results[0].series[0].values);
 	    	const newtrace = {
