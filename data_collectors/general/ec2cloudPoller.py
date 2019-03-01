@@ -42,7 +42,11 @@ import boto3
 # This file also polls the LibCloud clouds for live VM information and inserts it into the database
 
 ## Poller sub-functions.
+def _get_boto_connection():
+    pass
 
+def _get_boto_client():
+    pass
 
 
 ## Poller functions.
