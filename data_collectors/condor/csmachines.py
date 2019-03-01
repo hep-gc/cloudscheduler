@@ -393,6 +393,9 @@ def command_poller():
                     #check if retire flag set  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire >= 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                            #check if terminate has already been set
+                            if resource[9] >= 1:
+                                continue
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
@@ -402,18 +405,20 @@ def command_poller():
                                 if vm_row.updater is not None:
                                     old_updater_str = vm_row.updater
                                     updater_list = old_updater_str.split(',')
-                                    new_updater = get_frame_info() + ":t=1"
+                                    new_updater = get_frame_info() + ":t1"
                                     updater_list.insert(0, new_updater)
-                                    vm_row.updater = updater_list[:5]
+                                    vm_row.updater = str(updater_list[:333]).replace("'", "")[1:-1]
                                 else:
-                                    vm_row.updater = get_frame_info() + ":t=1"
+                                    vm_row.updater = str(get_frame_info() + ":t1")
                                 db_session.merge(vm_row)
-                                uncommitted_updates = uncommitted_updates + 1
+                                db_session.commit()
+                                #uncommitted_updates = uncommitted_updates + 1
 
                                 # since this vm is already ready for termination we can continue here instead of issuing the condor_off
                                 continue
-                            except:
+                            except Exception as exc:
                                 # unable to get VM row error
+                                logging.exception(exc)
                                 logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
                                 continue
 
@@ -442,9 +447,9 @@ def command_poller():
                             updater_list = old_updater_str.split(',')
                             new_updater = get_frame_info() + ":r+"
                             updater_list.insert(0, new_updater)
-                            vm_row.updater = updater_list[:5]
+                            vm_row.updater = str(updater_list[:3]).replace("'", "")[1:-1]
                         else:   
-                            vm_row.updater = get_frame_info() + ":r+"
+                            vm_row.updater = str(get_frame_info() + ":r+")
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -527,9 +532,9 @@ def command_poller():
                                 updater_list = old_updater_str.split(',')
                                 new_updater = get_frame_info() + ":t+"
                                 updater_list.insert(0, new_updater)
-                                vm_row.updater = updater_list[:5]
+                                vm_row.updater = str(updater_list[:3]).replace("'", "")[1:-1]
                             else:   
-                                vm_row.updater = get_frame_info() + ":t+"
+                                vm_row.updater = str(get_frame_info() + ":t+")
 
                             nova.servers.delete(vm_row.vmid)
                             logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
@@ -560,7 +565,7 @@ def command_poller():
                         except IndexError as exc:
                             pass
                         except Exception as exc:
-                            logging.exception("Failed to retrieve machine classads, aborting...")
+                            logging.error("Failed to retrieve machine classads, aborting...")
                             logging.error(exc)
                             abort_cycle = True
                             break
@@ -584,7 +589,12 @@ def command_poller():
 
             logging.debug("Completed command consumer cycle")
             del condor_session
-            config.db_close(commit=True)
+            try:
+                config.db_close(commit=True)
+            except Exception as exc:
+                logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
+                logging.exception(exc)
+
             del db_session
             time.sleep(config.sleep_interval_command)
 
