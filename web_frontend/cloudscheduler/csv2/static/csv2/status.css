@@ -148,6 +148,7 @@
   overflow: hidden;
   border-collapse: collapse;
   text-align: center;
+  white-space: nowrap;
 }
 .status-table td a {
     display:block;
@@ -160,6 +161,10 @@
   border-top: 2px solid #ddd;
   position: relative;
   width: 80px;
+}
+
+.status-table .group-name {
+  min-width: 80px;
 }
 
 .status-table .col-spacer {
@@ -178,13 +183,11 @@
   background-color: white;
   color: white;
 }
+
 .status-table .row-spacer:hover {
   background-color: white;
   color: white;
 }
-
-
-
 
 .status-table td:hover {
   background-color: grey;
@@ -225,11 +228,16 @@ td a {
     width:100%;
 }
 
-.status-div .toggle-button {
+.status-table {
+  position: relative;
+}
+
+.status-table .toggle-button {
   position: absolute;
-  right: 5px;
-  width:30px;
-  max-width:30px;
+  bottom: 0px;
+  right: 10px;
+  width: 30px;
+  max-width: 30px;
 }
 
 .toggle-box{

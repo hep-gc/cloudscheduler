@@ -72,6 +72,7 @@ def timeseries_data_transfer():
                 'csv2_status_status',
                 'csv2_status_error_count',
                 'condor_status',
+                'csv2_timeseries_status',
                 'load',
                 'ram_used',
                 'swap_used',

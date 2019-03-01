@@ -302,6 +302,9 @@ function getTraceData(trace, showing){
 	})
 	.then(function(data){
 		/* Parse response into trace object.*/
+		if(!(typeof (data.results[0]) !== 'undefined') || !(typeof (data.results[0].series) !== 'undefined')){
+			throw `Sorry! That trace: '${trace.dataset.path}' does not exist`;
+		}
 		const newarrays = parseData(data.results[0].series[0].values);
 	    	const newtrace = {
 			mode: 'lines',
@@ -384,7 +387,6 @@ function refresh_plot() {
 			var new_points = true;
 			for(var k = 0; k < traces.length; k++){
 				if(!(typeof (data.results[k]) !== 'undefined') || !(typeof (data.results[k].series) !== 'undefined')){
-					console.log("new_points == false");
 					new_points = false;
 					break;
 				}
