@@ -935,8 +935,9 @@ def network_poller():
 
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
+    db_category_list = [os.path.basename(sys.argv[0]), "general"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
     CLOUD = config.db_map.classes.csv2_clouds
@@ -945,11 +946,13 @@ def security_group_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
+    my_pid = os.getpid()
+    signal_path = config.signal_dir_path
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
         while True:
-            stop_listening_for_event(os.get_pid(), "insert_csv2_clouds")
+            stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
             logging.debug("Beginning security group poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
@@ -1076,8 +1079,9 @@ def security_group_poller():
 
             config.db_close()
             del db_session
-            listen_for_event(os.get_pid(), "insert_csv2_clouds")
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
+            try:
+                listen_for_event(my_pid, signal_path, "insert_csv2_clouds")
+                wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
 
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
