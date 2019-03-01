@@ -2,6 +2,7 @@ from dateutil import tz, parser
 import hashlib
 import logging
 import time
+import os
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 
@@ -263,3 +264,19 @@ def test_and_set_inventory_item_hash(inventory, group_name, cloud_name, item, it
     inventory[group_name][cloud_name][item]['hash'] = new_hash
     return False
 
+def listen_for_event(pid, signal_path, event_name):
+    #get signal folder from config
+    #write pid file to /signal_folder_path/event_name/pid
+    path = signal_path + event_name + "/" + str(pid)
+    open(path, 'a').close()
+    return
+
+def stop_listening_for_event(pid, signal_path, event_name):
+    #get signal folder from config 
+    #delete pid file /signal_folder_path/event_name/pid
+    path = signal_path + event_name + "/" + str(pid)
+    if os.path.isfile(path):
+        os.unlink(path)
+    else:
+        logging.debug("Not listening for event %s, cant remove %s" % (event_name, pid))
+    return
