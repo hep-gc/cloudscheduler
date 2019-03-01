@@ -393,6 +393,9 @@ def command_poller():
                     #check if retire flag set  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire >= 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                            #check if terminate has already been set
+                            if resource[9] >= 1:
+                                continue
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
@@ -404,7 +407,7 @@ def command_poller():
                                     updater_list = old_updater_str.split(',')
                                     new_updater = get_frame_info() + ":t=1"
                                     updater_list.insert(0, new_updater)
-                                    vm_row.updater = str(updater_list[:5]).replace("'", "")[1:-1]
+                                    vm_row.updater = str(updater_list[:333]).replace("'", "")[1:-1]
                                 else:
                                     vm_row.updater = str(get_frame_info() + ":t=1")
                                 db_session.merge(vm_row)
@@ -444,7 +447,7 @@ def command_poller():
                             updater_list = old_updater_str.split(',')
                             new_updater = get_frame_info() + ":r+"
                             updater_list.insert(0, new_updater)
-                            vm_row.updater = str(updater_list[:5]).replace("'", "")[1:-1]
+                            vm_row.updater = str(updater_list[:3]).replace("'", "")[1:-1]
                         else:   
                             vm_row.updater = str(get_frame_info() + ":r+")
                         db_session.merge(vm_row)
@@ -529,7 +532,7 @@ def command_poller():
                                 updater_list = old_updater_str.split(',')
                                 new_updater = get_frame_info() + ":t+"
                                 updater_list.insert(0, new_updater)
-                                vm_row.updater = str(updater_list[:5]).replace("'", "")[1:-1]
+                                vm_row.updater = str(updater_list[:3]).replace("'", "")[1:-1]
                             else:   
                                 vm_row.updater = str(get_frame_info() + ":t+")
 
