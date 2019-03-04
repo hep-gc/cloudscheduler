@@ -82,6 +82,7 @@ class ProcessMonitor:
             try:
                 pro.terminate()
                 pro.join()
+                self._cleanup_event_pids(proc)
             except:
                 logging.error("failed to join process %s", pro.name)
 
@@ -103,6 +104,7 @@ class ProcessMonitor:
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)
+                self._cleanup_event_pids(process)
                 self.restart_process(process)
                 time.sleep(self.config.sleep_interval_main_short)
         if orange:
