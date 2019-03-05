@@ -424,7 +424,7 @@ def command_poller():
                         continue
 
 
-                    logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater)
+                    logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater))
                     try:
                         if resource.terminate is not None and resource.machine is not "":
                             condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
@@ -630,7 +630,9 @@ if __name__ == '__main__':
         'registrar':  service_registrar,
     }
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+
+    procMon = ProcessMonitor(file_name=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
