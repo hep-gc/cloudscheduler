@@ -52,7 +52,7 @@ function selectRange(range){
 	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
 	/* Update traces with new range*/
-	if((date-from) > 604800000 && !(TSPlot.traces[0].x[0] < from)){
+	if((date-from) > 360000 && !(TSPlot.traces[0].x[0] < from)){
 		var traces = TSPlot.traces;
 		var newdata = {
 			y: [],
@@ -125,6 +125,7 @@ function selectRange(range){
 	else{
 		/* Only update plot range*/
 		TSPlot.layout.xaxis.range = [from, to];
+		TSPlot.layout.yaxis.range = [];
 		Plotly.relayout('plotly-TS', TSPlot.layout);
 	}
 }
@@ -200,6 +201,7 @@ function createQuery(trace, from, to, showing){
 	}
 	const group = line[0];
 
+	/* If trace is for global group total*/
 	if (group == 'groups_total'){
 		var groups = [];
 		var l = document.getElementsByName(group);
@@ -219,9 +221,9 @@ function createQuery(trace, from, to, showing){
 		if (to == 0){
 			Query += `AND time >= ${from}ms`;
 		
-		/* Default request is last 7 days*/
-		}else if (showing == false || (date-from) <= 604800000){
-			Query += ` AND time >= ${date-604800000}ms`;
+		/* Default request is last 1 hour*/
+		}else if (showing == false || (date-from) <= 3600000){
+			Query += ` AND time >= ${date-3600000}ms`;
 		}else{
 			/* Check if trace is already plotted*/
 			var index = -1;
@@ -244,7 +246,7 @@ function createQuery(trace, from, to, showing){
 		return Query;
 	}
 
-
+	/* If trace is regular*/
 	else if(line.length == 3){
 		var cloud = line[1];
 		var measurement = line[2];
@@ -257,10 +259,10 @@ function createQuery(trace, from, to, showing){
 	if (to == 0){
 		if(!services) query += ` AND time >= ${from}ms`;
 		else query += ` WHERE time >= ${from}ms`;
-	/* Default request is last 7 days*/
-	}else if (showing == false || (date-from) <= 604800000){
-		if(!services) query += ` AND time >= ${date-604800000}ms`;
-		else query += ` WHERE time >= ${date-604800000}ms`;
+	/* Default request is last 1 hour*/
+	}else if (showing == false || (date-from) <= 3600000){
+		if(!services) query += ` AND time >= ${date-3600000}ms`;
+		else query += ` WHERE time >= ${date-3600000}ms`;
 	}else{
 		/* Check if trace is already plotted*/
 		var index = -1;
@@ -331,7 +333,7 @@ function getTraceData(trace, showing){
 	else var newpath = "/cloud/status/plot";
 	var nullvalues = [];
 	if(showing == true) query = createQuery(trace.dataset.path, TSPlot.traces[0].x[0], date, showing);
-	else query = createQuery(trace.dataset.path, 3600, date, showing);
+	else query = createQuery(trace.dataset.path, date-3600000, date, showing);
 	const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 	fetch(newpath,{
 		method: 'POST',
@@ -498,6 +500,7 @@ var TSPlot = {
 			t: 40,
 			b: 40
 		},
+		showlegend: true
 	},
 
 	showing: false,
@@ -506,7 +509,7 @@ var TSPlot = {
 	/* Create new plot with trace in div*/
 	initialize: function(trace) {
 		TSPlot.layout.xaxis.range = [date-3600000, date];
-		TSPlot.traces = [trace];		
+		TSPlot.traces.push(trace);		
 		Plotly.newPlot('plotly-TS', TSPlot.traces, TSPlot.layout, {responsive: true, displayModeBar: false});
 		var traces = [];
 		traces.push(trace.name);
@@ -514,11 +517,22 @@ var TSPlot = {
 	},
 
 	/* Hide plot*/
-	hide: function() {
-		TSPlot.showing = false;
+	hide: function() {		
+		var newlayout = {
+			yaxis: {
+				rangemode : "tozero"
+			},
+			xaxis: {
+				type : "date"
+			}
+		};
+		Plotly.relayout('plotly-TS', newlayout);
+		//Plotly.purge('plotly-TS');
+
 		TSPlot.traces = [];
-		Plotly.purge('plotly-TS');
+		TSPlot.showing = false;
 		document.getElementById("plot").style.display = 'none';
+		
 		const curr_range = document.getElementsByClassName("range-btn");
 		curr_range[0].innerHTML = 'Last 1 hour<span class="space"></span><span class="caret"></span>';
 		/* Remove indication of plotted traces*/
@@ -535,6 +549,10 @@ var TSPlot = {
 			dropdowns[0].classList.remove('selected');
 		}
 		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
+		/* Pause before purging to avoid TypeError, seems to be a Plotly bug*/
+		setTimeout(function(){
+    		Plotly.purge('plotly-TS');
+		}, 10);
 	},
 
 	/* Show plot*/
