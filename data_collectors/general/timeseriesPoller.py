@@ -99,14 +99,18 @@ def timeseries_data_transfer():
             for line in cloud_status:
                 column = 2
                 group = line[0]
-                if( not (group in groups)):
+                if group not in groups and group != '' or None:
                     groups.append(group)
                 cloud = line[1]
                 for data in line[2:]:
                     if data == -1 or data is None:
                         column += 1
                         continue
-                    new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
+                    if group == '' or None:
+                        new_point = "{0},cloud={1} value={2}i {3}".format(column_list[column], cloud, data, ts)
+                    else:
+                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
+                    #new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
                     data_points.append(new_point)
                     column += 1
 
@@ -160,7 +164,7 @@ def timeseries_data_transfer():
 
                 cloud_total_list = cloud_status_list_totals[0]
                 try:
-                    group = cloud_total_list['group_name']
+                    groupname = cloud_total_list['group_name']
                 except Exception as exc:
                     # dictionary is emtpy and we got a key error
                     logging.error("Unable to get a cloud_total_list for %s skipping..." % group)
