@@ -52,7 +52,7 @@ function selectRange(range){
 	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
 	/* Update traces with new range*/
-	if((date-from) > 360000 && !(TSPlot.traces[0].x[0] < from)){
+	if((date-from) > 3600000 && !(TSPlot.traces[0].x[0] < from)){
 		var traces = TSPlot.traces;
 		var newdata = {
 			y: [],
@@ -354,7 +354,7 @@ function getTraceData(trace, showing){
 			throw `That trace: '${trace.dataset.path}' does not exist`;
 		}
 		const newarrays = parseData(data.results[0].series[0].values);
-	    	const newtrace = {
+	    const newtrace = {
 			mode: 'lines',
 			name: trace.dataset.path,
 			x: newarrays[0],
@@ -527,7 +527,6 @@ var TSPlot = {
 			}
 		};
 		Plotly.relayout('plotly-TS', newlayout);
-		//Plotly.purge('plotly-TS');
 
 		TSPlot.traces = [];
 		TSPlot.showing = false;
