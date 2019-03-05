@@ -952,145 +952,151 @@ def security_group_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
         while True:
-            stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
-            logging.debug("Beginning security group poller cycle")
-            new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
-            db_session = config.db_session
+            try:
+                stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
+                logging.debug("Beginning security group poller cycle")
+                new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
+                config.db_open()
+                db_session = config.db_session
 
-            abort_cycle = False
-            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                abort_cycle = False
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
 
-            # build unique cloud list to only query a given cloud once per cycle
-            unique_cloud_dict = {}
-            for cloud in cloud_list:
-                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
-                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
-                        'cloud_obj': cloud,
-                        'groups': [(cloud.group_name, cloud.cloud_name)]
-                    }
-                else:
-                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
+                # build unique cloud list to only query a given cloud once per cycle
+                unique_cloud_dict = {}
+                for cloud in cloud_list:
+                    if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                            'cloud_obj': cloud,
+                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                        }
+                    else:
+                        unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
 
-            for cloud in unique_cloud_dict:
-                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
-                logging.debug("Processing security groups from cloud - %s" % cloud_name)
-                session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
-                if session is False:
-                    logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        if grp_nm+cld_nm not in failure_dict:
-                            failure_dict[grp_nm+cld_nm] = 1
-                        else:
-                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                            config.incr_cloud_error(grp_nm, cld_nm)
-                        continue
-
-                # setup OpenStack api objects
-                neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
-
-                # Retrieve all flavours for this cloud.
-                try:
-                    sec_grp_list =  neu.list_security_groups()
-                except Exception as exc:
-                    logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
-                    logging.error(exc)
-                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                        grp_nm = cloud_tuple[0]
-                        cld_nm = cloud_tuple[1]
-                        if grp_nm+cld_nm not in failure_dict:
-                            failure_dict[grp_nm+cld_nm] = 1
-                        else:
-                            failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                        if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
-                            logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
-                            config.incr_cloud_error(grp_nm, cld_nm)
-                    continue
-
-                if sec_grp_list is False:
-                    logging.info("No security groups defined for %s, skipping this cloud..." % cloud_name)
-                    continue
-
-                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
-                    grp_nm = cloud_tuple[0]
-                    cld_nm = cloud_tuple[1]
-                    failure_dict.pop(grp_nm+cld_nm, None)
-                    config.reset_cloud_error(grp_nm, cld_nm)
-
-                # Process security groups for this cloud.
-                uncommitted_updates = 0
-                for sec_grp in sec_grp_list["security_groups"]:
-                    for groups in unique_cloud_dict[cloud]['groups']:
-                        group_n = groups[0]
-                        cloud_n = groups[1]
-
-                        sec_grp_dict = {
-                            'group_name': group_n,
-                            'cloud_name': cloud_n,
-                            'name': sec_grp["name"],
-                            'id': sec_grp["id"],
-                            'last_updated': new_poll_time
-                            }
-
-                        flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
-                        if unmapped:
-                            logging.error("Unmapped attributes found during mapping, discarding:")
-                            logging.error(unmapped)
-
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                for cloud in unique_cloud_dict:
+                    cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    logging.debug("Processing security groups from cloud - %s" % cloud_name)
+                    session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                    if session is False:
+                        logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if grp_nm+cld_nm not in failure_dict:
+                                failure_dict[grp_nm+cld_nm] = 1
+                            else:
+                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
                             continue
 
-                        new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
-                        try:
-                            db_session.merge(new_sec_grp)
-                            uncommitted_updates += 1
+                    # setup OpenStack api objects
+                    neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+
+                    # Retrieve all flavours for this cloud.
+                    try:
+                        sec_grp_list =  neu.list_security_groups()
+                    except Exception as exc:
+                        logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
+                        logging.error(exc)
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if grp_nm+cld_nm not in failure_dict:
+                                failure_dict[grp_nm+cld_nm] = 1
+                            else:
+                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+                        continue
+
+                    if sec_grp_list is False:
+                        logging.info("No security groups defined for %s, skipping this cloud..." % cloud_name)
+                        continue
+
+                    for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                        grp_nm = cloud_tuple[0]
+                        cld_nm = cloud_tuple[1]
+                        failure_dict.pop(grp_nm+cld_nm, None)
+                        config.reset_cloud_error(grp_nm, cld_nm)
+
+                    # Process security groups for this cloud.
+                    uncommitted_updates = 0
+                    for sec_grp in sec_grp_list["security_groups"]:
+                        for groups in unique_cloud_dict[cloud]['groups']:
+                            group_n = groups[0]
+                            cloud_n = groups[1]
+
+                            sec_grp_dict = {
+                                'group_name': group_n,
+                                'cloud_name': cloud_n,
+                                'name': sec_grp["name"],
+                                'id': sec_grp["id"],
+                                'last_updated': new_poll_time
+                                }
+
+                            flav_dict, unmapped = map_attributes(src="os_sec_grps", dest="csv2", attr_dict=sec_grp_dict)
+                            if unmapped:
+                                logging.error("Unmapped attributes found during mapping, discarding:")
+                                logging.error(unmapped)
+
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                                continue
+
+                            new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
+                            try:
+                                db_session.merge(new_sec_grp)
+                                uncommitted_updates += 1
+                            except Exception as exc:
+                                logging.exception("Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, sec_grp.name))
+                                logging.error(exc)
+                                abort_cycle = True
+                                break
+
+                    del neu
+                    if abort_cycle:
+                        break
+
+                    if uncommitted_updates > 0:
+                        try:        
+                            db_session.commit()
+                            logging.info("Security group updates committed: %d" % uncommitted_updates)
                         except Exception as exc:
-                            logging.exception("Failed to merge security group entry for %s::%s::%s, aborting cycle..." % (group_n, cloud_n, sec_grp.name))
+                            logging.exception("Failed to commit security group updates for %s, aborting cycle..." % cloud_name)
                             logging.error(exc)
                             abort_cycle = True
                             break
 
-                del neu
                 if abort_cycle:
-                    break
+                    db_session.close()
+                    time.sleep(config.sleep_interval_sec_grp)
+                    continue
 
-                if uncommitted_updates > 0:
-                    try:        
-                        db_session.commit()
-                        logging.info("Security group updates committed: %d" % uncommitted_updates)
-                    except Exception as exc:
-                        logging.exception("Failed to commit security group updates for %s, aborting cycle..." % cloud_name)
-                        logging.error(exc)
-                        abort_cycle = True
-                        break
+                # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
+                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict)
 
-            if abort_cycle:
-                db_session.close()
-                time.sleep(config.sleep_interval_sec_grp)
-                continue
+                config.db_close()
+                del db_session
+                try:
+                    listen_for_event(my_pid, signal_path, "insert_csv2_clouds")
+                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
 
-            # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-            delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict)
-
-            config.db_close()
-            del db_session
-            try:
-                listen_for_event(my_pid, signal_path, "insert_csv2_clouds")
-                wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
+                except KeyboardInterrupt:
+                    # sigint recieved, cancel the sleep and start the loop
+                    continue
 
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
+                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
                 continue
-
 
     except Exception as exc:
         logging.exception("sec_grp poller cycle while loop exception, process terminating...")
         logging.error(exc)
+        stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
         config.db_close()
         del db_session
 

@@ -1,0 +1,20 @@
+
+<head>
+{% load template_utils %}
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
+
+
+</head>
+<body>
+
+    <div class="footer"
+        {% if response_code == 1 %}
+            <tr><td><b>Error: {{ message }}</b></td></tr>
+        {% elif message is not None %}
+            <tr><td>{{ message }}</td></tr>
+        {% endif %}
+    </div>
+
+</body>
