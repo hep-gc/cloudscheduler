@@ -104,7 +104,7 @@ class ProcessMonitor:
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)
-                self._cleanup_event_pids(process)
+                #self._cleanup_event_pids(process)
                 self.restart_process(process)
                 time.sleep(self.config.sleep_interval_main_short)
         if orange:
@@ -114,7 +114,7 @@ class ProcessMonitor:
 
 
     def _cleanup_event_pids(self, pid):
-        path = config.signal_dir_path
+        path = self.config.signal_registry
         event_dirs = os.walk(path)
         for epath in event_dirs:
             pid_path = epath[0] + "/" + pid
