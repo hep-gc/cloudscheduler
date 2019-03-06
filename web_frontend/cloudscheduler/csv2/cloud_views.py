@@ -25,6 +25,7 @@ from sqlalchemy import exists
 from sqlalchemy.sql import select
 from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
+from cloudscheduler.lib.signal_manager import send_signals
 
 import sqlalchemy.exc
 #import subprocess
@@ -413,6 +414,8 @@ def add(request):
             rc, msg = manage_group_metadata_exclusions(tables, fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
         if rc == 0:
+            #signal the pollers a new cloud has been added
+            send_signals(config, "insert_csv2_clouds")
             config.db_close(commit=True)
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name']))
@@ -1466,6 +1469,8 @@ def update(request):
 
         if updates > 0:
             act_usr = active_user.username
+            #signal the pollers that a cloud has been updated
+            send_signals(config, "insert_csv2_clouds")
             config.db_close(commit=True)
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
