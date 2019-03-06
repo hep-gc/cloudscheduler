@@ -11,6 +11,7 @@ import copy
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
@@ -18,8 +19,6 @@ from cloudscheduler.lib.poller_functions import \
     test_and_set_inventory_item_hash, \
     start_cycle, \
     wait_cycle, \
-    listen_for_event, \
-    stop_listening_for_event
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -132,7 +131,8 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -297,18 +297,9 @@ def flavor_poller():
 
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
@@ -467,18 +458,9 @@ def image_poller():
 # Retrieve keypairs.
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -618,18 +600,9 @@ def keypair_poller():
 
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
-    Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -786,7 +759,8 @@ def network_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -935,8 +909,8 @@ def network_poller():
 
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
 
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
@@ -947,13 +921,13 @@ def security_group_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
     my_pid = os.getpid()
-    signal_path = config.signal_dir_path
+
+    register_signal_receiver(config, "insert_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
         while True:
             try:
-                stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
                 logging.debug("Beginning security group poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
@@ -1081,7 +1055,6 @@ def security_group_poller():
                 config.db_close()
                 del db_session
                 try:
-                    listen_for_event(my_pid, signal_path, "insert_csv2_clouds")
                     wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
 
                 except KeyboardInterrupt:

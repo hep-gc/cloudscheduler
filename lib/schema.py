@@ -820,7 +820,8 @@ view_condor_host = Table('view_condor_host', metadata,
   Column('retire', Integer),
   Column('retiring', Integer),
   Column('terminate', Integer),
-  Column('machine', String(256))
+  Column('machine', String(256)),
+  Column('updater', String(128))
   )
 
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,

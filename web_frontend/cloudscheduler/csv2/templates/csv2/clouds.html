@@ -126,7 +126,20 @@
                                     </td></tr>
                                 
 
-
+                                    <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
+                                    <td><select name="vm_security_groups" class="dropdown"/>
+                                    <option value=""></option>
+                                    {% for group in security_groups_list %}
+                                        {% if cloud.cloud_name == group.cloud_name %}
+                                            {% if cloud.vm_security_groups == group.name %}
+                                                <option value="{{ group.name }}" selected>{{ group.name }}</option>
+                                            {% else %}
+                                                <option value="{{ group.name }}">{{ group.name }}</option>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td></tr>
+                                
                                     <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
                                     <td><select name="vm_keyname" class="dropdown"/>
                                     <option value=""></option>
@@ -405,12 +418,6 @@
                             <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
 
-                            <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
-                            <td><select name="vm_keyname" class="dropdown"/>
-                            <option value=""></option>
-                            {% for key in keypairs_list %}
-                                <option value="{{ key.key_name }}">{{ key.key_name }}</option>
-                            {% endfor %}
 
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>

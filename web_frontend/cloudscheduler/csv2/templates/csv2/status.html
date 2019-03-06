@@ -1044,10 +1044,14 @@ else if (refresh_interval < 1) stop_refresh;
                 {% endif %}
 
 
-                <td data-path="condor_status" tooltip="{{ system_list.condor_msg }}" class="plottable">
-                {% if system_list.condor_status == 1 %}
+                {% if system_list.csv2_timeseries_status == 1 and system_list.csv2_timeseries_error_count == 0%}
+                    <td data-path="csv2_timeseries_status" class="plottable" tooltip="{{ system_list.csv2_timeseries_msg }}">
                     <span class="green-symbol">&#x2714;</span></td>
+                {% elif system_list.csv2_timeseries_status == 1 and system_list.csv2_timeseries_error_count != 0%}
+                    <td data-path="csv2_timeseries_status" class="plottable" tooltip="Warning! {{system_list.csv2_timeseries_error_count}} child process failures. {{ system_list.csv2_timeseries_msg }}">
+                    <span class="orange-symbol">&#x2757;</span></td>
                 {% else %}
+                    <td data-path="csv2_timeseries_status" class="plottable" tooltip="{{ system_list.csv2_timeseries_msg }}">
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
@@ -1071,7 +1075,7 @@ else if (refresh_interval < 1) stop_refresh;
                 <td>openstack</td>
                 <td>jobs</td>
                 <td>machines</td>
-                <td>condor</td>
+                <td>timeseries</td>
 
                 <td class="col-spacer">&nbsp;</td>
 

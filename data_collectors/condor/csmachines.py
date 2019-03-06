@@ -387,6 +387,7 @@ def command_poller():
                     #8=retiring flag
                     #9=terminate flag
                     #10=machine
+                    #11=updater
                     #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
                     # First check the slots to see if its time to terminate this machine
 
@@ -399,7 +400,7 @@ def command_poller():
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
-                                logging.info("slots are zero or null on %s, setting terminate" % resource.vmid)
+                                logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
                                 vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                                 vm_row.terminate = 1
                                 vm_row.updater = str(get_frame_info() + ":t1")
