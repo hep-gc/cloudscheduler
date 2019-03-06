@@ -1,9 +1,12 @@
 <html>
     <head>
-        <script>
-			parent.location.reload();
+        <script type="text/javascript">
+        function store_message(){
+        	sessionStorage.setItem("response_code", "{{response_code}}");
+        	sessionStorage.setItem("message", "{{message}}");
+		}
         </script>
     </head>
-    <body>
+    <body onpageshow="store_message(); parent.location.reload();">
     </body>
 </html>

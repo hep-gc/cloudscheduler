@@ -14,6 +14,14 @@
 <script type="text/javascript">
 
     var visited = {};
+    
+    function get_message() {
+        if (sessionStorage.getItem("message")){
+            document.getElementById("message").innerHTML = sessionStorage.getItem("message");
+            sessionStorage.setItem("response_code", "");
+            sessionStorage.setItem("message", "");
+        }
+    }
 
     function meta_fetch(cloudname , metaname) {
 
@@ -54,7 +62,7 @@
 <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
+<body class="clouds-nav" onpageshow="get_message(); show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
 
 <div class="main-div">
     <div class="menu">
@@ -460,7 +468,7 @@
 
 </div>
 
-<div class="footer"
+<div class="footer" id="message">
     {% if response_code == 1 %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
     {% elif message is not None %}
@@ -468,14 +476,6 @@
     {% endif %}
 </div>
 
-<script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
 
-<script>
-    /*
-    {% for cloud in cloud_list %}
-        createEditor("{{cloud.cloud_name}}editor")
-    {% endfor %}
-    */
-</script>
 
 </body>

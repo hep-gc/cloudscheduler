@@ -19,6 +19,14 @@
 
         var visited = {};
 
+        function get_message() {
+            if (sessionStorage.getItem("message")){
+                document.getElementById("message").innerHTML = sessionStorage.getItem("message");
+                sessionStorage.setItem("response_code", "");
+                sessionStorage.setItem("message", "");
+            }
+        }
+
         function meta_fetch(groupname , metaname) {
 
             var url='/group/metadata-fetch?{{active_group}}&metadata_name='+metaname
@@ -54,7 +62,7 @@
 
 </head>
 
-<body class="defaults-nav" onpageshow="show_group('{{active_group}}') ; check_target('{{default_list.0.group_name}}-settings')">
+<body class="defaults-nav" onpageshow="get_message(); show_group('{{active_group}}') ; check_target('{{default_list.0.group_name}}-settings')">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -240,14 +248,12 @@
         </div>
         
     {% endfor %}
-
-
         
     </div>
 
 </div>
 
-<div class="footer"
+<div class="footer" id="message">
     {% if response_code == 1 %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
     {% elif message is not None %}
