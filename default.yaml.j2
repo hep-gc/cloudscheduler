@@ -53,7 +53,7 @@ write_files:
         #UID_DOMAIN=$(CONDOR_HOST)
         #FILESYSTEM_DOMAIN=$(CONDOR_HOST)
 
-        START = (Owner == {{cs_user}})
+        START = (Owner == "{{cs_user}}")
 
         DAEMON_LIST = MASTER, STARTD
 

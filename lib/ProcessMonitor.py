@@ -82,6 +82,7 @@ class ProcessMonitor:
             try:
                 pro.terminate()
                 pro.join()
+                self._cleanup_event_pids(proc)
             except:
                 logging.error("failed to join process %s", pro.name)
 
@@ -103,9 +104,19 @@ class ProcessMonitor:
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)
+                #self._cleanup_event_pids(process)
                 self.restart_process(process)
                 time.sleep(self.config.sleep_interval_main_short)
         if orange:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+1)
         else:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count-1)
+
+
+    def _cleanup_event_pids(self, pid):
+        path = self.config.signal_registry
+        event_dirs = os.walk(path)
+        for epath in event_dirs:
+            pid_path = epath[0] + "/" + pid
+            if os.path.isfile(pid_path):
+                os.unlink(pid_path)

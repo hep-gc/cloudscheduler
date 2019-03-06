@@ -54,7 +54,11 @@ class OpenStackCloud(basecloud.BaseCloud):
         if not self.session:
             raise Exception
 
-        self.default_securitygroup = defaultsecuritygroup  # ???
+        self.default_security_groups = resource.default_security_groups
+            try:
+                self.default_security_groups = self.default_security_groups.split(',')
+            except:
+                raise Exception
         self.default_image = resource.default_image
         self.default_flavor = resource.default_flavor
         self.default_network = resource.default_network
@@ -165,7 +169,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                                            flavor=flavorl, key_name=key_name,
                                            availability_zone=None, nics=netid,
                                            userdata=userdata,
-                                           security_groups=None, max_count=num)
+                                           security_groups=self.default_security_groups, max_count=num)
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
             raise novaclient.exceptions.OverLimit

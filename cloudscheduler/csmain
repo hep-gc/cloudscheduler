@@ -402,16 +402,10 @@ def check_view_idle_vms():
                 update_result = config.db_session.query(vms).filter(vms.vmid.in_(vmids))
                 for row in update_result:
                     row.retire = 1
-                    if row.updater is not None:
-                        old_updater_str = row.updater
-                        updater_list = old_updater_str.split(',')
-                        new_updater = get_frame_info() + ":r=1"
-                        updater_list.insert(0, new_updater)
-                        row.updater = updater_list[:5]
-                    else:  
-                        row.updater = get_frame_info() + ":r=1"
+                    old_updater = row.updater
+                    row.updater = get_frame_info() + ":r1"
                     config.db_session.merge(row)
-                    log.debug("Set retire flag on %s", row.hostname)
+                    log.debug("Set retire flag on %s, previous updater: %s", (row.hostname, old_updater))
             config.db_close(commit=True)
         except TimeoutError as ex:
             log.exception(ex)
@@ -470,16 +464,9 @@ def check_unregistered_machines():
                 log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
                 update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
                 for vm in update_result:
-                    log.debug("Update terminate flag on %s", vm.hostname)
+                    log.debug("Update terminate flag on %s, previous updater: %s", (vm.hostname, vm.updater))
                     vm.terminate = 1
-                    if vm.updater is not None:
-                        old_updater_str = vm.updater
-                        updater_list = old_updater_str.split(',')
-                        new_updater = get_frame_info() + ":t=1"
-                        updater_list.insert(0, new_updater)
-                        vm.updater = updater_list[:5]
-                    else:
-                        vm.updater = get_frame_info() + ":t=1"
+                    vm.updater = get_frame_info() + ":t=1"
                     config.db_session.merge(vm)
         except TimeoutError as ex:
             log.exception(ex)

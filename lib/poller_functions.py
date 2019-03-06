@@ -2,6 +2,7 @@ from dateutil import tz, parser
 import hashlib
 import logging
 import time
+import os
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 
@@ -262,4 +263,3 @@ def test_and_set_inventory_item_hash(inventory, group_name, cloud_name, item, it
 
     inventory[group_name][cloud_name][item]['hash'] = new_hash
     return False
-

@@ -387,33 +387,32 @@ def command_poller():
                     #8=retiring flag
                     #9=terminate flag
                     #10=machine
+                    #11=updater
                     #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
                     # First check the slots to see if its time to terminate this machine
 
                     #check if retire flag set  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire >= 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                            #check if terminate has already been set
+                            if resource[9] >= 1:
+                                continue
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
-                                logging.info("slots are zero or null on %s, setting terminate" % resource.vmid)
+                                logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
                                 vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                                 vm_row.terminate = 1
-                                if vm_row.updater is not None:
-                                    old_updater_str = vm_row.updater
-                                    updater_list = old_updater_str.split(',')
-                                    new_updater = get_frame_info() + ":t=1"
-                                    updater_list.insert(0, new_updater)
-                                    vm_row.updater = updater_list[:5]
-                                else:
-                                    vm_row.updater = get_frame_info() + ":t=1"
+                                vm_row.updater = str(get_frame_info() + ":t1")
                                 db_session.merge(vm_row)
-                                uncommitted_updates = uncommitted_updates + 1
+                                db_session.commit()
+                                #uncommitted_updates = uncommitted_updates + 1
 
                                 # since this vm is already ready for termination we can continue here instead of issuing the condor_off
                                 continue
-                            except:
+                            except Exception as exc:
                                 # unable to get VM row error
+                                logging.exception(exc)
                                 logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
                                 continue
 
@@ -426,7 +425,7 @@ def command_poller():
                         continue
 
 
-                    logging.info("Retiring machine %s" % resource.machine)
+                    logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater))
                     try:
                         if resource.terminate is not None and resource.machine is not "":
                             condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
@@ -437,14 +436,7 @@ def command_poller():
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire = vm_row.retire + 1
-                        if vm_row.updater is not None:
-                            old_updater_str = vm_row.updater
-                            updater_list = old_updater_str.split(',')
-                            new_updater = get_frame_info() + ":r+"
-                            updater_list.insert(0, new_updater)
-                            vm_row.updater = updater_list[:5]
-                        else:   
-                            vm_row.updater = get_frame_info() + ":r+"
+                        vm_row.updater = str(get_frame_info() + ":r+")
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
                         if uncommitted_updates >= config.batch_commit_size:
@@ -522,17 +514,11 @@ def command_poller():
                         try:
                             # may want to check for result here Returns: An instance of novaclient.base.TupleWithMeta so probably not that useful
                             vm_row.terminate = vm_row.terminate + 1
-                            if vm_row.updater is not None:
-                                old_updater_str = vm_row.updater
-                                updater_list = old_updater_str.split(',')
-                                new_updater = get_frame_info() + ":t+"
-                                updater_list.insert(0, new_updater)
-                                vm_row.updater = updater_list[:5]
-                            else:   
-                                vm_row.updater = get_frame_info() + ":t+"
+                            old_updater = vm_row.updater
+                            vm_row.updater = str(get_frame_info() + ":t+")
 
                             nova.servers.delete(vm_row.vmid)
-                            logging.info("VM Terminated: %s, updating db entry", (vm_row.hostname,))
+                            logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
                             db_session.merge(vm_row)
                             # log here if terminate # /10 = remainder zero
                             if vm_row.terminate %10 == 0:
@@ -560,7 +546,7 @@ def command_poller():
                         except IndexError as exc:
                             pass
                         except Exception as exc:
-                            logging.exception("Failed to retrieve machine classads, aborting...")
+                            logging.error("Failed to retrieve machine classads, aborting...")
                             logging.error(exc)
                             abort_cycle = True
                             break
@@ -584,7 +570,12 @@ def command_poller():
 
             logging.debug("Completed command consumer cycle")
             del condor_session
-            config.db_close(commit=True)
+            try:
+                config.db_close(commit=True)
+            except Exception as exc:
+                logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
+                logging.exception(exc)
+
             del db_session
             time.sleep(config.sleep_interval_command)
 
@@ -640,7 +631,9 @@ if __name__ == '__main__':
         'registrar':  service_registrar,
     }
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+
+    procMon = ProcessMonitor(file_name=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
