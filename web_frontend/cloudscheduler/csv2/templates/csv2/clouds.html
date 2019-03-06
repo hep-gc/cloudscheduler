@@ -405,12 +405,6 @@
                             <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
 
-                            <tr class="highlight3"><td><label for="vm_keyname">VM Keyname</label></td>
-                            <td><select name="vm_keyname" class="dropdown"/>
-                            <option value=""></option>
-                            {% for key in keypairs_list %}
-                                <option value="{{ key.key_name }}">{{ key.key_name }}</option>
-                            {% endfor %}
 
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
