@@ -11,6 +11,7 @@ import copy
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
+from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
@@ -18,8 +19,6 @@ from cloudscheduler.lib.poller_functions import \
     test_and_set_inventory_item_hash, \
     start_cycle, \
     wait_cycle, \
-    listen_for_event, \
-    stop_listening_for_event
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -935,7 +934,7 @@ def network_poller():
 
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
-    db_category_list = [os.path.basename(sys.argv[0]), "general"]
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
@@ -947,13 +946,13 @@ def security_group_poller():
     poll_time_history = [0,0,0,0]
     failure_dict = {}
     my_pid = os.getpid()
-    signal_path = config.signal_dir_path
+
+    register_signal_receiver(config, "insert_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
         while True:
             try:
-                stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
                 logging.debug("Beginning security group poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
@@ -1081,7 +1080,6 @@ def security_group_poller():
                 config.db_close()
                 del db_session
                 try:
-                    listen_for_event(my_pid, signal_path, "insert_csv2_clouds")
                     wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
 
                 except KeyboardInterrupt:
