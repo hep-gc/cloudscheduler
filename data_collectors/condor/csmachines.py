@@ -399,7 +399,7 @@ def command_poller():
                             # set terminate=1
                             # need to get vm classad because we can't update via the view.
                             try:
-                                logging.info("slots are zero or null on %s, setting terminate" % resource.vmid)
+                                logging.info("slots are zero or null on %s, setting terminate, previous updater: %s" % (resource.vmid, resource.updater))
                                 vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                                 vm_row.terminate = 1
                                 vm_row.updater = str(get_frame_info() + ":t1")
