@@ -906,7 +906,7 @@ def update_pid_defaults(gvar, server=None, server_address=None, user=None, group
                 gvar['pid_defaults']['server_addresses'][server_address][user] = group
                 updated = True
 
-    if updated:
+    if updated and gvar['pid_file'] != '-':
         fd = open(gvar['pid_file'], 'w')
         fd.write(yaml.dump(gvar['pid_defaults']))
         fd.close()

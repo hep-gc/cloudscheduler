@@ -36,7 +36,6 @@ def main(args):
 
     # Initialize global variables.
     gvar = {
-        'pid_file': '/tmp/.csv2_%s' % os.getppid(),
         'active_group': '-',
         'action': None,
         'actions': {
@@ -263,6 +262,12 @@ def main(args):
         'retrieve_options': False,
         }
     
+    # Check for interactive parent process and set the pid_file path.
+    if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
+        gvar['pid_file'] = '-'
+    else:
+        gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
+
     # Retrieve arguments.
     gvar['command_args'] = _args(gvar, args[1:])
 
