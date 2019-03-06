@@ -131,7 +131,8 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
 def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -296,18 +297,9 @@ def flavor_poller():
 
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
@@ -466,18 +458,9 @@ def image_poller():
 # Retrieve keypairs.
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -617,18 +600,9 @@ def keypair_poller():
 
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
-    Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -785,7 +759,8 @@ def network_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -934,8 +909,8 @@ def network_poller():
 
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
 
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
