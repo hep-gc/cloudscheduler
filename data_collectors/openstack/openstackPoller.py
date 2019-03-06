@@ -12,13 +12,14 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.signal_manager import register_signal_receiver
+
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
     get_inventory_item_hash_from_database, \
     test_and_set_inventory_item_hash, \
     start_cycle, \
-    wait_cycle, \
+    wait_cycle
 #   get_last_poll_time_from_database, \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
@@ -649,7 +650,7 @@ def limit_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
         while True:
-             try:
+            try:
                 logging.debug("Beginning limit poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
