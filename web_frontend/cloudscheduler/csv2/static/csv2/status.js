@@ -362,7 +362,16 @@ function getTraceData(trace, showing){
 		}
 		/* If plot is showing, add trace to plot, otherwise create plot with trace*/
 		if(showing == true){
-			Plotly.relayout('plotly-TS', TSPlot.layout);
+			var newlayout = {
+				yaxis: {
+					rangemode : "tozero"
+				},
+				xaxis: {
+					type : "date",
+					range: TSPlot.layout.xaxis.range
+				}
+			};
+			Plotly.relayout('plotly-TS', newlayout);
 			return Plotly.addTraces('plotly-TS', newtrace);
 		}else return TSPlot.initialize(newtrace);
 	}).then(function(data){
@@ -474,14 +483,25 @@ function updateTraces(newdata, index){
 		}
 	}
 	Plotly.extendTraces('plotly-TS', newdata, index);
+	
 	/* Only update range if if looking at last 12 hours or less*/
 	if(TSPlot.layout.xaxis.range[1] >= date && (date - TSPlot.layout.xaxis.range[0]) <= 43200000){
 		date = Date.now();
 		var diff = date - TSPlot.layout.xaxis.range[1];
 		TSPlot.layout.xaxis.range[1] = date; 
 		TSPlot.layout.xaxis.range[0] += diff;
-		Plotly.relayout('plotly-TS', TSPlot.layout);
+		
 	}
+	var newlayout = {
+		yaxis: {
+			rangemode : "tozero"
+		},
+		xaxis: {
+			type : "date",
+			range: TSPlot.layout.xaxis.range
+		}
+	};
+	Plotly.relayout('plotly-TS', newlayout);
 }
 
 
