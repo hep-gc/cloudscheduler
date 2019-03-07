@@ -232,7 +232,7 @@ def timeseries_data_transfer():
                     cnt += 1
                     #print(new_point)
                     #logging.info(new_point)
-                    data_points.append(newpoint)
+                    data_points.append(new_point)
 
             
 
