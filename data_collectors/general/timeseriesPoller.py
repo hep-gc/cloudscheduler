@@ -12,6 +12,7 @@ from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.schema import view_cloud_status
 from cloudscheduler.lib.schema import view_job_status
+from cloudscheduler.lib.schema import view_cloud_status_slot_detail
 
 from cloudscheduler.lib.poller_functions import start_cycle, wait_cycle
 
@@ -54,6 +55,19 @@ def timeseries_data_transfer():
             cloud_status = db_session.query(view_cloud_status)
             column_list = [item["name"] for item in cloud_status.column_descriptions]
             job_status = db_session.query(view_job_status)
+            """
+            slot_list = db_session.query(view_cloud_status_slot_detail)
+            slot_column_list = [
+                "group_name",
+                "cloud_name",
+                "slot_tag",
+                "slot_id",
+                "slot_type",
+                "slot_count",
+                "core_count"
+            ]
+            """
+            
             job_column_list = [
                 "jobs",
                 "jobs_idle",
@@ -125,6 +139,21 @@ def timeseries_data_transfer():
                     new_point = "{0},group={1} value={2}i {3}".format(job_column_list[column], group, data, ts)
                     data_points.append(new_point)
                     column += 1
+            """
+            # slot data
+            if slot_list:
+                for line in slot_list:
+                    column = 2
+                    group = line[0]
+                    cloud = line[1]
+                    for data in line[2:]:
+                        if data == -1 or data is None:
+                            column += 1
+                            continue
+                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(slot_column_list[column], cloud, group, data, ts)
+                        data_points.append(new_point)
+                        column += 1
+            """
 
             # Collect totals
             for group in groups:
@@ -147,7 +176,7 @@ def timeseries_data_transfer():
                         'Foreign_VMs',
                         'cores_limit',
                         'cores_foreign',
-                         'cores_idle',
+                        'cores_idle',
                         'cores_native',
                         'cores_native_foreign',
                         'cores_quota',
@@ -173,6 +202,39 @@ def timeseries_data_transfer():
                         continue
                     new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, cloud_total_list[measurement], ts, '_total')
                     data_points.append(new_point)
+
+            
+            # get slot type counts
+            s = select([view_cloud_status_slot_detail])
+            slot_list = qt(config.db_connection.execute(s))
+            if slot_list:
+                slot_cores_list = qt(slot_list, keys={
+                'primary': ['group_name', 'cloud_name', 'slot_type'],
+                'sum': [
+                       'slot_count',
+                       'core_count'
+                       ]
+                })
+                #logging.info(slot_list)
+                #logging.info(slot_cores_list)
+                core_count_list = []
+                
+                for num_cores in slot_cores_list:
+                    count = 0
+                    for slot in slot_list:
+                        if slot['group_name'] == num_cores['group_name'] and slot['cloud_name'] == num_cores['cloud_name'] and slot['slot_type'] == num_cores['slot_type']:
+                            count += 1                
+                    core_count_list.append(count)
+                #logging.info(core_count_list)
+                cnt = 0
+                for num_cores in slot_cores_list:
+                    new_point = "{0}{5},cloud={1},group={2} value={3}i {4}".format(num_cores['slot_type'], num_cores['cloud_name'], num_cores['group_name'], core_count_list[cnt], ts, "cores") 
+                    cnt += 1
+                    #print(new_point)
+                    #logging.info(new_point)
+                    data_points.append(newpoint)
+
+            
 
             data_points = "\n".join(data_points)
             

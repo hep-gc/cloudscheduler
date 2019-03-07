@@ -625,9 +625,10 @@ else if (refresh_interval < 1) stop_refresh;
 
                                     <td colspan="2">
                                         <table>
-                                        {% for slot in slot_list%}
+                                        
+                                        {% for slot in slot_list %}
                                             {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                                <tr>
+                                                <tr data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}cores">
                                                     <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                                 </tr>
