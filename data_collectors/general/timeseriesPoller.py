@@ -72,6 +72,7 @@ def timeseries_data_transfer():
                 'csv2_status_status',
                 'csv2_status_error_count',
                 'condor_status',
+                'csv2_timeseries_status',
                 'load',
                 'ram_used',
                 'swap_used',
@@ -98,14 +99,18 @@ def timeseries_data_transfer():
             for line in cloud_status:
                 column = 2
                 group = line[0]
-                if( not (group in groups)):
+                if group not in groups and group != '' or None:
                     groups.append(group)
                 cloud = line[1]
                 for data in line[2:]:
                     if data == -1 or data is None:
                         column += 1
                         continue
-                    new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
+                    if group == '' or None:
+                        new_point = "{0},cloud={1} value={2}i {3}".format(column_list[column], cloud, data, ts)
+                    else:
+                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
+                    #new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
                     data_points.append(new_point)
                     column += 1
 
@@ -126,7 +131,6 @@ def timeseries_data_transfer():
                 # get cloud status per group
                 s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
                 cloud_status_list = qt(config.db_connection.execute(s))
-
                 # calculate the totals for all rows
                 cloud_status_list_totals = qt(cloud_status_list, keys={
                     'primary': ['group_name'],
@@ -142,7 +146,7 @@ def timeseries_data_transfer():
                         'Foreign_VMs',
                         'cores_limit',
                         'cores_foreign',
-                         'cores_idle',
+                        'cores_idle',
                         'cores_native',
                         'cores_native_foreign',
                         'cores_quota',
@@ -159,9 +163,9 @@ def timeseries_data_transfer():
 
                 cloud_total_list = cloud_status_list_totals[0]
                 try:
-                    group = cloud_total_list['group_name']
+                    groupname = cloud_total_list['group_name']
                 except Exception as exc:
-                    # dictionary is emtpy and we got a key error
+                    # dictionary is empty and we got a key error
                     logging.error("Unable to get a cloud_total_list for %s skipping..." % group)
                 for measurement in list(cloud_total_list.keys())[1:]:
                     if cloud_total_list[measurement] == -1 or cloud_total_list[measurement] is None:
@@ -170,7 +174,7 @@ def timeseries_data_transfer():
                     data_points.append(new_point)
 
             data_points = "\n".join(data_points)
-            
+           
             # POST HTTP request to influxdb
             try:
                 r = requests.post(url_string, params=params, data=data_points)
@@ -180,6 +184,7 @@ def timeseries_data_transfer():
             except Exception as exc:
                 logging.error("HTTP POST request failed to InfluxDB...")
                 logging.error(exc)
+                logging.error(r.headers)
                 break
                 
             config.db_close()
