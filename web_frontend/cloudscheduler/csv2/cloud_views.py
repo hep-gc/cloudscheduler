@@ -1470,7 +1470,7 @@ def update(request):
         if updates > 0:
             act_usr = active_user.username
             #signal the pollers that a cloud has been updated
-            send_signals(config, "insert_csv2_clouds")
+            send_signals(config, "update_csv2_clouds")
             config.db_close(commit=True)
             #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='cloud "%s::%s" successfully updated.' % (fields['group_name'], fields['cloud_name']))
