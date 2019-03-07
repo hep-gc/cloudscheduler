@@ -628,7 +628,7 @@ else if (refresh_interval < 1) stop_refresh;
                                         
                                         {% for slot in slot_list %}
                                             {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                                <tr data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}cores">
+                                                <tr data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}cores" class="plottable">
                                                     <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                                 </tr>
