@@ -144,6 +144,7 @@ def flavor_poller():
     failure_dict = {}
 
     register_signal_receiver(config, "insert_csv2_clouds")
+    register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
@@ -322,6 +323,7 @@ def image_poller():
     failure_dict = {}
 
     register_signal_receiver(config, "insert_csv2_clouds")
+    register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
@@ -493,6 +495,7 @@ def keypair_poller():
     failure_dict = {}
 
     register_signal_receiver(config, "insert_csv2_clouds")
+    register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
@@ -646,6 +649,7 @@ def limit_poller():
     failure_dict = {}
 
     register_signal_receiver(config, "insert_csv2_clouds")
+    register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
@@ -815,6 +819,7 @@ def network_poller():
     failure_dict = {}
 
     register_signal_receiver(config, "insert_csv2_clouds")
+    register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
@@ -979,6 +984,7 @@ def security_group_poller():
     my_pid = os.getpid()
 
     register_signal_receiver(config, "insert_csv2_clouds")
+    register_signal_receiver(config, "update_csv2_clouds")
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
@@ -1125,7 +1131,6 @@ def security_group_poller():
     except Exception as exc:
         logging.exception("sec_grp poller cycle while loop exception, process terminating...")
         logging.error(exc)
-        stop_listening_for_event(my_pid, signal_path, "insert_csv2_clouds")
         config.db_close()
         del db_session
 
