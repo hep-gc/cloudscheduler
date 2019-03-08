@@ -49,6 +49,7 @@ def image_collection():
             logging.debug("Querying group: %s for cloud resources." % group.group_name)
             repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             image_list = ()
+            failed_repos = ()
             for repo in repo_list:
                 logging.debug("Querying cloud: %s for image data." % repo.cloud_name)
                 try:
@@ -59,13 +60,15 @@ def image_collection():
                         password=repo.password,
                         user_domain_name=repo.user_domain_name,
                         project_domain_name=repo.project_domain_name,
-                        alias=repo.cloud_name)
+                        alias=repo.cloud_name,
+                        region=repo.region)
                     image_list = image_list + rcon.image_list
 
                 except Exception as exc:
                     logging.error(exc)
                     logging.error("Could not connect to repo: %s at %s",\
                         repo.project, repo.authurl)
+                    failed_repos.append(repo.cloud_name)
 
             # take the new json and compare it to the previous one
             # and merge the differences, generally the new one will be used but if there
@@ -79,7 +82,8 @@ def image_collection():
             logging.debug("Processing pending Transactions for group: %s", group.group_name)
             updated_img_list = process_pending_transactions(
                 group_name=group.group_name,
-                json_img_dict=updated_img_list)
+                json_img_dict=updated_img_list,
+                fail_list=failed_repos)
             logging.debug("Proccessing state changes for group: %s", group.group_name)
             updated_img_list = process_state_changes(
                 group_name=group.group_name,
@@ -152,7 +156,7 @@ def defaults_replication():
                 time.sleep(30)
                 set_defaults_changed(False)
                 break
-            time.sleep(30) #an hour for now, should be configurable and notifiable via redis
+            time.sleep(30)
             time_slept = time_slept + 30
 
 

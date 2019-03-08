@@ -4,7 +4,7 @@ import logging
 from ast import literal_eval
 import json
 import redis
-from glintwebui.glint_api import repo_connector
+from glintwebui.glint_api import repo_connector, validate_repo
 #import glintwebui.config as config
 from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
@@ -417,9 +417,11 @@ def parse_pending_transactions(group_name, cloud_name, image_list, user):
 # uuid as the image key we need to connect to the repo and create a placeholder
 # image and retrieve the img id (uuid) to use as the repo image key
 # Then finally we can call the asynch celery tasks
-def process_pending_transactions(group_name, json_img_dict):
+def process_pending_transactions(group_name, json_img_dict, fail_list=None):
     from .celery_app import transfer_image, delete_image, upload_image
     from .db_util import get_db_base_and_session
+
+    postponed_tx = ()
 
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
     trans_key = group_name + '_pending_transactions'
@@ -435,6 +437,15 @@ def process_pending_transactions(group_name, json_img_dict):
         if trans is None:
             break
         transaction = json.loads(trans)
+
+        #First check if the cloud has had problems on this polling cycle, if it has, add it to a list to re-push before returning
+        if transaction['cloud_name'] in fail_list:
+            postponed_tx.append(transaction)
+            logging.error("Postponing %s transaction for image %s on cloud %s due to polling failure" 
+                % (transaction['action'], transaction['image_name'], transaction['cloud_name']))
+            continue
+
+
         # Update global dict and create transfer or delete task
         if transaction['action'] == 'transfer':
             # First we need to create a placeholder img and get the new image_id
@@ -450,7 +461,8 @@ def process_pending_transactions(group_name, json_img_dict):
                     username=repo_obj.username,
                     password=repo_obj.password,
                     user_domain_name=repo_obj.user_domain_name,
-                    project_domain_name=repo_obj.project_domain_name)
+                    project_domain_name=repo_obj.project_domain_name,
+                    region=repo_obj.region)
                 new_img_id = rcon.create_placeholder_image(
                     transaction['image_name'],
                     transaction['disk_format'],
@@ -465,10 +477,10 @@ def process_pending_transactions(group_name, json_img_dict):
                 }
                 img_dict[transaction['cloud_name']][new_img_id] = new_img_dict
             except Exception as exc:
-                logger.info("Unable to create repo object and create placeholder image")
+                logger.info("Unable to create repo object and create placeholder image, postponing transaction")
                 logger.info(exc)
-                decrement_transactions()
-                return false
+                postponed_tx.append(transaction)
+                continue
 
             # queue transfer task
             transfer_image.delay(
@@ -482,7 +494,8 @@ def process_pending_transactions(group_name, json_img_dict):
                 requesting_user=transaction['user'],
                 cloud_name=repo_obj.cloud_name,
                 user_domain_name=repo_obj.user_domain_name,
-                project_domain_name=repo_obj.project_domain_name)
+                project_domain_name=repo_obj.project_domain_name,
+                region=repo_obj.region)
 
         elif transaction['action'] == 'delete':
             # First check if it exists in the redis dictionary, if it doesn't exist we can't delete it
@@ -502,7 +515,8 @@ def process_pending_transactions(group_name, json_img_dict):
                     requesting_user=transaction['user'],
                     cloud_name=repo_obj.cloud_name,
                     user_domain_name=repo_obj.user_domain_name,
-                    project_domain_name=repo_obj.project_domain_name)
+                    project_domain_name=repo_obj.project_domain_name,
+                    region=repo_obj.region)
 
         elif transaction['action'] == 'upload':
             req_user = transaction['user']
@@ -522,7 +536,11 @@ def process_pending_transactions(group_name, json_img_dict):
                 disk_format=disk_format,
                 container_format=container_format,
                 user_domain_name=repo_obj.user_domain_name,
-                project_domain_name=repo_obj.project_domain_name)
+                project_domain_name=repo_obj.project_domain_name,
+                region=repo_obj.region)
+
+    for tx in postponed_tx:
+         red.rpush(trans_key, json.dumps(tx))
 
     return json.dumps(img_dict)
 
@@ -629,7 +647,7 @@ def find_image_by_name(group_name, image_name):
                     repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
                     return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
                         repo_obj.password, image, image_dict[cloud][image]['checksum'],\
-                        repo_obj.user_domain_name, repo_obj.project_domain_name)
+                        repo_obj.user_domain_name, repo_obj.project_domain_name, repo_obj.region)
     return False
 
 # This function accepts info to uniquely identify an image as well as
@@ -824,7 +842,7 @@ def repo_proccesed():
 
 def delete_keypair(key_name, cloud):
     sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess)
+    nova = _get_nova_client(sess, cloud.region)
 
     keys = nova.keypairs.list()
     for key in keys:
@@ -836,7 +854,7 @@ def delete_keypair(key_name, cloud):
 
 def get_keypair(keypair_key, cloud):
     sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess)
+    nova = _get_nova_client(sess, cloud.region)
 
     split_key = keypair_key.split(";")
     fingerprint = split_key[0]
@@ -850,14 +868,14 @@ def get_keypair(keypair_key, cloud):
 
 def transfer_keypair(keypair, cloud):
     sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess)
+    nova = _get_nova_client(sess, cloud.region)
 
     nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
     return True
 
 def create_keypair(key_name, key_string, cloud):
     sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess)
+    nova = _get_nova_client(sess, cloud.region)
 
     try:
         new_key = nova.keypairs.create(name=key_name, public_key=key_string)
@@ -868,7 +886,7 @@ def create_keypair(key_name, key_string, cloud):
 
 def create_new_keypair(key_name, cloud):
     sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess)
+    nova = _get_nova_client(sess, cloud.region)
 
     try:
         new_key = nova.keypairs.create(name=key_name)
@@ -898,6 +916,25 @@ def check_and_transfer_image_defaults(db_session, json_img_dict, group):
                     default_present = True
                     break
             if not default_present:
+                # double check to see that this repo is polling properly and the image does not simply appear as if its not there due to a polling failure
+                #validate_repo(auth_url, username, password, tenant_name, user_domain_name="Default", project_domain_name="Default")
+                # get csv2_cloud via group_name, repo_key
+                CLOUD = config.db_map.classes.csv2_clouds
+                config.db_open()
+                try:
+                    cloud_row = config.db_session.query(CLOUDCLOUD).filter(CLOUD.group_name == group.group_name, CLOUD.cloud_name == repo_key)[0]
+                    resp_tuple = validate_repo(auth_url=cloud_row.authurl, username=cloud_row.username, password=cloud_row.password, tenant_name=cloud_row.project, user_domain_name=cloud_row.user_domain_name, project_domain_name=cloud_row.project_domain_name, region=cloud_row.region)
+                    if not resp_tuple[0]:
+                        logger.error("Unable to connect to openstack instance %s, skipping defaults replication for this cloud" % cloud_row.authurl)
+                        logger.error(resp_tuple[1])
+                        continue
+
+                except Exception as exc:
+                    logger.error("Unable to retrieve cloud from database for %s, skipping defaults replication for this cloud" % repo_key)
+                    logger.error(exc)
+                    continue
+
+
                 # need to xfer image to this cloud
                 logger.info("Found missing default image, attempting to transfer %s to %s" % (group.vm_image, repo_key))
                 img_details = __get_image_details(group.group_name, group.vm_image)
@@ -919,8 +956,9 @@ def check_and_transfer_image_defaults(db_session, json_img_dict, group):
     except Exception as exc:
         logger.error("Error attempting to queue transfers for default image:")
         logger.error(exc)
+        config.db_close()
         return False
-
+    config.db_close()
     return True
 
 def check_defaults_changed():
@@ -985,7 +1023,7 @@ def _get_keystone_session(cloud):
             print("Problem importing keystone modules, and getting session: %s" % exc)
         return sess
 
-def _get_nova_client(session):
-    nova = novaclient.Client("2", session=session)
+def _get_nova_client(session, region):
+    nova = novaclient.Client("2", region_name=region, session=session)
     return nova
     
