@@ -55,7 +55,7 @@ def backup(gvar, table, backup_dir, data=False):
     stdout, stderr = _p1.communicate()
     if _p1.returncode != 0:
         print('Failed to retrieve table definition for: %s' % table)
-        exit(1)
+#       exit(1)
 
     _fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
     _fd.write(decode(gvar, stdout))
