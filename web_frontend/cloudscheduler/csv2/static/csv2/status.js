@@ -394,11 +394,22 @@ function getTraceData(trace, showing){
 /* On refresh, check for plotted traces to update colour in status tables*/
 function checkForPlottedTraces(){
 	if (typeof (Storage) !== "undefined"){
-		if(sessionStorage.length != 0){
-			var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
+		var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
+		if (plotted_traces != null){
 			for(var x = 0; x < plotted_traces.length; x++){
 				var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
 				stat[0].classList.toggle("plotted");
+			}
+		}
+	}
+}
+
+function checkForExpandedRow() {
+	if (typeof (Storage) !== "undefined"){
+		if(sessionStorage.length != 0){
+			var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
+			if(expanded_row == true){
+				document.getElementById('toggle-row').click();
 			}
 		}
 	}
