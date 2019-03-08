@@ -49,7 +49,7 @@ def image_collection():
             logging.debug("Querying group: %s for cloud resources." % group.group_name)
             repo_list = session.query(Group_Resources).filter(Group_Resources.group_name == group.group_name)
             image_list = ()
-            failed_repos = ()
+            failed_repos = []
             for repo in repo_list:
                 logging.debug("Querying cloud: %s for image data." % repo.cloud_name)
                 try:
