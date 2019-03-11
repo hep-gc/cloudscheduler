@@ -469,7 +469,7 @@ def main(args):
             print('   TEST MODE, skip loading "%s", rows=%s, columns=%s.' % (table, len(table_data), len(columns)))
 
     if gvar['run_mode'] == 'live':
-        print('\n12. Redefining views and triggers.')
+        print('\n12. Redefining views, triggers, and lib/schema.py.')
         p = Popen([
             '%s/utilities/csview' % '/'.join(gvar['path_info'][:gvar['ix']+1]),
             'redefine'
@@ -478,7 +478,6 @@ def main(args):
 
         if p.returncode != 0:
             print('Error: failed to redefine views - %s' % decode(stderr))
-            exit(1)
 
         p = Popen([
             '%s/utilities/cstrigger' % '/'.join(gvar['path_info'][:gvar['ix']+1]),
@@ -488,7 +487,14 @@ def main(args):
 
         if p.returncode != 0:
             print('Error: failed to redefine views - %s' % decode(stderr))
-            exit(1)
+
+        p = Popen([
+            '%s/utilities/generate_schema.py' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+            ], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+
+        if p.returncode != 0:
+            print('Error: failed to generate lib/schema.py - %s' % decode(stderr))
     else:
         print('\n12. TEST MODE, skip redefining views and triggers.')
 
