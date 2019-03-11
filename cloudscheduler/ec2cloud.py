@@ -1,14 +1,17 @@
 """
-EC2 API Cloud Connector Module. Using Apache Libcloud
+EC2 API Cloud Connector Module. Using Boto
 """
 
-#import boto3
-#import botocore
-from libcloud.compute.types import Provider
-from libcloud.compute.providers import get_driver
+import boto3
+import botocore
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.ext.automap import automap_base
 
-
-import basecloud
+try:
+    import basecloud
+except:
+    import cloudscheduler.basecloud as basecloud
 
 class EC2Cloud(basecloud):
 
@@ -21,21 +24,62 @@ class EC2Cloud(basecloud):
         basecloud.BaseCloud.__init__(self, name=resource.cloud_name, group = resource.group_name,
                                                     extrayaml=extrayaml, vms=vms)
         self.log = logging.getLogger(__name__)
-        self.username = resource.username  # Access ID?
-        self.password = resource.password  # Secret key?
+        self.username = resource.username  # Access ID
+        self.password = resource.password  # Secret key
         self.region = resource.region
+        self.authurl = resource.authurl  # endpoint_url
         self.keyname = resource.keyname
 
 
-        self.driver = get_driver(Provider.EC2)
-        self.conn = self.driver(self.username, self.password, region=self.region)
+    def _get_client(self):
+        client = None
+        try:
+            client = boto3.client('ec2', region_name=self.region, endpoint_url=self.authurl,
+                                      aws_access_key_id=self.username, aws_secret_access_key=self.password)
+        except:
+            pass
+        return client
 
-    def vm_create(self, group_yaml_list=None, num=1, job=None, flavor=None):
+
+    def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         self.log.debug("vm_create from ec2 cloud.")
-        new_vm = self.conn.create_node(name=self.generate_name(), image=None, size=None)
+        template_dict['cs_cloud_type'] = self.__class__.__name__
+        template_dict['cs_flavor'] = flavor
+        self.log.debug(template_dict)
+        user_data_list = job.user_data.split(',') if job.user_data else []
+        userdata = self.prepare_userdata(yaml_list=user_data_list,
+                                         template_dict=template_dict)
+        client = self._get_client()
+        new_vm = client.run_instances(ImageId=job.image, MinCount=1, MaxCount=num, InstanceType=flavor,
+                                      UserData=userdata, KeyName=self.keyname, SecurityGroups=job.security_groups)
+        if new_vm:
+            # need to deal with how multiple requests are handled in the return
+            engine = self._get_db_engine()
+            base = automap_base()
+            base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            vms = base.classes.csv2_vms
 
-    def vm_destroy(self, vm):
-        self.log.debug("vm_destroy from ec2 cloud.")
+            for vm in new_vm:
+                self.log.debug(vm)
 
-    def vm_update(self):
-        self.log.debug("vm_update from ec2 cloud.")
+                vm_dict = {
+                    'group_name': self.group,
+                    'cloud_name': self.name,
+                    'auth_url': self.authurl,
+                    'project': self.project,
+                    'hostname': vm.name,
+                    'vmid': vm.id,
+                    'status': vm.status,
+                    'flavor_id': vm.flavor["id"],
+                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
+                    'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                    'last_updated': int(time.time()),
+                    'keep_alive': self.keep_alive,
+                    'start_time': int(time.time()),
+                }
+                new_vm = vms(**vm_dict)
+                db_session.merge(new_vm)
+            db_session.commit()
+        self.log.debug('ec2 vm_create')
+
