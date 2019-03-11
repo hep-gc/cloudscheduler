@@ -211,13 +211,12 @@ def timeseries_data_transfer():
                 slot_cores_list = qt(slot_list, keys={
                 'primary': ['group_name', 'cloud_name', 'slot_type'],
                 'sum': [
-                       'slot_count',
-                       'core_count'
+                       'slot_count'
                        ]
                 })
                 #logging.info(slot_list)
                 #logging.info(slot_cores_list)
-                core_count_list = []
+                """core_count_list = []
                 
                 for num_cores in slot_cores_list:
                     count = 0
@@ -227,9 +226,10 @@ def timeseries_data_transfer():
                     core_count_list.append(count)
                 #logging.info(core_count_list)
                 cnt = 0
+                """
                 for num_cores in slot_cores_list:
-                    new_point = "{0}{5},cloud={1},group={2} value={3}i {4}".format(num_cores['slot_type'], num_cores['cloud_name'], num_cores['group_name'], core_count_list[cnt], ts, "cores") 
-                    cnt += 1
+                    new_point = "{0}{5},cloud={1},group={2} value={3}i {4}".format(num_cores['slot_type'], num_cores['cloud_name'], num_cores['group_name'], num_cores['slot_count'], ts, "core") 
+                    #cnt += 1
                     #print(new_point)
                     #logging.info(new_point)
                     data_points.append(new_point)

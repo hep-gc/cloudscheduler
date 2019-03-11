@@ -15,7 +15,11 @@ function addEventListeners(className) {
 		for (i = 0; i < list_length; i++){
 			inputList[i].addEventListener('click', function(){
 				if(className == 'plottable'){
-					this.classList.toggle("plotted");
+					var list = document.querySelectorAll(`tr[data-path="${this.dataset.path}"]`);
+					for (k = 0; k < list.length; k++){
+						list[k].classList.toggle('plotted');
+					}
+					if(list.length == 0) this.classList.toggle("plotted");
 					togglePlot(this);
 				}else selectRange(this);
 			});
@@ -398,7 +402,9 @@ function checkForPlottedTraces(){
 		if (plotted_traces != null){
 			for(var x = 0; x < plotted_traces.length; x++){
 				var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
-				stat[0].classList.toggle("plotted");
+				for(var k = 0; k < stat.length; k++){
+					stat[k].classList.toggle("plotted");
+				}
 			}
 		}
 	}
@@ -486,11 +492,13 @@ function updateTraces(newdata, index){
 	/* If last plotted data point was 55s or more ago, insert null to show break in plot*/
 	for(var k = 0; k < index.length; k++){
 		var len = TSPlot.traces[k].x.length -1;
-		if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
-			console.log(newdata);
-			newdata.x[k].unshift(newdata.x[k][0] - 1000);
-			newdata.y[k].unshift(null);
-			console.log(newdata);
+		if(typeof(TSPlot.traces[k]) !== 'undefined'){
+			if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
+				console.log(newdata);
+				newdata.x[k].unshift(newdata.x[k][0] - 1000);
+				newdata.y[k].unshift(null);
+				console.log(newdata);
+			}
 		}
 	}
 	Plotly.extendTraces('plotly-TS', newdata, index);
