@@ -83,12 +83,12 @@ from (
             sum(cf.cores) as cores_native,
             sum(cf.ram) as ram_native,
             sum(case when cv.manual_control=1 then 1 else 0 end) as VMs_manual,
-            sum(case when cv.manual_control=0 and cv.status='ERROR' then 1 else 0 end) as VMs_in_error,
             sum(case when cv.manual_control=0 and cv.status='BUILD' then 1 else 0 end) as VMs_starting,
             sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire>1 then 1 else 0 end) as VMs_retiring,
             sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<2 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
             sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<2 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
             sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<2 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
+            sum(case when cv.manual_control=0 and cv.status!='BUILD' and cv.status!='ACTIVE' then 1 else 0 end) as VMs_in_error,
             sum(slot_count) as slot_count,
             sum(slot_core_count) as slot_core_count,
             sum(slot_idle_core_count) as slot_idle_core_count
