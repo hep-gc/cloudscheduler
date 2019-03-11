@@ -492,49 +492,49 @@ else if (refresh_interval < 1) stop_refresh;
                                 </td>
                                 <td>
                                 {% if cloud.VMs > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_starting > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::starting::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_unregistered > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::unregistered::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_idle > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::idle::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_running > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::running::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_retiring > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::retiring::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_manual > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::manual::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
                                 <td>
                                 {% if cloud.VMs_in_error > 0 %}
-                                    <a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">&#x2637;</a>
+                                    <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=')" href="#vms-overlay">&#x2637;</a>
                                 {% endif %}
                                 </td>
 
@@ -776,49 +776,49 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <td>
                         {% if group_total.VMs > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_starting > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::starting::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=starting&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_unregistered > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::unregistered::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=unregistered&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_idle > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::idle::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=idle&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_running > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::running::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=running&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_retiring > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::retiring::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=retiring&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_manual > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::manual::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=manual&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
                         <td>
                         {% if group_total.VMs_in_error > 0 %}
-                            <a onclick="pass_url('{{group_total.cloud_name}}::error::')" href="#vms-overlay">&#x2637;</a>
+                            <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=error&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
 
