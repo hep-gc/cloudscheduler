@@ -143,8 +143,11 @@ if report_destination == 'syslog' or report_destination == 'terminal':
                 else:
                     cmd['change'] = False
             else:
-                cmd['report'].append('%s:' % cmd['id'])
-                cmd['report'].append('Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr))
+                if 'report' in cmd:
+                    cmd['report'].append('%s:' % cmd['id'])
+                    cmd['report'].append('Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr))
+                else:
+                    cmd['report'] = ['%s:' % cmd['id'], 'Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr)]
 
         if report_destination == 'terminal':
             p = Popen(['clear'])
