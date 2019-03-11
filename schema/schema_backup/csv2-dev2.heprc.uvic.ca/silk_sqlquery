@@ -33,7 +33,7 @@ CREATE TABLE `silk_sqlquery` (
   PRIMARY KEY (`id`),
   KEY `silk_sqlquery_request_id_6f8f0527_fk_silk_request_id` (`request_id`),
   CONSTRAINT `silk_sqlquery_request_id_6f8f0527_fk_silk_request_id` FOREIGN KEY (`request_id`) REFERENCES `silk_request` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29490 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -45,4 +45,4 @@ CREATE TABLE `silk_sqlquery` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-13 10:37:47
+-- Dump completed on 2019-02-27  7:17:44
