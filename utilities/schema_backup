@@ -1,0 +1,265 @@
+#!/usr/bin/env python3
+"""
+Back up the structure of all tables in the csv2 database. For those tables listed in
+gvar['backup_data'] (see the main function) also backup the data.
+"""
+from cloudscheduler.lib.db_config import Config
+from subprocess import Popen, PIPE
+from tempfile import mkdtemp
+import datetime
+import os
+import shutil
+import socket
+import sys
+import yaml
+
+def main(args):
+    """
+    Retrieve the table list from the database, and for each table backup the structure and,
+    if listed in the gvar['schema_config']['global'] variable, backup the data as well.
+    """
+
+    gvar = {
+        'cmd_path': os.path.abspath(args[0]),
+        'help': False,
+        'model': False,
+        'target': False,
+        }
+
+    gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_dict=True)
+    
+    gvar['path_info'] = gvar['cmd_path'].split('/')
+    gvar['ix'] = gvar['path_info'].index('cloudscheduler')
+    gvar['temp_dir'] = mkdtemp()
+    
+    gvar['backup_dir'] = '%s/schema/schema_backup/%s' % ('/'.join(gvar['path_info'][:gvar['ix']+1]), socket.getfqdn())
+    if not os.path.isdir(gvar['backup_dir']):
+         os.makedirs(gvar['backup_dir'], 0o755)
+         
+    gvar['config_file_path'] = '%s/etc/schema_backup.conf' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+    if os.path.isfile(gvar['config_file_path']):
+        fd = open(gvar['config_file_path'])
+        gvar['schema_config'] = yaml.load(fd.read())
+        fd.close()
+    else:
+        gvar['schema_config'] = {'providers': [], 'consumers': [], 'global': [], 'local': [], 'ephemeral': []}
+
+    if 'local_backup_dir' in gvar['schema_config']:
+        gvar['local_backup_dir'] = '%s/%s' % (gvar['schema_config']['local_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+
+    # Read optional arguments:
+    skip_next = False 
+    for args_ix in range(1, len(args)):
+        if skip_next:
+            skip_next = False 
+            continue
+
+        if len(args[args_ix]) > 1 and args[args_ix][0] == '-': 
+            if args[args_ix][1:] == 'h' or args[args_ix][1:] == '-help':
+                gvar['help'] = True
+
+            elif args[args_ix][1:] == 'm' or args[args_ix][1:] == '-model':
+                gvar['model'] = True
+
+            elif args[args_ix][1:] == 't' or args[args_ix][1:] == '-target':
+                gvar['target'] = True
+
+            else:
+                raise Exception('Unknown parameter "%s".' % args[args_ix])
+
+    # If requested, print help and exit.
+    if gvar['help']:
+        print(gvar['db_config'].__dict__)
+        print('\nSynopsis: schema_backup [ <options> ]\n\n' \
+            'where "<options>" is one of the following:\n' \
+            '  -h | --help     - Print these help messages.\n' \
+            '  -m | --model    - Stop consumers and restart producer before backup. Following the backup,\n' \
+            '                    restart the consumers.\n' \
+            '  -t | --target   - Like "--model", stop consumers and restart producer before backup. However,\n' \
+            '                    after the backup, the consumers are not restarted.'
+            )
+        exit(0)
+
+    # If model or target specified, stop the consumers and restart the provider.
+    if gvar['model'] or gvar['target']:
+        for consumer in gvar['schema_config']['consumers']:
+            systemctl_stop(gvar, consumer)
+
+        for provider in gvar['schema_config']['providers']:
+            systemctl_restart(gvar, provider)
+
+    _p1 = Popen(
+        [
+            'mysql',
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
+            '-e',
+            'show tables;',
+            gvar['db_config'].db_config['db_name']
+            ],
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    _p2 = Popen(
+        [
+            'awk',
+            '!/Tables_in_/ {print $1}'
+            ],
+        stdin=_p1.stdout,
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    stdout, stderr = _p2.communicate()
+    if _p2.returncode != 0:
+        print('Failed to retrieve table list.')
+        exit(1)
+
+    print('\ncsv2 schema-backup starting...')
+
+    tables = decode(gvar, stdout).split('\n')
+    for table in tables:
+        if len(table) > 0 and (len(table) < 5 or table[:5] != 'view_'):
+            if 'global' in gvar['schema_config'] and table in gvar['schema_config']['global']:
+                backup(gvar, table, gvar['backup_dir'], data=True)
+            else:
+                backup(gvar, table, gvar['backup_dir'])
+
+    print('\ncsv2 schema-backup starting local backups...')
+
+    if 'local_backup_dir' in gvar and 'local' in gvar['schema_config'] and len(gvar['schema_config']['local']) > 0:
+        os.makedirs(gvar['local_backup_dir'], 0o640)
+
+        try:
+            os.unlink('%s/latest' % gvar['schema_config']['local_backup_dir'])
+        except:
+            pass
+
+        os.symlink(gvar['local_backup_dir'], '%s/latest' % gvar['schema_config']['local_backup_dir'])
+
+        for table in gvar['schema_config']['local']:
+            backup(gvar, table, gvar['local_backup_dir'], data=True)
+
+    # If model specified, restart the consumers.
+    if gvar['model']:
+        for consumer in gvar['schema_config']['consumers']:
+            systemctl_restart(gvar, consumer)
+
+    shutil.rmtree(gvar['temp_dir'])
+    print('csv2 schema-backup completed.')
+
+def backup(gvar, table, backup_dir, data=False):
+    """
+    Perform backup, with or without data. The backup is performed to a temporary directory
+    and only moved to the permanent directory if the table has changed. Since the backup
+    directories are part of a git repository, this procedure reduces the number of commits.
+    """
+
+    print(table)
+
+    if data:
+        backup_cmd = [
+            'mysqldump',
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
+            gvar['db_config'].db_config['db_name'],
+            table
+            ]
+    else:
+        backup_cmd = [
+            'mysqldump',
+            '-u%s' % gvar['db_config'].db_config['db_user'],
+            '-p%s' % gvar['db_config'].db_config['db_password'],
+            '--no-data',
+            gvar['db_config'].db_config['db_name'],
+            table
+            ]
+
+
+    _p1 = Popen(
+        backup_cmd,
+        stdout=PIPE,
+        stderr=PIPE
+        )
+    stdout, stderr = _p1.communicate()
+    if _p1.returncode != 0:
+        print('Failed to retrieve table definition for: %s' % table)
+#       exit(1)
+
+    _fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
+    _fd.write(decode(gvar, stdout))
+    _fd.close()
+
+    if os.path.isfile('%s/%s' % (backup_dir, table)):
+        _p1 = Popen(
+            [
+                'diff',
+                '%s/%s' % (backup_dir, table),
+                '%s/%s' % (gvar['temp_dir'], table)
+                ],
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        _p2 = Popen(
+            [
+                'awk',
+                '/^<|^>/ && !/Dump completed on /'
+                ],
+            stdin=_p1.stdout,
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = _p2.communicate()
+        if _p2.returncode != 0:
+            print('Failed to compare table definition for: %s' % table)
+            exit(1)
+    else:
+        stdout = 'missing'
+
+    if decode(gvar, stdout) != '':
+        _p1 = Popen(
+            [
+                'mv',
+                '-f',
+                '%s/%s' % (gvar['temp_dir'], table),
+                '%s/%s' % (backup_dir, table)
+                ],
+            stdout=PIPE,
+            stderr=PIPE
+            )
+        stdout, stderr = _p1.communicate()
+        if _p1.returncode != 0:
+            print('Failed to update table definition for: %s - %s' % (table, stderr))
+            exit(1)
+
+        print('Updated table definition for: %s' % table)
+
+def decode(gvar, obj):
+    if isinstance(obj, str):
+        return obj
+    else:
+        return obj.decode('utf-8')
+
+def systemctl_restart(gvar, service):
+    print('Restarting system service "%s".' % service)
+    _p1 = Popen([
+            'systemctl',
+            'restart',
+            service
+            ], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = _p1.communicate()
+    if _p1.returncode != 0:
+        print('Failed to restart system service "%s" - %s' % (service, decode(stderr)))
+    
+def systemctl_stop(gvar, service):
+    print('Stopping system service "%s".' % service)
+    _p1 = Popen([
+            'systemctl',
+            'stop',
+            service
+            ], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = _p1.communicate()
+    if _p1.returncode != 0:
+        print('Failed to stop system service "%s" - %s' % (service, decode(stderr)))
+    
+if __name__ == "__main__":
+    main(sys.argv)

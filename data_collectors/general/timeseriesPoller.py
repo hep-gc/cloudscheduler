@@ -160,7 +160,6 @@ def timeseries_data_transfer():
                 # get cloud status per group
                 s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
                 cloud_status_list = qt(config.db_connection.execute(s))
-
                 # calculate the totals for all rows
                 cloud_status_list_totals = qt(cloud_status_list, keys={
                     'primary': ['group_name'],
@@ -195,7 +194,7 @@ def timeseries_data_transfer():
                 try:
                     groupname = cloud_total_list['group_name']
                 except Exception as exc:
-                    # dictionary is emtpy and we got a key error
+                    # dictionary is empty and we got a key error
                     logging.error("Unable to get a cloud_total_list for %s skipping..." % group)
                 for measurement in list(cloud_total_list.keys())[1:]:
                     if cloud_total_list[measurement] == -1 or cloud_total_list[measurement] is None:
@@ -203,7 +202,7 @@ def timeseries_data_transfer():
                     new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, cloud_total_list[measurement], ts, '_total')
                     data_points.append(new_point)
 
-            
+             
             # get slot type counts
             s = select([view_cloud_status_slot_detail])
             slot_list = qt(config.db_connection.execute(s))
@@ -235,9 +234,8 @@ def timeseries_data_transfer():
                     data_points.append(newpoint)
 
             
-
             data_points = "\n".join(data_points)
-            
+           
             # POST HTTP request to influxdb
             try:
                 r = requests.post(url_string, params=params, data=data_points)
@@ -247,6 +245,7 @@ def timeseries_data_transfer():
             except Exception as exc:
                 logging.error("HTTP POST request failed to InfluxDB...")
                 logging.error(exc)
+                logging.error(r.headers)
                 break
                 
             config.db_close()
