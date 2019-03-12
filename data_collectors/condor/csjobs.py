@@ -281,6 +281,8 @@ def job_poller():
 
                 if held_jobs > 0:
                     #hold all the jobs
+                    logging.info("Attempting to hold %s jobs due to invalid user or group specifications." % held_jobs)
+                    logging.debug("Holding: %s" % held_job_ids)
                     condor_session.act(htcondor.JobAction.Hold, held_job_ids)
                     condor_session.edit(held_job_ids, "HeldReason", '"Invalid user or group name for hondor host %s, held by job poller"' % condor_host)
 
