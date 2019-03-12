@@ -248,7 +248,7 @@ def systemctl_restart(gvar, service):
             ], stdout=PIPE, stderr=PIPE)
     stdout, stderr = _p1.communicate()
     if _p1.returncode != 0:
-        print('Failed to restart system service "%s" - %s' % (service, decode(stderr)))
+        print('Failed to restart system service "%s" - %s' % (service, decode(gvar, stderr)))
     
 def systemctl_stop(gvar, service):
     print('Stopping system service "%s".' % service)
@@ -259,7 +259,7 @@ def systemctl_stop(gvar, service):
             ], stdout=PIPE, stderr=PIPE)
     stdout, stderr = _p1.communicate()
     if _p1.returncode != 0:
-        print('Failed to stop system service "%s" - %s' % (service, decode(stderr)))
+        print('Failed to stop system service "%s" - %s' % (service, decode(gvar, stderr)))
     
 if __name__ == "__main__":
     main(sys.argv)
