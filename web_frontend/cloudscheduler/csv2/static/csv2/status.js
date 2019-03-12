@@ -587,7 +587,8 @@ var TSPlot = {
 			dropdowns[0].classList.remove('selected');
 		}
 		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
-		/* Pause before purging to avoid TypeError, seems to be a Plotly bug*/
+		/* Pause before purging to avoid TypeError, seems to be a Plotly bug
+		   https://community.plot.ly/t/typeerror-e-is-undefined-when-using-plotly-relayout-followed-by-plotly-purge/20442 */
 		setTimeout(function(){
     		Plotly.purge('plotly-TS');
 		}, 10);

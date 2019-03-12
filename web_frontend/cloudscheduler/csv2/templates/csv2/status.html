@@ -632,7 +632,7 @@ else if (refresh_interval < 1) stop_refresh;
                                         
                                         {% for slot in slot_list %}
                                             {% comment %}{% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}{% endcomment %}
-                                            {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name%}
+                                            {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
                                                 <tr>
                                                     <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
@@ -929,7 +929,7 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <td colspan="2">
                             <table>
-                            {% for slot in slot_total_list%}
+                            {% for slot in slot_total_list %}
                                 {% comment %}{% if slot.group_name == active_group and slot.cloud_name == group_total.cloud_name %}
                                 {% if slot.group_name == group_total.group_name and slot.cloud_name == group_total.cloud_name%}{% endif %}{% endcomment %}
                                 {% if slot %}
@@ -963,16 +963,6 @@ else if (refresh_interval < 1) stop_refresh;
                 </table>
             </div>
     </div>
-
-    {% comment %}
-        {% endif %}
-        {% if not global_flag%}
-            {% set index = -1 %}
-        {% else %}
-            {% set index += 1 %}
-        {% endif %}
-        {% endfor %}
-    {% endcomment %}
 
 </div>
 
