@@ -344,6 +344,17 @@ function checkForPlottedTraces(){
 	}
 }
 
+function checkForExpandedRow() {
+        if (typeof (Storage) !== "undefined"){
+                if(sessionStorage.length != 0){
+                        var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
+                        if(expanded_row == true){
+                                document.getElementById('toggle-row').click();
+                        }
+                }
+         }
+}
+
 
 /* Refresh plot every 30 seconds with new data from db*/
 function refresh_plot() {
@@ -450,6 +461,7 @@ var TSPlot = {
 			t: 40,
 			b: 40
 		},
+                showlegend: true
 	},
 
 	showing: false,
@@ -467,9 +479,19 @@ var TSPlot = {
 
 	/* Hide plot*/
 	hide: function() {
-		TSPlot.showing = false;
+                var newlayout = {
+                    yaxis: {
+                        rangemode : "tozero"
+                    },
+                    xaxis: {
+                        type : "date"
+                    }
+                };
+                Plotly.relayout('plotly-TS', newlayout);
+                
+                TSPlot.showing = false;
 		TSPlot.traces = [];
-		Plotly.purge('plotly-TS');
+		//Plotly.purge('plotly-TS');
 		document.getElementById("plot").style.display = 'none';
 		const curr_range = document.getElementsByClassName("range-btn");
 		curr_range[0].innerHTML = 'Last 1 hour<span class="space"></span><span class="caret"></span>';
@@ -487,7 +509,12 @@ var TSPlot = {
 			dropdowns[0].classList.remove('selected');
 		}
 		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
-	},
+                /* Pause before purging to avoid TypeError, seems to be a Plotly bug
+                   https://community.plot.ly/t/typeerror-e-is-undefined-when-using-plotly-relayout-followed-by-plotly-purge/20442 */
+                setTimeout(function(){
+                Plotly.purge('plotly-TS');
+                }, 10);
+        },
 
 	/* Show plot*/
 	show: function(){
