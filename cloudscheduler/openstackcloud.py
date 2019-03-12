@@ -55,10 +55,10 @@ class OpenStackCloud(basecloud.BaseCloud):
             raise Exception
 
         self.default_security_groups = resource.default_security_groups
-            try:
-                self.default_security_groups = self.default_security_groups.split(',')
-            except:
-                raise Exception
+        try:
+            self.default_security_groups = self.default_security_groups.split(',')
+        except:
+            raise Exception
         self.default_image = resource.default_image
         self.default_flavor = resource.default_flavor
         self.default_network = resource.default_network
