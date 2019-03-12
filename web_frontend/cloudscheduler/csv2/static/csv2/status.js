@@ -421,6 +421,17 @@ function checkForExpandedRow() {
 	}
 }
 
+function checkForExpandedRow() {
+        if (typeof (Storage) !== "undefined"){
+                if(sessionStorage.length != 0){
+                        var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
+                        if(expanded_row == true){
+                                document.getElementById('toggle-row').click();
+                        }
+                }
+         }
+}
+
 
 /* Refresh plot every 30 seconds with new data from db*/
 function refresh_plot() {
