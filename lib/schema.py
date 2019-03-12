@@ -170,6 +170,14 @@ cloud_networks = Table('cloud_networks', metadata,
   Column('last_updated', Integer)
   )
 
+cloud_security_groups = Table('cloud_security_groups', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('id', String(64), primary_key=True),
+  Column('name', String(64)),
+  Column('last_updated', Integer)
+  )
+
 condor_jobs = Table('condor_jobs', metadata,
   Column('global_job_id', String(128), primary_key=True),
   Column('group_name', String(32)),
