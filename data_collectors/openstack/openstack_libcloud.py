@@ -37,7 +37,7 @@ from libcloud.compute.providers import get_driver
 
 otter = {
 'username': 'csv2-test',
-'pw': 'csv2-dev-pw',
+'pw': '**********',
 'project_name': 'testing',
 'auth_url': 'https://otter.heprc.uvic.ca:15000',
 'region_name': 'Victoria',
@@ -59,7 +59,7 @@ driver = OpenStack(cloud['username'], cloud['pw'],
 
 dairqc = {
 'username': 'HEPnet',
-'pw': 'G3t0rN3@R',
+'pw': '******',
 'project_name': 'NEP_HEPnet',
 'auth_url': 'https://nova-ab.dair-atir.canarie.ca:5000/v2.0/tokens',
 'region_name': 'quebec',
