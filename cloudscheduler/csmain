@@ -36,7 +36,7 @@ def main():
     """
     multiprocessing.current_process().name = "csmain"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=25)
     config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
@@ -413,7 +413,6 @@ def check_view_idle_vms():
         except Exception as ex:
             log.exception(ex)
             config.db_close()
-            return
         time.sleep(10)  # TODO make configurable.
 
 def check_unregistered_machines():

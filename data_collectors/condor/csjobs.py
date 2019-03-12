@@ -117,6 +117,8 @@ def job_poller():
             foreign_jobs = 0
             for condor_host in condor_hosts_set:
                 foreign_jobs = 0
+                held_jobs = 0
+                held_job_ids = []
                 logging.debug("Polling condor host: %s" % condor_host)
                 try:
                     coll = htcondor.Collector(condor_host)
@@ -228,6 +230,8 @@ def job_poller():
                         # not a valid group for this host
                         logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
                         foreign_jobs = foreign_jobs+1
+                        held_jobs = held_jobs + 1
+                        held_job_ids.append(job_dict["ClusterId"] +"."+ job_dict["ProcId"])
                         if "invalidgrp" not in job_errors:
                             job_errors["invalidgrp"] = 1
                         else:
@@ -275,6 +279,11 @@ def job_poller():
                         abort_cycle = True
                         break
 
+                if held_jobs > 0:
+                    #hold all the jobs
+                    condor_session.act(htcondor.JobAction.Hold, held_job_ids)
+                    condor_session.edit(held_job_ids, "HeldReason", '"Invalid user or group name for hondor host %s, held by job poller"' % condor_host)
+
                         
                 if foreign_jobs > 0:
                     logging.info("Ignored %s foreign jobs" % foreign_jobs)
@@ -283,9 +292,9 @@ def job_poller():
                     if "noreq" in job_errors:
                         logging.info("%s ignored for missing requirements string" % job_errors["noreq"])
                     if "invalidgrp" in job_errors:
-                        logging.info("%s ignored for submitting to invalid group for host" % job_errors["invalidgrp"])
+                        logging.info("%s ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
                     if "invalidusr" in job_errors:
-                        logging.info("%s ignored for submitting to a group without permission" % job_errors["invalidusr"])
+                        logging.info("%s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:

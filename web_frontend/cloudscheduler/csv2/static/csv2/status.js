@@ -15,7 +15,11 @@ function addEventListeners(className) {
 		for (i = 0; i < list_length; i++){
 			inputList[i].addEventListener('click', function(){
 				if(className == 'plottable'){
-					this.classList.toggle("plotted");
+					var list = document.querySelectorAll(`tr[data-path="${this.dataset.path}"]`);
+					for (k = 0; k < list.length; k++){
+						list[k].classList.toggle('plotted');
+					}
+					if(list.length == 0) this.classList.toggle("plotted");
 					togglePlot(this);
 				}else selectRange(this);
 			});
@@ -394,11 +398,24 @@ function getTraceData(trace, showing){
 /* On refresh, check for plotted traces to update colour in status tables*/
 function checkForPlottedTraces(){
 	if (typeof (Storage) !== "undefined"){
-		if(sessionStorage.length != 0){
-			var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
+		var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
+		if (plotted_traces != null){
 			for(var x = 0; x < plotted_traces.length; x++){
 				var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
-				stat[0].classList.toggle("plotted");
+				for(var k = 0; k < stat.length; k++){
+					stat[k].classList.toggle("plotted");
+				}
+			}
+		}
+	}
+}
+
+function checkForExpandedRow() {
+	if (typeof (Storage) !== "undefined"){
+		if(sessionStorage.length != 0){
+			var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
+			if(expanded_row == true){
+				document.getElementById('toggle-row').click();
 			}
 		}
 	}
@@ -475,11 +492,13 @@ function updateTraces(newdata, index){
 	/* If last plotted data point was 55s or more ago, insert null to show break in plot*/
 	for(var k = 0; k < index.length; k++){
 		var len = TSPlot.traces[k].x.length -1;
-		if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
-			console.log(newdata);
-			newdata.x[k].unshift(newdata.x[k][0] - 1000);
-			newdata.y[k].unshift(null);
-			console.log(newdata);
+		if(typeof(TSPlot.traces[k]) !== 'undefined'){
+			if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
+				console.log(newdata);
+				newdata.x[k].unshift(newdata.x[k][0] - 1000);
+				newdata.y[k].unshift(null);
+				console.log(newdata);
+			}
 		}
 	}
 	Plotly.extendTraces('plotly-TS', newdata, index);
@@ -568,7 +587,8 @@ var TSPlot = {
 			dropdowns[0].classList.remove('selected');
 		}
 		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
-		/* Pause before purging to avoid TypeError, seems to be a Plotly bug*/
+		/* Pause before purging to avoid TypeError, seems to be a Plotly bug
+		   https://community.plot.ly/t/typeerror-e-is-undefined-when-using-plotly-relayout-followed-by-plotly-purge/20442 */
 		setTimeout(function(){
     		Plotly.purge('plotly-TS');
 		}, 10);

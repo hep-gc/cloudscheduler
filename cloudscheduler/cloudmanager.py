@@ -46,7 +46,8 @@ class CloudManager():
                     newcloud = openstackcloud.\
                         OpenStackCloud(resource=cloud,
                                        metadata=self.metadata[cloud.cloud_name]
-                                       if cloud.cloud_name in self.metadata.keys() else None)
+                                       if self.metadata and cloud.cloud_name in self.metadata.keys()
+                                       else None)
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
             except Exception as ex:

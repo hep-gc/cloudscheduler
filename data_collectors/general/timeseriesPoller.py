@@ -215,8 +215,8 @@ def timeseries_data_transfer():
                 })
                 #logging.info(slot_list)
                 #logging.info(slot_cores_list)
-                #core_count_list = []
-                """
+                """core_count_list = []
+                
                 for num_cores in slot_cores_list:
                     count = 0
                     for slot in slot_list:
@@ -231,7 +231,7 @@ def timeseries_data_transfer():
                     #cnt += 1
                     #print(new_point)
                     #logging.info(new_point)
-                    data_points.append(newpoint)
+                    data_points.append(new_point)
 
             
             data_points = "\n".join(data_points)

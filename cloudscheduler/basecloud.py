@@ -10,8 +10,10 @@ import logging
 from abc import ABC, abstractmethod
 
 import jinja2
-
-import cloud_init_util
+try:
+    import cloud_init_util
+except:
+    import cloudscheduler.cloud_init_util
 from cloudscheduler.lib.db_config import Config
 
 

@@ -25,6 +25,9 @@ else if (refresh_interval < 1) stop_refresh;
 	function set_refresh(time) {
 		TimerSwitch = 1;
 		timer_id = setTimeout(function() {
+            var checked = false;
+            if(document.getElementById('toggle-row').checked == true) checked = true;
+            sessionStorage.setItem("extra-row", JSON.stringify(checked));
 			refresh_plot();
 			fetch(location.href,{	
 				method: 'GET',
@@ -43,6 +46,7 @@ else if (refresh_interval < 1) stop_refresh;
 				document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
+                checkForExpandedRow();
 				checkForPlottedTraces();
 				initialize();
 			})
@@ -627,9 +631,10 @@ else if (refresh_interval < 1) stop_refresh;
                                         <table>
                                         
                                         {% for slot in slot_list %}
-                                            {% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}
-                                                <tr data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}cores">
-                                                    <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                            {% comment %}{% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}{% endcomment %}
+                                            {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
+                                                <tr>
+                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                                 </tr>
                                             {% endif %}
@@ -644,6 +649,7 @@ else if (refresh_interval < 1) stop_refresh;
                         {% endif %}
 
                     {% endfor %}
+                    
                     <!--
                     {% for cloud in cloud_status_list %}
                         {% if cloud.enabled == 0 and cloud.VMs == 0 %}
@@ -923,10 +929,12 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <td colspan="2">
                             <table>
-                            {% for slot in slot_total_list%}
-                                {% if slot.group_name == active_group and slot.cloud_name == group_total.cloud_name %}
+                            {% for slot in slot_total_list %}
+                                {% comment %}{% if slot.group_name == active_group and slot.cloud_name == group_total.cloud_name %}
+                                {% if slot.group_name == group_total.group_name and slot.cloud_name == group_total.cloud_name%}{% endif %}{% endcomment %}
+                                {% if slot %}
                                     <tr>
-                                        <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                         <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                     </tr>
                                 {% endif %}
@@ -955,16 +963,6 @@ else if (refresh_interval < 1) stop_refresh;
                 </table>
             </div>
     </div>
-
-    {% comment %}
-        {% endif %}
-        {% if not global_flag%}
-            {% set index = -1 %}
-        {% else %}
-            {% set index += 1 %}
-        {% endif %}
-        {% endfor %}
-    {% endcomment %}
 
 </div>
 

@@ -56,7 +56,7 @@ class OpenStackCloud(basecloud.BaseCloud):
 
         self.default_security_groups = resource.default_security_groups
         try:
-            self.default_security_groups = self.default_security_groups.split(',')
+            self.default_security_groups = self.default_security_groups.split(',') if self.default_security_groups else ['default']
         except:
             raise Exception
         self.default_image = resource.default_image
