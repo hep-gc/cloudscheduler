@@ -1,0 +1,736 @@
+#!/usr/bin/env python3
+from cloudscheduler.lib.db_config import Config
+from subprocess import Popen, PIPE
+import os
+import socket
+import sys
+import tempfile
+import time
+import yaml
+
+def main(args):
+    if len(args) < 2:
+        print('\n' \
+            'Synopsis: db_upgrade <schema_model_fqdn> [-i <input_file_path>] [-o <output_file_path>] [-r live | ]\n\n' \
+            'Where:\n' \
+            '  <schema_model_fqdn>    - is the FQDN of the host whose global backup is to be used as the database\n' \
+            '                           schema model to be replicated.\n\n' \
+            '  -i <input_file_path>   - is the path to an optional input parameter file used to automate the\n' \
+            '                           database upgrade process. Normally, based on table and column names,\n'
+            '                           db_upgrade is able to make the target database match the structure\n' \
+            '                           and format of the model database. However, when tables or columns are\n' \
+            '                           either added or deleted or renamed, user input is required to resolve\n' \
+            '                           the discrepencies. This input can either be read interactively from\n' \
+            '                           the terminal or from this parameter file.\n\n' \
+            '  -o <output_file_path>  - is the path to an optional output parameter file used to record the\n' \
+            '                           the user''s responses for future automation of the upgrade process (see\n' \
+            '                           "-i" option above).\n\n' \
+            '  -r [live | ]             The "-r" specifies the run mode and is either "live" or anything else\n' \
+            '                           (default). Changes to the target database are only made if the run mode\n' \
+            '                           is "live".\n'
+            )
+        exit(0)
+
+    gvar = { 'cmd_path': os.path.abspath(args[0]) }
+    gvar['path_info'] = gvar['cmd_path'].split('/')
+    gvar['ix'] = gvar['path_info'].index('cloudscheduler')
+
+    gvar['input_actions'] = {}
+    gvar['output_actions'] = {}
+    gvar['comment_length'] = 64
+    gvar['csv2_configuration_values'] = {}
+    gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_dict=True)
+    gvar['my_fqdn'] = socket.getfqdn()
+    gvar['model_fqdn'] = args[1]
+    gvar['backup_dir'] = '%s/schema/schema_backup' % ('/'.join(gvar['path_info'][:gvar['ix']+1]))
+    gvar['tables'] = {}
+    gvar['run_mode'] = 'test'
+    gvar['temp_file'] = tempfile.mktemp()
+
+    if gvar['my_fqdn'] == gvar['model_fqdn']:
+        print('Error: the FQDN for the current host cannot be used for the schema model.')
+        exit(1)
+
+    if not os.path.isdir('%s/%s' % (gvar['backup_dir'], gvar['model_fqdn'])):
+        print('Error: backup directory "%s/%s" for specified model does not exist.' % (gvar['backup_dir'], gvar['model_fqdn']))
+        exit(1)
+    
+    gvar['config_file_path'] = '%s/etc/schema_backup.conf' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+    if os.path.isfile(gvar['config_file_path']):
+        fd = open(gvar['config_file_path'])
+        gvar['table_config'] = yaml.load(fd.read())
+        fd.close()
+    else:
+        gvar['table_config'] = {'global': []}
+
+    if 'local_backup_dir' in gvar['table_config']:
+        gvar['local_backup_dir'] = '%s/%s' % (gvar['table_config']['local_backup_dir'], 'latest')
+    else:
+        print('Error: schema backup configuration does not contain a local backup directory.')
+        exit(1)
+
+    my_hostname = gvar['my_fqdn'].split('.')[0]
+    model_hostname = gvar['model_fqdn'].split('.')[0]
+
+    #
+    # Read optional arguments:
+    #    -i input_path
+    #    -o output_path
+    #    -r run_mode
+    #
+    skip_next = False 
+    for args_ix in range(2, len(args)):
+        if skip_next:
+            skip_next = False 
+            continue
+
+        if len(args[args_ix]) > 1 and args[args_ix][0] == '-': 
+            if args[args_ix][1] == 'i':
+                if len(args) > args_ix + 1:
+                    gvar['input_path'] = args[args_ix+1]
+                    skip_next = True
+                    
+                    if not os.path.isfile(gvar['input_path']):
+                        raise Exception('Input parameter file "%s" does not exist.' % gvar['input_path'])
+
+                    fd = open(gvar['input_path'])
+                    gvar['input_actions'] = yaml.load(fd.read())
+                    fd.close()
+
+            elif args[args_ix][1] == 'o':
+                if len(args) > args_ix + 1:
+                    gvar['output_path'] = args[args_ix+1]
+                    skip_next = True
+
+            elif args[args_ix][1] == 'r':
+                if len(args) > args_ix + 1:
+                    gvar['run_mode'] = args[args_ix+1]
+                    skip_next = True
+
+            else:
+                raise Exception('Unknown parameter "%s".' % args[args_ix])
+
+
+    ####
+    if gvar['run_mode'] == 'live' or time.time() - os.stat('/var/local/cloudscheduler/schema_backups/latest').st_ctime > 3600:
+        print('\n1. Performing database backup.')
+        p = Popen([
+            '%s/utilities/schema_backup' % '/'.join(gvar['path_info'][:gvar['ix']+1])
+            ], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+
+        if p.returncode != 0:
+            print('Error: failed to backup database - %s' % stderr)
+            exit(1)
+    else:
+        print('\n1. TEST MODE, skipping database backup.')
+
+    ####
+    print('\n2. Rdefining global configuration tables.')
+    for table in sorted(gvar['table_config']['global']):
+        redefine_table(gvar, table)
+
+    ####
+    print('\n3. Restoring local host global configurations.')
+    map_csv2_configuration(gvar, gvar['my_fqdn'])
+    map_csv2_configuration(gvar, gvar['model_fqdn'])
+
+    gvar['db_config'].db_open()
+    CONFIG = gvar['db_config'].db_map.classes.csv2_configuration
+    updates = 0
+    for category in gvar['csv2_configuration_values'][model_hostname]:
+        if category in gvar['csv2_configuration_values'][my_hostname]:
+            for key in gvar['csv2_configuration_values'][model_hostname][category]:
+                if key in gvar['csv2_configuration_values'][my_hostname][category]:
+                    if gvar['csv2_configuration_values'][my_hostname][category][key]['type'] == gvar['csv2_configuration_values'][model_hostname][category][key]['type']:
+                        if gvar['csv2_configuration_values'][my_hostname][category][key]['value'] != gvar['csv2_configuration_values'][model_hostname][category][key]['value']:
+                            # update database.
+                            if gvar['run_mode'] == 'live':
+                                print('   Restoring configuration item:', category, key, gvar['csv2_configuration_values'][model_hostname][category][key]['value'], '<-',  gvar['csv2_configuration_values'][my_hostname][category][key]['value'])
+                                config_item = gvar['db_config'].db_session.query(CONFIG).filter((CONFIG.category == category) & (CONFIG.config_key == key)).first()
+                                config_item.config_value = gvar['csv2_configuration_values'][my_hostname][category][key]['value']
+                                updates += 1
+                            else:
+                                print('   TEST MODE, skip restoring configuration item:', category, key, gvar['csv2_configuration_values'][model_hostname][category][key]['value'], '<-',  gvar['csv2_configuration_values'][my_hostname][category][key]['value'])
+    if updates > 0:
+        gvar['db_config'].db_session.commit()
+
+    gvar['db_config'].db_close()
+
+    ####
+    print('\n4. Mapping the structure of local configuration and ephemeral tables.')
+    for table in gvar['table_config']['local'] + gvar['table_config']['ephemeral']:
+        map_table_structure(gvar, gvar['my_fqdn'], table)
+        map_table_structure(gvar, gvar['model_fqdn'], table)
+
+    ####
+    print('\n5. Scanning for tables to add, ignore or rename.')
+    changes = {'extra': [], 'missing': [], 'max_table_length': 0}
+    for table in sorted(gvar['table_config']['local'] + gvar['table_config']['ephemeral']):
+        if changes['max_table_length'] < len(table):
+            changes['max_table_length'] = len(table)
+
+        if 'cols' in gvar['tables'][my_hostname][table] and 'cols' not in gvar['tables'][model_hostname][table]:
+            changes['extra'].append(table)
+        elif 'cols' in gvar['tables'][model_hostname][table] and 'cols' not in gvar['tables'][my_hostname][table]:
+            changes['missing'].append(table)
+        elif 'cols' not in gvar['tables'][my_hostname][table] and 'cols' not in gvar['tables'][model_hostname][table]:
+            print('   Warning: Table "%s" in schema_backup.conf but NOT in either the target or the model - it should be removed from the configuration.' % table)
+
+    ####
+    print('\n6. If new or missing tables, print table summary.')
+    if len(changes['extra']) > 0 and len(changes['missing']) > 0:
+        sep = '   +%s+%s+' % ('-'*(changes['max_table_length']+2), '-'*(gvar['comment_length']+2))
+        print('%s\n   + %s | %s +\n%s' % (sep, justify('Table Name', changes['max_table_length'], opt='centre'), justify('Comment', gvar['comment_length'], opt='centre'), sep))
+        for table in sorted(changes['extra'] + changes['missing']):
+            if table in changes['extra']:
+                print('   | %s | %s |\n' % (justify(table, changes['max_table_length'], opt='left'), justify('extra (in target but NOT in model)', gvar['comment_length'], opt='left')))
+            elif table in changes['missing']:
+                print('   | %s | %s |\n' % (justify(table, changes['max_table_length'], opt='left'), justify('missing (NOT in target but in model)', gvar['comment_length'], opt='left')))
+
+    ####
+    print('\n7. Ignoring or renaming target tables not in the model.')
+    for table in changes['extra']:
+        if len(changes['missing']) > 0:
+            action = get_action(gvar, 'Ignore or Rename target table "%s" (in target but NOT in model)? ' % table, ['ignore', 'rename'])
+            if action == 'rename':
+                new_name = get_action(gvar, 'Which of the following model table names is the new name for the target table "%s": %s? ' % (table, changes['missing']), changes['missing'])
+                gvar['tables'][my_hostname][table]['action'] = ['rename', new_name]
+                changes['missing'].remove(new_name)
+            else:
+                gvar['tables'][my_hostname][table]['action'] = ['ignore']
+        else:
+            print('   Warning: Target table "%s" in target but NOT in model - ignoring.' % table)
+            gvar['tables'][my_hostname][table]['action'] = ['ignore']
+                  
+    print('\n8. Adding model tables not in the target.')
+    for table in changes['missing']:
+        print('   Warning: Model table "%s" in schema_backup.conf but is missing from the target - adding.' % table)
+        gvar['tables'][my_hostname][table] = {
+          'action': ['add'],
+          'cols': gvar['tables'][model_hostname][table]['cols'],
+          'xref': gvar['tables'][model_hostname][table]['xref'],
+          }
+                  
+    ####
+    print('\n9. Scanning for columns to add, ignore or rename.')
+    changes = {}
+    for table in sorted(gvar['table_config']['local'] + gvar['table_config']['ephemeral']):
+        changes[table] = {'extra': [], 'missing': [], 'sequence': [], 'truncate': [], 'type': []}
+        if 'cols' in gvar['tables'][my_hostname][table]:
+            if 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'rename':
+                model_table = gvar['tables'][my_hostname][table]['action'][1]
+            else:
+                model_table = table
+
+            gvar['tables'][my_hostname][table]['differences'] = {}
+            gvar['tables'][my_hostname][table]['widths'] = [0,len(gvar['my_fqdn'])+9,len(gvar['model_fqdn'])+8,gvar['comment_length']]
+            gvar['tables'][my_hostname][table]['widths'][0], gvar['tables'][my_hostname][table]['widths'][1], my_cols = get_column_widths(gvar, gvar['my_fqdn'], table)
+            column_name_width, gvar['tables'][my_hostname][table]['widths'][2], model_cols = get_column_widths(gvar, gvar['model_fqdn'], model_table)
+            if gvar['tables'][my_hostname][table]['widths'][0] < column_name_width:
+                gvar['tables'][my_hostname][table]['widths'][0] = column_name_width
+
+            for col in sorted(my_cols | model_cols):
+                if col not in my_cols:
+                    changes[table]['missing'].append(col)
+                    gvar['tables'][my_hostname][table]['differences'][col] = 'missing (NOT in target but in model)'
+
+                elif col not in model_cols:
+                    changes[table]['extra'].append(col)
+                    gvar['tables'][my_hostname][table]['differences'][col] = 'extra (in target but NOT in model)'
+
+                else:
+                    col_ix = gvar['tables'][my_hostname][table]['xref'][col]
+                    model_col_ix = gvar['tables'][model_hostname][model_table]['xref'][col]
+
+                    if ','.join(gvar['tables'][my_hostname][table]['cols'][col_ix]) != ','.join(gvar['tables'][model_hostname][model_table]['cols'][model_col_ix]):
+                        gvar['tables'][my_hostname][table]['differences'][col] = 'differ (target and model column definitions differ)'
+
+    ####
+    print('\n10. Redefining tables (structure) that have changed.')
+    for table in sorted(gvar['table_config']['local'] + gvar['table_config']['ephemeral']):
+        if ('action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore') or \
+            len(gvar['tables'][my_hostname][table]['differences']) < 1:
+            continue
+
+        redefine_table(gvar, table)
+
+    ####
+    print('\n11. Adding, ignoring or renaming target columns not in the model.')
+    for table in gvar['table_config']['local']:
+        if ('action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore'):
+            continue
+
+        if len(changes[table]['extra']) > 0:
+            if len(changes[table]['missing']) > 0:
+                # Show all the columns in question.
+                sep = '   +%s+%s+%s+%s+' % (
+                    '-'*(gvar['tables'][my_hostname][table]['widths'][0]+2),
+                    '-'*(gvar['tables'][my_hostname][table]['widths'][1]+2),
+                    '-'*(gvar['tables'][my_hostname][table]['widths'][2]+2),
+                    '-'*(gvar['tables'][my_hostname][table]['widths'][3]+2)
+                    )
+
+                print('\n   Table: %s (changes: %d)\n%s\n   + %s | %s | %s | %s +\n%s' % (
+                    table,
+                    len(gvar['tables'][my_hostname][table]['differences']),
+                    sep,
+                    justify('Column', gvar['tables'][my_hostname][table]['widths'][0], opt='centre'),
+                    justify('Target (%s)' % gvar['my_fqdn'], gvar['tables'][my_hostname][table]['widths'][1], opt='centre'),
+                    justify('Model (%s)' % gvar['model_fqdn'], gvar['tables'][my_hostname][table]['widths'][2], opt='centre'),
+                    justify('Difference', gvar['tables'][my_hostname][table]['widths'][3]),
+                    sep))
+
+                for col in sorted(changes[table]['extra'] + changes[table]['missing']):
+                    if col in gvar['tables'][my_hostname][table]['differences']:
+                        print('   | %s | %s | %s | %s |' % (
+                            justify(col, gvar['tables'][my_hostname][table]['widths'][0]),
+                            justify_value(gvar, gvar['my_fqdn'], table, col, gvar['tables'][my_hostname][table]['widths'][1]),
+                            justify_value(gvar, gvar['model_fqdn'], table, col, gvar['tables'][my_hostname][table]['widths'][2]),
+                            justify(gvar['tables'][my_hostname][table]['differences'][col], gvar['tables'][my_hostname][table]['widths'][3])))
+                    else:
+                        print('   | %s | %s | %s | %s |' % (
+                            justify(col, gvar['tables'][my_hostname][table]['widths'][0]),
+                            justify_value(gvar, gvar['my_fqdn'], table, col, gvar['tables'][my_hostname][table]['widths'][1]),
+                            justify_value(gvar, gvar['model_fqdn'], table, col, gvar['tables'][my_hostname][table]['widths'][2]),
+                            justify('', gvar['tables'][my_hostname][table]['widths'][3])))
+
+                print('%s\n' % sep)
+
+            # Now get user's choices.
+            for col in changes[table]['extra']:
+                if len(changes[table]['missing']) > 0:
+                    action = get_action(gvar, 'Table: %s - Ignore or Rename target column "%s" (in target but NOT in model)? ' % (table, col), ['ignore', 'rename'])
+                    if action == 'rename':
+                        new_name = get_action(gvar, 'Which of the following model column names is the new name for target column "%s": %s? ' % (col, changes[table]['missing']), changes[table]['missing'])
+                        gvar['tables'][my_hostname][table]['cola'][col] = ['rename', new_name]
+                        changes[table]['missing'].remove(new_name)
+                    else:
+                        gvar['tables'][my_hostname][table]['cola'][col] = ['ignore']
+                else:
+                    print('   Warning: Table: %s - Target column "%s" in target but NOT in model - ignoring.' % (table, col))
+                    gvar['tables'][my_hostname][table]['cola'][col] = ['ignore']
+
+        if len(changes[table]['missing']) > 0:
+            for col in changes[table]['missing']:
+                print('   Warning: Table: %s - Column "%s" in model but is missing from the target - adding.' % (table, col))
+                gvar['tables'][my_hostname][table]['cola'][col] = ['add', 'NULL']
+                gvar['tables'][my_hostname][table]['cols'].append(gvar['tables'][model_hostname][table]['cols'][gvar['tables'][model_hostname][table]['xref'][col]])
+                gvar['tables'][my_hostname][table]['xref'][col] = len(gvar['tables'][my_hostname][table]['cols'])
+                if 'NOT_NULL' in gvar['tables'][my_hostname][table]['cols'][-1] and \
+                    'AUTO_INCREMENT' not in gvar['tables'][my_hostname][table]['cols'][-1] and \
+                    'DEFAULT' not in gvar['tables'][my_hostname][table]['cols'][-1]:
+                    if gvar['tables'][my_hostname][table]['cols'][-1][1] == 'VARCHAR' or gvar['tables'][my_hostname][table]['cols'][-1][1] == 'TEXT':
+                        gvar['tables'][my_hostname][table]['cola'][col][1] = ''
+                    else:
+                        gvar['tables'][my_hostname][table]['cola'][col][1] = 0
+                          
+    if 'output_path' in gvar:
+        fd = open(gvar['output_path'], 'w')
+        fd.write(yaml.dump(gvar['output_actions']))
+        fd.close()
+
+    ####
+    print('\n12. Loading local configuration data.')
+    for table in sorted(gvar['table_config']['local']):
+        if 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'add' or \
+            'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore':
+            continue
+
+        if 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'rename':
+            model_table = gvar['tables'][my_hostname][table]['action'][1]
+        else:
+            model_table = table
+        
+        fd = open(gvar['temp_file'], 'w')
+        fd.write('INSERT INTO %s\n' % model_table)
+
+        # Data file header.
+        columns = []
+        for ix in range(len(gvar['tables'][my_hostname][table]['cols'])):
+            col = gvar['tables'][my_hostname][table]['cols'][ix][0]
+            if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
+                continue
+
+            if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
+                model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
+            else:
+                model_col = col
+
+            columns.append(model_col)
+         
+        fd.write('(%s)\nVALUES\n' % ','.join(columns))
+
+        # Process local configuration table data.
+        table_data = get_table_data(gvar, table)
+        for row_ix in range(len(table_data)):
+            row = table_data[row_ix]
+            columns=[]
+#           for ix in range(len(row)):
+            for ix in range(len(gvar['tables'][my_hostname][table]['cols'])):
+                col = gvar['tables'][my_hostname][table]['cols'][ix][0]
+                if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
+                    continue
+
+                if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
+                    model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
+                else:
+                    model_col = col
+
+                model_ix = gvar['tables'][model_hostname][table]['xref'][model_col]
+
+                if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'add':
+                    value = gvar['tables'][my_hostname][table]['cola'][col][1]
+                else:
+                    value = row[ix]
+
+                if value == 'NULL' or col not in gvar['tables'][my_hostname][table]['differences']:
+                    columns.append(value)
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'VARCHAR' or \
+                    gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'CHAR':
+                    try:
+                        max_len = int(gvar['tables'][model_hostname][table]['cols'][model_ix][2])
+                    except:
+                        max_len = 16
+
+                    columns.append(limit_string_length(table, model_col, str(value), max_len))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'TINYTEXT':
+                    columns.append(limit_string_length(table, model_col, str(value), 255))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'TEXT':
+                    columns.append(limit_string_length(table, model_col, str(value), 65535))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'MEDIUMTEXT':
+                    columns.append(limit_string_length(table, model_col, str(value), 16777215))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'LONGTEXT':
+                    columns.append(limit_string_length(table, model_col, str(value), 4294967295))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'DEC' or \
+                    gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'DECIMAL' or \
+                    gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'NUMERIC' or \
+                    gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'FIXED':
+                    if gvar['tables'][model_hostname][table]['cols'][model_ix][3].upper() == 'UNSIGNED':
+                        columns.append(limit_number_range(table, model_col, value, 'decimal', 0, 18446744073709551615))
+                    else:
+                        columns.append(limit_number_range(table, model_col, value, 'decimal', -9223372036854775808, 9223372036854775807))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'TINYINT':
+                    if gvar['tables'][model_hostname][table]['cols'][model_ix][3].upper() == 'UNSIGNED':
+                        columns.append(limit_number_range(table, model_col, value, 'integer', 0, 255))
+                    else:
+                        columns.append(limit_number_range(table, model_col, value, 'integer', -128, 127))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'INT' or \
+                    gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'INTEGER':
+                    if gvar['tables'][model_hostname][table]['cols'][model_ix][3].upper() == 'UNSIGNED':
+                        columns.append(limit_number_range(table, model_col, value, 'integer', 0, 4294967295))
+                    else:
+                        columns.append(limit_number_range(table, model_col, value, 'integer', -2147483648, 2147483647))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'BIGINT':
+                    if gvar['tables'][model_hostname][table]['cols'][model_ix][3].upper() == 'UNSIGNED':
+                        columns.append(limit_number_range(table, model_col, value, 'integer', 0, 18446744073709551615))
+                    else:
+                        columns.append(limit_number_range(table, model_col, value, 'integer', -9223372036854775808, 9223372036854775807))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'FLOAT':
+                    columns.append(limit_number_range(table, model_col, value, 'float', -3.402823466E+38, 3.402823466E+38))
+
+                elif gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'DOUBLE' or \
+                    gvar['tables'][model_hostname][table]['cols'][model_ix][1].upper() == 'REAL':
+                    columns.append(limit_number_range(table, model_col, value, 'float', -1.7976931348623157E+308, 1.7976931348623157E+308))
+
+                else:
+                    raise Exception('Column type "%s" conversion unsupported.' % gvar['tables'][model_hostname][table]['cols'][model_ix][1])
+
+            if row_ix < len(table_data)-1:
+                fd.write('(%s),\n' % ','.join(columns))
+            else:
+                fd.write('(%s);\n' % ','.join(columns))
+
+        fd.close()
+
+        if gvar['run_mode'] == 'live':
+            print('   Loading "%s", rows=%s, columns=%s.' % (table, len(table_data), len(columns)))
+            p1 = Popen([
+                'cat',
+                gvar['temp_file']
+                ], stdout=PIPE, stderr=PIPE)
+
+            p2 = Popen([
+                'mysql',
+                '-u%s' % gvar['db_config'].db_config['db_user'],
+                '-p%s' % gvar['db_config'].db_config['db_password'],
+                '-e',
+                'show tables;',
+                gvar['db_config'].db_config['db_name']
+                ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+
+            stdout, stderr = p2.communicate()
+            if p2.returncode != 0:
+                raise Exception('Failed to load data into "%s" - %s' % (table, stderr))
+        else:
+            print('   TEST MODE, skip loading "%s", rows=%s, columns=%s.' % (table, len(table_data), len(columns)))
+
+#   os.remove(gvar['temp_file'])
+
+def get_action(gvar, question, answers):
+    question_answers = '%s: %s' % (question, answers)
+
+    if question_answers in gvar['input_actions']:
+        gvar['output_actions'][question_answers] = gvar['input_actions'][question_answers]
+
+    else:
+        answers_lower = []
+        for ans in answers:
+           answers_lower.append(ans.lower())
+
+        while True:
+            ans = input('   %s' % question)
+            ans_lower = ans.lower()
+
+            matches = 0
+            for ixx in range(len(answers_lower)):
+                if answers_lower[ixx][:len(ans_lower)] == ans_lower:
+                    matches += 1
+                    if matches == 1:
+                        ix = ixx
+
+            if matches < 1:
+                print('   Warning: Response does not match any valid answer (%s), please try again.' % answers)
+
+            elif matches == 1:
+                break
+        
+            else:
+                print('   Warning: Response must match only 1 valid answer (%s matched), please try again.' % matches)
+
+        gvar['output_actions'][question_answers] = answers[ix]
+
+    return gvar['output_actions'][question_answers]
+
+def get_column_widths(gvar, fqdn, table):
+    hostname = fqdn.split('.')[0]
+
+    gvar['tables'][hostname][table]['attr'] = []
+    cw = [ len('Column'), len(fqdn) ]
+    if 'cols' in gvar['tables'][hostname][table]:
+        for col in gvar['tables'][hostname][table]['cols']:
+            if cw[0] < len(col[0]):
+                cw[0] = len(col[0])
+
+            gvar['tables'][hostname][table]['attr'].append(', '.join(col[1:]))
+            if cw[1] < len(gvar['tables'][hostname][table]['attr'][-1]):
+                cw[1] = len(gvar['tables'][hostname][table]['attr'][-1])
+
+        return cw[0], cw[1], set(gvar['tables'][hostname][table]['xref'].keys())
+
+    else:
+        return cw[0], cw[1], set([])
+
+def get_table_data(gvar, table):
+    table_data = []
+    table_path = '%s/%s' % (gvar['local_backup_dir'], table) 
+    if os.path.isfile(table_path):
+        fd = open(table_path)
+        while True:
+            line = fd.readline()
+            if len(line) < 1:
+                break
+
+            def column_value(row, ix, iy):
+                if iy < len(row)-1:
+                    return row[ix:iy]
+                else:
+                    return row[ix:]
+
+            words = line.replace('NOT NULL', 'NOT_NULL').replace(';', ' ;').replace('(', ' ').replace(')', ' ').split(' ',4)
+            if len(words) > 2 and words[0] == 'INSERT' and words[1] == 'INTO' and words[3] == 'VALUES':
+                for row in line.split(' ',4)[4][1:-3].split('),('):
+                    if len(row) > 0:
+                        row_data = []
+                        is_string = False
+                        skip = False
+                        fs = -1
+                        for ix in range(len(row)):
+                            if fs < 0:
+                                if row[ix] != ',':
+                                    fs = ix
+                                    if row[fs] == "'":
+                                        is_string = True
+
+                            elif is_string and skip:
+                                skip = False
+
+                            elif is_string and row[ix] == '\\':
+                                skip = True
+
+                            elif is_string and row[ix] == "'":
+                                row_data.append(column_value(row,fs,ix+1))
+                                is_string = False
+                                fs = -1
+
+                            elif not is_string and row[ix] == ',':
+                                row_data.append(column_value(row,fs,ix))
+                                fs = -1
+
+                        if fs > -1:
+                            row_data.append(column_value(row,fs,ix))
+
+                        table_data.append(row_data)
+                break
+
+        fd.close()
+
+    return table_data
+
+def justify(col, width, opt='left'):
+    pl = width - len(col)
+    if pl > 0:
+        if opt == 'centre' or opt == 'center':
+            lp = int(pl/2)
+            rp = pl - lp
+            return '%s%s%s' % (' ' * lp, col, ' ' * rp)
+
+        elif opt == 'right':
+            return '%s%s' % (' ' * pl, col)
+
+        else:
+            return '%s%s' % (col, ' ' * pl)
+
+    else:
+        return col
+
+def justify_value(gvar, fqdn, table, col, width):
+    hostname = fqdn.split('.')[0]
+    if hostname in gvar['tables'] and 'xref' in gvar['tables'][hostname][table] and col in gvar['tables'][hostname][table]['xref']:
+        ix = gvar['tables'][hostname][table]['xref'][col]
+        return justify(gvar['tables'][hostname][table]['attr'][ix], width)
+    else:
+        return justify('', width)
+
+def limit_number_range(table, column, value, type, low, high):
+    from decimal import Decimal
+
+    try:
+        if type == 'decimal':
+            new_value = Decimal(value)
+        elif type == 'float':
+            new_value = float(value)
+        else:
+            new_value = int(value)
+    except:
+        print('   Warning: table=%s, column=%s, %s value set to zero.' % (table, column, type))
+        new_value = 0
+
+    if new_value < low:
+        print('   Warning: table=%s, column=%s, %s value set to lowest value.' % (table, column, type))
+        new_value = low
+    elif new_value > high:
+        print('   Warning: table=%s, column=%s, %s value set to highest value.' % (table, column, type))
+        new_value = high
+
+    return str(new_value)
+
+def limit_string_length(table, column, value, max_length):
+    new_value = str(value)
+    if len(new_value) > max_length:
+        print('   Warning: table=%s, column=%s, string value "%s" trancated to %s characters.' % (table, column, value, max_length))
+        return new_value[:max_length+1]
+    else:
+        return new_value
+
+def map_csv2_configuration(gvar, fqdn):
+    hostname = fqdn.split('.')[0]
+    if hostname not in gvar['csv2_configuration_values']:
+        gvar['csv2_configuration_values'][hostname] = {}
+
+    table_path = '%s/%s/csv2_configuration' % (gvar['backup_dir'], fqdn) 
+
+    if os.path.isfile(table_path):
+        fd = open(table_path)
+        insert_into = False
+        while True:
+            line = fd.readline()
+            if len(line) < 1:
+                break
+
+            words = line.split()
+            if len(words) > 2 and words[0] == 'INSERT' and words[1] == 'INTO':
+                ix = line.index('VALUES (') + 8
+                rows = line[ix:-3].split('),(')
+                for row in rows:
+                    cols = row[1:-1].split("','")
+                    if cols[0] not in gvar['csv2_configuration_values'][hostname]:
+                        gvar['csv2_configuration_values'][hostname][cols[0]] = {}
+                    
+                    gvar['csv2_configuration_values'][hostname][cols[0]][cols[1]] = {'type': cols[2], 'value': cols[3]}
+
+                break
+        fd.close()
+
+#       for category in gvar['csv2_configuration_values'][hostname]:
+#           for key in gvar['csv2_configuration_values'][hostname][category]:
+#               print(category, key, gvar['csv2_configuration_values'][hostname][category][key]['type'], gvar['csv2_configuration_values'][hostname][category][key]['value'])
+
+def map_table_structure(gvar, fqdn, table):
+    hostname = fqdn.split('.')[0]
+    if hostname not in gvar['tables']:
+        gvar['tables'][hostname] = {}
+
+    table_path = '%s/%s/%s' % (gvar['backup_dir'], fqdn, table) 
+
+    gvar['tables'][hostname][table] = {'cola': {}, 'cols': [], 'xref': {}}
+    if os.path.isfile(table_path):
+        fd = open(table_path)
+        create_table = False
+        while True:
+            line = fd.readline()
+            if len(line) < 1:
+                break
+
+            words = line.replace('NOT NULL', 'NOT_NULL').replace(';', ' ;').replace('(', ' ').replace(')', ' ').split()
+
+            if len(words) > 2 and words[0] == 'CREATE' and words[1] == 'TABLE':
+                create_table = True
+                continue
+
+            if create_table and len(words) > 0 and words[0][0] == '`':
+                col = words[0][1:-1]
+                gvar['tables'][hostname][table]['xref'][col] = len(gvar['tables'][hostname][table]['cols'])
+                gvar['tables'][hostname][table]['cols'].append([col] + words[1:])
+                continue
+
+            if create_table and len(words) > 0 and words[-1] == ';':
+                break
+        fd.close()
+    else:
+        gvar['tables'][hostname][table] = {}
+
+def redefine_table(gvar, table):
+    my_hostname = gvar['my_fqdn'].split('.')[0]
+    model_hostname = gvar['model_fqdn'].split('.')[0]
+
+    if table in gvar['table_config']['global']:
+        new_table = table
+    elif 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore':
+        return
+    elif 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'add':
+        new_table = table
+    elif 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'rename':
+        new_table = gvar['tables'][my_hostname][table]['action'][1]
+    elif len(gvar['tables'][my_hostname][table]['differences']) > 0:
+        new_table = table
+    else:
+        return
+
+    if gvar['run_mode'] == 'live':
+        print("   Redefining table: %s (%s)" % (new_table, table))
+    else:
+        print("   TEST MODE, skip redefining table: %s (%s)" % (new_table, table))
+
+if __name__ == "__main__":
+    main(sys.argv)

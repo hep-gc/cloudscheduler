@@ -51,10 +51,10 @@ def read_file_type_pairs(file_type_pair):
             name = http_loc
         except requests.exceptions.HTTPError as ex:
             log.exception("Unable to read url: %s: %s", http_loc, ex)
-            return (None, None)
+            return (None, None, None)
         except requests.exceptions.RequestException as ex:
             log.exception("Unable to read url: %s: %s", http_loc, ex)
-            return (None, None)
+            return (None, None, None)
     else:
         try:
             (filename, format_type) = file_type_pair.split(":", 1)
@@ -65,12 +65,12 @@ def read_file_type_pairs(file_type_pair):
             format_type = "cloud-config"
         if not os.path.exists(filename):
             log.debug("Unable to find file: %s skipping", filename)
-            return (None, None)
+            return (None, None, None)
         with open(filename) as file_handle:
             content = file_handle.read()
         name = filename
     if content is None:
-        return (None, None)
+        return (None, None, None)
 
     return (name, content, format_type)
 

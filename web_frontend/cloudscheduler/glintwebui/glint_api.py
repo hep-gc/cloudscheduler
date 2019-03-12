@@ -19,7 +19,7 @@ periodic tasks in celery.py
 '''
 
 class repo_connector(object):
-    def __init__(self, auth_url, project, username, password, user_domain_name="Default", project_domain_name="Default", alias=None):
+    def __init__(self, auth_url, project, username, password, user_domain_name="Default", project_domain_name="Default", alias=None, region=None):
         self.auth_url = auth_url
         self.alias = alias
         authsplit = self.auth_url.split('/')
@@ -32,6 +32,7 @@ class repo_connector(object):
         self.token = None
         self.keystone = None
         self.cacert = config.cert_auth_bundle_path
+        self.region = region
         self.sess = self._get_keystone_session()
         self.image_list = self._get_images()
 
@@ -67,7 +68,7 @@ class repo_connector(object):
 
     def _get_images(self):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
         except Exception as exc:
             logger.warning("unable to create glance client")
             logger.warning(exc)
@@ -97,7 +98,7 @@ class repo_connector(object):
 
     def create_placeholder_image(self, image_name, disk_format, container_format):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
             image = glance.images.create(
                 name=image_name,
                 disk_format=disk_format,
@@ -114,7 +115,7 @@ class repo_connector(object):
         if image_id is not None:
             #this is the 2nd part of a transfer not a direct upload
             try:
-                glance = glanceclient.Client('2', session=self.sess)
+                glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
             except Exception as exc:
                 logging.error("Unable to create glance object:")
                 logging.error(exc)
@@ -126,7 +127,7 @@ class repo_connector(object):
         else:
             #this is a straight upload not part of a transfer
             try:
-                glance = glanceclient.Client('2', session=self.sess)
+                glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
             except Exception as exc:
                 logging.error("Unable to create glance object:")
                 logging.error(exc)
@@ -143,7 +144,7 @@ class repo_connector(object):
     # Download an image from the repo, returns True if successful or False if not
     def download_image(self, image_name, image_id, scratch_dir):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
         except Exception as exc:
             logging.error("Unable to create glance object:")
             logging.error(exc)
@@ -162,7 +163,7 @@ class repo_connector(object):
 
     def delete_image(self, image_id):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
             glance.images.delete(image_id)
         except Exception:
             logger.error("Unknown error, unable to delete image")
@@ -170,15 +171,15 @@ class repo_connector(object):
         return True
 
     def update_image_name(self, image_id, image_name):
-        glance = glanceclient.Client('2', session=self.sess)
+        glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
         glance.images.update(image_id, name=image_name)
 
     def get_checksum(self, image_id):
-        glance = glanceclient.Client('2', session=self.sess)
+        glance = glanceclient.Client('2', region_name=self.region, session=self.sess)
         image = glance.images.get(image_id)
         return image['checksum']
 
-def validate_repo(auth_url, username, password, tenant_name, user_domain_name="Default", project_domain_name="Default"):
+def validate_repo(auth_url, username, password, tenant_name, user_domain_name="Default", project_domain_name="Default", region=None):
     try:
         repo = repo_connector(
             auth_url=auth_url,
@@ -186,7 +187,8 @@ def validate_repo(auth_url, username, password, tenant_name, user_domain_name="D
             username=username,
             password=password,
             user_domain_name=user_domain_name,
-            project_domain_name=project_domain_name)
+            project_domain_name=project_domain_name,
+            region=region)
 
     except exceptions.connection.ConnectFailure as exc:
         logger.error("Repo not valid: %s: %s", tenant_name, auth_url)
