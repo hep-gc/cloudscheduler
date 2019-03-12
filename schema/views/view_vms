@@ -20,39 +20,31 @@ select
     disk + ephemeral_disk as disk,
     ram,
     swap,
-    case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))!=substring_index(cv.hostname, '--', 2) then
-        'foreign'
+    case when cv.manual_control = 1 then
+        'manual'
     else
-        case when cv.manual_control = 1 then
-            'manual'
+        case when cv.retire > 0 then
+            'retiring'
         else
-            case when cv.status = 'ERROR' then
-                'error'
+            case when cv.status = 'BUILD' then
+                'starting'
             else
-                case when cv.power_status = 1 and cv.retire != 0 then
-                    'retiring'
+                case when cv.status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                    'unregistered'
                 else
-                    case when cv.status = 'BUILD' then
-                        'starting'
+                    case when cv.status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                        'idle'
                     else
-                        case when cv.power_status = 1 and cv.status = 'ACTIVE' and cm.condor_slots is null then
-                            'unregistered'
+                        case when cv.status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                            'running'
                         else
-                            case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cm.condor_slots_used,0) < 1 then
-                                'idle'
-                            else
-                                case when cv.power_status = 1 and cv.status = 'ACTIVE' and ifnull(cm.condor_slots_used,0) > 0 then
-                                    'running'
-                                else
-                                    'other'
-                                end
-                            end
+                            'error'
                         end
                     end
                 end
             end
         end
-    end as 'poller_status',
+    end as poller_status,
     case when htcondor_partitionable_slots is null then
         unix_timestamp()-cv.last_updated
     else
