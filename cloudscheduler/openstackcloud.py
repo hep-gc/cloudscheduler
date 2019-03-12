@@ -54,7 +54,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         if not self.session:
             raise Exception
 
-        self.default_security_groups = resource.default_security_groups.split(',')
+        self.default_security_groups = resource.default_security_groups.split(',') if resource.default_security_groups else ['default']
         self.default_image = resource.default_image
         self.default_flavor = resource.default_flavor
         self.default_network = resource.default_network
