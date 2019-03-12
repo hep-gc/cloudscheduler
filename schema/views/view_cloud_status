@@ -60,39 +60,55 @@ from (
     from (
         /* n03 - Retrieve all (native) VMs with condor slot information */
         select
-            group_name,
-            cloud_name,
-            0 as VMs,
-            0 as cores_native,
-            0 as ram_native,
-            0 as VMs_manual,
-            0 as VMs_in_error,
-            0 as VMs_starting,
-            0 as VMs_retiring,
-            0 as VMs_unregistered,
-            0 as VMs_idle,
-            0 as VMs_running,
-            0 as slot_count,
-            0 as slot_core_count,
-            0 as slot_idle_core_count
-        from csv2_clouds as cc   
-        union all select
             cv.group_name,
             cv.cloud_name,
-            count(1) as VMs,
+            sum(cv.VMs) as VMs,
             sum(cf.cores) as cores_native,
             sum(cf.ram) as ram_native,
-            sum(case when cv.manual_control=1 then 1 else 0 end) as VMs_manual,
-            sum(case when cv.manual_control=0 and cv.status='BUILD' then 1 else 0 end) as VMs_starting,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire>1 then 1 else 0 end) as VMs_retiring,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<2 and ifnull(slot_count,0)<1 then 1 else 0 end) as VMs_unregistered,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<2 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)<1 then 1 else 0 end) as VMs_idle,
-            sum(case when cv.manual_control=0 and cv.status='ACTIVE' and cv.retire<2 and ifnull(slot_count,0)>0 and ifnull(slot_core_count,0)>0 then 1 else 0 end) as VMs_running,
-            sum(case when cv.manual_control=0 and cv.status!='BUILD' and cv.status!='ACTIVE' then 1 else 0 end) as VMs_in_error,
+
+            sum(case when cv.poller_status='manual'       then 1 else 0 end) as VMs_manual,
+            sum(case when cv.poller_status='retiring'     then 1 else 0 end) as VMs_retiring,
+            sum(case when cv.poller_status='starting'     then 1 else 0 end) as VMs_starting,
+            sum(case when cv.poller_status='unregistered' then 1 else 0 end) as VMs_unregistered,
+            sum(case when cv.poller_status='idle'         then 1 else 0 end) as VMs_idle,
+            sum(case when cv.poller_status='running'      then 1 else 0 end) as VMs_running,
+            sum(case when cv.poller_status='error'        then 1 else 0 end) as VMs_in_error,
+            
+
             sum(slot_count) as slot_count,
             sum(slot_core_count) as slot_core_count,
             sum(slot_idle_core_count) as slot_idle_core_count
-        from csv2_vms as cv
+        from (
+            select
+                *,
+                1 as VMs,
+                case when manual_control = 1 then
+                    'manual'
+                else
+                    case when retire > 0 then
+                        'retiring'
+                    else
+                        case when status = 'BUILD' then
+                            'starting'
+                        else
+                            case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                                'unregistered'
+                            else
+                                case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                                    'idle'
+                                else
+                                    case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                        'running'
+                                    else
+                                        'error'
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end as poller_status
+            from csv2_vms
+        ) as cv
         left outer join cloud_flavors as cf on
             cv.group_name=cf.group_name and
             cv.cloud_name=cf.cloud_name and
@@ -117,8 +133,9 @@ from (
             cv.cloud_name=n04.cloud_name and
             cv.hostname=n04.hostname
         group by
-            group_name,
-            cloud_name
+            cv.group_name,
+            cv.cloud_name,
+            cv.poller_status
         ) as n03 
     group by
         n03.group_name,
