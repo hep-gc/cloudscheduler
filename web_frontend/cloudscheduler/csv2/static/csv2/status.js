@@ -336,10 +336,12 @@ function checkForPlottedTraces(){
 	if (typeof (Storage) !== "undefined"){
 		if(sessionStorage.length != 0){
 			var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
-			for(var x = 0; x < plotted_traces.length; x++){
+			if(plotted_traces != null){
+                        for(var x = 0; x < plotted_traces.length; x++){
 				var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
 				stat[0].classList.toggle("plotted");
 			}
+                        }
 		}
 	}
 }
