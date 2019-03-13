@@ -1088,10 +1088,16 @@ def status(request, group_name=None):
     if active_user.flag_global_status:
         s = select([view_cloud_status])
         cloud_status_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = select([view_condor_jobs_group_defaults_applied])
+        job_cores_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
     else:
         s = select([view_cloud_status]).where(view_cloud_status.c.group_name == active_user.active_group)
         cloud_status_list = qt(config.db_connection.execute(s))
 
+        s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
+        job_cores_list = qt(config.db_connection.execute(s))
     
     #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
     # calculate the totals for all rows
@@ -1171,6 +1177,23 @@ def status(request, group_name=None):
         cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
         n=n+1
     '''
+
+    job_cores_list_totals = qt(job_cores_list, keys={
+        'primary': [
+            'group_name',
+            'request_cpus'
+        ],
+        'sum': [
+            'js_idle',
+            'js_running',
+            'js_completed',
+            'js_held',
+            'js_other'
+            ]
+        })
+
+    job_totals_list = job_cores_list_totals
+
 
     # get slot type counts
     if active_user.flag_global_status:
@@ -1285,6 +1308,7 @@ def status(request, group_name=None):
             'cloud_total_list': cloud_total_list,
             'global_total_list': global_total_list,
             'job_status_list': job_status_list,
+            'job_totals_list': job_totals_list,
             'system_list' : system_list,
             'slot_list' : slot_list,
             'slot_total_list': slot_total_list,

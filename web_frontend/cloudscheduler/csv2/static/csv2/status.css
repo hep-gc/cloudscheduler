@@ -223,6 +223,10 @@
 /*                    expanding row styling                      */
 /*****************************************************************/
 
+.job-extra-row{
+  width: 100%;
+}
+
 td a {
     display:block;
     width:100%;
@@ -274,7 +278,7 @@ td a {
   color: black;
 }
 
-input.toggle-box:checked ~ table tr.extra-row {
+input.toggle-box:checked ~ .status-table table tr.extra-row {
   display: table-row;
 }
 

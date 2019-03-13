@@ -29,9 +29,12 @@ else if (refresh_interval < 1) stop_refresh;
             if(document.getElementById('toggle-row').checked == true) checked = true;
             sessionStorage.setItem("extra-row", JSON.stringify(checked));
 			refresh_plot();
+            var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+           
 			fetch(location.href,{	
 				method: 'GET',
-				headers: {'Accept': 'text/html'},
+				headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
+                credentials: 'same-origin',
 			})	
 			.then(function(response){
 				/* Check response status code*/
@@ -135,34 +138,22 @@ else if (refresh_interval < 1) stop_refresh;
 
 
     <div class="status-div" id="status">
-    {% comment %}
-        {% set index = 0 %}
-        {% for group in user_groups %}
-        {% if index >= 0 %}
-    {% endcomment %}
+    
         <div>
-        {% comment %}
-            {% if global_flag %}
-                <div class="group-name">{{ group|upper }}</div>
-            {% else %}
-                {% for group in user_groups %}
-                    {% if group == active_group %}
-                            {% set index = forloop.counter0 %}
-                    {% endif%}
-                {% endfor %}
-            {% endif %}
-        {% endcomment %}
+        
       
+            <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
             
            
-
             <div class="status-table">
+
                  <div class="toggle-button">
                 <label for="toggle-row">
                     <span class="expand-symbol">&#x21a8;</span>
                     <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
                 </label>
                 </div>
+
                 <table>
                   <colgroup>
                     <col class="clear" span="1" />
@@ -224,6 +215,51 @@ else if (refresh_interval < 1) stop_refresh;
                                 {% endif %}
 
                             </tr>
+                            <tr class="extra-row">
+                                <td></td>
+                                <td></td>
+                                <td colspan="5">
+                                    <table class="job-extra-row">
+                                        {% for job in job_totals_list %}
+                                            {% if job.group_name == cloud.group_name %}
+                                                <tr>
+                                                {% if job.js_idle != 0 %}
+                                                    <td>{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td>&nbsp;</td>
+                                                {% endif %}
+
+                                                {% if job.js_running != 0 %}
+                                                    <td>{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td>&nbsp;</td>
+                                                {% endif %}
+
+                                                {% if job.js_completed != 0 %}
+                                                    <td>{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td>&nbsp;</td>
+                                                {% endif %}
+
+                                                {% if job.js_held != 0 %}
+                                                    <td>{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td>&nbsp;</td>
+                                                {% endif %}
+
+                                                {% if job.js_other != 0 %}
+                                                    <td>{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
+                                                {% else %}
+                                                    <td>&nbsp;</td>
+                                                {% endif %}
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                                
+
+                            </tr>
                         {% endif %}
                     {% endfor %}
 
@@ -259,7 +295,7 @@ else if (refresh_interval < 1) stop_refresh;
             {% set VMstotal = 0 %}
             {% set VMs_foreign_total = 0 %}
             <div class="status-table">
-                <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
+                
                 <table>
                   <colgroup>
                     <col class="clear" span="1"/>
@@ -332,27 +368,12 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="native-style">Slots<br>Idle Cores</th>
                         -->
                     </tr>
-                    {% set prev_name == '' %}
+                    
                     {% for cloud in cloud_status_list %}
                         
                         {% if global_flag or not global_flag and cloud.group_name == active_group %}
                             {% if cloud.enabled == 1 or cloud.VMs > 0 %}
-                                {% comment %}
-                                    {% if not forloop.counter0 == 0 and not prev_name == cloud.group_name %}
-                                        <tr>
-                                            <td colspan="10" class="row-spacer">&nbsp;</td>
-                                            <td class="col-spacer">&nbsp;</td>
-                                            <td colspan="3" class="row-spacer">&nbsp;</td>
-                                            <td class="col-spacer">&nbsp;</td>
-                                            <td colspan="3" class="row-spacer">&nbsp;</td>
-                                            <td class="col-spacer">&nbsp;</td>
-                                            <td colspan="3" class="row-spacer">&nbsp;</td>
-                                            <td class="col-spacer">&nbsp;</td>
-                                            <td colspan="3" class="row-spacer">&nbsp;</td>
-                                        </tr>
-                                    {% endif %}
-                                    {% set prev_name = cloud.group_name %}
-                                {% endcomment %}
+                                
                                 <tr>
                                     <td class="group-name bold-style">{{cloud.group_name}}</td>
 
@@ -631,13 +652,14 @@ else if (refresh_interval < 1) stop_refresh;
                                         <table>
                                         
                                         {% for slot in slot_list %}
-                                            {% comment %}{% if slot.group_name == active_group and slot.cloud_name == cloud.cloud_name %}{% endcomment %}
+                                    
                                             {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
                                                 <tr>
                                                     <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                                 </tr>
                                             {% endif %}
+
                                         {% endfor %}
                                         </table>
                                     </td>
@@ -686,12 +708,7 @@ else if (refresh_interval < 1) stop_refresh;
                         {% set group_name = "groups_total" %}
                     {% endif %}
 
-                        {% comment %} 
-                            {% for group_total in total_list %}
-                                {% if group_total.group_name == active_group %}
-                                {% for group_total in cloud_total_list %}{% if global_flag or not global_flag and group_total.group_name == active_group %} 
-                                {% if group_total.group_name == active_group %}
-                        {% endcomment %}
+                        
                      <tr>
                         <td colspan="1" class="row-spacer">&nbsp;</td>
                         <td class="bold-style">Totals</td>
@@ -930,14 +947,14 @@ else if (refresh_interval < 1) stop_refresh;
                         <td colspan="2">
                             <table>
                             {% for slot in slot_total_list %}
-                                {% comment %}{% if slot.group_name == active_group and slot.cloud_name == group_total.cloud_name %}
-                                {% if slot.group_name == group_total.group_name and slot.cloud_name == group_total.cloud_name%}{% endif %}{% endcomment %}
+                            
                                 {% if slot %}
                                     <tr>
                                         <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                         <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                     </tr>
                                 {% endif %}
+                                
                             {% endfor %}
                             </table>
                         </td>
@@ -955,10 +972,7 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="col-spacer">&nbsp;</td>
                         <td colspan="3" class="row-spacer">&nbsp;</td>
                     </tr>
-                    {% comment %}
-                        {% endif %}
-                        {% endfor %}
-                    {% endcomment %}
+                    
                     </tbody> 
                 </table>
             </div>

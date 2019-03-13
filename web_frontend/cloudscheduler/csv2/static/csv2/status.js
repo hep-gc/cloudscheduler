@@ -137,20 +137,25 @@ function selectRange(range){
 
 /* Close the range dropdown menu*/
 window.onclick = function(event) {
-	if (!event.target.matches('.range-btn') && document.getElementsByClassName("dropdown-content")[0].classList.contains('show')) {
-		var dropdowns = document.getElementsByClassName("dropdown-content");
-		var k = false;
-		var i;
-		for (i = 0; i < dropdowns.length; i++) {
-			var openDropdown = dropdowns[i];
-			if (openDropdown.classList.contains('show')) {
-				openDropdown.classList.remove('show');
-				k = true;
-	      		}
-    		}
-		if(k == true){
-			document.getElementsByClassName("range-btn")[0].classList.remove("selected");
+	try{
+		if (!event.target.matches('.range-btn') && document.getElementsByClassName("dropdown-content")[0].classList.contains('show')) {
+			var dropdowns = document.getElementsByClassName("dropdown-content");
+			var k = false;
+			var i;
+			for (i = 0; i < dropdowns.length; i++) {
+				var openDropdown = dropdowns[i];
+				if (openDropdown.classList.contains('show')) {
+					openDropdown.classList.remove('show');
+					k = true;
+		      		}
+	    		}
+			if(k == true){
+				document.getElementsByClassName("range-btn")[0].classList.remove("selected");
+			}
 		}
+	}
+	catch{
+		return;
 	}
 }
 
@@ -494,10 +499,8 @@ function updateTraces(newdata, index){
 		var len = TSPlot.traces[k].x.length -1;
 		if(typeof(TSPlot.traces[k]) !== 'undefined'){
 			if(TSPlot.traces[k].x[len] < (newdata.x[k][0]-55000)){
-				console.log(newdata);
 				newdata.x[k].unshift(newdata.x[k][0] - 1000);
-				newdata.y[k].unshift(null);
-				console.log(newdata);
+				newdata.y[k].unshift(null);;
 			}
 		}
 	}
