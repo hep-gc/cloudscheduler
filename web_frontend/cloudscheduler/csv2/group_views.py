@@ -368,8 +368,8 @@ def defaults(request, active_user=None, response_code=0, message=None):
             'response_code': rc,
             'message': message,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser 
-
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     config.db_close()
@@ -663,7 +663,8 @@ def list(request, active_user=None, response_code=0, message=None):
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser 
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
     config.db_close()
 
@@ -813,7 +814,8 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                     'response_code': response_code,
                     'message': message,
                     'enable_glint': config.enable_glint,
-                    'is_superuser': active_user.is_superuser
+                    'is_superuser': active_user.is_superuser,
+                    'version': config.get_version()
                     }
 
                 config.db_close()
@@ -860,7 +862,8 @@ def metadata_list(request):
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     config.db_close()
@@ -898,7 +901,8 @@ def metadata_new(request):
         'response_code': 0,
         'message': "new-group-metadata",
         'enable_glint': config.enable_glint,
-        'is_superuser': active_user.is_superuser
+        'is_superuser': active_user.is_superuser,
+        'version': config.get_version()
         }
 
     config.db_close()
