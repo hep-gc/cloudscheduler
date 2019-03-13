@@ -240,7 +240,9 @@ def job_poller():
                         logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
                         foreign_jobs = foreign_jobs+1
                         held_jobs = held_jobs + 1
-                        held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
+                        #check if job is already held
+                        if job_dict["JobStatus"] != 5:
+                            held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidgrp" not in job_errors:
                             job_errors["invalidgrp"] = 1
                         else:
@@ -254,7 +256,8 @@ def job_poller():
                         logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
                         foreign_jobs = foreign_jobs+1
                         held_jobs = held_jobs + 1
-                        held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
+                        if job_dict["JobStatus"] != 5:
+                            held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
                         else:
@@ -292,7 +295,7 @@ def job_poller():
 
                 if held_jobs > 0:
                     #hold all the jobs
-                    logging.info("Attempting to hold %s jobs due to invalid user or group specifications." % held_jobs)
+                    logging.info("%s jobs held or to be held due to invalid user or group specifications." % held_jobs)
                     logging.debug("Holding: %s" % held_job_ids)
                     hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
                     logging.debug("Hold result: %s" % hold_result)
