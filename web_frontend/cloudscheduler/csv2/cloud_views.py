@@ -607,8 +607,8 @@ def list(request, active_user=None, response_code=0, message=None):
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser 
-
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     config.db_close()
