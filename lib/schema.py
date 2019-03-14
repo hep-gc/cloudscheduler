@@ -2,6 +2,19 @@ if 'Table' not in locals() and 'Table' not in globals():
   from sqlalchemy import Table, Column, Float, Integer, String, MetaData, ForeignKey
   metadata = MetaData()
 
+TEST = Table('TEST', metadata,
+  Column('a1', String),
+  Column('a2', String),
+  Column('a3', String),
+  Column('a4', String),
+  Column('a5', String(16)),
+  Column('a6', String(16)),
+  Column('a7', Integer),
+  Column('a8', Integer),
+  Column('a9', Float),
+  Column('a10', Float)
+  )
+
 archived_condor_jobs = Table('archived_condor_jobs', metadata,
   Column('global_job_id', String(128), primary_key=True),
   Column('group_name', String(128)),
@@ -354,6 +367,12 @@ csv2_groups = Table('csv2_groups', metadata,
   Column('vm_keyname', String(64)),
   Column('vm_network', String(64)),
   Column('vm_security_groups', String(128))
+  )
+
+csv2_job_schedulers = Table('csv2_job_schedulers', metadata,
+  Column('htcondor_fqdn', String(128), primary_key=True),
+  Column('status', Integer),
+  Column('foreign_jobs', Integer)
   )
 
 csv2_mime_types = Table('csv2_mime_types', metadata,

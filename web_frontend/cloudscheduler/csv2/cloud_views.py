@@ -607,8 +607,8 @@ def list(request, active_user=None, response_code=0, message=None):
             'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser 
-
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     config.db_close()
@@ -739,8 +739,8 @@ def metadata_collation(request):
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser 
-
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     return render(request, 'csv2/cloud_metadata_list.html', context)
@@ -875,8 +875,8 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'response_code': response_code,
                     'message': message,
                     'enable_glint': config.enable_glint,
-                    'is_superuser': active_user.is_superuser 
-
+                    'is_superuser': active_user.is_superuser,
+                    'version': config.get_version()
                     }
 
                 config.db_close()
@@ -938,8 +938,8 @@ def metadata_list(request):
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser 
-
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     return render(request, 'csv2/metadata-list.html', context)
@@ -979,7 +979,8 @@ def metadata_new(request):
             'response_code': 0,
             'message': "new-cloud-metadata",
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
             }
 
         config.db_close()
@@ -1042,15 +1043,7 @@ def metadata_update(request):
             config.db_close(commit=True)
 
             message='cloud metadata file "%s::%s::%s" successfully  updated.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
-            '''
-            context = {
-                    'group_name': fields['group_name'],
-                    'cloud_name': fields['cloud_name'],
-                    'metadata': metadata,
-                    'response_code': 0,
-                    'message': message,
-                }
-            '''
+
             #return render(request, 'csv2/meta_editor.html', context)
             return metadata_fetch(request, response_code=0, message=message, metadata_name=fields['metadata_name'], cloud_name=fields['cloud_name'])
         else:
@@ -1317,7 +1310,8 @@ def status(request, group_name=None):
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
-            'status_refresh_interval': active_user.status_refresh_interval
+            'status_refresh_interval': active_user.status_refresh_interval,
+            'version': config.get_version()
         }
 
     config.db_close()

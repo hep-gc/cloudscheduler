@@ -7,9 +7,9 @@
 {% load template_utils %}
 {% load static %}
 
-<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
 
 <script type="text/javascript">
 
@@ -56,10 +56,14 @@
         }
     }
 
+    function store_location(location){
+        sessionStorage.setItem("location", location);
+    }
+
 </script>
 
-<script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
-<script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
+<script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}?{{version}}"></script>
+<script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}?{{version}}"></script>
 
 </head>
 <body class="clouds-nav" onpageshow="get_message(); show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
