@@ -299,7 +299,7 @@ def job_poller():
                     logging.debug("Holding: %s" % held_job_ids)
                     hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
                     logging.debug("Hold result: %s" % hold_result)
-                    condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for hondor host %s, held by job poller"' % condor_host)
+                    condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
                 jsched = {
                     "htcondor_fqdn": condor_host,
                     "status":        1,
