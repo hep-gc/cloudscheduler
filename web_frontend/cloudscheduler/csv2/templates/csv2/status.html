@@ -8,8 +8,8 @@
 {% load mathfilters %}
 {% csrf_token %}
 <input type='hidden' name='refresh_interval' value={{status_refresh_interval}} />
-<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
 <!--<meta id="refresher" http-equiv="refresh" content="30">-->
 <script type="text/javascript">
@@ -1107,10 +1107,10 @@ else if (refresh_interval < 1) stop_refresh;
 </div>
 
 <!-- Plotly.js -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script rel="preload" type="text/javascript" src="{% static "plotly.js/dist/plotly.min.js" %}?{{version}}"></script>
 
 
-<script type="text/javascript" src="{% static "csv2/status.js" %}"></script>
+<script type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
 <script type="text/javascript">
 	/*Add event listeners once page loads*/
 	initialize();

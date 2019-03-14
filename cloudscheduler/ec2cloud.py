@@ -1,7 +1,7 @@
 """
 EC2 API Cloud Connector Module. Using Boto
 """
-
+import time
 import boto3
 import botocore
 from sqlalchemy import create_engine
@@ -52,15 +52,14 @@ class EC2Cloud(basecloud):
         client = self._get_client()
         new_vm = client.run_instances(ImageId=job.image, MinCount=1, MaxCount=num, InstanceType=flavor,
                                       UserData=userdata, KeyName=self.keyname, SecurityGroups=job.security_groups)
-        if new_vm:
-            # need to deal with how multiple requests are handled in the return
+        if 'Instances' in new_vm.keys():
             engine = self._get_db_engine()
             base = automap_base()
             base.prepare(engine, reflect=True)
             db_session = Session(engine)
             vms = base.classes.csv2_vms
 
-            for vm in new_vm:
+            for vm in new_vm['Instances']:
                 self.log.debug(vm)
 
                 vm_dict = {
@@ -68,12 +67,10 @@ class EC2Cloud(basecloud):
                     'cloud_name': self.name,
                     'auth_url': self.authurl,
                     'project': self.project,
-                    'hostname': vm.name,
-                    'vmid': vm.id,
-                    'status': vm.status,
-                    'flavor_id': vm.flavor["id"],
-                    'task': vm.__dict__.get("OS-EXT-STS:task_state"),
-                    'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
+                    'hostname': vm['PublicDnsName'],
+                    'vmid': vm['InstanceId'],
+                    'status': vm['State']['Name'],
+                    'flavor_id': vm['InstanceType'],
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time()),

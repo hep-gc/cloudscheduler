@@ -1,12 +1,12 @@
 
 <head>
     {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}">
-    <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
     <title>{{ metadata_name }}</title>
 
-    <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}"></script>
-    <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}"></script>
+    <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}?{{version}}"></script>
+    <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}?{{version}}"></script>
 
 </head>
 

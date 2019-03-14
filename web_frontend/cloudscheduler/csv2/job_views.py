@@ -103,7 +103,8 @@ def list(request):
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
-            'is_superuser': active_user.is_superuser
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
         }
 
     return render(request, 'csv2/jobs.html', context)

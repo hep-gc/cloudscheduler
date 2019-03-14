@@ -69,6 +69,7 @@ def job_poller():
     CLOUDS = config.db_map.classes.csv2_clouds
     GROUPS = config.db_map.classes.csv2_groups
     USERS = config.db_map.classes.csv2_user_groups
+    JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
@@ -147,6 +148,14 @@ def job_poller():
                                     fail_count = failure_dict[group.group_name]
                     logging.error("Failed to locate condor daemon, skipping: %s" % condor_host)
                     logging.debug(exc)
+                    jsched = {
+                        "htcondor_fqdn": condor_host,
+                        "status":        0
+                    }
+                    new_jsched = JOB_SCHED(**jsched)
+                    db_session.merge(new_jsched)
+                    uncommitted_updates += 1
+
                     if fail_count > 3:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
@@ -231,7 +240,9 @@ def job_poller():
                         logging.debug("%s is not a valid group for %s, ignoring foreign job." % (job_dict['group_name'], condor_host))
                         foreign_jobs = foreign_jobs+1
                         held_jobs = held_jobs + 1
-                        held_job_ids.append(job_dict["ClusterId"] +"."+ job_dict["ProcId"])
+                        #check if job is already held
+                        if job_dict["JobStatus"] != 5:
+                            held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidgrp" not in job_errors:
                             job_errors["invalidgrp"] = 1
                         else:
@@ -244,6 +255,9 @@ def job_poller():
                         # this user isn''t registered with this group and thus cannot submit jobs to it
                         logging.debug("User '%s' is not registered to submit jobs to %s, excluding as foreign job." % (job_dict['Owner'], job_dict['group_name']))
                         foreign_jobs = foreign_jobs+1
+                        held_jobs = held_jobs + 1
+                        if job_dict["JobStatus"] != 5:
+                            held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
                         else:
@@ -281,8 +295,19 @@ def job_poller():
 
                 if held_jobs > 0:
                     #hold all the jobs
-                    condor_session.act(htcondor.JobAction.Hold, held_job_ids)
-                    condor_session.edit(held_job_ids, "HeldReason", '"Invalid user or group name for hondor host %s, held by job poller"' % condor_host)
+                    logging.info("%s jobs held or to be held due to invalid user or group specifications." % held_jobs)
+                    logging.debug("Holding: %s" % held_job_ids)
+                    hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
+                    logging.debug("Hold result: %s" % hold_result)
+                    condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
+                jsched = {
+                    "htcondor_fqdn": condor_host,
+                    "status":        1,
+                    "foreign_jobs":  held_jobs
+                }
+                new_jsched = JOB_SCHED(**jsched)
+                db_session.merge(new_jsched)
+                uncommitted_updates += 1
 
                         
                 if foreign_jobs > 0:
