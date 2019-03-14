@@ -1110,7 +1110,7 @@ else if (refresh_interval < 1) stop_refresh;
 </div>
 
 <!-- Plotly.js -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"?{{version}}></script>
+<script rel="preload" type="text/javascript" src="{% static "plotly.js/dist/plotly.min.js" %}?{{version}}"></script>
 
 
 <script type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
