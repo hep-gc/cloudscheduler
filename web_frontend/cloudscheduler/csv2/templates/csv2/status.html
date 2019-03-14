@@ -25,13 +25,15 @@ else if (refresh_interval < 1) stop_refresh;
 	function set_refresh(time) {
 		TimerSwitch = 1;
 		timer_id = setTimeout(function() {
-            var checked = false;
-            if(document.getElementById('toggle-row').checked == true) checked = true;
-            sessionStorage.setItem("extra-row", JSON.stringify(checked));
-			refresh_plot();
+			var checked = false;
+                        if(document.getElementById('toggle-row').checked == true) checked = true;
+                        sessionStorage.setItem("extra-row", JSON.stringify(checked));
+                        refresh_plot();
+                        const csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 			fetch(location.href,{	
 				method: 'GET',
-				headers: {'Accept': 'text/html'},
+				headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
+                                credentials: 'same-origin'
 			})	
 			.then(function(response){
 				/* Check response status code*/
@@ -55,8 +57,8 @@ else if (refresh_interval < 1) stop_refresh;
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
 			});
-			
 		},time);
+
 		document.getElementById('vms-iframe').src='';
 	}
 

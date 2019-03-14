@@ -417,6 +417,7 @@ function checkForExpandedRow() {
 			if(expanded_row == true){
 				document.getElementById('toggle-row').click();
 			}
+                        }
 		}
 	}
 }
