@@ -226,31 +226,36 @@ else if (refresh_interval < 1) stop_refresh;
                                                 {% if job.js_idle != 0 %}
                                                     <td>{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td>&nbsp;</td>
+                                                    <td>&nbsp;</td> 
+                                                    <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
                                                 {% endif %}
 
                                                 {% if job.js_running != 0 %}
                                                     <td>{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
                                                     <td>&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_completed != 0 %}
                                                     <td>{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
                                                     <td>&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_held != 0 %}
                                                     <td>{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
                                                     <td>&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_other != 0 %}
                                                     <td>{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
                                                     <td>&nbsp;</td>
+                                                    <!-- <td class="zero-style">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
                                                 </tr>
                                             {% endif %}

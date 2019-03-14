@@ -416,18 +416,6 @@ function checkForPlottedTraces(){
 }
 
 function checkForExpandedRow() {
-	if (typeof (Storage) !== "undefined"){
-		if(sessionStorage.length != 0){
-			var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
-			if(expanded_row == true){
-				document.getElementById('toggle-row').click();
-			}
-                        }
-		}
-	}
-}
-
-function checkForExpandedRow() {
         if (typeof (Storage) !== "undefined"){
                 if(sessionStorage.length != 0){
                         var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
