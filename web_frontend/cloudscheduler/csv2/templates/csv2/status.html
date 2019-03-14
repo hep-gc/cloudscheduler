@@ -58,8 +58,8 @@ else if (refresh_interval < 1) stop_refresh;
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
 			});
-			
 		},time);
+
 		document.getElementById('vms-iframe').src='';
 	}
 
@@ -652,10 +652,10 @@ else if (refresh_interval < 1) stop_refresh;
                                         <table>
                                         
                                         {% for slot in slot_list %}
-                                    
+
                                             {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
-                                                <tr>
-                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                            <tr data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}cores">
+                                                    <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                                 </tr>
                                             {% endif %}
@@ -946,11 +946,12 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <td colspan="2">
                             <table>
+
                             {% for slot in slot_total_list %}
                             
                                 {% if slot %}
-                                    <tr>
-                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                <tr>
+                                        <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                         <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                     </tr>
                                 {% endif %}

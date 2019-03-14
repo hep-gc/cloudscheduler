@@ -239,6 +239,9 @@ if report_destination == 'replay':
                 cmd['report'] = []
 
         if cmd:
+            if 'report' not in cmd:
+                cmd['report'] = []
+
             cmd['report'].append(line)
             if cmd['type'] == 'SQL' or len(cmd['report']) > 1:
                 fd.write('%s\n' % cmd['report'][-1])
