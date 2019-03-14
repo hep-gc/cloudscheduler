@@ -45,11 +45,7 @@ select
             end
         end
     end as poller_status,
-    case when htcondor_partitionable_slots is null then
-        unix_timestamp()-cv.last_updated
-    else
-        unix_timestamp()-ifnull(htcondor_slots_timestamp,unix_timestamp())
-    end as age
+    unix_timestamp()-ifnull(htcondor_slots_timestamp,cv.start_time) as age
 from csv2_vms as cv
 left outer join cloud_flavors as cf on
     cv.group_name=cf.group_name and
