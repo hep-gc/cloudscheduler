@@ -1,7 +1,6 @@
 /*
 ** List group/cloud/flavors in flavor priority order and for each group/cloud/flavor
 ** combination show the number of VMs up and down.
-create or replace view view_t9 as
 */
 create or replace view view_available_resources as
 /* fwdac - flavors with defaults and counts */
@@ -126,22 +125,22 @@ from (
 
             case when ifnull(cores_ctl,-1)!=-1 then
                 case when ifnull(cores_softmax,-1)!=-1 then
-                    least(cores_ctl, cores_softmax, cores_max)
+                    least(cores_ctl, cores_softmax-cores_foreign, cores_max-cores_foreign)
                 else
-                    least(cores_ctl, cores_max)
+                    least(cores_ctl, cores_max-cores_foreign)
                 end
             else
                 case when ifnull(cores_softmax,-1)!=-1 then
-                    least(cores_softmax, cores_max)
+                    least(cores_softmax-cores_foreign, cores_max-cores_foreign)
                 else
-                    cores_max
+                    cores_max-cores_foreign
                 end
             end as cores_max,
 
             case when ifnull(ram_ctl,-1)!=-1 then
-                least(ram_ctl, ram_max)
+                least(ram_ctl, ram_max-ram_foreign)
             else
-                ram_max
+                ram_max-ram_foreign
             end as ram_max
 
         from csv2_clouds as cc
@@ -150,6 +149,25 @@ from (
         left outer join cloud_limits as cl on
             cc.group_name=cl.group_name and
             cc.cloud_name=cl.cloud_name
+        left outer join (
+            /* fvm - Foreign VM counts */
+            select
+                cvf.group_name,
+                cvf.cloud_name,
+                sum(cvf.count) as Foreign_VMs,
+                sum(cvf.count*cf.cores) as cores_foreign,
+                sum(cvf.count*cf.ram) as ram_foreign
+            from csv2_vms_foreign as cvf
+            left outer join cloud_flavors as cf on
+                cvf.group_name=cf.group_name and
+                cvf.cloud_name=cf.cloud_name and
+                cvf.flavor_id=cf.id
+            group by
+                cvf.group_name,
+                cvf.cloud_name
+            ) as fvm on
+            cc.group_name=fvm.group_name and
+            cc.cloud_name=fvm.cloud_name
         where enabled=1
         ) as cwd
     join cloud_flavors as cf1 on
