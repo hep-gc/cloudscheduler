@@ -509,12 +509,70 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
-kill_retire_priority_list = Table('kill_retire_priority_list', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('vmid', String(128)),
-  Column('machine', String(256)),
-  Column('priority', Integer)
+ec2_regions = Table('ec2_regions', metadata,
+  Column('region', String(64), primary_key=True),
+  Column('location', String(64)),
+  Column('endpoint', String(128))
+  )
+
+silk_profile = Table('silk_profile', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('name', String(300)),
+  Column('start_time', Integer),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('file_path', String(300)),
+  Column('line_num', Integer),
+  Column('end_line_num', Integer),
+  Column('func_name', String(300)),
+  Column('exception_raised', Integer),
+  Column('dynamic', Integer),
+  Column('request_id', String(36))
+  )
+
+silk_profile_queries = Table('silk_profile_queries', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('profile_id', Integer),
+  Column('sqlquery_id', Integer)
+  )
+
+silk_request = Table('silk_request', metadata,
+  Column('id', String(36), primary_key=True),
+  Column('path', String(190)),
+  Column('query_params', String),
+  Column('raw_body', String),
+  Column('body', String),
+  Column('method', String(10)),
+  Column('start_time', Integer),
+  Column('view_name', String(190)),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('encoded_headers', String),
+  Column('meta_time', Float),
+  Column('meta_num_queries', Integer),
+  Column('meta_time_spent_queries', Float),
+  Column('pyprofile', String),
+  Column('num_sql_queries', Integer),
+  Column('prof_file', String(300))
+  )
+
+silk_response = Table('silk_response', metadata,
+  Column('id', String(36), primary_key=True),
+  Column('status_code', Integer),
+  Column('raw_body', String),
+  Column('body', String),
+  Column('encoded_headers', String),
+  Column('request_id', String(36))
+  )
+
+silk_sqlquery = Table('silk_sqlquery', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('query', String),
+  Column('start_time', Integer),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('traceback', String),
+  Column('request_id', String(36))
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -792,7 +850,8 @@ view_condor_host = Table('view_condor_host', metadata,
   Column('retire', Integer),
   Column('retiring', Integer),
   Column('terminate', Integer),
-  Column('machine', String(256))
+  Column('machine', String(256)),
+  Column('updater', String(128))
   )
 
 view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults_applied', metadata,
@@ -886,6 +945,7 @@ view_idle_vms = Table('view_idle_vms', metadata,
   Column('cloud_name', String(32)),
   Column('come_alive', String(128)),
   Column('job_alive', String(128)),
+  Column('error_delay', String(128)),
   Column('keep_alive', Integer),
   Column('vmid', String(128)),
   Column('hostname', String(128)),
@@ -893,6 +953,7 @@ view_idle_vms = Table('view_idle_vms', metadata,
   Column('dynamic_slots', Integer),
   Column('retire', Integer),
   Column('terminate', Integer),
+  Column('poller_status', String(12)),
   Column('age', Integer)
   )
 
@@ -903,7 +964,10 @@ view_job_status = Table('view_job_status', metadata,
   Column('Running', Integer),
   Column('Completed', Integer),
   Column('Held', Integer),
-  Column('Other', Integer)
+  Column('Other', Integer),
+  Column('foreign', Integer),
+  Column('htcondor_status', Integer),
+  Column('htcondor_fqdn', String(128))
   )
 
 view_metadata_collation = Table('view_metadata_collation', metadata,
@@ -964,10 +1028,13 @@ view_vm_kill_retire_priority_idle = Table('view_vm_kill_retire_priority_idle', m
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
+  Column('flavor_id', String(128)),
   Column('machine', String(256)),
   Column('killed', Integer),
   Column('retired', Integer),
-  Column('priority', Integer)
+  Column('priority', Integer),
+  Column('flavor_cores', Integer),
+  Column('flavor_ram', Integer)
   )
 
 view_vms = Table('view_vms', metadata,
