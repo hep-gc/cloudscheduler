@@ -1,0 +1,112 @@
+create or replace view view_vm_kill_retire_over_quota as
+select 
+    group_name,
+    cloud_name,
+    greatest(0,least(cores_ctl,cores_softmax-cores_foreign,cores_max-cores_foreign)) as cores,
+    cores_ctl,
+    cores_softmax,
+    cores_max,
+    cores_native,
+    cores_foreign,
+    greatest(0,least(ram_ctl,ram_max-ram_foreign)) as ram,
+    ram_ctl,
+    ram_max,
+    ram_native,
+    ram_foreign
+from (
+    select
+        group_name,
+        cloud_name,
+        cores_native,
+        disk_native,
+        ram_native,
+        swap_native,
+        cores_foreign,
+        disk_foreign,
+        ram_foreign,
+        swap_foreign,
+        case when cores_ctl=-1 then least(cores_softmax,cores_max) else cores_ctl end as cores_ctl,
+        cores_softmax,
+        cores_max,
+        case when ram_ctl=-1 then ram_max else ram_ctl end as ram_ctl,
+        ram_max
+    from (
+        select 
+            tvmr.group_name,
+            tvmr.cloud_name,
+            cores_native,
+            disk_native,
+            ram_native,
+            swap_native,
+            cores_foreign,
+            disk_foreign,
+            ram_foreign,
+            swap_foreign,
+            cores_ctl,
+            case when cores_softmax=-1 then cores_max else cores_softmax end as cores_softmax,
+            cores_max,
+            ram_ctl,
+            ram_max
+        from (
+            select
+                group_name,
+                cloud_name,
+                sum(cores_native) as cores_native,
+                sum(disk_native) as disk_native,
+                sum(ram_native) as ram_native,
+                sum(swap_native) as swap_native,
+                sum(cores_foreign) as cores_foreign,
+                sum(disk_foreign) as disk_foreign,
+                sum(ram_foreign) as ram_foreign,
+                sum(swap_foreign) as swap_foreign
+            from (
+                /* avmr - All VM resources */
+                select
+                    cv.group_name,
+                    cv.cloud_name,
+                    cf1.cores as cores_native,
+                    cf1.disk+cf1.ephemeral_disk as disk_native,
+                    cf1.ram as ram_native,
+                    cf1.swap as swap_native,
+                    0 as cores_foreign,
+                    0 as disk_foreign,
+                    0 as ram_foreign,
+                    0 as swap_foreign
+                from csv2_vms as cv
+                left outer join cloud_flavors as cf1 on 
+                    cv.group_name=cf1.group_name and
+                    cv.cloud_name=cf1.cloud_name and
+                    cv.flavor_id=cf1.id
+                union all select
+                    cvf.group_name,
+                    cvf.cloud_name,
+                    0 as cores_native,
+                    0 as disk_native,
+                    0 as ram_native,
+                    0 as swap_native,
+                    (cf2.cores*cvf.count) as cores_foreign,
+                    ((cf2.disk+cf2.ephemeral_disk)*cvf.count) as disk_foreign,
+                    (cf2.ram*cvf.count) as ram_foreign,
+                    (cf2.swap*cvf.count) as swap_foreign
+                from csv2_vms_foreign as cvf
+                left outer join cloud_flavors as cf2 on 
+                    cvf.group_name=cf2.group_name and
+                    cvf.cloud_name=cf2.cloud_name and
+                    cvf.flavor_id=cf2.id
+                ) as avmr
+            group by
+                group_name,
+                cloud_name
+            ) as tvmr
+        left outer join csv2_clouds as cc on
+            tvmr.group_name=cc.group_name and
+            tvmr.cloud_name=cc.cloud_name 
+        left outer join cloud_limits as cl on
+            tvmr.group_name=cl.group_name and
+            tvmr.cloud_name=cl.cloud_name 
+        ) as cs1
+    ) as cs2
+where
+    cores_native+cores_foreign>least(cores_softmax,cores_max) or
+    ram_native+ram_foreign>ram_max
+;
