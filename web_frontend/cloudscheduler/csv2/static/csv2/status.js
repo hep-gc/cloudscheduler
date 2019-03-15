@@ -15,11 +15,11 @@ function addEventListeners(className) {
 		for (i = 0; i < list_length; i++){
 			inputList[i].addEventListener('click', function(){
 				if(className == 'plottable'){
-					var list = document.querySelectorAll(`tr[data-path="${this.dataset.path}"]`);
+					var list = document.querySelectorAll(`td[data-path="${this.dataset.path}"]`);
 					for (k = 0; k < list.length; k++){
 						list[k].classList.toggle('plotted');
 					}
-					if(list.length == 0) this.classList.toggle("plotted");
+					if(!list) this.classList.toggle("plotted");
 					togglePlot(this);
 				}else selectRange(this);
 			});
@@ -188,7 +188,8 @@ function togglePlot(trace){
 			/* Plot new trace*/
 			getTraceData(trace, true);
 		}
-	}else{
+	}
+	else{
 		document.getElementById("loader").style.display = 'inline-block';		
 		/* Create plot*/
 		TSPlot.show();
@@ -197,21 +198,17 @@ function togglePlot(trace){
 }
 
 
-/* Construct query for db*/
+/* Construct query in Line Protocol for db*/
 function createQuery(trace, from, to, showing){
 	const line = trace.split(" ");
-	var query = `SELECT time,value FROM `;
+	var query = '';
 	var services = false;
-	/* If trace is for service status*/
-	if(line.length == 1){
-		services = true;
-		var measurement = line[0];
-		query += `"${measurement}"`;
-	}
-	const group = line[0];
+	var global_total = false;
+	var group = line[0];
 
 	/* If trace is for global group total*/
 	if (group == 'groups_total'){
+		global_total = true
 		var groups = [];
 		var l = document.getElementsByName(group);
 		var len = l.length
@@ -219,59 +216,47 @@ function createQuery(trace, from, to, showing){
 			groups.push(l[k].value);
 		}
 		var measurement = line[1];
-		var Query = `SELECT time,SUM("value") FROM "${measurement}" WHERE `;
+		query += `SELECT time,SUM("value") FROM "${measurement}" WHERE `;
 		for (var g = 0; g < groups.length; g++){
-			Query += `"group"='${groups[g]}'`;
+			query += `"group"='${groups[g]}'`;
 			if(g != groups.length-1){
-				Query += ` OR `;
+				query += ` OR `;
 			}
 		}
-		/* If requesting newest 30s of data*/
-		if (to == 0){
-			Query += `AND time >= ${from}ms`;
-		
-		/* Default request is last 1 hour*/
-		}else if (showing == false || (date-from) <= 3600000){
-			Query += ` AND time >= ${date-3600000}ms`;
-		}else{
-			/* Check if trace is already plotted*/
-			var index = -1;
-			for(var x = 0; x < TSPlot.traces.length; x++){
-				if (TSPlot.traces[x].name == trace){
-					index = x;
-					break;
-				}
-			}
-			/* If trace is already plotted*/
-			if(index != -1){
-				if(from > TSPlot.layout.xaxis.range[0])	Query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
-				else Query += ` AND time >= ${from}ms AND time < ${to}ms`;
-			}else{
-				if(from > TSPlot.layout.xaxis.range[0])	Query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
-				else Query += ` AND time >= ${from}ms AND time < ${date}ms`;
-			}
-		}
-		Query += ` GROUP BY time(30s)`;
-		return Query;
+	}
+
+	else{
+		query += `SELECT time,value FROM `;
+	}
+
+	/* If trace is for service status*/
+	if(line.length == 1){
+		services = true;
+		var measurement = line[0];
+		query += `"${measurement}"`;
 	}
 
 	/* If trace is regular*/
-	else if(line.length == 3){
+	else if(line.length == 3 && !global_total){
 		var cloud = line[1];
 		var measurement = line[2];
 		query += `"${measurement}" WHERE "cloud"='${cloud}' AND "group"='${group}'`;
-	}else if(!services){
+	}else if(!services && !global_total){
 		var measurement = line[1];
 		query += `"${measurement}" WHERE "group"='${group}'`;
 	}
+
 	/* If requesting newest 30s of data*/
 	if (to == 0){
 		if(!services) query += ` AND time >= ${from}ms`;
 		else query += ` WHERE time >= ${from}ms`;
+
 	/* Default request is last 1 hour*/
 	}else if (showing == false || (date-from) <= 3600000){
 		if(!services) query += ` AND time >= ${date-3600000}ms`;
 		else query += ` WHERE time >= ${date-3600000}ms`;
+
+	/* If plot is showing*/
 	}else{
 		/* Check if trace is already plotted*/
 		var index = -1;
@@ -290,6 +275,7 @@ function createQuery(trace, from, to, showing){
 				if(from > TSPlot.layout.xaxis.range[0])	query += ` WHERE time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
 				else query += ` WHERE time >= ${from}ms AND time < ${to}ms`;
 			}
+
 		}else{
 			if(!services){
 				if(from > TSPlot.layout.xaxis.range[0])	query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
@@ -300,6 +286,9 @@ function createQuery(trace, from, to, showing){
 			}
 		}
 	}
+	/* Get db to sum over 30s periods*/
+	if(global_total) query += ` GROUP BY time(30s)`;
+
 	return query;
 }
 
@@ -360,7 +349,7 @@ function getTraceData(trace, showing){
 	.then(function(data){
 		/* Parse response into trace object.*/
 		if(!(typeof (data.results[0]) !== 'undefined') || !(typeof (data.results[0].series) !== 'undefined')){
-			throw `That trace: '${trace.dataset.path}' does not exist`;
+			throw `Oops! That trace: '${trace.dataset.path}' does not exist`;
 		}
 		const newarrays = parseData(data.results[0].series[0].values);
 	    const newtrace = {
@@ -393,9 +382,10 @@ function getTraceData(trace, showing){
 			sessionStorage.setItem("traces", JSON.stringify(trace_array));
 		}
 	})
-	.catch(error => {
+	.catch(function(error){
+		if(showing == false) document.getElementById("plot").style.display = 'none';
 		console.warn(error);
-		if(showing == false) TSPlot.hide();		
+			
 	});
 }
 
@@ -572,10 +562,11 @@ var TSPlot = {
 
 		TSPlot.traces = [];
 		TSPlot.showing = false;
+		/* Hide plot div*/
 		document.getElementById("plot").style.display = 'none';
-		
 		const curr_range = document.getElementsByClassName("range-btn");
 		curr_range[0].innerHTML = 'Last 1 hour<span class="space"></span><span class="caret"></span>';
+
 		/* Remove indication of plotted traces*/
 		var list = document.getElementsByClassName('plotted');
 		var init_length = list.length;
@@ -590,6 +581,7 @@ var TSPlot = {
 			dropdowns[0].classList.remove('selected');
 		}
 		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
+
 		/* Pause before purging to avoid TypeError, seems to be a Plotly bug
 		   https://community.plot.ly/t/typeerror-e-is-undefined-when-using-plotly-relayout-followed-by-plotly-purge/20442 */
 		setTimeout(function(){

@@ -30,7 +30,7 @@ else if (refresh_interval < 1) stop_refresh;
             sessionStorage.setItem("extra-row", JSON.stringify(checked));
 			refresh_plot();
             var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-           
+
 			fetch(location.href,{	
 				method: 'GET',
 				headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
@@ -224,45 +224,47 @@ else if (refresh_interval < 1) stop_refresh;
                                             {% if job.group_name == cloud.group_name %}
                                                 <tr>
                                                 {% if job.js_idle != 0 %}
-                                                    <td>{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td>&nbsp;</td> 
+                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">&nbsp;</td> 
                                                     <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
                                                 {% endif %}
 
                                                 {% if job.js_running != 0 %}
-                                                    <td>{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="plottable">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td>&nbsp;</td>
+                                                    <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td> -->
+
                                                 {% endif %}
 
                                                 {% if job.js_completed != 0 %}
-                                                    <td>{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="plottable">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td>&nbsp;</td>
+                                                    <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_held != 0 %}
-                                                    <td>{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td>&nbsp;</td>
+                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_other != 0 %}
-                                                    <td>{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
-                                                    <td>&nbsp;</td>
+                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td> -->
+
                                                 {% endif %}
                                                 </tr>
                                             {% endif %}
                                         {% endfor %}
                                     </table>
                                 </td>
-                                
+
 
                             </tr>
                         {% endif %}
@@ -659,8 +661,8 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% for slot in slot_list %}
 
                                             {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
-                                            <tr data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}cores">
-                                                    <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                            <tr>
+                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                                     <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                                 </tr>
                                             {% endif %}
@@ -956,7 +958,7 @@ else if (refresh_interval < 1) stop_refresh;
                             
                                 {% if slot %}
                                 <tr>
-                                        <td>{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
                                         <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
                                     </tr>
                                 {% endif %}
