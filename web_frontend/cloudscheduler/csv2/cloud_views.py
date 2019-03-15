@@ -578,7 +578,9 @@ def list(request, active_user=None, response_code=0, message=None):
     s = select([csv2_group_metadata_exclusions]).where(csv2_group_metadata_exclusions.c.group_name==active_user.active_group)
     group_metadata_exclusion_list = qt(config.db_connection.execute(s))
 
-
+    # Retrieve the list ec2 regions:
+    s = select([ec2_regions])
+    ec2_regions_list = qt(config.db_connection.execute(s))
 
 
     # Position the page.
@@ -603,6 +605,7 @@ def list(request, active_user=None, response_code=0, message=None):
             'keypairs_list': keypairs_list,
             'network_list': network_list,
             'security_groups_list': security_groups_list,
+            'ec2_regions_list': ec2_regions_list,
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
@@ -1157,39 +1160,6 @@ def status(request, group_name=None):
 
     global_total_list = cloud_status_global_totals[0]
 
-    # calculate the group view totals for all rows
-    cloud_status_global_totals = qt(cloud_status_list, keys={
-        'primary': [],
-        'sum': [
-        'VMs',
-        'VMs_starting',
-        'VMs_unregistered',
-        'VMs_idle',
-        'VMs_running',
-        'VMs_retiring',
-        'VMs_manual',
-        'VMs_in_error',
-        'Foreign_VMs',
-        'cores_limit',
-        'cores_foreign',
-        'cores_idle',
-        'cores_native',
-        'cores_native_foreign',
-        'cores_quota',
-        'ram_quota',
-        'ram_foreign',
-        'ram_idle',
-        'ram_native',
-        'ram_native_foreign',
-        'slot_count',
-        'slot_core_count',
-        'slot_idle_core_count'
-        ]
-    })
-    
-    global_total_list = cloud_status_global_totals[0]
-
-
     # find the actual cores limit in use
     '''
     cloud_total_list['cores_limit'] = 0
@@ -1300,13 +1270,6 @@ def status(request, group_name=None):
             system_list["condor_status"] = 1
         else:
             system_list["condor_status"] = 0
-        
-        system_list["csv2_timeseries_msg"] = service_msg("csv2-timeseries")
-        if 'running' in system_list["csv2_timeseries_msg"]:
-            system_list["csv2_timeseries_status"] = 1
-        else:
-            system_list["csv2_timeseries_status"] = 0
-
 
         system_list["csv2_timeseries_msg"] = service_msg("csv2-timeseries")
         if 'running' in system_list["csv2_timeseries_msg"]:
