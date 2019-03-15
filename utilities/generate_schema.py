@@ -111,7 +111,8 @@ def main(args):
             _w = columns[_ix].split()
             if len(_w) > 2:
                 _stdout.append("  Column('%s'," % _w[0])
-                if _w[1][:8] == 'varchar(':
+                if _w[1][:5] == 'char(' or \
+                    _w[1][:8] == 'varchar(':
                     _w2 = _w[1].translate(REMOVE_BRACKETS).split()
                     _stdout.append(" String(%s)" % _w2[1])
 
@@ -126,6 +127,7 @@ def main(args):
                     _stdout.append(" Integer")
 
                 elif _w[1] == 'text' or \
+                _w[1] == 'tinytext' or \
                 _w[1] == 'longtext' or \
                 _w[1] == 'mediumtext':
                     _stdout.append(" String")
@@ -135,7 +137,7 @@ def main(args):
                     _stdout.append(" Float")
 
                 else:
-                    print('Unknown data type for column: %s' % columns[_ix])
+                    print('Table %s, unknown data type for column: %s' % (table, columns[_ix]))
                     exit(1)
 
                 if len(_w) > 3 and _w[3] == 'PRI':
