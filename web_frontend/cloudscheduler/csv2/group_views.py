@@ -6,7 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from .view_utils import \
+from cloudscheduler.lib.view_utils import \
     lno,  \
     manage_group_users, \
     manage_user_group_verification, \

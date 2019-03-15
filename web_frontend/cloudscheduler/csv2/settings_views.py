@@ -2,7 +2,7 @@ from django.conf import settings
 config = settings.CSV2_CONFIG
 
 from django.views.decorators.csrf import requires_csrf_token
-from .view_utils import render, set_user_groups
+from cloudscheduler.lib.view_utils import render, set_user_groups
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
