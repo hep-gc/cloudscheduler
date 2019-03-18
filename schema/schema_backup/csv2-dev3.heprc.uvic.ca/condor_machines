@@ -38,6 +38,10 @@ CREATE TABLE `condor_machines` (
   `entered_current_state` int(11) DEFAULT NULL,
   `start` varchar(128) DEFAULT NULL,
   `remote_owner` varchar(128) DEFAULT NULL,
+<<<<<<< HEAD
+=======
+  `total_disk` int(11) DEFAULT NULL,
+>>>>>>> 1df716633c73c40f54b96b0de93bd1f78b8c9a87
   `slot_type` varchar(128) DEFAULT NULL,
   `slot_cpus` int(11) DEFAULT NULL,
   `total_slots` int(11) DEFAULT NULL,
@@ -47,6 +51,57 @@ CREATE TABLE `condor_machines` (
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
+<<<<<<< HEAD
+=======
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`csv2`@`localhost`*/ /*!50003 trigger trigger_add_htcondor_partition
+after insert on condor_machines
+for each row
+begin
+    if NEW.slot_type='Partitionable' then
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(NEW.machine,'.',1);
+    elseif NEW.slot_type='Dynamic' then
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(NEW.machine,'.',1);
+    end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`csv2`@`localhost`*/ /*!50003 trigger trigger_del_htcondor_partition
+after delete on condor_machines
+for each row
+begin
+    if OLD.slot_type='Partitionable' then
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(OLD.machine,'.',1);
+    elseif OLD.slot_type='Dynamic' then
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(OLD.machine,'.',1);
+    end if;
+end */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+>>>>>>> 1df716633c73c40f54b96b0de93bd1f78b8c9a87
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -57,4 +112,4 @@ CREATE TABLE `condor_machines` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-03-08 11:32:51
+-- Dump completed on 2019-03-18 11:43:15
