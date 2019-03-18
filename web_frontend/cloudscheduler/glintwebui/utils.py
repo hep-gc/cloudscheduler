@@ -971,7 +971,7 @@ def check_defaults_changed():
 
 def set_defaults_changed(changed_bool):
     red = redis.StrictRedis(host=config.redis_host, port=config.redis_port, db=config.redis_db)
-    red.set("defaults_changed", changed_bool)    
+    red.set("defaults_changed", str(changed_bool))    
     return True
 
 

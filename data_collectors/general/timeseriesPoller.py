@@ -193,7 +193,7 @@ def timeseries_data_transfer():
                 logging.error("Unable to get slot core type counts skipping...")
                 logging.error(exc)
             
-            
+            # get job core details for job status
             s = select([view_condor_jobs_group_defaults_applied])
             job_details_list = qt(config.db_connection.execute(s))
             if not job_details_list:
@@ -218,18 +218,9 @@ def timeseries_data_transfer():
                                 continue
                             new_point = "{0}{1}{2}{3},group={4} value={5}i {6}".format(job_column_list[cnt-1], "_", job_cores['request_cpus'], "core", job_cores['group_name'], job_cores[job_state], ts) 
                             data_points.append(new_point)
-                            #logging.info(">>>>>>>>>>> %s " % new_point)
-                            #print(new_point)
                             cnt += 1
                 except Exception as exc:
-                    logging.error("Skipping job details... %s " % exc)
-                    
-            """
-            except Exception as exc:
-                logging.error("Unable to get job core details skipping...")
-                #logging.error(exc)
-            """
-            
+                    logging.error("Skipping job details... %s " % exc)            
 
             data_points = "\n".join(data_points)
 

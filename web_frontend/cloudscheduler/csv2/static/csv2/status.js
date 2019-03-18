@@ -1,7 +1,33 @@
 /* Timestamp of last refresh*/
 var date = Date.now();
 
-/* Add event listeners once page loads*/
+
+/* Close the range dropdown menu when user clicks outside of it*/
+window.onclick = function(event) {
+	try{
+		if (!event.target.matches('.range-btn') && document.getElementsByClassName("dropdown-content")[0].classList.contains('show')) {
+			var dropdowns = document.getElementsByClassName("dropdown-content");
+			var k = false;
+			var i;
+			for (i = 0; i < dropdowns.length; i++) {
+				var openDropdown = dropdowns[i];
+				if (openDropdown.classList.contains('show')) {
+					openDropdown.classList.remove('show');
+					k = true;
+		      		}
+	    		}
+			if(k == true){
+				document.getElementsByClassName("range-btn")[0].classList.remove("selected");
+			}
+		}
+	}
+	/* Catch for if user clicks outside of 'window'. Otherwise event.target.matches is undefined*/
+	catch{
+		return;
+	}
+}
+
+/* Add event listeners*/
 function initialize(){
 	addEventListeners("plottable");
 }
@@ -36,7 +62,7 @@ function dropDown(){
 }
 
 
-/* Change time range for plot*/
+/* Change time range for plot based on user selection*/
 function selectRange(range){
 	const curr_range = document.getElementsByClassName("range-btn");
 	curr_range[0].innerHTML = range.innerHTML+'<span class="space"></span><span class="caret"></span>';
@@ -55,7 +81,7 @@ function selectRange(range){
 	to = to.getTime();
 	from.setTime(date-(range.dataset.from*multiple));
 	from = from.getTime();
-	/* Update traces with new range*/
+	/* Update traces with data from new range*/
 	if((date-from) > 3600000 && !(TSPlot.traces[0].x[0] < from)){
 		var traces = TSPlot.traces;
 		var newdata = {
@@ -64,7 +90,6 @@ function selectRange(range){
 		};
 		var index = [];
 		var query = createQuery(traces[0].name, from, TSPlot.traces[0].x[0], true);
-		
 		/* Create string of queries for db*/
 		for (var i = 1; i < traces.length; i++){
 			query += ';'
@@ -89,11 +114,11 @@ function selectRange(range){
 		.then(function(data){
 			/* Parse response into trace object. Add null values between points where no data
 		   	   exists for more than 70s to show gaps in plot*/
-			var nonewpoints = 0;
+			var no_new_points = 0;
 			for(var i = 0; i < traces.length; i++){
 				/* Skip trace if no new data exists*/
 				if(!(typeof data.results[i].series !== 'undefined')){
-					nonewpoints ++;
+					no_new_points ++;
 					break;
 				}
 				index.push(i);
@@ -113,7 +138,7 @@ function selectRange(range){
 				newdata.x.push(newarrayx);
 			}
 			/* If there were no new points for all traces*/
-			if(nonewpoints == index.length) return data;
+			if(no_new_points == index.length) return data;
 			else{
 				Plotly.prependTraces('plotly-TS', newdata, index);
 				return updateTraces(newdata, index);
@@ -126,6 +151,7 @@ function selectRange(range){
 		})
 		.catch(error => console.warn(error));
 	}
+	/* If no new data is needed*/
 	else{
 		/* Only update plot range*/
 		TSPlot.layout.xaxis.range = [from, to];
@@ -135,32 +161,7 @@ function selectRange(range){
 }
 
 
-/* Close the range dropdown menu*/
-window.onclick = function(event) {
-	try{
-		if (!event.target.matches('.range-btn') && document.getElementsByClassName("dropdown-content")[0].classList.contains('show')) {
-			var dropdowns = document.getElementsByClassName("dropdown-content");
-			var k = false;
-			var i;
-			for (i = 0; i < dropdowns.length; i++) {
-				var openDropdown = dropdowns[i];
-				if (openDropdown.classList.contains('show')) {
-					openDropdown.classList.remove('show');
-					k = true;
-		      		}
-	    		}
-			if(k == true){
-				document.getElementsByClassName("range-btn")[0].classList.remove("selected");
-			}
-		}
-	}
-	catch{
-		return;
-	}
-}
-
-
-/* Toggle traces, show plot*/
+/* Toggle plotted traces and initialize/show plot if not yet created*/
 function togglePlot(trace){
 	if(TSPlot.showing == true){
 		/* Check if trace is already plotted*/
@@ -172,6 +173,7 @@ function togglePlot(trace){
 				break;
 			}
 		}
+		/* If trace is already plotted*/
 		if(index != -1){
 			if(TSPlot.traces.length == 1) {
 				TSPlot.hide();
@@ -189,6 +191,7 @@ function togglePlot(trace){
 			getTraceData(trace, true);
 		}
 	}
+	/* If plot is not created*/
 	else{
 		document.getElementById("loader").style.display = 'inline-block';		
 		/* Create plot*/
@@ -205,7 +208,6 @@ function createQuery(trace, from, to, showing){
 	var services = false;
 	var global_total = false;
 	var group = line[0];
-
 	/* If trace is for global group total*/
 	if (group == 'groups_total'){
 		global_total = true
@@ -224,18 +226,15 @@ function createQuery(trace, from, to, showing){
 			}
 		}
 	}
-
 	else{
 		query += `SELECT time,value FROM `;
 	}
-
 	/* If trace is for service status*/
 	if(line.length == 1){
 		services = true;
 		var measurement = line[0];
 		query += `"${measurement}"`;
 	}
-
 	/* If trace is regular*/
 	else if(line.length == 3 && !global_total){
 		var cloud = line[1];
@@ -245,17 +244,14 @@ function createQuery(trace, from, to, showing){
 		var measurement = line[1];
 		query += `"${measurement}" WHERE "group"='${group}'`;
 	}
-
 	/* If requesting newest 30s of data*/
 	if (to == 0){
 		if(!services) query += ` AND time >= ${from}ms`;
 		else query += ` WHERE time >= ${from}ms`;
-
 	/* Default request is last 1 hour*/
 	}else if (showing == false || (date-from) <= 3600000){
 		if(!services) query += ` AND time >= ${date-3600000}ms`;
 		else query += ` WHERE time >= ${date-3600000}ms`;
-
 	/* If plot is showing*/
 	}else{
 		/* Check if trace is already plotted*/
@@ -267,15 +263,15 @@ function createQuery(trace, from, to, showing){
 			}
 		}
 		/* If trace is already plotted*/
-		if(index != -1){
-			if(!services){
-				if(from > TSPlot.layout.xaxis.range[0])	query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
-				else query += ` AND time >= ${from}ms AND time < ${to}ms`;
-			}else{
-				if(from > TSPlot.layout.xaxis.range[0])	query += ` WHERE time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
-				else query += ` WHERE time >= ${from}ms AND time < ${to}ms`;
-			}
-
+		if(index == -1) to = date;
+		if(!services){
+			if(from > TSPlot.layout.xaxis.range[0])	query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
+			else query += ` AND time >= ${from}ms AND time < ${to}ms`;
+		}else{
+			if(from > TSPlot.layout.xaxis.range[0])	query += ` WHERE time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${to}ms`;
+			else query += ` WHERE time >= ${from}ms AND time < ${to}ms`;
+		}
+		/*
 		}else{
 			if(!services){
 				if(from > TSPlot.layout.xaxis.range[0])	query += ` AND time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
@@ -284,11 +280,10 @@ function createQuery(trace, from, to, showing){
 				if(from > TSPlot.layout.xaxis.range[0])	query += ` WHERE time >= ${TSPlot.layout.xaxis.range[0]}ms AND time < ${date}ms`;
 				else query += ` WHERE time >= ${from}ms AND time < ${date}ms`;
 			}
-		}
+		}*/
 	}
 	/* Get db to sum over 30s periods*/
 	if(global_total) query += ` GROUP BY time(30s)`;
-
 	return query;
 }
 
@@ -358,7 +353,7 @@ function getTraceData(trace, showing){
 			x: newarrays[0],
 			y: newarrays[1]
 		}
-		/* If plot is showing, add trace to plot, otherwise create plot with trace*/
+		/* If plot is showing, add trace to plot*/
 		if(showing == true){
 			var newlayout = {
 				yaxis: {
@@ -371,7 +366,9 @@ function getTraceData(trace, showing){
 			};
 			Plotly.relayout('plotly-TS', newlayout);
 			return Plotly.addTraces('plotly-TS', newtrace);
-		}else return TSPlot.initialize(newtrace);
+		}
+		/* Create plot with trace*/
+		else return TSPlot.initialize(newtrace);
 	}).then(function(data){
 		if(showing == true){
 			/* Store plotted traces for refresh*/
@@ -405,15 +402,15 @@ function checkForPlottedTraces(){
 	}
 }
 
+
+/* On refresh, check if expanded row was showing*/
 function checkForExpandedRow() {
-        if (typeof (Storage) !== "undefined"){
-                if(sessionStorage.length != 0){
-                        var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
-                        if(expanded_row == true){
-                                document.getElementById('toggle-row').click();
-                        }
-                }
-         }
+    if (typeof (Storage) !== "undefined"){
+        var expanded_row = JSON.parse(sessionStorage.getItem("extra-row"));
+        if(expanded_row != null && expanded_row == true){
+                document.getElementById('toggle-row').click();
+        }
+    }
 }
 
 
@@ -495,14 +492,12 @@ function updateTraces(newdata, index){
 		}
 	}
 	Plotly.extendTraces('plotly-TS', newdata, index);
-	
 	/* Only update range if if looking at last 12 hours or less*/
 	if(TSPlot.layout.xaxis.range[1] >= date && (date - TSPlot.layout.xaxis.range[0]) <= 43200000){
 		date = Date.now();
 		var diff = date - TSPlot.layout.xaxis.range[1];
 		TSPlot.layout.xaxis.range[1] = date; 
 		TSPlot.layout.xaxis.range[0] += diff;
-		
 	}
 	var newlayout = {
 		yaxis: {
@@ -559,14 +554,12 @@ var TSPlot = {
 			}
 		};
 		Plotly.relayout('plotly-TS', newlayout);
-
 		TSPlot.traces = [];
 		TSPlot.showing = false;
 		/* Hide plot div*/
 		document.getElementById("plot").style.display = 'none';
 		const curr_range = document.getElementsByClassName("range-btn");
 		curr_range[0].innerHTML = 'Last 1 hour<span class="space"></span><span class="caret"></span>';
-
 		/* Remove indication of plotted traces*/
 		var list = document.getElementsByClassName('plotted');
 		var init_length = list.length;
@@ -581,7 +574,6 @@ var TSPlot = {
 			dropdowns[0].classList.remove('selected');
 		}
 		document.querySelectorAll('a[data-from="60"]')[0].classList.add('selected');
-
 		/* Pause before purging to avoid TypeError, seems to be a Plotly bug
 		   https://community.plot.ly/t/typeerror-e-is-undefined-when-using-plotly-relayout-followed-by-plotly-purge/20442 */
 		setTimeout(function(){
