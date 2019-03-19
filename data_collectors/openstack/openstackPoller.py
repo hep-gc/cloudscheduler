@@ -12,6 +12,10 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.signal_manager import register_signal_receiver
+from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
+from cloudscheduler.lib.view_utils import kill_retire
+from cloudscheduler.lib.log_tools import get_frame_info
+
 
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -1393,6 +1397,13 @@ def vm_poller():
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict)
+
+
+            # Check on the core limits to see if any clouds need to be scaled down.
+            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota)
+            for cloud in over_quota_clouds:
+                kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
+
 
             logging.debug("Completed VM poller cycle")
             config.db_close()
