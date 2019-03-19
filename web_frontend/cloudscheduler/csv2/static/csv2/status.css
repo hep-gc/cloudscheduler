@@ -282,6 +282,13 @@ input.toggle-box:checked ~ .status-table table tr.extra-row {
   display: table-row;
 }
 
+input.toggle-box:checked ~ .status-table table td.extra-row {
+  display: table-cell;
+}
+
+input.toggle-box:checked ~ .status-table table th.extra-row {
+  display: table-cell;
+}
 
 /*****************************************************************/
 /*                          status styling                       */

@@ -158,7 +158,7 @@ else if (refresh_interval < 1) stop_refresh;
                   <colgroup>
                     <col class="clear" span="1" />
                     <col class="red" span="1" />
-                    <col class="clear" span="5" />
+                    <col class="clear" span="7" />
 
                   </colgroup>
                     <tr class="header-row">
@@ -170,7 +170,9 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="jobs-style">Completed</th>
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
-
+                        <th class="jobs-style">Foreign</th>
+                        <th class="jobs-style">Condor Status</th>
+                        <th class="extra-row jobs-style">Condor FQDN</th>
                     </tr>
                 
                     {% for cloud in job_status_list %}
@@ -213,6 +215,17 @@ else if (refresh_interval < 1) stop_refresh;
                                 {% else %}
                                     <td data-path="{{cloud.group_name}} jobs_other" class="more-style plottable"><a href="#">{{cloud.Other}}</a></td>
                                 {% endif %}
+                                
+                                {% if cloud.foreign == 0 %}
+                                    <td data-path="{{cloud.group_name}} jobs_foreign" class="zero-style plottable">0</td>
+                                {% else %}
+                                    <td data-path="{{cloud.group_name}} jobs_foreign" class="more-style plottable"><a href="#">{{cloud.foreign}}</a></td>
+                                {% endif %}
+
+                                <td data-path="{{cloud.group_name}} jobs_htcondor_status" class="more-style plottable"><a href="#">{{cloud.htcondor_status}}</a></td>
+                                
+                                <td data-path="{{cloud.group_name}} jobs_htcondor_fqdn" class="extra-row more-style"><a href="#">{{cloud.htcondor_fqdn}}</a></td>
+
 
                             </tr>
                             <tr class="extra-row">
@@ -264,14 +277,17 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endfor %}
                                     </table>
                                 </td>
-
+                            <td></td>
+                            <td></td>
+                            <td class="extra-row"></td>
 
                             </tr>
                         {% endif %}
                     {% endfor %}
 
                     <tr class="bottom-row">
-                        <td colspan="7"></td>
+                        <td colspan="9"></td>
+                        <td class="extra-row">&nbsp;</td>
                     </tr>
 
                     </tbody> 

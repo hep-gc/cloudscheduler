@@ -6,8 +6,8 @@ import sys
 import os
 import requests
 
-from cloudscheduler.web_frontend.cloudscheduler.csv2.view_utils import qt
-
+#from cloudscheduler.web_frontend.cloudscheduler.csv2.view_utils import qt
+from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.schema import view_cloud_status
@@ -58,12 +58,14 @@ def timeseries_data_transfer():
             job_status = db_session.query(view_job_status)
             
             job_column_list = [
-                "jobs",
-                "jobs_idle",
-                "jobs_running",
-                "jobs_completed",
-                "jobs_held",
-                "jobs_other"
+                'jobs',
+                'jobs_idle',
+                'jobs_running',
+                'jobs_completed',
+                'jobs_held',
+                'jobs_other',
+                'jobs_foreign',
+                'jobs_htcondor_status'
             ]
             groups = []
             service_status_list = [
@@ -121,7 +123,7 @@ def timeseries_data_transfer():
                 column = 0
                 group = line[0]
                 for data in line[1:]:
-                    if data == -1 or data is None:
+                    if data == -1 or data is None or isinstance(data, str):
                         column += 1
                         continue
                     new_point = "{0},group={1} value={2}i {3}".format(job_column_list[column], group, data, ts)
