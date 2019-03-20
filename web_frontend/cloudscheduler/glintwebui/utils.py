@@ -629,7 +629,7 @@ def find_image_by_name(group_name, image_name):
                     repo_obj = session.query(Group_Resources).filter(Group_Resources.group_name == group_name, Group_Resources.cloud_name == cloud).first()
                     return (repo_obj.authurl, repo_obj.project, repo_obj.username,\
                         repo_obj.password, image, image_dict[cloud][image]['checksum'],\
-                        repo_obj.user_domain_name, repo_obj.project_domain_name)
+                        repo_obj.user_domain_name, repo_obj.project_domain_name, repo_obj.region)
     return False
 
 # This function accepts info to uniquely identify an image as well as

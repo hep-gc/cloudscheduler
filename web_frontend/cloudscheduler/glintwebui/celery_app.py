@@ -38,9 +38,8 @@ def debug_task(self):
 # Must find and download the appropriate image (by name) and then upload it
 # to the given image ID
 @app.task(bind=True)
-def transfer_image(self, image_name, image_id, group_name, auth_url, project_tenant, username, password, requesting_user, cloud_name, project_domain_name="Default", user_domain_name="Default"):
-    logger.info("User %s attempting to transfer %s - %s to repo '%s'", \
-        requesting_user, image_name, image_id, project_tenant)
+def transfer_image(self, image_name, image_id, group_name, auth_url, project_tenant, username, password, requesting_user, cloud_name, project_domain_name="Default", user_domain_name="Default", region=None):
+    print("User %s attempting to transfer %s - %s to repo '%s'" % (requesting_user, image_name, image_id, project_tenant))
 
     # Find image by name in another repo where the state=present
     # returns tuple: (auth_url, tenant, username, password, img_id, checksum)
@@ -66,7 +65,8 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
             password=password,
             project_domain_name=project_domain_name,
             user_domain_name=user_domain_name,
-            alias=cloud_name)
+            alias=cloud_name,
+            region=region)
         dest_rcon.upload_image(image_id=image_id, image_name=image_name, scratch_dir=image_path)
 
         queue_state_change(
@@ -106,19 +106,21 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
         image_path = image_path.rsplit('/', 1)[0]
         image_path = image_path + "/"
 
-        logger.info("Downloading Image from %s", src_img_info[1])
+        print("Downloading Image from %s" % src_img_info[1])
         src_rcon = repo_connector(
             auth_url=src_img_info[0],
             project=src_img_info[1],
             username=src_img_info[2],
             password=src_img_info[3],
-            project_domain_name=src_img_info[6],
-            user_domain_name=src_img_info[7])
-        src_rcon.download_image(
+            user_domain_name=src_img_info[6],
+            project_domain_name=src_img_info[7],
+            region=src_img_info[8])
+        download_result = src_rcon.download_image(
             image_name=image_name,
             image_id=src_img_info[4],
             scratch_dir=image_path)
-        logger.info("Image transfer finished")
+        logger.info("Image download finished")
+        logger.info("Download result: %s" % download_result)
 
         # Upload said image to the new repo
         logger.info("Uploading Image to %s", project_tenant)
@@ -128,7 +130,8 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
             username=username,
             password=password,
             project_domain_name=project_domain_name,
-            user_domain_name=user_domain_name)
+            user_domain_name=user_domain_name,
+            region=region)
         dest_rcon.upload_image(image_id=image_id, image_name=image_name, scratch_dir=image_path)
 
         queue_state_change(
@@ -146,7 +149,7 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
 # requesting user. Uploads the given image to the target cloud (repo object)
 #
 @app.task(bind=True)
-def upload_image(self, image_name, image_path, auth_url, project_tenant, username, password, requesting_user, disk_format, container_format, project_domain_name="Default", user_domain_name="Default"):
+def upload_image(elf, image_name, image_path, auth_url, project_tenant, username, password, requesting_user, disk_format, container_format, project_domain_name="Default", user_domain_name="Default", region=None):
     # Upload said image to the new repo
     logger.info("Attempting to upload Image to %s for user:%s", project_tenant, requesting_user)
     dest_rcon = repo_connector(
@@ -155,7 +158,8 @@ def upload_image(self, image_name, image_path, auth_url, project_tenant, usernam
         username=username,
         password=password,
         project_domain_name=project_domain_name,
-        user_domain_name=user_domain_name)
+        user_domain_name=user_domain_name,
+        region=region)
     image_id = dest_rcon.upload_image(
         image_id=None,
         image_name=image_name,
@@ -175,7 +179,7 @@ def upload_image(self, image_name, image_path, auth_url, project_tenant, usernam
 
 # Accepts image id, project name, and repo object to delete image ID from.
 @app.task(bind=True)
-def delete_image(self, image_id, image_name, group_name, auth_url, project_tenant, username, password, requesting_user, cloud_name, project_domain_name="Default", user_domain_name="Default"):
+def delete_image(self, image_id, image_name, group_name, auth_url, project_tenant, username, password, requesting_user, cloud_name, project_domain_name="Default", user_domain_name="Default", region=None):
     logger.info("User %s attempting to delete %s - %s from cloud '%s'",\
         requesting_user, image_name, image_id, project_tenant)
     if check_delete_restrictions(image_id=image_id, group_name=group_name, cloud_name=cloud_name):
@@ -185,7 +189,8 @@ def delete_image(self, image_id, image_name, group_name, auth_url, project_tenan
             username=username,
             password=password,
             project_domain_name=project_domain_name,
-            user_domain_name=user_domain_name)
+            user_domain_name=user_domain_name,
+            region=region)
         result = rcon.delete_image(image_id)
         if result:
             queue_state_change(

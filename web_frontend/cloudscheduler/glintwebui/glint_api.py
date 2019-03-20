@@ -5,7 +5,7 @@ from keystoneauth1 import exceptions
 import glanceclient
 #import glintwebui.config as config
 from cloudscheduler.lib.db_config import Config
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=4, max_overflow=10)
 
 
 logger = logging.getLogger('glintv2')
@@ -19,7 +19,7 @@ periodic tasks in celery.py
 '''
 
 class repo_connector(object):
-    def __init__(self, auth_url, project, username, password, user_domain_name="Default", project_domain_name="Default", alias=None):
+    def __init__(self, auth_url, project, username, password, user_domain_name="Default", project_domain_name="Default", alias=None, region=None):
         self.auth_url = auth_url
         self.alias = alias
         authsplit = self.auth_url.split('/')
@@ -32,6 +32,7 @@ class repo_connector(object):
         self.token = None
         self.keystone = None
         self.cacert = config.cert_auth_bundle_path
+        self.region = region
         self.sess = self._get_keystone_session()
         self.image_list = self._get_images()
 
@@ -67,7 +68,7 @@ class repo_connector(object):
 
     def _get_images(self):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
         except Exception as exc:
             logger.warning("unable to create glance client")
             logger.warning(exc)
@@ -97,7 +98,7 @@ class repo_connector(object):
 
     def create_placeholder_image(self, image_name, disk_format, container_format):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
             image = glance.images.create(
                 name=image_name,
                 disk_format=disk_format,
@@ -114,7 +115,7 @@ class repo_connector(object):
         if image_id is not None:
             #this is the 2nd part of a transfer not a direct upload
             try:
-                glance = glanceclient.Client('2', session=self.sess)
+                glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
             except Exception as exc:
                 logging.error("Unable to create glance object:")
                 logging.error(exc)
@@ -126,7 +127,7 @@ class repo_connector(object):
         else:
             #this is a straight upload not part of a transfer
             try:
-                glance = glanceclient.Client('2', session=self.sess)
+                glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
             except Exception as exc:
                 logging.error("Unable to create glance object:")
                 logging.error(exc)
@@ -143,7 +144,8 @@ class repo_connector(object):
     # Download an image from the repo, returns True if successful or False if not
     def download_image(self, image_name, image_id, scratch_dir):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            logger.info("Downloading %s from %s" % (image_name, self.auth_url))
+            glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
         except Exception as exc:
             logging.error("Unable to create glance object:")
             logging.error(exc)
@@ -152,17 +154,14 @@ class repo_connector(object):
         #open file then write to it
         file_path = scratch_dir + image_name
         image_file = open(file_path, 'wb')
-        print(glance.images.data(image_id))
         for chunk in glance.images.data(image_id):
-            print(type(chunk))
-            print(chunk)
             image_file.write(bytes(chunk))
 
         return True
 
     def delete_image(self, image_id):
         try:
-            glance = glanceclient.Client('2', session=self.sess)
+            glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
             glance.images.delete(image_id)
         except Exception:
             logger.error("Unknown error, unable to delete image")
@@ -170,11 +169,11 @@ class repo_connector(object):
         return True
 
     def update_image_name(self, image_id, image_name):
-        glance = glanceclient.Client('2', session=self.sess)
+        glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
         glance.images.update(image_id, name=image_name)
 
     def get_checksum(self, image_id):
-        glance = glanceclient.Client('2', session=self.sess)
+        glance = glanceclient.Client('2', session=self.sess, region_name=self.region)
         image = glance.images.get(image_id)
         return image['checksum']
 

@@ -108,8 +108,9 @@ def find_image_by_name(group_name, image_name):
                     pw = repo_obj.password
                     udn = repo_obj.user_domain_name
                     pdn = repo_obj.project_domain_name
+                    reg = repo_obj.region
                     db_config.db_close()
-                    return (aurl, prj, un, pw, image, image_dict[cloud][image]['checksum'], udn, pdn)
+                    return (aurl, prj, un, pw, image, image_dict[cloud][image]['checksum'], udn, pdn, reg)
     db_config.db_close()
     return False
 
