@@ -13,16 +13,16 @@ try:
 except:
     import cloudscheduler.basecloud as basecloud
 
-class EC2Cloud(basecloud):
+class EC2Cloud(basecloud.BaseCloud):
 
     """
     Cloud Connector class for EC2 API based clouds like AmazonEC2, or OpenNebula.
     """
 
-    def __init__(self, resource, vms=None, extrayaml=None):
+    def __init__(self, resource=None, metadata=None, extrayaml=None):
         """Constructor for ec2 based clouds."""
         basecloud.BaseCloud.__init__(self, name=resource.cloud_name, group = resource.group_name,
-                                                    extrayaml=extrayaml, vms=vms)
+                                                    extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.username = resource.username  # Access ID
         self.password = resource.password  # Secret key
@@ -35,7 +35,7 @@ class EC2Cloud(basecloud):
         client = None
         try:
             client = boto3.client('ec2', region_name=self.region, endpoint_url=self.authurl,
-                                      aws_access_key_id=self.username, aws_secret_access_key=self.password)
+                                  aws_access_key_id=self.username, aws_secret_access_key=self.password)
         except:
             pass
         return client
