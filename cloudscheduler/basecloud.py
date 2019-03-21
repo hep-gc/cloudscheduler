@@ -31,6 +31,7 @@ class BaseCloud(ABC):
         self.extrayaml = extrayaml
         self.metadata = metadata  # list of tuples with (name, select statement, mime type)
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [])
+        self.log.debug('New Cloud created: %s', self.name)
 
     def __repr__(self):
         return ' : '.join([self.name, self.enabled])
