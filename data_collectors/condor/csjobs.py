@@ -93,6 +93,7 @@ def job_poller():
                     condor_hosts_set.add(group.htcondor_fqdn)   
                 else:
                     # no condor location set
+                    logging.debug("No condor location set")
                     continue                
 
                 if condor_central_manager not in condor_host_groups:
@@ -297,9 +298,16 @@ def job_poller():
                     #hold all the jobs
                     logging.info("%s jobs held or to be held due to invalid user or group specifications." % held_jobs)
                     logging.debug("Holding: %s" % held_job_ids)
-                    hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
-                    logging.debug("Hold result: %s" % hold_result)
-                    condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
+                    try:
+                        logging.debug("Executing job action hold on %s" % condor_host)
+                        hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
+                        logging.debug("Hold result: %s" % hold_result)
+                        condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
+                    except Exception as exc:
+                        logging.error("Failure holding jobs: %s" % exc)
+                        logging.error("Aborting cycle...")
+                        abort_cycle = True
+                        break
                 jsched = {
                     "htcondor_fqdn": condor_host,
                     "status":        1,
@@ -499,7 +507,7 @@ if __name__ == '__main__':
         'registrar': service_registrar,
     }
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general"], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

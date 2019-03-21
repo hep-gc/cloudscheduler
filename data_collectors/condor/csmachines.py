@@ -633,7 +633,7 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
 
-    procMon = ProcessMonitor(file_name=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

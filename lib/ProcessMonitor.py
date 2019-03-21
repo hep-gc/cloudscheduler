@@ -4,6 +4,7 @@ import logging
 import time
 import datetime
 import subprocess
+import psutil
 
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
@@ -11,14 +12,15 @@ from cloudscheduler.lib.poller_functions import set_orange_count
 class ProcessMonitor:
     config = None
     processes = {}
+    p_cpu_times = {}
     process_ids = {}
     orange_count_row = None
     previous_orange_count = 0
     current_orange_count = 0
     logging = None
 
-    def __init__(self, file_name, pool_size, orange_count_row, process_ids=None):
-        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', file_name, pool_size=pool_size)
+    def __init__(self, config_params, pool_size, orange_count_row, process_ids=None):
+        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size)
         self.logging = logging.getLogger()
         logging.basicConfig(
             filename=self.config.log_file,
@@ -27,12 +29,14 @@ class ProcessMonitor:
         self.orange_count_row = orange_count_row
         self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 1, 0)
         self.process_ids = process_ids
+        self._init_cpu_sleep_time()
 
     def get_process_ids(self):
         return self.process_ids
 
     def add_process_id(self, process_id, function):
         self.process_ids[process_id] = function
+        _init_cpu_sleep_time(process_id)
         return
 
     def del_process(self, process_id):
@@ -41,6 +45,7 @@ class ProcessMonitor:
             proc.join()
         del self.processes[process_id]
         self.process_ids.pop(process_id)
+        self.p_cpu_times.pop(process_id)
         return
 
     def get_logging(self):
@@ -107,6 +112,24 @@ class ProcessMonitor:
                 #self._cleanup_event_pids(process)
                 self.restart_process(process)
                 time.sleep(self.config.sleep_interval_main_short)
+            p = psutil.Process(self.processes[process].pid)
+            if self.p_cpu_times[process][1] is None:
+                self.p_cpu_times[process][1] = p.cpu_times()[0]
+            else:
+                if p.cpu_times()[0] == self.p_cpu_times[process][1]:
+                    # time hasn't changed since last check, lets count up
+                    self.p_cpu_times[process][2] += self.config.sleep_interval_main_long
+                else:
+                    # process had some cpu time, must be running, reset timeout count
+                    self.p_cpu_times[process][2] = 0
+                    self.p_cpu_times[process][1] = p.cpu_times()[0]
+                if self.p_cpu_times[process][2] > self.p_cpu_times[process][0]:
+                    self.logging.info("Process non-responsive - restarting %s process", process)
+                    self.p_cpu_times[process][2] = 0
+                    orange = True
+                    del self.processes[process]
+                    self.restart_process(process)
+                    time.sleep(self.config.sleep_interval_main_short)
         if orange:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+1)
         else:
@@ -120,3 +143,18 @@ class ProcessMonitor:
             pid_path = epath[0] + "/" + pid
             if os.path.isfile(pid_path):
                 os.unlink(pid_path)
+
+    # initializes sleep times for all current pids for the purpose of determining a reasonable length of time to decide if a process is deadlocked
+    # a good estimate is 5 times the regular sleep time as the sleep time will grow if the system is under heavy load, we'll decide that something
+    # has gone wrong if a process hasnt had cpu time in 5 * sleep_interval
+    #
+    # If passed a pid it will only add that one instead of calculating for all proccesses
+    def _init_cpu_sleep_time(self, pid=None):
+        if pid is None:
+            for process in self.process_ids:
+                self.logging.debug(process)
+                self.p_cpu_times[process] = [5 * getattr(self.config, "sleep_interval_" + process, 180) , None, 0]
+        else:
+            # its possible that we dont have a configuration value for whatever new process is getting added, so we'll make the default 15 mins
+            self.p_cpu_times[pid] = [5 * getattr(self.config, "sleep_interval_" + pid, 180), None, 0]
+
