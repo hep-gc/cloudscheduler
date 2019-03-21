@@ -90,7 +90,7 @@ def flavor_poller():
                 db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
@@ -107,7 +107,7 @@ def flavor_poller():
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
-                    session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                    session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
                         logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -124,11 +124,11 @@ def flavor_poller():
                             continue
 
                     # setup OpenStack api objects
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    client = _get_ec2_client(session)
 
                     # Retrieve all flavours for this cloud.
                     try:
-                        flav_list = nova.flavors.list()
+                        flav_list = None  # TODO Have to load the prices json info
                     except Exception as exc:
                         logging.error("Failed to retrieve flavor data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -386,7 +386,7 @@ def image_poller():
                                 abort_cycle = True
                                 break
 
-                    del nova
+                    del client
                     if abort_cycle:
                         break
 
@@ -414,11 +414,11 @@ def image_poller():
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_image)
                 except KeyboardInterrupt:
-                    # sigint recieved, cancel the sleep and start the loop
+                    # sigint received, cancel the sleep and start the loop
                     continue
             except KeyboardInterrupt:
-                # sigint recieved, cancel the sleep and start the loop
-                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                # sigint received, cancel the sleep and start the loop
+                logging.error("Received wake-up signal during regular execution, resetting and continuing")
                 continue
 
 
@@ -457,7 +457,7 @@ def keypair_poller():
                 db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
                 for cloud in cloud_list:
@@ -473,7 +473,7 @@ def keypair_poller():
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
-                    session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                    session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
                         logging.error("Failed to establish session with %s" % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -490,14 +490,14 @@ def keypair_poller():
                         continue
 
                     # setup openstack api objects
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    client = _get_ec2_client(session)
 
                     # setup fingerprint list
                     fingerprint_list = []
 
                     try:
                         # get keypairs and add them to database
-                        cloud_keys = nova.keypairs.list()
+                        cloud_keys = client.describe_key_pairs()
                     except Exception as exc:
                         logging.error("Failed to poll key pairs from nova, skipping %s" % cloud_name)
                         logging.error(exc)
@@ -521,7 +521,7 @@ def keypair_poller():
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
-                    for key in cloud_keys:
+                    for key in cloud_keys['KeyPairs']:
                         fingerprint_list.append(key.fingerprint)
                         for groups in unique_cloud_dict[cloud]['groups']:
                             group_n = groups[0]
@@ -529,8 +529,8 @@ def keypair_poller():
                             key_dict = {
                                 "cloud_name": cloud_n,
                                 "group_name": group_n,
-                                "key_name": key.name,
-                                "fingerprint": key.fingerprint
+                                "key_name": key['KeyName'],
+                                "fingerprint": key['KeyFingerprint'],
                             }
 
                             if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict,
@@ -548,7 +548,7 @@ def keypair_poller():
                                 abort_cycle = True
                                 break
 
-                    del nova
+                    del client
                     if abort_cycle:
                         break
 
@@ -568,7 +568,7 @@ def keypair_poller():
                     time.sleep(config.sleep_interval_keypair)
                     continue
 
-                # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
+                # Scan the EC2 keypairs in the database, removing each one that was not updated in the inventory.
                 delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name',
                                                poll_time=new_poll_time, failure_dict=failure_dict)
 
@@ -577,11 +577,11 @@ def keypair_poller():
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_keypair)
                 except KeyboardInterrupt:
-                    # sigint recieved, cancel the sleep and start the loop
+                    # sigint received, cancel the sleep and start the loop
                     continue
             except KeyboardInterrupt:
-                # sigint recieved, cancel the sleep and start the loop
-                logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
+                # sigint received, cancel the sleep and start the loop
+                logging.error("Received wake-up signal during regular execution, resetting and continuing")
                 continue
 
     except Exception as exc:
