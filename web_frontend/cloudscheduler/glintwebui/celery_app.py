@@ -67,7 +67,7 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
             project_domain_name=project_domain_name,
             user_domain_name=user_domain_name,
             alias=cloud_name,
-            region=src_img_info[8])
+            region=region)
         dest_rcon.upload_image(image_id=image_id, image_name=image_name, scratch_dir=image_path)
 
         queue_state_change(
@@ -107,20 +107,21 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
         image_path = image_path.rsplit('/', 1)[0]
         image_path = image_path + "/"
 
-        logger.info("Downloading Image from %s", src_img_info[1])
+        print("Downloading Image from %s" % src_img_info[1])
         src_rcon = repo_connector(
             auth_url=src_img_info[0],
             project=src_img_info[1],
             username=src_img_info[2],
             password=src_img_info[3],
-            project_domain_name=src_img_info[6],
-            user_domain_name=src_img_info[7],
+            user_domain_name=src_img_info[6],
+            project_domain_name=src_img_info[7],
             region=src_img_info[8])
-        src_rcon.download_image(
+        download_result = src_rcon.download_image(
             image_name=image_name,
             image_id=src_img_info[4],
             scratch_dir=image_path)
-        logger.info("Image transfer finished")
+        logger.info("Image download finished")
+        logger.info("Download result: %s" % download_result)
 
         # Upload said image to the new repo
         logger.info("Uploading Image to %s", project_tenant)
@@ -149,6 +150,7 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
 # requesting user. Uploads the given image to the target cloud (repo object)
 #
 @app.task(bind=True)
+
 def upload_image(self, image_name, image_path, auth_url, project_tenant, username, password, requesting_user, disk_format, container_format, project_domain_name="Default", user_domain_name="Default", region=None):
     # Upload said image to the new repo
     logger.info("Attempting to upload Image to %s for user:%s", project_tenant, requesting_user)

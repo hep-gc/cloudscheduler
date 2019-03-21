@@ -359,6 +359,7 @@ def download_image(request, image_name, group_name=None):
         password=image_info[3],
         project_domain_name=src_img_info[6],
         user_domain_name=src_img_info[7],
+        password=image_info[3],
         region=image_info[8])
     rcon.download_image(
         image_name=image_name,

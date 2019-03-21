@@ -52,7 +52,7 @@ def timeseries_data_transfer():
             STATUS = config.db_map.classes.csv2_system_status
             statuses = db_session.query(STATUS)
 
-            # Query db for cloud status and job status view
+            # Query mariadb for cloud status and job status view
             cloud_status = db_session.query(view_cloud_status)
             column_list = [item["name"] for item in cloud_status.column_descriptions]
             job_status = db_session.query(view_job_status)
@@ -67,7 +67,6 @@ def timeseries_data_transfer():
                 'jobs_foreign',
                 'jobs_htcondor_status'
             ]
-            groups = []
             service_status_list = [
                 'csv2_main_status',
                 'mariadb_status',
@@ -83,16 +82,19 @@ def timeseries_data_transfer():
                 'swap_used',
                 'disk_used'
             ]
-            
-            # Points to add to influxdb db
+
+            # Points to add to influxdb db. Will be in Line Protocol, seperated by \n
+            # InfluxDB Line Protocol: <measurement>,<tag-key>=<tag-value> <field-key>=<field-value> unix-timestamp
+            # Ex. vms_starting,group=csv2_group,cloud=sheep value=1 timestamp
             data_points = []
             ts = int(time.time())
-
-            # HTTP request args
+            groups = []
+            # HTTP request args for influxdb
+            # Specifying database and timestamp precision
             params = {'db': 'csv2_timeseries','precision': 's'}
             url_string = 'http://localhost:8086/write'
             
-            # Parse serivce status data into line protocol for influxdb
+            # Parse service status data into line protocol for influxdb
             for status in statuses:
                 status_dict = vars(status)
                 for column in status_dict:
@@ -100,7 +102,7 @@ def timeseries_data_transfer():
                         new_point = "{0} value={1} {2}".format(column, status_dict[column], ts)
                         data_points.append(new_point)
             
-            # Parse cloud data into line protocol for influxdb
+            # Parse cloud status data into line protocol for influxdb
             for line in cloud_status:
                 column = 2
                 group = line[0]
@@ -118,11 +120,12 @@ def timeseries_data_transfer():
                     data_points.append(new_point)
                     column += 1
 
-            # Parse job data into line protocol for influxdb
+            # Parse job status data into line protocol for influxdb
             for line in job_status:
                 column = 0
                 group = line[0]
                 for data in line[1:]:
+                    # Skip string data. (Do not want to store it in influxdb as it cannot be plotted)
                     if data == -1 or data is None or isinstance(data, str):
                         column += 1
                         continue
@@ -130,12 +133,12 @@ def timeseries_data_transfer():
                     data_points.append(new_point)
                     column += 1
 
-            # Collect totals
+            # Collect group totals
             for group in groups:
-                # get cloud status per group
+                # Get cloud status per group
                 s = select([view_cloud_status]).where(view_cloud_status.c.group_name == group)
                 cloud_status_list = qt(config.db_connection.execute(s))
-                # calculate the totals for all rows
+                # Calculate the totals for all rows
                 cloud_status_list_totals = qt(cloud_status_list, keys={
                     'primary': ['group_name'],
                     'sum': [
@@ -164,12 +167,12 @@ def timeseries_data_transfer():
                         'slot_idle_core_count'
                     ]
                 })
-
                 cloud_total_list = cloud_status_list_totals[0]
+                
                 try:
                     groupname = cloud_total_list['group_name']
                 except Exception as exc:
-                    # dictionary is empty and we got a key error
+                    # Dictionary is empty and we got a key error
                     logging.error("Unable to get a cloud_total_list for %s skipping..." % group)
                 for measurement in list(cloud_total_list.keys())[1:]:
                     if cloud_total_list[measurement] == -1 or cloud_total_list[measurement] is None:
@@ -177,29 +180,27 @@ def timeseries_data_transfer():
                     new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, cloud_total_list[measurement], ts, '_total')
                     data_points.append(new_point)
              
-            # get slot type counts
+            # Get slot type counts details
             try:
                 s = select([view_cloud_status_slot_detail])
                 slot_list = qt(config.db_connection.execute(s))
                 if slot_list:
                     slot_cores_list = qt(slot_list, keys={
-                    'primary': ['group_name', 'cloud_name', 'slot_type'],
-                    'sum': [
-                           'slot_count'
-                           ]
+                        'primary': ['group_name', 'cloud_name', 'slot_type'],
+                        'sum': [
+                            'slot_count'
+                        ]
                     })
                     for num_cores in slot_cores_list:
                         new_point = "{0}{5},cloud={1},group={2} value={3}i {4}".format(num_cores['slot_type'], num_cores['cloud_name'], num_cores['group_name'], num_cores['slot_count'], ts, "core") 
                         data_points.append(new_point)
             except Exception as exc:
-                logging.error("Unable to get slot core type counts skipping...")
+                logging.error("Unable to get slot core type counts... skipping...")
                 logging.error(exc)
             
-            # get job core details for job status
+            # Get job core details for job status
             s = select([view_condor_jobs_group_defaults_applied])
             job_details_list = qt(config.db_connection.execute(s))
-            if not job_details_list:
-                logging.info(">>>>>>>>>> no list")
             if job_details_list:
                 job_details_list_totals = qt(job_details_list, keys={
                     'primary': ['group_name', 'request_cpus'],
@@ -222,11 +223,11 @@ def timeseries_data_transfer():
                             data_points.append(new_point)
                             cnt += 1
                 except Exception as exc:
-                    logging.error("Skipping job details... %s " % exc)            
+                    logging.error("Unable to process job core details... skipping... %s " % exc)
+
 
             data_points = "\n".join(data_points)
 
-           
             # POST HTTP request to influxdb
             try:
                 r = requests.post(url_string, params=params, data=data_points)
@@ -237,13 +238,11 @@ def timeseries_data_transfer():
                 logging.error("HTTP POST request failed to InfluxDB...")
                 logging.error(exc)
                 logging.error(r.headers)
-                break
                 
             config.db_close()
             del db_session
             
             
-
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
 
 

@@ -104,7 +104,7 @@ def image_collection():
 
         loop_counter = 0
         if num_tx == 0:
-            wait_period = config.image_collection_interval
+            wait_period = config.sleep_inverval_image_collection
         else:
             wait_period = 10
 
@@ -148,7 +148,7 @@ def defaults_replication():
             check_and_transfer_keypair_defaults(group, cloud_list, session, keypair_dict, Keypairs)
 
         time_slept = 0
-        while(time_slept<config.defaults_sleep_interval):
+        while(time_slept<config.sleep_interval_defaults):
             if check_defaults_changed():
                 logging.info("Defaults changed, waking up soon (30s)...")
                 # we sleep here so that the keypairs and images will hopefully have enough time to update before the replication happens
@@ -290,12 +290,13 @@ def check_and_transfer_keypair_defaults(group, cloud_list, db_session, key_dict,
 
 if __name__ == '__main__':
     process_ids = {
-        'glint image collection': image_collection,
-        'defaults_replication':   defaults_replication,
-        'registrar':              service_registrar,
+        'image_collection':  image_collection,
+        'defaults':          defaults_replication,
+        'registrar':         service_registrar,
     }
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=8, orange_count_row='csv2_glint_error_count', process_ids=process_ids)
+    db_category_list = [os.path.basename(sys.argv[0]), "general"]
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=8, orange_count_row='csv2_glint_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

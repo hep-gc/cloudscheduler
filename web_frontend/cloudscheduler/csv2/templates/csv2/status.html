@@ -1,5 +1,5 @@
 {% block navbar %}
-   {% include "csv2/navigation_bar.html" %}
+    {% include "csv2/navigation_bar.html" %}
 {% endblock %}
 
 <head>
@@ -19,60 +19,59 @@ if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
 else if (refresh_interval < 1) stop_refresh;
 </script>
 <script type="text/javascript">
-	/* Refresh status table and system services display*/
-	var TimerSwitch = 1;
-	var timer_id;
-	function set_refresh(time) {
-		TimerSwitch = 1;
-		timer_id = setTimeout(function() {
+    /* Refresh status table and system services display*/
+    var TimerSwitch = 1;
+    var timer_id;
+    function set_refresh(time) {
+        TimerSwitch = 1;
+        timer_id = setTimeout(function() {
             var checked = false;
             if(document.getElementById('toggle-row').checked == true) checked = true;
             sessionStorage.setItem("extra-row", JSON.stringify(checked));
-			refresh_plot();
+            refresh_plot();
             var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
-			fetch(location.href,{	
-				method: 'GET',
-				headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
+            fetch(location.href,{	
+                method: 'GET',
+                headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
                 credentials: 'same-origin',
-			})	
-			.then(function(response){
-				/* Check response status code*/
-				if(response.ok){
-					return response.text();
-				}throw new Error('Could not update status table :( HTTP response not was not OK -> '+response.status);
-			})
-			.then((html) => {
-				var parser = new DOMParser();
-				var doc = parser.parseFromString(html, "text/html");
-	    		document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
-				document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
+            })	
+            .then(function(response){
+                /* Check response status code*/
+                if(response.ok){
+                    return response.text();
+                }throw new Error('Could not update status table :( HTTP response not was not OK -> '+response.status);
+            })
+            .then((html) => {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, "text/html");
+                document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
+                document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
                 checkForExpandedRow();
-				checkForPlottedTraces();
-				initialize();
-			})
-			.catch((error) => {
-				console.warn(error);
+                checkForPlottedTraces();
+                initialize();
+            })
+            .catch((error) => {
+                console.warn(error);
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
-			});
-		},time);
+            });
+        },time);
+        document.getElementById('vms-iframe').src='';
+    }
 
-		document.getElementById('vms-iframe').src='';
-	}
+    function stop_refresh() {
+        TimerSwitch = 0;
+        clearTimeout(timer_id);
+        window.stop();
+    }
 
-	function stop_refresh() {
-		TimerSwitch = 0;
-		clearTimeout(timer_id);
-		window.stop();
-	}
-
-	function pass_url(url) {
-		stop_refresh();
-		document.getElementById('vms-iframe').src='/vm/list/'+url;
-	}
+    function pass_url(url) {
+        stop_refresh();
+        document.getElementById('vms-iframe').src='/vm/list/'+url;
+    }
 </script>
 </head>
 
@@ -89,51 +88,51 @@ else if (refresh_interval < 1) stop_refresh;
 
 <!--Time series plot -->
 <div class="plot-div" id="plot" style="display: none; width: 100%; height: 350px;">
-	<div id="plotly-TS" style="width: 100%; height: 340px;">
-		<!-- CSS loader-->
-		<div class="lds-roller" id="loader"><div></div><div></div><div></div><div></div><div></div>
-		<div></div><div></div><div></div>
-		</div>
+    <div id="plotly-TS" style="width: 100%; height: 340px;">
+        <!-- CSS loader-->
+        <div class="lds-roller" id="loader"><div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+        </div>
 
-	</div>
-	<!--Range Selection -->
-	<div class="range-dropdown">
-		<button id="range-select" class="range-btn" onclick="dropDown()">Last 1 hour<span class="space"></span>
-			<span class="caret"></span>
-		</button>
-		<div id="myDropdown" class="dropdown-content">
-			<div class="column minutes">
-				<a class="range first" data-from="5" data-to="0">Last 5 minutes</a>
-				<a class="range" data-from="15" data-to="0">Last 15 minutes</a>
-				<a class="range" data-from="30" data-to="0">Last 30 minutes</a>
-				<a class="range selected" data-from="60" data-to="0">Last 1 hour</a>
-				<a class="range" data-from="180" data-to="0">Last 3 hours</a>
-				<a class="range" data-from="360" data-to="0">Last 6 hours</a>
-				<a class="range" data-from="720" data-to="0">Last 12 hours</a>
-				<a class="range" data-from="1440" data-to="0">Last 24 hours</a>
-			</div>
-			<div class="column days">
-				<a class="range first" data-from="7" data-to="0">Last 7 days</a>
-				<a class="range" data-from="30" data-to="0">Last 30 days</a>
-				<a class="range" data-from="60" data-to="0">Last 60 days</a>
-				<a class="range" data-from="90" data-to="0">Last 90 days</a>
-				<a class="range" data-from="180" data-to="0">Last 6 months</a>
-				<a class="range" data-from="365" data-to="0">Last 1 year</a>
-				<a class="range" data-from="730" data-to="0">Last 2 years</a>
-				<a class="range" data-from="1825" data-to="0">Last 5 years</a>
-			</div>
-			<div class="column days">
-				<a class="range first" data-from="2" data-to="1">Yesterday</a>
-				<a class="range" data-from="3" data-to="2">Day before yesterday</a>
-				<a class="range" data-from="8" data-to="7">This day last week</a>
-				<a class="range" data-from="14" data-to="7">Previous week</a>
-				<a class="range" data-from="60" data-to="30">Previous month</a>
-				<a class="range" data-from="730" data-to="365">Previous year</a>
-			</div>
-		</div>
-	</div>
-	<button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot
-	</button>
+    </div>
+    <!--Range Selection -->
+    <div class="range-dropdown">
+        <button id="range-select" class="range-btn" onclick="dropDown()">Last 1 hour<span class="space"></span>
+            <span class="caret"></span>
+        </button>
+        <div id="myDropdown" class="dropdown-content">
+            <div class="column minutes">
+                <a class="range first" data-from="5" data-to="0">Last 5 minutes</a>
+                <a class="range" data-from="15" data-to="0">Last 15 minutes</a>
+                <a class="range" data-from="30" data-to="0">Last 30 minutes</a>
+                <a class="range selected" data-from="60" data-to="0">Last 1 hour</a>
+                <a class="range" data-from="180" data-to="0">Last 3 hours</a>
+                <a class="range" data-from="360" data-to="0">Last 6 hours</a>
+                <a class="range" data-from="720" data-to="0">Last 12 hours</a>
+                <a class="range" data-from="1440" data-to="0">Last 24 hours</a>
+            </div>
+            <div class="column days">
+                <a class="range first" data-from="7" data-to="0">Last 7 days</a>
+                <a class="range" data-from="30" data-to="0">Last 30 days</a>
+                <a class="range" data-from="60" data-to="0">Last 60 days</a>
+                <a class="range" data-from="90" data-to="0">Last 90 days</a>
+                <a class="range" data-from="180" data-to="0">Last 6 months</a>
+                <a class="range" data-from="365" data-to="0">Last 1 year</a>
+                <a class="range" data-from="730" data-to="0">Last 2 years</a>
+                <a class="range" data-from="1825" data-to="0">Last 5 years</a>
+            </div>
+            <div class="column days">
+                <a class="range first" data-from="2" data-to="1">Yesterday</a>
+                <a class="range" data-from="3" data-to="2">Day before yesterday</a>
+                <a class="range" data-from="8" data-to="7">This day last week</a>
+                <a class="range" data-from="14" data-to="7">Previous week</a>
+                <a class="range" data-from="60" data-to="30">Previous month</a>
+                <a class="range" data-from="730" data-to="365">Previous year</a>
+            </div>
+        </div>
+    </div>
+    <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot
+    </button>
 </div>
 
 
@@ -171,7 +170,7 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
                         <th class="jobs-style">Foreign</th>
-                        <th class="jobs-style">Condor Status</th>
+                        <th class="extra-row jobs-style">Condor Status</th>
                         <th class="extra-row jobs-style">Condor FQDN</th>
                     </tr>
                 
@@ -222,9 +221,9 @@ else if (refresh_interval < 1) stop_refresh;
                                     <td data-path="{{cloud.group_name}} jobs_foreign" class="more-style plottable"><a href="#">{{cloud.foreign}}</a></td>
                                 {% endif %}
 
-                                <td data-path="{{cloud.group_name}} jobs_htcondor_status" class="more-style plottable"><a href="#">{{cloud.htcondor_status}}</a></td>
+                                <td data-path="{{cloud.group_name}} jobs_htcondor_status" class="extra-row more-style plottable"><a href="#">{{cloud.htcondor_status}}</a></td>
                                 
-                                <td data-path="{{cloud.group_name}} jobs_htcondor_fqdn" class="extra-row more-style"><a href="#">{{cloud.htcondor_fqdn}}</a></td>
+                                <td data-path="{{cloud.group_name}} jobs_htcondor_fqdn" class="extra-row more-style">{{cloud.htcondor_fqdn}}</td>
 
 
                             </tr>

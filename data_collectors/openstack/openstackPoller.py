@@ -1121,7 +1121,7 @@ def security_group_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
+                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_security_group)
 
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
@@ -1463,8 +1463,9 @@ if __name__ == '__main__':
         'registrar':             service_registrar,
         'security_group_poller': security_group_poller
     }
+    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=9, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_categories, pool_size=9, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

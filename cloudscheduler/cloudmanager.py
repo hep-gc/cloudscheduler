@@ -7,6 +7,7 @@ import logging
 
 import openstackcloud
 import localhostcloud
+import ec2cloud
 
 from cloudscheduler.lib.db_config import Config
 
@@ -42,6 +43,11 @@ class CloudManager():
                 if cloud.cloud_type == 'localhost':
                     newcloud = localhostcloud.LocalHostCloud(resource=cloud,
                                                              metadata=self.metadata[cloud.cloud_name])
+                elif cloud.cloud_type == 'amazon':
+                    newcloud = ec2cloud.EC2Cloud(resource=cloud,
+                                                 metadata=self.metadata[cloud.cloud_name]
+                                                 if self.metadata and cloud.cloud_name in self.metadata.keys()
+                                                 else None)
                 else:
                     newcloud = openstackcloud.\
                         OpenStackCloud(resource=cloud,

@@ -2,19 +2,6 @@ if 'Table' not in locals() and 'Table' not in globals():
   from sqlalchemy import Table, Column, Float, Integer, String, MetaData, ForeignKey
   metadata = MetaData()
 
-TEST = Table('TEST', metadata,
-  Column('a1', String),
-  Column('a2', String),
-  Column('a3', String),
-  Column('a4', String),
-  Column('a5', String(16)),
-  Column('a6', String(16)),
-  Column('a7', Integer),
-  Column('a8', Integer),
-  Column('a9', Float),
-  Column('a10', Float)
-  )
-
 archived_condor_jobs = Table('archived_condor_jobs', metadata,
   Column('global_job_id', String(128), primary_key=True),
   Column('group_name', String(128)),
@@ -219,7 +206,7 @@ condor_jobs = Table('condor_jobs', metadata,
   Column('hold_reason_code', Integer),
   Column('hold_reason_subcode', Integer),
   Column('last_remote_host', String(64)),
-  Column('held_reason', String(64)),
+  Column('held_reason', String(128)),
   Column('hold_job_reason', String(64))
   )
 
@@ -878,7 +865,7 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   Column('entered_current_status', Integer),
   Column('q_date', Integer),
   Column('hold_job_reason', String(64)),
-  Column('held_reason', String(64)),
+  Column('held_reason', String(128)),
   Column('js_idle', Integer),
   Column('js_running', Integer),
   Column('js_completed', Integer),

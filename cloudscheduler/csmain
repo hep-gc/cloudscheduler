@@ -492,7 +492,7 @@ if __name__ == '__main__':
         #'unregistered_vms': check_unregistered_machines,  #  No longer dealing with killing VMs.
     }
 
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=15,
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain"], pool_size=15,
                              orange_count_row='csv2_scheduler_error_count', process_ids=process_ids)
     config = procMon.get_config()
     log = procMon.get_logging()
