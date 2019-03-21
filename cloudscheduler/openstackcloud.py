@@ -26,8 +26,7 @@ class OpenStackCloud(basecloud.BaseCloud):
     """
     OpenStack Connector class for cloudscheduler
     """
-    def __init__(self, resource=None, vms=None, defaultsecuritygroup=None,
-                 extrayaml=None, metadata=None):
+    def __init__(self, resource=None, extrayaml=None, metadata=None):
 
         """
         OpenStack constructor
