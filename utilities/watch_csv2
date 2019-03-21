@@ -9,10 +9,78 @@ view dependencies.
 
 from cloudscheduler.lib.db_config import Config
 from subprocess import Popen, PIPE
+import curses
+import json
 import os
 import sys
 import tempfile
 import time
+import traceback
+
+LOG_FILE_MAP_SFX = '.map'
+
+def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
+    watch_xref = {}
+    for ix in range(len(watch)):
+        watch_xref[watch[ix]['id']] = ix
+
+    cmd = None
+    frames = extend
+
+    # Set master frame for each command within the frames.
+    if len(frames) > 0:
+        for fix in range(len(frames)-1, -1, -1):
+            mfix_count = 0
+            for ix in range(len(frames[fix]['cmd'])):
+                if fix == frames[fix]['cmd'][ix][1]:
+                    watch[ix]['offset'] = fix
+
+                if 'offset' in watch[ix]:
+                    mfix_count += 1
+       
+            if mfix_count == len(frames[fix]['cmd']):
+                break
+
+    with open('%s/%s' % (log_dir, log_file_name)) as fd:
+        if len(frames) > 0:
+            offset = frames[-1]['cmd'][-1][0]
+            del frames[-1]['cmd'][-1]
+            fd.seek(offset)
+        else:
+            offset = 0
+
+        for line in fd:
+            words = line[:-1].split()
+            if len(words) > 0 and words[0] in watch_xref:
+                if watch_xref[words[0]] == 0:
+                    frames.append({'cmd': []})
+
+                if len(frames) > 0:
+                    cmd = watch[watch_xref[words[0]]]
+                    if 'offset' not in cmd:
+                        cmd['offset'] = -1
+                    
+                    if len(words) > 1 and words[1][0] == '(':
+                        cmd['offset'] = len(frames)-1
+
+                    frames[-1]['cmd'].append([offset, cmd['offset']])
+
+            elif 'condor_q' in watch_xref:
+                if 'dd' not in frames[-1]:
+                    date = words[-2].split('/')
+                    time = words[-1].split(':')
+                    frames[-1]['dd'] = (((int(date[2])*100)+int(date[0]))*100)+int(date[1])
+                    frames[-1]['hr'] = time[0]*1
+
+            offset += len(line)
+
+    if 'dd' not in frames[-1]:
+        del frames[-1]
+
+    with open('%s/%s%s' % (log_dir, log_file_name, LOG_FILE_MAP_SFX), 'w') as fd:
+        fd.write(json.dumps(frames))
+
+    return frames
 
 if len(sys.argv) < 2:
     if sys.stdout.isatty():
@@ -172,7 +240,7 @@ if report_destination == 'syslog' or report_destination == 'terminal':
 
         time.sleep(config.sleep_time)
             
-if report_destination == 'enumerate':
+elif report_destination == 'enumerate':
     watch_xref = {}
     for ix in range(len(watch)):
         watch_xref[watch[ix]['id']] = ix
@@ -203,54 +271,225 @@ if report_destination == 'enumerate':
                 print('%d_%d %s' % (cmd_ix, row_ix, ', '.join(cols[1:])))
             row_ix += 1
 
-if report_destination == 'replay':
-    watch_xref = {}
-    for ix in range(len(watch)):
-        watch_xref[watch[ix]['id']] = ix
+elif report_destination == 'replay':
+    def frame_bwd(cfg):
+        if cfg['fix'] > 0:
+            cfg['fix'] -= 1
+            return True
+        else:
+            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['size']:
+                maps_remap(cfg)
 
-    fd = open(config.log_file)
-    lines = fd.read().split('\n')
-    fd.close()
-
-    temp_file = tempfile.mkstemp()
-    fd = open(temp_file[1], 'a')
-
-    cmd = None
-    for line in lines:
-        words = line.split()
-        if len(words) > 0 and words[0] in watch_xref:
-            if cmd:
-                if watch_xref[words[0]] == 0:
-                    fd.write('\n'*os.get_terminal_size().lines)
-                else:
-                    fd.write('\n')
-
-            cmd = watch[watch_xref[words[0]]]
-        
-            if len(words) > 2 and words[1] == 'no' and words[2] == 'change.':
-                if 'report' in cmd:
-                    if cmd['type'] == 'CMD':
-                        fd.write('\n'.join(cmd['report'][1:] + ['']))
-                    else:
-                        fd.write('\n'.join(cmd['report'] + ['']))
-                continue
+            if cfg['mix'] > 0:
+                cfg['mix'] -= 1
+                if not cfg['maps'][cfg['mix']]['map']:
+                    maps_load(cfg)
+                cfg['fix'] = len(cfg['maps'][cfg['mix']]['map']) - 1
+                return True
 
             else:
-                cmd['report'] = []
+                curses.beep()
+                return False
 
-        if cmd:
-            if 'report' not in cmd:
-                cmd['report'] = []
+    def frame_fwd(cfg, try_again=True):
+        if cfg['fix'] < len(cfg['maps'][cfg['mix']]['map']) - 1:
+            cfg['fix'] += 1
+            return True
+        else:
+            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['size']:
+                maps_remap(cfg)
 
-            cmd['report'].append(line)
-            if cmd['type'] == 'SQL' or len(cmd['report']) > 1:
-                fd.write('%s\n' % cmd['report'][-1])
+            if cfg['mix'] < len(cfg['maps']) -1:
+                cfg['mix'] += 1
+                if not cfg['maps'][cfg['mix']]['map']:
+                    maps_load(cfg)
+                cfg['fix'] = 0
+                return True
 
-    fd.close()
+            else:
+                if try_again:
+                    maps_extend(cfg)
+                    return frame_fwd(cfg, try_again=False)
+                else:
+                    curses.beep()
+                    return False
 
-    p = Popen(['less', temp_file[1]])
-    p.communicate()
+    def frame_get(cfg):
+        fix = cfg['fix']
+        mix = cfg['mix']
 
-    p = Popen(['rm', '-f', temp_file[1]])
-    p.communicate()
+        report = []
+        with open('%s/%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'])) as fd:
+            for ix in range(len(cfg['maps'][mix]['map'][fix]['cmd'])):
+                if cfg['maps'][mix]['map'][fix]['cmd'][ix][1] == fix:
+                    mfix = fix
+                else:
+                    mfix = cfg['maps'][mix]['map'][fix]['cmd'][ix][1]
 
+                if ix < len(cfg['maps'][mix]['map'][mfix]['cmd']) - 1:
+                    rl = cfg['maps'][mix]['map'][mfix]['cmd'][ix+1][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
+                else:
+                    rl = cfg['maps'][mix]['map'][mfix+1]['cmd'][0][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
+#               elif mix < len(cfg['maps']) - 1:
+#                   rl = -1
+
+                fd.seek(cfg['maps'][mix]['map'][mfix]['cmd'][ix][0])
+
+                if rl > 0:
+                    lines = fd.read(rl).split('\n')
+                else:
+                    lines = fd.read().split('\n')
+
+                for ix in range(len(lines)):
+                    report.append(lines[ix])
+
+        return report
+
+    def maps_extend(cfg):
+        cfg['maps'][cfg['mix']]['map'] = generate_log_file_map(cfg['watch'], cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'], extend=cfg['maps'][cfg['mix']]['map'])
+
+    def maps_load(cfg):
+        if not os.path.isfile('%s/%s%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'], LOG_FILE_MAP_SFX)):
+            cfg['maps'][cfg['mix']]['map'] = generate_log_file_map(cfg['watch'], cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'])
+        else:
+            with open('%s/%s%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'], LOG_FILE_MAP_SFX)) as fd:
+                cfg['maps'][cfg['mix']]['map'] = json.loads(fd.read())
+
+
+    def maps_map(cfg):
+        log_files = {}
+        for log_file in os.listdir(cfg['log_dir']):
+            if not os.path.isfile('%s/%s' % (cfg['log_dir'], log_file)) or \
+                len(log_file) < len(cfg['log_file_pfx']):
+                continue
+
+            if log_file[:len(cfg['log_file_pfx'])] == cfg['log_file_pfx']:
+                if log_file[-len(LOG_FILE_MAP_SFX):] == LOG_FILE_MAP_SFX:
+                    log_fn = log_file[:-len(LOG_FILE_MAP_SFX)]
+                else:
+                    log_fn = log_file
+
+                if log_fn == cfg['log_file_pfx']:
+                    log = 'z'
+                else:
+                    log = log_fn
+
+                if log not in log_files:
+                    log_files[log] = {'fn': log_fn, 'mapped': False, 'sourced': False}
+
+                if log_fn == log_file:
+                    log_files[log]['sourced'] = True
+                else:
+                    log_files[log]['mapped'] = True
+
+        maps = []
+        for log in  sorted(log_files):
+            if log_files[log]['sourced']:
+                maps.append({'fn': log_files[log]['fn'], 'map': None})
+
+        del log_files
+
+        maps[-1]['size'] = os.stat('%s/%s' % (cfg['log_dir'], maps[-1]['fn'])).st_size
+        return maps
+
+    def maps_remap(cfg):
+        return
+
+    cfg = {
+        'log_dir': os.path.dirname(config.log_file),
+        'log_file_pfx': os.path.basename(config.log_file),
+        'watch': watch
+        }
+
+    cfg['maps'] = maps_map(cfg)
+    cfg['mix'] = -1
+    maps_load(cfg)
+
+    cfg['fix'] = 0
+    cfg['mix'] = len(cfg['maps']) - 1
+
+    stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0)
+    yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
+
+    up_down = 0
+    left_right = 0
+    
+    try:
+        while (True):
+            yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
+
+            frame_data = frame_get(cfg)
+
+            stdscr.clear()
+            for ix in range(min(len(frame_data), yx[0]-2)):
+                stdscr.addnstr(ix, 0, frame_data[ix+up_down][left_right:], yx[1])
+
+            stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map'])), yx[1], curses.A_BOLD)
+
+            stdscr.refresh()
+
+            curses.cbreak()
+            input = stdscr.getch()
+
+            if input == ord('d'):
+                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
+                while frame_fwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd:
+                    pass
+
+            elif input == ord('D'):
+                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
+                while frame_bwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd:
+                    pass
+
+            elif input == ord('h'):
+                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
+                ch = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr']
+                while frame_fwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr'] == ch:
+                    pass
+
+            elif input == ord('H'):
+                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
+                ch = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr']
+                while frame_bwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr'] == ch:
+                    pass
+
+            elif input == ord('n'):
+                frame_fwd(cfg)
+
+            elif input == ord('N'):
+                frame_bwd(cfg)
+
+            # Down arror.
+            elif input == 258:
+                if up_down<len(frame_data)-yx[0]+1:
+                    up_down += 1
+                else:
+                    curses.beep()
+
+            # Up arror.
+            elif input == 259:
+                if up_down>0:
+                    up_down -= 1
+                else:
+                    curses.beep()
+
+            # Left arror.
+            elif input == 260:
+                if left_right>0:
+                    left_right -= 1
+                else:
+                    curses.beep()
+
+            # Right arror.
+            elif input == 261:
+                left_right += 1
+
+            elif input == ord('q'):
+                break
+
+        curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
+    except Exception as ex:
+        curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
+        print('Map: %s/%s, Frame: %s/%s, Log File: %s' % (cfg['mix']+1, len(cfg['maps']), cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map']), cfg['maps'][cfg['mix']]['fn']))
+        traceback.print_tb(ex)
+        
