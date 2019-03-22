@@ -33,16 +33,18 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
         for fix in range(len(frames)-1, -1, -1):
             for ix in range(len(frames[fix]['cmd'])):
                 if ix < len(cmd_fix) and cmd_fix[ix] == 0 and fix == frames[fix]['cmd'][ix][1]:
-                    watch[ix]['offset'] = fix
+                    watch[ix]['fix'] = fix
                     cmd_fix[ix] = 1
+
+#           if extend:
+#               print(">>> %s %s %s %s %s" % (len(extend), fix, ix, cmd_fix, frames[fix]['cmd'][ix][1]))
 
             if cmd_fix == [1]*len(watch):
                 break
 
     with open('%s/%s' % (log_dir, log_file_name)) as fd:
         if len(frames) > 0:
-            offset = frames[-1]['cmd'][-1][0]
-            del frames[-1]['cmd'][-1]
+            offset = frames[-1]['fsize']
             fd.seek(offset)
         else:
             offset = 0
@@ -55,7 +57,7 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
 
                 if len(frames) > 0:
                     cmd = watch[watch_xref[words[0]]]
-                    if 'offset' not in cmd:
+                    if 'fix' not in cmd:
                         cmd['fix'] = -1
                     
                     if len(words) > 1 and words[1][0] == '(':
@@ -95,14 +97,15 @@ else:
     if sys.argv[1] == '?' or sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1] == 'help':
         print('\nSynopsis: watch_csv2 [ <option> ]' \
             '\n\nWhere "<option>" is one of the following:' \
-            '\n   --help      - (or: -h, help, & ?) to request these help messages.' \
-            '\n   --append    - (or: -a, append) appends periodical reports to the system log file.' \
-            '\n   --enumerate - (or: -e, enumerate) reads the system log file, identifies data' \
-            '\n                 elements by inserting table, row, and column identifiers, and' \
-            '\n                 writing the report to stdout.' \
-            '\n   --replay    - (or: -r, replay) replays the system log file.' \
+            '\n   --help       - (or: -h, help, & ?) to request these help messages.' \
+            '\n   --append     - (or: -a, append) appends periodical reports to the system log file.' \
+            '\n   --enumerate  - (or: -e, enumerate) reads the system log file, identifies data' \
+            '\n                  elements by inserting table, row, and column identifiers, and' \
+            '\n                  writing the report to stdout.' \
+            '\n   --map <path> - (or: -m, map) reads the specified log file and creates a log file map.' \
+            '\n   --replay     - (or: -r, replay) replays the system log file.' \
             '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.' \
-            '\n\nwatch_csv2 has the following configuration values with the csv2 database:' \
+            '\n\nwatch_csv2 has the following configuration values within the csv2 database:' \
             '\n   category=watch_csv2, key=config_file - specifies the absolute path of the watch_csv2' \
             '\n                                          configuration file. This file specifies the' \
             '\n                                          commands and SQL select statements that are to' \
@@ -120,6 +123,9 @@ else:
 
     elif sys.argv[1] == '--enumerate' or sys.argv[1] == '-e' or sys.argv[1] == 'enumerate':
         report_destination = 'enumerate'
+
+    elif sys.argv[1] == '--map' or sys.argv[1] == '-m' or sys.argv[1] == 'map':
+        report_destination = 'map'
 
     elif sys.argv[1] == '--replay' or sys.argv[1] == '-r' or sys.argv[1] == 'replay':
         report_destination = 'replay'
@@ -273,8 +279,31 @@ elif report_destination == 'enumerate':
                 print('%d_%d %s' % (cmd_ix, row_ix, ', '.join(cols[1:])))
             row_ix += 1
 
+elif report_destination == 'map':
+    if len(sys.argv) < 3:
+        print('Error: specify the log file path to be mapped.')
+        exit(1)
+
+    log_file_path = os.path.realpath(sys.argv[2])
+    if not os.path.isfile(log_file_path):
+        print('Error: the specified log file "%s" does not exist.' % log_file_path)
+        exit(1)
+
+    ignore = generate_log_file_map(watch, os.path.dirname(log_file_path), os.path.basename(log_file_path))
+#   print('sleeping 60 ...')
+#   time.sleep(60)
+#   ignore = generate_log_file_map(watch, os.path.dirname(log_file_path), os.path.basename(log_file_path), extend=ignore)
+
 elif report_destination == 'replay':
+    def beep():
+        curses.flushinp()
+        curses.beep()
+        return False
+
     def frame_bwd(cfg):
+        cfg['left_right'] = 0
+        cfg['up_down'] = 0
+
         if cfg['fix'] > 0:
             cfg['fix'] -= 1
             return True
@@ -290,10 +319,12 @@ elif report_destination == 'replay':
                 return True
 
             else:
-                curses.beep()
-                return False
+                return beep()
 
     def frame_fwd(cfg, try_again=True):
+        cfg['left_right'] = 0
+        cfg['up_down'] = 0
+
         if cfg['fix'] < len(cfg['maps'][cfg['mix']]['map']) - 1:
             cfg['fix'] += 1
             return True
@@ -313,8 +344,7 @@ elif report_destination == 'replay':
                     maps_extend(cfg)
                     return frame_fwd(cfg, try_again=False)
                 else:
-                    curses.beep()
-                    return False
+                    return beep()
 
     def frame_get(cfg):
         fix = cfg['fix']
@@ -394,6 +424,8 @@ elif report_destination == 'replay':
     cfg = {
         'log_dir': os.path.dirname(config.log_file),
         'log_file_pfx': os.path.basename(config.log_file),
+        'left_right': 0,
+        'up_down': 0,
         'watch': watch
         }
 
@@ -407,9 +439,6 @@ elif report_destination == 'replay':
     stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0)
     yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
 
-    up_down = 0
-    left_right = 0
-    
     try:
         while (True):
             yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
@@ -418,10 +447,9 @@ elif report_destination == 'replay':
 
             stdscr.clear()
             for ix in range(min(len(frame_data), yx[0]-2)):
-                stdscr.addnstr(ix, 0, frame_data[ix+up_down][left_right:], yx[1])
+                stdscr.addnstr(ix, 0, frame_data[ix+cfg['up_down']][cfg['left_right']:], yx[1])
 
-#           stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map'])), yx[1], curses.A_BOLD)
-            stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit %s' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map']), len(frame_data)), yx[1], curses.A_BOLD)
+            stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map'])), yx[1], curses.A_BOLD)
 
             stdscr.refresh()
 
@@ -458,28 +486,28 @@ elif report_destination == 'replay':
 
             # Down arror.
             elif input == 258:
-                if up_down<len(frame_data)-yx[0]+1:
-                    up_down += 1
+                if cfg['up_down']<len(frame_data)-yx[0]+1:
+                    cfg['up_down'] += 1
                 else:
-                    curses.beep()
+                    beep()
 
             # Up arror.
             elif input == 259:
-                if up_down>0:
-                    up_down -= 1
+                if cfg['up_down']>0:
+                    cfg['up_down'] -= 1
                 else:
-                    curses.beep()
+                    beep()
 
             # Left arror.
             elif input == 260:
-                if left_right>0:
-                    left_right -= 1
+                if cfg['left_right']>0:
+                    cfg['left_right'] -= 1
                 else:
-                    curses.beep()
+                    beep()
 
             # Right arror.
             elif input == 261:
-                left_right += 1
+                cfg['left_right'] += 1
 
             elif input == ord('q'):
                 break
