@@ -29,16 +29,14 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
 
     # Set master frame for each command within the frames.
     if len(frames) > 0:
+        cmd_fix = [0]*len(watch)
         for fix in range(len(frames)-1, -1, -1):
-            mfix_count = 0
             for ix in range(len(frames[fix]['cmd'])):
-                if fix == frames[fix]['cmd'][ix][1]:
+                if ix < len(cmd_fix) and cmd_fix[ix] == 0 and fix == frames[fix]['cmd'][ix][1]:
                     watch[ix]['offset'] = fix
+                    cmd_fix[ix] = 1
 
-                if 'offset' in watch[ix]:
-                    mfix_count += 1
-       
-            if mfix_count == len(frames[fix]['cmd']):
+            if cmd_fix == [1]*len(watch):
                 break
 
     with open('%s/%s' % (log_dir, log_file_name)) as fd:
@@ -58,12 +56,12 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
                 if len(frames) > 0:
                     cmd = watch[watch_xref[words[0]]]
                     if 'offset' not in cmd:
-                        cmd['offset'] = -1
+                        cmd['fix'] = -1
                     
                     if len(words) > 1 and words[1][0] == '(':
-                        cmd['offset'] = len(frames)-1
+                        cmd['fix'] = len(frames)-1
 
-                    frames[-1]['cmd'].append([offset, cmd['offset']])
+                    frames[-1]['cmd'].append([offset, cmd['fix']])
 
             elif 'condor_q' in watch_xref:
                 if 'dd' not in frames[-1]:
@@ -74,7 +72,11 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
 
             offset += len(line)
 
-    if 'dd' not in frames[-1]:
+    if 'dd' in frames[-1]:
+        frames[-1]['fsize'] = offset
+    else:
+        if len(frames) > 1:
+            frames[-2]['fsize'] = frames[-1]['cmd'][0]
         del frames[-1]
 
     with open('%s/%s%s' % (log_dir, log_file_name, LOG_FILE_MAP_SFX), 'w') as fd:
@@ -277,7 +279,7 @@ elif report_destination == 'replay':
             cfg['fix'] -= 1
             return True
         else:
-            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['size']:
+            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['map'][-1]['fsize']:
                 maps_remap(cfg)
 
             if cfg['mix'] > 0:
@@ -296,7 +298,7 @@ elif report_destination == 'replay':
             cfg['fix'] += 1
             return True
         else:
-            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['size']:
+            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['map'][-1]['fsize']:
                 maps_remap(cfg)
 
             if cfg['mix'] < len(cfg['maps']) -1:
@@ -321,7 +323,7 @@ elif report_destination == 'replay':
         report = []
         with open('%s/%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'])) as fd:
             for ix in range(len(cfg['maps'][mix]['map'][fix]['cmd'])):
-                if cfg['maps'][mix]['map'][fix]['cmd'][ix][1] == fix:
+                if cfg['maps'][mix]['map'][fix]['cmd'][ix][1] == -1 or cfg['maps'][mix]['map'][fix]['cmd'][ix][1] == fix:
                     mfix = fix
                 else:
                     mfix = cfg['maps'][mix]['map'][fix]['cmd'][ix][1]
@@ -329,17 +331,13 @@ elif report_destination == 'replay':
                 if ix < len(cfg['maps'][mix]['map'][mfix]['cmd']) - 1:
                     rl = cfg['maps'][mix]['map'][mfix]['cmd'][ix+1][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
                 else:
-                    rl = cfg['maps'][mix]['map'][mfix+1]['cmd'][0][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
-#               elif mix < len(cfg['maps']) - 1:
-#                   rl = -1
+                    if mfix < len(cfg['maps'][mix]['map']) - 1:
+                        rl = cfg['maps'][mix]['map'][mfix+1]['cmd'][0][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
+                    else:
+                        rl = cfg['maps'][mix]['map'][mfix]['fsize'] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
 
                 fd.seek(cfg['maps'][mix]['map'][mfix]['cmd'][ix][0])
-
-                if rl > 0:
-                    lines = fd.read(rl).split('\n')
-                else:
-                    lines = fd.read().split('\n')
-
+                lines = fd.read(rl).split('\n')
                 for ix in range(len(lines)):
                     report.append(lines[ix])
 
@@ -388,8 +386,6 @@ elif report_destination == 'replay':
                 maps.append({'fn': log_files[log]['fn'], 'map': None})
 
         del log_files
-
-        maps[-1]['size'] = os.stat('%s/%s' % (cfg['log_dir'], maps[-1]['fn'])).st_size
         return maps
 
     def maps_remap(cfg):
@@ -424,7 +420,8 @@ elif report_destination == 'replay':
             for ix in range(min(len(frame_data), yx[0]-2)):
                 stdscr.addnstr(ix, 0, frame_data[ix+up_down][left_right:], yx[1])
 
-            stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map'])), yx[1], curses.A_BOLD)
+#           stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map'])), yx[1], curses.A_BOLD)
+            stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit %s' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map']), len(frame_data)), yx[1], curses.A_BOLD)
 
             stdscr.refresh()
 
