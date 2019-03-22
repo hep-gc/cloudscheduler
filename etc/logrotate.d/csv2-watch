@@ -1,0 +1,16 @@
+/var/log/cloudscheduler/watch_csv2.logging {
+  daily
+  dateext
+  notifempty
+  missingok
+  su cloudscheduler cloudscheduler
+  create 0644 cloudscheduler cloudscheduler
+  prerotate
+      systemctl stop csv2-watch
+  endscript
+  postrotate
+      systemctl start csv2-watch
+      /opt/cloudscheduler/utilities/watch_csv2 --map $1
+  endscript
+}
+
