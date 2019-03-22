@@ -137,32 +137,27 @@ else if (refresh_interval < 1) stop_refresh;
 
 
     <div class="status-div" id="status">
-    
+
         <div>
-        
-      
             <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
-            
-           
             <div class="status-table">
 
-                 <div class="toggle-button">
-                <label for="toggle-row">
-                    <span class="expand-symbol">&#x21a8;</span>
-                    <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
-                </label>
+                <div class="toggle-button">
+                    <label for="toggle-row">
+                        <span class="expand-symbol">&#x21a8;</span>
+                        <!--<img src="{% static "csv2/expand.svg" %}" alt="expand rows">-->
+                    </label>
                 </div>
 
                 <table>
-                  <colgroup>
-                    <col class="clear" span="1" />
-                    <col class="red" span="1" />
-                    <col class="clear" span="7" />
+                    <colgroup>
+                        <col class="clear" span="1" />
+                        <col class="red" span="1" />
+                        <col class="clear" span="7" />
 
-                  </colgroup>
+                    </colgroup>
                     <tr class="header-row">
                         <th class="group-name jobs-style">Group</th>
-
                         <th class="jobs-style">Jobs</th>
                         <th class="jobs-style">Idle</th>
                         <th class="jobs-style">Running</th>
@@ -173,7 +168,7 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="extra-row jobs-style">Condor Status</th>
                         <th class="extra-row jobs-style">Condor FQDN</th>
                     </tr>
-                
+
                     {% for cloud in job_status_list %}
                         {% if global_flag or not global_flag and cloud.group_name == active_group %}
                             <tr>
@@ -220,9 +215,14 @@ else if (refresh_interval < 1) stop_refresh;
                                 {% else %}
                                     <td data-path="{{cloud.group_name}} jobs_foreign" class="more-style plottable"><a href="#">{{cloud.foreign}}</a></td>
                                 {% endif %}
-
-                                <td data-path="{{cloud.group_name}} jobs_htcondor_status" class="extra-row more-style plottable"><a href="#">{{cloud.htcondor_status}}</a></td>
                                 
+                                {% if cloud.htcondor_status == 0 %}
+                                    {% set status = "Unavailable" %}
+                                {% else %}
+                                    {% set status = "Online" %}
+                                {% endif %}
+                                <td data-path="{{cloud.group_name}} jobs_htcondor_status" class="extra-row more-style plottable"><a href="#">{{status}}</a></td>
+
                                 <td data-path="{{cloud.group_name}} jobs_htcondor_fqdn" class="extra-row more-style">{{cloud.htcondor_fqdn}}</td>
 
 
@@ -236,38 +236,37 @@ else if (refresh_interval < 1) stop_refresh;
                                             {% if job.group_name == cloud.group_name %}
                                                 <tr>
                                                 {% if job.js_idle != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable"><a href="#">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</a></td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">&nbsp;</td> 
                                                     <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
                                                 {% endif %}
 
                                                 {% if job.js_running != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="plottable">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="plottable"><a href="#">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</a></td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_running_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_running }}&#10005;{{ job.request_cpus }}c</td> -->
-
                                                 {% endif %}
 
                                                 {% if job.js_completed != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="plottable">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="plottable"><a href="#">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</a></td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_completed_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_completed }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_held != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable"><a href="#">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</a></td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_held }}&#10005;{{ job.request_cpus }}c</td> -->
                                                 {% endif %}
 
                                                 {% if job.js_other != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_other_{{job.request_cpus}}core" class="plottable"><a href="#">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</a></td>
                                                 {% else %}
-                                                    <td data-path="{{job.group_name}} jobs_held_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
+                                                    <td data-path="{{job.group_name}} jobs_other_{{job.request_cpus}}core" class="plottable">&nbsp;</td>
                                                     <!-- <td class="zero-style">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td> -->
 
                                                 {% endif %}
@@ -289,35 +288,29 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="extra-row">&nbsp;</td>
                     </tr>
 
-                    </tbody> 
+                    </tbody>
                 </table>
 
             </div>
-
-
 
             <!--
             https://codepen.io/istro/pen/daker 
             https://codersblock.com/blog/checkbox-trickery-with-css/
             -->
-
             <!--
             <input id="how-other" name="how" type="radio">
             <label for="how-other" class="side-label">Other...</label>
-
             <div class="how-other-disclosure">
               <label for="how-other-explain" class="top-label">Please explain</label>
               <textarea id="how-other-explain"></textarea>
             </div>
             -->
 
-
-
             <br>
             {% set VMstotal = 0 %}
             {% set VMs_foreign_total = 0 %}
             <div class="status-table">
-                
+
                 <table>
                   <colgroup>
                     <col class="clear" span="1"/>
@@ -326,7 +319,6 @@ else if (refresh_interval < 1) stop_refresh;
                   </colgroup>
                     <tr class="header-row">
                         <th class="group-name jobs-style">Group</th>
-                        
                         <th class="name-style">Clouds</th>
                         <th class="native-style">VMs</th>
                         <th class="native-style">Starting</th>
@@ -338,7 +330,6 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="native-style">Error</th>
 
                         <th class="col-spacer">&nbsp;</th>
-
 
                         <th class="native-style" colspan="2">
                             <table>
@@ -390,9 +381,9 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="native-style">Slots<br>Idle Cores</th>
                         -->
                     </tr>
-                    
+
                     {% for cloud in cloud_status_list %}
-                        
+
                         {% if global_flag or not global_flag and cloud.group_name == active_group %}
                             {% if cloud.enabled == 1 or cloud.VMs > 0 %}
                                 
@@ -411,55 +402,55 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% if cloud.VMs == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="more-style plottable">{{cloud.VMs}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="more-style plottable"><a href="#">{{cloud.VMs}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::native::')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
                                     {% if cloud.VMs_starting == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="more-style plottable">{{cloud.VMs_starting}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_starting" class="more-style plottable"><a href="#">{{cloud.VMs_starting}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=starting&hostname=')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_unregistered == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="more-style plottable">{{cloud.VMs_unregistered}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_unregistered" class="more-style plottable"><a href="#">{{cloud.VMs_unregistered}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=unregistered&hostname=')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_idle == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="more-style plottable">{{cloud.VMs_idle}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_idle" class="more-style plottable"><a href="#">{{cloud.VMs_idle}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=idle&hostname=')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_running == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="more-style plottable">{{cloud.VMs_running}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_running" class="more-style plottable"><a href="#">{{cloud.VMs_running}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=running&hostname=')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_retiring == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="more-style plottable">{{cloud.VMs_retiring}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_retiring" class="more-style plottable"><a href="#">{{cloud.VMs_retiring}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=retiring&hostname=')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_manual == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="more-style plottable">{{cloud.VMs_manual}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_manual" class="more-style plottable"><a href="#">{{cloud.VMs_manual}}<!--<a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=manual&hostname=')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
                                     {% if cloud.VMs_in_error == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="more-style plottable">{{cloud.VMs_in_error}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="more-style plottable"><a href="#">{{cloud.VMs_in_error}}<!--<a onclick="pass_url('{{cloud.cloud_name}}::error::')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
@@ -472,7 +463,7 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% elif cloud.cores_ctl == -1 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="sysctl-style plottable">{{cloud.cores_native}}</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="manual-style plottable">{{cloud.cores_native}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native" class="manual-style plottable"><a href="#">{{cloud.cores_native}}</a></td>
                                     {% endif %}
 
                                     {% if cloud.cores_limit == 0 %}
@@ -480,12 +471,12 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% elif cloud.cores_ctl == -1 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="sysctl-style plottable">{{cloud.cores_limit}}</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style plottable">{{cloud.cores_limit}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style plottable"><a href="#">{{cloud.cores_limit}}</a></td>
                                     {% endif %}
                                     
                                     <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native" class="plottable">
                                         {% with total=cloud.ram_quota %}
-                                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></meter>
+                                            <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native }}"></a></meter>
                                         {% endwith %}
                                     </td>
 
@@ -496,7 +487,7 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% if cloud.Foreign_VMs == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="more-style plottable">{{ cloud.Foreign_VMs }}<!--<a onclick="pass_url('{{cloud.cloud_name}}::foreign::')" href="#vms-overlay">--></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs" class="more-style plottable"><a href="#">{{ cloud.Foreign_VMs }}<!--<a onclick="pass_url('{{cloud.cloud_name}}::foreign::')" href="#vms-overlay">--></a></td>
                                     {% endif %}
 
 
@@ -504,12 +495,12 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% if cloud.cores_foreign == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="more-style plottable">{{ cloud.cores_foreign }}</a></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign" class="more-style plottable"><a href="#">{{ cloud.cores_foreign }}</a></td>
                                     {% endif %}
 
                                     <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign" class="plottable">
                                         {% with total=cloud.ram_quota %}
-                                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter>
+                                            <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_foreign }}"></meter></a>
                                         {% endwith %}
                                     </td>
 
@@ -520,7 +511,7 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% if cloud.cores_native_foreign == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="more-style plottable">{{ cloud.cores_native_foreign }}</a></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="more-style plottable"><a href="#">{{ cloud.cores_native_foreign }}</a></td>
                                     {% endif %}
                                     <!--******************************-->
 
@@ -528,12 +519,12 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% if cloud.cores_max == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="more-style plottable">{{ cloud.cores_quota }}</a></td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_quota" class="more-style plottable"><a href="#">{{ cloud.cores_quota }}</a></td>
                                     {% endif %}
 
                                     <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign" class="plottable">
                                         {% with total=cloud.ram_quota %}
-                                            <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                                            <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.ram_quota}}" value="{{ cloud.ram_native_foreign }}"></meter></a>
                                         {% endwith %}                        
                                     </td>
 
@@ -542,26 +533,23 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% if cloud.slot_count == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="more-style plottable">{{cloud.slot_count}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="more-style plottable"><a href="#">{{cloud.slot_count}}</a></td>
                                     {% endif %}
 
 
                                     {% if cloud.slot_core_count == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="more-style plottable">{{cloud.slot_core_count}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="more-style plottable"><a href="#">{{cloud.slot_core_count}}</a></td>
                                     {% endif %}
 
                                     {% if cloud.slot_idle_core_count == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="zero-style plottable">0</td>
                                     {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="more-style plottable">{{cloud.slot_idle_core_count}}</td>
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="more-style plottable"><a href="#">{{cloud.slot_idle_core_count}}</a></td>
                                     {% endif %}
 
-                                    
-
                                 </tr>
-
 
 
                                 <tr class="extra-row">
@@ -619,8 +607,6 @@ else if (refresh_interval < 1) stop_refresh;
                                         <a onclick="pass_url('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=')" href="#vms-overlay">&#x2637;</a>
                                     {% endif %}
                                     </td>
-
-
 
 
                                     <td class="col-spacer">&nbsp;</td>
@@ -686,12 +672,10 @@ else if (refresh_interval < 1) stop_refresh;
                                         </table>
                                     </td>
                                     <td><!--Idle--></td>
-
                                 </tr>
 
                             {% endif %}
                         {% endif %}
-
                     {% endfor %}
                     
                     <!--
@@ -738,56 +722,56 @@ else if (refresh_interval < 1) stop_refresh;
                         {% if group_total.VMs == 0 %}
                             <td data-path="{{group_name}} VMs_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_total" class="more-style plottable">{{group_total.VMs}}<!--<a onclick="pass_url('::native::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_total" class="more-style plottable"><a href="#">{{group_total.VMs}}<!--<a onclick="pass_url('::native::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_starting == 0 %}
                             <td data-path="{{group_name}} VMs_starting_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_starting_total" class="more-style plottable">{{group_total.VMs_starting}}<!--<a onclick="pass_url('::starting::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_starting_total" class="more-style plottable"><a href="#">{{group_total.VMs_starting}}<!--<a onclick="pass_url('::starting::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_unregistered == 0 %}
                             <td data-path="{{group_name}} VMs_unregistered_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_unregistered_total" class="more-style plottable">{{group_total.VMs_unregistered}}<!--<a onclick="pass_url('::unregistered::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_unregistered_total" class="more-style plottable"><a href="#">{{group_total.VMs_unregistered}}<!--<a onclick="pass_url('::unregistered::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_idle == 0 %}
                             <td data-path="{{group_name}} VMs_idle_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_idle_total" class="more-style plottable">{{group_total.VMs_idle}}<!--<a onclick="pass_url('::idle::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_idle_total" class="more-style plottable"><a href="#">{{group_total.VMs_idle}}<!--<a onclick="pass_url('::idle::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_running == 0 %}
                             <td data-path="{{group_name}} VMs_running_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_running_total" class="more-style plottable">{{group_total.VMs_running}}<!--<a onclick="pass_url('::running::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_running_total" class="more-style plottable"><a href="#">{{group_total.VMs_running}}<!--<a onclick="pass_url('::running::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_retiring == 0 %}
                             <td data-path="{{group_name}} VMs_retiring_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_retiring_total" class="more-style plottable">{{group_total.VMs_retiring}}<!--<a onclick="pass_url('::retiring::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_retiring_total" class="more-style plottable"><a href="#">{{group_total.VMs_retiring}}<!--<a onclick="pass_url('::retiring::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_manual == 0 %}
                             <td data-path="{{group_name}} VMs_manual_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_manual_total" class="more-style plottable">{{group_total.VMs_manual}}<!--<a onclick="pass_url('::manual::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_manual_total" class="more-style plottable"><a href="#">{{group_total.VMs_manual}}<!--<a onclick="pass_url('::manual::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.VMs_in_error == 0 %}
                             <td data-path="{{group_name}} VMs_in_error_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} VMs_in_error_total" class="more-style plottable">{{group_total.VMs_in_error}}<!--<a onclick="pass_url('::error::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} VMs_in_error_total" class="more-style plottable"><a href="#">{{group_total.VMs_in_error}}<!--<a onclick="pass_url('::error::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
@@ -798,17 +782,17 @@ else if (refresh_interval < 1) stop_refresh;
                         {% if group_total.cores_native == 0 %}
                             <td data-path="{{group_name}} cores_native_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} cores_native_total" class="more-style plottable">{{group_total.cores_native}}</td>
+                            <td data-path="{{group_name}} cores_native_total" class="more-style plottable"><a href="#">{{group_total.cores_native}}</a></td>
                         {% endif %}
 
                         {% if group_total.cores_limit == 0 %}
                             <td data-path="{{group_name}} cores_limit_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} cores_limit_total" class="more-style plottable">{{group_total.cores_limit}}</td>
+                            <td data-path="{{group_name}} cores_limit_total" class="more-style plottable"><a href="#">{{group_total.cores_limit}}</a></td>
                         {% endif %}
                             <td data-path="{{group_name}} ram_native_total" class="plottable">
                                 {% with total=group_total.ram_quota %}
-                                    <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native }}"></meter>
+                                    <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native }}"></meter></a>
                                 {% endwith %}
                             </td>
 
@@ -817,32 +801,32 @@ else if (refresh_interval < 1) stop_refresh;
                         {% if group_total.Foreign_VMs == 0 %}
                             <td data-path="{{group_name}} Foreign_VMs_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} Foreign_VMs_total" class="more-style plottable">{{group_total.Foreign_VMs}}<!--<a onclick="pass_url('::foreign::')" href="#vms-overlay">--></td>
+                            <td data-path="{{group_name}} Foreign_VMs_total" class="more-style plottable"><a href="#">{{group_total.Foreign_VMs}}<!--<a onclick="pass_url('::foreign::')" href="#vms-overlay">--></a></td>
                         {% endif %}
 
 
                         {% if group_total.cores_foreign == 0 %}
                             <td data-path="{{group_name}} cores_foreign_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} cores_foreign_total" class="more-style plottable">{{group_total.cores_foreign}}</td>
+                            <td data-path="{{group_name}} cores_foreign_total" class="more-style plottable"><a href="#">{{group_total.cores_foreign}}</a></td>
                         {% endif %}
 
                             <td data-path="{{group_name}} ram_foreign_total" class="plottable">
                                 {% with total=group_total.ram_quota %}
-                                    <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_foreign }}"></meter>
+                                    <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_foreign }}"></meter></a>
                                 {% endwith %}
                             </td>
 
                         <td class="col-spacer">&nbsp;</td>
                         <!--*******************************************************-->
-                        <td data-path="{{group_name}} cores_native_foreign_total" class="more-style bold-style plottable">{{group_total.cores_native_foreign}}</td>
+                        <td data-path="{{group_name}} cores_native_foreign_total" class="more-style bold-style plottable"><a href="#">{{group_total.cores_native_foreign}}</a></td>
                         <!--*******************************************************-->
 
-                        <td data-path="{{group_name}} cores_quota_total" class="more-style bold-style plottable">{{group_total.cores_quota}}</td>
+                        <td data-path="{{group_name}} cores_quota_total" class="more-style bold-style plottable"><a href="#">{{group_total.cores_quota}}</a></td>
 
                         <td data-path="{{group_name}} ram_native_foreign_total" class="plottable">
                             {% with total=group_total.ram_quota %}
-                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native_foreign }}"></meter>
+                                <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native_foreign }}"></meter></a>
                             {% endwith %}
                         </td>
 
@@ -851,20 +835,20 @@ else if (refresh_interval < 1) stop_refresh;
                         {% if group_total.slot_count == 0 %}
                             <td data-path="{{group_name}} slot_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} slot_count_total" class="more-style plottable">{{group_total.slot_count}}</td>
+                            <td data-path="{{group_name}} slot_count_total" class="more-style plottable"><a href="#">{{group_total.slot_count}}</a></td>
                         {% endif %}
 
 
                         {% if group_total.slot_core_count == 0 %}
                             <td data-path="{{group_name}} slot_core_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} slot_core_count_total" class="more-style plottable">{{group_total.slot_core_count}}</td>
+                            <td data-path="{{group_name}} slot_core_count_total" class="more-style plottable"><a href="#">{{group_total.slot_core_count}}</a></td>
                         {% endif %}
 
                         {% if group_total.slot_idle_core_count == 0 %}
                             <td data-path="{{group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
                         {% else %}
-                            <td data-path="{{group_name}} slot_idle_core_count_total" class="more-style plottable">{{group_total.slot_idle_core_count}}</td>
+                            <td data-path="{{group_name}} slot_idle_core_count_total" class="more-style plottable"><a href="#">{{group_total.slot_idle_core_count}}</a></td>
                         {% endif %}
 
                     </tr>
@@ -921,8 +905,6 @@ else if (refresh_interval < 1) stop_refresh;
                             <a onclick="pass_url('?{{cloud.group_name}}&cloud_name=&poller_status=error&hostname=')" href="#vms-overlay">&#x2637;</a>
                         {% endif %}
                         </td>
-
-
 
 
                         <td class="col-spacer">&nbsp;</td>
@@ -1019,89 +1001,89 @@ else if (refresh_interval < 1) stop_refresh;
             </tr>
 
             <tr>
-                <td data-path="csv2_status_status" class="plottable" tooltip="{{ system_list.csv2_status_msg }}">
+                <td data-path="csv2_status_status" class="more-style plottable" tooltip="{{ system_list.csv2_status_msg }}"><a href="#">
                 {% if system_list.csv2_status_status == 1 %}
                     <!--<img src="{% static "csv2/running.svg" %}" alt="Running">-->
                     <span class="green-symbol">&#x2714;</span>
-                    </td>
+                    </a></td>
                 {% else %}
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol">&#x2718;</span></a></td>
                 {% endif %}
 
-                <td data-path="csv2_main_status" class="plottable" tooltip="{{ system_list.csv2_main_msg }}">
+                <td data-path="csv2_main_status" class="more-style plottable" tooltip="{{ system_list.csv2_main_msg }}"><a href="#">
                 {% if system_list.csv2_main_status == 1 %}
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol">&#x2714;</span></a></td>
                 {% else %}
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol">&#x2718;</span></a></td>
                 {% endif %}
 
-                <td data-path="mariadb_status" class="plottable" tooltip="{{ system_list.mariadb_msg }}">
+                <td data-path="mariadb_status" class="more-style plottable" tooltip="{{ system_list.mariadb_msg }}"><a href="#">
                 {% if system_list.mariadb_status == 1 %}
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol">&#x2714;</span></a></td>
                 {% else %}
                     <span class="red-symbol">&#x2718;</span>
-                    </td>
+                    </a></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
-                    <td data-path="csv2_openstack_status" class="plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="{{ system_list.csv2_openstack_msg }}"><a href="#">
+                    <span class="green-symbol">&#x2714;</span></a></td>
                 {% elif system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count != 0%}
-                    <td data-path="csv2_openstack_status" class="plottable" tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}"><a href="#">
+                    <span class="orange-symbol">&#x2757;</span></a></td>
                 {% else %}
-                    <td data-path="csv2_openstack_status" class="plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="{{ system_list.csv2_openstack_msg }}"><a href="#">
+                    <span class="red-symbol">&#x2718;</span></a></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count == 0%}
-                    <td data-path="csv2_jobs_status" class="plottable" tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <td data-path="csv2_jobs_status" class="more-style plottable" tooltip="{{ system_list.csv2_jobs_msg }}"><a href="#">
+                    <span class="green-symbol">&#x2714;</span></a></td>
                 {% elif system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count != 0%}
-                    <td data-path="csv2_jobs_status" class="plottable" tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <td data-path="csv2_jobs_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}"><a href="#">
+                    <span class="orange-symbol">&#x2757;</span></a></td>
                 {% else %}
-                    <td data-path="csv2_jobs_status" class="plottable" tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <td data-path="csv2_jobs_status" class="more-style plottable" tooltip="{{ system_list.csv2_jobs_msg }}"><a href="#">
+                    <span class="red-symbol">&#x2718;</span></a></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count == 0%}
-                    <td data-path="csv2_machines_status" class="plottable" tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <td data-path="csv2_machines_status" class="more-style plottable" tooltip="{{ system_list.csv2_machines_msg }}"><a href="#">
+                    <span class="green-symbol">&#x2714;</span></a></td>
                 {% elif system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count != 0%}
-                    <td data-path="csv2_machines_status" class="plottable" tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <td data-path="csv2_machines_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}"><a href="#">
+                    <span class="orange-symbol">&#x2757;</span></a></td>
                 {% else %}
-                    <td data-path="csv2_machines_status" class="plottable" tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <td data-path="csv2_machines_status" class="more-style plottable" tooltip="{{ system_list.csv2_machines_msg }}"><a href="#">
+                    <span class="red-symbol">&#x2718;</span></a></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_timeseries_status == 1 and system_list.csv2_timeseries_error_count == 0%}
-                    <td data-path="csv2_timeseries_status" class="plottable" tooltip="{{ system_list.csv2_timeseries_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <td data-path="csv2_timeseries_status" class="more-style plottable" tooltip="{{ system_list.csv2_timeseries_msg }}"><a href="#">
+                    <span class="green-symbol">&#x2714;</span></a></td>
                 {% elif system_list.csv2_timeseries_status == 1 and system_list.csv2_timeseries_error_count != 0%}
-                    <td data-path="csv2_timeseries_status" class="plottable" tooltip="Warning! {{system_list.csv2_timeseries_error_count}} child process failures. {{ system_list.csv2_timeseries_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <td data-path="csv2_timeseries_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_timeseries_error_count}} child process failures. {{ system_list.csv2_timeseries_msg }}"><a href="#">
+                    <span class="orange-symbol">&#x2757;</span></a></td>
                 {% else %}
-                    <td data-path="csv2_timeseries_status" class="plottable" tooltip="{{ system_list.csv2_timeseries_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <td data-path="csv2_timeseries_status" class="more-style plottable" tooltip="{{ system_list.csv2_timeseries_msg }}"><a href="#">
+                    <span class="red-symbol">&#x2718;</span></a></td>
                 {% endif %}
 
 
 
                 <td class="col-spacer">&nbsp;</td>
 
-                <td data-path="load" class="plottable" tooltip="{{ system_list.load }}%"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></td>
+                <td data-path="load" class="plottable" tooltip="{{ system_list.load }}%"><a href="#"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.load }}"></meter></a></td>
 
-                <td data-path="ram_used" class="plottable" tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></td>
+                <td data-path="ram_used" class="plottable" tooltip="{{ system_list.ram_used }} / {{ system_list.ram_size }} GB"><a href="#"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.ram }}"></meter></a></td>
  
-                <td data-path="swap_used" class="plottable" tooltip="{{ system_list.swap_used }} / {{ system_list.swap_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.swap }}"></meter></td>
+                <td data-path="swap_used" class="plottable" tooltip="{{ system_list.swap_used }} / {{ system_list.swap_size }} GB"><a href="#"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.swap }}"></meter></a></td>
 
-                <td data-path="disk_used" class="plottable" tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></td>
+                <td data-path="disk_used" class="plottable" tooltip="{{ system_list.disk_used }} / {{ system_list.disk_size }} GB"><a href="#"><meter min="0" low="0" optimum="50" high="80" max="100" value="{{ system_list.disk }}"></meter></a></td>
 
             </tr>
             <tr>
@@ -1115,13 +1097,11 @@ else if (refresh_interval < 1) stop_refresh;
 
                 <td class="col-spacer">&nbsp;</td>
 
-
                 <td>LOAD</td>
                 <td>RAM</td>
                 <td>SWAP</td>
                 <td>DISK</td>
             </tr>
-
 
 
         </tbody> 
@@ -1137,8 +1117,6 @@ else if (refresh_interval < 1) stop_refresh;
 </div>
 
 
-
-
 <div id="vms-overlay" class="overlay">
     <div class="popup">
         <a class="close" id="timer-count" onclick="set_refresh(refresh_interval*1000)" href="#">&times;</a>
@@ -1152,25 +1130,25 @@ else if (refresh_interval < 1) stop_refresh;
 
 <script type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
 <script type="text/javascript">
-	/*Add event listeners once page loads*/
-	initialize();
-	addEventListeners("range");
-	sessionStorage.clear();
+    /*Add event listeners once page loads*/
+    initialize();
+    addEventListeners("range");
+    sessionStorage.clear();
 
-	/*<![CDATA[*/
-    var TimerVal = refresh_interval;/*
-	var TimerVal = 30;*/
-	var TimerSPan = document.getElementById("CDTimer");
-	set_refresh(refresh_interval*1000);/*
-    set_refresh(30000);*/
-	function CountDown(){
-	setTimeout( "CountDown()", 1000 );
-	TimerSPan.innerHTML=TimerVal;
-	if(TimerSwitch == 1){TimerVal=TimerVal-1;}
-	if (TimerVal<0) { TimerVal=0 }
-	} CountDown();
-	/*]]>*/
- </script>
+    /*<![CDATA[*/
+    var TimerVal = refresh_interval;
+    /* var TimerVal = 30;*/
+    var TimerSPan = document.getElementById("CDTimer");
+    set_refresh(refresh_interval*1000);
+    /*set_refresh(30000);*/
+    function CountDown(){
+    setTimeout( "CountDown()", 1000 );
+    TimerSPan.innerHTML=TimerVal;
+    if(TimerSwitch == 1){TimerVal=TimerVal-1;}
+    if (TimerVal<0) { TimerVal=0 }
+    } CountDown();
+    /*]]>*/
+</script>
 
 
 </body>
