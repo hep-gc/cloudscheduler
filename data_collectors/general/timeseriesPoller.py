@@ -6,7 +6,6 @@ import sys
 import os
 import requests
 
-#from cloudscheduler.web_frontend.cloudscheduler.csv2.view_utils import qt
 from cloudscheduler.lib.view_utils import qt
 from cloudscheduler.lib.db_config import *
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
@@ -35,7 +34,6 @@ def timeseries_data_transfer():
     # "orange_count_row" in ProccessMonitor initialization in __main__
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
 
-    
 
     cycle_start_time = 0
     new_poll_time = 0
