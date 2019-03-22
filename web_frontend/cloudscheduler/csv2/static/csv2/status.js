@@ -141,7 +141,7 @@ function selectRange(range){
             if(no_new_points == index.length) return data;
             else{
                 Plotly.prependTraces('plotly-TS', newdata, index);
-                return updateTraces(newdata, index);
+                return updateTraces(newdata, index, []);
             }
         })
         .then(function(response){
@@ -279,7 +279,7 @@ function createQuery(trace, from, to, showing){
 
 
 /* Parse data and add null values between points where no data exists for more than 70s to show gaps in plot.
-    Returns new x and y arrays to be added to a trace*/
+   Returns new x and y arrays to be added to a trace*/
 function parseData(responsedata){
     /* Variables to keep track of where to insert nulls*/
     var addindex = [];
@@ -337,16 +337,20 @@ function getTraceData(trace, showing){
             throw `Oops! That trace: '${trace.dataset.path}' does not exist`;
         }
         const newarrays = parseData(data.results[0].series[0].values);
-        const newtrace = {
+        var newtrace = {
             mode: 'lines',
             name: trace.dataset.path,
             x: newarrays[0],
             y: newarrays[1],
-            hoverinfo: "y+name+x",
-            hoverlable: {
-                namelength:-1,
-            },
         }
+        /* Pop trailing nulls that were produced by db through summing in a query*/
+        if (newtrace.name.split(" ", 1) == 'groups_total'){
+            if(newtrace.y[newtrace.y.length -1] == null){
+                newtrace.y.pop();
+                newtrace.x.pop();
+            }
+        }
+
         /* If plot is showing, add trace to plot*/
         if(showing == true){
             var newlayout = {
@@ -418,9 +422,16 @@ function refresh_plot() {
         };
         var index = [];
         var query = createQuery(traces[0].name, traces[0].x[traces[0].x.length-1], 0, true)
+        /* Keep track of order of traces that are global totals. This info is used in updateTraces() below*/
+        var global_total = [];
+        if (traces[0].name.split(" ", 1) == 'groups_total') global_total.push(true);
+        else global_total.push(false);
         index.push(0);
         /* Create string of queries for db*/
         for (var i = 1; i < traces.length; i++){
+            if (traces[i].name.split(" ", 1) == 'groups_total') global_total.push(true);
+            else global_total.push(false);
+
             index.push(i);
             query += ';'
             query += createQuery(traces[i].name, traces[i].x[traces[i].x.length-1], 0, true);
@@ -463,7 +474,7 @@ function refresh_plot() {
                 newdata.x.push(unpackData(responsedata, 0));
             }
             /* Update plot with new data*/
-            if(new_points == true) return updateTraces(newdata, index);
+            if(new_points == true) return updateTraces(newdata, index, global_total);
             else return;
         })
         .catch(error => console.warn(error));					
@@ -472,7 +483,19 @@ function refresh_plot() {
 
 
 /* Update plot traces with most recent data points and new range*/
-function updateTraces(newdata, index){
+function updateTraces(newdata, index, global_total_list){
+    /* If global view totals, check for null values in last < 30s period and remove*/
+    if(global_total_list && global_total_list.length){
+        for(var x = 0; x < global_total_list.length; x++){
+            if(global_total_list[x]){
+                /* Pop trailing nulls that were produced by db through summing in a query*/
+                if(newdata.y[x][newdata.y[x].length-1] == null){
+                    newdata.y[x].pop();
+                    newdata.x[x].pop();
+                }
+            }
+        }
+    }
     /* If last plotted data point was 55s or more ago, insert null to show break in plot*/
     for(var k = 0; k < index.length; k++){
         var len = TSPlot.traces[k].x.length -1;
@@ -519,7 +542,10 @@ var TSPlot = {
             t: 40,
             b: 40
         },
-        showlegend: true
+        showlegend: true,
+        hoverlabel: {
+            namelength:30
+        }
     },
 
     showing: false,
