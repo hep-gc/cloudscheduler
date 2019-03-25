@@ -44,9 +44,13 @@ fwd.flavor_disk,
 fwd.flavor_ram,
 fwd.flavor_swap,
 ifnull(fru.flavor_VMs,0) as flavor_VMs,
-ifnull(fru.flavor_manual,0) as flavor_manual,
+ifnull(fru.flavor_starting,0) as flavor_starting,
+ifnull(fru.flavor_unregistered,0) as flavor_unregistered,
+ifnull(fru.flavor_idle,0) as flavor_idle,
+ifnull(fru.flavor_running,0) as flavor_running,
+ifnull(fru.flavor_retiring,0) as flavor_retiring,
 ifnull(fru.flavor_error,0) as flavor_error,
-ifnull(fru.flavor_retiring,0) as flavor_retiring
+ifnull(fru.flavor_manual,0) as flavor_manual
 
 from (
     /* fwd - flavors with defaults */
@@ -207,11 +211,45 @@ left outer join (
         cv2.group_name,
         cv2.cloud_name,
         cv2.flavor_id,
-        sum(1) as flavor_VMs,
-        sum(case when cv2.manual_control=1 then 1 else 0 end) as flavor_manual,
-        sum(case when cv2.manual_control=0 and cv2.status='ERROR' then 1 else 0 end) as flavor_error,
-        sum(case when cv2.manual_control=0 and cv2.status='ACTIVE' and cv2.retire>1 then 1 else 0 end) as flavor_retiring
-    from csv2_vms as cv2
+        sum(cv2.VMs) as flavor_VMs,
+        sum(case when cv2.poller_status='starting'     then 1 else 0 end) as flavor_starting,
+        sum(case when cv2.poller_status='unregistered' then 1 else 0 end) as flavor_unregistered,
+        sum(case when cv2.poller_status='idle'         then 1 else 0 end) as flavor_idle,
+        sum(case when cv2.poller_status='running'      then 1 else 0 end) as flavor_running,
+        sum(case when cv2.poller_status='retiring'     then 1 else 0 end) as flavor_retiring,
+        sum(case when cv2.poller_status='error'        then 1 else 0 end) as flavor_error,
+        sum(case when cv2.poller_status='manual'       then 1 else 0 end) as flavor_manual
+    from (
+        select
+            *,
+            1 as VMs,
+            case when manual_control = 1 then
+                'manual'
+            else
+                case when retire > 0 then
+                    'retiring'
+                else
+                    case when status = 'BUILD' then
+                        'starting'
+                    else
+                        case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                            'unregistered'
+                        else
+                            case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                                'idle'
+                            else
+                                case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                    'running'
+                                else
+                                    'error'
+                                end
+                            end
+                        end
+                    end
+                end
+            end as poller_status
+        from csv2_vms
+        ) as cv2
     group by
         cv2.group_name,
         cv2.cloud_name,
