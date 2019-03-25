@@ -524,14 +524,32 @@ def log_replay(gvar):
         traceback.print_tb(ex)
             
 def log_rotate(gvar):
-    pass
-    # systemctl stop csv2-watch
-    # mv watch_csv2.logging watch_csv2.logging-20190322-144259
-    # systemctl start csv2-watch
-    # watch_csv2 --map watch_csv2.logging-20190322-144259
-    # watch_csv2 --map watch_csv2.logging
+    ts_sfx = datetime.datetime.now().strftime('-%Y%m%d-%H%M%S')
+    
+    p = Popen(['systemctl', 'stop', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
+    stdout, sdterr = p.communicate()
+    if p.returncode != 0:
+        print('Error: failed to stop csv2-watch during log rotation.')
+        exit(1)
 
-    #       log_file_path = '%s-%s' % (gvar['db_config'].log_file, datetime.datetime.now().strftime('%Y%m%d'))
+    os.rename('%s/%s' % (gvar['log_dir'], gvar['log_file_pfx']), '%s/%s%s' % (gvar['log_dir'], gvar['log_file_pfx'], ts_sfx))
+
+    p = Popen(['systemctl', 'start', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
+    stdout, sdterr = p.communicate()
+    if p.returncode != 0:
+        print('Error: failed to start csv2-watch during log rotation.')
+        exit(1)
+
+    p = Popen([os.path.realpath(gvar['args'][0]), '--map', '%s/%s%s' % (gvar['log_dir'], gvar['log_file_pfx'], ts_sfx)], stdout=PIPE, stderr=PIPE)
+    stdout, sdterr = p.communicate()
+    if p.returncode != 0:
+        print('Error: failed to map "%s" during log rotation.' % '%s/%s%s' % (gvar['log_dir'], gvar['log_file_pfx'], ts_sfx))
+
+    p = Popen([os.path.realpath(gvar['args'][0]), '--map', '%s/%s' % (gvar['log_dir'], gvar['log_file_pfx'])], stdout=PIPE, stderr=PIPE)
+    stdout, sdterr = p.communicate()
+    if p.returncode != 0:
+        print('Error: failed to map "%s" during log rotation.' % '%s/%s' % (gvar['log_dir'], gvar['log_file_pfx']))
+
 
 def real_time_watch(gvar):
     def get_real_time_data_report(gvar):
@@ -542,9 +560,6 @@ def real_time_watch(gvar):
                 report.append(line)
             report.append('')
         return report
-
-#   print(gvar['db_config'].sleep_time)
-#   0/0
 
     frame_data = get_real_time_data_report(gvar)
     stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0); stdscr.timeout(gvar['db_config'].sleep_time*1000)
