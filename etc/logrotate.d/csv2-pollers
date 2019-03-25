@@ -48,14 +48,3 @@
   create 0644 cloudscheduler cloudscheduler
 }
 
-/var/log/cloudscheduler/watch_csv2.logging {
-  daily
-  rotate 7
-  su cloudscheduler cloudscheduler
-  notifempty
-  missingok
-  compress
-  copytruncate
-  create 0644 cloudscheduler cloudscheduler
-}
-
