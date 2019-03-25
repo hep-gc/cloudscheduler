@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """
-Synopsis: utilities/list_views [ map ]
-
-This command produces one of two reports: 1. without the "map" option, list the view names 
-in the order they need to be created, or 2. with the "map" option, prints a report showing
-view dependencies.
+Synopsis: utilities/watch_csv2 <action> [ <options> ]
 """
 
 from cloudscheduler.lib.db_config import Config
 from subprocess import Popen, PIPE
+import datetime
 import curses
 import json
 import os
@@ -17,32 +14,95 @@ import tempfile
 import time
 import traceback
 
-LOG_FILE_MAP_SFX = '.map'
+def main(args):
+    if len(args) < 2:
+        if sys.stdout.isatty():
+            gvar = initialize(args, 'terminal')
+            real_time_watch(gvar)
+        else:
+            print('Error: no option specified and no terminal attached.')
+            exit(1)
 
-def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
+    else:
+        if args[1] == '?' or args[1] == '-h' or args[1] == '--help' or args[1] == 'help':
+            print('\nSynopsis: watch_csv2 [ <option> ]' \
+                '\n\nWhere "<option>" is one of the following:' \
+                '\n   --help       - (or: -h, help, & ?) to request these help messages.' \
+                '\n   --append     - (or: -a, append) appends periodical reports to the system log file.' \
+                '\n   --enumerate  - (or: -e, enumerate) reads the system log file, identifies data' \
+                '\n                  elements by inserting table, row, and column identifiers, and' \
+                '\n                  writing the report to stdout.' \
+                '\n   --logrotate  - (or: -l, logrotate)  calls map for the just rotated log file (standard' \
+                '\n                  log file name with the date appended, ie. watch_csv2.logging.yyyymmdd.' \
+                '\n   --map <path> - (or: -m, map) reads the specified log file and creates a log file map.' \
+                '\n   --replay     - (or: -r, replay) replays the system log file.' \
+                '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.' \
+                '\n\nwatch_csv2 has the following configuration values within the csv2 database:' \
+                '\n   category=watch_csv2, key=config_file - specifies the absolute path of the watch_csv2' \
+                '\n                                          configuration file. This file specifies the' \
+                '\n                                          commands and SQL select statements that are to' \
+                '\n                                          be "watched". Each command/statement must be' \
+                '\n                                          terminated by a semicolon (";").' \
+                '\n   category=watch_csv2, key=log_file    - specifies the absolute path of the watch_csv2' \
+                '\n                                          log file.' \
+                '\n   category=watch_csv2, key=sleep_time  - specifies the number of seconds between periodic' \
+                '\n                                          reports.')
+
+            exit(0)
+
+        if args[1] == '--append' or args[1] == '-a' or args[1] == 'append':
+            gvar = initialize(args, 'syslog')
+            log_append(gvar)
+
+        elif args[1] == '--enumerate' or args[1] == '-e' or args[1] == 'enumerate':
+            gvar = initialize(args, 'enumerate')
+            log_enumerate(gvar)
+
+        elif args[1] == '--logrotate' or args[1] == '-l' or args[1] == 'logrotate':
+            gvar = initialize(args, 'logrotate')
+            log_rotate(gvar)
+
+        elif args[1] == '--map' or args[1] == '-m' or args[1] == 'map':
+            gvar = initialize(args, 'map')
+            log_map(gvar)
+
+        elif args[1] == '--replay' or args[1] == '-r' or args[1] == 'replay':
+            gvar = initialize(args, 'replay')
+            log_replay(gvar)
+
+        else:
+            print('Error: parameter "%s" is unregognized.' % args[1])
+            exit(1)
+
+def beep():
+    curses.flushinp()
+    curses.beep()
+    return False
+
+def generate_log_file_map(gvar, log_file_name, extend=[]):
     watch_xref = {}
-    for ix in range(len(watch)):
-        watch_xref[watch[ix]['id']] = ix
+    for ix in range(len(gvar['watch'])):
+        watch_xref[gvar['watch'][ix]['id']] = ix
 
     cmd = None
     frames = extend
 
     # Set master frame for each command within the frames.
     if len(frames) > 0:
-        cmd_fix = [0]*len(watch)
+        cmd_fix = [0]*len(gvar['watch'])
         for fix in range(len(frames)-1, -1, -1):
             for ix in range(len(frames[fix]['cmd'])):
                 if ix < len(cmd_fix) and cmd_fix[ix] == 0 and fix == frames[fix]['cmd'][ix][1]:
-                    watch[ix]['fix'] = fix
+                    gvar['watch'][ix]['fix'] = fix
                     cmd_fix[ix] = 1
 
 #           if extend:
 #               print(">>> %s %s %s %s %s" % (len(extend), fix, ix, cmd_fix, frames[fix]['cmd'][ix][1]))
 
-            if cmd_fix == [1]*len(watch):
+            if cmd_fix == [1]*len(gvar['watch']):
                 break
 
-    with open('%s/%s' % (log_dir, log_file_name)) as fd:
+    with open('%s/%s' % (gvar['log_dir'], log_file_name)) as fd:
         if len(frames) > 0:
             offset = frames[-1]['fsize']
             fd.seek(offset)
@@ -56,7 +116,7 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
                     frames.append({'cmd': []})
 
                 if len(frames) > 0:
-                    cmd = watch[watch_xref[words[0]]]
+                    cmd = gvar['watch'][watch_xref[words[0]]]
                     if 'fix' not in cmd:
                         cmd['fix'] = -1
                     
@@ -81,179 +141,134 @@ def generate_log_file_map(watch, log_dir, log_file_name, extend=[]):
             frames[-2]['fsize'] = frames[-1]['cmd'][0]
         del frames[-1]
 
-    with open('%s/%s%s' % (log_dir, log_file_name, LOG_FILE_MAP_SFX), 'w') as fd:
+    with open('%s/%s%s' % (gvar['log_dir'], log_file_name, gvar['log_file_map_sfx']), 'w') as fd:
         fd.write(json.dumps(frames))
 
     return frames
 
-if len(sys.argv) < 2:
-    if sys.stdout.isatty():
-        report_destination = 'terminal'
-    else:
-        print('Error: no option specified and no terminal attached.')
-        exit(1)
+def get_real_time_data(gvar):
+    query_words = []
+    report = []
+    for cmd in gvar['watch']:
+        if cmd['type'] == 'CMD':
+            p = Popen(cmd['command'], stdout=PIPE, stderr=PIPE)
 
-else:
-    if sys.argv[1] == '?' or sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1] == 'help':
-        print('\nSynopsis: watch_csv2 [ <option> ]' \
-            '\n\nWhere "<option>" is one of the following:' \
-            '\n   --help       - (or: -h, help, & ?) to request these help messages.' \
-            '\n   --append     - (or: -a, append) appends periodical reports to the system log file.' \
-            '\n   --enumerate  - (or: -e, enumerate) reads the system log file, identifies data' \
-            '\n                  elements by inserting table, row, and column identifiers, and' \
-            '\n                  writing the report to stdout.' \
-            '\n   --map <path> - (or: -m, map) reads the specified log file and creates a log file map.' \
-            '\n   --replay     - (or: -r, replay) replays the system log file.' \
-            '\n\nIf no option is specified and a tty is attached, the report is writtin to the terminal.' \
-            '\n\nwatch_csv2 has the following configuration values within the csv2 database:' \
-            '\n   category=watch_csv2, key=config_file - specifies the absolute path of the watch_csv2' \
-            '\n                                          configuration file. This file specifies the' \
-            '\n                                          commands and SQL select statements that are to' \
-            '\n                                          be "watched". Each command/statement must be' \
-            '\n                                          terminated by a semicolon (";").' \
-            '\n   category=watch_csv2, key=log_file    - specifies the absolute path of the watch_csv2' \
-            '\n                                          log file.' \
-            '\n   category=watch_csv2, key=sleep_time  - specifies the number of seconds between periodic' \
-            '\n                                          reports.')
+        elif cmd['type'] == 'SQL':
+            p = Popen([
+                'mysql',
+                '-u',
+                gvar['db_config'].db_config['db_user'],
+                '-p%s' % gvar['db_config'].db_config['db_password'],
+                gvar['db_config'].db_config['db_name'],
+                '-t',
+                '-e',
+                '%s;' % cmd['command']
+                ],
+                stdout=PIPE, stderr=PIPE)
 
-        exit(0)
+        stdout, stderr = p.communicate()
+        if p.returncode == 0:
+            diff = '*'.join(stdout.decode('utf-8').replace('\n', ' ').split())
+            if cmd['diff'] != diff:
+                cmd['change'] = True
+                cmd['diff'] = diff
+                cmd['report'] = ['']
 
-    elif sys.argv[1] == '--append' or sys.argv[1] == '-a' or sys.argv[1] == 'append':
-        report_destination = 'syslog'
+                lines = stdout.decode('utf-8').split('\n')
+                for line in lines:
+                    if len(line) > 0:
+                        cmd['report'].append(line)
 
-    elif sys.argv[1] == '--enumerate' or sys.argv[1] == '-e' or sys.argv[1] == 'enumerate':
-        report_destination = 'enumerate'
-
-    elif sys.argv[1] == '--map' or sys.argv[1] == '-m' or sys.argv[1] == 'map':
-        report_destination = 'map'
-
-    elif sys.argv[1] == '--replay' or sys.argv[1] == '-r' or sys.argv[1] == 'replay':
-        report_destination = 'replay'
-
-    else:
-        print('Error: parameter "%s" is unregognized.' % sys.argv[1])
-        exit(1)
-
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['watch_csv2'], db_config_dict=True)
-
-if not os.path.isfile(config.config_file):
-    print('Error: Configuration file "%s" does not exist.' % sys.argv[1])
-    exit(1)
-
-fd = open(config.config_file)
-watch_list = fd.read().replace('\n', ' ').split(';')
-fd.close()
-
-watch = []
-for ix in range(len(watch_list)):
-    watch_words = watch_list[ix].split()
-    if len(watch_words) > 0 and watch_words[0][0] != '#':
-        if watch_words[0] == 'select':
-            from_ix = -1 
-            while True:
-                try:
-                    from_ix = watch_words.index('from', from_ix+1)
-                except ValueError:
-                    break
-
-            watch.append({
-                'id': watch_words[from_ix+1],
-                'ix': ix,
-                'type': 'SQL',
-                'command': watch_list[ix],
-                'diff': '********'
-                })
-
-        else:
-            watch.append({
-                'id': watch_words[0],
-                'ix': ix,
-                'type': 'CMD',
-                'command': watch_words,
-                'diff': '********'
-                })
-       
-del watch_list
-
-if report_destination == 'syslog' or report_destination == 'terminal':
-    while True:
-        query_words = []
-        report = []
-        for cmd in watch:
-            if cmd['type'] == 'CMD':
-                p = Popen(cmd['command'], stdout=PIPE, stderr=PIPE)
-
-            elif cmd['type'] == 'SQL':
-                p = Popen([
-                    'mysql',
-                    '-u',
-                    config.db_config['db_user'],
-                    '-p%s' % config.db_config['db_password'],
-                    config.db_config['db_name'],
-                    '-t',
-                    '-e',
-                    '%s;' % cmd['command']
-                    ],
-                    stdout=PIPE, stderr=PIPE)
-
-            stdout, stderr = p.communicate()
-            if p.returncode == 0:
-                diff = '*'.join(stdout.decode('utf-8').replace('\n', ' ').split())
-                if cmd['diff'] != diff:
-                    cmd['change'] = True
-                    cmd['diff'] = diff
-                    cmd['report'] = ['']
-
-                    lines = stdout.decode('utf-8').split('\n')
-                    for line in lines:
-                        if len(line) > 0:
-                            cmd['report'].append(line)
-
-                    if len(cmd['report']) > 1:
-                        if cmd['type'] == 'SQL':
-                            cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-5)
-                        else:
-                            cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-1)
+                if len(cmd['report']) > 1:
+                    if cmd['type'] == 'SQL':
+                        cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-5)
                     else:
-                        cmd['report'][0] = '%s (0):' % cmd['id']
+                        cmd['report'][0] = '%s (%d):' % (cmd['id'], len(cmd['report'])-1)
                 else:
-                    cmd['change'] = False
+                    cmd['report'][0] = '%s (0):' % cmd['id']
             else:
-                if 'report' in cmd:
-                    cmd['report'].append('%s:' % cmd['id'])
-                    cmd['report'].append('Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr))
-                else:
-                    cmd['report'] = ['%s:' % cmd['id'], 'Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr)]
+                cmd['change'] = False
+        else:
+            if 'report' in cmd:
+                cmd['report'].append('%s:' % cmd['id'])
+                cmd['report'].append('Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr))
+            else:
+                cmd['report'] = ['%s:' % cmd['id'], 'Error: watch list, item=%s, id=%s, error=%s' % (cmd['ix'], cmd['id'], stderr)]
 
-        if report_destination == 'terminal':
-            p = Popen(['clear'])
-            p.communicate()
+def initialize(args, action):
+    gvar = {
+        'action': action,
+        'args': args,
+        'db_config': Config('/etc/cloudscheduler/cloudscheduler.yaml', ['watch_csv2'], db_config_dict=True),
+        'left_right': 0,
+        'log_file_map_sfx': '.map',
+        'watch': [],
+        'up_down': 0,
+        }
+
+    gvar['log_dir'] = os.path.dirname(gvar['db_config'].log_file)
+    gvar['log_file_pfx'] = os.path.basename(gvar['db_config'].log_file)
+
+    if not os.path.isfile(gvar['db_config'].config_file):
+        print('Error: Configuration file "%s" does not exist.' % gvar['db_config'].config_file)
+        exit(1)
+
+    fd = open(gvar['db_config'].config_file)
+    watch_list = fd.read().replace('\n', ' ').split(';')
+    fd.close()
+
+    for ix in range(len(watch_list)):
+        watch_words = watch_list[ix].split()
+        if len(watch_words) > 0 and watch_words[0][0] != '#':
+            if watch_words[0] == 'select':
+                from_ix = -1 
+                while True:
+                    try:
+                        from_ix = watch_words.index('from', from_ix+1)
+                    except ValueError:
+                        break
+
+                gvar['watch'].append({
+                    'id': watch_words[from_ix+1],
+                    'ix': ix,
+                    'type': 'SQL',
+                    'command': watch_list[ix],
+                    'diff': '********'
+                    })
+
+            else:
+                gvar['watch'].append({
+                    'id': watch_words[0],
+                    'ix': ix,
+                    'type': 'CMD',
+                    'command': watch_words,
+                    'diff': '********'
+                    })
+           
+    return gvar
+
+def log_append(gvar):
+    while True:
+        get_real_time_data(gvar)
+
+        fd = open(gvar['db_config'].log_file, 'a')
+
+        for cmd in gvar['watch']:
+            if cmd['change']:
+                fd.write('%s\n' % '\n'.join(cmd['report']))
+            else:
+                fd.write('%s no change.\n' % cmd['id'])
+
+        fd.close()
+
+        time.sleep(gvar['db_config'].sleep_time)
             
-            for cmd in watch:
-                if cmd['type'] == 'CMD':
-                    print('\n'.join(cmd['report'][1:] + ['']))
-                else:
-                    print('\n'.join(cmd['report'] + ['']))
-
-        elif report_destination == 'syslog':
-            fd = open(config.log_file, 'a')
-
-            for cmd in watch:
-                if cmd['change']:
-                    fd.write('%s\n' % '\n'.join(cmd['report']))
-                else:
-                    fd.write('%s no change.\n' % cmd['id'])
-
-            fd.close()
-
-        time.sleep(config.sleep_time)
-            
-elif report_destination == 'enumerate':
+def log_enumerate(gvar):
     watch_xref = {}
-    for ix in range(len(watch)):
-        watch_xref[watch[ix]['id']] = ix
+    for ix in range(len(gvar['watch'])):
+        watch_xref[gvar['watch'][ix]['id']] = ix
 
-    fd = open(config.log_file)
+    fd = open(gvar['db_config'].log_file)
     lines = fd.read().split('\n')
     fd.close()
 
@@ -265,11 +280,11 @@ elif report_destination == 'enumerate':
             row_ix = 0
         
 
-        if watch[cmd_ix]['type'] == 'CMD':
+        if gvar['watch'][cmd_ix]['type'] == 'CMD':
             print('%d_%d %s' % (cmd_ix, row_ix, line))
             row_ix += 1
         
-        elif watch[cmd_ix]['type'] == 'SQL' and len(words) > 0 and len(words[0]) > 0 and words[0][0] != '+':
+        elif gvar['watch'][cmd_ix]['type'] == 'SQL' and len(words) > 0 and len(words[0]) > 0 and words[0][0] != '+':
             if row_ix == 0:
                 print('%d_%d %s' % (cmd_ix, row_ix, line))
             else:
@@ -279,125 +294,122 @@ elif report_destination == 'enumerate':
                 print('%d_%d %s' % (cmd_ix, row_ix, ', '.join(cols[1:])))
             row_ix += 1
 
-elif report_destination == 'map':
-    if len(sys.argv) < 3:
+def log_map(gvar):
+    if len(gvar['args']) < 3:
         print('Error: specify the log file path to be mapped.')
         exit(1)
 
-    log_file_path = os.path.realpath(sys.argv[2])
+    log_file_path = os.path.realpath(gvar['args'][2])
     if not os.path.isfile(log_file_path):
         print('Error: the specified log file "%s" does not exist.' % log_file_path)
         exit(1)
 
-    ignore = generate_log_file_map(watch, os.path.dirname(log_file_path), os.path.basename(log_file_path))
+    print('Mapping log file "%s".' % log_file_path)
+
+    ignore = generate_log_file_map(gvar, os.path.basename(log_file_path))
 #   print('sleeping 60 ...')
 #   time.sleep(60)
-#   ignore = generate_log_file_map(watch, os.path.dirname(log_file_path), os.path.basename(log_file_path), extend=ignore)
+#   ignore = generate_log_file_map(gvar, os.path.basename(log_file_path), extend=ignore)
 
-elif report_destination == 'replay':
-    def beep():
-        curses.flushinp()
-        curses.beep()
-        return False
+def log_replay(gvar):
+    def frame_bwd(gvar):
+        gvar['left_right'] = 0
+        gvar['up_down'] = 0
 
-    def frame_bwd(cfg):
-        cfg['left_right'] = 0
-        cfg['up_down'] = 0
-
-        if cfg['fix'] > 0:
-            cfg['fix'] -= 1
+        if gvar['fix'] > 0:
+            gvar['fix'] -= 1
             return True
         else:
-            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['map'][-1]['fsize']:
-                maps_remap(cfg)
+            if os.stat('%s/%s' % (gvar['log_dir'], gvar['maps'][-1]['fn'])).st_size < gvar['maps'][-1]['map'][-1]['fsize']:
+                maps_remap(gvar)
 
-            if cfg['mix'] > 0:
-                cfg['mix'] -= 1
-                if not cfg['maps'][cfg['mix']]['map']:
-                    maps_load(cfg)
-                cfg['fix'] = len(cfg['maps'][cfg['mix']]['map']) - 1
+            if gvar['mix'] > 0:
+                gvar['mix'] -= 1
+                if not gvar['maps'][gvar['mix']]['map']:
+                    maps_load(gvar)
+                gvar['fix'] = len(gvar['maps'][gvar['mix']]['map']) - 1
                 return True
 
             else:
                 return beep()
 
-    def frame_fwd(cfg, try_again=True):
-        cfg['left_right'] = 0
-        cfg['up_down'] = 0
+    def frame_fwd(gvar, try_again=True):
+        gvar['left_right'] = 0
+        gvar['up_down'] = 0
 
-        if cfg['fix'] < len(cfg['maps'][cfg['mix']]['map']) - 1:
-            cfg['fix'] += 1
+        if gvar['fix'] < len(gvar['maps'][gvar['mix']]['map']) - 1:
+            gvar['fix'] += 1
             return True
         else:
-            if os.stat('%s/%s' % (cfg['log_dir'], cfg['maps'][-1]['fn'])).st_size < cfg['maps'][-1]['map'][-1]['fsize']:
-                maps_remap(cfg)
+            if os.stat('%s/%s' % (gvar['log_dir'], gvar['maps'][-1]['fn'])).st_size < gvar['maps'][-1]['map'][-1]['fsize']:
+                maps_remap(gvar)
 
-            if cfg['mix'] < len(cfg['maps']) -1:
-                cfg['mix'] += 1
-                if not cfg['maps'][cfg['mix']]['map']:
-                    maps_load(cfg)
-                cfg['fix'] = 0
+            if gvar['mix'] < len(gvar['maps']) -1:
+                gvar['mix'] += 1
+                if not gvar['maps'][gvar['mix']]['map']:
+                    maps_load(gvar)
+                gvar['fix'] = 0
                 return True
 
             else:
                 if try_again:
-                    maps_extend(cfg)
-                    return frame_fwd(cfg, try_again=False)
+                    maps_extend(gvar)
+                    return frame_fwd(gvar, try_again=False)
                 else:
                     return beep()
 
-    def frame_get(cfg):
-        fix = cfg['fix']
-        mix = cfg['mix']
+    def frame_get(gvar):
+        fix = gvar['fix']
+        mix = gvar['mix']
 
         report = []
-        with open('%s/%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'])) as fd:
-            for ix in range(len(cfg['maps'][mix]['map'][fix]['cmd'])):
-                if cfg['maps'][mix]['map'][fix]['cmd'][ix][1] == -1 or cfg['maps'][mix]['map'][fix]['cmd'][ix][1] == fix:
+        with open('%s/%s' % (gvar['log_dir'], gvar['maps'][gvar['mix']]['fn'])) as fd:
+            for ix in range(len(gvar['maps'][mix]['map'][fix]['cmd'])):
+                if gvar['maps'][mix]['map'][fix]['cmd'][ix][1] == -1 or gvar['maps'][mix]['map'][fix]['cmd'][ix][1] == fix:
                     mfix = fix
                 else:
-                    mfix = cfg['maps'][mix]['map'][fix]['cmd'][ix][1]
+                    mfix = gvar['maps'][mix]['map'][fix]['cmd'][ix][1]
 
-                if ix < len(cfg['maps'][mix]['map'][mfix]['cmd']) - 1:
-                    rl = cfg['maps'][mix]['map'][mfix]['cmd'][ix+1][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
+                if ix < len(gvar['maps'][mix]['map'][mfix]['cmd']) - 1:
+                    rl = gvar['maps'][mix]['map'][mfix]['cmd'][ix+1][0] - gvar['maps'][mix]['map'][mfix]['cmd'][ix][0]
                 else:
-                    if mfix < len(cfg['maps'][mix]['map']) - 1:
-                        rl = cfg['maps'][mix]['map'][mfix+1]['cmd'][0][0] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
+                    if mfix < len(gvar['maps'][mix]['map']) - 1:
+                        rl = gvar['maps'][mix]['map'][mfix+1]['cmd'][0][0] - gvar['maps'][mix]['map'][mfix]['cmd'][ix][0]
                     else:
-                        rl = cfg['maps'][mix]['map'][mfix]['fsize'] - cfg['maps'][mix]['map'][mfix]['cmd'][ix][0]
+                        rl = gvar['maps'][mix]['map'][mfix]['fsize'] - gvar['maps'][mix]['map'][mfix]['cmd'][ix][0]
 
-                fd.seek(cfg['maps'][mix]['map'][mfix]['cmd'][ix][0])
+                fd.seek(gvar['maps'][mix]['map'][mfix]['cmd'][ix][0])
                 lines = fd.read(rl).split('\n')
                 for ix in range(len(lines)):
                     report.append(lines[ix])
 
         return report
 
-    def maps_extend(cfg):
-        cfg['maps'][cfg['mix']]['map'] = generate_log_file_map(cfg['watch'], cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'], extend=cfg['maps'][cfg['mix']]['map'])
+    def maps_extend(gvar):
+        gvar['maps'][gvar['mix']]['map'] = generate_log_file_map(gvar, gvar['maps'][gvar['mix']]['fn'], extend=gvar['maps'][gvar['mix']]['map'])
 
-    def maps_load(cfg):
-        if not os.path.isfile('%s/%s%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'], LOG_FILE_MAP_SFX)):
-            cfg['maps'][cfg['mix']]['map'] = generate_log_file_map(cfg['watch'], cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'])
+    def maps_load(gvar):
+        if not os.path.isfile('%s/%s%s' % (gvar['log_dir'], gvar['maps'][gvar['mix']]['fn'], gvar['log_file_map_sfx'])):
+            gvar['maps'][gvar['mix']]['map'] = generate_log_file_map(gvar, gvar['maps'][gvar['mix']]['fn'])
         else:
-            with open('%s/%s%s' % (cfg['log_dir'], cfg['maps'][cfg['mix']]['fn'], LOG_FILE_MAP_SFX)) as fd:
-                cfg['maps'][cfg['mix']]['map'] = json.loads(fd.read())
+            with open('%s/%s%s' % (gvar['log_dir'], gvar['maps'][gvar['mix']]['fn'], gvar['log_file_map_sfx'])) as fd:
+                gvar['maps'][gvar['mix']]['map'] = json.loads(fd.read())
 
 
-    def maps_map(cfg):
+    def maps_map(gvar):
         log_files = {}
-        for log_file in os.listdir(cfg['log_dir']):
-            if not os.path.isfile('%s/%s' % (cfg['log_dir'], log_file)) or \
-                len(log_file) < len(cfg['log_file_pfx']):
+        for log_file in os.listdir(gvar['log_dir']):
+            if not os.path.isfile('%s/%s' % (gvar['log_dir'], log_file)) or \
+                len(log_file) < len(gvar['log_file_pfx']):
                 continue
 
-            if log_file[:len(cfg['log_file_pfx'])] == cfg['log_file_pfx']:
-                if log_file[-len(LOG_FILE_MAP_SFX):] == LOG_FILE_MAP_SFX:
-                    log_fn = log_file[:-len(LOG_FILE_MAP_SFX)]
+            if log_file[:len(gvar['log_file_pfx'])] == gvar['log_file_pfx']:
+                if log_file[-len(gvar['log_file_map_sfx']):] == gvar['log_file_map_sfx']:
+                    log_fn = log_file[:-len(gvar['log_file_map_sfx'])]
                 else:
                     log_fn = log_file
 
-                if log_fn == cfg['log_file_pfx']:
+                if log_fn == gvar['log_file_pfx']:
                     log = 'z'
                 else:
                     log = log_fn
@@ -418,38 +430,31 @@ elif report_destination == 'replay':
         del log_files
         return maps
 
-    def maps_remap(cfg):
+    def maps_remap(gvar):
+        # log files have been rotated, reload the maps and re-align mix/fix.
         return
 
-    cfg = {
-        'log_dir': os.path.dirname(config.log_file),
-        'log_file_pfx': os.path.basename(config.log_file),
-        'left_right': 0,
-        'up_down': 0,
-        'watch': watch
-        }
+    gvar['maps'] = maps_map(gvar)
+    gvar['mix'] = -1
+    maps_load(gvar)
 
-    cfg['maps'] = maps_map(cfg)
-    cfg['mix'] = -1
-    maps_load(cfg)
-
-    cfg['fix'] = 0
-    cfg['mix'] = len(cfg['maps']) - 1
+    gvar['fix'] = 0
+    gvar['mix'] = len(gvar['maps']) - 1
 
     stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0)
-    yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
+    yx = stdscr.getmaxyx()
 
     try:
         while (True):
             yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
 
-            frame_data = frame_get(cfg)
+            frame_data = frame_get(gvar)
 
             stdscr.clear()
             for ix in range(min(len(frame_data), yx[0]-2)):
-                stdscr.addnstr(ix, 0, frame_data[ix+cfg['up_down']][cfg['left_right']:], yx[1])
+                stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], yx[1])
 
-            stdscr.addnstr(yx[0]-1, 0, 'Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (cfg['mix']+1, len(cfg['maps']), cfg['maps'][cfg['mix']]['fn'], cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map'])), yx[1], curses.A_BOLD)
+            stdscr.addnstr(yx[0]-1, 0, 'REPLAY Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (gvar['mix']+1, len(gvar['maps']), gvar['maps'][gvar['mix']]['fn'], gvar['fix']+1, len(gvar['maps'][gvar['mix']]['map'])), yx[1], curses.A_BOLD)
 
             stdscr.refresh()
 
@@ -457,57 +462,57 @@ elif report_destination == 'replay':
             input = stdscr.getch()
 
             if input == ord('d'):
-                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
-                while frame_fwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd:
+                cd = gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd']
+                while frame_fwd(gvar) and gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd'] == cd:
                     pass
 
             elif input == ord('D'):
-                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
-                while frame_bwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd:
+                cd = gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd']
+                while frame_bwd(gvar) and gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd'] == cd:
                     pass
 
             elif input == ord('h'):
-                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
-                ch = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr']
-                while frame_fwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr'] == ch:
+                cd = gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd']
+                ch = gvar['maps'][gvar['mix']]['map'][gvar['fix']]['hr']
+                while frame_fwd(gvar) and gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd'] == cd and gvar['maps'][gvar['mix']]['map'][gvar['fix']]['hr'] == ch:
                     pass
 
             elif input == ord('H'):
-                cd = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd']
-                ch = cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr']
-                while frame_bwd(cfg) and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['dd'] == cd and cfg['maps'][cfg['mix']]['map'][cfg['fix']]['hr'] == ch:
+                cd = gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd']
+                ch = gvar['maps'][gvar['mix']]['map'][gvar['fix']]['hr']
+                while frame_bwd(gvar) and gvar['maps'][gvar['mix']]['map'][gvar['fix']]['dd'] == cd and gvar['maps'][gvar['mix']]['map'][gvar['fix']]['hr'] == ch:
                     pass
 
             elif input == ord('n'):
-                frame_fwd(cfg)
+                frame_fwd(gvar)
 
             elif input == ord('N'):
-                frame_bwd(cfg)
+                frame_bwd(gvar)
 
             # Down arror.
             elif input == 258:
-                if cfg['up_down']<len(frame_data)-yx[0]+1:
-                    cfg['up_down'] += 1
+                if gvar['up_down']<len(frame_data)-yx[0]+1:
+                    gvar['up_down'] += 1
                 else:
                     beep()
 
             # Up arror.
             elif input == 259:
-                if cfg['up_down']>0:
-                    cfg['up_down'] -= 1
+                if gvar['up_down']>0:
+                    gvar['up_down'] -= 1
                 else:
                     beep()
 
             # Left arror.
             elif input == 260:
-                if cfg['left_right']>0:
-                    cfg['left_right'] -= 1
+                if gvar['left_right']>0:
+                    gvar['left_right'] -= 1
                 else:
                     beep()
 
             # Right arror.
             elif input == 261:
-                cfg['left_right'] += 1
+                gvar['left_right'] += 1
 
             elif input == ord('q'):
                 break
@@ -515,6 +520,91 @@ elif report_destination == 'replay':
         curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
     except Exception as ex:
         curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
-        print('Map: %s/%s, Frame: %s/%s, Log File: %s' % (cfg['mix']+1, len(cfg['maps']), cfg['fix']+1, len(cfg['maps'][cfg['mix']]['map']), cfg['maps'][cfg['mix']]['fn']))
+#       print('Map: %s/%s, Frame: %s/%s, Log File: %s' % (gvar['mix']+1, len(gvar['maps']), gvar['fix']+1, len(gvar['maps'][gvar['mix']]['map']), gvar['maps'][gvar['mix']]['fn']))
         traceback.print_tb(ex)
-        
+            
+def log_rotate(gvar):
+    pass
+    # systemctl stop csv2-watch
+    # mv watch_csv2.logging watch_csv2.logging-20190322-144259
+    # systemctl start csv2-watch
+    # watch_csv2 --map watch_csv2.logging-20190322-144259
+    # watch_csv2 --map watch_csv2.logging
+
+    #       log_file_path = '%s-%s' % (gvar['db_config'].log_file, datetime.datetime.now().strftime('%Y%m%d'))
+
+def real_time_watch(gvar):
+    def get_real_time_data_report(gvar):
+        report = []
+        get_real_time_data(gvar)
+        for cmd in gvar['watch']:
+            for line in cmd['report']:
+                report.append(line)
+            report.append('')
+        return report
+
+#   print(gvar['db_config'].sleep_time)
+#   0/0
+
+    frame_data = get_real_time_data_report(gvar)
+    stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0); stdscr.timeout(gvar['db_config'].sleep_time*1000)
+    yx = stdscr.getmaxyx()
+
+    try:
+        while (True):
+            yx = stdscr.getmaxyx()
+
+            stdscr.clear()
+            for ix in range(min(len(frame_data), yx[0]-2)):
+                stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], yx[1])
+
+            stdscr.addnstr(yx[0]-1, 0, 'Watching (%s second refresh)  \u2190\u2191\u2193\u2192Scroll  q-quit' % gvar['db_config'].sleep_time, yx[1], curses.A_BOLD)
+
+            stdscr.refresh()
+
+            curses.cbreak()
+            input = stdscr.getch()
+
+            # Down arror.
+            if input == 258:
+                if gvar['up_down']<len(frame_data)-yx[0]+1:
+                    gvar['up_down'] += 1
+                else:
+                    beep()
+                continue
+
+            # Up arror.
+            elif input == 259:
+                if gvar['up_down']>0:
+                    gvar['up_down'] -= 1
+                else:
+                    beep()
+                continue
+
+            # Left arror.
+            elif input == 260:
+                if gvar['left_right']>0:
+                    gvar['left_right'] -= 1
+                else:
+                    beep()
+                continue
+
+            # Right arror.
+            elif input == 261:
+                gvar['left_right'] += 1
+                continue
+
+            elif input == ord('q'):
+                break
+
+#           stdscr.timeout(gvar['db_config'].sleep_time*1000000)
+#           stdscr.timeout(1)
+            frame_data = get_real_time_data_report(gvar)
+
+        curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
+    except Exception as ex:
+        curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
+        traceback.print_tb(ex)
+            
+if __name__ == "__main__":
+    main(sys.argv)
