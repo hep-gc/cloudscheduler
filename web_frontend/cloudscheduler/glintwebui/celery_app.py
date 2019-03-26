@@ -149,7 +149,7 @@ def transfer_image(self, image_name, image_id, group_name, auth_url, project_ten
 # requesting user. Uploads the given image to the target cloud (repo object)
 #
 @app.task(bind=True)
-def upload_image(elf, image_name, image_path, auth_url, project_tenant, username, password, requesting_user, disk_format, container_format, project_domain_name="Default", user_domain_name="Default", region=None):
+def upload_image(self, image_name, image_path, auth_url, project_tenant, username, password, requesting_user, disk_format, container_format, project_domain_name="Default", user_domain_name="Default", region=None):
     # Upload said image to the new repo
     logger.info("Attempting to upload Image to %s for user:%s", project_tenant, requesting_user)
     dest_rcon = repo_connector(
