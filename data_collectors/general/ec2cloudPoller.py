@@ -1460,7 +1460,7 @@ if __name__ == '__main__':
         'image': image_poller,
         'keypair': keypair_poller,
         #'limit': limit_poller,
-        #'network': network_poller,
+        'network': network_poller,
         #'vm': vm_poller,
         #'registrar': service_registrar,
         'security_group_poller': security_group_poller
