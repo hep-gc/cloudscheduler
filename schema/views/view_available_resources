@@ -52,7 +52,8 @@ ifnull(fru.flavor_idle,0) as flavor_idle,
 ifnull(fru.flavor_running,0) as flavor_running,
 ifnull(fru.flavor_retiring,0) as flavor_retiring,
 ifnull(fru.flavor_error,0) as flavor_error,
-ifnull(fru.flavor_manual,0) as flavor_manual
+ifnull(fru.flavor_manual,0) as flavor_manual,
+fru.updater
 
 from (
     /* fwd - flavors with defaults */
@@ -220,7 +221,8 @@ left outer join (
         sum(case when cv2.poller_status='running'      then 1 else 0 end) as flavor_running,
         sum(case when cv2.poller_status='retiring'     then 1 else 0 end) as flavor_retiring,
         sum(case when cv2.poller_status='error'        then 1 else 0 end) as flavor_error,
-        sum(case when cv2.poller_status='manual'       then 1 else 0 end) as flavor_manual
+        sum(case when cv2.poller_status='manual'       then 1 else 0 end) as flavor_manual,
+        group_concat(distinct updater order by updater) as updater
     from (
         select
             *,
