@@ -525,7 +525,7 @@ def log_replay(gvar):
             
 def log_rotate(gvar):
     ts_sfx = datetime.datetime.now().strftime('-%Y%m%d-%H%M%S')
-    
+
     p = Popen(['systemctl', 'stop', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
     stdout, sdterr = p.communicate()
     if p.returncode != 0:
@@ -550,7 +550,17 @@ def log_rotate(gvar):
     if p.returncode != 0:
         print('Error: failed to map "%s" during log rotation.' % '%s/%s' % (gvar['log_dir'], gvar['log_file_pfx']))
 
+    obsolete = []
+    for fn in sorted(os.listdir(gvar['log_dir']), reverse=True):
+        if fn != gvar['log_file_pfx'] and \
+            fn[:len(gvar['log_file_pfx'])] == gvar['log_file_pfx'] and \
+            fn[-len(gvar['log_file_map_sfx']):] != gvar['log_file_map_sfx']:
+            obsolete.append(fn)
 
+    for fn in obsolete[gvar['db_config'].log_file_retain:]:
+        os.remove('%s/%s' % (gvar['log_dir'], fn))
+        os.remove('%s/%s%s' % (gvar['log_dir'], fn, gvar['log_file_map_sfx']))
+    
 def real_time_watch(gvar):
     def get_real_time_data_report(gvar):
         report = []
