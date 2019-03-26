@@ -970,7 +970,7 @@ def security_group_poller():
                 db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
@@ -987,7 +987,7 @@ def security_group_poller():
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
-                    session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                    session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
                         logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -1004,11 +1004,11 @@ def security_group_poller():
                             continue
 
                     # setup OpenStack api objects
-                    neu = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    neu = _get_ec2_client(session)
 
                     # Retrieve all flavours for this cloud.
                     try:
-                        sec_grp_list = neu.list_security_groups()
+                        sec_grp_list = neu.describe_security_groups()
                     except Exception as exc:
                         logging.error("Failed to retrieve security groups for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -1025,7 +1025,7 @@ def security_group_poller():
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
-                    if sec_grp_list is False:
+                    if sec_grp_list['SecurityGroups'] is False:
                         logging.info("No security groups defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
@@ -1037,7 +1037,7 @@ def security_group_poller():
 
                     # Process security groups for this cloud.
                     uncommitted_updates = 0
-                    for sec_grp in sec_grp_list["security_groups"]:
+                    for sec_grp in sec_grp_list["SecurityGroups"]:
                         for groups in unique_cloud_dict[cloud]['groups']:
                             group_n = groups[0]
                             cloud_n = groups[1]
@@ -1045,8 +1045,8 @@ def security_group_poller():
                             sec_grp_dict = {
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
-                                'name': sec_grp["name"],
-                                'id': sec_grp["id"],
+                                'name': sec_grp["GroupName"],
+                                'id': sec_grp["GroupId"],
                                 'last_updated': new_poll_time
                             }
 
@@ -1147,7 +1147,7 @@ def vm_poller():
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
-            logging.debug("Beginning VM poller cycle")
+            logging.debug("Beginning EC2 VM poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
@@ -1175,7 +1175,7 @@ def vm_poller():
                     group_name = group.group_name
                     cloud_name = cloud.cloud_name
                     logging.debug("Polling VMs from cloud: %s" % cloud_name)
-                    session = _get_openstack_session(cloud)
+                    session = _get_ec2_session(cloud)
                     if session is False:
                         logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (
                         group_name, cloud_name))
@@ -1190,9 +1190,9 @@ def vm_poller():
                         continue
 
                     # Retrieve VM list for this cloud.
-                    nova = _get_nova_client(session, region=cloud.region)
+                    nova = _get_ec2_client(session)
                     try:
-                        vm_list = nova.servers.list()
+                        vm_list = nova.describe_instances()
                     except Exception as exc:
                         logging.error(
                             "Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
@@ -1208,7 +1208,7 @@ def vm_poller():
                                 group_name, cloud_name))
                         continue
 
-                    if vm_list is False:
+                    if 'Reservations' in vm_list.keys() and len(vm_list['Reservations']) == 0:
                         logging.info("No VMs defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         del nova
                         continue
@@ -1220,7 +1220,7 @@ def vm_poller():
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
                     # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                     uncommitted_updates = 0
-                    for vm in vm_list:
+                    for vm in vm_list['Reservations']:
                         # ~~~~~~~~
                         # figure out if it is foreign to this group or not based on tokenized hostname:
                         # hostname example: testing--otter--2049--256153399971170-1
@@ -1230,7 +1230,7 @@ def vm_poller():
                         # due to emergent flavors and thus a new obj will need to be created
                         # ~~~~~~~~
                         try:
-                            host_tokens = vm.name.split("--")
+                            host_tokens = vm.name.split("--") # TODO Can't control hostname so this won't work
                             if host_tokens[0] != group_name:
                                 logging.debug("group_name from host does not match, marking %s as foreign vm" % vm.name)
                                 if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
@@ -1458,7 +1458,7 @@ if __name__ == '__main__':
     process_ids = {
         #'flavor': flavor_poller,
         'image': image_poller,
-        #'keypair': keypair_poller,
+        'keypair': keypair_poller,
         #'limit': limit_poller,
         #'network': network_poller,
         #'vm': vm_poller,
