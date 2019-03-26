@@ -796,7 +796,7 @@ def network_poller():
                 db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
                 # build unique cloud list to only query a given cloud once per cycle
                 unique_cloud_dict = {}
@@ -813,7 +813,7 @@ def network_poller():
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
-                    session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                    session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
                         logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -830,9 +830,9 @@ def network_poller():
                         continue
 
                     # Retrieve network list.
-                    neutron = _get_neutron_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    neutron = _get_ec2_client(session)
                     try:
-                        net_list = neutron.list_networks()['networks']
+                        net_list = neutron.describe_network_interfaces()['NetworkInterfaces']
                     except Exception as exc:
                         logging.error("Failed to retrieve networks from neutron, skipping %s" % cloud_name)
                         logging.error(exc)
@@ -867,12 +867,12 @@ def network_poller():
                             network_dict = {
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
-                                'name': network['name'],
+                                'name': network['Description'],
                                 'subnets': ''.join(network['subnets']),
-                                'tenant_id': network['tenant_id'],
-                                'router:external': network['router:external'],
-                                'shared': network['shared'],
-                                'id': network['id'],
+                                'tenant_id': network['OwnerId'],
+                                'router:external': network['PrivateIpAddress'],
+                                'shared': network['Status'],
+                                'id': network['NetworkInterfaceId'],
                                 'last_updated': int(time.time())
                             }
 
@@ -1460,10 +1460,10 @@ if __name__ == '__main__':
         'image': image_poller,
         'keypair': keypair_poller,
         #'limit': limit_poller,
-        #'network': network_poller,
+        'network': network_poller,
         #'vm': vm_poller,
         #'registrar': service_registrar,
-        #'security_group_poller': security_group_poller
+        'security_group_poller': security_group_poller
     }
 
     procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=9,
