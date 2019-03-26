@@ -105,8 +105,10 @@ from (
 
     authurl,
     project_domain_name,
+    ifnull(project_domain_id, '') as project_domain_id,
     cc.project,
     user_domain_name,
+    ifnull(user_domain_id, '') as user_domain_id,
     username,
     password,
     keyname,
