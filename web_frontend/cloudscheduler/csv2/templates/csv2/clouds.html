@@ -50,14 +50,33 @@
         document.getElementById(frame).checked = true;
     }
 
-    function show_cloud(cloud_name){
+    /*function show_cloud(cloud_name){
         if (cloud_name.length > 0) {
-            document.location.hash = cloud_name;
+            //document.location.hash = cloud_name;
+            document.location.hash = "cloud7"
+            document.getElementById("metadata-otter").checked = true;
+
         }
+    }*/
+
+    function save_location(cloud, tab){
+        sessionStorage.setItem("cloud", cloud);
+        sessionStorage.setItem("cloud_tab", tab);
     }
 
-    function store_location(location){
-        sessionStorage.setItem("location", location);
+    function set_location(){
+        if(sessionStorage.getItem("cloud") && sessionStorage.getItem("cloud_tab")){
+
+            tab = sessionStorage.getItem("cloud_tab") + "-" +sessionStorage.getItem("cloud");
+            document.getElementById(tab).checked = true;
+
+            document.location.hash = sessionStorage.getItem("cloud");
+
+        }
+        else{
+            document.location.hash = "otter"
+            document.getElementById("metadata-otter").checked = true;
+        }
     }
 
 </script>
@@ -66,18 +85,18 @@
 <script rel="preload" type="text/javascript" src="{% static "csv2/editor.js" %}?{{version}}"></script>
 
 </head>
-<body class="clouds-nav" onpageshow="get_message(); show_cloud('{{current_cloud}}') ; check_target('{{cloud_list.0.cloud_name}}-settings')">
+<body class="clouds-nav" onpageshow="get_message(); set_location()">
 
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="check_target('{{cloud.cloud_name}}-settings') ; check_target('{{cloud.cloud_name}}-hide')">{{cloud.cloud_name}}</a>
+        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="check_target('{{cloud.cloud_name}}-hide')" checked>
-                    <label class="highlight3" for="{{cloud.cloud_name}}-settings">Settings</label>
+                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
+                    <label class="highlight3" for="settings-{{cloud.cloud_name}}">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'" autocomplete="nope">
@@ -272,7 +291,7 @@
 
 
                 <div class="tab">
-                    <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs">
+                    <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata')">
                     <label class="highlight4" for="metadata-{{cloud.cloud_name}}">Metadata</label>
                     <div class="tab-content meta-div">
 
@@ -317,7 +336,7 @@
 
 
                 <div class="tab">
-                    <input id="exclusions-{{cloud.cloud_name}}" type="radio" name="tabs">
+                    <input id="exclusions-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions')">
                     <label class="highlight5" for="exclusions-{{cloud.cloud_name}}">Exclusions</label>
                     <div class="tab-content exclusion-div">
 
