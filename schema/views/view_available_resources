@@ -132,22 +132,22 @@ from (
 
             case when ifnull(cores_ctl,-1)!=-1 then
                 case when ifnull(cores_softmax,-1)!=-1 then
-                    least(cores_ctl, cores_softmax-cores_foreign, cores_max-cores_foreign)
+                    least(cores_ctl, cores_softmax-ifnull(cores_foreign,0), cores_max-ifnull(cores_foreign,0))
                 else
-                    least(cores_ctl, cores_max-cores_foreign)
+                    least(cores_ctl, cores_max-ifnull(cores_foreign,0))
                 end
             else
                 case when ifnull(cores_softmax,-1)!=-1 then
-                    least(cores_softmax-cores_foreign, cores_max-cores_foreign)
+                    least(cores_softmax-ifnull(cores_foreign,0), cores_max-ifnull(cores_foreign,0))
                 else
-                    cores_max-cores_foreign
+                    cores_max-ifnull(cores_foreign,0)
                 end
             end as cores_max,
 
             case when ifnull(ram_ctl,-1)!=-1 then
-                least(ram_ctl, ram_max-ram_foreign)
+                least(ram_ctl, ram_max-ifnull(ram_foreign,0))
             else
-                ram_max-ram_foreign
+                ram_max-ifnull(ram_foreign,0)
             end as ram_max
 
         from csv2_clouds as cc
