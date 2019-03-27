@@ -1442,9 +1442,9 @@ def update(request):
         if 'cores_ctl' in fields and 'ram_ctl' in fields:
             updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], fields['ram_ctl']], get_frame_info())
         elif 'cores_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], 999999999999], get_frame_info())
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [fields['cores_ctl'], -1], get_frame_info())
         elif 'ram_ctl' in fields:
-            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [999999999999, fields['ram_ctl']], get_frame_info())
+            updates += kill_retire(config, active_user.active_group, fields['cloud_name'], 'control', [-1, fields['ram_ctl']], get_frame_info())
 
         # Update the cloud's flavor exclusions.
         if request.META['HTTP_ACCEPT'] == 'application/json':
