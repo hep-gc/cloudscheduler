@@ -585,7 +585,7 @@ var TSPlot = {
             var value = list[0];
             value.classList.remove('plotted');
         }
-        sessionStorage.clear();
+        sessionStorage.removeItem("traces");
         const dropdowns = document.getElementsByClassName("selected");
         var l = dropdowns.length;
         for (var i = 0; i < l; i++) {
