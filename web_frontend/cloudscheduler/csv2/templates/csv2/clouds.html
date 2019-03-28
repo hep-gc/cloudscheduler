@@ -48,16 +48,9 @@
         var frame=targetname;
 
         document.getElementById(frame).checked = true;
+
     }
 
-    /*function show_cloud(cloud_name){
-        if (cloud_name.length > 0) {
-            //document.location.hash = cloud_name;
-            document.location.hash = "cloud7"
-            document.getElementById("metadata-otter").checked = true;
-
-        }
-    }*/
 
     function save_location(cloud, tab){
         sessionStorage.setItem("cloud", cloud);
@@ -74,8 +67,8 @@
 
         }
         else{
-            document.location.hash = "otter"
-            document.getElementById("metadata-otter").checked = true;
+            document.location.hash = "{{cloud_list.0.cloud_name}}"
+            document.getElementById("settings-{{cloud_list.0.cloud_name}}").checked = true;
         }
     }
 
@@ -90,12 +83,12 @@
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')">{{cloud.cloud_name}}</a>
+        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('settings-{{cloud.cloud_name}}')">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
+                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('hide-{{cloud.cloud_name}}')" checked>
                     <label class="highlight3" for="settings-{{cloud.cloud_name}}">Settings</label>
                     <div class="tab-content">
 
@@ -280,7 +273,7 @@
                         </div>
 
                         <div class="tab2">
-                            <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
+                            <input id="hide-{{cloud.cloud_name}}" type="radio" name="tabs2">
                             <div class="tab2-hide"></div>
                         </div>
 
@@ -291,7 +284,7 @@
 
 
                 <div class="tab">
-                    <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata')">
+                    <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('hide-{{cloud.cloud_name}}')">
                     <label class="highlight4" for="metadata-{{cloud.cloud_name}}">Metadata</label>
                     <div class="tab-content meta-div">
 
@@ -328,6 +321,11 @@
 
                         </div>
 
+                        <div class="tab2">
+                            <input id="hide-{{cloud.cloud_name}}" type="radio" name="tabs2">
+                            <div class="tab2-hide"></div>
+                        </div>
+
                     </div>
 
 
@@ -336,7 +334,7 @@
 
 
                 <div class="tab">
-                    <input id="exclusions-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions')">
+                    <input id="exclusions-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('hide-{{cloud.cloud_name}}')">
                     <label class="highlight5" for="exclusions-{{cloud.cloud_name}}">Exclusions</label>
                     <div class="tab-content exclusion-div">
 
@@ -372,7 +370,14 @@
 
                                     </table>
                                 </form>
+
                             </div>
+
+                            <div class="tab2">
+                                <input id="hide-{{cloud.cloud_name}}" type="radio" name="tabs2">
+                                <div class="tab2-hide"></div>
+                            </div>
+
                         </div>
 
                         <br>
