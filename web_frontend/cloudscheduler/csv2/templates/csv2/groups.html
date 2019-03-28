@@ -11,11 +11,25 @@
 
     <script type="text/javascript" src="{% static "csv2/common.js" %}?{{version}}"></script>
 
+    <script type="text/javascript">
 
+        function save_location(group){
+            sessionStorage.setItem("group", group);
+        }
 
+        function set_location(){
+            if(sessionStorage.getItem("group")){
+                document.location.hash = sessionStorage.getItem("group");
+            }
+            else{
+                document.location.hash = "{{group_list.0.group_name}}"
+            }
+        }
+
+    </script>
 </head>
 
-<body class="groups-nav" onpageshow="show_group('{{current_group}}')">
+<body class="groups-nav" onpageshow="set_location()">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -23,7 +37,7 @@
         
             <!--https://codepen.io/nathanlong/pen/mBrvn-->
             
-            <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link">{{group.group_name}}</a>
+            <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link" onclick="save_location('{{group.group_name}}')">{{group.group_name}}</a>
                 <div class="menu-target menu-position">
                 <form name="{{group.group_name}}" action="/group/update/" method="post">
                 {% csrf_token %}

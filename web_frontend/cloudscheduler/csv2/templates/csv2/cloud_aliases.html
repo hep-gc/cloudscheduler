@@ -11,11 +11,26 @@
 
     <script type="text/javascript" src="{% static "csv2/common.js" %}?{{version}}"></script>
 
+    <script type="text/javascript">
 
+        function save_location(alias){
+            sessionStorage.setItem("alias", alias);
+        }
+
+        function set_location(){
+            if(sessionStorage.getItem("alias")){
+                document.location.hash = sessionStorage.getItem("alias");
+            }
+            else{
+                document.location.hash = "{{alias_list.0.alias_name}}"
+            }
+        }
+
+    </script>
 
 </head>
 
-<body class="alias-nav" onpageshow="show_alias('{{current_alias}}')">
+<body class="alias-nav" onpageshow="set_location()">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -23,7 +38,7 @@
         
             <!--https://codepen.io/nathanlong/pen/mBrvn-->
             
-            <div id="{{alias.alias_name}}"> <a href="#{{alias.alias_name}}" class="menu-link">{{alias.alias_name}}</a>
+            <div id="{{alias.alias_name}}"> <a href="#{{alias.alias_name}}" class="menu-link" onclick="save_location('{{alias.alias_name}}')">{{alias.alias_name}}</a>
                 <div class="menu-target menu-position">
                 <form name="{{alias.alias_name}}" action="/alias/update/" method="post">
                 {% csrf_token %}

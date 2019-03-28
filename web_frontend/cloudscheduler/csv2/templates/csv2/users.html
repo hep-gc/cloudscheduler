@@ -9,20 +9,28 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 
 <script type="text/javascript">
-    function show_user(username){
-        if (username.length > 0) {
-            document.location.hash = username;
+
+    function save_location(user){
+        sessionStorage.setItem("user", user);
+    }
+
+    function set_location(){
+        if(sessionStorage.getItem("user")){
+            document.location.hash = sessionStorage.getItem("user");
+        }
+        else{
+            document.location.hash = "{{user_list.0.username}}"
         }
     }
 </script>
 
 </head>
-<body class="users-nav" onpageshow="show_user('{{current_user}}')">
+<body class="users-nav" onpageshow="set_location()">
 
 <div class="main-div">
     <div class="menu">
     {% for user in user_list %}
-        <div id="{{user.username}}"> <a href="#{{user.username}}" class="menu-link">{{user.username}}</a>
+        <div id="{{user.username}}"> <a href="#{{user.username}}" class="menu-link" onclick="save_location('{{user.username}}')">{{user.username}}</a>
             
             <div class="menu-target menu-position">
                 <form name="{{user.username}}" action="/user/update/" method="post">

@@ -10,8 +10,25 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/config.css" %}?{{version}}">
 
+<script type="text/javascript">
+
+    function save_location(config){
+        sessionStorage.setItem("config", config);
+    }
+
+    function set_location(){
+        if(sessionStorage.getItem("config")){
+            document.location.hash = sessionStorage.getItem("config");
+        }
+        else{
+            document.location.hash = "{{config_categories.0}}"
+        }
+    }
+
+</script>
+
 </head>
-<body class="config-nav">
+<body class="config-nav" onpageshow="set_location()">
 
 <div class="main-div">
 
@@ -20,7 +37,7 @@
     {% for category in config_categories %}
 
 
-        <div id="{{category}}"> <a href="#{{category}}" class="menu-link">{{category}}</a>
+        <div id="{{category}}"> <a href="#{{category}}" class="menu-link" onclick="save_location('{{category}}')">{{category}}</a>
             
             <div class="menu-target menu-position">
 

@@ -53,16 +53,27 @@
             document.getElementById(frame).checked = true;
         }
 
-        function show_group(group_name){
-            if (group_name.length > 0) {
-                document.location.hash = group_name;
+
+        function save_location(tab){
+            sessionStorage.setItem("defaults_tab", tab);
+        }
+
+        function set_location(){
+            document.location.hash = "defaults";
+
+            if(sessionStorage.getItem("defaults_tab")){
+                tab = "defaults-" + sessionStorage.getItem("defaults_tab");
+                document.getElementById(tab).checked = true;
+            }
+            else{
+                document.getElementById("defaults-settings").checked = true;
             }
         }
     </script>
 
 </head>
 
-<body class="defaults-nav" onpageshow="get_message(); show_group('{{active_group}}') ; check_target('{{default_list.0.group_name}}-settings')">
+<body class="defaults-nav" onpageshow="get_message(); set_location()">
 <!--https://www.w3.org/Style/Examples/007/target.en.html#tab1-->
 <div class="main-div">
     <div class="menu">
@@ -71,13 +82,13 @@
 
         <!--https://codepen.io/nathanlong/pen/mBrvn-->
         
-        <div id="{{group.group_name}}"> <a href="#{{group.group_name}}" class="menu-link" onclick="check_target('{{group.group_name}}-settings') ; check_target('{{group.group_name}}-hide')">{{group.group_name}}</a>
+        <div id="defaults"> <a href="#defaults" class="menu-link">{{group.group_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="{{group.group_name}}-settings" type="radio" name="tabs" onclick="check_target('{{group.group_name}}-hide')" checked>
-                    <label class="highlight3" for="{{group.group_name}}-settings">Settings</label>
+                    <input id="defaults-settings" type="radio" name="tabs" onclick="save_location('settings'); check_target('defaults-hide')" checked>
+                    <label class="highlight3" for="defaults-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{group.group_name}}" action="/group/defaults/" method="post">
@@ -182,7 +193,7 @@
                         </form>
 
                         <div class="tab2">
-                            <input id="{{group.group_name}}-hide" type="radio" name="tabs2">
+                            <input id="defaults-hide" type="radio" name="tabs2">
                             <div class="tab2-hide"></div>
                         </div>
 
@@ -191,8 +202,8 @@
                 </div>
 
                 <div class="tab">
-                    <input id="metadata-{{group.group_name}}" type="radio" name="tabs">
-                    <label class="highlight4" for="metadata-{{group.group_name}}">Metadata</label>
+                    <input id="defaults-metadata" type="radio" name="tabs" onclick="save_location('metadata'); check_target('defaults-hide')">
+                    <label class="highlight4" for="defaults-metadata">Metadata</label>
                     <div class="tab-content meta-div">
 
 
@@ -204,8 +215,8 @@
                                     {% for meta, value2 in value.items %}
 
                                         <div class="tab2">
-                                            <input id="metadata-{{group.group_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
-                                            <label class="highlight4" for="metadata-{{group.group_name}}-{{meta}}">{{meta}}</label>
+                                            <input id="metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{group.group_name}}', '{{meta}}')">
+                                            <label class="highlight4" for="metadata-{{meta}}">{{meta}}</label>
                                             <div class="tab2-content">
 
                                                 <iframe id="editor-{{group.group_name}}-{{meta}}" class="iframe-content" src=""></iframe>
@@ -235,6 +246,11 @@
 
                             </div>
 
+                        </div>
+
+                        <div class="tab2">
+                            <input id="defaults-hide" type="radio" name="tabs2">
+                            <div class="tab2-hide"></div>
                         </div>
 
                     </div>

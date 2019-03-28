@@ -60,15 +60,13 @@
     function set_location(){
         if(sessionStorage.getItem("cloud") && sessionStorage.getItem("cloud_tab")){
 
-            tab = sessionStorage.getItem("cloud_tab") + "-" +sessionStorage.getItem("cloud");
+            tab = sessionStorage.getItem("cloud") + "-" + sessionStorage.getItem("cloud_tab");
             document.getElementById(tab).checked = true;
-
             document.location.hash = sessionStorage.getItem("cloud");
-
         }
         else{
             document.location.hash = "{{cloud_list.0.cloud_name}}"
-            document.getElementById("settings-{{cloud_list.0.cloud_name}}").checked = true;
+            document.getElementById("{{cloud_list.0.cloud_name}}-settings").checked = true;
         }
     }
 
@@ -83,13 +81,13 @@
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('settings-{{cloud.cloud_name}}')">{{cloud.cloud_name}}</a>
+        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
             
             <div class="menu-target">
 
                 <div class="tab">
-                    <input id="settings-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('hide-{{cloud.cloud_name}}')" checked>
-                    <label class="highlight3" for="settings-{{cloud.cloud_name}}">Settings</label>
+                    <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
+                    <label class="highlight3" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'" autocomplete="nope">
@@ -273,7 +271,7 @@
                         </div>
 
                         <div class="tab2">
-                            <input id="hide-{{cloud.cloud_name}}" type="radio" name="tabs2">
+                            <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
                             <div class="tab2-hide"></div>
                         </div>
 
@@ -284,8 +282,8 @@
 
 
                 <div class="tab">
-                    <input id="metadata-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('hide-{{cloud.cloud_name}}')">
-                    <label class="highlight4" for="metadata-{{cloud.cloud_name}}">Metadata</label>
+                    <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')">
+                    <label class="highlight4" for="{{cloud.cloud_name}}-metadata">Metadata</label>
                     <div class="tab-content meta-div">
 
 
@@ -295,8 +293,8 @@
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
                                 <div class="tab2">
-                                    <input id="metadata-{{cloud.cloud_name}}-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
-                                    <label class="highlight4" for="metadata-{{cloud.cloud_name}}-{{meta}}">{{meta}}</label>
+                                    <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
+                                    <label class="highlight4" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
                                     <div class="tab2-content">
 
                                         <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>
@@ -311,8 +309,8 @@
 
 
                         <div class="tab2">
-                            <input id="metadata-{{cloud.cloud_name}}-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
-                            <label class="highlight4" for="metadata-{{cloud.cloud_name}}-add">+</label>
+                            <input id="{{cloud.cloud_name}}-metadata-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
+                            <label class="highlight4" for="{{cloud.cloud_name}}-metadata-add">+</label>
                             <div class="tab2-content">
 
                                 <iframe id="editor-{{cloud.cloud_name}}-add"  src=""></iframe>
@@ -322,7 +320,7 @@
                         </div>
 
                         <div class="tab2">
-                            <input id="hide-{{cloud.cloud_name}}" type="radio" name="tabs2">
+                            <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
                             <div class="tab2-hide"></div>
                         </div>
 
@@ -334,14 +332,14 @@
 
 
                 <div class="tab">
-                    <input id="exclusions-{{cloud.cloud_name}}" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('hide-{{cloud.cloud_name}}')">
-                    <label class="highlight5" for="exclusions-{{cloud.cloud_name}}">Exclusions</label>
+                    <input id="{{cloud.cloud_name}}-exclusions" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('{{cloud.cloud_name}}-hide')">
+                    <label class="highlight5" for="{{cloud.cloud_name}}-exclusions">Exclusions</label>
                     <div class="tab-content exclusion-div">
 
 
                         <div class="tab2">
-                            <input id="exclusions-{{cloud.cloud_name}}-metadata" type="radio" name="tabs2">
-                            <label class="highlight4" for="exclusions-{{cloud.cloud_name}}-metadata">Default metadata</label>
+                            <input id="{{cloud.cloud_name}}-metadata-exclusions" type="radio" name="tabs2">
+                            <label class="highlight4" for="{{cloud.cloud_name}}-metadata-exclusions">Default metadata</label>
 
                             <div class="tab2-content">
                                 <form name="{{cloud.cloud_name}}-metadata-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
@@ -374,7 +372,7 @@
                             </div>
 
                             <div class="tab2">
-                                <input id="hide-{{cloud.cloud_name}}" type="radio" name="tabs2">
+                                <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
                                 <div class="tab2-hide"></div>
                             </div>
 

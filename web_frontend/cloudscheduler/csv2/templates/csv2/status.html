@@ -169,61 +169,61 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="extra-row jobs-style">Condor FQDN</th>
                     </tr>
 
-                    {% for cloud in job_status_list %}
-                        {% if global_flag or not global_flag and cloud.group_name == active_group %}
+                    {% for group in job_status_list %}
+                        {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
-                                <td class="group-name bold-style">{{cloud.group_name}}</td>
+                                <td class="group-name bold-style">{{group.group_name}}</td>
 
-                                {% if cloud.Jobs == 0 %}
-                                    <td data-path="{{cloud.group_name}} jobs" class="zero-style plottable">0</td>
+                                {% if group.Jobs == 0 %}
+                                    <td data-path="{{group.group_name}} jobs" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td data-path="{{cloud.group_name}} jobs" class="more-style plottable"><a href="#">{{cloud.Jobs}}</a></td>
+                                    <td data-path="{{group.group_name}} jobs" class="more-style plottable"><a href="#">{{group.Jobs}}</a></td>
                                 {% endif %}
 
-                                {% if cloud.Idle == 0 %}
-                                    <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="zero-style plottable">0</td>
+                                {% if group.Idle == 0 %}
+                                    <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td tabindex="2" data-path="{{cloud.group_name}} jobs_idle" class="more-style plottable"><a href="#">{{cloud.Idle}}</a></td>
+                                    <td tabindex="2" data-path="{{group.group_name}} jobs_idle" class="more-style plottable"><a href="#">{{group.Idle}}</a></td>
                                 {% endif %}
 
-                                {% if cloud.Running == 0 %}
-                                    <td data-path="{{cloud.group_name}} jobs_running" class="zero-style plottable">0</td>
+                                {% if group.Running == 0 %}
+                                    <td data-path="{{group.group_name}} jobs_running" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td data-path="{{cloud.group_name}} jobs_running" class="more-style plottable"><a href="#">{{cloud.Running}}</a></td>
+                                    <td data-path="{{group.group_name}} jobs_running" class="more-style plottable"><a href="#">{{group.Running}}</a></td>
                                 {% endif %}
 
-                                {% if cloud.Completed == 0 %}
-                                    <td data-path="{{cloud.group_name}} jobs_completed" class="zero-style plottable">0</td>
+                                {% if group.Completed == 0 %}
+                                    <td data-path="{{group.group_name}} jobs_completed" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td data-path="{{cloud.group_name}} jobs_completed" class="more-style plottable"><a href="#">{{cloud.Completed}}</a></td>
+                                    <td data-path="{{group.group_name}} jobs_completed" class="more-style plottable"><a href="#">{{group.Completed}}</a></td>
                                 {% endif %}
 
-                                {% if cloud.Held == 0 %}
-                                    <td data-path="{{cloud.group_name}} jobs_held" class="zero-style plottable">0</td>
+                                {% if group.Held == 0 %}
+                                    <td data-path="{{group.group_name}} jobs_held" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td data-path="{{cloud.group_name}} jobs_held" class="more-style plottable"><a href="#">{{cloud.Held}}</a></td>
+                                    <td data-path="{{group.group_name}} jobs_held" class="more-style plottable"><a href="#">{{group.Held}}</a></td>
                                 {% endif %}
 
-                                {% if cloud.Other == 0 %}
-                                    <td data-path="{{cloud.group_name}} jobs_other" class="zero-style plottable">0</td>
+                                {% if group.Other == 0 %}
+                                    <td data-path="{{group.group_name}} jobs_other" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td data-path="{{cloud.group_name}} jobs_other" class="more-style plottable"><a href="#">{{cloud.Other}}</a></td>
+                                    <td data-path="{{group.group_name}} jobs_other" class="more-style plottable"><a href="#">{{group.Other}}</a></td>
                                 {% endif %}
                                 
-                                {% if cloud.foreign == 0 %}
-                                    <td data-path="{{cloud.group_name}} jobs_foreign" class="zero-style plottable">0</td>
+                                {% if group.foreign == 0 %}
+                                    <td data-path="{{group.group_name}} jobs_foreign" class="zero-style plottable">0</td>
                                 {% else %}
-                                    <td data-path="{{cloud.group_name}} jobs_foreign" class="more-style plottable"><a href="#">{{cloud.foreign}}</a></td>
+                                    <td data-path="{{group.group_name}} jobs_foreign" class="more-style plottable"><a href="#">{{group.foreign}}</a></td>
                                 {% endif %}
                                 
-                                {% if cloud.htcondor_status == 0 %}
+                                {% if group.htcondor_status == 0 %}
                                     {% set status = "Unavailable" %}
                                 {% else %}
                                     {% set status = "Online" %}
                                 {% endif %}
-                                <td data-path="{{cloud.group_name}} jobs_htcondor_status" class="extra-row more-style plottable"><a href="#">{{status}}</a></td>
+                                <td data-path="{{group.group_name}} jobs_htcondor_status" class="extra-row more-style plottable"><a href="#">{{status}}</a></td>
 
-                                <td data-path="{{cloud.group_name}} jobs_htcondor_fqdn" class="extra-row more-style">{{cloud.htcondor_fqdn}}</td>
+                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="extra-row more-style">{{group.htcondor_fqdn}}</td>
 
 
                             </tr>
@@ -233,7 +233,7 @@ else if (refresh_interval < 1) stop_refresh;
                                 <td colspan="5">
                                     <table class="job-extra-row">
                                         {% for job in job_totals_list %}
-                                            {% if job.group_name == cloud.group_name %}
+                                            {% if job.group_name == group.group_name %}
                                                 <tr>
                                                 {% if job.js_idle != 0 %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable"><a href="#">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</a></td>
