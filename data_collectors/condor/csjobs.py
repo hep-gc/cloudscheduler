@@ -219,11 +219,11 @@ def job_poller():
                             else:
                                 job_errors["nogrp"] = job_errors["nogrp"] + 1
                             continue
-                        # Look for a cloud_alias in requirements string
+                        # Look for a target_alias in requirements string
                         try:
-                            pattern = '(cloud_alias is ")(.*?)(")'
-                            cloud_alias = re.search(pattern, job_dict['Requirements'])
-                            job_dict['cloud_alias'] = cloud_alias.group(2)
+                            pattern = '(target_alias is ")(.*?)(")'
+                            target_alias = re.search(pattern, job_dict['Requirements'])
+                            job_dict['target_alias'] = target_alias.group(2)
                         except Exception as exc:
                             logging.debug("No alias found in requirements expression")
                     else:
