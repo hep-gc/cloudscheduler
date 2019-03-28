@@ -64,6 +64,8 @@ def build_mapping_dictionaries():
                 row_dict[row.os_sec_grps] = row_id
             elif language == "condor":
                 row_dict[row.condor] = row_id
+            elif language == "ec2_flavors":
+                row_dict[row.ec2_flavors] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
@@ -94,6 +96,8 @@ def build_mapping_dictionaries():
                 attr_list.append(row.os_sec_grps)
             elif language == "condor":
                 attr_list.append(row.condor)
+            elif language == "ec2_flavors":
+                attr_list.append(row.ec2_flavors)
             else:
                 print("Found column not implemented in code, breaking")
                 break
