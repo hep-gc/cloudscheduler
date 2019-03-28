@@ -526,7 +526,7 @@ def log_replay(gvar):
 def log_rotate(gvar):
     ts_sfx = datetime.datetime.now().strftime('-%Y%m%d-%H%M%S')
 
-    p = Popen(['systemctl', 'stop', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
+    p = Popen(['sudo', 'systemctl', 'stop', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
     stdout, sdterr = p.communicate()
     if p.returncode != 0:
         print('Error: failed to stop csv2-watch during log rotation.')
@@ -534,7 +534,7 @@ def log_rotate(gvar):
 
     os.rename('%s/%s' % (gvar['log_dir'], gvar['log_file_pfx']), '%s/%s%s' % (gvar['log_dir'], gvar['log_file_pfx'], ts_sfx))
 
-    p = Popen(['systemctl', 'start', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
+    p = Popen(['sudo', 'systemctl', 'start', 'csv2-watch'], stdout=PIPE, stderr=PIPE)
     stdout, sdterr = p.communicate()
     if p.returncode != 0:
         print('Error: failed to start csv2-watch during log rotation.')

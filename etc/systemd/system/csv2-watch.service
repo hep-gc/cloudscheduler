@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
+User=cloudscheduler
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/utilities/watch_csv2 append
 Restart=always
 
