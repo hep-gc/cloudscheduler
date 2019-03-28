@@ -1180,7 +1180,7 @@ def vm_poller():
             for group in group_list:
                 logging.debug("Polling Group: %s" % group.group_name)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack", CLOUD.group_name == group.group_name)
-                foreign_vm_list = db_session.query(FVM).filter(FVM.group_name == group.group_name)
+                foreign_vm_list = db_session.query(FVM).filter(FVM.group_name == group.group_name, FVM.foreign_group == None)
 
                 #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
                 # dict[cloud+flavor]
@@ -1197,7 +1197,7 @@ def vm_poller():
                     cloud_name = cloud.cloud_name
                     shared_vm_dict = {}
 
-                    shared_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud.authurl, FVM.project == cloud.project, FVM.region != cloud.region)
+                    shared_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud.authurl, FVM.project == cloud.project, FVM.foreign_group == group.group_name, FVM.foreign_cloud == cloud.cloud_name)
                     for shared_vm in shared_vm_list:
                         #check if it is the special case of foreign vms as a result of a shared quota
                         if shared_vm.foreign_group is not None:
