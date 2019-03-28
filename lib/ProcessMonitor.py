@@ -106,6 +106,7 @@ class ProcessMonitor:
                 if process in self.processes:
                     orange = True
                     logging.error("%s process died, restarting...", process)
+                    logging.debug("exit code: %s" , self.processes[process].exitcode)
                     del self.processes[process]
                 else:
                     self.logging.info("Restarting %s process", process)
@@ -131,7 +132,7 @@ class ProcessMonitor:
                     self.restart_process(process)
                     time.sleep(self.config.sleep_interval_main_short)
         if orange:
-            self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+1)
+            self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+2)
         else:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count-1)
 
