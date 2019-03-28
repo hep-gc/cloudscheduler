@@ -12,7 +12,7 @@
             <li class="spacer"> </li>
             <li>
                 <div align="center">
-                    <select name="group" id="group"  onchange="location=this.value;">
+                    <select name="group" id="group"  onchange="location=this.value; sessionStorage.clear()">
                     {% for grp in user_groups %}
                         {% if grp == active_group %}
                             <option value="?{{grp}}" selected>{{grp}}</option>
