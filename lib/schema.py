@@ -243,7 +243,8 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('os_networks', String(64)),
   Column('os_vms', String(64)),
   Column('os_sec_grps', String(64)),
-  Column('condor', String(64))
+  Column('condor', String(64)),
+  Column('ec2_flavors', String(64))
   )
 
 csv2_cloud_aliases = Table('csv2_cloud_aliases', metadata,
@@ -311,11 +312,6 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('vm_security_groups', String(128)),
   Column('error_count', Integer),
   Column('error_time', Integer)
-  )
-
-csv2_config = Table('csv2_config', metadata,
-  Column('config_name', String(64), primary_key=True),
-  Column('yaml', String)
   )
 
 csv2_configuration = Table('csv2_configuration', metadata,
@@ -402,6 +398,9 @@ csv2_system_status = Table('csv2_system_status', metadata,
   Column('csv2_timeseries_error_count', Integer),
   Column('csv2_timeseries_status', Integer),
   Column('csv2_timeseries_msg', String(512)),
+  Column('csv2_ec2_error_count', Integer),
+  Column('csv2_ec2_status', Integer),
+  Column('csv2_ec2_message', String(512)),
   Column('condor_status', Integer),
   Column('condor_msg', String(512)),
   Column('load', Float),
@@ -465,6 +464,11 @@ csv2_vms_foreign = Table('csv2_vms_foreign', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
   Column('flavor_id', String(128), primary_key=True),
+  Column('authurl', String(128)),
+  Column('project', String(32)),
+  Column('region', String(32)),
+  Column('foreign_group', String(32)),
+  Column('foreign_cloud', String(32)),
   Column('count', Integer)
   )
 
@@ -588,9 +592,11 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('VMs', Integer),
   Column('cores_max', Integer),
   Column('cores_used', Integer),
+  Column('cores_foreign', Integer),
   Column('disk_used', Integer),
   Column('ram_max', Integer),
   Column('ram_used', Integer),
+  Column('ram_foreign', Integer),
   Column('swap_used', Integer),
   Column('flavor', String(161)),
   Column('flavor_id', String(128)),
@@ -606,7 +612,8 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('flavor_running', Integer),
   Column('flavor_retiring', Integer),
   Column('flavor_error', Integer),
-  Column('flavor_manual', Integer)
+  Column('flavor_manual', Integer),
+  Column('updater', String)
   )
 
 view_cloud_aliases = Table('view_cloud_aliases', metadata,

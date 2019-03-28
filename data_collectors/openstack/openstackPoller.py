@@ -1191,10 +1191,36 @@ def vm_poller():
                         "count": 0,
                     }
                     for_vm_dict[for_vm.cloud_name + "--" + for_vm.flavor_id] = fvm_dict
-
+  
                 for cloud in cloud_list:
                     group_name = group.group_name
                     cloud_name = cloud.cloud_name
+                    shared_vm_dict = {}
+
+                    shared_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud.authurl, FVM.project == cloud.project, FVM.region != cloud.region)
+                    for shared_vm in shared_vm_list:
+                        #check if it is the special case of foreign vms as a result of a shared quota
+                        if shared_vm.foreign_group is not None:
+                            shared_dict = {
+                                "fvm_obj": shared_vm,
+                                "count": 0,
+                            }
+                            shared_vm_dict[shared_vm.cloud_name + "--" + shared_vm.flavor_id] = shared_dict
+
+                    #we need to copy the foreign vms from this cloud into the shared dict
+                    for forvm_key in for_vm_dict:
+                        split_key = forvm_key.split("--")
+                        if split_key[0]:
+                            #vm is from this cloud
+                            shared_vm_dict[forvm_key]= {
+                                'count': 0,
+                                'region': cloud.region,
+                                'project': cloud.project,
+                                'authurl': cloud.authurl
+                            }
+
+                                
+
                     logging.debug("Polling VMs from cloud: %s" % cloud_name)
                     session = _get_openstack_session(cloud)
                     if session is False:
@@ -1235,6 +1261,23 @@ def vm_poller():
                     # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
                     # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                     uncommitted_updates = 0
+
+                    # Check if there are other clouds with the same authurl/project
+                    shared_quota_foreign_clouds = []
+                    internal_fvm_clouds = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack", CLOUD.authurl == cloud.authurl, CLOUD.project == cloud.project, CLOUD.region != cloud.region)
+                    if internal_fvm_clouds.count() > 0:
+                        # This means we have at least 1 other cloud using this tenant so we loop and build the list
+                        for fcloud in internal_fvm_clouds:
+                            logging.debug("foreign cloud: %s,  current_cloud: %s" % (fcloud.cloud_name, cloud.cloud_name))
+                            if fcloud.group_name == cloud.group_name and fcloud.cloud_name == cloud.cloud_name:
+                                # this is the cloud we are currently processing
+                                pass
+                            else:
+                                # we need to report ALL vms (ie shared vms) as forgein for flcoud
+                                shared_quota_foreign_clouds.append(fcloud)
+
+
+
                     for vm in vm_list:
                     #~~~~~~~~
                     # figure out if it is foreign to this group or not based on tokenized hostname:
@@ -1243,6 +1286,9 @@ def vm_poller():
                     #
                     # at the end some of the dictionary enteries might not have a previous database object
                     # due to emergent flavors and thus a new obj will need to be created
+                    #
+                    # We also need to track the internal foreign vms for clouds with same auth/projects but different regions
+                    # as they all count towards the shared quota
                     #~~~~~~~~
                         try:
                             host_tokens = vm.name.split("--")
@@ -1250,10 +1296,21 @@ def vm_poller():
                                 logging.debug("group_name from host does not match, marking %s as foreign vm" % vm.name)
                                 if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                    shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                                 else:
                                     # no entry yet
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
-                                        'count': 1
+                                        'count': 1,
+                                        'region': cloud.region,
+                                        'project': cloud.project,
+                                        'authurl': cloud.authurl
+
+                                    }
+                                    shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                        'count': 1,
+                                        'region': cloud.region,
+                                        'project': cloud.project,
+                                        'authurl': cloud.authurl
                                     }
                                 #foreign vm
                                 continue
@@ -1261,10 +1318,20 @@ def vm_poller():
                                 logging.debug("cloud_name from host does not match, marking %s as foreign vm" % vm.name)
                                 if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                    shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                                 else:
                                     # no entry yet
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
-                                        'count': 1
+                                        'count': 1,
+                                        'region': cloud.region,
+                                        'project': cloud.project,
+                                        'authurl': cloud.auturl
+                                    }
+                                    shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                        'count': 1,
+                                        'region': cloud.region,
+                                        'project': cloud.project,
+                                        'authurl': cloud.authurl
                                     }
                                 #foreign vm
                                 continue
@@ -1272,24 +1339,51 @@ def vm_poller():
                                 logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
                                 if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                    shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                                 else:
                                     # no entry yet
                                     for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
-                                        'count': 1
+                                        'count': 1,
+                                        'region': cloud.region,
+                                        'project': cloud.project,
+                                        'authurl': cloud.auturl
+                                    }
+                                    shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                        'count': 1,
+                                        'region': cloud.region,
+                                        'project': cloud.project,
+                                        'authurl': cloud.authurl
                                     }
 
                                 #foreign vm
                                 continue
+                            #valid VM but we'll track it in the case of shared quotas
+                            if cloud_name + "--" + vm.flavor["id"] in shared_vm_dict:
+                                shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                            else:
+                                # no entry yet
+                                shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                    'count': 1,
+                                    'region': cloud.region,
+                                    'project': cloud.project,
+                                    'authurl': cloud.auturl
+                                }
+
                         except IndexError as exc:
                             #not enough tokens, bad hostname or foreign vm
                             logging.error("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                                shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = shared_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:
                                 # no entry yet
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
-                                    'count': 1
-                                }
+                                    'count': 1,
+                                    'region': cloud.region,
+                                    'project': cloud.project,
+                                    'authurl': cloud.auturl
+                                } 
+                                shared_vm_dict[cloud_name + "--" + vm.flavor["id"]] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]
 
                             continue
 
@@ -1343,6 +1437,45 @@ def vm_poller():
                                 logging.error("Error during batch commit of VMs:")
                                 logging.error(exc)
 
+
+                    # Done parsing VMs, add the shared foreign rows
+                    logging.debug("Checking shared quota FVMs")
+                    for scloud in shared_quota_foreign_clouds:
+                        # check if any rows have a zero count and delete them, otherwise update with new count
+                        for key in shared_vm_dict:
+                            split_key = key.split("--")
+                            if shared_vm_dict[key]['count'] == 0:
+                                # delete this row
+                                try:
+                                    db_session.delete(shared_vm_dict[key]['fvm_obj'])
+                                    logging.debug("Deleting shared fvm %s" % key)
+                                except KeyError:
+                                    # This just means it was initialized by the foreign vm objects then never counted
+                                    pass
+                            else:
+                                try:
+                                    # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
+                                    shared_vm_dict[key]['fvm_obj'].count = shared_vm_dict[key]['count']
+                                    db_session.merge(shared_vm_dict[key]['fvm_obj'])
+                                    uncommitted_updates += 1
+                                except KeyError:
+                                    # need to create new db obj for this entry
+                                    logging.debug("Creating new shared fvm")
+                                    fvm_dict = {
+                                        'group_name':   scloud.group_name,
+                                        'cloud_name':   scloud.cloud_name,
+                                        'flavor_id':    split_key[1],
+                                        'count':        shared_vm_dict[key]['count'],
+                                        'project':      shared_vm_dict[key]['project'],
+                                        'region':       shared_vm_dict[key]['region'],
+                                        'authurl':      shared_vm_dict[key]['authurl'],
+                                        'foreign_group': group.group_name,
+                                        'foreign_cloud': split_key[0]
+                                    }
+                                    new_fvm = FVM(**fvm_dict)
+                                    db_session.merge(new_fvm)
+                                    uncommitted_updates += 1
+
                     del nova
                     if abort_cycle:
                         break
@@ -1376,7 +1509,10 @@ def vm_poller():
                                 'group_name': group.group_name,
                                 'cloud_name': split_key[0],
                                 'flavor_id':  split_key[1],
-                                'count':      for_vm_dict[key]['count']
+                                'count':      for_vm_dict[key]['count'],
+                                'project':    for_vm_dict[key]['project'],
+                                'region':     for_vm_dict[key]['region'],
+                                'authurl':    for_vm_dict[key]['authurl']
                             }
                             new_fvm = FVM(**fvm_dict)
                             db_session.merge(new_fvm)
