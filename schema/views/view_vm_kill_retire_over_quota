@@ -88,7 +88,14 @@ from (
                     ((cf2.disk+cf2.ephemeral_disk)*cvf.count) as disk_foreign,
                     (cf2.ram*cvf.count) as ram_foreign,
                     (cf2.swap*cvf.count) as swap_foreign
-                from csv2_vms_foreign as cvf
+                from (
+                    select
+                        ifnull(foreign_group, group_name) as group_name,
+                        ifnull(foreign_cloud, cloud_name) as cloud_name,
+                        flavor_id,
+                        count
+                    from csv2_vms_foreign
+                ) as cvf
                 left outer join cloud_flavors as cf2 on 
                     cvf.group_name=cf2.group_name and
                     cvf.cloud_name=cf2.cloud_name and
