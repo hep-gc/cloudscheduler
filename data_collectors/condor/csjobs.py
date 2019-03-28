@@ -221,7 +221,7 @@ def job_poller():
                             continue
                         # Look for a cloud_alias in requirements string
                         try:
-                            pattern = '(cloud_alias is")(.*?)(")'
+                            pattern = '(cloud_alias is ")(.*?)(")'
                             cloud_alias = re.search(pattern, job_dict['Requirements'])
                             job_dict['cloud_alias'] = cloud_alias.group(2)
                         except Exception as exc:
@@ -300,9 +300,10 @@ def job_poller():
                     logging.debug("Holding: %s" % held_job_ids)
                     try:
                         logging.debug("Executing job action hold on %s" % condor_host)
-                        hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
-                        logging.debug("Hold result: %s" % hold_result)
-                        condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
+                        logging.critical("<< SKIPPING HOLDS, AUTHENTICATION NOT SET UP FOR REMOTE HOLDS >>")
+                        #hold_result = condor_session.act(htcondor.JobAction.Hold, held_job_ids)
+                        #logging.debug("Hold result: %s" % hold_result)
+                        #condor_session.edit(held_job_ids, "HoldReason", '"Invalid user or group name for htondor host %s, held by job poller"' % condor_host)
                     except Exception as exc:
                         logging.error("Failure holding jobs: %s" % exc)
                         logging.error("Aborting cycle...")
