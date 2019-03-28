@@ -26,11 +26,28 @@ def diff_lists(list1,list2, option=None):
 def kill_retire(config, group_name, cloud_name, option, count, updater_str):
     from cloudscheduler.lib.schema import view_vm_kill_retire_priority_age, view_vm_kill_retire_priority_idle
 
+#   print(">>>>>>>>>>>>>>>>>>>>>", group_name, cloud_name, option, count, updater_str)
 
     # Process "control [cores, ram]".
     if option == 'control':
-        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, count[0], count[1])
-#       s = 'set @cores=0; set @ram=0; create or replace table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, count[0], count[1])
+        def count_int(val):
+            try:
+                return int(val)
+            except:
+                return -1
+
+        if count_int(count[0]) > -1:
+            core_max = count[0]
+        else:
+            core_max = 999999999999
+
+        if count_int(count[1]) > -1:
+            ram_max = count[1]
+        else:
+            ram_max = 999999999999
+
+        s = 'set @cores=0; set @ram=0; create or replace temporary table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, core_max, ram_max)
+#       s = 'set @cores=0; set @ram=0; create or replace table kill_retire_priority_list as select * from (select *,(@cores:=@cores+flavor_cores) as cores,(@ram:=@ram+flavor_ram) as ram from view_vm_kill_retire_priority_idle where group_name="%s" and cloud_name="%s" and killed<1 and retired<1 order by priority asc) as kpl where cores>%s or ram>%s;' % (group_name, cloud_name, core_max, ram_max)
         config.db_connection.execute(s)
 #       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set terminate=1, updater="%s" where kpl.machine is null;' % updater_str)
 #       config.db_connection.execute('update csv2_vms as cv left outer join (select * from kill_retire_priority_list) as kpl on cv.vmid=kpl.vmid set retire=1, updater="%s" where kpl.machine is not null;' % updater_str)
