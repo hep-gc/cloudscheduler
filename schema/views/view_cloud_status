@@ -24,7 +24,9 @@ select
         end
     end as cores_limit,
 
-    cl.cores_max as cores_quota,
+    ifnull(cl.instances_max,0) as VMs_quota,
+
+    ifnull(cl.cores_max,0) as cores_quota,
     ifnull(n05.cores_foreign,0) as cores_foreign,
     ifnull(n02.cores_native,0)+ifnull(n05.cores_foreign,0) as cores_native_foreign,
     ram_ctl,
@@ -35,7 +37,7 @@ select
         least(ram_ctl, ifnull(ram_max,0))
     end as ram_limit,
 
-    cl.ram_max as ram_quota,
+    ifnull(cl.ram_max,0) as ram_quota,
     ifnull(n05.ram_foreign,0) as ram_foreign,
     ifnull(n02.ram_native,0)+ifnull(n05.ram_foreign,0) as ram_native_foreign
 
