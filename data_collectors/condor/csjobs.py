@@ -33,7 +33,7 @@ from sqlalchemy.ext.automap import automap_base
 def trim_keys(dict_to_trim, key_list):
     keys_to_trim = ["Owner"]
     for key in dict_to_trim:
-        if key == "group_name":
+        if key == "group_name" or key == "target_alias":
             continue
         if key not in key_list or isinstance(dict_to_trim[key], classad._classad.Value):
             keys_to_trim.append(key)
@@ -223,6 +223,7 @@ def job_poller():
                         try:
                             pattern = '(target_alias is ")(.*?)(")'
                             target_alias = re.search(pattern, job_dict['Requirements'])
+                            logging.info(target_alias)
                             job_dict['target_alias'] = target_alias.group(2)
                         except Exception as exc:
                             logging.debug("No alias found in requirements expression")
