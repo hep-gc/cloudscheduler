@@ -151,7 +151,7 @@ def flavor_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning flavor poller cycle")
@@ -244,6 +244,7 @@ def flavor_poller():
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
                                 'name': flavor.name,
+                                'cloud_type': "openstack",
                                 'ram': flavor.ram,
                                 'vcpus': flavor.vcpus,
                                 'id': flavor.id,
@@ -292,7 +293,7 @@ def flavor_poller():
                     continue
 
                 # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -330,7 +331,7 @@ def image_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -463,7 +464,7 @@ def image_poller():
                     continue
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=failure_dict)
+                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -502,7 +503,7 @@ def keypair_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             try:    
                 logging.debug("Beginning keypair poller cycle")
@@ -581,6 +582,7 @@ def keypair_poller():
                                 "cloud_name":  cloud_n,
                                 "group_name":  group_n,
                                 "key_name":    key.name,
+                                'cloud_type': "openstack",
                                 "fingerprint": key.fingerprint
                             }
                             
@@ -619,7 +621,7 @@ def keypair_poller():
                     continue
 
                 # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -656,7 +658,7 @@ def limit_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
@@ -750,6 +752,7 @@ def limit_poller():
                         for limit in limits_dict:
                             if "-1" in str(limits_dict[limit]):
                                 limits_dict[limit] = config.no_limit_default
+                        limits_dict["cloud_type"] = "openstack"
 
                         new_limits = LIMIT(**limits_dict)
                         try:
@@ -779,7 +782,7 @@ def limit_poller():
                             break
 
                 # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -826,7 +829,7 @@ def network_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -904,6 +907,7 @@ def network_poller():
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
                                 'name': network['name'],
+                                'cloud_type': "openstack",
                                 'subnets': ''.join(network['subnets']),
                                 'tenant_id': network['tenant_id'],
                                 'router:external': network['router:external'],
@@ -951,7 +955,7 @@ def network_poller():
                     continue
 
                 # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -991,7 +995,7 @@ def security_group_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1074,6 +1078,7 @@ def security_group_poller():
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
                                 'name': sec_grp["name"],
+                                'cloud_type': "openstack",
                                 'id': sec_grp["id"],
                                 'last_updated': new_poll_time
                                 }
@@ -1116,7 +1121,7 @@ def security_group_poller():
                     continue
 
                 # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
-                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict)
+                delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -1153,7 +1158,7 @@ def vm_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1165,7 +1170,7 @@ def vm_poller():
     failure_dict = {}
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20), cloud_type="openstack")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1197,7 +1202,7 @@ def vm_poller():
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                 group_list = unique_cloud_dict[cloud]['groups']
 
-                foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud.auth_url, FVM.region == cloud.region, FVM.project == cloud.project)
+                foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
 
                 #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
                 # dict[cloud+flavor]
@@ -1210,17 +1215,7 @@ def vm_poller():
                         "authurl": cloud_obj.authurl,
                         "project": cloud_obj.project
                     }
-                    for_vm_dict[for_vm.cloud_name + "--" + for_vm.flavor_id] = fvm_dict
-
-                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                #
-                # Logic from here needs a full rework moving away from the group/cloud centric polling to the authurl+project+region centric polling
-                # We need to look at the hostname and decide if its a csv2 vm or a foreign vm, if its not foreign we need to associate the proper
-                # group and cloud name based on the host string.
-                #
-                # Polling failures will now not be tied to a single cloud row but instead a grouping of all clouds sharing authurl+project+region
-                #
-                #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    for_vm_dict[cloud_name + "--" + for_vm.flavor_id] = fvm_dict
 
                 logging.debug("Polling VMs from cloud: %s" % cloud_name)
                 session = _get_openstack_session(cloud_obj)
@@ -1257,7 +1252,7 @@ def vm_poller():
                     continue
 
                 # if we get here the connection to openstack has been succussful and we can remove the error status
-                failure_dict.pop(group_name+cloud_name, None)
+                failure_dict.pop(cloud_obj.group_name+cloud_name, None)
 
                 # Process VM list for this cloud.
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1274,9 +1269,12 @@ def vm_poller():
                 #~~~~~~~~
                     try:
                         host_tokens = vm.name.split("--")
+                        vm_group_name = host_tokens[0]
+                        vm_cloud_name = host_tokens[1]
+                        
 
                         if (host_tokens[0], host_tokens[1]) not in group_list:
-                            logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
+                            logging.error("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:
@@ -1284,12 +1282,13 @@ def vm_poller():
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
                                     'count': 1,
                                     'region': cloud_obj.region,
-                                    'project': cloud_obj.project:,
+                                    'project': cloud_obj.project,
                                     'authurl': cloud_obj.authurl, 
-                                    'flavor_id': vm.flavor["id"]]
+                                    'flavor_id': vm.flavor["id"]
                                 }
+                            continue
                         elif int(host_tokens[2]) != int(config.csv2_host_id):
-                            logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
+                            logging.error("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:
@@ -1297,9 +1296,9 @@ def vm_poller():
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
                                     'count': 1,
                                     'region': cloud_obj.region,
-                                    'project': cloud_obj.project:,
+                                    'project': cloud_obj.project,
                                     'authurl': cloud_obj.authurl, 
-                                    'flavor_id': vm.flavor["id"]]
+                                    'flavor_id': vm.flavor["id"]
                                 }
 
                             #foreign vm
@@ -1314,9 +1313,9 @@ def vm_poller():
                             for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
                                 'count': 1,
                                 'region': cloud_obj.region,
-                                'project': cloud_obj.project:,
+                                'project': cloud_obj.project,
                                 'authurl': cloud_obj.authurl, 
-                                'flavor_id': vm.flavor["id"]]
+                                'flavor_id': vm.flavor["id"]
                             }
 
                         continue
@@ -1330,10 +1329,11 @@ def vm_poller():
                             elif addr['OS-EXT-IPS:type'] == 'floating':
                                 floating_ips.append(addr['addr'])
                     vm_dict = {
-                        'group_name': cloud.group_name,
-                        'cloud_name': cloud.cloud_name,
-                        'auth_url': cloud.authurl,
-                        'project': cloud.project,
+                        'group_name': vm_group_name,
+                        'cloud_name': vm_cloud_name,
+                        'auth_url': cloud_obj.authurl,
+                        'project': cloud_obj.project,
+                        'cloud_type': "openstack",
                         'hostname': vm.name,
                         'vmid': vm.id,
                         'status': vm.status,
@@ -1350,7 +1350,7 @@ def vm_poller():
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     new_vm = VM(**vm_dict)
@@ -1425,7 +1425,7 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict)
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
 
             # Check on the core limits to see if any clouds need to be scaled down.
