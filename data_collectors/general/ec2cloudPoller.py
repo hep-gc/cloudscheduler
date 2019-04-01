@@ -618,7 +618,7 @@ def limit_poller():
                 db_session = config.db_session
 
                 abort_cycle = False
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
                 uncommitted_updates = 0
 
                 # build unique cloud list to only query a given cloud once per cycle
@@ -636,7 +636,7 @@ def limit_poller():
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
-                    session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
+                    session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
                         logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
@@ -653,13 +653,13 @@ def limit_poller():
                         continue
 
                     # Retrieve limit list for the current cloud.
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    nova = _get_ec2_client(session)
 
                     shared_limits_dict = {}
                     try:
-                        limit_list = nova.limits.get().absolute
-                        for limit in limit_list:
-                            shared_limits_dict[limit.name] = [limit.value]
+                        limit_list = nova.describe_account_attributes()
+                        for limit in limit_list['AccountAttributes']:
+                            shared_limits_dict[limit['AttributeName']] = limit['AttributeValues'][0]['AttributeValue']
                     except Exception as exc:
                         logging.error("Failed to retrieve limits from nova, skipping %s" % cloud_name)
                         logging.error(exc)
@@ -695,7 +695,7 @@ def limit_poller():
                         limits_dict['group_name'] = group_n
                         limits_dict['cloud_name'] = cloud_n
                         limits_dict['last_updated'] = int(time.time())
-                        limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)
+                        limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)  # TODO figure out attribute mapper and setup mapping fot the ec2 account attributes stuff
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
