@@ -66,7 +66,7 @@ def _get_openstack_session(cloud):
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.error("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
+        logging.debug("Bad OpenStack URL, could not determine version, skipping %s", cloud.authurl)
         return False
     if version == 2:
         session = _get_openstack_session_v1_v2(
@@ -98,7 +98,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
     except ValueError:
-        logging.error("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
+        logging.debug("Bad openstack URL: %s, could not determine version, aborting session", auth_url)
         return False
     if version == 2:
         try:
@@ -1274,7 +1274,7 @@ def vm_poller():
                         
 
                         if (host_tokens[0], host_tokens[1]) not in group_list:
-                            logging.error("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
+                            logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:
@@ -1288,7 +1288,7 @@ def vm_poller():
                                 }
                             continue
                         elif int(host_tokens[2]) != int(config.csv2_host_id):
-                            logging.error("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
+                            logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:
@@ -1305,7 +1305,7 @@ def vm_poller():
                             continue
                     except IndexError as exc:
                         #not enough tokens, bad hostname or foreign vm
-                        logging.error("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
+                        logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
                         if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                             for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                         else:
