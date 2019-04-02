@@ -179,7 +179,7 @@ def flavor_poller():
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
-                        logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
@@ -358,7 +358,7 @@ def image_poller():
                     logging.debug("Processing Images from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
-                        logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
@@ -529,7 +529,7 @@ def keypair_poller():
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
-                        logging.error("Failed to establish session with %s" % cloud_name)
+                        logging.debug("Failed to establish session with %s" % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
@@ -686,7 +686,7 @@ def limit_poller():
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
-                        logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
@@ -856,7 +856,7 @@ def network_poller():
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
-                        logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
@@ -1023,7 +1023,7 @@ def security_group_poller():
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
-                        logging.error("Failed to establish session with %s, skipping this cloud..." % cloud_name)
+                        logging.debug("Failed to establish session with %s, skipping this cloud..." % cloud_name)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
@@ -1221,7 +1221,7 @@ def vm_poller():
                 session = _get_openstack_session(cloud_obj)
 
                 if session is False:
-                    logging.error("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
                     if cloud_obj.group_name+cloud_name not in failure_dict:
                         failure_dict[cloud_obj.group_name+cloud_name] = 1
                     else:
