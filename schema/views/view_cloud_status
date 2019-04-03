@@ -6,7 +6,7 @@ create or replace view view_cloud_status as
 /* n01 - Apply group and cloud defaults */
 select
     n02.*,
-    ifnull(n05.Foreign_VMs,0) as Foreign_VMs,
+    ifnull(vfr.count,0) as Foreign_VMs,
     cc.enabled,
     cores_ctl,
 
@@ -27,8 +27,8 @@ select
     ifnull(cl.instances_max,0) as VMs_quota,
 
     ifnull(cl.cores_max,0) as cores_quota,
-    ifnull(n05.cores_foreign,0) as cores_foreign,
-    ifnull(n02.cores_native,0)+ifnull(n05.cores_foreign,0) as cores_native_foreign,
+    ifnull(vfr.cores,0) as cores_foreign,
+    ifnull(n02.cores_native,0)+ifnull(vfr.cores,0) as cores_native_foreign,
     ram_ctl,
 
     case when ram_ctl=-1 then
@@ -38,8 +38,8 @@ select
     end as ram_limit,
 
     ifnull(cl.ram_max,0) as ram_quota,
-    ifnull(n05.ram_foreign,0) as ram_foreign,
-    ifnull(n02.ram_native,0)+ifnull(n05.ram_foreign,0) as ram_native_foreign
+    ifnull(vfr.ram,0) as ram_foreign,
+    ifnull(n02.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign
 
 from (
     /* n02 - Retrieve all (native) VMs with condor slot information */
@@ -163,19 +163,7 @@ left outer join csv2_clouds as cc on
 left outer join cloud_limits as cl on
     n02.group_name=cl.group_name and
     n02.cloud_name=cl.cloud_name
-left outer join (
-    /* n05 - Get foreign VM counts */
-    select
-        group_name,
-        cloud_name,
-        sum(count) as Foreign_VMs,
-        sum(cores*count) as cores_foreign,
-        sum(ram*count) as ram_foreign
-    from view_foreign_flavors
-    group by
-        group_name,
-        cloud_name
-) as n05 on
-    n02.group_name=n05.group_name and
-    n02.cloud_name=n05.cloud_name
+left outer join view_foreign_resources as vfr on
+    n02.group_name=vfr.group_name and
+    n02.cloud_name=vfr.cloud_name
 ;

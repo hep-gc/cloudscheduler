@@ -134,27 +134,27 @@ from (
 
             case when ifnull(cores_ctl,-1)!=-1 then
                 case when ifnull(cores_softmax,-1)!=-1 then
-                    least(cores_ctl, cores_softmax-ifnull(cores_foreign,0), cores_max-ifnull(cores_foreign,0))
+                    least(cores_ctl, cores_softmax-ifnull(vfr.cores,0), cores_max-ifnull(vfr.cores,0))
                 else
-                    least(cores_ctl, cores_max-ifnull(cores_foreign,0))
+                    least(cores_ctl, cores_max-ifnull(vfr.cores,0))
                 end
             else
                 case when ifnull(cores_softmax,-1)!=-1 then
-                    least(cores_softmax-ifnull(cores_foreign,0), cores_max-ifnull(cores_foreign,0))
+                    least(cores_softmax-ifnull(vfr.cores,0), cores_max-ifnull(vfr.cores,0))
                 else
-                    cores_max-ifnull(cores_foreign,0)
+                    cores_max-ifnull(vfr.cores,0)
                 end
             end as cores_max,
 
-            cores_foreign,
+            vfr.cores as cores_foreign,
 
             case when ifnull(ram_ctl,-1)!=-1 then
-                least(ram_ctl, ram_max-ifnull(ram_foreign,0))
+                least(ram_ctl, ram_max-ifnull(vfr.ram,0))
             else
-                ram_max-ifnull(ram_foreign,0)
+                ram_max-ifnull(vfr.ram,0)
             end as ram_max,
 
-            ram_foreign
+            vfr.ram as ram_foreign
 
         from csv2_clouds as cc
         left outer join csv2_groups as cg on
@@ -162,21 +162,9 @@ from (
         left outer join cloud_limits as cl on
             cc.group_name=cl.group_name and
             cc.cloud_name=cl.cloud_name
-        left outer join (
-            /* n05 - Get foreign VM counts */
-            select
-                group_name,
-                cloud_name,
-                sum(count) as Foreign_VMs,
-                sum(cores*count) as cores_foreign,
-                sum(ram*count) as ram_foreign
-            from view_foreign_flavors
-            group by
-                group_name,
-                cloud_name
-        ) as fvm on
-            cc.group_name=fvm.group_name and
-            cc.cloud_name=fvm.cloud_name
+        left outer join view_foreign_resources as vfr on
+            cc.group_name=vfr.group_name and
+            cc.cloud_name=vfr.cloud_name
         where enabled=1
         ) as cwd
     join cloud_flavors as cf1 on

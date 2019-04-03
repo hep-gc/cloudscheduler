@@ -30,9 +30,9 @@ from (
                     sum(
                         case when
                             cc.authurl=cff.authurl and
-                            cc.region=cff.region and
                             cc.project=cff.project and 
-                            (cc.group_name!=cff.group_name or
+                            (cc.region!=cff.region or
+                            cc.group_name!=cff.group_name or
                             cc.cloud_name!=cff.cloud_name) then count else 0
                         end
                     ) as count

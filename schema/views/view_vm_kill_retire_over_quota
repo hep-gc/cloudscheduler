@@ -78,17 +78,17 @@ from (
                     cv.cloud_name=cf.cloud_name and
                     cv.flavor_id=cf.id
                 union all select
-                    vff.group_name,
-                    vff.cloud_name,
+                    vfr.group_name,
+                    vfr.cloud_name,
                     0 as cores_native,
                     0 as disk_native,
                     0 as ram_native,
                     0 as swap_native,
-                    (vff.cores*vff.count) as cores_foreign,
+                    (vfr.cores*vfr.count) as cores_foreign,
                     0 as disk_foreign,
-                    (vff.ram*vff.count) as ram_foreign,
+                    (vfr.ram*vfr.count) as ram_foreign,
                     0 as swap_foreign
-                from view_foreign_flavors as vff
+                from view_foreign_resources as vfr
             ) as avmr
             group by
                 group_name,
