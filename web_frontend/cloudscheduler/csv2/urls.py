@@ -53,6 +53,7 @@ urlpatterns = [
     path('user/settings/',                         user_views.settings),
     path('user/update/',                           user_views.update),
 
+    path('vm/foreign/',                            vm_views.foreign),
     path('vm/list/',                               vm_views.list),
     path('vm/update/',                             vm_views.update),
 
