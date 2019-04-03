@@ -695,7 +695,7 @@ def limit_poller():
                         limits_dict['group_name'] = group_n
                         limits_dict['cloud_name'] = cloud_n
                         limits_dict['last_updated'] = int(time.time())
-                        limits_dict, unmapped = map_attributes(src="os_limits", dest="csv2", attr_dict=limits_dict)  # TODO figure out attribute mapper and setup mapping fot the ec2 account attributes stuff
+                        limits_dict, unmapped = map_attributes(src="ec2_limits", dest="csv2", attr_dict=limits_dict)
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
@@ -1119,17 +1119,7 @@ def security_group_poller():
 
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
-    # Base = automap_base()
-    # db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    # Base.prepare(db_engine, reflect=True)
+
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
@@ -1157,7 +1147,7 @@ def vm_poller():
             group_list = db_session.query(GROUP)
             for group in group_list:
                 logging.debug("Polling Group: %s" % group.group_name)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack",
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon",
                                                             CLOUD.group_name == group.group_name)
                 foreign_vm_list = db_session.query(FVM).filter(FVM.group_name == group.group_name)
 
@@ -1204,7 +1194,7 @@ def vm_poller():
                             failure_dict[group_name + cloud_name] = failure_dict[group_name + cloud_name] + 1
                         if failure_dict[group_name + cloud_name] > 3:  # should be configurable
                             logging.error(
-                                "Failure threshhold limit reached for %s::%s, manual action required, skipping" % (
+                                "Failure threshold limit reached for %s::%s, manual action required, skipping" % (
                                 group_name, cloud_name))
                         continue
 
@@ -1459,7 +1449,7 @@ if __name__ == '__main__':
         #'flavor': flavor_poller,
         'image': image_poller,
         'keypair': keypair_poller,
-        #'limit': limit_poller,
+        'limit': limit_poller,
         'network': network_poller,
         #'vm': vm_poller,
         #'registrar': service_registrar,
