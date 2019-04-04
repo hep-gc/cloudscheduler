@@ -81,7 +81,7 @@ def flavor_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning flavor poller cycle")
@@ -267,7 +267,7 @@ def image_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -448,7 +448,7 @@ def keypair_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
@@ -609,7 +609,7 @@ def limit_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
@@ -806,7 +806,7 @@ def network_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -980,7 +980,7 @@ def security_group_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1152,7 +1152,7 @@ def vm_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
