@@ -38,13 +38,13 @@ def flavor_poller():
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
+    FILTERS = config.db_map.classes.ec2_instance_type_filters
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
-    col_name = 'cloud_type'
-    filter_value = 'amazon'
+   
    # register_signal_receiver(config, "insert_csv2_clouds")
    # register_signal_receiver(config, "update_csv2_clouds")
 
@@ -61,11 +61,7 @@ def flavor_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
             region_failure_dict = {}
-            #TODO
-            # BUILD REGION LIST from cloud_list
-            # get json dump from amazon pricing url
-            # parse json for entries from that region
-
+            
             # Build unique region dict
             unique_region_dict = {}
             for cloud in cloud_list:
@@ -86,6 +82,7 @@ def flavor_poller():
                     flav_list = False
                     url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/{}/index.json".format(region)
                     resp = requests.get(url)
+                    logging.debug("Got response")
                     resp.raise_for_status()
                     flav_list = resp.json()
                 except Exception as exc:
@@ -120,45 +117,61 @@ def flavor_poller():
                         continue
                     flavor_name = flav_list["products"][product]["attributes"]["instanceType"]
                     
-                    # JSON format: "memory" : "1,952 GiB"
-                    # Why would they do this...
-                    ram = flav_list["products"][product]["attributes"]["memory"].split(" ", 1)[0].split(",")
-                    if len(ram) == 1:
-                        ram = ram[0]
-                    else:
-                        ram = "".join(ram)
-                    ram = int(float(ram)*1000)
-                    
-                    # JSON format: "storage" : "2 x 1,920 SSD"   Whhhh
-                    # or           "storage" : "EBS only"           hhyyyy????
-                    disk = flav_list["products"][product]["attributes"]["storage"]
-                    if disk == "EBS only":
-                        disk = 0
-                    else:
-                        try:
-                            disk = disk.split(" ")
-                            d = disk[2].split(",")
-                            if len(d) == 1:
-                                disk = int(disk[0])*int(disk[2])
-                            else:
-                                disk = int(disk[0])*int("".join(d))
-                        except Exception as exc:
-                            logging.error("Could not parse disk info for region: {0}, flavor: {1}. Format: \"storage\" : \"{2}\" was not as expected. Skipping flavor...".format(
-                                region, flavor_name, disk
-                            ))
-                            logging.error(exc)
-                            continue
-                    
-                    swap = 0
-                    vcpus = flav_list["products"][product]["attributes"]["vcpu"]
-                    usagetype = flav_list["products"][product]["attributes"]["usagetype"]
-                    #price = 0
-                    #for term in flav_list["terms"]["OnDemand"][product]:
-                    #    for item in flav_list["terms"]["OnDemand"][product][term]["priceDimensions"]:
-                    #        price = flav_list["terms"]["OnDemand"][product][term]["priceDimensions"][item]["pricePerUnit"]["USD"]
                     #logging.debug(region)
-                    #logging.debug(price)
                     for (group,cloud) in unique_region_dict[region]["group-cloud"]:
+                        # Get flavor filters from db
+                        
+                        flav_filter_list = db_session.query(FILTERS).filter(FILTERS.group_name == group)
+                        if flav_filter_list != None:
+                            for filter_entry in flav_filter_list:
+                                flav_filter = filter_entry
+                                break
+                        
+                        # JSON format: "memory" : "1,952 GiB"
+                        # Why would they do this...
+                        ram = flav_list["products"][product]["attributes"]["memory"].split(" ", 1)[0].split(",")
+                        if len(ram) == 1:
+                            ram = ram[0]
+                        else:
+                            ram = "".join(ram)
+                        ram = float(ram)
+                        
+                        # Filter flavors
+                        if flav_filter_list:
+                            if not (flav_filter.families == None or flav_list["products"][product]["attributes"]["instanceFamily"].lower() in flav_filter.families.lower().split(',')) or \
+                                    not (flav_filter.processor_types == None or any([True if x in flav_filter.processor_types.lower().split(',') else False for x in flav_list["products"][product]["attributes"]["physicalProcessor"].lower().split(' ')])) or \
+                                    not (flav_filter.cores == None or flav_list["products"][product]["attributes"]["vcpu"] in flav_filter.cores.split(',')) or \
+                                    not (flav_filter.min_memory_gigabytes_per_core == None or (ram/float(flav_list["products"][product]["attributes"]["vcpu"])) >= float(flav_filter.min_memory_gigabytes_per_core)) or \
+                                    not (flav_filter.max_memory_gigabytes_per_core == None or (ram/float(flav_list["products"][product]["attributes"]["vcpu"])) <= float(flav_filter.max_memory_gigabytes_per_core)):
+                                continue
+                   
+                        # Ram in db is MB
+                        ram = int(ram*1000)
+                    
+                        # JSON format: "storage" : "2 x 1,920 SSD"   Whhhh
+                        # or           "storage" : "EBS only"           hhyyyy????
+                        disk = flav_list["products"][product]["attributes"]["storage"]
+                        if disk == "EBS only":
+                            disk = 0
+                        else:
+                            try:
+                                disk = disk.split(" ")
+                                d = disk[2].split(",")
+                                if len(d) == 1:
+                                    disk = int(disk[0])*int(disk[2])
+                                else:
+                                    disk = int(disk[0])*int("".join(d))
+                            except Exception as exc:
+                                logging.error("Could not parse disk info for region: {0}, flavor: {1}. Format: \"storage\" : \"{2}\" was not as expected. Skipping flavor...".format(
+                                    region, flavor_name, disk
+                                ))
+                                logging.error(exc)
+                                continue
+                    
+                        swap = 0
+                        vcpus = flav_list["products"][product]["attributes"]["vcpu"]
+                        usagetype = flav_list["products"][product]["attributes"]["usagetype"]
+                        
                         flav_dict = {
                             'group_name': group,
                             'cloud_name': cloud,
@@ -169,17 +182,11 @@ def flavor_poller():
                             'id': flavor_name,
                             'swap': swap,
                             'disk': disk,
-                            #'instanceFamily':flav_list["products"][product]["attributes"]["instanceFamily"],
-                            #'operation': flav_list["products"][product]["attributes"]["operation"],
-                            #'tenancy': flav_list["products"][product]["attributes"]["tenancy"],
-                            #'operatingSystem': flav_list["products"][product]["attributes"]["operatingSystem"],
-                            #'USD_per_hr': price,
-                            #'':,
-                            #'':,
-                            #'is_public': 1,
                             'last_updated': new_poll_time
                         }
-                           
+                        #print(flav_dict.items())
+                        #print(flav_list["products"][product]["attributes"]["physicalProcessor"])
+                        #print(flav_list["products"][product]["attributes"]["instanceFamily"])
                         flav_dict, unmapped = map_attributes(src="ec2_flavors", dest="csv2", attr_dict=flav_dict)
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
@@ -198,7 +205,6 @@ def flavor_poller():
                             abort_cycle = True
                             break
 
-                        #print(flav_dict)
                     unique.add(flavor_name)
                 if abort_cycle:
                     break
