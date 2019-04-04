@@ -51,11 +51,11 @@ import boto3
 # This file also polls the openstack clouds for live VM information and inserts it into the database
 
 ## Poller sub-functions.
-def _get_ec2_session(self, cloud):
+def _get_ec2_session(cloud):
     return boto3.session.Session(region_name=cloud.region,
                                  aws_access_key_id=cloud.username,
                                  aws_secret_access_key=cloud.password)
-def _get_ec2_client(self, session):
+def _get_ec2_client(session):
     return session.client('ec2')
 
 
@@ -81,7 +81,7 @@ def flavor_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning flavor poller cycle")
@@ -267,7 +267,7 @@ def image_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -448,7 +448,7 @@ def keypair_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
@@ -522,7 +522,7 @@ def keypair_poller():
 
                     uncommitted_updates = 0
                     for key in cloud_keys['KeyPairs']:
-                        fingerprint_list.append(key.fingerprint)
+                        fingerprint_list.append(key['KeyFingerprint'])
                         for groups in unique_cloud_dict[cloud]['groups']:
                             group_n = groups[0]
                             cloud_n = groups[1]
@@ -531,9 +531,10 @@ def keypair_poller():
                                 "group_name": group_n,
                                 "key_name": key['KeyName'],
                                 "fingerprint": key['KeyFingerprint'],
+                                "cloud_type": 'amazon',
                             }
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict,
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key['KeyName'], key_dict,
                                                                 new_poll_time, debug_hash=(config.log_level < 20)):
                                 continue
 
@@ -543,7 +544,7 @@ def keypair_poller():
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception(
-                                    "Failed to merge keypair entry for %s::%s, aborting cycle..." % (cloud_n, key.name))
+                                    "Failed to merge keypair entry for %s::%s, aborting cycle..." % (cloud_n, key['KeyName']))
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
@@ -588,7 +589,6 @@ def keypair_poller():
         logging.exception("Keypair poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 def limit_poller():
@@ -609,7 +609,7 @@ def limit_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
@@ -694,8 +694,28 @@ def limit_poller():
 
                         limits_dict['group_name'] = group_n
                         limits_dict['cloud_name'] = cloud_n
+                        limits_dict['cloud_type'] = 'amazon'
                         limits_dict['last_updated'] = int(time.time())
                         limits_dict, unmapped = map_attributes(src="ec2_limits", dest="csv2", attr_dict=limits_dict)
+                        # Limit dict has a lot of require not null - set them all to -1 for now
+                        limits_dict['server_meta_max'] = -1
+                        limits_dict['personality_max'] = -1
+                        limits_dict['image_meta_max'] = -1
+                        limits_dict['personality_size_max'] = -1
+                        limits_dict['ram_max'] = -1
+                        limits_dict['server_groups_max'] = -1
+                        limits_dict['security_group_rules_max'] = -1
+                        limits_dict['keypairs_max'] = -1
+                        limits_dict['security_groups_max'] = -1
+                        limits_dict['server_group_members_max'] = -1
+                        limits_dict['cores_max'] = -1
+                        limits_dict['server_groups_used'] = -1
+                        limits_dict['instances_used'] = -1
+                        limits_dict['ram_used'] = -1
+                        limits_dict['security_groups_used'] = -1
+                        limits_dict['floating_ips_used'] = -1
+                        limits_dict['cores_used'] = -1
+
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
@@ -756,7 +776,6 @@ def limit_poller():
         logging.exception("Limit poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 def network_poller():
@@ -787,7 +806,7 @@ def network_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -961,7 +980,7 @@ def security_group_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1133,7 +1152,7 @@ def vm_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname',
-                                                          debug_hash=(config.log_level < 20))
+                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1447,16 +1466,16 @@ def service_registrar():
 if __name__ == '__main__':
     process_ids = {
         #'flavor': flavor_poller,
-        'image': image_poller,
+        ##'image': image_poller,
         'keypair': keypair_poller,
         'limit': limit_poller,
-        'network': network_poller,
+        ##'network': network_poller,
         #'vm': vm_poller,
         #'registrar': service_registrar,
-        'security_group_poller': security_group_poller
+        ##'security_group_poller': security_group_poller
     }
-
-    procMon = ProcessMonitor(file_name=os.path.basename(sys.argv[0]), pool_size=9,
+    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    procMon = ProcessMonitor(config_params=db_categories, pool_size=9,
                              orange_count_row='csv2_ec2_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
