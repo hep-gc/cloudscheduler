@@ -9,31 +9,35 @@
 
 
 	<body>
+		{% if global_view == "1" %}
+			<h2>Resources unavailable to all cloudscheduler groups:</h2>
+		{% else %}
+			<h2>Resources unavailable to group=<i>{{foreign_list.0.group_name}}</i>, cloud=<i>{{foreign_list.0.cloud_name}}</i>:</h2>
+		{% endif %}
 
-		<h2>Resources unavailable to group=<i>{{foreign_list.0.group_name}}</i>, cloud=<i>{{foreign_list.0.cloud_name}}</i>:</h2> 
+		<div class=vm-table>
+			<table>
+				<tr class="title-row">
 
-		<table>
-			<tr class="title-row">
+					<th>VMs</th>
+					<th>Cores</th>
+					<th>RAM</th>
+					<th>Flavor name</th>
+				</tr>
 
-				<th>VMs</th>
-				<th>Cores</th>
-				<th>RAM</th>
-				<th>Flavor name</th>
-			</tr>
-
-			{% for vm in foreign_list %}
+				{% for vm in foreign_list %}
 
 
-			<tr>
+				<tr>
 
-				<td>{{vm.count}}</td>
-				<td>{{vm.cores}}</td>
-				<td>{{vm.ram}}</td>
-				<td>{{vm.name}}</td>
-			</tr>
-			{% endfor %}
-		</table>
-
+					<td>{{vm.count}}</td>
+					<td>{{vm.cores}}</td>
+					<td>{{vm.ram}}</td>
+					<td>{{vm.name}}</td>
+				</tr>
+				{% endfor %}
+			</table>
+		</div>
 
 	</body>
 </html>

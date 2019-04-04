@@ -83,10 +83,18 @@ def foreign(request):
         config.db_close()
         return render(request, 'csv2/foreign.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('VV00'), msg)})
 
-    # Retrieve VM information.
-    s = select([view_foreign_flavors]).where(view_foreign_flavors.c.group_name == active_user.active_group)
+    global_view = active_user.kwargs['global_view']
+
+    if global_view=='1':
+        s = select([view_foreign_flavors])
+        foreign_list = qt(config.db_connection.execute(s))
+
+    else:
+        # Retrieve VM information.
+        s = select([view_foreign_flavors]).where(view_foreign_flavors.c.group_name == active_user.active_group)
+        foreign_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name'], active_user.kwargs))
 #   vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
-    foreign_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name'], active_user.kwargs, aliases=ALIASES))
+
 
     config.db_close()
 
@@ -100,6 +108,7 @@ def foreign(request):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'foreign_list': foreign_list,
+            'global_view' : global_view,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
