@@ -1074,7 +1074,7 @@ def security_group_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"],
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
                                                                 sec_grp_dict, new_poll_time,
                                                                 debug_hash=(config.log_level < 20)):
                                 continue
@@ -1472,7 +1472,7 @@ if __name__ == '__main__':
         ##'network': network_poller,
         #'vm': vm_poller,
         #'registrar': service_registrar,
-        ##'security_group_poller': security_group_poller
+        'security_group_poller': security_group_poller
     }
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
     procMon = ProcessMonitor(config_params=db_categories, pool_size=9,
