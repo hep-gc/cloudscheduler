@@ -506,19 +506,25 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
-ec2_instance_type_filters = Table('ec2_instance_type_filters', metadata,
-  Column('group_name', String(32), primary_key=True),
-  Column('families', String(128)),
-  Column('processor_types', String(128)),
-  Column('cores', String(32)),
-  Column('min_memory_gigabytes_per_core', Integer),
-  Column('max_memory_gigabytes_per_core', Integer)
-  )
-
 ec2_regions = Table('ec2_regions', metadata,
   Column('region', String(64), primary_key=True),
   Column('location', String(64)),
   Column('endpoint', String(128))
+  )
+
+kill_retire_priority_list = Table('kill_retire_priority_list', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
+  Column('vmid', String(128)),
+  Column('flavor_id', String(128)),
+  Column('machine', String(256)),
+  Column('killed', Integer),
+  Column('retired', Integer),
+  Column('priority', Integer),
+  Column('flavor_cores', Integer),
+  Column('flavor_ram', Integer),
+  Column('cores', Integer),
+  Column('ram', Integer)
   )
 
 silk_profile = Table('silk_profile', metadata,
@@ -695,10 +701,8 @@ view_clouds = Table('view_clouds', metadata,
   Column('cascading_vm_security_groups', String(128)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
-  Column('project_domain_id', String(64)),
   Column('project', String(128)),
   Column('user_domain_name', String(20)),
-  Column('user_domain_id', String(64)),
   Column('username', String(20)),
   Column('password', String),
   Column('keyname', String(20)),
@@ -754,10 +758,8 @@ view_clouds_with_metadata_info = Table('view_clouds_with_metadata_info', metadat
   Column('cascading_vm_security_groups', String(128)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
-  Column('project_domain_id', String(64)),
   Column('project', String(128)),
   Column('user_domain_name', String(20)),
-  Column('user_domain_id', String(64)),
   Column('username', String(20)),
   Column('password', String),
   Column('keyname', String(20)),
@@ -817,10 +819,8 @@ view_clouds_with_metadata_names = Table('view_clouds_with_metadata_names', metad
   Column('cascading_vm_security_groups', String(128)),
   Column('authurl', String(128)),
   Column('project_domain_name', String(20)),
-  Column('project_domain_id', String(64)),
   Column('project', String(128)),
   Column('user_domain_name', String(20)),
-  Column('user_domain_id', String(64)),
   Column('username', String(20)),
   Column('password', String),
   Column('keyname', String(20)),
@@ -1054,22 +1054,6 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
   Column('available', String(32))
   )
 
-view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('cores', Integer),
-  Column('cores_ctl', Integer),
-  Column('cores_softmax', Integer),
-  Column('cores_max', Integer),
-  Column('cores_native', Integer),
-  Column('cores_foreign', Integer),
-  Column('ram', Integer),
-  Column('ram_ctl', Integer),
-  Column('ram_max', Integer),
-  Column('ram_native', Integer),
-  Column('ram_foreign', Integer)
-  )
-
 view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -1100,6 +1084,7 @@ view_vms = Table('view_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
+  Column('cloud_type', String(64)),
   Column('vm_ips', String(128)),
   Column('vm_floating_ips', String(128)),
   Column('auth_url', String(128)),
