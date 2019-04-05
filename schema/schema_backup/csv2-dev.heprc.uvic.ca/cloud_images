@@ -26,6 +26,7 @@ CREATE TABLE `cloud_images` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
   `id` varchar(128) NOT NULL,
+  `cloud_type` varchar(64) DEFAULT NULL,
   `container_format` varchar(128) NOT NULL,
   `disk_format` varchar(128) NOT NULL,
   `name` varchar(256) NOT NULL,
@@ -47,4 +48,4 @@ CREATE TABLE `cloud_images` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-14 10:54:51
+-- Dump completed on 2019-04-05 12:47:28

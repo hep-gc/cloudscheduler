@@ -506,6 +506,15 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
+ec2_instance_type_filters = Table('ec2_instance_type_filters', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('families', String(128)),
+  Column('processor_types', String(128)),
+  Column('cores', String(32)),
+  Column('min_memory_gigabytes_per_core', Integer),
+  Column('max_memory_gigabytes_per_core', Integer)
+  )
+
 ec2_regions = Table('ec2_regions', metadata,
   Column('region', String(64), primary_key=True),
   Column('location', String(64)),
