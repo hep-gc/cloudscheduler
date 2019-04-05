@@ -5,8 +5,11 @@
         	sessionStorage.setItem("response_code", "{{response_code}}");
         	sessionStorage.setItem("message", "{{message}}");
 		}
+        function reload_parent(){
+            parent.location=window.top.location.pathname;
+        }
         </script>
     </head>
-    <body onpageshow="store_message(); parent.location.reload();">
+    <body onpageshow="store_message(); reload_parent();">
     </body>
 </html>
