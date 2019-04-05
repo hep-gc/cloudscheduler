@@ -67,7 +67,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'cloud_name': self.name,
                     'auth_url': self.authurl,
                     'project': self.project,
-                    'hostname': vm['PublicDnsName'],
+                    'hostname': vm['PublicDnsName'], # TODO Also check for PrivateDnsName in case Public is missing or empty
                     'vmid': vm['InstanceId'],
                     'status': vm['State']['Name'],
                     'flavor_id': vm['InstanceType'],
