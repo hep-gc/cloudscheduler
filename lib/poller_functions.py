@@ -44,7 +44,7 @@ def build_inventory_for_condor(inventory, db_session, group_resources_class):
     for cloud in cloud_list:
         set_inventory_group_and_cloud(inventory, cloud.group_name, "-",)
 
-def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None):
+def delete_obsolete_database_items(type, inventory, db_session, base_class, base_class_key, poll_time=None, failure_dict=None, cloud_type=None):
     inventory_deletions = []
     logging.debug("Delete Cycle - checking database for consistency")
     for group_name in inventory:
@@ -57,20 +57,42 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                     logging.info("Skipping deletes on %s due to condor polling failures" %  group_name)
                     continue
             if type == 'VM':
-                obsolete_items = db_session.query(base_class).filter(
-                    base_class.group_name == group_name,
-                    base_class.cloud_name == cloud_name,
-                    base_class.last_updated < poll_time
-                    )
+                if cloud_type is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.last_updated < poll_time,
+                        base_class.cloud_type == cloud_type
+                        )
+
+                else:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.last_updated < poll_time
+                        )
             elif cloud_name == '-':
-                obsolete_items = db_session.query(base_class).filter(
-                    base_class.group_name == group_name
-                    )
+                if cloud_type is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_type == cloud_type
+                        )
+                else:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name
+                        )
             else:
-                obsolete_items = db_session.query(base_class).filter(
-                    base_class.group_name == group_name,
-                    base_class.cloud_name == cloud_name
-                    )
+                if cloud_type is not None:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name,
+                        base_class.cloud_type == cloud_type
+                        )
+                else:
+                    obsolete_items = db_session.query(base_class).filter(
+                        base_class.group_name == group_name,
+                        base_class.cloud_name == cloud_name
+                        )
 
             uncommitted_updates = 0
             for item in obsolete_items:
@@ -125,11 +147,14 @@ def foreign(vm):
     else:
         return True
 
-def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False):
+def get_inventory_item_hash_from_database(db_engine, base_class, base_class_key, debug_hash=False, cloud_type=None):
     inventory = {}
     try:
         db_session = Session(db_engine)
-        rows = db_session.query(base_class)
+        if cloud_type is not None:
+            rows =db_session.query(base_class).filter(base_class.cloud_type == cloud_type)
+        else:
+            rows = db_session.query(base_class)
         for row in rows:
             try:
                 group_name = row.group_name

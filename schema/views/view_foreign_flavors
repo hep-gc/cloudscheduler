@@ -1,0 +1,101 @@
+create or replace view view_foreign_flavors as 
+select 
+    vff.*,
+    cf.name,
+    ifnull(cf.cores,0) as cores,
+    ifnull(cf.ram,0) as ram
+from (
+    select
+        *
+    from (
+        select
+            group_name,
+            cloud_name,
+            authurl,
+            region,
+            project,
+            flavor_id,
+            sum(count) as count
+        from (
+            select
+                *
+            from (
+                select
+                    cc.group_name,
+                    cc.cloud_name,
+                    cc.authurl,
+                    cc.region,
+                    cc.project,
+                    cff.flavor_id,
+                    sum(
+                        case when
+                            cc.authurl=cff.authurl and
+                            cc.project=cff.project and 
+                            (cc.region!=cff.region or
+                            cc.group_name!=cff.group_name or
+                            cc.cloud_name!=cff.cloud_name) then count else 0
+                        end
+                    ) as count
+                from csv2_clouds as cc
+                join (
+                    select
+                        cv.group_name,
+                        cv.cloud_name,
+                        cc.authurl,
+                        cc.region,
+                        cc.project,
+                        cv.flavor_id,
+                        cv.count
+                    from (
+                        select
+                            group_name,
+                            cloud_name,
+                            flavor_id,
+                            sum(1) as count
+                        from csv2_vms
+                        group by
+                            group_name,
+                            cloud_name
+                    ) as cv
+                    left outer join csv2_clouds as cc on
+                        cv.group_name=cc.group_name and
+                        cv.cloud_name=cc.cloud_name
+                ) as cff
+                group by
+                    group_name,
+                    cloud_name,
+                    authurl,
+                    region,
+                    project,
+                    flavor_id
+            ) as csv2_groups_of_foreign_flavors
+            union all select
+                cc.group_name,
+                cc.cloud_name,
+                cvf.authurl,
+                cvf.region,
+                cvf.project,
+                cvf.flavor_id,
+                cvf.count
+            from csv2_vms_foreign as cvf
+            left outer join csv2_clouds as cc on
+                cvf.authurl=cc.authurl and
+                cvf.region=cc.region and
+                cvf.project=cc.project
+        ) as other_foreign_flavors
+        group by
+            group_name,
+            cloud_name,
+            authurl,
+            region,
+            project,
+            flavor_id
+    ) as all_foreign_flavors
+    where
+        count>0
+) as vff
+left outer join cloud_flavors as cf on
+    vff.group_name=cf.group_name and
+    vff.cloud_name=cf.cloud_name and
+    vff.flavor_id=cf.id
+;

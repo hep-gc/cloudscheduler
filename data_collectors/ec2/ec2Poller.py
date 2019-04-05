@@ -12,6 +12,7 @@ from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.signal_manager import register_signal_receiver
 
+
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     foreign, \
@@ -19,7 +20,15 @@ from cloudscheduler.lib.poller_functions import \
     test_and_set_inventory_item_hash, \
     start_cycle, \
     wait_cycle
-
+"""
+from cloudscheduler.lib.poller_functions_filter import \
+    delete_obsolete_database_items, \
+    foreign, \
+    get_inventory_item_hash_from_database, \
+    test_and_set_inventory_item_hash, \
+    start_cycle, \
+    wait_cycle
+"""
 def flavor_poller():
     #setup
     multiprocessing.current_process().name = "Flavor Poller"
@@ -29,110 +38,203 @@ def flavor_poller():
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
+    FILTERS = config.db_map.classes.ec2_instance_type_filters
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
+   
    # register_signal_receiver(config, "insert_csv2_clouds")
    # register_signal_receiver(config, "update_csv2_clouds")
 
 
     while True:
+        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20), cloud_type='amazon')
         try:
             #poll flavors
             logging.debug("Beginning flavor poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
+            
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
-            region_dict = {}
-            #TODO
-            # BUILD REGION LIST from cloud_list
-            # get json dump from amazon pricing url
-            # parse json for entries from that region
-
+            region_failure_dict = {}
+            
+            # Build unique region dict
+            unique_region_dict = {}
             for cloud in cloud_list:
-                if cloud.region not in region_dict:
-                    region_dict[cloud.region] = {
-                        'group-cloud': [(cloud.group_name, cloud.cloud_name)]
+                if cloud.region not in unique_region_dict:
+                    unique_region_dict[cloud.region] = {
+                        "group-cloud": [(cloud.group_name, cloud.cloud_name)]
                     }
                 else:
-                    region_dict[cloud.region]['group-cloud'].append((cloud.group_name, cloud.cloud_name))
+                    unique_region_dict[cloud.region]["group-cloud"].append((cloud.group_name, cloud.cloud_name))
 
-            #print(region_dict.items())
-
-            for region in region_dict:
-                # Skip China, info not available in aws offers file
+            for region in unique_region_dict:
+                # Skip China, info not available in AWS offers file
                 if region.split("-", 1)[0] == "cn":
+                    logging.debug("Skipping flavors in China - {}".format(region))
                     continue
-                logging.debug("Processing flavours from region - %s" % region)
+                logging.debug("Processing flavors from region - {}".format(region))
                 try:
+                    flav_list = False
                     url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/{}/index.json".format(region)
                     resp = requests.get(url)
+                    logging.debug("Got response")
                     resp.raise_for_status()
                     flav_list = resp.json()
                 except Exception as exc:
-                    logging.error("Failed to retrieve flavours JSON for {} from amazon pricing url".format(region))
-                    logging.debug(exc)
+                    logging.error("Failed to retrieve flavors JSON for region - {} from Amazon pricing url, skipping this region".format(region))
+                    logging.exception(exc)
                     if exc is None or exc == "":
                         logging.debug(repr(exc))
+                    for region in unique_region_dict:
+                        if region not in region_failure_dict:
+                            region_failure_dict[region] = 1
+                        else:
+                            region_failure_dict[region] += 1
+                        if region_failure_dict[region] > 3:
+                            logging.error("Failure threshold limit reached for region - {}, manual action required, reporting error for all clouds in region".format(region))
+                            for (group,cloud) in unique_region_dict[region]["group-cloud"]:
+                                config.incr_cloud_error(group, cloud)
                     continue
 
-                if flav_list:
-                    unique = set()
-                    for product in flav_list["products"]:
-                        if flav_list["products"][product]["productFamily"] != "Compute Instance" or flav_list["products"][product]["attributes"]["instanceType"] in unique:
-                            continue
-                        ram = flav_list["products"][product]["attributes"]["memory"].split(" ", 1)[0]
-                        ram = ram.split(",")
+                if not flav_list:
+                    logging.info("No flavors defined for region - {}, skipping this region...".format(region))
+                    continue
+                for region in unique_region_dict:
+                    region_failure_dict.pop(region, None)
+                    for (group,cloud) in unique_region_dict[region]["group-cloud"]:
+                        config.reset_cloud_error(group, cloud)
+                
+                # Process flavors for clouds in this region
+                unique = set()
+                uncommitted_updates = 0
+                for product in flav_list["products"]:
+                    if flav_list["products"][product]["productFamily"] != "Compute Instance" or flav_list["products"][product]["attributes"]["instanceType"] in unique:
+                        continue
+                    flavor_name = flav_list["products"][product]["attributes"]["instanceType"]
+                    
+                    #logging.debug(region)
+                    for (group,cloud) in unique_region_dict[region]["group-cloud"]:
+                        # Get flavor filters from db
+                        
+                        flav_filter_list = db_session.query(FILTERS).filter(FILTERS.group_name == group)
+                        if flav_filter_list != None:
+                            for filter_entry in flav_filter_list:
+                                flav_filter = filter_entry
+                                break
+                        
+                        # JSON format: "memory" : "1,952 GiB"
+                        # Why would they do this...
+                        ram = flav_list["products"][product]["attributes"]["memory"].split(" ", 1)[0].split(",")
                         if len(ram) == 1:
-                            ram = int(float(ram[0])*1000)
+                            ram = ram[0]
                         else:
-                            ram = int(float("".join(ram))*1000)
-                          
+                            ram = "".join(ram)
+                        ram = float(ram)
+                        
+                        # Filter flavors
+                        if flav_filter_list:
+                            if not (flav_filter.families == None or flav_list["products"][product]["attributes"]["instanceFamily"].lower() in flav_filter.families.lower().split(',')) or \
+                                    not (flav_filter.processor_types == None or any([True if x in flav_filter.processor_types.lower().split(',') else False for x in flav_list["products"][product]["attributes"]["physicalProcessor"].lower().split(' ')])) or \
+                                    not (flav_filter.cores == None or flav_list["products"][product]["attributes"]["vcpu"] in flav_filter.cores.split(',')) or \
+                                    not (flav_filter.min_memory_gigabytes_per_core == None or (ram/float(flav_list["products"][product]["attributes"]["vcpu"])) >= float(flav_filter.min_memory_gigabytes_per_core)) or \
+                                    not (flav_filter.max_memory_gigabytes_per_core == None or (ram/float(flav_list["products"][product]["attributes"]["vcpu"])) <= float(flav_filter.max_memory_gigabytes_per_core)):
+                                continue
+                   
+                        # Ram in db is MB
+                        ram = int(ram*1000)
+                    
+                        # JSON format: "storage" : "2 x 1,920 SSD"   Whhhh
+                        # or           "storage" : "EBS only"           hhyyyy????
                         disk = flav_list["products"][product]["attributes"]["storage"]
                         if disk == "EBS only":
-                            ephemeral_disk = 0
                             disk = 0
                         else:
-                            disk = disk.split(" ")
-                            d = disk[2].split(",")
-                            if len(d) == 1:
-                                disk = int(disk[0])*int(disk[2])
-                            else:
-                                disk = int(disk[0])*int("".join(d))
-                            ephemeral_disk = 0
-                        
-                        swap = 0
-                        if flav_list["products"][product]["attributes"]["instanceType"] == "c1.medium" or flav_list["products"][product]["attributes"]["instanceType"] == "m1.small":
-                            # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-store-swap-volumes.html
-                            swap = 900
-
-                        for (group,cloud) in region_dict[region]['group-cloud']:
-                            flav_dict = {
-                                'group_name': group,
-                                'cloud_name': cloud,
-                                'name': flav_list["products"][product]["attributes"]["instanceType"],
-                                'ram': ram,
-                                'vcpus': flav_list["products"][product]["attributes"]["vcpu"],
-                                'id': flav_list["products"][product]["attributes"]["usagetype"],
-                                'swap': swap,
-                                'disk': disk,
-                                'ephemeral_disk': ephemeral_disk,
-                                #'is_public': ,
-                                'last_updated': new_poll_time
-                            }
-                            
-                            flav_dict, unmapped = map_attributes(src="os_flavors", dest="csv2", attr_dict=flav_dict)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)                
-
-                            #print(flav_dict)
-                        unique.add(flav_list["products"][product]["attributes"]["instanceType"])
+                            try:
+                                disk = disk.split(" ")
+                                d = disk[2].split(",")
+                                if len(d) == 1:
+                                    disk = int(disk[0])*int(disk[2])
+                                else:
+                                    disk = int(disk[0])*int("".join(d))
+                            except Exception as exc:
+                                logging.error("Could not parse disk info for region: {0}, flavor: {1}. Format: \"storage\" : \"{2}\" was not as expected. Skipping flavor...".format(
+                                    region, flavor_name, disk
+                                ))
+                                logging.error(exc)
+                                continue
                     
+                        swap = 0
+                        vcpus = flav_list["products"][product]["attributes"]["vcpu"]
+                        usagetype = flav_list["products"][product]["attributes"]["usagetype"]
+                        
+                        flav_dict = {
+                            'group_name': group,
+                            'cloud_name': cloud,
+                            'cloud_type': 'amazon',
+                            'name': flavor_name,
+                            'ram': ram,
+                            'cores': vcpus,
+                            'id': flavor_name,
+                            'swap': swap,
+                            'disk': disk,
+                            'last_updated': new_poll_time
+                        }
+                        #print(flav_dict.items())
+                        #print(flav_list["products"][product]["attributes"]["physicalProcessor"])
+                        #print(flav_list["products"][product]["attributes"]["instanceFamily"])
+                        flav_dict, unmapped = map_attributes(src="ec2_flavors", dest="csv2", attr_dict=flav_dict)
+                        if unmapped:
+                            logging.error("Unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)                
+
+                        if test_and_set_inventory_item_hash(inventory, group, cloud, flavor_name, flav_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
+                          
+                        new_flav = FLAVOR(**flav_dict)
+                        try:
+                            db_session.merge(new_flav)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge flavor entry for {0}::{1}::{2}, aborting cycle...".format(group, cloud, flavor_name))
+                            logging.error(exc)
+                            abort_cycle = True
+                            break
+
+                    unique.add(flavor_name)
+                if abort_cycle:
+                    break
+
+                if uncommitted_updates > 0:
+                    try:
+                        db_session.commit()
+                        logging.info("Flavor updates comitted: {}".format(uncommitted_updates))
+                    except Exception as exc:
+                        logging.exception("Failed to commit flavor updates for region {}, aborting cycle...".format(region))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+
+            if abort_cycle:
+                db_session.close()
+                time.sleep(config.sleep_interval_flavor)
+                continue
+            
+
+            # Scan the EC2 flavors in the database, removing each one that was not updated in the inventory.
+            for region in region_failure_dict:
+                for (group, cloud) in unique_region_dict[region]["group-cloud"]:
+                    failure_dict[group+cloud] = region_failure_dict[region]
+
+            delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type='amazon')
+
+            config.db_close()
+            del db_session
+
 
         except Exception as exc:
             logging.error("Unhandled exception during regular flavor polling:")

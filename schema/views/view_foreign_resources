@@ -1,0 +1,101 @@
+/*
+**  Count the resouces used by foreign VMs.
+*/
+create or replace view view_foreign_resources as 
+select
+    group_name,
+    cloud_name,
+    sum(count) as count,
+    sum(cores) as cores,
+    sum(ram) as ram
+from (
+    select
+        *
+    from (
+        select
+            cc.group_name,
+            cc.cloud_name,
+            sum(
+                case when
+                    substring_index(cc.authurl, '/', 3)=substring_index(cff.authurl, '/', 3) and
+                    cc.project=cff.project and 
+                    (cc.region!=cff.region or
+                    cc.group_name!=cff.group_name or
+                    cc.cloud_name!=cff.cloud_name) then count else 0
+                end
+            ) as count,
+            sum(
+                case when
+                    substring_index(cc.authurl, '/', 3)=substring_index(cff.authurl, '/', 3) and
+                    cc.project=cff.project and 
+                    (cc.region!=cff.region or
+                    cc.group_name!=cff.group_name or
+                    cc.cloud_name!=cff.cloud_name) then cores else 0
+                end
+            ) as cores,
+            sum(
+                case when
+                    substring_index(cc.authurl, '/', 3)=substring_index(cff.authurl, '/', 3) and
+                    cc.project=cff.project and 
+                    (cc.region!=cff.region or
+                    cc.group_name!=cff.group_name or
+                    cc.cloud_name!=cff.cloud_name) then ram else 0
+                end
+            ) as ram
+        from csv2_clouds as cc
+        join (
+            select
+                cv.group_name,
+                cv.cloud_name,
+                cc.authurl,
+                cc.region,
+                cc.project,
+                cv.flavor_id,
+                cv.count,
+                cv.count*cf.cores as cores,
+                cv.count*cf.ram as ram
+            from (
+                select
+                    group_name,
+                    cloud_name,
+                    flavor_id,
+                    sum(1) as count
+                from csv2_vms
+                group by
+                    group_name,
+                    cloud_name
+            ) as cv
+            left outer join csv2_clouds as cc on
+                cv.group_name=cc.group_name and
+                cv.cloud_name=cc.cloud_name
+            left outer join cloud_flavors as cf on
+                cv.group_name=cf.group_name and
+                cv.cloud_name=cf.cloud_name and
+                cv.flavor_id=cf.id
+        ) as cff
+        group by
+            cc.group_name,
+            cc.cloud_name
+    ) as cff
+    where
+        count>0
+    union all select
+        cc.group_name,
+        cc.cloud_name,
+        cvf.count,
+        cvf.count*cf.cores as cores,
+        cvf.count*cf.ram as ram
+    from csv2_vms_foreign as cvf
+    left outer join csv2_clouds as cc on
+        substring_index(cvf.authurl, '/', 3)=substring_index(cc.authurl, '/', 3) and
+        cvf.region=cc.region and
+        cvf.project=cc.project
+    left outer join cloud_flavors as cf on
+        cc.group_name=cf.group_name and
+        cc.cloud_name=cf.cloud_name and
+        cvf.flavor_id=cf.id
+) as ff
+group by
+    group_name,
+    cloud_name
+;

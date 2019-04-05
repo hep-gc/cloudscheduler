@@ -33,7 +33,7 @@ from sqlalchemy.ext.automap import automap_base
 def trim_keys(dict_to_trim, key_list):
     keys_to_trim = ["Owner"]
     for key in dict_to_trim:
-        if key == "group_name":
+        if key == "group_name" or key == "target_alias":
             continue
         if key not in key_list or isinstance(dict_to_trim[key], classad._classad.Value):
             keys_to_trim.append(key)
@@ -216,8 +216,10 @@ def job_poller():
                             foreign_jobs = foreign_jobs+1
                             if "nogrp" not in job_errors:
                                 job_errors["nogrp"] = 1
+                                job_errors["nogrpinfo"] = {"Submitter: %s" % job_dict['Owner']}
                             else:
                                 job_errors["nogrp"] = job_errors["nogrp"] + 1
+                                job_errors["nogrpinfo"].add("Submitter: %s" % job_dict['Owner'])
                             continue
                         # Look for a target_alias in requirements string
                         try:
@@ -231,8 +233,10 @@ def job_poller():
                         foreign_jobs = foreign_jobs+1
                         if "noreq" not in job_errors:
                             job_errors["noreq"] = 1
+                            job_errors["noreqinfo"] = {"Submitter: %s" % job_dict['Owner']}
                         else:
                             job_errors["noreq"] = job_errors["noreq"] + 1
+                            job_errors["noreqinfo"].add("Submitter: %s" % job_dict['Owner'])
                         continue
 
                     #check group_name is valid for this host
@@ -246,8 +250,10 @@ def job_poller():
                             held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidgrp" not in job_errors:
                             job_errors["invalidgrp"] = 1
+                            job_errors["invalidgrpinfo"] = {"Invalid group: %s" % job_dict['group_name']}
                         else:
                             job_errors["invalidgrp"] = job_errors["invalidgrp"] + 1
+                            job_errors["invalidgrpinfo"].add("Invalid group: %s" % job_dict['group_name'])
 
                         continue
 
@@ -261,8 +267,10 @@ def job_poller():
                             held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
+                            job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s: %s" % (job_dict['Owner'], job_dict['group_name'])}
                         else:
                             job_errors["invalidusr"] = job_errors["invalidgrp"] + 1
+                            job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s: %s" % (job_dict['Owner'], job_dict['group_name']))
                         continue
 
                     # Some jobs have an expression for the request disk causing us to store a string
@@ -320,15 +328,23 @@ def job_poller():
 
                         
                 if foreign_jobs > 0:
-                    logging.info("Ignored %s foreign jobs" % foreign_jobs)
+                    logging.info("Ignored total of: %s jobs on %s. Summary:" % (foreign_jobs, condor_host))
                     if "nogrp" in job_errors:
-                        logging.info("%s ignored for missing group name" % job_errors["nogrp"])
+                        logging.info("    %s jobs ignored for missing group name" % job_errors["nogrp"])
+                        for item in job_errors["nogrpinfo"]:
+                            logging.info("        %s" % item)
                     if "noreq" in job_errors:
-                        logging.info("%s ignored for missing requirements string" % job_errors["noreq"])
+                        logging.info("    %s jobs ignored for missing requirements string" % job_errors["noreq"])
+                        for item in job_errors["noreqinfo"]:
+                            logging.info("        %s" % item)
                     if "invalidgrp" in job_errors:
-                        logging.info("%s ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
+                        logging.info("    %s jobs ignored & held for submitting to invalid group for host" % job_errors["invalidgrp"])
+                        for item in job_errors["invalidgrpinfo"]:
+                            logging.info("        %s" % item)
                     if "invalidusr" in job_errors:
-                        logging.info("%s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
+                        logging.info("    %s ignored & held for submitting to a group without permission" % job_errors["invalidusr"])
+                        for item in job_errors["invalidusrinfo"]:
+                            logging.info("        %s" % item)
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:

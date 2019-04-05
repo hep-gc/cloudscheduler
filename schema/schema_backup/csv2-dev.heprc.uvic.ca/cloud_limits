@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `cloud_limits`;
 CREATE TABLE `cloud_limits` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
+  `cloud_type` varchar(64) DEFAULT NULL,
   `server_meta_max` int(11) NOT NULL,
   `instances_max` int(11) NOT NULL,
   `personality_max` int(11) NOT NULL,
@@ -58,4 +59,4 @@ CREATE TABLE `cloud_limits` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-14 10:54:51
+-- Dump completed on 2019-04-05 12:47:28

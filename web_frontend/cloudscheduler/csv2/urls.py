@@ -15,7 +15,6 @@ urlpatterns = [
     path('cloud/add/',                             cloud_views.add),
     path('cloud/delete/',                          cloud_views.delete),
     path('cloud/list/',                            cloud_views.list),
-    path('cloud/list/',                            cloud_views.list),
     path('cloud/status/',                          cloud_views.status),
     path('cloud/status/plot',                      cloud_views.request_ts_data),
     path('cloud/update/',                          cloud_views.update),
@@ -30,7 +29,6 @@ urlpatterns = [
     path('group/add/',                             group_views.add),
     path('group/defaults/',                        group_views.defaults),
     path('group/delete/',                          group_views.delete),
-    path('group/list/',                            group_views.list),
     path('group/list/',                            group_views.list),
     path('group/update/',                          group_views.update),
     path('group/metadata-add/',                    group_views.metadata_add),
@@ -55,6 +53,7 @@ urlpatterns = [
     path('user/settings/',                         user_views.settings),
     path('user/update/',                           user_views.update),
 
+    path('vm/foreign/',                            vm_views.foreign),
     path('vm/list/',                               vm_views.list),
     path('vm/update/',                             vm_views.update),
 
