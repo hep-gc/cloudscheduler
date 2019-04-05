@@ -1,3 +1,78 @@
+from subprocess import Popen, PIPE
+import os
+
+def check_documentation(gvar):
+    """
+    Check for complete documentation.
+    """
+
+    if gvar['retrieve_options']:
+        return []
+
+    def scan_1_doc_dir(gvar, man_path):
+        for fn in os.listdir(man_path):
+            if os.path.isdir('%s/%s' % (man_path, fn)):
+                scan_1_doc_dir(gvar, '%s/%s' % (man_path, fn))
+            elif os.path.isfile('%s/%s' % (man_path, fn)):
+                gvar['docs'][fn] = {'dir': '../%s' % man_path[len(gvar['command_dir'])-3:], 'count': 0}
+
+    def scan_2_doc_dir(gvar, man_path):
+        for fn in os.listdir(man_path):
+            if os.path.isdir('%s/%s' % (man_path, fn)):
+                scan_2_doc_dir(gvar, '%s/%s' % (man_path, fn))
+            elif os.path.isfile('%s/%s' % (man_path, fn)):
+                fd = open('%s/%s' % (man_path, fn))
+                doc_data = fd.read()
+                fd.close()
+
+                for fn2 in gvar['docs']:
+                    words = doc_data.split('.so %s/%s' % (gvar['docs'][fn2]['dir'], fn2))
+                    gvar['docs'][fn2]['count'] += len(words)-1
+
+    gvar['docs'] = {}
+    scan_1_doc_dir(gvar, os.path.realpath('%s/../man' % gvar['command_dir']))
+    scan_2_doc_dir(gvar, os.path.realpath('%s/../man' % gvar['command_dir']))
+
+    cks = {}
+    gvar['retrieve_options'] = True
+    for object in gvar['actions']:
+        for action in gvar['actions'][object][1]:
+            for ck in gvar['actions'][object][1][action](gvar):
+                if ck not in cks:
+                   cks[ck] = []
+
+                cks[ck].append('%s/%s' % (object, action))
+
+    gvar['retrieve_options'] = False
+
+    p = Popen([
+        'awk',
+        '-r',
+        '/^.so/',
+        '%s/../man/*' % gvar['command_dir']
+        ], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p.communicate()
+
+    ckx = {}
+    for ix in range(len(gvar['command_keys'])):
+        ck = gvar['command_keys'][ix][0]
+        ckx[ck] = {'ix': ix, 'doc': False, 'ref1': [], 'ref2': 0}
+        fn = '%s.so' % gvar['command_keys'][ix][1][1:].replace('-', '_').lower()
+        if fn in gvar['docs']:
+            ckx[ck]['doc'] = True
+            ckx[ck]['ref2'] = gvar['docs'][fn]['count']
+
+    fmt_string = '%-48s %-10s %-10s %8s (%s) %s'
+    print(fmt_string % ('Command Parameter', 'Short Name', 'Documented', 'Includes', 'Count', 'Calls'))
+    for ck in ckx:
+        ix = ckx[ck]['ix']
+        if ck in cks:
+            ckx[ck]['ref1'] = cks[ck]
+
+        if ckx[ck]['doc'] == False or len(ckx[ck]['ref1']) < 1 or ckx[ck]['ref2'] < 1:
+            print(fmt_string % (gvar['command_keys'][ix][1], gvar['command_keys'][ix][0], ckx[ck]['doc'], ckx[ck]['ref2'], len(ckx[ck]['ref1']), ckx[ck]['ref1']))
+
+
 def generate_bash_completion_script(gvar):
     """
     List settings.

@@ -65,7 +65,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
     required = []
-    optional = ['-ce', '-cfe', '-cP', 'cPI', '-csp', '-cU', 'cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ce', '-cfe', '-cP', '-cPI', '-csp', '-cU', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -338,7 +338,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', 'cPI', '-cp', '-cr', '-csp', '-ct', '-cU', 'cUI', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vk', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', '-cPI', '-cp', '-cr', '-csp', '-ct', '-cU', '-cUI', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

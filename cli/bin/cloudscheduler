@@ -89,6 +89,7 @@ def main(args):
             'helpers': [
                 False, # super_user?
                 {
+                    'check_documentation':                csv2_helpers.check_documentation,
                     'generate_bash_completion_script':    csv2_helpers.generate_bash_completion_script,
                     }
                 ],
