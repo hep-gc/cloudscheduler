@@ -666,28 +666,6 @@ def metadata_add(request):
         if rc == 0:
             config.db_close(commit=True)
 
-            #**********************************************************************************
-            '''
-            #This block of code checks to make sure the metadata was successfully added
-            config.db_open()
-
-            found = False
-            while(found==False):
-
-                s = select([view_clouds_with_metadata_info]).where((view_clouds_with_metadata_info.c.group_name == active_user.active_group) & (view_clouds_with_metadata_info.c.cloud_name == fields['cloud_name']) & (view_clouds_with_metadata_info.c.metadata_name == fields['metadata_name']))
-                meta_list = qt(config.db_connection.execute(s))
-                for meta in meta_list:
-                    if fields['metadata_name'] == meta['metadata_name']:
-                        found = True
-                        break
-
-            config.db_close()
-            '''
-
-            #**********************************************************************************
-
-            #return render(request, 'csv2/clouds.html', {'response_code': 0, 'message': 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-            #return list(request, active_user=active_user, response_code=0, message='cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name']))
             message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             context = {
