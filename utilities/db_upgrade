@@ -40,7 +40,6 @@ def main(args):
     gvar['output_actions'] = {}
     gvar['comment_length'] = 64
     gvar['csv2_configuration_values'] = {}
-    gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_dict=True)
     gvar['my_fqdn'] = socket.getfqdn()
     gvar['model_fqdn'] = args[1]
     gvar['backup_dir'] = '%s/schema/schema_backup' % ('/'.join(gvar['path_info'][:gvar['ix']+1]))
@@ -121,6 +120,8 @@ def main(args):
             exit(1)
     else:
         print('\n1. TEST MODE, skipping database backup.')
+
+    gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_dict=True)
 
     ####
     print('\n2. Rdefining global configuration tables.')
