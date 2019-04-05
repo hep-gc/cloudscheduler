@@ -68,6 +68,8 @@ def build_mapping_dictionaries():
                 row_dict[row.ec2_flavors] = row_id
             elif language == "ec2_limits":
                 row_dict[row.ec2_limits] = row_id
+            elif language == "ec2_networks":
+                row_dict[row.ec2_limits] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
@@ -102,6 +104,8 @@ def build_mapping_dictionaries():
                 attr_list.append(row.ec2_flavors)
             elif language == "ec2_limits":
                 attr_list.append(row.ec2_limits)
+            elif language == "ec2_limits":
+                attr_list.append(row.ec2_networks)
             else:
                 print("Found column not implemented in code, breaking")
                 break

@@ -886,22 +886,23 @@ def network_poller():
                             network_dict = {
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
+                                'cloud_type': 'amazon',
                                 'name': network['Description'],
-                                'subnets': ''.join(network['subnets']),
+                                'subnets': network['SubnetId'],
                                 'tenant_id': network['OwnerId'],
-                                'router:external': network['PrivateIpAddress'],
-                                'shared': network['Status'],
+                                'external_route': 1,
+                                'shared': 0,#network['Status'],
                                 'id': network['NetworkInterfaceId'],
                                 'last_updated': int(time.time())
                             }
 
-                            network_dict, unmapped = map_attributes(src="os_networks", dest="csv2",
-                                                                    attr_dict=network_dict)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                            #network_dict, unmapped = map_attributes(src="ec2_networks", dest="csv2",
+                            #                                        attr_dict=network_dict)
+                            #if unmapped:
+                            #    logging.error("Unmapped attributes found during mapping, discarding:")
+                            #    logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['name'],
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['Description'],
                                                                 network_dict, new_poll_time,
                                                                 debug_hash=(config.log_level < 20)):
                                 continue
@@ -912,7 +913,7 @@ def network_poller():
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception("Failed to merge network entry for %s::%s::%s, aborting cycle..." % (
-                                group_n, cloud_n, network['name']))
+                                group_n, cloud_n, network['Description']))
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
@@ -1074,7 +1075,7 @@ def security_group_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"],
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
                                                                 sec_grp_dict, new_poll_time,
                                                                 debug_hash=(config.log_level < 20)):
                                 continue
@@ -1469,10 +1470,10 @@ if __name__ == '__main__':
         ##'image': image_poller,
         'keypair': keypair_poller,
         'limit': limit_poller,
-        ##'network': network_poller,
+        'network': network_poller,
         #'vm': vm_poller,
         #'registrar': service_registrar,
-        ##'security_group_poller': security_group_poller
+        'security_group_poller': security_group_poller
     }
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
     procMon = ProcessMonitor(config_params=db_categories, pool_size=9,
