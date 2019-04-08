@@ -20,15 +20,8 @@ from cloudscheduler.lib.poller_functions import \
     test_and_set_inventory_item_hash, \
     start_cycle, \
     wait_cycle
-"""
-from cloudscheduler.lib.poller_functions_filter import \
-    delete_obsolete_database_items, \
-    foreign, \
-    get_inventory_item_hash_from_database, \
-    test_and_set_inventory_item_hash, \
-    start_cycle, \
-    wait_cycle
-"""
+
+
 def flavor_poller():
     #setup
     multiprocessing.current_process().name = "Flavor Poller"
@@ -61,7 +54,8 @@ def flavor_poller():
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
             region_failure_dict = {}
-            
+            grp_flav_filter_dict = {}
+
             # Build unique region dict
             unique_region_dict = {}
             for cloud in cloud_list:
@@ -109,26 +103,33 @@ def flavor_poller():
                     for (group,cloud) in unique_region_dict[region]["group-cloud"]:
                         config.reset_cloud_error(group, cloud)
                 
+                # Get flavor filters from db for each group
+                for (group,cloud) in unique_region_dict[region]["group-cloud"]:
+                    flav_filter_list = db_session.query(FILTERS).filter(FILTERS.group_name == group)
+                    if flav_filter_list != None:
+                        for filter_entry in flav_filter_list:
+                            #flav_filter = filter_entry
+                            grp_flav_filter_dict[group] = filter_entry
+                            break
+
+                
                 # Process flavors for clouds in this region
                 unique = set()
                 uncommitted_updates = 0
                 for product in flav_list["products"]:
-                    if flav_list["products"][product]["productFamily"] != "Compute Instance" or flav_list["products"][product]["attributes"]["instanceType"] in unique:
+                    if flav_list["products"][product]["productFamily"] != "Compute Instance" or flav_list["products"][product]["attributes"]["instanceType"] in unique or \
+                            flav_list["products"][product]["attributes"]["operatingSystem"] == "Windows":
                         continue
                     flavor_name = flav_list["products"][product]["attributes"]["instanceType"]
                     
-                    #logging.debug(region)
                     for (group,cloud) in unique_region_dict[region]["group-cloud"]:
-                        # Get flavor filters from db
-                        
-                        flav_filter_list = db_session.query(FILTERS).filter(FILTERS.group_name == group)
-                        if flav_filter_list != None:
-                            for filter_entry in flav_filter_list:
-                                flav_filter = filter_entry
-                                break
-                        
+                        try:
+                            flav_filter = grp_flav_filter_dict[group]
+                        except KeyError:
+                            flav_filter = None
+                            logging.debug("No flavor filters found for group {}".format(group))
+
                         # JSON format: "memory" : "1,952 GiB"
-                        # Why would they do this...
                         ram = flav_list["products"][product]["attributes"]["memory"].split(" ", 1)[0].split(",")
                         if len(ram) == 1:
                             ram = ram[0]
@@ -136,10 +137,11 @@ def flavor_poller():
                             ram = "".join(ram)
                         ram = float(ram)
                         
-                        # Filter flavors
-                        if flav_filter_list:
+                        # Filter flavors based on the specified attribute values
+                        if flav_filter:
                             if not (flav_filter.families == None or flav_list["products"][product]["attributes"]["instanceFamily"].lower() in flav_filter.families.lower().split(',')) or \
-                                    not (flav_filter.processor_types == None or any([True if x in flav_filter.processor_types.lower().split(',') else False for x in flav_list["products"][product]["attributes"]["physicalProcessor"].lower().split(' ')])) or \
+                                    not (flav_filter.processor_types == None or \
+                                        any([True if x in flav_filter.processor_types.lower().split(',') else False for x in flav_list["products"][product]["attributes"]["physicalProcessor"].lower().split(' ')])) or \
                                     not (flav_filter.cores == None or flav_list["products"][product]["attributes"]["vcpu"] in flav_filter.cores.split(',')) or \
                                     not (flav_filter.min_memory_gigabytes_per_core == None or (ram/float(flav_list["products"][product]["attributes"]["vcpu"])) >= float(flav_filter.min_memory_gigabytes_per_core)) or \
                                     not (flav_filter.max_memory_gigabytes_per_core == None or (ram/float(flav_list["products"][product]["attributes"]["vcpu"])) <= float(flav_filter.max_memory_gigabytes_per_core)):
@@ -148,8 +150,8 @@ def flavor_poller():
                         # Ram in db is MB
                         ram = int(ram*1000)
                     
-                        # JSON format: "storage" : "2 x 1,920 SSD"   Whhhh
-                        # or           "storage" : "EBS only"           hhyyyy????
+                        # JSON format: "storage" : "2 x 1,920 SSD"
+                        # or           "storage" : "EBS only"
                         disk = flav_list["products"][product]["attributes"]["storage"]
                         if disk == "EBS only":
                             disk = 0
@@ -184,9 +186,7 @@ def flavor_poller():
                             'disk': disk,
                             'last_updated': new_poll_time
                         }
-                        #print(flav_dict.items())
-                        #print(flav_list["products"][product]["attributes"]["physicalProcessor"])
-                        #print(flav_list["products"][product]["attributes"]["instanceFamily"])
+                        
                         flav_dict, unmapped = map_attributes(src="ec2_flavors", dest="csv2", attr_dict=flav_dict)
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
