@@ -572,7 +572,7 @@ def real_time_watch(gvar):
         return report
 
     frame_data = get_real_time_data_report(gvar)
-    stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0); stdscr.timeout(gvar['db_config'].sleep_time*1000)
+    stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0); stdscr.timeout(1000)
     yx = stdscr.getmaxyx()
 
     try:
@@ -580,15 +580,23 @@ def real_time_watch(gvar):
             yx = stdscr.getmaxyx()
 
             stdscr.clear()
+            if gvar['up_down'] > len(frame_data) - yx[0] + 1:
+                gvar['up_down'] = len(frame_data) - yx[0] + 1
+
             for ix in range(min(len(frame_data), yx[0]-2)):
                 stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], yx[1])
 
-            stdscr.addnstr(yx[0]-1, 0, 'Watching (%s second refresh)  \u2190\u2191\u2193\u2192Scroll  q-quit' % gvar['db_config'].sleep_time, yx[1], curses.A_BOLD)
+            sleep_time = gvar['db_config'].sleep_time
+            while True:
+                stdscr.addnstr(yx[0]-1, 0, 'Watching (%s)  \u2190\u2191\u2193\u2192Scroll  q-quit' % sleep_time, yx[1], curses.A_BOLD)
+                stdscr.clrtoeol()
+                stdscr.refresh()
+                curses.cbreak()
+                input = stdscr.getch()
+                if input != -1 or sleep_time < 2:
+                    break
 
-            stdscr.refresh()
-
-            curses.cbreak()
-            input = stdscr.getch()
+                sleep_time -= 1
 
             # Down arror.
             if input == 258:
@@ -622,8 +630,6 @@ def real_time_watch(gvar):
             elif input == ord('q'):
                 break
 
-#           stdscr.timeout(gvar['db_config'].sleep_time*1000000)
-#           stdscr.timeout(1)
             frame_data = get_real_time_data_report(gvar)
 
         curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
