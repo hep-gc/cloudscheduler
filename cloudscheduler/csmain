@@ -165,9 +165,11 @@ def main():
                         if target_cloud_list:
                             clouds_matching = config.db_session.query(view_available_resources).filter(
                                 view_available_resources.c.flavor.in_(flavor_list),
-                                view_available_resources.c.cloud_name.in_(target_cloud_list))
+                                view_available_resources.c.cloud_name.in_(target_cloud_list),
+                                view_available_resources.c.group_name == csgroup.group_name)
                         else:
                             clouds_matching = config.db_session.query(view_available_resources).filter(
+                                view_available_resources.c.group_name == csgroup.group_name,
                                 view_available_resources.c.flavor.in_(flavor_list))
                     except TimeoutError as ex:
                         log.exception(ex)
