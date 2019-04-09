@@ -128,7 +128,7 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
                     db_session.commit()
                     logging.info("%s deletions committed: %d" % (type, uncommitted_updates))
                 except Exception as exc:
-                    logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, cloud.group_name, cloud.cloud_name))
+                    logging.exception("Failed to commit %s deletions (%d) for %s::%s." % (type, uncommitted_updates, group_name, cloud_name))
                     logging.error(exc)
 
     for item in inventory_deletions:

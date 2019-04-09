@@ -122,7 +122,7 @@ def machine_poller():
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=6)
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -339,7 +339,7 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=6)
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
@@ -490,7 +490,7 @@ def command_poller():
                     try:
                         vm_row = db_session.query(VM).filter(VM.group_name == resource.group_name, VM.cloud_name == resource.cloud_name, VM.vmid == resource.vmid)[0]
                     except Exception as exc:
-                        logging.error("Unable retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
+                        logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
                         continue
                     if vm_row.manual_control == 1:
                         logging.info("VM %s uner manual control, skipping terminate..." % resource.vmid)
@@ -517,7 +517,30 @@ def command_poller():
                             old_updater = vm_row.updater
                             vm_row.updater = str(get_frame_info() + ":t+")
 
-                            nova.servers.delete(vm_row.vmid)
+                            try:
+                                nova.servers.delete(vm_row.vmid)
+                            except novaclient.exceptions.NotFound:
+                                logging.error("VM not found on cloud, deleting vm entry %s" % vm_row.vmid)
+                                db_session.delete(vm_row)
+                                uncommitted_updates = uncommitted_updates+1
+                                if uncommitted_updates > 10:
+                                    try:
+                                        db_session.commit()
+                                        uncomitted_updates = 0
+                                    except Exception as exc:
+                                        logging.exception("Failed to commit vm delete, aborting cycle...")
+                                        logging.error(exc)
+                                        abort_cycle = True
+                                        break
+                                continue #skip rest of logic since this vm is gone anywheres 
+                                    
+
+                            except Exception as exc:
+                                logging.error("Unable to delete vm, vm doesnt exist or openstack failure:")
+                                exc_type, exc_obj, exc_tb = sys.exc_info()
+                                logging.error(exc_type)
+                                logging.error(exc)
+                                continue
                             logging.info("VM Terminated(%s): %s primary slots: %s dynamic slots: %s, last updater: %s" % (vm_row.terminate, vm_row.hostname, vm_row.htcondor_partitionable_slots, vm_row.htcondor_dynamic_slots, old_updater))
                             db_session.merge(vm_row)
                             # log here if terminate # /10 = remainder zero
@@ -553,6 +576,17 @@ def command_poller():
                     else:
                         # Other cloud types will need to be implemented here to terminate any vms not from openstack
                         logging.info("Vm not from openstack cloud, skipping...")
+                        continue
+                if uncommitted_updates > 0:
+                    try:
+                        db_session.commit()
+                    except Exception as exc:
+                        logging.exception("Failed to commit retire machine, aborting cycle...")
+                        logging.error(exc)
+                        del condor_session
+                        config.db_close()
+                        del db_session
+                        time.sleep(config.sleep_interval_command)
                         continue
 
                 if abort_cycle:
@@ -592,7 +626,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=6)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
