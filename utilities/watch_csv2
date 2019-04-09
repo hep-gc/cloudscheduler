@@ -581,7 +581,7 @@ def real_time_watch(gvar):
 
             stdscr.clear()
             if gvar['up_down'] > len(frame_data) - yx[0] + 1:
-                gvar['up_down'] = len(frame_data) - yx[0] + 1
+                gvar['up_down'] = max(0, len(frame_data) - yx[0] + 1)
 
             for ix in range(min(len(frame_data), yx[0]-2)):
                 stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], yx[1])
