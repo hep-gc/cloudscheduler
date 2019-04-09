@@ -4,7 +4,6 @@ import socket
 import time
 import sys
 import os
-import requests
 import json
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
@@ -37,7 +36,6 @@ def flavor_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
-   
    # register_signal_receiver(config, "insert_csv2_clouds")
    # register_signal_receiver(config, "update_csv2_clouds")
 
@@ -55,6 +53,9 @@ def flavor_poller():
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
             region_failure_dict = {}
             grp_flav_filter_dict = {}
+            
+            # Get region instance type file location
+            save_at = config.region_instance_type_file 
 
             # Build unique region dict
             unique_region_dict = {}
@@ -74,16 +75,15 @@ def flavor_poller():
                 logging.debug("Processing flavors from region - {}".format(region))
                 try:
                     flav_list = False
-                    url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/{}/index.json".format(region)
-                    resp = requests.get(url)
-                    logging.debug("Got response")
-                    resp.raise_for_status()
-                    flav_list = resp.json()
+                    if os.path.exists(save_at+"/{}/instance_types.json".format(region)):
+                        with open(save_at+"/{}/instance_types.json".format(region), 'r') as f:
+                                flav_list = json.load(f)
+                        logging.debug("Got local copy of flavor info for region - {}".format(region))
+                    else:
+                       logging.error("Could not retrieve local copy of flavors for region - {0}. Path does not exist - {1}/{0}/instance_types.json".format(region,save_at)) 
                 except Exception as exc:
-                    logging.error("Failed to retrieve flavors JSON for region - {} from Amazon pricing url, skipping this region".format(region))
+                    logging.error("Failed to retrieve flavors JSON for region - {0} from local copy at {1}/{0}/instance_types, skipping this region".format(region,save_at))
                     logging.exception(exc)
-                    if exc is None or exc == "":
-                        logging.debug(repr(exc))
                     for region in unique_region_dict:
                         if region not in region_failure_dict:
                             region_failure_dict[region] = 1
