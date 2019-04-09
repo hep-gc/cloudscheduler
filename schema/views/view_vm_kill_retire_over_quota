@@ -84,9 +84,9 @@ from (
                     0 as disk_native,
                     0 as ram_native,
                     0 as swap_native,
-                    (vfr.cores*vfr.count) as cores_foreign,
+                    vfr.cores as cores_foreign,
                     0 as disk_foreign,
-                    (vfr.ram*vfr.count) as ram_foreign,
+                    vfr.ram as ram_foreign,
                     0 as swap_foreign
                 from view_foreign_resources as vfr
             ) as avmr
