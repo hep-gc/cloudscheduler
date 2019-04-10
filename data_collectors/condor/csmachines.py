@@ -228,7 +228,7 @@ def machine_poller():
                             machine_errors["nogrp"] = machine_errors["nogrp"] + 1
                         continue
                     if r_dict['group_name'] not in host_groups:
-                        logging.debug("Skipping resource, group did not match any valid groups for this host")
+                        logging.debug("Skipping resource, group did not match any valid groups for this host: %s" % r_dict['group_name'])
                         forgein_machines = forgein_machines + 1
                         if "badgrp" not in machine_errors:
                             machine_errors["badgrp"] = 1
@@ -238,7 +238,7 @@ def machine_poller():
                     mach_str = r_dict['Machine'].split("--")
                     # check group name from machine string
                     if mach_str[0] not in host_groups:
-                        logging.debug("Skipping resource with bad group name in machine string")
+                        logging.debug("Skipping resource with bad group name in machine string %s" % r_dict['Machine'])
                         forgein_machines = forgein_machines + 1
                         if "badgrp" not in machine_errors:
                             machine_errors["badgrp"] = 1
