@@ -1,0 +1,13 @@
+[Unit]
+Description= Retrieves a list of amazon clouds and regions from the configured database and retrieves flavor information on them from a local file which is inserted in the database
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/data_collectors/ec2/ec2FlavorPoller.py
+Restart=on-abort
+
+
+[Install]
+WantedBy=multi-user.target
