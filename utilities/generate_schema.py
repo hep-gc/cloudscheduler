@@ -33,7 +33,7 @@ def main(args):
     gvar = {}
 
     fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
-    gvar['csv2_config'] = yaml.load(fd.read())
+    gvar['csv2_config'] = yaml.full_load(fd.read())
     fd.close()
     
     gvar['cmd_path'] = os.path.abspath(args[0])

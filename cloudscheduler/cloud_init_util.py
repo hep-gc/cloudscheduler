@@ -78,7 +78,7 @@ def validate_yaml(content):
     """ Try to load yaml to see if it passes basic validation."""
     log = logging.getLogger(__name__)
     try:
-        yam = yaml.load(content)
+        yam = yaml.full_load(content)
         if not yam.has_key('merge_type'):
             print("Yaml submitted without a merge_type.")
             return "Missing merge_type:"

@@ -61,7 +61,7 @@ def main(args):
         if hasattr(yaml, 'FullLoader'):
             gvar['schema_config'] = yaml.full_load(fd.read())
         else:
-            gvar['schema_config'] = yaml.load(fd.read())
+            gvar['schema_config'] = yaml.full_load(fd.read())
         fd.close()
     else:
         gvar['schema_config'] = {'providers': [], 'consumers': [], 'global': [], 'local': [], 'ephemeral': []}
@@ -92,7 +92,7 @@ def main(args):
                         raise Exception('Input parameter file "%s" does not exist.' % gvar['input_path'])
 
                     fd = open(gvar['input_path'])
-                    gvar['input_actions'] = yaml.load(fd.read())
+                    gvar['input_actions'] = yaml.full_load(fd.read())
                     fd.close()
 
             elif args[args_ix][1] == 'o':

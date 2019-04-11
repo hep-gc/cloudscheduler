@@ -344,7 +344,7 @@ def _get_repository_and_servers(gvar):
             continue
 
         _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], host_dir))
-        servers[host_dir] = yaml.load(_fd)
+        servers[host_dir] = yaml.full_load(_fd)
         _fd.close()
 
         if 'server-address' in servers[host_dir]:

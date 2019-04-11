@@ -1098,7 +1098,7 @@ def validate_fields(config, request, fields, tables, active_user):
                             import yaml
 
                             try:    
-                                temp_data = yaml.load(value)
+                                temp_data = yaml.full_load(value)
                             except yaml.scanner.ScannerError as ex:
                                 return 1, 'yaml value specified for "%s (%s)" is invalid - scanner error - %s' % (field, filename, ex), None, None, None
                             except yaml.parser.ParserError as ex:

@@ -50,7 +50,7 @@ class CSConfig:
         # Load up any changed values from file
         try:
             with open(config_file) as file_handle:
-                config_file = yaml.load(file_handle.read())
+                config_file = yaml.full_load(file_handle.read())
                 # Merge them and update the defaults
                 for k, val in config_file.items():
                     lconfig[k] = val

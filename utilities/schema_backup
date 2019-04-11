@@ -39,7 +39,7 @@ def main(args):
     gvar['config_file_path'] = '%s/etc/schema_backup.conf' % '/'.join(gvar['path_info'][:gvar['ix']+1])
     if os.path.isfile(gvar['config_file_path']):
         fd = open(gvar['config_file_path'])
-        gvar['schema_config'] = yaml.load(fd.read())
+        gvar['schema_config'] = yaml.full_load(fd.read())
         fd.close()
     else:
         gvar['schema_config'] = {'providers': [], 'consumers': [], 'global': [], 'local': [], 'ephemeral': []}

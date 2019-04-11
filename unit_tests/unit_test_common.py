@@ -297,7 +297,7 @@ def initialize_csv2_request(gvar, command, selections=None, hidden=False):
         gvar['selections'] = []
 
     fd = open('%s/.csv2/unit-test/settings.yaml' % os.path.expanduser('~'))
-    gvar['user_settings'] = yaml.load(fd.read())
+    gvar['user_settings'] = yaml.full_load(fd.read())
     fd.close()
 
     return

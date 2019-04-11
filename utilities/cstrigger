@@ -36,7 +36,7 @@ def main(args):
 
     if args[1] == 'redefine':
         fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
-        gvar['csv2_config'] = yaml.load(fd.read())
+        gvar['csv2_config'] = yaml.full_load(fd.read())
         fd.close()
 
         _p1 = Popen(
