@@ -16,44 +16,35 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `condor_jobs`
+-- Table structure for table `silk_request`
 --
 
-DROP TABLE IF EXISTS `condor_jobs`;
+DROP TABLE IF EXISTS `silk_request`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `condor_jobs` (
-  `global_job_id` varchar(128) NOT NULL,
-  `group_name` varchar(32) DEFAULT NULL,
-  `target_clouds` text DEFAULT NULL,
-  `target_alias` varchar(32) DEFAULT NULL,
-  `job_status` int(11) DEFAULT NULL,
-  `request_cpus` int(11) NOT NULL,
-  `request_ram` int(11) DEFAULT NULL,
-  `request_disk` int(11) DEFAULT NULL,
-  `request_swap` int(11) DEFAULT NULL,
-  `request_scratch` int(11) DEFAULT NULL,
-  `requirements` varchar(512) DEFAULT NULL,
-  `job_priority` int(11) DEFAULT NULL,
-  `cluster_id` int(11) DEFAULT NULL,
-  `proc_id` int(11) NOT NULL,
-  `user` varchar(512) DEFAULT NULL,
-  `image` text DEFAULT NULL,
-  `instance_type` varchar(512) DEFAULT NULL,
-  `network` varchar(512) DEFAULT NULL,
-  `keep_alive` varchar(512) DEFAULT NULL,
-  `max_price` varchar(512) DEFAULT NULL,
-  `user_data` varchar(512) DEFAULT NULL,
-  `job_per_core` int(11) DEFAULT NULL,
-  `entered_current_status` int(11) DEFAULT NULL,
-  `q_date` int(11) DEFAULT NULL,
-  `hold_reason_code` tinyint(4) DEFAULT NULL,
-  `hold_reason_subcode` tinyint(4) DEFAULT NULL,
-  `last_remote_host` varchar(64) DEFAULT NULL,
-  `held_reason` varchar(128) DEFAULT NULL,
-  `hold_job_reason` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`global_job_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `silk_request` (
+  `id` varchar(36) NOT NULL,
+  `path` varchar(190) NOT NULL,
+  `query_params` longtext NOT NULL,
+  `raw_body` longtext NOT NULL,
+  `body` longtext NOT NULL,
+  `method` varchar(10) NOT NULL,
+  `start_time` datetime(6) NOT NULL,
+  `view_name` varchar(190) DEFAULT NULL,
+  `end_time` datetime(6) DEFAULT NULL,
+  `time_taken` double DEFAULT NULL,
+  `encoded_headers` longtext NOT NULL,
+  `meta_time` double DEFAULT NULL,
+  `meta_num_queries` int(11) DEFAULT NULL,
+  `meta_time_spent_queries` double DEFAULT NULL,
+  `pyprofile` longtext NOT NULL,
+  `num_sql_queries` int(11) NOT NULL,
+  `prof_file` varchar(300) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `silk_request_path_9f3d798e` (`path`),
+  KEY `silk_request_start_time_1300bc58` (`start_time`),
+  KEY `silk_request_view_name_68559f7b` (`view_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -65,4 +56,4 @@ CREATE TABLE `condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-10 13:03:35
+-- Dump completed on 2018-10-24 13:37:56

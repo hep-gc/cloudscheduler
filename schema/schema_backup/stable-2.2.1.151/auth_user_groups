@@ -16,44 +16,22 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `condor_jobs`
+-- Table structure for table `auth_user_groups`
 --
 
-DROP TABLE IF EXISTS `condor_jobs`;
+DROP TABLE IF EXISTS `auth_user_groups`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `condor_jobs` (
-  `global_job_id` varchar(128) NOT NULL,
-  `group_name` varchar(32) DEFAULT NULL,
-  `target_clouds` text DEFAULT NULL,
-  `target_alias` varchar(32) DEFAULT NULL,
-  `job_status` int(11) DEFAULT NULL,
-  `request_cpus` int(11) NOT NULL,
-  `request_ram` int(11) DEFAULT NULL,
-  `request_disk` int(11) DEFAULT NULL,
-  `request_swap` int(11) DEFAULT NULL,
-  `request_scratch` int(11) DEFAULT NULL,
-  `requirements` varchar(512) DEFAULT NULL,
-  `job_priority` int(11) DEFAULT NULL,
-  `cluster_id` int(11) DEFAULT NULL,
-  `proc_id` int(11) NOT NULL,
-  `user` varchar(512) DEFAULT NULL,
-  `image` text DEFAULT NULL,
-  `instance_type` varchar(512) DEFAULT NULL,
-  `network` varchar(512) DEFAULT NULL,
-  `keep_alive` varchar(512) DEFAULT NULL,
-  `max_price` varchar(512) DEFAULT NULL,
-  `user_data` varchar(512) DEFAULT NULL,
-  `job_per_core` int(11) DEFAULT NULL,
-  `entered_current_status` int(11) DEFAULT NULL,
-  `q_date` int(11) DEFAULT NULL,
-  `hold_reason_code` tinyint(4) DEFAULT NULL,
-  `hold_reason_subcode` tinyint(4) DEFAULT NULL,
-  `last_remote_host` varchar(64) DEFAULT NULL,
-  `held_reason` varchar(128) DEFAULT NULL,
-  `hold_job_reason` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`global_job_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `auth_user_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `group_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `auth_user_groups_user_id_group_id_94350c0c_uniq` (`user_id`,`group_id`),
+  KEY `auth_user_groups_group_id_97559544_fk_auth_group_id` (`group_id`),
+  CONSTRAINT `auth_user_groups_group_id_97559544_fk_auth_group_id` FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
+  CONSTRAINT `auth_user_groups_user_id_6a12ed8b_fk_auth_user_id` FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -65,4 +43,4 @@ CREATE TABLE `condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-10 13:03:35
+-- Dump completed on 2019-01-17 14:34:21
