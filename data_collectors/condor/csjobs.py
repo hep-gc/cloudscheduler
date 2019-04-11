@@ -267,10 +267,10 @@ def job_poller():
                             held_job_ids.append(str(job_dict["ClusterId"]) +"."+ str(job_dict["ProcId"]))
                         if "invalidusr" not in job_errors:
                             job_errors["invalidusr"] = 1
-                            job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s: %s" % (job_dict['Owner'], job_dict['group_name'])}
+                            job_errors["invalidusrinfo"] = {"Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name'])}
                         else:
-                            job_errors["invalidusr"] = job_errors["invalidgrp"] + 1
-                            job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s: %s" % (job_dict['Owner'], job_dict['group_name']))
+                            job_errors["invalidusr"] = job_errors["invalidusr"] + 1
+                            job_errors["invalidusrinfo"].add("Invalid user: %s for group: %s" % (job_dict['Owner'], job_dict['group_name']))
                         continue
 
                     # Some jobs have an expression for the request disk causing us to store a string

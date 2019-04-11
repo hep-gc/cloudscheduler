@@ -5,7 +5,7 @@ create or replace view view_groups_of_idle_jobs as
 /* n03 - Group Job/Clouds per unique resource requirements, concatenating flavors */
 select
     group_name,
-    target_alias_clouds,
+    target_alias,
     target_clouds,
     instance_type,
     requirements,
@@ -40,7 +40,7 @@ from (
     /* jbf - Jobs grouped by flavor */
     select
         group_name,
-        target_alias_clouds,
+        target_alias,
         target_clouds,
         instance_type,
         requirements,
@@ -79,6 +79,7 @@ from (
             var.flavor,
             row_number() over (partition by
                 group_name,
+                target_alias,
                 target_alias_clouds,
                 cloud_name,
                 target_clouds,
@@ -107,6 +108,7 @@ from (
             /* goj - Groups of jobs */
             select
                 gocj.group_name,
+                target_alias,
                 clouds as target_alias_clouds,
                 target_clouds,
                 instance_type,
