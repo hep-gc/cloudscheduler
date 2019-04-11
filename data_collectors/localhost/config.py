@@ -35,7 +35,7 @@ elif exists("/opt/cloudscheduler/cloudscheduler.yaml"):
 
 try:
     with open(path, 'r') as ymlfile:
-        cfg = yaml.load(ymlfile)
+        cfg = yaml.full_load(ymlfile)
 
 except Exception as e:
     print >> sys.stderr, "Configuration file problem: There was a " \
@@ -75,7 +75,7 @@ try:
     db_yaml = db_session.query(Conf).get("os_general")
 
     try:
-        cfg = yaml.load(db_yaml.yaml)   
+        cfg = yaml.full_load(db_yaml.yaml)   
         if "general" in cfg:
             if "poller_log_file" in cfg["general"]:
                 poller_log_file = cfg["general"]["poller_log_file"]

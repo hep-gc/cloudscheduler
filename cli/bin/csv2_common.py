@@ -461,7 +461,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=Fa
     if 'views' not in gvar:
         if os.path.exists('%s/.csv2/views.yaml' % gvar['home_dir']):
             fd = open('%s/.csv2/views.yaml' % gvar['home_dir'])
-            gvar['views'] = yaml.load(fd.read())
+            gvar['views'] = yaml.full_load(fd.read())
             fd.close()
         else:
             gvar['views'] = {}
@@ -939,7 +939,7 @@ def _yaml_load_and_verify(yaml_string):
     import yaml
 
     try:
-        _yaml = yaml.load(yaml_string)
+        _yaml = yaml.full_load(yaml_string)
         return [1, _yaml]
     except yaml.scanner.ScannerError as ex:
         return [0, 'scanner error', ex]

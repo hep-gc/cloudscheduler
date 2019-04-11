@@ -76,7 +76,7 @@ def list(gvar):
         if os.path.isdir(server_path):
             if 'server' not in gvar['command_args'] or server == gvar['command_args']['server']:
                 _fd = open('%s/settings.yaml' % server_path)
-                _settings = yaml.load(_fd.read())
+                _settings = yaml.full_load(_fd.read())
                 _fd.close()
 
                 for key in sorted(_keys):

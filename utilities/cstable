@@ -58,7 +58,7 @@ def main(args):
 
     elif args[1] == 'redefine':
         fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
-        gvar['csv2_config'] = yaml.load(fd.read())
+        gvar['csv2_config'] = yaml.full_load(fd.read())
         fd.close()
 
         if os.path.isfile(gvar['config_file_path']):
@@ -95,7 +95,7 @@ def main(args):
 
     elif args[1] == 'clone':
         fd = open('/etc/cloudscheduler/cloudscheduler.yaml')
-        gvar['csv2_config'] = yaml.load(fd.read())
+        gvar['csv2_config'] = yaml.full_load(fd.read())
         fd.close()
     
         gvar['all_tables'] = os.listdir(gvar['schema_backup_dir'] + '/' + gvar['other_fqdn'])

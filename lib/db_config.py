@@ -25,7 +25,7 @@ class Config:
         # Retrieve the database configuration.
         if os.path.exists(db_yaml):
             with open(db_yaml, 'r') as ymlfile:
-                base_config = yaml.load(ymlfile)
+                base_config = yaml.full_load(ymlfile)
         else:
             raise Exception('Configuration file "%s" does not exist.' % db_yaml)
 

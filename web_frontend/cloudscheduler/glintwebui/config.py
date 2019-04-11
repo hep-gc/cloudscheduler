@@ -34,7 +34,7 @@ else:
 
 try:
     with open(path, 'r') as ymlfile:
-        cfg = yaml.load(ymlfile)
+        cfg = yaml.full_load(ymlfile)
 
 except Exception as e:
     print("Configuration file problem: There was a " \
@@ -69,7 +69,7 @@ if "database" in cfg:
         db_yaml = db_session.query(Conf).get("glint")
 
         try:
-            cfg = yaml.load(db_yaml.yaml)
+            cfg = yaml.full_load(db_yaml.yaml)
             if "redis" in cfg:
                 if "redis_host" in cfg["redis"]:
                     redis_host = cfg["redis"]["redis_host"]
