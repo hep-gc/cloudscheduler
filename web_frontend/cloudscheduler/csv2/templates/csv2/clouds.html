@@ -87,7 +87,7 @@
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
-                    <label class="highlight3" for="{{cloud.cloud_name}}-settings">Settings</label>
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
                         <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'" autocomplete="nope">
@@ -283,7 +283,7 @@
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')">
-                    <label class="highlight4" for="{{cloud.cloud_name}}-metadata">Metadata</label>
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-metadata">Metadata</label>
                     <div class="tab-content meta-div">
 
 
@@ -333,7 +333,7 @@
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-exclusions" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('{{cloud.cloud_name}}-hide')">
-                    <label class="highlight5" for="{{cloud.cloud_name}}-exclusions">Exclusions</label>
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-exclusions">Exclusions</label>
                     <div class="tab-content exclusion-div">
 
 

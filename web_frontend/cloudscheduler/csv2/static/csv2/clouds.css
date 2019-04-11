@@ -2,7 +2,7 @@
 /* Acordeon styles */
 .tab {
   position: relative;
-  margin-bottom: 1px;
+  margin-bottom: 0px;
   width: 100%;
 
   overflow: hidden;
@@ -39,6 +39,19 @@
 .tab input:checked ~ .tab-content {
   max-height: 100vh;
 }
+
+/*default tab colour */
+.tab-colour {
+  background-color: gainsboro;
+  color: black
+}
+
+/* Change tab colour when checked */
+.tab input:checked ~ .tab-colour {
+  background-color: teal;
+  color: white;
+}
+
 /* Icon */
 .tab > label::after {
   position: absolute;
