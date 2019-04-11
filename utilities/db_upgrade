@@ -43,7 +43,6 @@ def main(args):
     gvar['my_fqdn'] = socket.getfqdn()
     gvar['model_fqdn'] = args[1]
     gvar['backup_dir'] = '%s/schema/schema_backup' % ('/'.join(gvar['path_info'][:gvar['ix']+1]))
-    gvar['new_install'] = False
     gvar['tables'] = {}
     gvar['run_mode'] = 'test'
     gvar['temp_dir'] = tempfile.mkdtemp()
@@ -110,12 +109,11 @@ def main(args):
                 raise Exception('Unknown parameter "%s".' % args[args_ix])
 
     ####
-    if not os.path.isdir('%s/%s' % (gvar['buckup_dir'], gvar['my_fqdn'])) and gvar['run_mode'] == 'live':
-        gvar['new_install'] = True
+    if not os.path.isdir('%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'])) and gvar['run_mode'] == 'live':
+        gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_only=True)
         print('\n0. Defining global configuration tables.')
         for table in sorted(gvar['schema_config']['global']):
             redefine_table(gvar, table)
-        exit(0)
 
     ####
     if gvar['run_mode'] == 'live':
@@ -131,9 +129,6 @@ def main(args):
             exit(1)
     else:
         print('\n1. TEST MODE, skipping database backup.')
-
-    if gvar['new_install']:
-        exit(0)
 
     gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_dict=True)
 
