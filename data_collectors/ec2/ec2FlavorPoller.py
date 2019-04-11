@@ -31,6 +31,7 @@ def flavor_poller():
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
     FILTERS = config.db_map.classes.ec2_instance_type_filters
+    CONFIG = config.db_map.classes.csv2_configuration
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -55,7 +56,13 @@ def flavor_poller():
             grp_flav_filter_dict = {}
             
             # Get region instance type file location
-            save_at = config.region_instance_type_file 
+            config_list = db_session.query(CONFIG).filter(CONFIG.category == "ec2_retrieve_flavor_files.py", CONFIG.config_key == "region_flavor_file_location")
+            save_at = "False"
+            for con in config_list:
+                save_at = con.config_value
+                break
+            if save_at == "False":
+                logging.error("Could not get region instance type file location...")
 
             # Build unique region dict
             unique_region_dict = {}
@@ -75,12 +82,9 @@ def flavor_poller():
                 logging.debug("Processing flavors from region - {}".format(region))
                 try:
                     flav_list = False
-                    if os.path.exists(save_at+"/{}/instance_types.json".format(region)):
-                        with open(save_at+"/{}/instance_types.json".format(region), 'r') as f:
-                                flav_list = json.load(f)
-                        logging.debug("Got local copy of flavor info for region - {}".format(region))
-                    else:
-                       logging.error("Could not retrieve local copy of flavors for region - {0}. Path does not exist - {1}/{0}/instance_types.json".format(region,save_at)) 
+                    with open(save_at+"/{}/instance_types.json".format(region), 'r') as f:
+                        flav_list = json.load(f)
+                    logging.debug("Got local copy of flavor info for region - {}".format(region))
                 except Exception as exc:
                     logging.error("Failed to retrieve flavors JSON for region - {0} from local copy at {1}/{0}/instance_types, skipping this region".format(region,save_at))
                     logging.exception(exc)
@@ -234,6 +238,8 @@ def flavor_poller():
 
             config.db_close()
             del db_session
+
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
 
 
         except Exception as exc:
