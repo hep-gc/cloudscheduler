@@ -16,8 +16,8 @@ DBDKeep 8
 DBDMax 20
 DBDExptime 300
 
-<VirtualHost {{ i_external_connection.0.ipv4fqdn }}:43>
-    Servername {{ i_external_connection.0.ipv4fqdn }}
+<VirtualHost {{ csv2_vhost }}:43>
+    Servername {{ csv2_vhost }}
 
     <Directory /opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web>
         <Files wsgi.py>
@@ -95,14 +95,14 @@ DBDExptime 300
     # the certificate is encrypted, then you will be prompted for a
     # pass phrase.  Note that a kill -HUP will prompt again.  A new
     # certificate can be generated using the genkey(1) command.
-    SSLCertificateFile /etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/fullchain.pem
+    SSLCertificateFile {{ ssl_cert_file }}
 
     #   Server Private Key:
     #   If the key is not combined with the certificate, use this
     #   directive to point at the key file.  Keep in mind that if
     #   you've both a RSA and a DSA private key you can configure
     #   both in parallel (to also allow the use of DSA ciphers, etc.)
-    SSLCertificateKeyFile /etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/privkey.pem
+    SSLCertificateKeyFile {{ ssl_key_file }}
 
     #   Server Certificate Chain:
     #   Point SSLCertificateChainFile at a file containing the
@@ -111,13 +111,14 @@ DBDExptime 300
     #   the referenced file can be the same as SSLCertificateFile
     #   when the CA certificates are directly appended to the server
     #   certificate for convinience.
-    SSLCertificateChainFile /etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/fullchain.pem
+    SSLCertificateChainFile {{ ssl_cert_file }}
 
     #   Certificate Authority (CA):
     #   Set the CA certificate verification path where to find CA
     #   certificates for client authentication or alternatively one
     #   huge file containing all of them (file must be PEM encoded)
-    SSLCACertificateFile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+    # SSLCACertificateFile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+    {{ ssl_ca_cert_arg }}
 
     #   Client Authentication (Type):
     #   Client certificate verification type and depth.  Types are
