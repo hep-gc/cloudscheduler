@@ -108,6 +108,12 @@ def main(args):
             else:
                 raise Exception('Unknown parameter "%s".' % args[args_ix])
 
+    ####
+    if not os.path.isdir('%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'])) and gvar['run_mode'] == 'live':
+        gvar['db_config'] = Config('/etc/cloudscheduler/cloudscheduler.yaml', [], db_config_only=True)
+        print('\n0. Defining global configuration tables.')
+        for table in sorted(gvar['schema_config']['global']):
+            redefine_table(gvar, table)
 
     ####
     if gvar['run_mode'] == 'live':

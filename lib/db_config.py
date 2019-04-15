@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, pool_size=5, max_overflow=0):
+    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -37,7 +37,7 @@ class Config:
             if 'db_table' not in db_config:
                 db_config['db_table'] = 'configuration'
 
-        if db_config_dict:
+        if db_config_dict or db_config_only:
             self.db_config = db_config
 
         # Open the database.
@@ -54,6 +54,9 @@ class Config:
             pool_size=pool_size,
             max_overflow=max_overflow
             )
+
+        if db_config_only:
+            return
 
         self.db_connection = None
         self.db_map = automap_base()
