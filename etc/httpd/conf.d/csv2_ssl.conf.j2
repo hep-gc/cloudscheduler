@@ -16,8 +16,8 @@ DBDKeep 8
 DBDMax 20
 DBDExptime 300
 
-<VirtualHost {{ csv2_vhost }}:443>
-    Servername {{ csv2_vhost }}
+<VirtualHost {{ csv2_host }}:443>
+    Servername {{ csv2_host }}
 
     <Directory /opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web>
         <Files wsgi.py>
