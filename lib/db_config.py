@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0):
+    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, ec2_config_dict=False, pool_size=5, max_overflow=0):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -39,6 +39,11 @@ class Config:
 
         if db_config_dict or db_config_only:
             self.db_config = db_config
+
+        if ec2_config_dict and 'ec2' in base_config:
+            self.ec2_config = {}
+            for item in base_config['ec2']:
+                self.ec2_config[item] = base_config['ec2'][item]
 
         # Open the database.
         self.db_engine = create_engine(
