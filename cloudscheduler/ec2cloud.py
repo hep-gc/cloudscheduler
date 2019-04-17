@@ -29,6 +29,7 @@ class EC2Cloud(basecloud.BaseCloud):
         self.region = resource.region
         self.authurl = resource.authurl  # endpoint_url
         self.keyname = resource.keyname
+        self.project = resource.project
 
 
     def _get_client(self):
@@ -61,13 +62,14 @@ class EC2Cloud(basecloud.BaseCloud):
 
             for vm in new_vm['Instances']:
                 self.log.debug(vm)
-
+                hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm.keys() and vm['PublicDnsName'] \
+                    else vm['PrivateDnsName']
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
                     'auth_url': self.authurl,
                     'project': self.project,
-                    'hostname': vm['PublicDnsName'], # TODO Also check for PrivateDnsName in case Public is missing or empty
+                    'hostname': hostname,
                     'vmid': vm['InstanceId'],
                     'status': vm['State']['Name'],
                     'flavor_id': vm['InstanceType'],
