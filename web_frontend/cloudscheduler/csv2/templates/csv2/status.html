@@ -366,7 +366,7 @@ else if (refresh_interval < 1) stop_refresh;
                             </table>
                         </th>
                         <th class="total-style">RAM</th>
-
+                        <th class="total-style">VM Quota</th>
 
                         <th class="col-spacer">&nbsp;</th>
 
@@ -533,6 +533,12 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endwith %}                        
                                     </td>
 
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} vms_quota" class="plottable">
+                                        {% with total=cloud.VMs_quota %}
+                                            <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{cloud.VMs_quota}}" value="{{cloud.VMs_native_foreign}}"></meter></a>
+                                        {% endwith %}                        
+                                    </td>
+
                                     <td class="col-spacer">&nbsp;</td>
 
                                     {% if cloud.slot_count == 0 %}
@@ -663,6 +669,9 @@ else if (refresh_interval < 1) stop_refresh;
                                             {% endif %}
                                         {% endwith %}
                                     </td>
+
+                                    <td>{{cloud.VMs_native_foreign}} / {{cloud.VMs_quota}}</td>
+
                                     <td class="col-spacer">&nbsp;</td>
 
                                     <td colspan="2">
@@ -839,6 +848,12 @@ else if (refresh_interval < 1) stop_refresh;
                             {% endwith %}
                         </td>
 
+                        <td>
+                            {% with total=group_total.VMs_quota %}
+                                <a href="#"><meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.VMs_quota}}" value="{{group_total.VMs_native_foreign}}"></meter></a>
+                            {% endwith %}   
+                        </td>
+
                         <td class="col-spacer">&nbsp;</td>
 
                         {% if group_total.slot_count == 0 %}
@@ -959,6 +974,9 @@ else if (refresh_interval < 1) stop_refresh;
                                 {% endif %}
                             {% endwith %}                    
                         </td>
+
+                        <td>{{group_total.VMs_native_foreign}} / {{group_total.VMs_quota}}</td>
+
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">

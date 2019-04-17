@@ -1098,6 +1098,8 @@ def status(request, group_name=None):
             'ram_idle',
             'ram_native',
             'ram_native_foreign',
+            'VMs_quota',
+            'VMs_native_foreign', 
             'slot_count',
             'slot_core_count',
             'slot_idle_core_count'
@@ -1130,6 +1132,8 @@ def status(request, group_name=None):
             'ram_idle',
             'ram_native',
             'ram_native_foreign',
+            'VMs_quota',
+            'VMs_native_foreign',
             'slot_count',
             'slot_core_count',
             'slot_idle_core_count'
