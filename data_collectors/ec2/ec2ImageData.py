@@ -14,8 +14,8 @@ def image_poller():
     try:
         # Retrieve all images for this cloud.
         session = boto3.session.Session(region_name='us-west-2',
-                                        aws_access_key_id='AKIAJILAEESQLCA6HXDA',
-                                        aws_secret_access_key='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')
+                                        aws_access_key_id='get it from the db',
+                                        aws_secret_access_key='get it from the db')
         client = session.client('ec2')
         users2 = ['self','all']
         users1 = ['self']
