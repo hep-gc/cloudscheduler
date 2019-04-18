@@ -71,7 +71,7 @@ def project_details(request, group_name=None, message=None):
     User_Group = db_config.db_map.classes.csv2_user_groups
     Groups = db_config.db_map.classes.csv2_groups
 
-    rc, msg, user_obj = set_user_groups(db_config, request)
+    rc, msg, user_obj = set_user_groups(db_config, request, False)
     user_groups = user_obj.user_groups
 
     
@@ -323,7 +323,7 @@ def resolve_conflict(request, group_name, cloud_name):
 @silkp(name='Download Image')
 def download_image(request, image_name, group_name=None):
     db_config.db_open()
-    rc, msg, user_obj = set_user_groups(db_config, request)
+    rc, msg, user_obj = set_user_groups(db_config, request, False)
     if group_name is None:
         group_name = user_obj.active_group
 
@@ -380,7 +380,7 @@ def download_image(request, image_name, group_name=None):
 @silkp(name='Upload Image')
 def upload_image(request, group_name=None):
     db_config.db_open()
-    rc, msg, user_obj = set_user_groups(db_config, request)
+    rc, msg, user_obj = set_user_groups(db_config, request, False)
     if group_name is None:
         group_name = user_obj.active_group
     try:
