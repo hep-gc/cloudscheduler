@@ -122,7 +122,7 @@ def foreign(request):
 
 @silkp(name="VM List")
 @requires_csrf_token
-def list(request):
+def list(request, message=None):
 
     # open the database.
     config.db_open()
@@ -159,7 +159,7 @@ def list(request):
             'user_groups': active_user.user_groups,
             'vm_list': vm_list,
             'response_code': 0,
-            'message': None,
+            'message': message,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
