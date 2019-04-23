@@ -528,7 +528,7 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endwith %}                        
                                     </td>
 
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} vms_quota" class="plottable">
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_quota" class="plottable">
                                         {% with total=cloud.VMs_quota %}
                                             {% if total == 0 %}
                                                 <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
