@@ -7,6 +7,31 @@ from sqlalchemy.ext.automap import automap_base
 rowid_dict = {}
 attr_list_dict = {}
 
+def map_attribute_names(src, dest, attribute_names):
+    global rowid_dict
+    global attr_list_dict
+
+    if isinstance(attribute_names, list):
+        attribute_name_list = attribute_names
+    else:
+        attribute_name_list = [str(attribute_names)]
+
+    if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
+        build_mapping_dictionaries()
+
+    print(rowid_dict)
+    print(attr_list_dict)
+    mapped_list = []
+    unmapped_list = []
+    for attribute_name in attribute_name_list:
+        if attribute_name in rowid_dict[src]:
+            mapped_list.append('x')
+        else:
+            unmapped_list.append((attribut_name))
+
+    
+    return mapped_list, unmapped_list
+
 def map_attributes(src, dest, attr_dict):
     global rowid_dict
     global attr_list_dict
@@ -70,6 +95,8 @@ def build_mapping_dictionaries():
                 row_dict[row.ec2_limits] = row_id
             elif language == "ec2_networks":
                 row_dict[row.ec2_limits] = row_id
+            elif language == "ec2_regions":
+                row_dict[row.ec2_regions] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
@@ -104,8 +131,10 @@ def build_mapping_dictionaries():
                 attr_list.append(row.ec2_flavors)
             elif language == "ec2_limits":
                 attr_list.append(row.ec2_limits)
-            elif language == "ec2_limits":
+            elif language == "ec2_networks":
                 attr_list.append(row.ec2_networks)
+            elif language == "ec2_regions":
+                attr_list.append(row.ec2_regions)
             else:
                 print("Found column not implemented in code, breaking")
                 break
