@@ -8,6 +8,20 @@ rowid_dict = {}
 attr_list_dict = {}
 
 def map_attribute_names(src, dest, attribute_names):
+    """
+    Example:
+        from cloudscheduler.lib.attribute_mapper import map_attribute_names
+        column_map, bad_columns = map_attribute_names('ec2_regions', 'csv2', tables[config.ec2_region_and_endpoint_table]['heads'])
+        if len(bad_columns) > 1:
+            logging.error(<some_message>)
+            exit(1)
+
+        for attribute_name in tables[config.ec2_region_and_endpoint_table]['heads']:
+            if attribute_name in column_map:
+                print("Attribute: %s (ec2_regions) = %s (csv2)" % (attribute_name, column_map[attribute_name]))
+
+    """
+
     global rowid_dict
     global attr_list_dict
 
@@ -19,18 +33,15 @@ def map_attribute_names(src, dest, attribute_names):
     if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
         build_mapping_dictionaries()
 
-    print(rowid_dict)
-    print(attr_list_dict)
-    mapped_list = []
+    mapped_dict = {}
     unmapped_list = []
     for attribute_name in attribute_name_list:
         if attribute_name in rowid_dict[src]:
-            mapped_list.append('x')
+            mapped_dict[attribute_name] = attr_list_dict[dest][rowid_dict[src][attribute_name]]
         else:
-            unmapped_list.append((attribut_name))
-
+            unmapped_list.append(attribute_name)
     
-    return mapped_list, unmapped_list
+    return mapped_dict, unmapped_list
 
 def map_attributes(src, dest, attr_dict):
     global rowid_dict
