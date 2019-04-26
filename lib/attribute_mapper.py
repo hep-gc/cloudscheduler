@@ -84,6 +84,8 @@ def build_mapping_dictionaries():
             # These ifs will need to be updated every time a new translation language is added
             # since there is no way to use the contents of a variable as a variable name reliably
             # (possible with exec())
+            row_dict[row.__dict__[language]] = row_id
+            '''
             if language == "csv2":
                 row_dict[row.csv2] = row_id
             elif language == "os_limits":
@@ -111,6 +113,7 @@ def build_mapping_dictionaries():
             else:
                 print("Found column not implemented in code, breaking")
                 break
+            '''
             row_id = row_id + 1
         rowid_dict[language] = row_dict
 
@@ -122,6 +125,9 @@ def build_mapping_dictionaries():
             # These ifs will need to be updated every time a new translation language is added
             # since there is no way to use the contents of a variable as a variable name reliably
             # (possible with exec())
+            if row.__dict__[language] is not None:
+                attr_list.append(row.__dict__[language])
+            '''
             if language == "csv2":
                 attr_list.append(row.csv2)
             elif language == "os_limits":
@@ -149,6 +155,7 @@ def build_mapping_dictionaries():
             else:
                 print("Found column not implemented in code, breaking")
                 break
+            '''
         attr_list_dict[language] = attr_list
 
     return True
