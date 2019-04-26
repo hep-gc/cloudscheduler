@@ -1,21 +1,115 @@
 #!/usr/bin/env python3
-from cloudscheduler.lib.db_config import Config
-from cloudscheduler.lib.html_tables_to_dictionary import get_html_tables
 import logging
 import os
 import sys
 
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.html_tables_to_dictionary import get_html_tables
+from cloudscheduler.lib.attribute_mapper import map_attributes
 
-tables = get_html_tables(config.ec2_regions_and_endpoints_url)
-print(tables)
 
-if config.ec2_regions_and_endpoints_table not in tables:
-    0/0
 
-for table in [config.ec2_regions_and_endpoints_table]:
-    print(table)
-    if 'heads' in tables[table]:
-        print('   ', '%-48s' * len(tables[table]['heads']) % tuple(tables[table]['heads']))
-        for row in tables[table]['rows']:
-            print('   ', '%-48s' * len(row) % tuple(row))
+def updateEC2RegionsTable():
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    REGION = config.db_map.classes.ec2_regions
+
+    config.db_open()
+    db_session = config.db_session
+
+    try:
+        tables = get_html_tables(config.ec2_regions_and_endpoints_url)
+
+        if config.ec2_regions_and_endpoints_table not in tables:
+            logging.error("EC2 region table \"{}\" not found in html at {}. Exiting...".format(config.ec2_regions_and_endpoints_table,config.ec2_regions_and_endpoints_url))
+            close(config, db_session)
+            return
+
+        region_dict_list = []
+        for table in [config.ec2_regions_and_endpoints_table]:
+            #print(table)
+            if 'heads' in tables[table]:
+                #print('   ', '%-48s' * len(tables[table]['heads']) % tuple(tables[table]['heads']))
+                headings = tables[table]['heads']
+                headings.remove("Protocol")
+                for row in tables[table]['rows']:
+                    #print('   ', '%-48s' * len(row) % tuple(row))
+                    region_dict = {}
+                    for i,head in enumerate(headings):
+                        region_dict[head] = row[i]
+                    region_dict_list.append(region_dict)
+            else:
+                logging.error("Could not get headings/column names from table: {}. Exiting...".format(config.ec2_regions_and_endpoints_table))
+                close(config, db_session)
+                return
+
+        # Update ec2_regions table
+        uncommitted_updates = 0
+        for region_dict in region_dict_list:
+            region_dict, unmapped = map_attributes(src="ec2_regions", dest="csv2", attr_dict=region_dict)
+            if unmapped:
+                logging.error("Unmapped columns found during mapping: {}".format(unmapped))
+                logging.error("Exiting...")
+                close(config, db_session)
+                return
+            new_region = REGION(**region_dict)
+            try:
+                db_session.merge(new_region)
+                uncommitted_updates += 1
+            except Exception as exc:
+                logging.exception("Failed to merge region entry for {}. Exiting with {} uncommitted updates ...".format(region_dict["region"], uncommitted_updates))
+                close(config, db_session)
+                return
+        if uncommitted_updates > 0:
+            try:
+                db_session.commit()
+                logging.info("Region updates comitted: {}".format(uncommitted_updates))
+            except Exception as exc:
+                logging.exception("Failed to commit region updates for ec2 region table. Exiting...")
+                close(config, db_session)
+                return
+
+        # Delete any regions not updated
+        uncommitted_deletions = 0
+        regions = db_session.query(REGION)
+        for region in regions:
+            if region.region not in [new_region["Region"] for new_region in region_dict_list]:
+                try:
+                    db_session.delete(region)
+                    uncommitted_deletions += 1
+                except Exception as exc:
+                    logging.exception("Failed to delete region entry for {}. Exiting with {} uncommitted deletions ...".format(region, uncommitted_deletions))
+                    close(config, db_session)
+                    return
+        if uncommitted_deletions > 0:
+            try:
+                db_session.commit()
+                logging.info("Region deletions comitted: {}".format(uncommitted_deletions))
+            except Exception as exc:
+                logging.exception("Failed to commit region deletions for ec2 region table. Exiting...")
+                close(config, db_session)
+                return
+        
+
+        close(config, db_session)
+        logging.info("************************** ec2 table update complete **************************")
+
+    except Exception as exc:
+        logging.exception("Unhandled exception during ec2 region table update process...")
+        return
+
+
+def close(config, db_session):
+    config.db_close()
+    del db_session
+
+
+# main
+if __name__ == '__main__':
+    
+    # Set up logging file
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    logging.basicConfig(filename=config.log_file, level=config.log_level, format='%(asctime)s - Update EC2 Region Table - %(levelname)s - %(message)s')
+    
+    logging.info("**************************** starting to update ec2 region table ****************************")
+    updateEC2RegionsTable()
