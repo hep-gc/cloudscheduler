@@ -371,11 +371,6 @@ csv2_mime_types = Table('csv2_mime_types', metadata,
   Column('mime_type', String(32), primary_key=True)
   )
 
-csv2_poll_times = Table('csv2_poll_times', metadata,
-  Column('process_id', String(64), primary_key=True),
-  Column('last_poll', Integer)
-  )
-
 csv2_service_catalog = Table('csv2_service_catalog', metadata,
   Column('service', String(64), primary_key=True),
   Column('fqdn', String(128), primary_key=True),
@@ -512,81 +507,6 @@ ec2_regions = Table('ec2_regions', metadata,
   Column('endpoint', String(128))
   )
 
-kill_retire_priority_list = Table('kill_retire_priority_list', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('vmid', String(128)),
-  Column('flavor_id', String(128)),
-  Column('machine', String(256)),
-  Column('killed', Integer),
-  Column('retired', Integer),
-  Column('priority', Integer),
-  Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
-  Column('cores', Integer),
-  Column('ram', Integer)
-  )
-
-silk_profile = Table('silk_profile', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('name', String(300)),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('file_path', String(300)),
-  Column('line_num', Integer),
-  Column('end_line_num', Integer),
-  Column('func_name', String(300)),
-  Column('exception_raised', Integer),
-  Column('dynamic', Integer),
-  Column('request_id', String(36))
-  )
-
-silk_profile_queries = Table('silk_profile_queries', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('profile_id', Integer),
-  Column('sqlquery_id', Integer)
-  )
-
-silk_request = Table('silk_request', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('path', String(190)),
-  Column('query_params', String),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('method', String(10)),
-  Column('start_time', Integer),
-  Column('view_name', String(190)),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('encoded_headers', String),
-  Column('meta_time', Float),
-  Column('meta_num_queries', Integer),
-  Column('meta_time_spent_queries', Float),
-  Column('pyprofile', String),
-  Column('num_sql_queries', Integer),
-  Column('prof_file', String(300))
-  )
-
-silk_response = Table('silk_response', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('status_code', Integer),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('encoded_headers', String),
-  Column('request_id', String(36))
-  )
-
-silk_sqlquery = Table('silk_sqlquery', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('query', String),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('traceback', String),
-  Column('request_id', String(36))
-  )
-
 view_available_resources = Table('view_available_resources', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -662,6 +582,7 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('cores_ctl', Integer),
   Column('cores_limit', Integer),
   Column('VMs_quota', Integer),
+  Column('VMs_native_foreign', Integer),
   Column('cores_quota', Integer),
   Column('cores_foreign', Integer),
   Column('cores_native_foreign', Integer),
@@ -1039,76 +960,6 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('name', String(128)),
   Column('entered_current_state', Integer),
   Column('cloud_name', String(32))
-  )
-
-view_t0 = Table('view_t0', metadata,
-  Column('group_name', String(32)),
-  Column('target_alias', String(32)),
-  Column('target_clouds', String),
-  Column('instance_type', String(512)),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('image', String),
-  Column('network', String(512)),
-  Column('keep_alive', String(512)),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('request_cpus_min', Integer),
-  Column('request_cpus_max', Integer),
-  Column('request_cpus_total', Integer),
-  Column('request_disk_min', Integer),
-  Column('request_disk_max', Integer),
-  Column('request_disk_total', Integer),
-  Column('request_ram_min', Integer),
-  Column('request_ram_max', Integer),
-  Column('request_ram_total', Integer),
-  Column('request_swap_min', Integer),
-  Column('request_swap_max', Integer),
-  Column('request_swap_total', Integer),
-  Column('queue_date', Integer),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer),
-  Column('flavors', String)
-  )
-
-view_t1 = Table('view_t1', metadata,
-  Column('group_name', String(32)),
-  Column('target_alias', String(32)),
-  Column('target_clouds', String),
-  Column('instance_type', String(512)),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('image', String),
-  Column('network', String(512)),
-  Column('keep_alive', String(512)),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('request_cpus_min', Integer),
-  Column('request_cpus_max', Integer),
-  Column('request_cpus_total', Integer),
-  Column('request_disk_min', Integer),
-  Column('request_disk_max', Integer),
-  Column('request_disk_total', Integer),
-  Column('request_ram_min', Integer),
-  Column('request_ram_max', Integer),
-  Column('request_ram_total', Integer),
-  Column('request_swap_min', Integer),
-  Column('request_swap_max', Integer),
-  Column('request_swap_total', Integer),
-  Column('queue_date', Integer),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer),
-  Column('flavors', String)
   )
 
 view_user_groups = Table('view_user_groups', metadata,
