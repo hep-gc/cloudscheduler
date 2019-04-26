@@ -25,9 +25,9 @@ else if (refresh_interval < 1) stop_refresh;
     function set_refresh(time) {
         TimerSwitch = 1;
         timer_id = setTimeout(function() {
-            var checked = false;
+            /*var checked = false;
             if(document.getElementById('toggle-row').checked == true) checked = true;
-            sessionStorage.setItem("extra-row", JSON.stringify(checked));
+            sessionStorage.setItem("extra-row", JSON.stringify(checked));*/
             refresh_plot();
             var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
@@ -77,10 +77,21 @@ else if (refresh_interval < 1) stop_refresh;
         stop_refresh();
         document.getElementById('vms-iframe').src='/vm/foreign/'+url;
     }
+
+    function toggle_state(){
+        if(document.getElementById('toggle-row').checked == true){
+            sessionStorage.setItem("expand", 1);
+        }
+        else{
+            sessionStorage.setItem("expand", 0);
+        }
+    }
+
+
 </script>
 </head>
 
-<body class="status-nav">
+<body class="status-nav" onpageshow="set_state();">
 
 
 {% if err_message is not None %}
@@ -144,7 +155,7 @@ else if (refresh_interval < 1) stop_refresh;
     <div class="status-div" id="status">
 
         <div>
-            <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
+            <input class="toggle-box" id="toggle-row" type="checkbox" onclick="toggle_state();"></input>
             <div class="status-table">
 
                 <div class="toggle-button">
@@ -1161,7 +1172,6 @@ else if (refresh_interval < 1) stop_refresh;
     initialize();
     addEventListeners("range");
     sessionStorage.removeItem("traces");
-    sessionStorage.removeItem("extra-row");
 
     /*<![CDATA[*/
     var TimerVal = refresh_interval;
@@ -1176,6 +1186,16 @@ else if (refresh_interval < 1) stop_refresh;
     if (TimerVal<0) { TimerVal=0 }
     } CountDown();
     /*]]>*/
+
+
+    function set_state(){
+        if(sessionStorage.getItem("expand")==1){
+            document.getElementById("toggle-row").checked = true;
+        }
+        else{
+            document.getElementById("toggle-row").checked = false;
+        }
+    }
 </script>
 
 
