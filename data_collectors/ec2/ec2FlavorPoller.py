@@ -6,6 +6,7 @@ import time
 import sys
 import os
 import json
+import urllib.request
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -21,6 +22,96 @@ from cloudscheduler.lib.poller_functions import \
     start_cycle, \
     wait_cycle
 
+
+# Support Functions
+
+# This function checks that the local files exist, and that they are not older than a week
+def check_instance_types(config):
+    REGIONS = config.db_map.classes.ec2_regions
+
+    db_session = config.db_session
+    seven_days_ago = time.time() - 60*60*24*7
+
+    json_path = config.region_flavor_file_location
+    region_list = db_session.query(REGIONS)
+
+    for region in region_list:
+        region_path = json_path + "/" + region.region + "/instance_types.json"
+        if os.path.getctime(region_path) < seven_days_ago:
+            logging.info("%s out of date, downloading new version" % region_path)
+            # Download new version
+            refresh_instance_types(config, region_path, region.region)
+
+#This function downloads the new regional instance types file and parses them into the ec2_instance_types table
+def refresh_instance_types(config, file_path, region):
+    EC2_INSTANCE_TYPES = config.db_map.classes.ec2_instance_types
+    url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/" + region + "/index.json"
+    try:
+        urllib.request.urlretrieve(url, file_path)
+    except Exception as exc:
+        logging.error("unable to download %s:" % url)
+        logging.error(exc)
+        logging.error("Skipping region %s" % region)
+
+    #ok we've got the new file, lets parse it into our trusty database
+    fd = open(file_path)
+    itxsku = json.loads(fd.read())
+    fd.close()
+
+    ifs = {}
+    its = {}
+    pps = {}
+    for sku in itxsku['products']:
+        if itxsku['products'][sku]['productFamily'] == 'Compute Instance':
+            iff = itxsku['products'][sku]['attributes']['instanceFamily'] 
+            if iff not in ifs:
+                ifs[iff] = True
+
+            pp = itxsku['products'][sku]['attributes']['physicalProcessor'] 
+            if pp not in pps:
+                pps[pp] = True
+
+            it = itxsku['products'][sku]['attributes']['instanceType'] 
+            if it not in its:
+                if sku in itxsku['terms']['OnDemand']:
+                    cost = 0.0
+                    for offer in itxsku['terms']['OnDemand'][sku]:
+                        for rate in itxsku['terms']['OnDemand'][sku][offer]['priceDimensions']:
+                            cost = max(cost, float(itxsku['terms']['OnDemand'][sku][offer]['priceDimensions'][rate]['pricePerUnit']['USD']))
+
+                its[it] = {
+                    'region': region,
+                    'instance_type': it,
+                    'operating_system': itxsku['products'][sku]['attributes']['operating_system'],
+                    'instance_family': itxsku['products'][sku]['attributes']['instanceFamily'],
+                    'processor': itxsku['products'][sku]['attributes']['physicalProcessor'],
+                    'storage': itxsku['products'][sku]['attributes']['storage'],
+                    'cores': int(itxsku['products'][sku]['attributes']['vcpu']),
+                    'memory': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]),
+                    'mem_per_core': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]) / int(itxsku['products'][sku]['attributes']['vcpu']),
+                    'cost_per_hour': cost
+                }
+
+    # delete old entries then load the its dict into the table
+    old_its = config.db_session.query(EC2_INSTANCE_TYPES).filter(EC2_INSTANCE_TYPES.region == region)
+    for it in old_its:
+        config.db_session.delete(it)
+    config.db_session.commit()
+    # now add the updated list
+    for it in its:
+        new_it = EC2_INSTANCE_TYPES(**its[it])
+        try:
+            db_session.merge(new_it)
+        except Exception as exc:
+            logging.exception("Failed to merge instance type entry %s cancelling:" % it)
+            logging.error(exc)
+            break
+    config.db_session.commit()
+
+    return False
+
+
+# Poller Functions
 
 def flavor_poller():
     #setup
@@ -50,18 +141,16 @@ def flavor_poller():
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
-            
+
+            # First check that our ec2 instance types table is up to date:
+            check_instance_types(config)
+'''
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
             region_failure_dict = {}
             grp_flav_filter_dict = {}
             
-            # Get region instance type file location
-            config_list = db_session.query(CONFIG).filter(CONFIG.category == "ec2_retrieve_flavor_files.py", CONFIG.config_key == "region_flavor_file_location")
-            save_at = "False"
-            for con in config_list:
-                save_at = con.config_value
-                break
+            save_at = config.region_flavor_file_location
             if save_at == "False":
                 logging.error("Could not get region instance type file location...")
 
@@ -239,7 +328,7 @@ def flavor_poller():
 
             config.db_close()
             del db_session
-
+'''
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
 
 
