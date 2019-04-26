@@ -11,12 +11,23 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
+<script type="text/javascript">if typeof(set_state) === typeof(Function) set_state();</script>
 <!--<meta id="refresher" http-equiv="refresh" content="30">-->
 <script type="text/javascript">
 var refresh_interval = parseInt(document.getElementsByName('refresh_interval')[0].value);
 if (!(typeof(refresh_interval) !== 'undefined')) refresh_interval = 30;
 if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
 else if (refresh_interval < 1) stop_refresh;
+function set_state(){
+        if(sessionStorage.getItem("expand")==1){
+            document.getElementById("toggle-row").checked = true;
+        }
+        else{
+            document.getElementById("toggle-row").checked = false;
+        }
+    }
+//set_state();
+
 </script>
 <script type="text/javascript">
     /* Refresh status table and system services display*/
@@ -28,6 +39,7 @@ else if (refresh_interval < 1) stop_refresh;
             /*var checked = false;
             if(document.getElementById('toggle-row').checked == true) checked = true;
             sessionStorage.setItem("extra-row", JSON.stringify(checked));*/
+            //set_state()
             refresh_plot();
             var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
@@ -49,6 +61,7 @@ else if (refresh_interval < 1) stop_refresh;
                 document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
+                set_state();
                 checkForExpandedRow();
                 checkForPlottedTraces();
                 initialize();
@@ -1188,14 +1201,7 @@ else if (refresh_interval < 1) stop_refresh;
     /*]]>*/
 
 
-    function set_state(){
-        if(sessionStorage.getItem("expand")==1){
-            document.getElementById("toggle-row").checked = true;
-        }
-        else{
-            document.getElementById("toggle-row").checked = false;
-        }
-    }
+    
 </script>
 
 
