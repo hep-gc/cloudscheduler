@@ -251,7 +251,8 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('os_sec_grps', String(64)),
   Column('condor', String(64)),
   Column('ec2_flavors', String(64)),
-  Column('ec2_limits', String(20))
+  Column('ec2_limits', String(64)),
+  Column('ec2_regions', String(64))
   )
 
 csv2_cloud_aliases = Table('csv2_cloud_aliases', metadata,
@@ -369,11 +370,6 @@ csv2_job_schedulers = Table('csv2_job_schedulers', metadata,
 
 csv2_mime_types = Table('csv2_mime_types', metadata,
   Column('mime_type', String(32), primary_key=True)
-  )
-
-csv2_poll_times = Table('csv2_poll_times', metadata,
-  Column('process_id', String(64), primary_key=True),
-  Column('last_poll', Integer)
   )
 
 csv2_service_catalog = Table('csv2_service_catalog', metadata,
@@ -506,25 +502,32 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
+ec2_instance_type_filters = Table('ec2_instance_type_filters', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('families', String(128)),
+  Column('processor_types', String(128)),
+  Column('cores', String(32)),
+  Column('min_memory_gigabytes_per_core', Integer),
+  Column('max_memory_gigabytes_per_core', Integer)
+  )
+
+ec2_instance_types = Table('ec2_instance_types', metadata,
+  Column('region', String(32), primary_key=True),
+  Column('instance_type', String(32), primary_key=True),
+  Column('operating_system', String(32), primary_key=True),
+  Column('instance_family', String(32)),
+  Column('processor', String(64)),
+  Column('storage', String(32)),
+  Column('cores', Integer),
+  Column('memory', Integer),
+  Column('mem_per_core', Integer),
+  Column('cost_per_hour', Integer)
+  )
+
 ec2_regions = Table('ec2_regions', metadata,
   Column('region', String(64), primary_key=True),
   Column('location', String(64)),
   Column('endpoint', String(128))
-  )
-
-kill_retire_priority_list = Table('kill_retire_priority_list', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('vmid', String(128)),
-  Column('flavor_id', String(128)),
-  Column('machine', String(256)),
-  Column('killed', Integer),
-  Column('retired', Integer),
-  Column('priority', Integer),
-  Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
-  Column('cores', Integer),
-  Column('ram', Integer)
   )
 
 silk_profile = Table('silk_profile', metadata,
@@ -662,6 +665,7 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('cores_ctl', Integer),
   Column('cores_limit', Integer),
   Column('VMs_quota', Integer),
+  Column('VMs_native_foreign', Integer),
   Column('cores_quota', Integer),
   Column('cores_foreign', Integer),
   Column('cores_native_foreign', Integer),
@@ -937,7 +941,7 @@ view_foreign_resources = Table('view_foreign_resources', metadata,
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('group_name', String(32)),
-  Column('target_alias', String(32)),
+  Column('target_alias_clouds', String),
   Column('target_clouds', String),
   Column('instance_type', String(512)),
   Column('requirements', String(512)),
@@ -1041,76 +1045,6 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('cloud_name', String(32))
   )
 
-view_t0 = Table('view_t0', metadata,
-  Column('group_name', String(32)),
-  Column('target_alias', String(32)),
-  Column('target_clouds', String),
-  Column('instance_type', String(512)),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('image', String),
-  Column('network', String(512)),
-  Column('keep_alive', String(512)),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('request_cpus_min', Integer),
-  Column('request_cpus_max', Integer),
-  Column('request_cpus_total', Integer),
-  Column('request_disk_min', Integer),
-  Column('request_disk_max', Integer),
-  Column('request_disk_total', Integer),
-  Column('request_ram_min', Integer),
-  Column('request_ram_max', Integer),
-  Column('request_ram_total', Integer),
-  Column('request_swap_min', Integer),
-  Column('request_swap_max', Integer),
-  Column('request_swap_total', Integer),
-  Column('queue_date', Integer),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer),
-  Column('flavors', String)
-  )
-
-view_t1 = Table('view_t1', metadata,
-  Column('group_name', String(32)),
-  Column('target_alias', String(32)),
-  Column('target_clouds', String),
-  Column('instance_type', String(512)),
-  Column('requirements', String(512)),
-  Column('job_priority', Integer),
-  Column('user', String(512)),
-  Column('image', String),
-  Column('network', String(512)),
-  Column('keep_alive', String(512)),
-  Column('max_price', String(512)),
-  Column('user_data', String(512)),
-  Column('job_per_core', Integer),
-  Column('request_cpus_min', Integer),
-  Column('request_cpus_max', Integer),
-  Column('request_cpus_total', Integer),
-  Column('request_disk_min', Integer),
-  Column('request_disk_max', Integer),
-  Column('request_disk_total', Integer),
-  Column('request_ram_min', Integer),
-  Column('request_ram_max', Integer),
-  Column('request_ram_total', Integer),
-  Column('request_swap_min', Integer),
-  Column('request_swap_max', Integer),
-  Column('request_swap_total', Integer),
-  Column('queue_date', Integer),
-  Column('idle', Integer),
-  Column('running', Integer),
-  Column('completed', Integer),
-  Column('held', Integer),
-  Column('other', Integer),
-  Column('flavors', String)
-  )
-
 view_user_groups = Table('view_user_groups', metadata,
   Column('username', String(32)),
   Column('cert_cn', String(128)),
@@ -1176,7 +1110,6 @@ view_vms = Table('view_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
-  Column('cloud_type', String(64)),
   Column('vm_ips', String(128)),
   Column('vm_floating_ips', String(128)),
   Column('auth_url', String(128)),
