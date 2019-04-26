@@ -1,0 +1,27 @@
+---
+# file: install_python3.yaml.
+
+- name: install repository for python3
+  yum: name={{ item }} state=installed
+  with_items:
+  - https://centos7.iuscommunity.org/ius-release.rpm
+
+- name: install packages required for python3
+  yum: name={{ item }} state=installed
+  with_items:
+  - python36u
+  - python36u-devel
+  - python36u-pip
+
+- name: create python3 symbolic link
+  file:
+    src: /usr/bin/python3.6
+    dest: /usr/bin/python3
+    state: link
+
+- name: create pip3 symbolic link
+  file:
+    src: /usr/bin/pip3.6
+    dest: /usr/bin/pip3
+    force: yes
+    state: link

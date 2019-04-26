@@ -1,0 +1,30 @@
+#!/bin/env python3
+from subprocess import Popen, PIPE
+import os
+import sys
+
+def syscmd (gvar, cmd, cwd=None):
+    if cwd:
+        p = Popen(cmd, cwd=cwd, stdout=PIPE, stderr=PIPE)
+    else:
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+
+    stdout, stderr = p.communicate()
+
+    print(stdout)
+    print(stderr)
+
+    return p.returncode, stdout, stderr
+
+gvar = {}
+gvar['cmd_path'] = os.path.realpath(sys.argv[0])
+gvar['bread_crumbs'] = gvar['cmd_path'].split('/')
+gvar['bread_crumbs_ix'] = gvar['bread_crumbs'].index('cloudscheduler')
+gvar['root_dir'] = '/'.join(gvar['bread_crumbs'][:gvar['bread_crumbs_ix']])
+
+syscmd(gvar, ['rm', '-rf', 'ansible-playbook'], cwd='%s/cloudscheduler' % gvar['root_dir'])
+syscmd(gvar, ['mv', '.ansible-systems', '.ansible-systems-save'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
+syscmd(gvar, ['.bin/ansible_util', '-s', 'csv2-sa'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
+syscmd(gvar, ['cp', '-rpL', '%s/Inventory/heprc/.ansible-systems/staticvms' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook' % gvar['root_dir']])
+syscmd(gvar, ['mv', '.ansible-systems-save', '.ansible-systems'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
+

@@ -1,0 +1,33 @@
+- name: install openssl
+  yum:
+    name: openssl
+    state: latest
+
+- name: create localhost cert and key
+  shell: openssl req -x509 -out localhost.crt -keyout localhost.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -extensions EXT -config <( printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+  args:
+    executable: /bin/bash
+
+- name: create directory to contain localhost cert and key
+  file:
+      path: /local_ssl
+      owner: root
+      group: root
+      state: directory
+
+- name: move the localhost cert and key to their new directory
+  shell: mv localhost.crt localhost.key /local_ssl
+
+- name: copy the localhost cert and key to anchors
+  copy:
+    src: /local_ssl/{{ item }}
+    dest: /etc/pki/ca-trust/source/anchors/{{ item }}
+    owner: root
+    group: root
+    remote_src: true
+  with_items:
+      - localhost.crt
+      - localhost.key
+
+- name: Run update-ca-trust
+  command: update-ca-trust

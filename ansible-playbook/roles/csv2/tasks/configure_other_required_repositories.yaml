@@ -1,0 +1,11 @@
+---
+# file: configure_required_repositories.yaml.
+
+- name: be sure the epel repository is installed
+  yum: name=epel-release state=present
+
+- name: configure the local yum repositories
+  copy: src=etc_yum.repos.d_{{ item }} dest=/etc/yum.repos.d/{{ item }} owner=root group=bin mode=0644
+  with_items:
+  - heprc.repo
+  when: (container is undefined) or (container == False)

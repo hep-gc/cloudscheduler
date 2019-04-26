@@ -1,0 +1,18 @@
+---
+# create_mysqldb_csv2.yaml
+
+- name: create csv2 user
+  mysql_user:
+    name: csv2
+    password: "{{ mariadb_cloudscheduler }}"
+    priv: '*.*:ALL,GRANT'
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_root }}"
+
+- name: create csv2 database
+  mysql_db:
+    name: csv2
+    state: present
+    login_user: csv2
+    login_password: "{{ mariadb_cloudscheduler }}"

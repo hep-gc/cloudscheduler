@@ -1,0 +1,26 @@
+DEVICE={{ item.nic }}
+HWADDR={{ item.mac }}
+TYPE=Ethernet
+MTU={{ item.mtu }}
+BOOTPROTO=none
+NM_CONTROLLED=no
+ONBOOT=yes
+{% if item.bridge != '-' %}
+BRIDGE={{ item.bridge }}
+{% else %}
+IPADDR={{ item.ipv4 }}
+NETMASK={{ item.ipv4mask }}
+{% if item.ext == 'y' %}
+GATEWAY={{ item.ipv4gw }}
+ZONE=public
+DNS1=142.104.6.1
+DNS2=142.104.80.2
+{% else %}
+ZONE=internal
+{% endif %}
+{% if ( (undefine_ipv6 is not defined) or (undefine_ipv6 != True) ) and (item.ipv6 != '-') %}
+IPV6INIT=yes
+IPV6ADDR={{ item.ipv6 }}/{{ item.ipv6len }}
+IPV6_DEFAULTGW={{ item.ipv6gw }}/{{ item.ipv6len }}
+{% endif %}
+{% endif %}
