@@ -7,6 +7,42 @@ from sqlalchemy.ext.automap import automap_base
 rowid_dict = {}
 attr_list_dict = {}
 
+def map_attribute_names(src, dest, attribute_names):
+    """
+    Example:
+        from cloudscheduler.lib.attribute_mapper import map_attribute_names
+        column_map, bad_columns = map_attribute_names('ec2_regions', 'csv2', tables[config.ec2_region_and_endpoint_table]['heads'])
+        if len(bad_columns) > 1:
+            logging.error(<some_message>)
+            exit(1)
+
+        for attribute_name in tables[config.ec2_region_and_endpoint_table]['heads']:
+            if attribute_name in column_map:
+                print("Attribute: %s (ec2_regions) = %s (csv2)" % (attribute_name, column_map[attribute_name]))
+
+    """
+
+    global rowid_dict
+    global attr_list_dict
+
+    if isinstance(attribute_names, list):
+        attribute_name_list = attribute_names
+    else:
+        attribute_name_list = [str(attribute_names)]
+
+    if len(rowid_dict) == 0 or len(attr_list_dict) == 0:
+        build_mapping_dictionaries()
+
+    mapped_dict = {}
+    unmapped_list = []
+    for attribute_name in attribute_name_list:
+        if attribute_name in rowid_dict[src]:
+            mapped_dict[attribute_name] = attr_list_dict[dest][rowid_dict[src][attribute_name]]
+        else:
+            unmapped_list.append(attribute_name)
+    
+    return mapped_dict, unmapped_list
+
 def map_attributes(src, dest, attr_dict):
     global rowid_dict
     global attr_list_dict
@@ -48,6 +84,8 @@ def build_mapping_dictionaries():
             # These ifs will need to be updated every time a new translation language is added
             # since there is no way to use the contents of a variable as a variable name reliably
             # (possible with exec())
+            row_dict[row.__dict__[language]] = row_id
+            '''
             if language == "csv2":
                 row_dict[row.csv2] = row_id
             elif language == "os_limits":
@@ -70,9 +108,12 @@ def build_mapping_dictionaries():
                 row_dict[row.ec2_limits] = row_id
             elif language == "ec2_networks":
                 row_dict[row.ec2_limits] = row_id
+            elif language == "ec2_regions":
+                row_dict[row.ec2_regions] = row_id
             else:
                 print("Found column not implemented in code, breaking")
                 break
+            '''
             row_id = row_id + 1
         rowid_dict[language] = row_dict
 
@@ -84,6 +125,9 @@ def build_mapping_dictionaries():
             # These ifs will need to be updated every time a new translation language is added
             # since there is no way to use the contents of a variable as a variable name reliably
             # (possible with exec())
+            if row.__dict__[language] is not None:
+                attr_list.append(row.__dict__[language])
+            '''
             if language == "csv2":
                 attr_list.append(row.csv2)
             elif language == "os_limits":
@@ -104,11 +148,14 @@ def build_mapping_dictionaries():
                 attr_list.append(row.ec2_flavors)
             elif language == "ec2_limits":
                 attr_list.append(row.ec2_limits)
-            elif language == "ec2_limits":
+            elif language == "ec2_networks":
                 attr_list.append(row.ec2_networks)
+            elif language == "ec2_regions":
+                attr_list.append(row.ec2_regions)
             else:
                 print("Found column not implemented in code, breaking")
                 break
+            '''
         attr_list_dict[language] = attr_list
 
     return True
