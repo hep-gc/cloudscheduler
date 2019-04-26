@@ -36,12 +36,8 @@ if config.enable_profiling:
     SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
     # command to manually clear request log: python3 manage.py silk_clear_request_log
 
-ALLOWED_HOSTS = ["csv2.heprc.uvic.ca",
-                 "csv2-dev.heprc.uvic.ca",
-                 "csv2-dev2.heprc.uvic.ca",
-                 "csv2-dev3.heprc.uvic.ca",
-                 "htc-dev.heprc.uvic.ca",
-                 "localhost"
+ALLOWED_HOSTS = [
+                'csv2a.heprc.uvic.ca'
                 ]
 
 LOGGING = {
