@@ -30,6 +30,7 @@ class EC2Cloud(basecloud.BaseCloud):
         self.authurl = resource.authurl  # endpoint_url
         self.keyname = resource.keyname
         self.project = resource.project
+        self.spot_price = resource.spot_price
 
 
     def _get_client(self):
@@ -51,8 +52,16 @@ class EC2Cloud(basecloud.BaseCloud):
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
         client = self._get_client()
-        new_vm = client.run_instances(ImageId=job.image, MinCount=1, MaxCount=num, InstanceType=flavor,
-                                      UserData=userdata, KeyName=self.keyname, SecurityGroups=job.security_groups)
+        if self.spot_price <= 0:
+            new_vm = client.run_instances(ImageId=job.image, MinCount=1, MaxCount=num, InstanceType=flavor,
+                                          UserData=userdata, KeyName=self.keyname, SecurityGroups=job.security_groups)
+        else:
+            specs = {'ImageId': job.image,
+                     'InstanceType': flavor,
+                     'KeyName': self.keyname,
+                     'Userdata': userdata,
+                     'SecurityGroups': job.security_groups}
+            new_vm = client.request_spot_instances(SpotPrice=self.spot_price, Type='one-time', InstanceCount=num, LaunchSpecifications=specs)
         if 'Instances' in new_vm.keys():
             engine = self._get_db_engine()
             base = automap_base()
@@ -73,6 +82,32 @@ class EC2Cloud(basecloud.BaseCloud):
                     'vmid': vm['InstanceId'],
                     'status': vm['State']['Name'],
                     'flavor_id': vm['InstanceType'],
+                    'last_updated': int(time.time()),
+                    'keep_alive': self.keep_alive,
+                    'start_time': int(time.time()),
+                }
+                new_vm = vms(**vm_dict)
+                db_session.merge(new_vm)
+            db_session.commit()
+        elif 'SpotInstanceRequests' in new_vm.keys():
+            engine = self._get_db_engine()
+            base = automap_base()
+            base.prepare(engine, reflect=True)
+            db_session = Session(engine)
+            vms = base.classes.csv2_vms
+
+            for vm in new_vm['SpotInstanceRequests']:
+                self.log.debug(vm)
+                vm_dict = {
+                    'group_name': self.group,
+                    'cloud_name': self.name,
+                    'auth_url': self.authurl,
+                    'project': self.project,
+                    'vmid': vm['InstanceId'],
+                    'hostname': '',
+                    'reservation_id': vm['SpotInstanceRequestId'],
+                    'status': vm['State'],
+                    'flavor_id': vm['LaunchSpecification']['InstanceType'],
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time()),
