@@ -46,6 +46,14 @@ def get_html_tables(html_file):
 
 
         def handle_endtag(self, tag):
+            if tag == 'table':
+                table_name = self.state['table_name']
+                if 'heads' not in self.state['tables'][table_name]:
+                    self.state['tables'][table_name]['heads'] = []
+                    if len(self.state['tables'][table_name]['rows']) > 0:
+                        for ix in range(1, len(self.state['tables'][table_name]['rows'][0])+1):
+                            self.state['tables'][table_name]['heads'].append('Unlabelled Column %s' % ix)
+                    
             if tag == 'tr':
                 table_name = self.state['table_name']
                 if self.state['heading']:
