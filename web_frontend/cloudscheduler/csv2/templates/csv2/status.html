@@ -11,24 +11,14 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
-<script type="text/javascript">if typeof(set_state) === typeof(Function) set_state();</script>
-<!--<meta id="refresher" http-equiv="refresh" content="30">-->
 <script type="text/javascript">
+/* Get custom refresh interval, default = 30 seconds*/
 var refresh_interval = parseInt(document.getElementsByName('refresh_interval')[0].value);
 if (!(typeof(refresh_interval) !== 'undefined')) refresh_interval = 30;
 if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
 else if (refresh_interval < 1) stop_refresh;
-function set_state(){
-        if(sessionStorage.getItem("expand")==1){
-            document.getElementById("toggle-row").checked = true;
-        }
-        else{
-            document.getElementById("toggle-row").checked = false;
-        }
-    }
-//set_state();
-
 </script>
+
 <script type="text/javascript">
     /* Refresh status table and system services display*/
     var TimerSwitch = 1;
@@ -36,10 +26,7 @@ function set_state(){
     function set_refresh(time) {
         TimerSwitch = 1;
         timer_id = setTimeout(function() {
-            /*var checked = false;
-            if(document.getElementById('toggle-row').checked == true) checked = true;
-            sessionStorage.setItem("extra-row", JSON.stringify(checked));*/
-            //set_state()
+
             refresh_plot();
             var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
@@ -99,13 +86,12 @@ function set_state(){
             sessionStorage.setItem("expand", 0);
         }
     }
-
-
 </script>
+
 </head>
 
-<body class="status-nav" onpageshow="set_state();">
 
+<body class="status-nav" onpageshow="set_state();">
 
 {% if err_message is not None %}
     <p style="color:red;">{{err_message}}</p>
@@ -124,7 +110,7 @@ function set_state(){
         </div>
 
     </div>
-    <!--Range Selection -->
+    <!--Range selection dropdown menu-->
     <div class="range-dropdown">
         <button id="range-select" class="range-btn" onclick="dropDown()">Last 1 hour<span class="space"></span>
             <span class="caret"></span>
@@ -164,11 +150,11 @@ function set_state(){
     </button>
 </div>
 
-
+<!-- Status tables-->
     <div class="status-div" id="status">
 
         <div>
-            <input class="toggle-box" id="toggle-row" type="checkbox" onclick="toggle_state();"></input>
+            <input class="toggle-box" id="toggle-row" type="checkbox" onload="set_state()" onclick="toggle_state();"></input>
             <div class="status-table">
 
                 <div class="toggle-button">
@@ -255,6 +241,8 @@ function set_state(){
 
 
                             </tr>
+
+                            <!-- Jobs expand row to show cores-->
                             <tr class="extra-row">
                                 <td></td>
                                 <td></td>
@@ -585,7 +573,7 @@ function set_state(){
 
                                 </tr>
 
-
+                                <!-- Cloud status expand row to show details-->
                                 <tr class="extra-row">
                                     <td></td>
                                     <td>
@@ -744,6 +732,7 @@ function set_state(){
                     {% else %}
                         {% set group_total = global_total_list %}
                         {% for group in user_groups %}
+                            <!-- Get list of groups user is a part of -->
                             <input type='hidden' name='groups_total' value={{group}} />
                         {% endfor %}
                         {% set group_name = "groups_total" %}
@@ -1167,7 +1156,6 @@ function set_state(){
     </div>
 </div>
 
-
 <div id="vms-overlay" class="overlay">
     <div class="popup">
         <a class="close" id="timer-count" onclick="set_refresh(refresh_interval*1000)" href="#">&times;</a>
@@ -1175,33 +1163,28 @@ function set_state(){
     </div>
 </div>
 
+
+<!-- status js -->
+<script rel="preload" type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
 <!-- Plotly.js -->
 <script rel="preload" type="text/javascript" src="{% static "plotly.js/dist/plotly.min.js" %}?{{version}}"></script>
 
-
-<script type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
 <script type="text/javascript">
     /*Add event listeners once page loads*/
     initialize();
     addEventListeners("range");
+    // Remove old traces
     sessionStorage.removeItem("traces");
 
-    /*<![CDATA[*/
     var TimerVal = refresh_interval;
-    /* var TimerVal = 30;*/
     var TimerSPan = document.getElementById("CDTimer");
     set_refresh(refresh_interval*1000);
-    /*set_refresh(30000);*/
     function CountDown(){
     setTimeout( "CountDown()", 1000 );
     TimerSPan.innerHTML=TimerVal;
     if(TimerSwitch == 1){TimerVal=TimerVal-1;}
     if (TimerVal<0) { TimerVal=0 }
     } CountDown();
-    /*]]>*/
-
-
-    
 </script>
 
 
