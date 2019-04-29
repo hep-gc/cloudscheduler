@@ -1,0 +1,6 @@
+---
+
+- hosts: csv2
+  roles:
+  - csv2
+
