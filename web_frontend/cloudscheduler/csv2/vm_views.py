@@ -122,7 +122,7 @@ def foreign(request):
 
 @silkp(name="VM List")
 @requires_csrf_token
-def list(request, message=None):
+def list(request, args=None, response_code=0, message=None):
 
     # open the database.
     config.db_open()
@@ -134,15 +134,18 @@ def list(request, message=None):
         return render(request, 'csv2/vms.html', {'response_code': 1, 'message': msg})
 
     # Validate input fields (should be none).
-    rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
-    if rc != 0:
-        config.db_close()
-        return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('VV00'), msg)})
+    
+    if args==None:
+        args=active_user.kwargs
+        rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
+        if rc != 0:
+            config.db_close()
+            return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno('VV00'), msg)})
 
     # Retrieve VM information.
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
-#   vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], selector.split('::'), aliases=ALIASES), convert={
-    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], active_user.kwargs, aliases=ALIASES), convert={
+
+    vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], args, aliases=ALIASES), convert={
         'start_time': 'datetime',
         'status_changed_time': 'datetime',
         'retire_time': 'datetime',
@@ -158,7 +161,7 @@ def list(request, message=None):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'vm_list': vm_list,
-            'response_code': 0,
+            'response_code': response_code,
             'message': message,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
@@ -173,7 +176,6 @@ def list(request, message=None):
 @requires_csrf_token
 def update(
     request, 
-    selector='::::'
     ):
     """
     Update VMs.
@@ -218,7 +220,8 @@ def update(
             verb = 'set to system control'
         else:
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-#           return list(request, selector, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
+
+            #return list(request, active_user.kwargs, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno('VV03'), fields['vm_option']))
 
         # Retrieve VM information.
         #if fields['vm_hosts'].isnumeric():
@@ -263,8 +266,14 @@ def update(
         else:
             config.db_close()
 
-        return render(request, 'csv2/vms.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
-#       return list(request, selector, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
+        #return render(request, 'csv2/vms.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
+
+        args={}
+        args['cloud_name'] =  fields['cloud_name']
+        args['poller_status'] = fields['poller_status']
+        args['hostname'] = ''
+
+        return list(request, args, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
 
     ### Bad request.
     else:

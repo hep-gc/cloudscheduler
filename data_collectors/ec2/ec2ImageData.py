@@ -17,10 +17,12 @@ def image_poller():
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     
     CLOUD = config.db_map.classes.csv2_clouds
-    
+    #FILTERS = config.db_map.classes.csv2_clouds
+
     try:
         cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
-        
+        image_filter_dict = {}
+
         # Build unique region dict
         unique_region_dict = {}
         for cloud in cloud_list:
@@ -40,19 +42,25 @@ def image_poller():
             client = session.client('ec2')
             users2 = ['self','all']
             users1 = ['self']
+            
+            owners = []
             """
-            filters = [
+            #Filter defined for each group?
+            for (group,cloud) in unique_region_dict[region]["group-cloud"]:
+                image_filter_dict[group] = db_session.query(FILTERS).filter(FILTERS.group_name == group)
+
+            
+            default_filters = [
                         {'Name': 'image-type', 'Values': ['machine']},
                         {'Name': 'state', 'Values': ['available']},
                         {'Name': 'virtualization-type', 'Values': ['hvm']}
                       ]
 
-            image_filters = 
+            #image_filters = image_filter_dict[group]
+            
             if image_filters.owner != None:
-                values = []
                 for fil in image_filters.owner.lower().split(','):
-                    values.append(str(fil))
-                filters.append({'Name': 'owner-alias', 'Values': values})
+                    owners.append(str(fil))
             
             if image_filters.architecture != None:
                 values = []
@@ -90,7 +98,10 @@ def image_poller():
                         #{'Name': 'name', 'Values':['suse-sles-15-v????????-hvm-ssd-x86_64']}# <- SUSE Linux Enterprise Server 15
                       ]
             try:
-                image_list = client.describe_images(ExecutableUsers=users2, Filters=filters)
+                if owners:
+                    image_list = client.describe_images(ExecutableUsers=users2, Filters=filters, Owners=owners)
+                else: 
+                    image_list = client.describe_images(ExecutableUsers=users2, Filters=filters)
                 print("Got response data")
             except Exception as exc:
                 print("Failed to retrieve image data, skipping...")
