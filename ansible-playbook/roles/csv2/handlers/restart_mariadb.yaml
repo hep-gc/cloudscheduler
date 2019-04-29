@@ -1,0 +1,14 @@
+---
+# file: roles/osctl/handlers/mariadb.yaml
+
+- name: restart mariadb with service
+  service: name=mariadb enabled=yes state=restarted
+  listen: restart mariadb
+  when: (container is undefined) or (container == False)
+
+- name: restart mariadb with systemd
+  systemd: name=mariadb enabled=yes state=restarted
+  listen: restart mariadb
+  when: 
+  - container is defined
+  - container == True

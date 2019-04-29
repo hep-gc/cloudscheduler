@@ -1,0 +1,22 @@
+---
+# file: define_etc_hosts.yaml - inventory variables build a standard /etc/hosts
+
+- name: build a standard etc hosts file
+  template: src=etc_hosts.j2 dest=/etc/hosts owner=root group=root mode=0644
+  when: (container is undefined) or (container == False)
+
+- name: add -myadmin domain to the /etc/hosts file (if using container with public web)
+  shell: LINE='172.28.5.1      htc-dev-myadmin.heprc.uvic.ca'; FILE=/etc/hosts; grep -qF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+  when:
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == False
+
+- name: add localhost to the /etc/hosts file (if using container with private web)
+  shell: LINE='172.28.5.1      localhost'; FILE=/etc/hosts; grep -qF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+  when:
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == True

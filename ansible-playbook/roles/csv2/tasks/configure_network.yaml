@@ -1,0 +1,67 @@
+---
+# file: configure_network.yaml - inventory variables provide network configuration.
+
+- name: save the original ifdown command
+  command: mv /usr/sbin/ifdown /usr/sbin/ifdown-original creates=/usr/sbin/ifdown-original
+
+- name: wrap the original ifdown command temp fix for network script corruption
+  copy:
+   src: usr_sbin_ifdown
+   dest: /usr/sbin/ifdown
+   owner: root
+   group: root
+   mode: 0755
+
+- name: open internal network ports
+  firewalld: zone=internal port=0-65535/tcp  state=enabled immediate=yes permanent=yes
+  notify:
+    - restart firewalld
+
+- name: open internal network ports
+  firewalld: zone=internal port=0-65535/udp  state=enabled immediate=yes permanent=yes
+  notify:
+    - restart firewalld
+
+- name: assign interfaces to internal zone
+  firewalld: zone=internal interface={{ item.nic }} state=enabled immediate=yes permanent=yes
+  with_items: "{{ i_connections }}"
+  when: 
+    - item.ext != 'y'
+  notify:
+    - restart firewalld
+
+- name: assign interfaces to public zone
+  firewalld: zone=public interface={{ item.nic }} state=enabled immediate=yes permanent=yes
+  with_items: "{{ i_connections }}"
+  when: 
+    - item.ext == 'y'
+  notify:
+    - restart firewalld
+
+- name: apply firewall rules.
+  firewalld:
+    zone: "{{ item.zone }}"
+    rich_rule: "{{ item.rule }}"
+    state: enabled
+    immediate: yes
+    permanent: yes
+  with_items: "{{ i_firewall }}"
+  notify:
+    - restart firewalld
+
+- meta: flush_handlers
+
+- name: install customized networking scripts for bridges
+  template: src=etc_sysconfig_network-scripts_ifcfg-BRIDGE.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{ item.bridge }} owner=root group=root mode=0644
+  with_items: "{{ i_connections }}"
+  when: item.bridge != "-"
+  notify:
+    - restart network
+
+- name: install customized networking scripts for NICS
+  template: src=etc_sysconfig_network-scripts_ifcfg-NIC.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{ item.nic }} owner=root group=root mode=0644
+  with_items: "{{ i_connections }}"
+  notify:
+    - restart network
+
+- meta: flush_handlers

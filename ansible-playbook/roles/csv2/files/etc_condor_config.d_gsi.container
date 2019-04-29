@@ -1,0 +1,21 @@
+#SEC_DEFAULT_AUTHENTICATION = REQUIRED
+#SEC_DEFAULT_AUTHENTICATION_METHODS = GSI
+#SEC_DEFAULT_ENCRYPTION = REQUIRED
+#SEC_DEFAULT_ENCRYPTION_METHODS = 3DES
+#SEC_DEFAULT_INTEGRITY = REQUIRED
+#GRIDMAP = /etc/grid-security/grid-mapfile
+#GSI_DAEMON_CERT = /etc/grid-security/condor/condorcert.pem
+#GSI_DAEMON_KEY = /etc/grid-security/condor/condorkey.pem
+#GSI_DAEMON_TRUSTED_CA_DIR = /etc/grid-security/certificates/
+#GSI_DAEMON_NAME = /C=CA/O=Grid/CN=condor/condor.heprc.uvic.ca,/C=CA/O=Grid/CN=condorworker/condor.heprc.uvic.ca
+#GSI_DELEGATION_KEYBITS = 1024
+
+# clear out any host-based authorizations
+# (unnecessary if you leave authentication REQUIRED,
+#  but useful if you make it optional and want to
+#  allow some unauthenticated operations, such as
+#  ALLOW_READ = */*.cs.wisc.edu)
+HOSTALLOW_READ = *
+HOSTALLOW_WRITE = *
+HOSTALLOW_NEGOTIATOR =
+HOSTALLOW_ADMINISTRATOR =

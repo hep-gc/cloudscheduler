@@ -1,0 +1,550 @@
+- set_fact:
+    csv2_host: '{{ i_virtualhosts.0.virtualhost }}'
+    ssl_cert_file: /etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/fullchain.pem
+    ssl_key_file: /etc/letsencrypt/live/{{ i_external_connection.0.ipv4fqdn }}/privkey.pem
+  when: (local_web is undefined) or (local_web == False)
+
+- set_fact:
+    csv2_host: localhost
+    ssl_cert_file: /local_ssl/localhost.crt
+    ssl_key_file: /local_ssl/localhost.key
+  when: 
+  - local_web is defined
+  - local_web == True    
+
+- set_fact:
+    ssl_ca_cert_arg: 'SSLCACertificatePath /etc/grid-security/certificates/'
+  when: (container is undefined) or (container == False)
+
+- set_fact:
+    ssl_ca_cert_arg: 'SSLCACertificateFile /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem'
+  when: 
+  - container is defined
+  - container == True
+
+- name: install libvirt for cloudscheduler main, redis and grid security certificate package
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+  - libvirt
+  - libvirt-devel
+  - redis
+  - ca_policy_igtf-classic
+  - python36u-mod_wsgi
+  - apr-util-mysql
+
+- name: install ansible (still uses python 2.7) module prerequisites
+  pip:
+    name: "{{ item }}"
+  with_items:
+  - bcrypt==3.1.4
+
+- name: do csv2, web frontend and pollers pip3 installs
+  pip:
+    name: "{{ item }}"
+    executable: pip3
+  with_items:
+  - bcrypt==3.1.4
+  - boto3>=1.9.130
+  - sqlalchemy
+  - python-keystoneclient
+  - python-novaclient
+  - python-neutronclient
+  - python-cinderclient
+  - python-dateutil
+  - pyyaml
+  - jinja2
+  - libvirt-python
+  - py-dateutil
+  - urllib3
+  - django-mathfilters
+  - htcondor
+  - PyMySQL
+  - psutil
+  - celery[redis]
+  - python-glanceclient
+  - django==2.0.5
+  - mysqlclient
+  - django-debug-toolbar
+
+- name: create cloudscheduler user
+  user:
+    name: cloudscheduler
+  register: cloudsheduler_user
+
+- name: check that a grid proxy exists for root
+  stat:
+    path: /tmp/x509up_u0
+  register: u0_proxy
+
+- name: if the root grid proxy exists, create one for cloudscheduler
+  copy:
+    remote_src: yes
+    src: /tmp/x509up_u0
+    dest: "/tmp/x509up_u{{ cloudsheduler_user.uid }}"
+    owner: cloudscheduler
+    group: cloudscheduler
+    mode: 0600
+  when:
+  - u0_proxy.stat.exists == True
+
+- name: create celery user
+  user:
+    name: celery
+
+- name: pull down git repository
+  git:
+      repo: 'https://github.com/hep-gc/cloudscheduler.git'
+      dest: /opt/cloudscheduler/
+      force: no
+      update: no
+      version: "{{ cs_git_branch }}"
+
+- name: fetch cloudscheduler apache config template
+  fetch:
+    src: /opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2
+    dest: /tmp
+
+- name: fetch django settings template
+  fetch:
+    src: /opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py.j2
+    dest: /tmp
+
+- name: set cloudscheduler apache config
+  template:
+    src: "/tmp/{{ csv2_host }}//opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2"
+    dest: /etc/httpd/conf.d/csv2_ssl.conf
+  notify:
+    restart httpd
+
+- name: set django setttings
+  template:
+    src: "/tmp/{{ csv2_host }}//opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py.j2"
+    dest: /opt/cloudscheduler/web_frontend/cloudscheduler/cloudscheduler_web/settings.py
+  notify:
+    restart httpd
+
+- name: open https ports
+  firewalld:
+    service: https
+    permanent: true
+    state: enabled
+    immediate: true
+  when: (container is undefined) or (container == False)
+
+- name: set start condition in default.yaml.j2 for container target
+  lineinfile:
+    path: /opt/cloudscheduler/default.yaml.j2
+    regexp: '^        START = '
+    line: '        START = TRUE'
+  when: 
+  - container is defined
+  - container == True
+ 
+- name: Get public IP address
+  ipify_facts:
+
+- name: update cloudscheduler to remove ssl verification for private-web container target
+  lineinfile:
+    path: /opt/cloudscheduler/cli/bin/csv2_common.py
+    insertafter: "^            {{ item.req1 }}=\\(gvar\\['user_settings'\\]\\['{{ item.req2 }}'\\]"
+    line: '            verify=False,'
+  with_items:
+    - { req1: 'cert', req2: 'server-grid-cert' }
+    - { req1: 'auth', req2: 'server-user' }
+  when:
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == True  
+
+- name: suppress python requests warning if ssl verification removed from cloudscheduler
+  blockinfile:
+    path: /opt/cloudscheduler/cli/bin/csv2_common.py  
+    insertafter: '^    import requests as py_requests'
+    content: |2
+          import urllib3
+          urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
+  when:
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == True
+
+- name: install ace js code editor
+  git:
+      repo: 'https://github.com/ajaxorg/ace-builds.git'
+      dest: /opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/ace-builds/
+      accept_hostkey: yes
+      force: no
+      update: no
+      version: master
+
+- name: install plotly js graphing package
+  git:
+      repo: 'https://github.com/plotly/plotly.js.git'
+      dest: /opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/plotly.js/
+      accept_hostkey: yes
+      force: no
+      update: no
+      version: master      
+
+- name: copy csv2 service files
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/etc/systemd/system/{{ item }}.service
+    dest: /etc/systemd/system/{{ item }}.service
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+      - csv2-machines
+      - csv2-jobs
+      - csv2-openstack
+      - csv2-main
+      - csv2-status
+      - csv2-timeseries
+      - csv2-watch
+
+- name: copy csv2 crontab entries
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/etc/cron.d/{{ item }}
+    dest: /etc/cron.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - csv2-watch
+
+- name: copy logrotate file for pollers
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/etc/logrotate.d/{{ item }}
+    dest: /etc/logrotate.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - csv2-pollers
+
+- name: install csv2 sudoers
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/etc/sudoers.d/{{ item }}
+    dest: /etc/sudoers.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - cloudscheduler
+
+- name: Create cloudscheduler config directory
+  file:
+      path=/etc/cloudscheduler
+      state=directory
+      owner=root
+      group=cloudscheduler
+
+- set_fact:
+    db_hostname: "{{ i_external_connection.0.ipv4fqdn }}"
+  when: (local_web is undefined) or (local_web == False)
+
+- set_fact:
+    db_hostname: "localhost"
+  when:
+  - container is defined
+  - container == True
+  - local_web is defined
+  - local_web == True
+
+- name: add cloudscheduler yaml config template
+  template:
+      src: etc_cloudscheduler_cloudscheduler.yaml.j2
+      dest: /etc/cloudscheduler/cloudscheduler.yaml
+  notify:
+      restart httpd
+
+- name: create cloudscheduler log directory
+  file: 
+      path: /var/log/cloudscheduler
+      owner: cloudscheduler
+      group: apache
+      state: directory
+
+- name: create the openstack poller and cloudscheduler main log files
+  file:
+      path: /var/log/cloudscheduler/{{ item }}
+      owner: cloudscheduler
+      group: apache
+      state: touch
+  with_items:
+      - openstackpoller.log
+      - main.log
+
+- name: create the csv2 web log file
+  file:
+      path: /var/log/cloudscheduler/csv2_web.log
+      owner: apache
+      group: apache
+      state: touch
+
+- name: create the csjobs, csstatus, and csmachines log files
+  file:
+      path: /var/log/cloudscheduler/{{ item }}
+      owner: cloudscheduler
+      group: cloudscheduler
+      state: touch
+  with_items:
+      - csjobs.log
+      - csstatus.log
+      - csmachines.log
+
+- name: ensure mysql pid is down
+  shell: pkill -9 mysql
+  ignore_errors: yes
+  when: 
+  - container is defined
+  - container == True
+
+- name: configure mariadb server
+  copy:
+    src: etc_my.cnf.d_server.cnf
+    dest: /etc/my.cnf.d/server.cnf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: ensure mariadb is running
+  systemd:
+      name: mariadb
+      state: restarted
+
+- name: ensure csv2 services are stopped
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: stopped
+  with_items:
+      - csv2-machines
+      - csv2-jobs
+      - csv2-openstack
+      - csv2-main
+      - csv2-status
+      - csv2-timeseries
+      - csv2-watch
+
+# name: import csv2 table schema
+# command: /opt/cloudscheduler/utilities/cstable clone {{ table_schema }}.heprc.uvic.ca
+
+# name: redefine csv2 views
+# command: /opt/cloudscheduler/utilities/csview redefine
+
+- name: create signals directories 
+  file:
+      path: "/var/local/cloudscheduler/signals/{{ item }}"
+      owner: cloudscheduler
+      group: cloudscheduler
+      state: directory
+  with_items:
+  - insert_csv2_clouds
+  - update_csv2_clouds
+
+- name: create a local configuration schema backup directory 
+  file:
+      path: /var/local/cloudscheduler/schema_backups
+      owner: cloudscheduler
+      group: cloudscheduler
+      state: directory
+
+- name: give csv2 user local database permissions
+  mysql_user:
+      name: csv2
+      host: "localhost"
+      password: '{{ mariadb_cloudscheduler }}'
+      priv: 'csv2.*:ALL'
+      state: present
+      login_user: root
+      login_password: '{{ mariadb_root }}'
+
+- name: give csv2 user external database permissions
+  mysql_user:
+      name: csv2
+      host: "{{ i_external_connection.0.ipv4fqdn }}"
+      password: '{{ mariadb_cloudscheduler }}'
+      priv: 'csv2.*:ALL'
+      state: present
+      login_user: root
+      login_password: '{{ mariadb_root }}'
+  when: (local_web is undefined) or (local_web == False)
+    
+- name: install csv2 database schema
+  command: /opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -r live
+
+- name: install django database schema
+  command: /opt/cloudscheduler/web_frontend/cloudscheduler/manage.py migrate
+
+- name: generate schema
+  command: /opt/cloudscheduler/utilities/generate_schema.py
+  notify: restart httpd
+
+- set_fact:
+    csv2_default_password: '{{ csv2_default_password }}'
+  when: (container is undefined) or (container == False)
+
+- set_fact: 
+    condor_manager: '{{ inventory_instance }}.heprc.uvic.ca'
+
+- set_fact:
+    csv2_web_address: https://{{ inventory_instance }}.heprc.uvic.ca
+  when: (local_web is undefined) or (local_web == False)
+
+- set_fact:
+    csv2_web_address: https://localhost
+  when: 
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == True
+    - (running_condor is undefined) or (running_condor == True)
+
+- set_fact:
+    csv2_web_address: https://localhost
+  when:
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == True
+    - running_condor is defined
+    - running_condor == False
+
+- name: encrypt the default user password
+  blowfish:
+    password: "{{ csv2_default_password }}"
+- name: create csv2_default user for csv2
+  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_user (username, password, is_superuser, join_date) VALUES ("csv2_default", "{{ blowfish.hash }}", 1, "2018-04-01")'
+  ignore_errors: True
+
+- name: create csv2-group for the default csv2 user
+  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_groups (group_name, htcondor_fqdn) VALUES ("csv2-group", "{{ condor_manager }}")'
+  ignore_errors: True
+
+- name: add default csv2 user to csv2-group
+  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_user_groups (username, group_name) VALUES ("csv2_default", "csv2-group")'
+  ignore_errors: True
+
+- name: create a defaults entry for csv2-group
+  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_groups (group_name, job_cpus, job_ram, job_disk, job_scratch, job_swap, vm_keep_alive) VALUES ("csv2-group", "1", "1000", "5", "0", "0", "0")'
+  ignore_errors: True
+
+- name: add metadata file for csv2-group
+  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "default.yaml.j2", "1", "0", LOAD_FILE("/opt/cloudscheduler/default.yaml.j2"), "cloud-config")'
+  ignore_errors: True
+
+- name: create glint cache folders
+  file: path=/var/www/glintv2/scratch state=directory owner=celery group=apache mode=0775
+
+- name: create inner cache folders
+  file: path=/var/www/glintv2/scratch/{{ item }} state=directory owner=celery group=apache mode=0775
+  with_sequence: start=0 end=9
+
+- name: create celery run directory
+  file: path=/var/run/celery owner=celery group=apache mode=0775 state=directory
+
+- name: touch celery pid files before run
+  file: path=/var/run/celery/w{{ item }}.pid owner=celery group=apache mode=0775 state=touch
+  with_sequence: start=1 end=4
+
+- name: create celery log directory
+  file: path=/var/log/celery owner=celery group=apache mode=0775 state=directory
+
+- name: touch celery log files before run
+  file: path=/var/log/celery/w{{ item }}.log owner=celery group=apache mode=0775 state=touch
+  with_sequence: start=1 end=4
+
+- name: install celery config
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/web_frontend/cloudscheduler/glintwebui/init/celery
+    dest: /etc/cloudscheduler
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install celery service file
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/web_frontend/cloudscheduler/glintwebui/init/celery.service
+    dest: /etc/systemd/system/celery.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: update celery service file for container target
+  lineinfile:
+    path: "/etc/systemd/system/celery.service"
+    regexp: '^ExecStart='
+    line: "ExecStart=/bin/sh -c 'cd /opt/cloudscheduler/web_frontend/cloudscheduler; ${CELERY_BIN} multi start $CELERYD_NODES  \\"
+  when: 
+  - container is defined
+  - container == True
+
+- name: install celery init file
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/web_frontend/cloudscheduler/glintwebui/init/celery.init
+    dest: /etc/init.d/celery
+    owner: root
+    group: root
+    mode: 0644
+
+- name: add execute to celery init script
+  command: chmod +x /etc/init.d/celery
+
+- name: make a soft link to the cloudscheduler executable
+  file:
+    src: "/opt/cloudscheduler/cli/bin/cloudscheduler"
+    dest: /usr/bin/cloudscheduler
+    state: link
+
+- name: set default settings for cloudsheduler command
+  command: cloudscheduler defaults set -s default -su csv2_default -spw {{ csv2_default_password }} -sa {{ csv2_web_address}} 
+  when:
+    - container is defined
+    - container == True
+    - local_web is defined
+    - local_web == True
+
+- name: create the csv2_default user
+  user:
+    name: csv2_default
+    shell: /bin/bash
+
+- name: create a log directory for csv2_default user
+  file:
+      path: /home/csv2_default/logs
+      owner: csv2_default
+      group: root
+      state: directory
+
+- name: reload daemons 
+  command: systemctl daemon-reload
+
+- name: ensure csv2 services are enabled and running
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: restarted
+  with_items:
+    - redis
+    - celery
+    - csv2-machines
+    - csv2-jobs
+    - csv2-openstack
+    - csv2-main
+    - csv2-status
+    - csv2-timeseries
+    - csv2-watch
+

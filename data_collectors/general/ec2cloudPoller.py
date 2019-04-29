@@ -1467,7 +1467,7 @@ def service_registrar():
 if __name__ == '__main__':
     process_ids = {
         #'flavor': flavor_poller,
-        ##'image': image_poller,
+        'image': image_poller,
         'keypair': keypair_poller,
         'limit': limit_poller,
         'network': network_poller,

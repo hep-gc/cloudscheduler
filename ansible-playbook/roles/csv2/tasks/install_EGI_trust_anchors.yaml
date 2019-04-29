@@ -1,0 +1,15 @@
+---
+# install_EGI_trust_anchors.yaml
+
+- name: configure yum EGI repistory
+  copy:
+    src: etc_yum.repos.d_EGI-trustanchors.repo
+    dest: /etc/yum.repos.d/EGI-trustanchors.repo
+    owner: root
+    group: root
+    mode: 0755
+
+- name: install EGI trust anchors
+  yum:
+    name: ca-policy-egi-core
+    state: latest

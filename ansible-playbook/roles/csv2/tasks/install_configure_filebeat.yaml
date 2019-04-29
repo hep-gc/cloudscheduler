@@ -1,0 +1,11 @@
+
+- name: install filebeat from the elasticsearch repo
+  yum:
+    name: https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-6.1.2-x86_64.rpm
+    state: present
+
+- name: add filebeat yaml config template
+  template:
+      src: etc_filebeat_filebeat.yml.j2
+      dest: /etc/filebeat/filebeat.yml
+
