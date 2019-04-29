@@ -37,10 +37,20 @@ def check_instance_types(config):
 
     for region in region_list:
         region_path = json_path + "/" + region.region + "/instance_types.json"
-        if os.path.getctime(region_path) < seven_days_ago:
+        no_file = False
+        if not os.path.exists(json_path + "/" + region.region):
+            os.mkdir(json_path + "/" + region.region)
+        if not os.path.exists(region_path):
+            open(region_path, 'a').close()
+            no_file = True
+        if os.path.getctime(region_path) < seven_days_ago or no_file:
             logging.info("%s out of date, downloading new version" % region_path)
             # Download new version
-            refresh_instance_types(config, region_path, region.region)
+            try:
+                refresh_instance_types(config, region_path, region.region)
+            except Exception as exc:
+                logging.error("Unable to refresh instance types for region %s error:" % region.region)
+                logging.error(exc)
 
 #This function downloads the new regional instance types file and parses them into the ec2_instance_types table
 def refresh_instance_types(config, file_path, region):
@@ -79,18 +89,24 @@ def refresh_instance_types(config, file_path, region):
                         for rate in itxsku['terms']['OnDemand'][sku][offer]['priceDimensions']:
                             cost = max(cost, float(itxsku['terms']['OnDemand'][sku][offer]['priceDimensions'][rate]['pricePerUnit']['USD']))
 
-                its[it] = {
-                    'region': region,
-                    'instance_type': it,
-                    'operating_system': itxsku['products'][sku]['attributes']['operating_system'],
-                    'instance_family': itxsku['products'][sku]['attributes']['instanceFamily'],
-                    'processor': itxsku['products'][sku]['attributes']['physicalProcessor'],
-                    'storage': itxsku['products'][sku]['attributes']['storage'],
-                    'cores': int(itxsku['products'][sku]['attributes']['vcpu']),
-                    'memory': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]),
-                    'mem_per_core': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]) / int(itxsku['products'][sku]['attributes']['vcpu']),
-                    'cost_per_hour': cost
-                }
+                try:
+
+                    its[it] = {
+                        'region': region,
+                        'instance_type': it,
+                        'operating_system': itxsku['products'][sku]['attributes']['operatingSystem'],
+                        'instance_family': itxsku['products'][sku]['attributes']['instanceFamily'],
+                        'processor': itxsku['products'][sku]['attributes']['physicalProcessor'],
+                        'storage': itxsku['products'][sku]['attributes']['storage'],
+                        'cores': int(itxsku['products'][sku]['attributes']['vcpu']),
+                        'memory': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]),
+                        'mem_per_core': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]) / int(itxsku['products'][sku]['attributes']['vcpu']),
+                        'cost_per_hour': cost
+                    }
+                except Exception as exc:
+                    logging.error("unable to create instance type dictionary:")
+                    logging.error(exc)
+                    logging.error("Attributes: %s" % itxsku['products'][sku]['attributes'])
 
     # delete old entries then load the its dict into the table
     old_its = config.db_session.query(EC2_INSTANCE_TYPES).filter(EC2_INSTANCE_TYPES.region == region)
@@ -101,7 +117,7 @@ def refresh_instance_types(config, file_path, region):
     for it in its:
         new_it = EC2_INSTANCE_TYPES(**its[it])
         try:
-            db_session.merge(new_it)
+            config.db_session.merge(new_it)
         except Exception as exc:
             logging.exception("Failed to merge instance type entry %s cancelling:" % it)
             logging.error(exc)
@@ -117,8 +133,8 @@ def flavor_poller():
     #setup
     multiprocessing.current_process().name = "Flavor Poller"
 
-    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ec2_retrieve_flavor_files.py"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -144,7 +160,7 @@ def flavor_poller():
 
             # First check that our ec2 instance types table is up to date:
             check_instance_types(config)
-'''
+            '''
             abort_cycle = False
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
             region_failure_dict = {}
@@ -326,9 +342,9 @@ def flavor_poller():
 
             delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type='amazon')
 
+            '''
             config.db_close()
             del db_session
-'''
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
 
 
