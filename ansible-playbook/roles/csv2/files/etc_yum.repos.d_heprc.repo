@@ -1,5 +1,0 @@
-[heprc]
-name=Other packages required by physics servers
-baseurl=http://ansible-host/heprc_repo
-enabled=1
-gpgcheck=0

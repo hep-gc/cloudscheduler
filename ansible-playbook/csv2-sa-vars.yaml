@@ -1,13 +1,11 @@
 # Destination for any email generated bu the system (letsencrypt).
 admin_email: someone@example.ca
 
+ansible_deployment_host_ip: '206.12.154.6'
+
 # CSV2 versions to use.
 cs_git_branch: stable-2.3
 schema_model: stable-2.3.1
-
-# Do NOT change the following two lines.
-inventory_system: 'staticvms'
-inventory_instance: 'csv2-sa'
 
 # Defines (three) entries to be added to /etc/hosts.
 i_etc_hosts:
