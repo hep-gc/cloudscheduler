@@ -19,7 +19,8 @@ def image_poller():
     CLOUD = config.db_map.classes.csv2_clouds
     
     try:
-        cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
+        config.db_open()
+        cloud_list = config.db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
         
         # Build unique region dict
         unique_region_dict = {}
@@ -36,7 +37,7 @@ def image_poller():
             # Retrieve all images for this region
             session = boto3.session.Session(region_name=region,
                                             aws_access_key_id=unique_region_dict[region]["cloud_obj"].username,
-                                            aws_secret_access_key=unique_region_dict[region]["cloud_obj"].username)
+                                            aws_secret_access_key=unique_region_dict[region]["cloud_obj"].password)
             client = session.client('ec2')
             users2 = ['self','all']
             users1 = ['self']
