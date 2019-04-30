@@ -3,8 +3,8 @@
 #
 # Depends on the following variables:
 #
-#   {{ controller_hostname }}
 #   {{ i_internal_connection.0.ipv4 }}
+#   {{ i_internal_connection.0.ipv4fqdn }}
 #   {{ mariadb_root }}
 #   {{ mariadb_root_obsolete }}
 #
@@ -96,4 +96,4 @@
   script: expect-mariadb_secure_database "{{ mariadb_root }}" "{{ mariadb_root_obsolete }}" creates=/root/ansible_script_logs/expect-mariadb_secure_database.log
 
 - name: allow mariadb admin on internal subnet
-  script: bash-mariadb_allow_admin_on_internal_subnet "{{ controller_hostname }}" "{{ mariadb_root }}" creates=/root/ansible_script_logs/bash-mariadb_allow_admin_on_internal_subnet.log
+  script: bash-mariadb_allow_admin_on_internal_subnet "{{ i_internal_connection.0.ipv4fqdn }}" "{{ mariadb_root }}" creates=/root/ansible_script_logs/bash-mariadb_allow_admin_on_internal_subnet.log

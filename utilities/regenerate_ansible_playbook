@@ -1,6 +1,7 @@
-#!/bin/env python3
+#!/bin/env python
 from subprocess import Popen, PIPE
 import os
+import shutil
 import sys
 
 def syscmd (gvar, cmd, cwd=None):
@@ -10,9 +11,10 @@ def syscmd (gvar, cmd, cwd=None):
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
 
     stdout, stderr = p.communicate()
-
-    print(stdout)
-    print(stderr)
+    if p.returncode != 0:
+        print(stdout)
+        print(stderr)
+        raise Exception('Cmd=%s, RC=%s.' % (cmd, p.returncode))
 
     return p.returncode, stdout, stderr
 
@@ -22,9 +24,20 @@ gvar['bread_crumbs'] = gvar['cmd_path'].split('/')
 gvar['bread_crumbs_ix'] = gvar['bread_crumbs'].index('cloudscheduler')
 gvar['root_dir'] = '/'.join(gvar['bread_crumbs'][:gvar['bread_crumbs_ix']])
 
-syscmd(gvar, ['rm', '-rf', 'ansible-playbook'], cwd='%s/cloudscheduler' % gvar['root_dir'])
-syscmd(gvar, ['mv', '.ansible-systems', '.ansible-systems-save'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
-syscmd(gvar, ['.bin/ansible_util', '-s', 'csv2-sa'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
-syscmd(gvar, ['cp', '-rpL', '%s/Inventory/heprc/.ansible-systems/staticvms' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook' % gvar['root_dir']])
-syscmd(gvar, ['mv', '.ansible-systems-save', '.ansible-systems'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
+syscmd(gvar, ['.bin/ansible_util', '-S', '%s/cloudscheduler/ansible-playbook' % gvar['root_dir'], 'csv2-sa'], cwd='%s/Inventory/heprc' % gvar['root_dir'])
 
+os.remove('%s/cloudscheduler/ansible-playbook/inventory' % gvar['root_dir'])
+shutil.rmtree('%s/cloudscheduler/ansible-playbook/inventory_host_variables' % gvar['root_dir'])
+os.remove('%s/cloudscheduler/ansible-playbook/staticvms.yaml' % gvar['root_dir'])
+os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
+os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
+
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/inventory' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/inventory' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa.yaml' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa-vars.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa-vars.yaml' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa-secrets.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa-secrets.yaml' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/README' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/README' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/addenda' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/addenda' % gvar['root_dir'])
+
+os.symlink('%s/cloudscheduler/ansible-playbook/csv2-sa-vars.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
+os.symlink('%s/cloudscheduler/ansible-playbook/csv2-sa-secrets.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
