@@ -1610,7 +1610,7 @@ def service_registrar():
             "service": service_name,
             "fqdn": service_fqdn,
             "last_updated": None,
-            "yaml_attribute_name": "cs_condor_remote_openstack_poller"
+            "yaml_attribute_name": "cs_condor_remote_amazon_poller"
         }
         service = SERVICE_CATALOG(**service_dict)
         try:
@@ -1636,7 +1636,7 @@ if __name__ == '__main__':
         'limit': limit_poller,
         'network': network_poller,
         #'vm': vm_poller,
-        #'registrar': service_registrar,
+        'registrar': service_registrar,
         'security_group_poller': security_group_poller
     }
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
