@@ -14,7 +14,8 @@
 <script type="text/javascript">
 
     var visited = {};
-    
+    var ec2_regions = {{ ec2_regions_list|safe }}
+
     function get_message() {
         if (sessionStorage.getItem("message")){
             document.getElementById("message").innerHTML = sessionStorage.getItem("message");
@@ -69,6 +70,61 @@
             document.getElementById("{{cloud_list.0.cloud_name}}-settings").checked = true;
         }
     }
+
+    function type_select(cloud_type){
+
+        var oldRegionEl = document.getElementById("add-region");
+        var newRegionEl = document.createElement('td');
+
+        //console.log(cloud_type);
+
+        if(cloud_type=="amazon"){
+
+            var arrayLength = ec2_regions.length;
+
+            var newHTML = '<select class="dropdown" id="region-select" onchange="set_authurl()">';
+
+            for (var i = 0; i < arrayLength; i++){
+                newHTML+='<option value="'+ec2_regions[i].region+'">'+ec2_regions[i].region+'</option>';
+            }
+
+            newHTML+='</select>';
+
+            newRegionEl.innerHTML=newHTML;
+            oldRegionEl.replaceChild(newRegionEl, oldRegionEl.childNodes[0]);
+
+            document.getElementById('add-authurl').disabled = true;
+
+            document.getElementById('add-authurl').value = ec2_regions[0].endpoint;
+        }
+        else{
+            newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
+            oldRegionEl.replaceChild(newRegionEl, oldRegionEl.childNodes[0]);
+
+            document.getElementById('add-authurl').disabled = false;
+
+            document.getElementById('add-authurl').value = "";
+        }
+
+    }
+
+
+    function set_authurl(){
+
+
+        var arrayLength = ec2_regions.length;
+
+        var selectedRegion = document.getElementById("region-select").value;
+
+        console.log(selectedRegion);
+
+        for (var i = 0; i < arrayLength; i++){
+            if( ec2_regions[i].region == selectedRegion ){
+                document.getElementById('add-authurl').value = ec2_regions[i].endpoint;
+            }
+        }
+    }
+
 
 </script>
 
@@ -440,34 +496,40 @@
 
 
                             <input type="hidden" name="enabled" value="0" />
-                            <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
+                            
+                            <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
                             <td><input type="checkbox" name="enabled" value="1" /></td></tr>
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
-                            <td><input type="text" name="authurl" value="" /></td></tr>
+                            <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="project">Project</label></td>
                             <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" value="" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
 
-
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="region">Region</label></td>
-                            <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+                            <td id="add-region"><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                             <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-
                             <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                            <td><select name="cloud_type" class="dropdown"/>
+                            <td><select name="cloud_type" class="dropdown" onchange="type_select(this.value)"/>
                             {% for type in type_list %}
                                 <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
                             {% endfor %}
+                            </td></tr>
 
                             <tr><td><input type="submit" value="Add Cloud" /></td></tr>
                         </table>
