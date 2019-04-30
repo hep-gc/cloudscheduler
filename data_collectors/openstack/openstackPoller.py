@@ -1196,11 +1196,13 @@ def vm_poller():
                 else:
                     unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
+            group_list = []
+            for cloud in unique_cloud_dict:
+                group_list = group_list +unique_cloud_dict[cloud]['groups']
 
             for cloud in unique_cloud_dict:
                 cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
-                group_list = unique_cloud_dict[cloud]['groups']
 
                 foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
 
