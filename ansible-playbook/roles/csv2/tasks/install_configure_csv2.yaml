@@ -101,6 +101,15 @@
       update: no
       version: "{{ cs_git_branch }}"
 
+- name: recreate favicon link.
+  file:
+    src: "/opt/cloudscheduler/images/cs_{{ favicon_colour }}.ico"
+    dest: "/opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/img/favicon.ico"
+    state: link
+    force: yes
+  notify:
+    restart httpd
+
 - name: fetch cloudscheduler apache config template
   fetch:
     src: /opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2

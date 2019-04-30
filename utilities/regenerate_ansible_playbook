@@ -39,5 +39,5 @@ shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa-secrets.y
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/README' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/README' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/addenda' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/addenda' % gvar['root_dir'])
 
-os.symlink('%s/cloudscheduler/ansible-playbook/csv2-sa-vars.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
-os.symlink('%s/cloudscheduler/ansible-playbook/csv2-sa-secrets.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
+os.symlink('../../../csv2-sa-vars.yaml', '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml' % gvar['root_dir'])
+os.symlink('../../../csv2-sa-secrets.yaml', '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
