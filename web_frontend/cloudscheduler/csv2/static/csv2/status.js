@@ -1,6 +1,6 @@
 /* Timestamp of last refresh*/
 var date = Date.now();
-
+set_state()
 
 /* Close the range dropdown menu when user clicks outside of it*/
 window.onclick = function(event) {
@@ -31,6 +31,16 @@ window.onclick = function(event) {
 function initialize(){
     addEventListeners("plottable");
 }
+
+/* Set state of expand row in session storage*/
+function set_state(){
+        if(sessionStorage.getItem("expand")==1){
+            document.getElementById("toggle-row").checked = true;
+        }
+        else{
+            document.getElementById("toggle-row").checked = false;
+        }
+    }
 
 
 /* Add click events to table elements and range selection*/

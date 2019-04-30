@@ -11,13 +11,14 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
-<!--<meta id="refresher" http-equiv="refresh" content="30">-->
 <script type="text/javascript">
+/* Get custom refresh interval, default = 30 seconds*/
 var refresh_interval = parseInt(document.getElementsByName('refresh_interval')[0].value);
 if (!(typeof(refresh_interval) !== 'undefined')) refresh_interval = 30;
 if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
 else if (refresh_interval < 1) stop_refresh;
 </script>
+
 <script type="text/javascript">
     /* Refresh status table and system services display*/
     var TimerSwitch = 1;
@@ -25,9 +26,7 @@ else if (refresh_interval < 1) stop_refresh;
     function set_refresh(time) {
         TimerSwitch = 1;
         timer_id = setTimeout(function() {
-            var checked = false;
-            if(document.getElementById('toggle-row').checked == true) checked = true;
-            sessionStorage.setItem("extra-row", JSON.stringify(checked));
+
             refresh_plot();
             var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
@@ -49,6 +48,7 @@ else if (refresh_interval < 1) stop_refresh;
                 document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
                 TimerVal = refresh_interval;
                 set_refresh(refresh_interval*1000);
+                set_state();
                 checkForExpandedRow();
                 checkForPlottedTraces();
                 initialize();
@@ -77,11 +77,21 @@ else if (refresh_interval < 1) stop_refresh;
         stop_refresh();
         document.getElementById('vms-iframe').src='/vm/foreign/'+url;
     }
+
+    function toggle_state(){
+        if(document.getElementById('toggle-row').checked == true){
+            sessionStorage.setItem("expand", 1);
+        }
+        else{
+            sessionStorage.setItem("expand", 0);
+        }
+    }
 </script>
+
 </head>
 
-<body class="status-nav">
 
+<body class="status-nav" onpageshow="set_state();">
 
 {% if err_message is not None %}
     <p style="color:red;">{{err_message}}</p>
@@ -100,7 +110,7 @@ else if (refresh_interval < 1) stop_refresh;
         </div>
 
     </div>
-    <!--Range Selection -->
+    <!--Range selection dropdown menu-->
     <div class="range-dropdown">
         <button id="range-select" class="range-btn" onclick="dropDown()">Last 1 hour<span class="space"></span>
             <span class="caret"></span>
@@ -140,11 +150,11 @@ else if (refresh_interval < 1) stop_refresh;
     </button>
 </div>
 
-
+<!-- Status tables-->
     <div class="status-div" id="status">
 
         <div>
-            <input class="toggle-box" id="toggle-row" type="checkbox" autocomplete="on"></input>
+            <input class="toggle-box" id="toggle-row" type="checkbox" onload="set_state()" onclick="toggle_state();"></input>
             <div class="status-table">
 
                 <div class="toggle-button">
@@ -231,6 +241,8 @@ else if (refresh_interval < 1) stop_refresh;
 
 
                             </tr>
+
+                            <!-- Jobs expand row to show cores-->
                             <tr class="extra-row">
                                 <td></td>
                                 <td></td>
@@ -561,7 +573,7 @@ else if (refresh_interval < 1) stop_refresh;
 
                                 </tr>
 
-
+                                <!-- Cloud status expand row to show details-->
                                 <tr class="extra-row">
                                     <td></td>
                                     <td>
@@ -720,6 +732,7 @@ else if (refresh_interval < 1) stop_refresh;
                     {% else %}
                         {% set group_total = global_total_list %}
                         {% for group in user_groups %}
+                            <!-- Get list of groups user is a part of -->
                             <input type='hidden' name='groups_total' value={{group}} />
                         {% endfor %}
                         {% set group_name = "groups_total" %}
@@ -1143,7 +1156,6 @@ else if (refresh_interval < 1) stop_refresh;
     </div>
 </div>
 
-
 <div id="vms-overlay" class="overlay">
     <div class="popup">
         <a class="close" id="timer-count" onclick="set_refresh(refresh_interval*1000)" href="#">&times;</a>
@@ -1151,31 +1163,28 @@ else if (refresh_interval < 1) stop_refresh;
     </div>
 </div>
 
+
+<!-- status js -->
+<script rel="preload" type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
 <!-- Plotly.js -->
 <script rel="preload" type="text/javascript" src="{% static "plotly.js/dist/plotly.min.js" %}?{{version}}"></script>
 
-
-<script type="text/javascript" src="{% static "csv2/status.js" %}?{{version}}"></script>
 <script type="text/javascript">
     /*Add event listeners once page loads*/
     initialize();
     addEventListeners("range");
+    // Remove old traces
     sessionStorage.removeItem("traces");
-    sessionStorage.removeItem("extra-row");
 
-    /*<![CDATA[*/
     var TimerVal = refresh_interval;
-    /* var TimerVal = 30;*/
     var TimerSPan = document.getElementById("CDTimer");
     set_refresh(refresh_interval*1000);
-    /*set_refresh(30000);*/
     function CountDown(){
     setTimeout( "CountDown()", 1000 );
     TimerSPan.innerHTML=TimerVal;
     if(TimerSwitch == 1){TimerVal=TimerVal-1;}
     if (TimerVal<0) { TimerVal=0 }
     } CountDown();
-    /*]]>*/
 </script>
 
 

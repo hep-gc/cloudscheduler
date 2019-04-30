@@ -1277,6 +1277,7 @@ def vm_poller():
 
                         if (host_tokens[0], host_tokens[1]) not in group_list:
                             logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
+                            logging.debug(group_list)
                             if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
                             else:

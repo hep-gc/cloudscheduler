@@ -55,7 +55,8 @@ from (
                         from csv2_vms
                         group by
                             group_name,
-                            cloud_name
+                            cloud_name,
+                            flavor_id
                     ) as cv
                     left outer join csv2_clouds as cc on
                         cv.group_name=cc.group_name and

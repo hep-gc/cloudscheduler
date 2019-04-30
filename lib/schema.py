@@ -251,8 +251,7 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('os_sec_grps', String(64)),
   Column('condor', String(64)),
   Column('ec2_flavors', String(64)),
-  Column('ec2_limits', String(64)),
-  Column('ec2_regions', String(64))
+  Column('ec2_limits', String(20))
   )
 
 csv2_cloud_aliases = Table('csv2_cloud_aliases', metadata,
@@ -502,92 +501,10 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
-ec2_instance_type_filters = Table('ec2_instance_type_filters', metadata,
-  Column('group_name', String(32), primary_key=True),
-  Column('families', String(128)),
-  Column('processor_types', String(128)),
-  Column('cores', String(32)),
-  Column('min_memory_gigabytes_per_core', Integer),
-  Column('max_memory_gigabytes_per_core', Integer)
-  )
-
-ec2_instance_types = Table('ec2_instance_types', metadata,
-  Column('region', String(32), primary_key=True),
-  Column('instance_type', String(32), primary_key=True),
-  Column('operating_system', String(32), primary_key=True),
-  Column('instance_family', String(32)),
-  Column('processor', String(64)),
-  Column('storage', String(32)),
-  Column('cores', Integer),
-  Column('memory', Integer),
-  Column('mem_per_core', Integer),
-  Column('cost_per_hour', Integer)
-  )
-
 ec2_regions = Table('ec2_regions', metadata,
   Column('region', String(64), primary_key=True),
   Column('location', String(64)),
   Column('endpoint', String(128))
-  )
-
-silk_profile = Table('silk_profile', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('name', String(300)),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('file_path', String(300)),
-  Column('line_num', Integer),
-  Column('end_line_num', Integer),
-  Column('func_name', String(300)),
-  Column('exception_raised', Integer),
-  Column('dynamic', Integer),
-  Column('request_id', String(36))
-  )
-
-silk_profile_queries = Table('silk_profile_queries', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('profile_id', Integer),
-  Column('sqlquery_id', Integer)
-  )
-
-silk_request = Table('silk_request', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('path', String(190)),
-  Column('query_params', String),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('method', String(10)),
-  Column('start_time', Integer),
-  Column('view_name', String(190)),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('encoded_headers', String),
-  Column('meta_time', Float),
-  Column('meta_num_queries', Integer),
-  Column('meta_time_spent_queries', Float),
-  Column('pyprofile', String),
-  Column('num_sql_queries', Integer),
-  Column('prof_file', String(300))
-  )
-
-silk_response = Table('silk_response', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('status_code', Integer),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('encoded_headers', String),
-  Column('request_id', String(36))
-  )
-
-silk_sqlquery = Table('silk_sqlquery', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('query', String),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('traceback', String),
-  Column('request_id', String(36))
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -941,7 +858,7 @@ view_foreign_resources = Table('view_foreign_resources', metadata,
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
   Column('group_name', String(32)),
-  Column('target_alias_clouds', String),
+  Column('target_alias', String(32)),
   Column('target_clouds', String),
   Column('instance_type', String(512)),
   Column('requirements', String(512)),
@@ -1110,6 +1027,7 @@ view_vms = Table('view_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
   Column('vmid', String(128)),
+  Column('cloud_type', String(64)),
   Column('vm_ips', String(128)),
   Column('vm_floating_ips', String(128)),
   Column('auth_url', String(128)),
