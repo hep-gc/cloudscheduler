@@ -34,6 +34,8 @@
   background-color: lightcyan;
 }
 
+input:read-only { color:grey; }
+
 /*---------- useful styling classes ----------*/
 
 .left  {
@@ -183,4 +185,3 @@
 }
 
 .close:hover { background: #00d9ff; }
-
