@@ -71,18 +71,26 @@
         }
     }
 
-    function type_select(cloud_type){
+    function type_select(cloud_type, target_cloud){
 
-        var oldRegionEl = document.getElementById("add-region");
+        var oldRegionEl = document.getElementById(target_cloud+"-region");
         var newRegionEl = document.createElement('td');
 
         //console.log(cloud_type);
+
+
+        console.log(oldRegionEl.childElementCount)
+
+        while (oldRegionEl.childElementCount>1) {
+            oldRegionEl.removeChild(oldRegionEl.firstChild);
+            //console.log(oldRegionEl.lastChild)
+        }
 
         if(cloud_type=="amazon"){
 
             var arrayLength = ec2_regions.length;
 
-            var newHTML = '<select class="dropdown" id="region-select" onchange="set_authurl()">';
+            var newHTML = '<select name="region" class="dropdown" id="'+target_cloud+'-selected" onchange=\'set_authurl("'+target_cloud+'")\'>';
 
             for (var i = 0; i < arrayLength; i++){
                 newHTML+='<option value="'+ec2_regions[i].region+'">'+ec2_regions[i].region+'</option>';
@@ -93,34 +101,37 @@
             newRegionEl.innerHTML=newHTML;
             oldRegionEl.replaceChild(newRegionEl, oldRegionEl.childNodes[0]);
 
-            document.getElementById('add-authurl').disabled = true;
-
-            document.getElementById('add-authurl').value = ec2_regions[0].endpoint;
+            document.getElementById(target_cloud+'-authurl').readOnly = true;
+            document.getElementById(target_cloud+'-authurl').value = ec2_regions[0].endpoint;
         }
         else{
+
+            console.log(oldRegionEl.childNodes[0])
+            console.log(oldRegionEl.childNodes[1])
+            console.log(oldRegionEl.childElementCount)
+
             newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
             oldRegionEl.replaceChild(newRegionEl, oldRegionEl.childNodes[0]);
 
-            document.getElementById('add-authurl').disabled = false;
-
-            document.getElementById('add-authurl').value = "";
+            document.getElementById(target_cloud+'-authurl').readOnly = false;
+            document.getElementById(target_cloud+'-authurl').value = "";
         }
 
     }
 
 
-    function set_authurl(){
+    function set_authurl(target_cloud){
 
 
         var arrayLength = ec2_regions.length;
 
-        var selectedRegion = document.getElementById("region-select").value;
+        var selectedRegion = document.getElementById(target_cloud+'-selected').value;
 
-        console.log(selectedRegion);
+        //console.log(selectedRegion);
 
         for (var i = 0; i < arrayLength; i++){
             if( ec2_regions[i].region == selectedRegion ){
-                document.getElementById('add-authurl').value = ec2_regions[i].endpoint;
+                document.getElementById(target_cloud+'-authurl').value = ec2_regions[i].endpoint;
             }
         }
     }
@@ -146,7 +157,7 @@
                     <label class="tab-colour" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
-                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'" autocomplete="nope">
+                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope">
                             {% csrf_token %}
                             <table><tr><td>
 
@@ -166,8 +177,46 @@
                                     {% endif %}
                                     </td></tr>
 
+
+                                    <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
+                                    <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "{{cloud.cloud_name}}")'>
+                                    {% for type in type_list %}
+                                        {% if cloud.cloud_type == type.cloud_type %}
+                                            <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                        {% else %}
+                                            <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </select>
+                                    </td></tr>
+
+
                                     <tr class="highlight3"><td><label for="authurl">URL</label></td>
-                                    <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
+                                    <td>
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" readonly />
+                                    {% else %}
+                                        <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" />
+                                    {% endif %}
+                                    </td></tr>
+
+                                    <tr class="highlight3"><td><label for="region">Region</label></td>
+                                    <td id="{{cloud.cloud_name}}-region">
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <select name="region" class="dropdown" id="{{cloud.cloud_name}}-selected" onchange='set_authurl("{{cloud.cloud_name}}")'>
+                                        {% for region in ec2_regions_list %}
+                                            {% if cloud.region == region.region %}
+                                                <option value="{{ region.region }}" selected>{{ region.region }}</option>
+                                            {% else %}
+                                                <option value="{{ region.region }}">{{ region.region }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </select>
+                                    {% else %}
+                                        <input type="text" name="region" value="{{cloud.region}}" />
+                                    {% endif %}
+                                    </td></tr>
+
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
                                     <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
                                     <tr class="highlight3"><td><label for="username">Username</label></td>
@@ -177,31 +226,18 @@
 
                                     <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                                     <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="region">Region</label></td>
-                                    <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+
                                     <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                                     <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
                                     <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                                     <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-
-                                    <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
-                                    <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
                                 </table>
 
                             <td>    
 
                                 <table>
-                                    <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                                    <td><select name="cloud_type" class="dropdown"/>
-                                    {% for type in type_list %}
-                                        {% if cloud.cloud_type == type.cloud_type %}
-                                            <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
-                                        {% else %}
-                                            <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                    </td></tr>
+
                                 
 
                                     <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
@@ -277,6 +313,8 @@
                                     <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                     <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
 
+                                    <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
+                                    <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
 
                                 </table>
 
@@ -500,9 +538,24 @@
                             <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
                             <td><input type="checkbox" name="enabled" value="1" /></td></tr>
 
+                            <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
+                            <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "add")'/>
+                            {% for type in type_list %}
+                                {% if type.cloud_type == "openstack" %}
+                                    <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                {% else %}
+                                    <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                {% endif %}
+                                }
+                            {% endfor %}
+                            </td></tr>
+
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
                             
+                            <tr class="highlight3"><td><label for="region">Region</label></td>
+                            <td id="add-region"><input type="text" name="region" value="" /></td></tr>
+
                             <tr class="highlight3"><td><label for="project">Project</label></td>
                             <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
                             
@@ -514,9 +567,6 @@
 
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                            
-                            <tr class="highlight3"><td><label for="region">Region</label></td>
-                            <td id="add-region"><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
 
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
@@ -524,12 +574,7 @@
                             <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                             <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
-                            <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                            <td><select name="cloud_type" class="dropdown" onchange="type_select(this.value)"/>
-                            {% for type in type_list %}
-                                <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
-                            {% endfor %}
-                            </td></tr>
+
 
                             <tr><td><input type="submit" value="Add Cloud" /></td></tr>
                         </table>
