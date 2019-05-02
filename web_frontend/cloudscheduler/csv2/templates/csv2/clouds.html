@@ -204,7 +204,12 @@
 
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
-                                    <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" /></td></tr>
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" readonly/>
+                                    {% else %}
+                                        <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" />
+                                    {% endif %}
+                                    </td></tr>
 
                                     <tr class="highlight3"><td><label for="username">Username</label></td>
                                     <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
