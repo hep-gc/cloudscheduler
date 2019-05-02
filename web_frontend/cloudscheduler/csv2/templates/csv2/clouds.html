@@ -73,21 +73,10 @@
 
     function type_select(cloud_type, target_cloud){
 
-        var oldRegionEl = document.getElementById(target_cloud+"-region");
+        var oldRegionEl = document.getElementById(target_cloud+"-region").childNodes[0];
         var newRegionEl = document.createElement('td');
 
-        //console.log(cloud_type);
-
-
-        console.log(oldRegionEl.childElementCount)
-
-        while (oldRegionEl.childElementCount>1) {
-            oldRegionEl.removeChild(oldRegionEl.firstChild);
-            //console.log(oldRegionEl.lastChild)
-        }
-
         if(cloud_type=="amazon"){
-
             var arrayLength = ec2_regions.length;
 
             var newHTML = '<select name="region" class="dropdown" id="'+target_cloud+'-selected" onchange=\'set_authurl("'+target_cloud+'")\'>';
@@ -99,35 +88,30 @@
             newHTML+='</select>';
 
             newRegionEl.innerHTML=newHTML;
-            oldRegionEl.replaceChild(newRegionEl, oldRegionEl.childNodes[0]);
+            oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
 
             document.getElementById(target_cloud+'-authurl').readOnly = true;
             document.getElementById(target_cloud+'-authurl').value = ec2_regions[0].endpoint;
+
+            document.getElementById(target_cloud+'-project').readOnly = true;
+            document.getElementById(target_cloud+'-project').value = "N/A";
         }
         else{
-
-            console.log(oldRegionEl.childNodes[0])
-            console.log(oldRegionEl.childNodes[1])
-            console.log(oldRegionEl.childElementCount)
-
             newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
-            oldRegionEl.replaceChild(newRegionEl, oldRegionEl.childNodes[0]);
+            oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
 
             document.getElementById(target_cloud+'-authurl').readOnly = false;
             document.getElementById(target_cloud+'-authurl').value = "";
+
+            document.getElementById(target_cloud+'-project').readOnly = false;
+            document.getElementById(target_cloud+'-project').value = "";
         }
-
     }
-
 
     function set_authurl(target_cloud){
 
-
         var arrayLength = ec2_regions.length;
-
         var selectedRegion = document.getElementById(target_cloud+'-selected').value;
-
-        //console.log(selectedRegion);
 
         for (var i = 0; i < arrayLength; i++){
             if( ec2_regions[i].region == selectedRegion ){
@@ -199,7 +183,8 @@
                                         <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" />
                                     {% endif %}
                                     </td></tr>
-
+                                    
+                                    {% spaceless %}
                                     <tr class="highlight3"><td><label for="region">Region</label></td>
                                     <td id="{{cloud.cloud_name}}-region">
                                     {% if cloud.cloud_type == "amazon" %}
@@ -216,11 +201,14 @@
                                         <input type="text" name="region" value="{{cloud.region}}" />
                                     {% endif %}
                                     </td></tr>
+                                    {% endspaceless %}
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
-                                    <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                                    <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" /></td></tr>
+
                                     <tr class="highlight3"><td><label for="username">Username</label></td>
                                     <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
+                                    
                                     <tr class="highlight3"><td><label for="password">Password</label></td>
                                     <td><input type="password" name="password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
 
@@ -229,6 +217,7 @@
 
                                     <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                                     <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                                    
                                     <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                                     <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
@@ -237,9 +226,6 @@
                             <td>    
 
                                 <table>
-
-                                
-
                                     <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
                                     <td><select name="vm_security_groups" class="dropdown"/>
                                     <option value=""></option>
@@ -327,8 +313,8 @@
                                     <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
                                     <td>
                                         
-                                        <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" oninput="cores_ctl.value=cores_slider.value" />
-                                        <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" oninput="cores_slider.value=cores_ctl.value" />
+                                        <input type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" oninput="cores_ctl.value=cores_slider.value" />
+                                        <input type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" oninput="cores_slider.value=cores_ctl.value" />
                                         / {{cloud.cores_max}}
                                     </td></tr>
                                     <!--<td>
@@ -339,8 +325,8 @@
 
                                     <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
                                     <td>
-                                        <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" oninput="ram_ctl.value=ram_slider.value" />
-                                        <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" oninput="ram_slider.value=ram_ctl.value" />
+                                        <input type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" oninput="ram_ctl.value=ram_slider.value" />
+                                        <input type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" oninput="ram_slider.value=ram_ctl.value" />
                                         / {{cloud.ram_max}} KB
                                     </td></tr>
                                     <!--<td>
@@ -538,6 +524,7 @@
                             <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
                             <td><input type="checkbox" name="enabled" value="1" /></td></tr>
 
+                            {% spaceless %}
                             <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                             <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "add")'/>
                             {% for type in type_list %}
@@ -549,6 +536,7 @@
                                 }
                             {% endfor %}
                             </td></tr>
+                            {% endspaceless %}
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
@@ -557,7 +545,7 @@
                             <td id="add-region"><input type="text" name="region" value="" /></td></tr>
 
                             <tr class="highlight3"><td><label for="project">Project</label></td>
-                            <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                            <td><input type="text" name="project" id="add-project" value="{{cloud.project}}" /></td></tr>
                             
                             <tr class="highlight3"><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" value="" /></td></tr>
