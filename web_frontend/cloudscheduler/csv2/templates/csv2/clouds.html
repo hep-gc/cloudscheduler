@@ -128,7 +128,7 @@
 
 </head>
 <body class="clouds-nav" onpageshow="get_message(); set_location()">
-
+{% spaceless %}
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
@@ -184,7 +184,7 @@
                                     {% endif %}
                                     </td></tr>
                                     
-                                    {% spaceless %}
+
                                     <tr class="highlight3"><td><label for="region">Region</label></td>
                                     <td id="{{cloud.cloud_name}}-region">
                                     {% if cloud.cloud_type == "amazon" %}
@@ -201,7 +201,7 @@
                                         <input type="text" name="region" value="{{cloud.region}}" />
                                     {% endif %}
                                     </td></tr>
-                                    {% endspaceless %}
+
 
                                     <tr class="highlight3"><td><label for="project">Project</label></td>
                                     <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" /></td></tr>
@@ -524,7 +524,6 @@
                             <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
                             <td><input type="checkbox" name="enabled" value="1" /></td></tr>
 
-                            {% spaceless %}
                             <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                             <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "add")'/>
                             {% for type in type_list %}
@@ -536,7 +535,6 @@
                                 }
                             {% endfor %}
                             </td></tr>
-                            {% endspaceless %}
 
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
                             <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
@@ -598,5 +596,5 @@
 </div>
 
 
-
+{% endspaceless %}
 </body>
