@@ -1,0 +1,11 @@
+create or replace view view_ec2_instance_types as
+select 
+    *,
+    memory/cores as memory_per_core,
+    case when processor like '%Intel%' then
+        'Intel'
+    else
+        substring_index(processor, ' ', 1)
+    end as processor_manufacturer
+from ec2_instance_types
+;
