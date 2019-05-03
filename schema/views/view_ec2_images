@@ -1,0 +1,40 @@
+create or replace view view_ec2_images as
+select
+    *,
+    case when lower_location like '%manifest.xml%' then
+        'manifest'
+    else
+        case when lower_location like '%windows%' then
+            'windows'
+        else
+            'linux'
+        end
+    end as opsys,
+    case when lower_location like '%manifest.xml%' then
+        'xml'
+    else
+        case when lower_location like '%arm64%' then
+            'arm64'
+        else
+            case when lower_location like '%arm32%' then
+                'arm32'
+            else
+                case when lower_location like '%i386%' then
+                    '32bit'
+                else
+                    case when lower_location like '%32bit%' then
+                        '32bit'
+                    else
+                        '64bit'
+                    end
+                end
+            end
+        end
+    end as arch
+from (
+    select 
+        *,
+        lower(image_location) lower_location
+    from ec2_images
+) as ei
+;

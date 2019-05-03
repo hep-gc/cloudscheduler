@@ -1,0 +1,8 @@
+To create a new favicon:
+
+1. gimp cs.xcf
+   - Modify image.
+   - Export as <new_file_name>.png
+   - Quit, discard changes.
+2. icotool_-c -o <new_file_name>.ico <new_file_name>.png
+3. rm -f <new_file_name>.png
