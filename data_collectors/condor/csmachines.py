@@ -506,15 +506,16 @@ def command_poller():
                         logging.info("VM %s uner manual control, skipping terminate..." % resource.vmid)
 
 
-                    # Get session with hosting cloud.
-                    cloud = db_session.query(CLOUD).filter(
-                        CLOUD.group_name == vm_row.group_name,
-                        CLOUD.cloud_name == vm_row.cloud_name).first()
-                    session = _get_openstack_session(cloud)
-                    if session is False:
-                        continue
 
                     if cloud.cloud_type == "openstack":
+                        # Get session with hosting cloud.
+                        cloud = db_session.query(CLOUD).filter(
+                            CLOUD.group_name == vm_row.group_name,
+                            CLOUD.cloud_name == vm_row.cloud_name).first()
+                        session = _get_openstack_session(cloud)
+                        if session is False:
+                            continue
+                     
                         if config.terminate_off:
                             logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                             continue
