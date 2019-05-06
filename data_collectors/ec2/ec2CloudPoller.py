@@ -398,13 +398,15 @@ def flavor_poller():
     return -1
 
 def image_poller():
-    multiprocessing.current_process().name = "Amazon Image Poller"
+    multiprocessing.current_process().name = "Image Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
 
+    EC2_IMAGE = config.db_map.classes.ec2_images
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
+    EC2_IMAGE_FILTER = config.db_map.classes.ec2_image_filters
 
     cycle_start_time = 0
     new_poll_time = 0
@@ -415,8 +417,8 @@ def image_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id',
-                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
+        #inventory = get_inventory_item_hash_from_database(config.db_engine, EC2_IMAGE, 'id',
+        #                                                  debug_hash=(config.log_level < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -433,14 +435,135 @@ def image_poller():
                     if cloud.authurl + cloud.project + cloud.region not in unique_cloud_dict:
                         unique_cloud_dict[cloud.authurl + cloud.project + cloud.region] = {
                             'cloud_obj': cloud,
-                            'groups': [(cloud.group_name, cloud.cloud_name)]
+                            'groups': [(cloud.group_name, cloud.cloud_name)],
+                            'filter_aliases': [],
+                            'filter_owner_ids': []
                         }
                     else:
                         unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['groups'].append(
                             (cloud.group_name, cloud.cloud_name))
+                    try:
+                        filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
+                        if filter_row.owner_aliases is not None:
+                            unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['filter_aliases'] += filter_row.owner_aliases.split(',')
+                        if filter_row.owner_ids is not None:
+                            unique_cloud_dict[cloud.authurl + cloud.project + cloud.region]['filter_owner_ids'] += filter_row.owner_ids.split(',')
+                    except:
+                        logging.info("No filter row for cloud %s::%s" % (cloud.group_name, cloud.cloud_name))
+                        continue
+
+                # We'll need to make 3 sets of queries here, firstly for each set of credentials to get their own images and images shared with them
+                #  any images returned here that are not owned by the requesting credentails need to be marked with the requester's id as borrower-id
+                #  there may be some duplicates here but they will be marked by different borrower-id so it should be fine
+                # Secondly we'll need to make a query to gather all the public images based on a groups filter
+                #  the plan will be to create a concatenated list of owner-ids to make the query and just dump everything in the database
+                #  when the sister image poller that populate csv2_images they will be filtered based on the owner ids associated with that
+                #  group-cloud combo
+                # Lastly, we need to make a follow up query using the group filter's owner alias's since the filter function on describe images
+                #  is exclusive instead of additive.
+                # The second 2 queries can be done once per amazon region whereas the shared/personal images will need to be queried for
+                #  each set of credentials
+
+                uncommitted_updates = 0
+                for cloud in cloud_list:
+                    #First get the filters and check if self or shared images are enabled
+                    self_filter = False
+                    shared_filter = False
+                    try:
+                        filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
+                        if "self" in filter_row.owner_aliases:
+                            self_filter = True
+                        if "shared" in filter_row.owner_aliases:
+                            shared_filter = True
+                    except:
+                        logging.info("No filter row for cloud %s::%s" % (cloud.group_name, cloud.cloud_name))
+                        continue
+
+                    # get self-owned and directly shared images
+                    if shared_filter or self_filter:
+                        requester_id = cloud.ec2_owner_id
+                        session = _get_ec2_session(cloud)
+                        client = _get_ec2_client(session)
+                        user_list = ['self']
+                        filters = [
+                            {'Name': 'image-type', 'Values':['machine']},
+                            {'Name': 'state', 'Values':['available']},
+                        ]
+                        image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                        for image in image_list["Images"]:
+                            size = 0
+                            if image['BlockDeviceMappings']:
+                                for device in image['BlockDeviceMappings']:
+                                    if 'Ebs' in device.keys():
+                                        try:
+                                            size += device['Ebs']['VolumeSize']
+                                        except:
+                                            pass
+                            try:
+                                logging.debug("Creating image dictionary for database export")
+                                if 'ImageOwnerAlias' in image.keys():
+                                    ioa =  image['ImageOwnerAlias']
+                                else:
+                                    ioa = None
+                                if 'Name' in image.keys():
+                                    nm =  image['Name']
+                                else:
+                                    nm = "NoName"
+                                if 'Description' in image.keys():
+                                    desc =  image['Description']
+                                else:
+                                    desc = None
+                                if image['OwnerId'] is not requester_id:
+                                    borrower_id = requester_id
+                                    if not shared_filter:
+                                        continue
+                                else:
+                                    borrower_id = "not_shared"
+                                    if not self_filter:
+                                        continue
+                                img_dict = {
+                                    'region': cloud.region,
+                                    'ImageId': image['ImageId'],
+                                    'borrower_id': borrower_id,
+                                    'OwnerId': image['OwnerId'],
+                                    'ImageOwnerAlias': ioa,
+                                    'RootDeviceType': image['RootDeviceType'],
+                                    'size': size,
+                                    'ImageLocation': image['ImageLocation'].lower(),
+                                    'Public': image['Public'],
+                                    'Name': nm,
+                                    'Description': desc,
+                                    'last_updated': new_poll_time
+                                }
+                            except Exception as exc:
+                                logging.error("Unable to create image dict from amazon data error:")
+                                logging.error(exc)
+                                logging.error(image)
+                                continue
+
+                            img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
+                            if unmapped:
+                                logging.error("Unmapped attributes found during mapping, discarding:")
+                                logging.error(unmapped)
+
+                            #if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, image['ImageId'], img_dict,
+                            #                                    new_poll_time, debug_hash=(config.log_level < 20)):
+                            #    continue
+
+                            new_image = EC2_IMAGE(**img_dict)
+                            try:
+                                db_session.merge(new_image)
+                                uncommitted_updates += 1
+                            except Exception as exc:
+                                logging.exception(
+                                    "Failed to merge image entry for %s::%s::%s:" % (cloud.group_name, cloud.cloud_name, image['ImageId']))
+                                logging.error(exc)
+                                abort_cycle = True
+
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    region = unique_cloud_dict[cloud]['cloud_obj'].region
                     logging.debug("Processing Images from cloud - %s" % cloud_name)
                     session = _get_ec2_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -459,24 +582,46 @@ def image_poller():
                         continue
 
                     # Retrieve all images for this cloud.
+                    amzn_images = []
                     client = _get_ec2_client(session)
+                    user_list = ['self', 'all']
+                    alias_filter_set = set(unique_cloud_dict[cloud]['filter_aliases'])
+                    owner_id_filter_set = set(unique_cloud_dict[cloud]['filter_owner_ids'])
+                    alias_filter = list(alias_filter_set)
+                    owner_id_filter = list(owner_id_filter_set)
+                    base_filters = [
+                        {'Name': 'image-type', 'Values':['machine']},
+                        {'Name': 'state', 'Values':['available']},
+                    ]
                     try:
-                        '''
-                        users2 = ['self','all']
-                        filters = [ {'Name': 'owner-alias', 'Values':['amazon']},
-                            #{'Name': 'root-device-type', 'Values':['instance-store']},
-                            {'Name': 'image-type', 'Values':['machine']},
-                            {'Name': 'architecture', 'Values':['x86_64']},
-                            {'Name': 'state', 'Values':['available']},
-                            {'Name': 'virtualization-type', 'Values':['hvm']},
-                            #{'Name': 'name', 'Values':['amzn2-ami-hvm-2.0.????????-x86_64-gp2']}# <- Amazon Linux 2
-                            #{'Name': 'name', 'Values':['amzn-ami-hvm-????.??.?.????????-x86_64-gp2']}# <- Amazon Linux
-                            #{'Name': 'name', 'Values':['ubuntu-xenial-16.04-amd64-server-*']}# <- Ubuntu Server 16.04 LTS
-                            #{'Name': 'name', 'Values':['RHEL-7.5_HVM_GA*']}# <- RHEL 7.5
-                            #{'Name': 'name', 'Values':['suse-sles-15-v????????-hvm-ssd-x86_64']}# <- SUSE Linux Enterprise Server 15
-                        ]
-                        '''
-                        image_list = client.describe_images() # Can pass in filters here: client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                        filters = base_filters
+                        if len(alias_filter) > 0:
+                            filters.append({'Name': 'owner-alias', 'Values': alias_filter})
+                            image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                            amzn_images = amzn_images + image_list['Images']
+                    except Exception as ex:
+                        logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
+                        logging.error(ex)
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if grp_nm + cld_nm not in failure_dict:
+                                failure_dict[grp_nm + cld_nm] = 1
+                            else:
+                                failure_dict[grp_nm + cld_nm] = failure_dict[grp_nm + cld_nm] + 1
+                            if failure_dict[grp_nm + cld_nm] > 3:  # should be configurable
+                                logging.error(
+                                    "Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm + cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+                        continue
+                    
+                    try:
+                        # check if there is owner_ids to filter on
+                        filters = base_filters
+                        if len(owner_id_filter) > 0:
+                            filters.append({'Name': 'owner-id', 'Values': owner_id_filter})
+                            image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                            amzn_images = amzn_images + image_list['Images']
                     except Exception as ex:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(ex)
@@ -493,7 +638,7 @@ def image_poller():
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
-                    if image_list is False:
+                    if len(image_list) == 0:
                         logging.info("No images defined for %s, skipping this cloud..." % cloud_name)
                         continue
 
@@ -503,49 +648,72 @@ def image_poller():
                         failure_dict.pop(grp_nm + cld_nm, None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
-                    uncommitted_updates = 0
-                    for image in image_list['Images']:
+                    logging.debug("Processing Image list...")
+                    for image in amzn_images:
+                        size = 0
                         if image['BlockDeviceMappings']:
-                            size = 0
                             for device in image['BlockDeviceMappings']:
                                 if 'Ebs' in device.keys():
-                                    size += device['Ebs']['VolumeSize']
+                                    try:
+                                        size += device['Ebs']['VolumeSize']
+                                    except:
+                                        pass
 
 
                         for groups in unique_cloud_dict[cloud]['groups']:
                             group_n = groups[0]
                             cloud_n = groups[1]
 
-                            img_dict = {
-                                'group_name': group_n,
-                                'cloud_name': cloud_n,
-                                'container_format': None,
-                                'disk_format': image['RootDeviceType'],
-                                'min_ram': 0,
-                                'id': image['ImageId'],
-                                'size': size,
-                                'visibility': image['Public'],
-                                'min_disk': 0,
-                                'name': image['Name'],
-                                'last_updated': new_poll_time
-                            }
+                            try:
+                                logging.debug("Creating image dictionary for database export")
+                                if 'ImageOwnerAlias' in image.keys():
+                                    ioa =  image['ImageOwnerAlias']
+                                else:
+                                    ioa = None
+                                if 'Name' in image.keys():
+                                    nm =  image['Name']
+                                else:
+                                    nm = "NoName"
+                                if 'Description' in image.keys():
+                                    desc =  image['Description']
+                                else:
+                                    desc = None
+                                img_dict = {
+                                    'region': region,
+                                    'ImageId': image['ImageId'],
+                                    'borrower_id': "not_shared",
+                                    'OwnerId': image['OwnerId'],
+                                    'ImageOwnerAlias': ioa,
+                                    'RootDeviceType': image['RootDeviceType'],
+                                    'size': size,
+                                    'ImageLocation': image['ImageLocation'].lower(),
+                                    'Public': image['Public'],
+                                    'Name': nm,
+                                    'Description': desc,
+                                    'last_updated': new_poll_time
+                                }
+                            except Exception as exc:
+                                logging.error("Unable to create image dict from amazon data error:")
+                                logging.error(exc)
+                                logging.error(image)
+                                continue
 
-                            img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                            img_dict, unmapped = map_attributes(src="ec2_images", dest="csv2", attr_dict=img_dict)
                             if unmapped:
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict,
-                                                                new_poll_time, debug_hash=(config.log_level < 20)):
-                                continue
+                            #if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image['ImageId'], img_dict,
+                            #                                    new_poll_time, debug_hash=(config.log_level < 20)):
+                            #    continue
 
-                            new_image = IMAGE(**img_dict)
+                            new_image = EC2_IMAGE(**img_dict)
                             try:
                                 db_session.merge(new_image)
                                 uncommitted_updates += 1
                             except Exception as exc:
                                 logging.exception(
-                                    "Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
+                                    "Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image['ImageId']))
                                 logging.error(exc)
                                 abort_cycle = True
                                 break
@@ -557,7 +725,8 @@ def image_poller():
                     if uncommitted_updates > 0:
                         try:
                             db_session.commit()
-                            logging.info("Image updates committed: %d" % uncommitted_updates)
+                            logging.info("%d non-unique Images updated (may contain duplicates due to filtering)" % uncommitted_updates)
+                            uncommitted_updates = 0
                         except Exception as exc:
                             logging.exception("Failed to commit image updates for %s, aborting cycle..." % cloud_name)
                             logging.error(exc)
@@ -570,10 +739,20 @@ def image_poller():
                     time.sleep(config.sleep_interval_image)
                     continue
 
-                # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=failure_dict)
+                # Since this table isn't directly tied to groups, our standard hashing strategy wont work here.
+                # instead we will rely in the last updated field to purge out of date images
+                #
+                # query based on new_poll_time 
+                obsolete_rows = db_session.query(EC2_IMAGE).filter(EC2_IMAGE.last_updated<new_poll_time)
+                deletions = 0
+                for row in obsolete_rows:
+                    db_session.delete(row)
+                    deletions += 1
 
-                config.db_close()
+                if deletions > 0:
+                    logging.info("Comitting %s deletes" % deletions)
+                    db_session.commit()
+                config.db_close() 
                 del db_session
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_image)
@@ -1578,12 +1757,12 @@ def service_registrar():
 
 if __name__ == '__main__':
     process_ids = {
-        #'flavor': flavor_poller,
+        'flavor': flavor_poller,
         'image': image_poller,
         'keypair': keypair_poller,
         'limit': limit_poller,
         'network': network_poller,
-        'vm': vm_poller,
+        #'vm': vm_poller,
         'registrar': service_registrar,
         'security_group_poller': security_group_poller
     }

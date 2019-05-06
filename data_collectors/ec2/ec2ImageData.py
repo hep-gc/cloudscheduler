@@ -89,8 +89,8 @@ def image_poller():
             """
 
 
-            filters = [ {'Name': 'owner-alias', 'Values':['amazon', 'self']},
-                        {'Name': 'image-type', 'Values':['machine']},
+            filters = [# {'Name': 'owner-alias', 'Values':['amazon', 'self']},
+                       # {'Name': 'image-type', 'Values':['machine']},
                         {'Name': 'state', 'Values':['available']},
                         {'Name': 'virtualization-type', 'Values':['hvm']},
                         #{'Name': 'name', 'Values':['amzn2-ami-hvm-2.0.????????-x86_64-gp2']}# <- Amazon Linux 2
@@ -101,9 +101,11 @@ def image_poller():
                       ]
             try:
                 if owners:
-                    image_list = client.describe_images(ExecutableUsers=users2, Filters=filters, Owners=owners)
+                    print("Using Owners")
+                    image_list = client.describe_images(ExecutableUsers=users1, Filters=filters, Owners=owners)
                 else: 
-                    image_list = client.describe_images(ExecutableUsers=users2, Filters=filters)
+                    print("No Owners")
+                    image_list = client.describe_images(ExecutableUsers=users1, Filters=filters)
                 print("Got response data")
             except Exception as exc:
                 print("Failed to retrieve image data, skipping...")
@@ -120,6 +122,8 @@ def image_poller():
             cnt = 0
             for image in image_list['Images']:
                 try:
+                    print(image['Name'])
+                    print("\n")
                     # Skip Windows
                     image['Platform']
                     cnt += 1 
@@ -168,7 +172,7 @@ def image_poller():
                         suse_dict[name] = image_list['Images'][cnt]
                 
                 else:
-                    with open('output3.txt', 'a') as f:
+                    with open('output4.txt', 'a') as f:
                         for attr in image:
                             tab = ':\t'
                             if len(attr) <= 6:

@@ -37,7 +37,7 @@ if config.enable_profiling:
     # command to manually clear request log: python3 manage.py silk_clear_request_log
 
 ALLOWED_HOSTS = [
-                'csv2a.heprc.uvic.ca'
+                'csv2-dev.heprc.uvic.ca'
                 ]
 
 LOGGING = {

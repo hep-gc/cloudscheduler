@@ -104,6 +104,16 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             return False
         return sess
 
+
+
+def _get_ec2_session(cloud):
+    return boto3.session.Session(region_name=cloud.region,
+                                 aws_access_key_id=cloud.username,
+                                 aws_secret_access_key=cloud.password)
+
+def _get_ec2_client(session):
+    return session.client('ec2')
+
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
@@ -281,13 +291,13 @@ def machine_poller():
                         abort_cycle = True
                         break
                 if forgein_machines > 0:
-                    logging.info("Ignored %s forgein machines" % forgein_machines)
+                    logging.info("Ignored %s total forgein machines" % forgein_machines)
                     if "nogrp" in machine_errors:
-                        logging.info("%s ignored for missing group name" % machine_errors["nogrp"])
+                        logging.info("    %s ignored for missing group name" % machine_errors["nogrp"])
                     if "badgrp" in machine_errors:
-                        logging.info("%s ignored for bad group name" % machine_errors["badgrp"])
+                        logging.info("    %s ignored for bad group name" % machine_errors["badgrp"])
                     if "badcld" in machine_errors:
-                        logging.info("%s ignored for invalid cloud name" % machine_errors["badcld"])
+                        logging.info("    %s ignored for invalid cloud name" % machine_errors["badcld"])
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
@@ -573,9 +583,46 @@ def command_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
+
+                    elif cloud.cloud_type is "amazon":
+                        if config.terminate_off:
+                            logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                            continue
+                        #terminate the vm
+                        amz_session = _get_ec2_session(cloud)
+                        amz_client = _get_ec2_client(amz_session)
+                        try:
+                            vm_row.terminate = vm_row.terminate + 1
+                            old_updater = vm_row.updater
+                            vm_row.updater = str(get_frame_info() + ":t+")
+                            #destroy amazon vm, first we'll need to check if its a reservation
+                            if vm_row.vmid[0].lower() is "r":
+                                #its a reservation just delete it and destroy the vm
+                                # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
+                                #
+                                # need the command to remove reservation:
+                                # cancel_spot_instance_requests(list_of_request_ids)
+                                #
+                                # need to terminate request, and possible image if instance_id isn't empty
+                                try:
+                                    amz_client.cancel_spot_instance_requests([vm_row.vmid])
+                                    if vm_row.instance_id is not None:
+                                        #spot price vm running need to terminate it:
+                                        amz_client.terminate_instances([vm_row.instance_id])
+                                except Exception as exc:
+                                    logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                                    logging.error(exc)
+                            else:
+                                #its a regular instance and just terminate it
+                                amz_client.terminate_instances([vm_row.vmid])
+                        except Exception as exc:
+                            logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                            logging.error(exc)
+
+
                     else:
                         # Other cloud types will need to be implemented here to terminate any vms not from openstack
-                        logging.info("Vm not from openstack cloud, skipping...")
+                        logging.info("Vm not from openstack, or amazon cloud, skipping...")
                         continue
                 if uncommitted_updates > 0:
                     try:
