@@ -351,10 +351,6 @@
                         </table>
                         </form>
 
-                        <div class="bottom-right">
-                            <a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a>
-                        </div>
-
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
                             <div class="tab2-hide"></div>
@@ -507,6 +503,16 @@
 
 
                 </div>
+
+
+                <div class="tab">
+                    <input id="{{cloud.cloud_name}}-delete" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'delete'); check_target('{{cloud.cloud_name}}-hide')">
+                    <label class="tab-colour" for="{{cloud.cloud_name}}-delete">-</label>
+                    <div class="tab-content delete-div">
+                        <a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a>
+                    </div>
+                </div>
+
 
             </div>
 
