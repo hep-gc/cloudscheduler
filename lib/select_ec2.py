@@ -26,6 +26,9 @@ def select_ec2_images(config, group_name, cloud_name):
         if ec2_filter[0]['owner_ids']:
             sql.append(_get_ec2_equal('owner_id', ec2_filter[0]['owner_ids']))
 
+
+        _bracket_and_bracket_to_or(sql)
+
         if ec2_filter[0]['like']:
             sql.append(_get_ec2_like('image_location', ec2_filter[0]['like']))
 
@@ -80,6 +83,17 @@ def select_ec2_instance_types(config, group_name, cloud_name):
         config.db_close()
 
     return 0, None, ' '.join(sql)
+
+#-------------------------------------------------------------------------------
+
+def _bracket_and_bracket_to_or(sql):
+    """
+    Return a clause to select where a column is equal to one or more values.
+    """
+    
+    sql[-2] = sql[-2][:-1] + ' or ' + sql[-1][5:]
+    del sql[-1]
+    return
 
 #-------------------------------------------------------------------------------
 
