@@ -213,6 +213,7 @@ def ec2_filterer():
                     image_dict = {
                         'group_name': cloud.group_name,
                         'cloud_name': cloud.cloud_name,
+                        'cloud_type': 'amazon',
                         #'container_format': image.container_format,
                         'disk_format': image["disk_format"],
                         #'min_ram': image.min_ram,
@@ -275,17 +276,16 @@ def ec2_filterer():
 
             # do cleanup
             deletions = 0
-            for cloud in cloud_list:
-                obsolete_image_rows = config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_name == cloud.cloud_name, IMAGE.group_name == cloud.group_name)
-                obsolete_flavor_rows = config.db_session.query(FLAVOR).filter(FLAVOR.last_updated<new_poll_time, FLAVOR.cloud_name == cloud.cloud_name, FLAVOR.group_name == cloud.group_name)
+            obsolete_image_rows = config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon")
+            obsolete_flavor_rows = config.db_session.query(FLAVOR).filter(FLAVOR.last_updated<new_poll_time, FLAVOR.cloud_type == "amazon")
 
-                for row in obsolete_image_rows:
-                    db_session.delete(row)
-                    deletions += 1
+            for row in obsolete_image_rows:
+                db_session.delete(row)
+                deletions += 1
 
-                for row in obsolete_flavor_rows:
-                    db_session.delete(row)
-                    deletions += 1
+            for row in obsolete_flavor_rows:
+                db_session.delete(row)
+                deletions += 1
 
             if deletions > 0:
                 logging.info("Comitting %s image and flavor deletes" % deletions)
