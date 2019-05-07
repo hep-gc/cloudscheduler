@@ -177,9 +177,9 @@ def machine_poller():
                     cloud_list.append(cloud.cloud_name)
                 host_groups[group.group_name] = cloud_list
 
-            forgein_machines = 0
             for condor_host in condor_hosts_set:
                 logging.debug("Polling condor host: %s" % condor_host)
+                forgein_machines = 0
                 try:
                     condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
@@ -506,12 +506,12 @@ def command_poller():
                         logging.info("VM %s uner manual control, skipping terminate..." % resource.vmid)
 
 
+                    # Get session with hosting cloud.
+                    cloud = db_session.query(CLOUD).filter(
+                        CLOUD.group_name == vm_row.group_name,
+                        CLOUD.cloud_name == vm_row.cloud_name).first()
 
                     if cloud.cloud_type == "openstack":
-                        # Get session with hosting cloud.
-                        cloud = db_session.query(CLOUD).filter(
-                            CLOUD.group_name == vm_row.group_name,
-                            CLOUD.cloud_name == vm_row.cloud_name).first()
                         session = _get_openstack_session(cloud)
                         if session is False:
                             continue

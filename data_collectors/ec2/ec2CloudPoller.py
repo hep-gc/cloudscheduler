@@ -36,6 +36,8 @@ from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
 
 import boto3
+import urllib
+import json
 
 
 # The purpose of this file is to get some information from the various registered
