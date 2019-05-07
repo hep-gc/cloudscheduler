@@ -505,13 +505,23 @@ django_session = Table('django_session', metadata,
   Column('expire_date', Integer)
   )
 
+ec2_image_filters = Table('ec2_image_filters', metadata,
+  Column('group_name', String(32), primary_key=True),
+  Column('cloud_name', String(32), primary_key=True),
+  Column('owner_aliases', String(128)),
+  Column('owner_ids', String(128)),
+  Column('like', String(128)),
+  Column('not_like', String(128)),
+  Column('operating_systems', String(128)),
+  Column('architectures', String(128))
+  )
+
 ec2_images = Table('ec2_images', metadata,
   Column('region', String(32), primary_key=True),
   Column('id', String(128), primary_key=True),
+  Column('borrower_id', String(32), primary_key=True),
   Column('owner_id', String(32)),
-  Column('borrower_id', String(32)),
   Column('owner_alias', String(64)),
-  Column('container_format', String(128)),
   Column('disk_format', String(128)),
   Column('size', Integer),
   Column('image_location', String(512)),
@@ -940,8 +950,36 @@ view_condor_jobs_group_defaults_applied = Table('view_condor_jobs_group_defaults
   )
 
 view_ec2_images = Table('view_ec2_images', metadata,
+  Column('region', String(32)),
+  Column('id', String(128)),
+  Column('borrower_id', String(32)),
+  Column('owner_id', String(32)),
+  Column('owner_alias', String(64)),
+  Column('disk_format', String(128)),
+  Column('size', Integer),
+  Column('image_location', String(512)),
+  Column('visibility', String(128)),
+  Column('name', String(256)),
+  Column('description', String(256)),
+  Column('last_updated', Integer),
+  Column('lower_location', String(512)),
+  Column('opsys', String(8)),
+  Column('arch', String(5))
+  )
 
 view_ec2_instance_types = Table('view_ec2_instance_types', metadata,
+  Column('region', String(32)),
+  Column('instance_type', String(32)),
+  Column('operating_system', String(32)),
+  Column('instance_family', String(32)),
+  Column('processor', String(64)),
+  Column('storage', String(32)),
+  Column('cores', Integer),
+  Column('memory', Float),
+  Column('cost_per_hour', Float),
+  Column('memory_per_core', Float),
+  Column('processor_manufacturer', String(64))
+  )
 
 view_foreign_flavors = Table('view_foreign_flavors', metadata,
   Column('group_name', String(32)),
