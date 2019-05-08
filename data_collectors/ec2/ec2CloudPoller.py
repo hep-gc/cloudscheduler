@@ -1002,12 +1002,12 @@ def limit_poller():
                         limits_dict['security_groups_max'] = -1
                         limits_dict['server_group_members_max'] = -1
                         limits_dict['cores_max'] = -1
-                        limits_dict['server_groups_used'] = -1
-                        limits_dict['instances_used'] = -1
-                        limits_dict['ram_used'] = -1
-                        limits_dict['security_groups_used'] = -1
-                        limits_dict['floating_ips_used'] = -1
-                        limits_dict['cores_used'] = -1
+                        limits_dict['server_groups_used'] = 0
+                        limits_dict['instances_used'] = 0
+                        limits_dict['ram_used'] = 0
+                        limits_dict['security_groups_used'] = 0
+                        limits_dict['floating_ips_used'] = 0
+                        limits_dict['cores_used'] = 0
 
                         if unmapped:
                             logging.error("Unmapped attributes found during mapping, discarding:")
@@ -1462,17 +1462,6 @@ def vm_poller():
                 logging.debug("Polling Group: %s" % group.group_name)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon",
                                                             CLOUD.group_name == group.group_name)
-                foreign_vm_list = db_session.query(FVM).filter(FVM.group_name == group.group_name)
-
-                # set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
-                # dict[cloud+flavor]
-                for_vm_dict = {}
-                for for_vm in foreign_vm_list:
-                    fvm_dict = {
-                        "fvm_obj": for_vm,
-                        "count": 0,
-                    }
-                    for_vm_dict[for_vm.cloud_name + "--" + for_vm.flavor_id] = fvm_dict
 
                 for cloud in cloud_list:
                     group_name = group.group_name
@@ -1512,8 +1501,7 @@ def vm_poller():
                                 group_name, cloud_name))
                         continue
 
-                    if ('Reservations' in vm_list.keys() and len(vm_list['Reservations']) == 0) \
-                            or ('SpotInstanceRequests' in spot_list.keys() and len(spot_list['SpotInstanceRequests']) == 0):
+                    if ('Reservations' in vm_list.keys() and len(vm_list['Reservations']) == 0):
                         logging.info("No VMs defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
                         del nova
                         continue
@@ -1617,35 +1605,6 @@ def vm_poller():
                             abort_cycle = True
                             break
                 if abort_cycle:
-                    break
-                # proccess FVM dict
-                # check if any rows have a zero count and delete them, otherwise update with new count
-                for key in for_vm_dict:
-                    split_key = key.split("--")
-                    if for_vm_dict[key]['count'] == 0:
-                        # delete this row
-                        db_session.delete(for_vm_dict[key]['fvm_obj'])
-                    else:
-                        try:
-                            # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
-                            for_vm_dict[key]['fvm_obj'].count = for_vm_dict[key]['count']
-                            db_session.merge(for_vm_dict[key]['fvm_obj'])
-                        except KeyError:
-                            # need to create new db obj for this entry
-                            fvm_dict = {
-                                'group_name': group.group_name,
-                                'cloud_name': split_key[0],
-                                'flavor_id': split_key[1],
-                                'count': for_vm_dict[key]['count']
-                            }
-                            new_fvm = FVM(**fvm_dict)
-                            db_session.merge(new_fvm)
-                try:
-                    db_session.commit()
-                except Exception as exc:
-                    logging.exception("Failed to commit foreign VM updates, aborting cycle...")
-                    logging.error(exc)
-                    abort_cycle = True
                     break
 
             if abort_cycle:
