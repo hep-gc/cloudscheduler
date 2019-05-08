@@ -3,6 +3,7 @@ EC2 API Cloud Connector Module. Using Boto
 """
 import time
 import boto3
+import logging
 import botocore
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
