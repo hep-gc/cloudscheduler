@@ -414,6 +414,7 @@ def image_poller():
                             img_dict = {
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
+                                'cloud_type': 'openstack',
                                 'container_format': image.container_format,
                                 'disk_format': image.disk_format,
                                 'min_ram': image.min_ram,
