@@ -26,6 +26,8 @@ urlpatterns = [
     path('cloud/metadata-new/',                    cloud_views.metadata_new),
     path('cloud/metadata-update/',                 cloud_views.metadata_update),
 
+    path('ec2-instance-type/list/',                group_instance_type_views.list),
+
     path('group/add/',                             group_views.add),
     path('group/defaults/',                        group_views.defaults),
     path('group/delete/',                          group_views.delete),
