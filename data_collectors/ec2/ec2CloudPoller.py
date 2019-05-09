@@ -1536,8 +1536,10 @@ def vm_poller():
                             for net in vm['NetworkInterfaces']:
                                 for addr in net['PrivateIpAddresses']:
                                     ip_addrs.append(addr['Association']['PublicIp'])
-                            ip_addrs.append(vm['PublicIpAddress'])
-                            ip_addrs.append(vm['PrivateIpAddress'])
+                            if 'PublicIpAddress' in vm:
+                                ip_addrs.append(vm['PublicIpAddress'])
+                            if 'PrivateIpAddress' in vm:
+                                ip_addrs.append(vm['PrivateIpAddress'])
                             strt_time = vm["LaunchTime"] # datetime(2015, 1, 1) might need to fiddle with this and next section
                             try:
                                 from_zone = tz.gettz('UTC')
