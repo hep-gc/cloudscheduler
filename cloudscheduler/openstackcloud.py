@@ -288,14 +288,3 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.log.exception("Error determining keystone version from auth url: %s", ex)
             keystone_session = None
         return keystone_session
-
-    def _get_db_engine(self):
-        """
-        Get a connection to the database.
-        :return: db connection object.
-        """
-        return create_engine("mysql://" + csconfig.config.db_user + ":" +
-                             csconfig.config.db_password + "@" +
-                             csconfig.config.db_host + ":" +
-                             str(csconfig.config.db_port) + "/" +
-                             csconfig.config.db_name)

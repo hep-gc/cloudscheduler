@@ -1554,11 +1554,11 @@ def vm_poller():
                             vm_dict = {
                                 'group_name': cloud.group_name,
                                 'cloud_name': cloud.cloud_name,
+                                'cloud_type': 'amazon',
                                 'auth_url': cloud.authurl,
                                 'project': cloud.project,
                                 'hostname': vm['PublicDnsName'],
                                 'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm.keys() else vm['InstanceId'],
-                                'instance_id': vm['InstanceId'] if 'SpotInstanceRequestId' in vm.keys() else None,
                                 'status': vm['State']['Name'],
                                 'flavor_id': vm['InstanceType'],
                                 'vm_ips': str(ip_addrs),
@@ -1570,6 +1570,7 @@ def vm_poller():
                             if unmapped:
                                 logging.error("unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
+                            vm_dict['instance_id'] = vm['InstanceId'] if 'SpotInstanceRequestId' in vm.keys() else None
 
                             if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm['PublicDnsName'],
                                                                 vm_dict, new_poll_time, debug_hash=(config.log_level < 20)):

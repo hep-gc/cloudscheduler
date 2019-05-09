@@ -33,6 +33,7 @@ class EC2Cloud(basecloud.BaseCloud):
         self.project = resource.project
         self.spot_price = resource.spot_price
         self.default_security_groups = resource.default_security_groups
+        self.keep_alive = resource.default_keep_alive
         try:
             self.default_security_groups = self.default_security_groups.split(
                 ',') if self.default_security_groups else ['default']
@@ -60,19 +61,25 @@ class EC2Cloud(basecloud.BaseCloud):
         user_data_list = job.user_data.split(',') if job.user_data else []
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
+        instancetype_dict = self._attr_list_to_dict(job.instance_type)
+
         client = self._get_client()
         if not client:
             self.log.error("Failed to get client for ec2. Check Configuration.")
             return -1
         if self.spot_price <= 0:
-            new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num, InstanceType=flavor,
-                                          UserData=userdata, KeyName=self.keyname, SecurityGroups=self.default_security_groups)
+            new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
+                                          InstanceType=instancetype_dict[self.name],
+                                          UserData=userdata,
+                                          SecurityGroups=self.default_security_groups)
+            #new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num, InstanceType=instancetype_dict[self.name],
+             #                             UserData=userdata, KeyName=self.keyname, SecurityGroups=self.default_security_groups)
         else:
-            specs = {'ImageId': job.image,
+            specs = {'ImageId': image,
                      'InstanceType': flavor,
                      'KeyName': self.keyname,
                      'Userdata': userdata,
-                     'SecurityGroups': job.security_groups}
+                     'SecurityGroups': self.default_security_groups}
             new_vm = client.request_spot_instances(SpotPrice=self.spot_price, Type='one-time', InstanceCount=num, LaunchSpecifications=specs)
         if 'Instances' in new_vm.keys():
             engine = self._get_db_engine()
@@ -88,6 +95,7 @@ class EC2Cloud(basecloud.BaseCloud):
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
+                    'cloud_type': 'amazon',
                     'auth_url': self.authurl,
                     'project': self.project,
                     'hostname': hostname,
@@ -113,6 +121,7 @@ class EC2Cloud(basecloud.BaseCloud):
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
+                    'cloud_type': 'amazon',
                     'auth_url': self.authurl,
                     'project': self.project,
                     'vmid': vm['SpotInstanceRequestId'],
