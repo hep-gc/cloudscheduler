@@ -29,18 +29,26 @@ class EC2Cloud(basecloud.BaseCloud):
         self.password = resource.password  # Secret key
         self.region = resource.region
         self.authurl = resource.authurl  # endpoint_url
-        self.keyname = resource.keyname
+        self.keyname = resource.default_keyname if resource.default_keyname else ""
         self.project = resource.project
         self.spot_price = resource.spot_price
+        self.default_security_groups = resource.default_security_groups
+        try:
+            self.default_security_groups = self.default_security_groups.split(
+                ',') if self.default_security_groups else ['default']
+        except:
+            raise Exception
 
 
     def _get_client(self):
         client = None
         try:
-            client = boto3.client('ec2', region_name=self.region, endpoint_url=self.authurl,
-                                  aws_access_key_id=self.username, aws_secret_access_key=self.password)
-        except:
-            pass
+            session = boto3.session.Session(region_name=self.region,
+                                 aws_access_key_id=self.username,
+                                 aws_secret_access_key=self.password)
+            client = session.client('ec2')
+        except Exception as ex:
+            self.log.exception(ex)
         return client
 
 
@@ -53,9 +61,12 @@ class EC2Cloud(basecloud.BaseCloud):
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
         client = self._get_client()
+        if not client:
+            self.log.error("Failed to get client for ec2. Check Configuration.")
+            return -1
         if self.spot_price <= 0:
-            new_vm = client.run_instances(ImageId=job.image, MinCount=1, MaxCount=num, InstanceType=flavor,
-                                          UserData=userdata, KeyName=self.keyname, SecurityGroups=job.security_groups)
+            new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num, InstanceType=flavor,
+                                          UserData=userdata, KeyName=self.keyname, SecurityGroups=self.default_security_groups)
         else:
             specs = {'ImageId': job.image,
                      'InstanceType': flavor,
