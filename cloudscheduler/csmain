@@ -287,9 +287,9 @@ def main():
                                         pass
                                     if cloud.cloud_type == 'amazon':
                                         if idle_job.image:
-                                            use_image = ec2_image_dict[cm_group.name][cloud.name][idle_job.image]
+                                            use_image = ec2_image_dict[cm_group.name][cloud.cloud_name][idle_job.image]
                                         elif cloud.default_image:
-                                            use_image = ec2_image_dict[cm_group.name][cloud.name][cloud.default_image]
+                                            use_image = ec2_image_dict[cm_group.name][cloud.cloud_name][cloud.default_image]
 
                                     cm_group.clouds[cloud.cloud_name]\
                                         .vm_create(num=int(num_vms_to_boot),
