@@ -293,7 +293,7 @@ def ec2_filterer():
 
             #need to make sleep configurable and add signaling
             config.db_close()
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_filterer)
 
 
 
@@ -337,7 +337,7 @@ def flavor_poller():
 
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_flavor)
 
 
         except Exception as exc:
@@ -693,12 +693,16 @@ def image_poller():
                 # instead we will rely in the last updated field to purge out of date images
                 #
                 # query based on new_poll_time 
+
                 obsolete_rows = db_session.query(EC2_IMAGE).filter(EC2_IMAGE.last_updated<new_poll_time)
+                deletions = obsolete_rows.count()
+                obsolete_rows.delete()
+                '''
                 deletions = 0
                 for row in obsolete_rows:
                     db_session.delete(row)
                     deletions += 1
-
+                '''
                 if deletions > 0:
                     logging.info("Comitting %s deletes" % deletions)
                     db_session.commit()
@@ -1553,8 +1557,8 @@ def vm_poller():
                                 'auth_url': cloud.authurl,
                                 'project': cloud.project,
                                 'hostname': vm['PublicDnsName'],
-                                'vmid': vm['SpotInstanceRequestId'] if vm['SpotInstanceRequestId'] else vm['InstanceId'],
-                                'instance_id': vm['InstanceId'] if vm['SpotInstanceRequestId'] else None,
+                                'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm.keys() else vm['InstanceId'],
+                                'instance_id': vm['InstanceId'] if 'SpotInstanceRequestId' in vm.keys() else None,
                                 'status': vm['State']['Name'],
                                 'flavor_id': vm['InstanceType'],
                                 'vm_ips': str(ip_addrs),
@@ -1567,7 +1571,7 @@ def vm_poller():
                                 logging.error("unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm.name,
+                            if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm['PublicDnsName'],
                                                                 vm_dict, new_poll_time, debug_hash=(config.log_level < 20)):
                                 continue
 
@@ -1671,7 +1675,7 @@ if __name__ == '__main__':
         'keypair': keypair_poller,
         'limit': limit_poller,
         'network': network_poller,
-        #'vm': vm_poller,
+        'vm': vm_poller,
         'registrar': service_registrar,
         'filterer': ec2_filterer,
         'security_group_poller': security_group_poller

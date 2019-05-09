@@ -253,7 +253,8 @@ csv2_attribute_mapping = Table('csv2_attribute_mapping', metadata,
   Column('ec2_flavors', String(64)),
   Column('ec2_limits', String(64)),
   Column('ec2_regions', String(64)),
-  Column('ec2_images', String(64))
+  Column('ec2_images', String(64)),
+  Column('ec2_vms', String(20))
   )
 
 csv2_cloud_aliases = Table('csv2_cloud_aliases', metadata,
