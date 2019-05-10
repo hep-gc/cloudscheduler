@@ -1537,15 +1537,20 @@ def vm_poller():
                             # before we commit to doing this however we need a way to monitor the number of 
                             # cores/ram/instances in use since we cant get that information via limits
                             #
+                            # states: pending | running | shutting-down | terminated | stopping | stopped
+                            #
+                            if vm['State']['Name'] == "terminated":
+                                logging.debug("VM already terminated, skipping %s" % vm['InstanceId'])
+                                continue
 
                             ip_addrs = []
                             floating_ips = []
                             for net in vm['NetworkInterfaces']:
                                 for addr in net['PrivateIpAddresses']:
                                     ip_addrs.append(addr['Association']['PublicIp'])
-                            if 'PublicIpAddress' in vm:
+                            if 'PublicIpAddress' in vm.keys():
                                 ip_addrs.append(vm['PublicIpAddress'])
-                            if 'PrivateIpAddress' in vm:
+                            if 'PrivateIpAddress' in vm.keys():
                                 ip_addrs.append(vm['PrivateIpAddress'])
                             strt_time = vm["LaunchTime"] # datetime(2015, 1, 1) might need to fiddle with this and next section
                             try:
