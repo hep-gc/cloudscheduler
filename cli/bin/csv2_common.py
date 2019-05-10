@@ -489,18 +489,21 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=Fa
 
     skip_optional = True
     if optional and not gvar['user_settings']['view-columns'] and 'with' in gvar['user_settings']:
-        lower_title = title.lower()
-        words = gvar['user_settings']['with'].lower().split(',')
-        for word in words:
-            try:
-                int_word = int(word)
-            except:
-                int_word = 0
+        if gvar['user_settings']['with'] == 'ALL':
+            skip_optional = False
+        else:
+            lower_title = title.lower()
+            words = gvar['user_settings']['with'].lower().split(',')
+            for word in words:
+                try:
+                    int_word = int(word)
+                except:
+                    int_word = 0
 
-            if int_word > 0 and int_word == gvar['tables_shown']+1 or \
-                word == lower_title[:len(word)]:
-                    skip_optional = False
-                    break
+                if int_word > 0 and int_word == gvar['tables_shown']+1 or \
+                    word == lower_title[:len(word)]:
+                        skip_optional = False
+                        break
             
     if optional and not gvar['user_settings']['view-columns'] and skip_optional:
         gvar['tables_shown'] += 1
