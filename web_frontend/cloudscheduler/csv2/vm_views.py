@@ -269,8 +269,10 @@ def update(
         #return render(request, 'csv2/vms.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
         args={}
-        args['cloud_name'] =  fields['cloud_name']
-        args['poller_status'] = fields['poller_status']
+        if 'cloud_name' in fields:
+            args['cloud_name'] =  fields['cloud_name']
+        if 'poller_status' in fields:
+            args['poller_status'] = fields['poller_status']
         args['hostname'] = ''
 
         return list(request, args, response_code=0, message='vm update, VMs %s: %s.' % (verb, count))
