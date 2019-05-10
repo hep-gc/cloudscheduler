@@ -925,7 +925,11 @@ def validate_fields(config, request, fields, tables, active_user):
     Possible format strings are:
 
     ['opt1', 'opt2', ...]  - A list of valid options.
-    ('table', 'column')    - A list of valid options derrived from the named table and column.
+    ('table', 'column', <False/True>, <False/True>) - A list of valid options derrived from the
+                             named table and column.  If the first optional boolean column is set
+                             to True, then a comma seperated list of values will be validated. If
+                             the second optional boolean column is set to True, then an empty
+                             string (null value) can be accepted.
     boolean                - A value of True or False will be inserted into the output fields.
     dboolean               - Database boolean values are either 0 or 1; allow and
                              convert true/false/yes/no/on/off.
@@ -1033,21 +1037,44 @@ def validate_fields(config, request, fields, tables, active_user):
                 if isinstance(Formats[field], (list, tuple)):
                     if isinstance(Formats[field], tuple):
                         options = []
-                        s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]])
+                        s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]]).distinct()
                         for row in config.db_connection.execute(s):
                            if Formats[field][1] in row and (not row[Formats[field][1]] in options):
                               options.append(row[Formats[field][1]])
                     else:
                         options = Formats[field]
 
-                    lower_value = value.lower()
-                    value = None
-                    for opt in options:
-                        if lower_value == opt.lower():
-                            value = opt
-                            break
+                    good_value = True
 
-                    if not value:
+                    if isinstance(Formats[field], tuple) and len(Formats[field]) > 2 and Formats[field][2]:
+                        if len(Formats[field]) > 3 and Formats[field][3] and value == '':
+                            value = None
+                        else:
+                            values = []
+                            lower_values = value.lower().split(',')
+                            for lower_value in sorted(lower_values):
+                                for ix in range(len(options)+1):
+                                    if ix < len(options):
+                                        if lower_value == str(options[ix]).lower():
+                                            values.append(str(options[ix]))
+                                            break
+                                    else:
+                                        good_value = False
+
+                            if good_value:
+                                value = ','.join(values)
+
+                    else:
+                        lower_value = value.lower()
+                        for ix in range(len(options)+1):
+                            if ix < len(options):
+                                if lower_value == str(options[ix]).lower():
+                                    value = str(options[ix])
+                                    break
+                            else:
+                                good_value = False
+
+                    if not good_value:
                         return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
 
                 elif Formats[field] == 'dboolean':
