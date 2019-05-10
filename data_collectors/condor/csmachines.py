@@ -25,6 +25,7 @@ from novaclient import client as novaclient
 
 import htcondor
 import classad
+import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -585,7 +586,7 @@ def command_poller():
                             abort_cycle = True
                             break
 
-                    elif cloud.cloud_type is "amazon":
+                    elif cloud.cloud_type == "amazon":
                         if config.terminate_off:
                             logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                             continue
@@ -606,16 +607,19 @@ def command_poller():
                                 #
                                 # need to terminate request, and possible image if instance_id isn't empty
                                 try:
+                                    logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
                                     amz_client.cancel_spot_instance_requests([vm_row.vmid])
                                     if vm_row.instance_id is not None:
                                         #spot price vm running need to terminate it:
-                                        amz_client.terminate_instances([vm_row.instance_id])
+                                        logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
+                                        amz_client.terminate_instances(InstanceIds=[vm_row.instance_id])
                                 except Exception as exc:
                                     logging.error("Unable to terminate %s due to:" % vm_row.vmid)
                                     logging.error(exc)
                             else:
                                 #its a regular instance and just terminate it
-                                amz_client.terminate_instances([vm_row.vmid])
+                                logging.info("Terminating amazon vm: %s" % vm_row.vmid)
+                                amz_client.terminate_instances(InstanceIds=[vm_row.vmid])
                         except Exception as exc:
                             logging.error("Unable to terminate %s due to:" % vm_row.vmid)
                             logging.error(exc)

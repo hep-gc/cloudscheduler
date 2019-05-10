@@ -280,18 +280,18 @@ def ec2_filterer():
             obsolete_flavor_rows = config.db_session.query(FLAVOR).filter(FLAVOR.last_updated<new_poll_time, FLAVOR.cloud_type == "amazon")
 
             for row in obsolete_image_rows:
-                db_session.delete(row)
+                config.db_session.delete(row)
                 deletions += 1
 
             for row in obsolete_flavor_rows:
-                db_session.delete(row)
+                config.db_session.delete(row)
                 deletions += 1
 
             if deletions > 0:
                 logging.info("Comitting %s image and flavor deletes" % deletions)
-                db_session.commit()
+                config.db_session.commit()
 
-            #need to make sleep configurable and add signaling
+            #need to add signaling
             config.db_close()
             wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_filterer)
 
@@ -1531,14 +1531,26 @@ def vm_poller():
                             # account credentials being used are being used solely for CloudScheduler and there will be no
                             # foreign VMs to deal with.
                             # ~~~~~~~~
+                            
+                            #
+                            # We'll want to check if the vm is in the shutdown state and throw it out if it is
+                            # before we commit to doing this however we need a way to monitor the number of 
+                            # cores/ram/instances in use since we cant get that information via limits
+                            #
+                            # states: pending | running | shutting-down | terminated | stopping | stopped
+                            #
+                            if vm['State']['Name'] == "terminated":
+                                logging.debug("VM already terminated, skipping %s" % vm['InstanceId'])
+                                continue
+
                             ip_addrs = []
                             floating_ips = []
                             for net in vm['NetworkInterfaces']:
                                 for addr in net['PrivateIpAddresses']:
                                     ip_addrs.append(addr['Association']['PublicIp'])
-                            if 'PublicIpAddress' in vm:
+                            if 'PublicIpAddress' in vm.keys():
                                 ip_addrs.append(vm['PublicIpAddress'])
-                            if 'PrivateIpAddress' in vm:
+                            if 'PrivateIpAddress' in vm.keys():
                                 ip_addrs.append(vm['PrivateIpAddress'])
                             strt_time = vm["LaunchTime"] # datetime(2015, 1, 1) might need to fiddle with this and next section
                             try:
