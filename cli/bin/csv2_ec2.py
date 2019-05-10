@@ -109,20 +109,9 @@ def images(gvar):
         gvar,
         response['owner_aliases'],
         [
-            'owner_alias/Owner Alias',
+            'alias/Alias',
         ],
         title="Owner Alias Filter",
-        optional=True,
-        )
-
-    show_table(
-        gvar,
-        response['owner_ids'],
-        [
-            'owner_id/Owner ID',
-
-        ],
-        title="Owner ID Filter",
         optional=True,
         )
 
