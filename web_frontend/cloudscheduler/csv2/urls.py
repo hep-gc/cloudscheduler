@@ -1,7 +1,15 @@
 from django.conf.urls import url
 from django.urls import path
 
-from . import alias_views, cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
+from . import alias_views, \
+    cloud_views, \
+    ec2_views, \
+    group_views, \
+    job_views, \
+    server_views, \
+    settings_views, \
+    user_views, \
+    vm_views
 
 urlpatterns = [
 
@@ -26,7 +34,8 @@ urlpatterns = [
     path('cloud/metadata-new/',                    cloud_views.metadata_new),
     path('cloud/metadata-update/',                 cloud_views.metadata_update),
 
-    path('ec2-instance-type/list/',                group_instance_type_views.list),
+    path('ec2/images/',                            ec2_views.images),
+    path('ec2/instance-types/',                    ec2_views.instance_types),
 
     path('group/add/',                             group_views.add),
     path('group/defaults/',                        group_views.defaults),
