@@ -2,9 +2,13 @@
 EC2 API Cloud Connector Module. Using Boto
 """
 import time
+import gzip
 import boto3
+import base64
 import logging
 import botocore
+
+from io import StringIO
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -52,7 +56,7 @@ class EC2Cloud(basecloud.BaseCloud):
             self.log.exception(ex)
         return client
 
-
+# base64.b64encode(user_data.encode("ascii")).decode('ascii')
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         self.log.debug("vm_create from ec2 cloud.")
         template_dict['cs_cloud_type'] = self.__class__.__name__
@@ -68,19 +72,23 @@ class EC2Cloud(basecloud.BaseCloud):
             self.log.error("Failed to get client for ec2. Check Configuration.")
             return -1
         if self.spot_price <= 0:
-            new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
-                                          InstanceType=instancetype_dict[self.name],
-                                          UserData=userdata,
-                                          SecurityGroups=self.default_security_groups)
-            #new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num, InstanceType=instancetype_dict[self.name],
-             #                             UserData=userdata, KeyName=self.keyname, SecurityGroups=self.default_security_groups)
+            if self.keyname:
+                new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
+                                              InstanceType=instancetype_dict[self.name],
+                                              UserData=userdata, KeyName=self.keyname,
+                                              SecurityGroups=self.default_security_groups)
+            else:
+                new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
+                                              InstanceType=instancetype_dict[self.name],
+                                              UserData=userdata, SecurityGroups=self.default_security_groups)
         else:
             specs = {'ImageId': image,
-                     'InstanceType': flavor,
-                     'KeyName': self.keyname,
-                     'Userdata': userdata,
+                     'InstanceType': instancetype_dict[self.name],
+                     'UserData': base64.b64encode(userdata).decode(),  # Dumb encoding hack required for spot instances since boto behaves different on request_spot vs run_instance
                      'SecurityGroups': self.default_security_groups}
-            new_vm = client.request_spot_instances(SpotPrice=self.spot_price, Type='one-time', InstanceCount=num, LaunchSpecifications=specs)
+            if self.keyname:
+                specs['KeyName'] = self.keyname
+            new_vm = client.request_spot_instances(SpotPrice=str(self.spot_price), Type='one-time', InstanceCount=num, LaunchSpecification=specs)
         if 'Instances' in new_vm.keys():
             engine = self._get_db_engine()
             base = automap_base()
