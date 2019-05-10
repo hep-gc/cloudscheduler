@@ -253,7 +253,7 @@ def main():
                             num_vms_to_boot = math.floor(num_vms_to_boot)
                             log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
                             if num_vms_to_boot == 0:
-                                log.debug("Don't try to boot anything - continue")
+                                log.debug("Flavor Slots for %s is 0, check the softmax or foreign VMs to try and see why not booting a new VM.", cloud.flavor)
                                 continue
                             # Throttle amount of VMs to boot in one shot - should this be per cloud?
                             # TODO To support more load balancing on clouds modify this section to split this amount
