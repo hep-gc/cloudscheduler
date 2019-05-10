@@ -15,6 +15,7 @@ import json
 import csv2_alias
 import csv2_cloud
 import csv2_defaults
+import csv2_ec2
 import csv2_group
 import csv2_help
 import csv2_helpers
@@ -69,6 +70,13 @@ def main(args):
                     'delete':                             csv2_defaults.delete,
                     'list':                               csv2_defaults.list,
                     'set':                                csv2_defaults.set,
+                    }
+                ],
+            'ec2': [
+                False, # super_user?
+                {
+                    'images':                             csv2_ec2.images,
+                    'instance-types':                     csv2_ec2.instance_types,
                     }
                 ],
             'group': [
@@ -166,10 +174,10 @@ def main(args):
             ('-cU',   '--cloud-user-domain', True),
             ('-cUI',  '--cloud-user-domain-id', True),
             ('-cu',   '--cloud-user', True),
-            ('-dci',  '--delete_cycle_interval', True),
-            ('-djg',  '--default_job_group', True),
+            ('-dci',  '--delete-cycle-interval', True),
+            ('-djg',  '--default-job-group', True),
             ('-ds',   '--default-server', False),   #### special case in _args() ###
-            ('-eg',   '--enable_glint', True),
+            ('-eg',   '--enable-glint', True),
             ('-f',    '--file-path', True),
             ('-g',    '--group', True),
             ('-gme',  '--group-metadata-exclusion', True),
@@ -181,6 +189,19 @@ def main(args):
             ('-htcf', '--htcondor-fqdn', True),
             ('-htch', '--htcondor-container-hostname', True),
             ('-htcu', '--htcondor-users', True),
+            ('-ia',   '--ec2-image-architectures', True),
+            ('-il',   '--ec2-image-like', True),
+            ('-inl',  '--ec2-image-not_like', True),
+            ('-ioa',  '--ec2-image-owner_aliases', True),
+            ('-ioi',  '--ec2-image-owner_ids', True),
+            ('-ios',  '--ec2-image-operating_systems', True),
+            ('-itc',  '--ec2-instance-type-cores', True),
+            ('-itf',  '--ec2-instance-type-families', True),
+            ('-itmn', '--ec2-instance-type-memory-min-gigabytes-per-core', True),
+            ('-itmx', '--ec2-instance-type-memory-max-gigabytes-per-core', True),
+            ('-itos', '--ec2-instance-type-operating_systems', True),
+            ('-itp',  '--ec2-instance-type-processors', True),
+            ('-itpm', '--ec2-instance-type-processor-manufacturers', True),
             ('-jc',   '--job-cores', True),
             ('-jd',   '--job-disk', True),
             ('-jh',   '--job-hold', True),
@@ -197,29 +218,29 @@ def main(args):
             ('-js',   '--job-swap', True),
             ('-jtc',  '--job-target-clouds', True),
             ('-ju',   '--job-user', True),
-            ('-lf',   '--log_file', True),
-            ('-ll',   '--log_level', True),
+            ('-lf',   '--log-file', True),
+            ('-ll',   '--log-level', True),
             ('-me',   '--metadata-enabled', True),
             ('-mmt',  '--metadata-mime-type', True),
             ('-mn',   '--metadata-name', True),
             ('-mp',   '--metadata-priority', True),
-            ('-nld',  '--no_limit_default', True),
+            ('-nld',  '--no-limit-default', True),
             ('-NV',   '--no-view', False),
             ('-ok',   '--only-keys', False),
             ('-r',    '--rotate', False),
             ('-s',    '--server', True),
             ('-sa',   '--server-address', True),
             ('-sC',   '--server-grid-cert', True),
-            ('-sic',  '--sleep_interval_cleanup', True),
-            ('-siC',  '--sleep_interval_command', True),
-            ('-sif',  '--sleep_interval_flavor', True),
-            ('-sii',  '--sleep_interval_image', True),
-            ('-sij',  '--sleep_interval_job', True),
-            ('-sik',  '--sleep_interval_keypair', True),
-            ('-sil',  '--sleep_interval_limit', True),
-            ('-sim',  '--sleep_interval_machine', True),
-            ('-sin',  '--sleep_interval_network', True),
-            ('-siv',  '--sleep_interval_vm', True),
+            ('-sic',  '--sleep-interval-cleanup', True),
+            ('-siC',  '--sleep-interval-command', True),
+            ('-sif',  '--sleep-interval-flavor', True),
+            ('-sii',  '--sleep-interval-image', True),
+            ('-sij',  '--sleep-interval-job', True),
+            ('-sik',  '--sleep-interval-keypair', True),
+            ('-sil',  '--sleep-interval-limit', True),
+            ('-sim',  '--sleep-interval-machine', True),
+            ('-sin',  '--sleep-interval-network', True),
+            ('-siv',  '--sleep-interval-vm', True),
             ('-sK',   '--server-grid-key', True),
             ('-sml',  '--sleep-interval-main-long', True),
             ('-sms',  '--sleep-interval-main-short', True),
