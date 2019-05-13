@@ -598,7 +598,7 @@ def command_poller():
                             old_updater = vm_row.updater
                             vm_row.updater = str(get_frame_info() + ":t+")
                             #destroy amazon vm, first we'll need to check if its a reservation
-                            if vm_row.vmid[0].lower() is "r":
+                            if vm_row.vmid[0:3].lower() == "sir":
                                 #its a reservation just delete it and destroy the vm
                                 # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
                                 #
@@ -608,7 +608,7 @@ def command_poller():
                                 # need to terminate request, and possible image if instance_id isn't empty
                                 try:
                                     logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
-                                    amz_client.cancel_spot_instance_requests([vm_row.vmid])
+                                    amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row.vmid])
                                     if vm_row.instance_id is not None:
                                         #spot price vm running need to terminate it:
                                         logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
