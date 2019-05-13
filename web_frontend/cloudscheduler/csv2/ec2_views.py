@@ -36,12 +36,12 @@ def images(request):
         'format': {
             'cloud_name':                                                   'lowerdash',
 
-            'architectures':                                                ('view_ec2_images', 'architectures', True, True),
-            'like':                                                         'lowercase',
-            'not_like':                                                     'lowercase',
-            'operating_systems':                                            ('view_ec2_images', 'operating_systems', True, True),
-            'owner_aliases':                                                ('view_ec2_images', 'owner_aliases', True, True),
-            'owner_ids':                                                    ('view_ec2_images', 'owner_ids', True, True),
+            'architectures':                                                ('view_ec2_images', 'arch', True, True),
+            'like':                                                         'lowernull',
+            'not_like':                                                     'lowernull',
+            'operating_systems':                                            ('view_ec2_images', 'opsys', True, True),
+            'owner_aliases':                                                'lowernull',
+            'owner_ids':                                                    'lowernull',
 
             'csrfmiddlewaretoken':                                          'ignore',
             'group':                                                        'ignore',
@@ -65,14 +65,14 @@ def images(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [keys], ['ec2_image_filters'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno('EV00'), msg)})
+            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno('EV00'), msg)})
 
         # Update the user.
         table = tables['ec2_image_filters']
         rc, msg = config.db_session_execute(table.update().where((table.c.group_name==active_user.active_group) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, 'update')))
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno('EV00'), msg)})
+            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno('EV00'), msg)})
 
         config.db_session.commit()
 
@@ -84,15 +84,15 @@ def images(request):
     # Retrieve EC2 image filter options.
     architectures = qt(config.db_connection.execute('select distinct arch as architecture from view_ec2_images order by architecture'))
     operating_systems = qt(config.db_connection.execute('select distinct opsys as operating_system from view_ec2_images order by operating_system'))
-    owner_aliases = qt(config.db_connection.execute('select distinct owner_alias from view_ec2_images order by owner_alias'))
-    owner_ids = qt(config.db_connection.execute('select distinct owner_id from view_ec2_images order by owner_id'))
+    owner_aliases = qt(config.db_connection.execute('select distinct alias from ec2_image_well_known_owner_aliases order by alias'))
 
     # Retrieve EC2 images.
     rc, msg, sql_select = select_ec2_images(config, active_user.active_group, active_user.kwargs['cloud_name'])
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno('EV00'), msg)})
+        return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno('EV00'), msg)})
 
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", sql_select)
     ec2_images = qt(config.db_connection.execute(sql_select))
 
     config.db_close()
@@ -107,7 +107,6 @@ def images(request):
             'architectures': architectures,
             'operating_systems': operating_systems,
             'owner_aliases': owner_aliases,
-            'owner_ids': owner_ids,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,

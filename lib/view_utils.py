@@ -938,6 +938,7 @@ def validate_fields(config, request, fields, tables, active_user):
     integer                - An integer value.
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
+    lowernull              - Make sure the input value is all lowercasei or empty string (null).
                              can't start or end with a dash (or error).
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
@@ -1108,6 +1109,14 @@ def validate_fields(config, request, fields, tables, active_user):
                     value = request.POST[field].lower()
                     if request.POST[field] != value:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+                elif Formats[field] == 'lowernull':
+                    value = request.POST[field].lower()
+                    if value == '':
+                        value = None
+                    else:
+                        if request.POST[field] != value:
+                            return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'mandatory':
                     if value.strip() == '':

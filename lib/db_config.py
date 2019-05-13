@@ -37,6 +37,8 @@ class Config:
             if 'db_table' not in db_config:
                 db_config['db_table'] = 'configuration'
 
+            self.db_table = db_config['db_table']
+
         if db_config_dict or db_config_only:
             self.db_config = db_config
 
@@ -66,14 +68,14 @@ class Config:
         self.csv2_host_id = sum(socket.getfqdn().encode())
 
         self.db_session = Session(self.db_engine)
-        rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
-            (self.db_map.classes[db_config['db_table']].category == 'SQL') &
-            (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
+        rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+            (self.db_map.classes[self.db_table].category == 'SQL') &
+            (self.db_map.classes[self.db_table].config_key == 'csv2_host_id')
             )
 
         if self.csv2_host_id != rows[0].config_value:
             try:
-                self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (db_config['db_table'], self.csv2_host_id))
+                self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (self.db_table, self.csv2_host_id))
 
                 self.db_session.commit()
 
@@ -87,8 +89,8 @@ class Config:
             category_list = categories
 
         for category in category_list:
-            rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
-                self.db_map.classes[db_config['db_table']].category == category
+            rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+                self.db_map.classes[self.db_table].category == category
                 )
 
             for row in rows:
@@ -160,6 +162,59 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
+    def get_config_by_category(self, categories):
+
+        # If closed, open the database.
+        if self.db_connection:
+            close_on_exit = False
+        else:
+            print(">>>>>>>>>>>>>>>>>>>>")
+            close_on_exit = True
+            self.db_open()
+
+        # Retrieve the configuration for the specified category.
+        if isinstance(categories, str):
+            category_list = [ categories ]
+        else:
+            category_list = categories
+
+        target_dict = {}
+        for category in category_list:
+            if category in target_dict:
+                continue
+
+            target_dict[category] = {}
+
+            rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+                self.db_map.classes[self.db_table].category == category
+                )
+
+            for row in rows:
+                if row.config_type == 'bool':
+                    target_dict[category][row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
+                elif row.config_type == 'float':
+                    target_dict[category][row.config_key] = float(row.config_value)
+                elif row.config_type == 'int':
+                    target_dict[category][row.config_key] = int(row.config_value)
+                elif row.config_type == 'null':
+                    target_dict[category][row.config_key] = None
+                else:
+                    target_dict[category][row.config_key] = row.config_value
+
+        if close_on_exit:
+            self.db_close()
+
+        return target_dict
+
+
+#-------------------------------------------------------------------------------
+
+    def get_version(self):
+        return self.version
+
+
+#-------------------------------------------------------------------------------
+
     def incr_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
         cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
@@ -182,9 +237,6 @@ class Config:
         self.db_session.commit()
         return 1
 
-#-------------------------------------------------------------------------------
-    def get_version(self):
-        return self.version
 
 #-------------------------------------------------------------------------------
 
