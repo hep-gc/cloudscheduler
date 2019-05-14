@@ -323,7 +323,7 @@ def main():
                 config.db_close()
                 time.sleep(2)
                 continue
-        time.sleep(15)  # delay between groups
+        time.sleep(config.categories['csmain']['sleep_interval_main_short'])  # delay between groups
 
 
 def verify_idle_jobs(group, config):
@@ -400,12 +400,13 @@ def check_view_idle_vms():
     """Query view_idle_vms and retire as needed."""
     multiprocessing.current_process().name = "csmain_idle_vms"
     log = logging.getLogger(__name__)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15, refreshable=True)
     config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
         return
     while True:
+        config.refresh()
         log.debug("-------------------check_view_idle_vms-------------------")
         try:
             config.db_open()
@@ -431,7 +432,7 @@ def check_view_idle_vms():
         except Exception as ex:
             log.exception(ex)
             config.db_close()
-        time.sleep(10)  # TODO make configurable.
+        time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
 def check_unregistered_machines():
     """Query the condor machines and cloud VMs to sort out which ones have failed to register correctly.
@@ -501,7 +502,7 @@ def check_unregistered_machines():
             sys.exit(1)
         except Exception as ex:
             log.exception(ex)
-        time.sleep(10)  # TODO Make configurable ?
+        time.sleep(config.categories['csmain']['sleep_interval_main_long'])
 
 if __name__ == '__main__':
 
@@ -512,8 +513,7 @@ if __name__ == '__main__':
     }
 
     procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain"], pool_size=15,
-                             orange_count_row='csv2_scheduler_error_count', process_ids=process_ids,
-                             refreshable=True)
+                             orange_count_row='csv2_scheduler_error_count', process_ids=process_ids)
     config = procMon.get_config()
     log = procMon.get_logging()
     version = config.get_version()
@@ -526,9 +526,9 @@ if __name__ == '__main__':
         # start processes
         procMon.start_all()
         while True:
-            config.refresh()
+            #config.refresh()
             procMon.check_processes()
-            time.sleep(config.categories['csmain']['sleep_interval_main_long'])
+            time.sleep(config.sleep_interval_main_long)
 
     except (SystemExit, KeyboardInterrupt):
         log.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
