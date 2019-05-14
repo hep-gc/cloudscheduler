@@ -504,7 +504,8 @@ def command_poller():
                         logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
                         continue
                     if vm_row.manual_control == 1:
-                        logging.info("VM %s uner manual control, skipping terminate..." % resource.vmid)
+                        logging.info("VM %s under manual control, skipping terminate..." % resource.vmid)
+                        continue
 
 
                     # Get session with hosting cloud.
