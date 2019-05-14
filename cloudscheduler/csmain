@@ -227,11 +227,13 @@ def main():
                                 clouds_matching_new = config.db_session.query(view_available_resources).filter(
                                     view_available_resources.c.flavor.in_(flavor_list),
                                     view_available_resources.c.cloud_name.in_(target_cloud_list),
-                                    view_available_resources.c.group_name == csgroup.group_name) # .order_by(view_available_resources.c.cloud_priority)
+                                    view_available_resources.c.group_name == csgroup.group_name).order_by(
+                                    view_available_resources.c.cloud_priority)
                             else:
                                 clouds_matching_new = config.db_session.query(view_available_resources).filter(
                                     view_available_resources.c.flavor.in_(flavor_list),
-                                    view_available_resources.c.group_name == csgroup.group_name)  # .order_by(view_available_resources.c.cloud_priority)
+                                    view_available_resources.c.group_name == csgroup.group_name).order_by(
+                                    view_available_resources.c.cloud_priority)
                         except TimeoutError as ex:
                             log.exception(ex)
                             sys.exit(1)
@@ -240,9 +242,18 @@ def main():
                             time.sleep(1)
                             continue
 
+                        cloud_prio = None
+
                         for cloud in clouds_matching_new:
                             if cloud.cloud_name in cloud_booted_on:
                                 continue
+                            if cloud_prio == None:
+                                cloud_prio = cloud.cloud_priority # Set the lowest priority
+                            elif cloud_prio == cloud.cloud_priority:
+                                pass # keep booting VMs on clouds of the same priority if possible
+                            else:
+                                continue # if higher priority cloud found skip
+
                             log.debug("Taking a look at booting on: %s", cloud.cloud_name)
                             log.debug("Using Flavor: %s", cloud.flavor)
                             log.debug("flavor slots: %s", cloud.flavor_slots)
@@ -255,6 +266,7 @@ def main():
                             num_vms_to_boot = math.floor(num_vms_to_boot)
                             log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
                             if num_vms_to_boot == 0:
+                                cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower
                                 log.debug("Flavor Slots for %s is 0, check the softmax or foreign VMs to try and see why not booting a new VM.", cloud.flavor)
                                 continue
                             # Throttle amount of VMs to boot in one shot - should this be per cloud?
