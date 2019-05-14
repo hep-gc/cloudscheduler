@@ -271,9 +271,9 @@ class Config:
             if tag_ix == -1:
                 version = 'Build: %d' % len(commits)
             elif tag_ix == 0:
-                version = '%s' % tag
+                version = 'Version: %s' % tag
             else:
-                version = ' %s + %d commits' % (tag, tag_ix)
+                version = 'Version: %s + %d commits' % (tag, tag_ix)
         except Exception as exc:
             print("Error Determining version")
 
