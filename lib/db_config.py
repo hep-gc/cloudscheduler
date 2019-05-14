@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0):
+    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, refreshable=False):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -60,14 +60,13 @@ class Config:
         if db_config_only:
             return
 
-        self.db_connection = None
         self.db_map = automap_base()
         self.db_map.prepare(self.db_engine, reflect=True)
 
         # Create a unique instance ID from our FQDN and, if necessary, save it in the database
         self.csv2_host_id = sum(socket.getfqdn().encode())
 
-        self.db_session = Session(self.db_engine)
+        self.db_open()
         rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
             (self.db_map.classes[self.db_table].category == 'SQL') &
             (self.db_map.classes[self.db_table].config_key == 'csv2_host_id')
@@ -83,31 +82,35 @@ class Config:
                 print("Error updating csv2_host_id in db_config: %s" % msg)
 
         # Retrieve the configuration for the specified category.
-        if isinstance(categories, str):
-            category_list = [ categories ]
+        if refreshable:
+            self.categories = self.get_config_by_category(categories)
+
+        # Retrieve the configuration for the specified category.
         else:
-            category_list = categories
+            if isinstance(categories, str):
+                category_list = [ categories ]
+            else:
+                category_list = categories
 
-        for category in category_list:
-            rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
-                self.db_map.classes[self.db_table].category == category
-                )
+            for category in category_list:
+                rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+                    self.db_map.classes[self.db_table].category == category
+                    )
 
-            for row in rows:
-                if row.config_type == 'bool':
-                    self.__dict__[row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
-                elif row.config_type == 'float':
-                    self.__dict__[row.config_key] = float(row.config_value)
-                elif row.config_type == 'int':
-                    self.__dict__[row.config_key] = int(row.config_value)
-                elif row.config_type == 'null':
-                    self.__dict__[row.config_key] = None
-                else:
-                    self.__dict__[row.config_key] = row.config_value
+                for row in rows:
+                    if row.config_type == 'bool':
+                        self.__dict__[row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
+                    elif row.config_type == 'float':
+                        self.__dict__[row.config_key] = float(row.config_value)
+                    elif row.config_type == 'int':
+                        self.__dict__[row.config_key] = int(row.config_value)
+                    elif row.config_type == 'null':
+                        self.__dict__[row.config_key] = None
+                    else:
+                        self.__dict__[row.config_key] = row.config_value
 
         # Close the session.
-        self.db_session.close()
-        self.db_session = None
+        self.db_close()
 
 #-------------------------------------------------------------------------------
 
@@ -224,6 +227,12 @@ class Config:
         self.db_session.merge(cloud)
         self.db_session.commit()
         return 1
+
+
+#-------------------------------------------------------------------------------
+
+    def refresh(self):
+        self.categories = self.get_config_by_category(list(self.categories.keys()))
 
 
 #-------------------------------------------------------------------------------
