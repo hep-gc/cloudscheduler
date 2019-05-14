@@ -279,6 +279,11 @@ def ec2_filterer():
             obsolete_image_rows = config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon")
             obsolete_flavor_rows = config.db_session.query(FLAVOR).filter(FLAVOR.last_updated<new_poll_time, FLAVOR.cloud_type == "amazon")
 
+            # it should be possible to delete the query results without looping through them
+            # i believe you can just take the above generators and do a .delete() ie obsolete_image_rows.delete(), then commit it
+            # to save even more LOC, you could just add the .delete() to the query like so:
+            #    config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon").delete()
+
             for row in obsolete_image_rows:
                 config.db_session.delete(row)
                 deletions += 1
