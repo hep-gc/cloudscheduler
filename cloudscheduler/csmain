@@ -225,11 +225,11 @@ def main():
                                 clouds_matching_new = config.db_session.query(view_available_resources).filter(
                                     view_available_resources.c.flavor.in_(flavor_list),
                                     view_available_resources.c.cloud_name.in_(target_cloud_list),
-                                    view_available_resources.c.group_name == csgroup.group_name) # .order_by(view_available_resources.c.priority)
+                                    view_available_resources.c.group_name == csgroup.group_name) # .order_by(view_available_resources.c.cloud_priority)
                             else:
                                 clouds_matching_new = config.db_session.query(view_available_resources).filter(
                                     view_available_resources.c.flavor.in_(flavor_list),
-                                    view_available_resources.c.group_name == csgroup.group_name)  # .order_by(view_available_resources.c.priority)
+                                    view_available_resources.c.group_name == csgroup.group_name)  # .order_by(view_available_resources.c.cloud_priority)
                         except TimeoutError as ex:
                             log.exception(ex)
                             sys.exit(1)
