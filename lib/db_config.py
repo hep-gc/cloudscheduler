@@ -168,7 +168,6 @@ class Config:
         if self.db_connection:
             close_on_exit = False
         else:
-            print(">>>>>>>>>>>>>>>>>>>>")
             close_on_exit = True
             self.db_open()
 
