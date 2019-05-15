@@ -180,6 +180,7 @@ def main(args):
             ('-ds',   '--default-server', False),   #### special case in _args() ###
             ('-eg',   '--enable-glint', True),
             ('-f',    '--file-path', True),
+            ('-F',    '--force', False),
             ('-g',    '--group', True),
             ('-gme',  '--group-metadata-exclusion', True),
             ('-gmo',  '--group-metadata-option', True),
