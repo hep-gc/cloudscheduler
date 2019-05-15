@@ -28,6 +28,7 @@ select
     VMs+ifnull(vfr.count,0) as VMs_native_foreign,
 
     ifnull(cl.cores_max,0) as cores_quota,
+    cores_softmax as cores_soft_quota,
     ifnull(vfr.cores,0) as cores_foreign,
     ifnull(n02.cores_native,0)+ifnull(vfr.cores,0) as cores_native_foreign,
     ram_ctl,
