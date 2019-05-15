@@ -48,7 +48,7 @@ def main(gvar, user_secret):
 
     # 06
     execute_csv2_request(
-        gvar, 1, 'CV19', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'CV', 'request contained a bad parameter "invalid-unit-test".',
         '/cloud/metadata-collation/', form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

@@ -93,164 +93,164 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', r'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
+        gvar, 1, 'CV', r'value specified for "cloud_type" must be one of the following options: [\'amazon\', \'azure\', \'google\', \'local\', \'opennebula\', \'openstack\'].',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'invalid-unit-test',
-            '-cu', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV02', r'Data too long for column \'cloud_name\' at row 1',
+        gvar, 1, 'CV', r'Data too long for column \'cloud_name\' at row 1',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', 'thiscloudnameistoolongtobeinserted',
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', 'Invalid-unit-test',
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', 'invalid-unit-test-',
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', 'invalid!unit?test',
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test'
+            '-cU', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "cores_ctl" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "cores_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-vc', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "ram_ctl" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "ram_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-vr', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'CV', 'value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-ce', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "vm_keep_alive" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "vm_keep_alive" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-vka', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV01', 'value specified for "spot_price" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "spot_price" must be an integer value.',
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-csp', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
+        gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-gme', 'invalid-unit-test'
         ]
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
+        gvar, 1, 'CV', 'cloud add, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'cli-invalid-unit-test')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'cli-invalid-unit-test'),
             '-ca', 'invalid-unit-test',
             '-cpw', 'invalid-unit-test',
-            '-cp', 'invalid-unit-test',
+            '-cP', 'invalid-unit-test',
             '-cr', 'invalid-unit-test',
             '-ct', 'local',
-            '-cu', 'invalid-unit-test',
+            '-cU', 'invalid-unit-test',
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2'))
         ]
     )
@@ -261,10 +261,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc10'),
             '-ca', 'command-line-cloud-ten.ca',
             '-cpw', 'command-line-cloud-ten',
-            '-cp', 'command-line-cloud-ten',
+            '-cP', 'command-line-cloud-ten',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-ce', 'yes',
             '-vi', '',
             '-vf', '',
@@ -277,15 +277,15 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV02', 'Duplicate entry \\\'{}-{}\\\' for key \\\'PRIMARY\\\''.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
+        gvar, 1, 'CV', 'Duplicate entry \\\'{}-{}\\\' for key \\\'PRIMARY\\\''.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clc10')),
         ['cloudscheduler', 'cloud', 'add',
             '-cn', ut_id(gvar, 'clc10'),
             '-ca', 'command-line-cloud-ten.ca',
             '-cpw', 'command-line-cloud-ten',
-            '-cp', 'command-line-cloud-ten',
+            '-cP', 'command-line-cloud-ten',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10')
+            '-cU', ut_id(gvar, 'clc10')
         ]
     )
 
@@ -295,10 +295,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc11'),
             '-ca', 'command-line-cloud-11.ca',
             '-cpw', 'command-line-cloud-11',
-            '-cp', 'command-line-cloud-11',
+            '-cP', 'command-line-cloud-11',
             '-cr', 'clc11-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc11'),
+            '-cU', ut_id(gvar, 'clc11'),
             '-gme', ut_id(gvar, 'clm2,clm2.yaml')
         ]
     )
@@ -309,10 +309,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc12'),
             '-ca', 'command-line-cloud-12.ca',
             '-cpw', 'command-line-cloud-12',
-            '-cp', 'command-line-cloud-12',
+            '-cP', 'command-line-cloud-12',
             '-cr', 'clc12-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc12'),
+            '-cU', ut_id(gvar, 'clc12'),
             '-s', 'unit-test',
             '-g', ut_id(gvar, 'clg1'),
         ]

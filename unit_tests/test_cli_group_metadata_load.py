@@ -67,22 +67,22 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV25', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'GV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         ['cloudscheduler', 'metadata', 'load', '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-me', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV25', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'GV', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         ['cloudscheduler', 'metadata', 'load', '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-mmt', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV25', 'value specified for "priority" must be an integer value.',
+        gvar, 1, 'GV', 'value specified for "priority" must be an integer value.',
         ['cloudscheduler', 'metadata', 'load', '-f', 'ut.yaml', '-mn', ut_id(gvar, 'cli-invalid-unit-test'), '-mp', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV25', 'value specified for "metadata (metadata_name)" is invalid - scanner error',
+        gvar, 1, 'GV', 'value specified for "metadata (metadata_name)" is invalid - scanner error',
         ['cloudscheduler', 'metadata', 'load', '-f', 'notyamlfile.txt', '-mn', 'invalid-unit-test.yaml']
     )
 

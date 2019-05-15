@@ -106,7 +106,7 @@ def main(gvar, user_secret):
 #       gvar, 1, None, 'the following mandatory parameters must be specfied on the command line',
     execute_csv2_command(
 #       gvar, 1, None, 'Data too long for column \'group_name\' at row 1',
-        gvar, 1, 'GV03', r'Data too long for column \'group_name\' at row 1',
+        gvar, 1, 'GV', r'Data too long for column \'group_name\' at row 1',
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test')]
     )
 
@@ -116,32 +116,32 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'group', 'add', '-gn', '', '-htcf', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV01', 'group add parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'group add parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-htcf', '']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'group', 'add', '-gn', 'Invalid-Unit-Test', '-htcf', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'group', 'add', '-gn', 'invalid-unit-test-', '-htcf', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         ['cloudscheduler', 'group', 'add', '-gn', 'invalid!unit?test', '-htcf', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV03', r'Data too long for column \'group_name\' at row 1',
+        gvar, 1, 'GV', r'Data too long for column \'group_name\' at row 1',
         ['cloudscheduler', 'group', 'add', '-gn', 'thisisagroupnametoolongtobeinsertedintothedatabasethisisagroupnametoolongtobeinsertedintothedatabasethisisagroupnametoolongtobein', '-htcf', 'invalid-unit-test']
     )
 
@@ -156,12 +156,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV02', 'specified user "invalid-unit-test" does not exist.',
+        gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-htcf', 'invalid-unit-test', '-un', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'GV02', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'cli-invalid-unit-test'), ut_id(gvar, 'clu3')),
+        gvar, 1, 'GV', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'cli-invalid-unit-test'), ut_id(gvar, 'clu3')),
         ['cloudscheduler', 'group', 'add', '-gn', ut_id(gvar, 'cli-invalid-unit-test'), '-htcf', 'invalid-unit-test', '-un', ut_id(gvar, 'clu3,clu3')]
     )
 

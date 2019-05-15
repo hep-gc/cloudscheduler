@@ -30,7 +30,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV31', 'cloud metadata_update, invalid method "GET" specified.',
+        gvar, 1, 'CV', 'cloud metadata_update, invalid method "GET" specified.',
         '/cloud/metadata-update/',
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -48,25 +48,25 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'cloud metadata-update request did not contain mandatory parameter "cloud_name".',
+        gvar, 1, 'CV', 'cloud metadata-update request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-update/', group=ut_id(gvar, 'ctg1'),
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'cloud metadata-update request did not contain mandatory parameter "cloud_name".',
+        gvar, 1, 'CV', 'cloud metadata-update request did not contain mandatory parameter "cloud_name".',
         '/cloud/metadata-update/', form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'cloud metadata-update request did not contain mandatory parameter "metadata_name".',
+        gvar, 1, 'CV', 'cloud metadata-update request did not contain mandatory parameter "metadata_name".',
         '/cloud/metadata-update/', form_data={'cloud_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'cloud metadata-update request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'CV', 'cloud metadata-update request contained a bad parameter "invalid-unit-test".',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -76,7 +76,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'Invalid-unit-test',
             'metadata_name': 'invalid-unit-test'
@@ -85,7 +85,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test-',
             'metadata_name': 'invalid-unit-test'
@@ -94,7 +94,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'CV', 'value specified for "cloud_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test!',
             'metadata_name': 'invalid-unit-test'
@@ -103,7 +103,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "metadata_name" must be all lower case.',
+        gvar, 1, 'CV', 'value specified for "metadata_name" must be all lower case.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'Invalid-unit-test'
@@ -112,7 +112,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'CV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -122,7 +122,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'CV', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -132,7 +132,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV30', 'the request did not match any rows.',
+        gvar, 1, 'CV', 'the request did not match any rows.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': 'invalid-unit-test',
             'metadata_name': 'invalid-unit-test',
@@ -142,7 +142,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV30', 'the request did not match any rows.',
+        gvar, 1, 'CV', 'the request did not match any rows.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': 'invalid-unit-test',
@@ -152,7 +152,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV30', 'You have an error in your SQL syntax',
+        gvar, 1, 'CV', 'You have an error in your SQL syntax',
         '/cloud/metadata-update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3')
@@ -161,7 +161,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
+        gvar, 1, 'CV', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
         '/cloud/metadata-update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),
@@ -171,7 +171,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'CV29', 'value specified for "priority" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "priority" must be an integer value.',
         '/cloud/metadata-update/', form_data={
             'cloud_name': ut_id(gvar, 'ctc3'),
             'metadata_name': ut_id(gvar, 'cty3.yaml'),

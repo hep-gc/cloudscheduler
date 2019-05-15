@@ -20,7 +20,7 @@ def main(gvar, user_secret):
 
     # 02
     execute_csv2_request(
-        gvar, 1, 'GV24', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
+        gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/metadata-add/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
@@ -43,7 +43,7 @@ def main(gvar, user_secret):
     
     # 05
     execute_csv2_request(
-        gvar, 1, 'GV25', 'group metadata-add request did not contain mandatory parameter "metadata_name".',
+        gvar, 1, 'GV', 'group metadata-add request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-add/'
 , form_data={'enabled': 1},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
@@ -51,7 +51,7 @@ def main(gvar, user_secret):
 
     # 06
     execute_csv2_request(
-        gvar, 1, 'GV25', 'group metadata-add request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV', 'group metadata-add request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-add/'
 , form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
@@ -62,7 +62,7 @@ def main(gvar, user_secret):
 
     # 07
     execute_csv2_request(
-        gvar, 1, 'GV24', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-add/', group='invalid-unit-test', form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test')
             },
@@ -71,7 +71,7 @@ def main(gvar, user_secret):
 
     # 08
     execute_csv2_request(
-        gvar, 1, 'GV24', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg7'), form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test')
             },
@@ -80,7 +80,7 @@ def main(gvar, user_secret):
 
     # 09
     execute_csv2_request(
-        gvar, 1, 'GV25', 'value specified for "metadata_name" must be all lower case.',
+        gvar, 1, 'GV', 'value specified for "metadata_name" must be all lower case.',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': 'Invalid-Unit-Test'
             },
@@ -89,7 +89,7 @@ def main(gvar, user_secret):
 
     # 10
     execute_csv2_request(
-        gvar, 1, 'GV25', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'GV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 'invalid-unit-test'
@@ -99,7 +99,7 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_request(
-        gvar, 1, 'GV25', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'GV', 'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 0,
@@ -110,7 +110,7 @@ def main(gvar, user_secret):
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'GV26', 'Field \'metadata\' doesn\'t have a default value',
+        gvar, 1, 'GV', 'Field \'metadata\' doesn\'t have a default value',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 0,
@@ -121,7 +121,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'GV25', 'value specified for "priority" must be an integer value.',
+        gvar, 1, 'GV', 'value specified for "priority" must be an integer value.',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': ut_id(gvar, 'group-md-invalid-unit-test'),
             'enabled': 0,
@@ -134,7 +134,7 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'GV25', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
+        gvar, 1, 'GV', 'yaml value specified for "metadata (metadata_name)" is invalid - scanner error',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': 'invalid-unit-test.yaml',
             'enabled': 0,
@@ -147,7 +147,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'GV25', 'group metadata-add parameter "metadata_name" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'group metadata-add parameter "metadata_name" contains an empty string which is specifically disallowed.',
         '/group/metadata-add/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': '',
             'metadata': 'invalid-unit-test',
@@ -190,7 +190,7 @@ def main(gvar, user_secret):
 
     # 19
     execute_csv2_request(
-        gvar, 1, 'GV26', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gty1.yaml')),
+        gvar, 1, 'GV', 'Duplicate entry \'{}-{}\' for key \'PRIMARY\''.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gty1.yaml')),
         '/group/metadata-add/', group=ut_id(gvar, 'gtg4'), form_data={
             'metadata_name': ut_id(gvar, 'gty1.yaml'),
             'enabled': 1,
@@ -224,7 +224,7 @@ def main(gvar, user_secret):
 
     # 22
     execute_csv2_request(
-        gvar, 1, 'GV27', 'group metadata_add, invalid method "GET" specified.',
+        gvar, 1, 'GV', 'group metadata_add, invalid method "GET" specified.',
         '/group/metadata-add/',
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
