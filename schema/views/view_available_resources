@@ -7,6 +7,7 @@ create or replace view view_available_resources as
 select
 fwd.group_name,
 fwd.cloud_name,
+fwd.priority as cloud_priority,
 fwd.region,
 fwd.cloud_type,
 fwd.spot_price,
