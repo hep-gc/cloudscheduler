@@ -9,16 +9,17 @@ KEY_MAP = {
     '-ce':  'enabled',
     '-cfe': 'flavor_name',
     '-cfo': 'flavor_option',
-    '-cpw': 'password',
     '-cn':  'cloud_name',
-    '-cp':  'project',
+    '-cp':  'priority',
+    '-cpw': 'password',
+    '-cP':  'project',
     '-cr':  'region',
     '-csp': 'spot_price',
     '-ct':  'cloud_type',
-    '-cu':  'username',
-    '-cP':  'project_domain_name',
+    '-cU':  'username',
+    '-cPD': 'project_domain_name',
     '-cPI': 'project_domain_id',
-    '-cU':  'user_domain_name',
+    '-cUD':  'user_domain_name',
     '-cUI': 'user_domain_id',
     '-g':   'group',
     '-ga':  'cacertificate',
@@ -63,9 +64,9 @@ def add(gvar):
     Add a cloud to the active group.
     """
 
-    mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
+    mandatory = ['-ca', '-cn', '-cP', '-cpw', '-cr', '-ct', '-cU']
     required = []
-    optional = ['-ce', '-cfe', '-cP', '-cPI', '-csp', '-cU', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -169,6 +170,7 @@ def list(gvar):
             'group_name/Group,k',
             'cloud_name/Cloud,k',
             'enabled/Enabled',
+            'cloud_priority/Priority',
             'authurl/URL',
             'project/Name/Project',
             'project_domain_name/Domain Name/Project',
@@ -338,7 +340,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', '-cPI', '-cp', '-cr', '-csp', '-ct', '-cU', '-cUI', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
