@@ -117,7 +117,6 @@ def add(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
@@ -125,13 +124,11 @@ def add(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS], ['csv2_user', 'csv2_groups,n', 'csv2_user_groups,n'], active_user)
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user add, %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user add, %s' % (lno(MODID), msg))
 
         # Need to perform several checks (Note: password checks are now done in validate_fields).
         rc, msg = _verify_username_cert_cn(fields, check_username=True)
         if rc != 0:
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user add, "%s"' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user add, "%s"' % (lno(MODID), msg))
 
         # Validity check the specified groups.
@@ -139,7 +136,6 @@ def add(request):
             rc, msg = manage_user_group_verification(config, tables, None, fields['group_name']) 
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user add, "%s" failed - %s.' % (lno(MODID), fields['username'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s user add, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
         fields['join_date'] = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -149,7 +145,6 @@ def add(request):
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user add, "%s" failed - %s.' % (lno(MODID), fields['username'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user add, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
         # Add user_groups.
@@ -158,16 +153,13 @@ def add(request):
 
         if rc == 0:
             config.db_close(commit=True)
-            #return render(request, 'csv2/users.html', {'response_code': 0, 'message': 'user "%s" successfully added.' % (fields['username']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='user "%s" successfully added.' % (fields['username']))
         else:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user group-add "%s.%s" failed - %s.' % (lno(MODID), fields['username'], fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user group-add "%s.%s" failed - %s.' % (lno(MODID), fields['username'], fields['group_name'], msg))
                     
     ### Bad request.
     else:
-        #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user add, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s user add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -186,7 +178,6 @@ def delete(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
@@ -194,7 +185,6 @@ def delete(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS, {'accept_primary_keys_only': True}], ['csv2_user', 'csv2_user_groups,n'], active_user)
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user delete, %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user delete, %s' % (lno(MODID), msg))
 
         # Delete any user_groups for the user.
@@ -202,7 +192,6 @@ def delete(request):
         rc, msg = config.db_session_execute(table.delete(table.c.username==fields['username']), allow_no_rows=True)
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user group-delete "%s" failed - %s.' % (lno(MODID), fields['username'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user group-delete "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
         # Delete the user.
@@ -210,16 +199,13 @@ def delete(request):
         rc, msg = config.db_session_execute(table.delete(table.c.username==fields['username']))
         if rc == 0:
             config.db_close(commit=True)
-            #return render(request, 'csv2/users.html', {'response_code': 0, 'message': 'user "%s" successfully deleted.' % (fields['username']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='user "%s" successfully deleted.' % (fields['username']))
         else:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user delete, "%s" failed - %s.' % (lno(MODID), fields['username'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user delete, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
     ### Bad request.
     else:
-        #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user delete, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -404,7 +390,6 @@ def update(request):
     rc, msg, active_user = set_user_groups(config, request)
     if rc != 0:
         config.db_close()
-        #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
@@ -412,13 +397,11 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [USER_GROUP_KEYS], ['csv2_user', 'csv2_groups,n', 'csv2_user_groups'], active_user)
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user update, %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user update, %s' % (lno(MODID), msg))
 
         # Need to perform several checks (Note: password checks are now done in validate_fields).
         rc, msg = _verify_username_cert_cn(fields)
         if rc != 0:
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user update, "%s"' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user update, "%s"' % (lno(MODID), msg))
 
         # Validity check the specified groups.
@@ -426,7 +409,6 @@ def update(request):
             rc, msg = manage_user_group_verification(config, tables, None, fields['group_name']) 
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
 
         # Update the user.
@@ -436,12 +418,10 @@ def update(request):
             rc, msg = config.db_session_execute(table.update().where(table.c.username==fields['username']).values(user_updates), allow_no_rows=False)
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s user update, "%s" failed - %s.' % (lno(MODID), fields['username'], msg))
         else:
             if 'group_name' not in fields:
                 config.db_close()
-                #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user update must specify at least one field to update.' % lno(MODID), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s user update must specify at least one field to update.' % lno(MODID))
             
 
@@ -461,15 +441,12 @@ def update(request):
 
         if rc == 0:
             config.db_close(commit=True)
-            #return render(request, 'csv2/users.html', {'response_code': 0, 'message': 'user "%s" successfully updated.' % (fields['username']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='user "%s" successfully updated.' % (fields['username']))
         else:
             config.db_close()
-            #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user group update "%s.%s" failed - %s.' % (lno(MODID), fields['username'], fields['group_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s user group update "%s.%s" failed - %s.' % (lno(MODID), fields['username'], fields['group_name'], msg))
 
     ### Bad request.
     else:
-        #return render(request, 'csv2/users.html', {'response_code': 1, 'message': '%s user update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s user update, invalid method "%s" specified.' % (lno(MODID), request.method))
 

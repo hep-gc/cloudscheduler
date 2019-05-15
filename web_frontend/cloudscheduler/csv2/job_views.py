@@ -87,7 +87,7 @@ def list(request):
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
+        return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno(MODID), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)

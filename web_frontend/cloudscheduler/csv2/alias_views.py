@@ -135,7 +135,6 @@ def add(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
@@ -143,7 +142,6 @@ def add(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias add, %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s cloud alias add, %s' % (lno(MODID), msg))
 
         # Verify specified clouds exist.
@@ -151,23 +149,19 @@ def add(request):
             rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias add, "%s" failed - %s.' % (lno(MODID), fields['alias_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s cloud alias add, "%s" failed - %s.' % (lno(MODID), fields['alias_name'], msg))
 
         # Add the cloud alias.
         rc, msg = manage_cloud_aliases(config, tables, active_user.active_group, fields['alias_name'], fields['cloud_name'])
         if rc == 0:
             config.db_close(commit=True)
-            #return render(request, 'csv2/cloud_aliases.html', {'response_code': 0, 'message': 'cloud alias "%s.%s" successfully added.' % (active_user.active_group, fields['alias_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='cloud alias "%s.%s" successfully added.' % (active_user.active_group, fields['alias_name']))
         else:
             config.db_close()
-            #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias add "%s.%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['alias_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s cloud alias add "%s.%s" failed - %s.' % (lno(MODID), active_user.active_group, fields['alias_name'], msg))
                     
     ### Bad request.
     else:
-        #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias add, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s cloud alias add, invalid method "%s" specified.' % (lno(MODID), request.method))
 
 #-------------------------------------------------------------------------------
@@ -244,7 +238,6 @@ def update(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s %s' % (lno(MODID), msg))
 
     if request.method == 'POST':
@@ -252,7 +245,6 @@ def update(request):
         rc, msg, fields, tables, columns = validate_fields(config, request, [CLOUD_ALIAS_KEYS], ['csv2_cloud_aliases', 'csv2_clouds,n'], active_user)
         if rc != 0:
             config.db_close()
-            #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias update, %s' % (lno(MODID), msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s cloud alias update, %s' % (lno(MODID), msg))
 
         # Verify specified clouds exist.
@@ -260,7 +252,6 @@ def update(request):
             rc, msg = validate_by_filtered_table_entries(config, fields['cloud_name'], 'cloud_name', 'csv2_clouds', 'cloud_name', [['group_name', active_user.active_group]], allow_value_list=True)
             if rc != 0:
                 config.db_close()
-                #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias update, "%s" failed - %s.' % (lno(MODID), fields['alias_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
                 return list(request, active_user=active_user, response_code=1, message='%s cloud alias update, "%s" failed - %s.' % (lno(MODID), fields['alias_name'], msg))
 
         # Update the cloud alias.
@@ -278,15 +269,12 @@ def update(request):
 
         if rc == 0:
             config.db_close(commit=True)
-            #return render(request, 'csv2/cloud_aliases.html', {'response_code': 0, 'message': 'cloud alias "%s.%s" successfully updated.' % (active_user.active_group, fields['alias_name']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=0, message='cloud alias "%s.%s" successfully updated.' % (active_user.active_group, fields['alias_name']))
         else:
             config.db_close()
-            #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias group update "%s.%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['alias_name'], msg), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
             return list(request, active_user=active_user, response_code=1, message='%s cloud alias group update "%s.%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['alias_name'], msg))
 
     ### Bad request.
     else:
-        #return render(request, 'csv2/cloud_aliases.html', {'response_code': 1, 'message': '%s cloud alias update, invalid method "%s" specified.' % (lno(MODID), request.method), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
         return list(request, active_user=active_user, response_code=1, message='%s cloud alias update, invalid method "%s" specified.' % (lno(MODID), request.method))
 

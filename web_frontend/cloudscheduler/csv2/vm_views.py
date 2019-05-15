@@ -222,7 +222,6 @@ def update(
         else:
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm update, option "%s" is invalid.' % (lno(MODID), fields['vm_option']), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
-            #return list(request, active_user.kwargs, response_code=1, message='%s vm update, option "%s" is invalid.' % (lno(MODID), fields['vm_option']))
 
         # Retrieve VM information.
         #if fields['vm_hosts'].isnumeric():
@@ -267,7 +266,6 @@ def update(
         else:
             config.db_close()
 
-        #return render(request, 'csv2/vms.html', {'response_code': 0, 'message': 'vm update, VMs %s: %s.' % (verb, count), 'active_user': active_user.username, 'active_group': active_user.active_group, 'user_groups': active_user.user_groups})
 
         args={}
         if 'cloud_name' in fields:
