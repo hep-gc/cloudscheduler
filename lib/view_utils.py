@@ -107,7 +107,7 @@ def lno(id):
     from inspect import currentframe
 
     cf = currentframe()
-    return '%s-%s' % (id, cf.f_back.f_lineno)
+    return '%s-%05d' % (id, cf.f_back.f_lineno)
 
 #-------------------------------------------------------------------------------
 
