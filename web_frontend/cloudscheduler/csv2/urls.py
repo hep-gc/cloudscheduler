@@ -32,6 +32,7 @@ urlpatterns = [
     path('cloud/metadata-fetch/',                  cloud_views.metadata_fetch),
     path('cloud/metadata-list/',                   cloud_views.metadata_list),
     path('cloud/metadata-new/',                    cloud_views.metadata_new),
+    path('cloud/metadata-query/',                  cloud_views.metadata_query),
     path('cloud/metadata-update/',                 cloud_views.metadata_update),
 
     path('ec2/images/',                            ec2_views.images),
@@ -47,6 +48,7 @@ urlpatterns = [
     path('group/metadata-fetch/',                  group_views.metadata_fetch),
     path('group/metadata-list/',                   group_views.metadata_list),
     path('group/metadata-new/',                    group_views.metadata_new),
+    path('group/metadata-query/',                  group_views.metadata_query),
     path('group/metadata-update/',                 group_views.metadata_update),
 
     path('job/list/',                              job_views.list),

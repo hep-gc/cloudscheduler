@@ -1045,6 +1045,69 @@ def metadata_new(request):
     return render(request, 'csv2/meta_editor.html', {'response_code': 1, 'message': 'cloud metadata_new, received an invalid request: no metadata_name specified.'})
 
 #-------------------------------------------------------------------------------
+
+@silkp(name="Cloud Metadata query")
+@requires_csrf_token
+def metadata_query(request):
+
+    keys = {
+        'auto_active_group': True,
+        # Named argument formats (anything else is a string).
+        'format': {
+            'cloud_name':                           'lowerdash',
+            'metadata_name':                        'lowercase',
+
+            'csrfmiddlewaretoken':                  'ignore',
+            'group':                                'ignore',
+            },
+        'mandatory': [
+            'cloud_name',
+            'metadata_name',
+            ],
+        }
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-query, %s' % (lno(MODID), msg)})
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(config, request, [keys], [], active_user)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/clouds_metadata_list.html', {'response_code': 1, 'message': '%s cloud metadata-query, %s' % (lno(MODID), msg)})
+
+    # Retrieve cloud/metadata information.
+    s = select([csv2_cloud_metadata]).where((csv2_cloud_metadata.c.group_name == active_user.active_group) & (csv2_cloud_metadata.c.cloud_name == fields['cloud_name']) & (csv2_cloud_metadata.c.metadata_name == fields['metadata_name']))
+    cloud_metadata_list = qt(config.db_connection.execute(s))
+    
+    config.db_close()
+
+    if len(cloud_metadata_list) < 1:
+        metadata_exists = False
+    else:
+        metadata_exists = True
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'metadata_exists': metadata_exists,
+            'response_code': 0,
+            'message': None,
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
+
+    return render(request, 'csv2/metadata-list.html', context)
+
+#-------------------------------------------------------------------------------
 @silkp(name="Cloud Metadata Update")
 @requires_csrf_token
 def metadata_update(request):

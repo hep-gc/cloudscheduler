@@ -881,6 +881,67 @@ def metadata_new(request):
 
 #-------------------------------------------------------------------------------
 
+@silkp(name='Group Metadata Query')
+@requires_csrf_token
+def metadata_query(request):
+
+    keys = {
+        'auto_active_group': True,
+        # Named argument formats (anything else is a string).
+        'format': {
+            'metadata_name':                        'lowercase',
+
+            'csrfmiddlewaretoken':                  'ignore',
+            'group':                                'ignore',
+            },
+        'mandatory': [
+            'metadata_name',
+            ],
+        }
+
+    # open the database.
+    config.db_open()
+
+    # Retrieve the active user, associated group list and optionally set the active group.
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return defaults(request, active_user=active_user, response_code=1, message='%s group metadata-query %s' % (lno(MODID), msg))
+
+    # Validate input fields (should be none).
+    rc, msg, fields, tables, columns = validate_fields(config, request, [keys], [], active_user)
+    if rc != 0:
+        config.db_close()
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-query, %s' % (lno(MODID), msg)})
+
+    # Retrieve cloud/metadata information.
+    s = select([csv2_group_metadata]).where((csv2_group_metadata.c.group_name == active_user.active_group) & (csv2_group_metadata.c.metadata_name == fields['metadata_name']))
+    group_metadata_list = qt(config.db_connection.execute(s))
+
+    config.db_close()
+
+    if len(group_metadata_list) < 1:
+        metadata_exists = False
+    else:
+        metadata_exists = True
+
+    # Render the page.
+    context = {
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'metadata_exists': metadata_exists,
+            'response_code': 0,
+            'message': None,
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
+
+    return render(request, 'csv2/blank_msg.html', context)
+
+#-------------------------------------------------------------------------------
+
 @silkp(name='Group Metadata Update')
 def metadata_update(request):
     """
