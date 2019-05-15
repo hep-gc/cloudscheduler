@@ -23,6 +23,7 @@ from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: EV - error code identifier.
+MODID = 'EC2'
 
 #-------------------------------------------------------------------------------
 
@@ -58,21 +59,21 @@ def images(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': msg})
+        return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [keys], ['ec2_image_filters'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno('EV00'), msg)})
+            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
         # Update the user.
         table = tables['ec2_image_filters']
         rc, msg = config.db_session_execute(table.update().where((table.c.group_name==active_user.active_group) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, 'update')))
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno('EV00'), msg)})
+            return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
         config.db_session.commit()
 
@@ -90,7 +91,7 @@ def images(request):
     rc, msg, sql_select = select_ec2_images(config, active_user.active_group, active_user.kwargs['cloud_name'])
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno('EV00'), msg)})
+        return render(request, 'csv2/ec2_images.html', {'response_code': 1, 'message': '%s ec2 images, %s' % (lno(MODID), msg)})
 
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", sql_select)
     ec2_images = qt(config.db_connection.execute(sql_select))
@@ -151,21 +152,21 @@ def instance_types(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': msg})
+        return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     if request.method == 'POST':
         # Validate input fields.
         rc, msg, fields, tables, columns = validate_fields(config, request, [keys], ['ec2_instance_type_filters'], active_user)
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno('EV00'), msg)})
+            return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
         # Update the user.
         table = tables['ec2_instance_type_filters']
         rc, msg = config.db_session_execute(table.update().where((table.c.group_name==active_user.active_group) & (table.c.cloud_name==fields['cloud_name'])).values(table_fields(fields, table, columns, 'update')))
         if rc != 0:
             config.db_close()
-            return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno('EV00'), msg)})
+            return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
         config.db_session.commit()
 
@@ -185,7 +186,7 @@ def instance_types(request):
     rc, msg, sql_select = select_ec2_instance_types(config, active_user.active_group, active_user.kwargs['cloud_name'])
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno('EV00'), msg)})
+        return render(request, 'csv2/ec2_instance_types.html', {'response_code': 1, 'message': '%s ec2 instance-types, %s' % (lno(MODID), msg)})
 
     ec2_instance_types = qt(config.db_connection.execute(sql_select))
 

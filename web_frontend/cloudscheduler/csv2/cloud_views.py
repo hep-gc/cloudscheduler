@@ -59,7 +59,7 @@ CLOUD_KEYS = {
         'metadata_name':                        'ignore',
         'metadata_option':                      ['add', 'delete'],
         'ram_ctl':                              'integer',
-        'spot_price':                           'integer',
+        'spot_price':                           'float',
         'vm_keep_alive':                        'integer',
 
         'cores_slider':                         'ignore',

@@ -27,6 +27,7 @@ import sqlalchemy.exc
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: SV - error code identifier.
+MODID = 'SV'
 
 #-------------------------------------------------------------------------------
 
@@ -118,21 +119,21 @@ def configuration(request):
                     fields.pop('group_name')
 
                     if len(fields) == 0:
-                        message = '{} server config must specify at least one field to update.'.format(lno('SV00'))
+                        message = '{} server config must specify at least one field to update.'.format(lno(MODID))
                     else:
                         for field in fields:
                             rc, msg = config.db_session_execute(table.update().where((table.c.category==category) & (table.c.config_key==field)).values({table.c.config_value:fields[field]}))
                             if rc != 0:
                                 config.db_session.rollback()
-                                message = '{} server config update failed - {}'.format(lno('SV01'), msg)
+                                message = '{} server config update failed - {}'.format(lno(MODID), msg)
                                 break
                         if rc == 0:
                             config.db_session.commit()
                             message = 'server config successfully updated'
                 else:
-                    message = '{} server config update {}'.format(lno('SV02'), msg)
+                    message = '{} server config update {}'.format(lno(MODID), msg)
     else:
-        message='{} {}'.format(lno('SV03'), msg)
+        message='{} {}'.format(lno(MODID), msg)
 
     if message and message[:2] == 'SV':
         config_list = []
