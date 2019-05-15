@@ -1,5 +1,5 @@
 .TP
-\fB\-cP \fIdomain\fR, \fB\-\-cloud-project-domain \fIdomain\fR
+\fB\-cPD \fIdomain\fR, \fB\-\-cloud-project-domain \fIdomain\fR
 The project's domain for the cloud provider.
 See OpenStack documentation for more information.
 Default: Default
