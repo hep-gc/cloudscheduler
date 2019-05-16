@@ -1,3 +1,5 @@
+# This stuff is out of date now and handled by ansible
+
 The files in this directory represent the pieces required to have two services running on a condor
 machine that will collect job and machine data and package them up and send them to a central redis server.
 
