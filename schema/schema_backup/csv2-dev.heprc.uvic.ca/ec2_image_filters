@@ -16,17 +16,22 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `ec2_regions`
+-- Table structure for table `ec2_image_filters`
 --
 
-DROP TABLE IF EXISTS `ec2_regions`;
+DROP TABLE IF EXISTS `ec2_image_filters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ec2_regions` (
-  `region` varchar(64) NOT NULL,
-  `location` varchar(64) NOT NULL,
-  `endpoint` varchar(128) NOT NULL,
-  PRIMARY KEY (`region`)
+CREATE TABLE `ec2_image_filters` (
+  `group_name` varchar(32) NOT NULL,
+  `cloud_name` varchar(32) NOT NULL,
+  `owner_aliases` varchar(128) DEFAULT NULL,
+  `owner_ids` varchar(128) DEFAULT NULL,
+  `like` varchar(128) DEFAULT NULL,
+  `not_like` varchar(128) DEFAULT NULL,
+  `operating_systems` varchar(128) DEFAULT NULL,
+  `architectures` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`group_name`,`cloud_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

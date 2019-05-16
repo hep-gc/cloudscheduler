@@ -26,6 +26,7 @@ CREATE TABLE `csv2_vms` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
   `vmid` varchar(128) NOT NULL,
+  `instance_id` varchar(64) DEFAULT NULL,
   `cloud_type` varchar(64) DEFAULT NULL,
   `vm_ips` varchar(128) DEFAULT NULL,
   `vm_floating_ips` varchar(128) DEFAULT NULL,
@@ -62,4 +63,4 @@ CREATE TABLE `csv2_vms` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-05 12:47:29
+-- Dump completed on 2019-05-16 10:26:48

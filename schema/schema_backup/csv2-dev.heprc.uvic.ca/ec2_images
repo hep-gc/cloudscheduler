@@ -16,18 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `ec2_regions`
+-- Table structure for table `ec2_images`
 --
 
-DROP TABLE IF EXISTS `ec2_regions`;
+DROP TABLE IF EXISTS `ec2_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `ec2_regions` (
-  `region` varchar(64) NOT NULL,
-  `location` varchar(64) NOT NULL,
-  `endpoint` varchar(128) NOT NULL,
-  PRIMARY KEY (`region`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE `ec2_images` (
+  `region` varchar(32) NOT NULL,
+  `id` varchar(128) NOT NULL,
+  `borrower_id` varchar(32) NOT NULL,
+  `owner_id` varchar(32) DEFAULT 'NULL',
+  `owner_alias` varchar(64) DEFAULT 'NULL',
+  `disk_format` varchar(128) DEFAULT NULL,
+  `size` bigint(13) DEFAULT NULL,
+  `image_location` varchar(512) DEFAULT 'NULL',
+  `visibility` varchar(128) NOT NULL,
+  `name` varchar(256) NOT NULL,
+  `description` varchar(256) DEFAULT NULL,
+  `last_updated` int(11) NOT NULL,
+  PRIMARY KEY (`region`,`id`,`borrower_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

@@ -26,6 +26,7 @@ CREATE TABLE `csv2_clouds` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `priority` int(11) NOT NULL DEFAULT 0,
   `authurl` varchar(128) NOT NULL,
   `project` varchar(128) NOT NULL,
   `username` varchar(20) NOT NULL,
@@ -38,6 +39,7 @@ CREATE TABLE `csv2_clouds` (
   `project_domain_name` varchar(20) NOT NULL DEFAULT '''Default''',
   `project_domain_id` varchar(64) DEFAULT NULL,
   `cloud_type` varchar(64) NOT NULL,
+  `ec2_owner_id` varchar(32) DEFAULT NULL,
   `server_meta_ctl` int(11) DEFAULT NULL,
   `instances_ctl` int(11) DEFAULT NULL,
   `personality_ctl` int(11) DEFAULT NULL,
@@ -52,7 +54,7 @@ CREATE TABLE `csv2_clouds` (
   `floating_ips_ctl` int(11) DEFAULT NULL,
   `cores_ctl` int(11) NOT NULL DEFAULT -1,
   `cores_softmax` int(11) NOT NULL DEFAULT -1,
-  `spot_price` int(11) NOT NULL DEFAULT -1,
+  `spot_price` float NOT NULL DEFAULT -1,
   `vm_flavor` varchar(64) NOT NULL DEFAULT '',
   `vm_image` varchar(64) NOT NULL DEFAULT '',
   `vm_keep_alive` int(11) NOT NULL DEFAULT 0,
@@ -74,4 +76,4 @@ CREATE TABLE `csv2_clouds` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-05 12:47:29
+-- Dump completed on 2019-05-16 10:26:47
