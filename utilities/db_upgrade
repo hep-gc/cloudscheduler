@@ -708,7 +708,10 @@ def map_csv2_configuration(gvar, fqdn):
                     if cols[0] not in gvar['csv2_configuration_values'][hostname]:
                         gvar['csv2_configuration_values'][hostname][cols[0]] = {}
                     
-                    gvar['csv2_configuration_values'][hostname][cols[0]][cols[1]] = {'type': cols[2], 'value': cols[3]}
+                    if len(cols) > 3:
+                        gvar['csv2_configuration_values'][hostname][cols[0]][cols[1]] = {'type': cols[2], 'value': cols[3]}
+                    else:
+                        gvar['csv2_configuration_values'][hostname][cols[0]][cols[1]] = {'type': cols[2], 'value': None}
 
                 break
         fd.close()
