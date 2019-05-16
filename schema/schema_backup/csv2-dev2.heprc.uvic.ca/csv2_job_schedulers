@@ -16,30 +16,18 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `csv2_groups`
+-- Table structure for table `csv2_job_schedulers`
 --
 
-DROP TABLE IF EXISTS `csv2_groups`;
+DROP TABLE IF EXISTS `csv2_job_schedulers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `csv2_groups` (
-  `group_name` varchar(32) NOT NULL,
-  `htcondor_fqdn` varchar(128) DEFAULT NULL,
-  `htcondor_container_hostname` varchar(128) DEFAULT NULL,
-  `htcondor_other_submitters` varchar(128) DEFAULT NULL,
-  `job_cpus` int(11) NOT NULL DEFAULT 1,
-  `job_ram` int(11) NOT NULL DEFAULT 1000,
-  `job_disk` int(11) NOT NULL DEFAULT 5,
-  `job_scratch` int(11) NOT NULL DEFAULT 0,
-  `job_swap` int(11) NOT NULL DEFAULT 0,
-  `vm_flavor` varchar(64) NOT NULL DEFAULT '',
-  `vm_image` varchar(64) NOT NULL DEFAULT '',
-  `vm_keep_alive` int(11) NOT NULL DEFAULT 0,
-  `vm_keyname` varchar(64) DEFAULT NULL,
-  `vm_network` varchar(64) NOT NULL DEFAULT '',
-  `vm_security_groups` varchar(128) DEFAULT NULL,
-  PRIMARY KEY (`group_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `csv2_job_schedulers` (
+  `htcondor_fqdn` varchar(128) CHARACTER SET utf8 NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
+  `foreign_jobs` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`htcondor_fqdn`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
