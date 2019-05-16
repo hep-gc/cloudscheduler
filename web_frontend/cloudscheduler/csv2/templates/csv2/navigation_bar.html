@@ -6,7 +6,8 @@
 </head>
 
 <script>
-    document.getElementById('title').innerHTML = window.location.hostname;
+    var title = window.location.hostname.split(".");
+    document.getElementById('title').innerHTML = title[0];
 </script>
 
 <nav class="top-nav">
