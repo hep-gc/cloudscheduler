@@ -36,6 +36,8 @@ from (
         from csv2_vms as cv
         left outer join condor_machines as cm on
             cv.hostname=substring_index(cm.machine,'.',1)
+        where
+            cv.manual_control=0
         ) as cms
     group by
         group_name,
