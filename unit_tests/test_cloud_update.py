@@ -120,7 +120,7 @@ def main(gvar, user_secret):
 
     # 16
     execute_csv2_request(
-        gvar, 1, 'CV', 'value specified for "spot_price" must be an integer value.',
+        gvar, 1, 'CV', 'cloud update value specified for "spot_price" must be a floating point value.',
         '/cloud/update/', group=ut_id(gvar, 'ctg1'), form_data={'cloud_name': ut_id(gvar, 'ctc3'), 'spot_price': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )
@@ -210,21 +210,26 @@ def main(gvar, user_secret):
             'group_name': ut_id(gvar, 'ctg1'),
             'cloud_name': ut_id(gvar, 'ctc3'),
             'enabled': 1,
-            'spot_price': -1,
+            'cloud_priority': 0,
+            'spot_price': -1.0,
             'vm_flavor': '',
             'vm_image': '',
             'vm_keep_alive': 0,
             'vm_keyname': None,
             'vm_network': '',
+            'vm_security_groups': None,
             'cascading_vm_flavor': None,
             'cascading_vm_image': None,
             'cascading_vm_keep_alive': 0,
             'cascading_vm_keyname': None,
             'cascading_vm_network': None,
+            'cascading_vm_security_groups': None,
             'authurl': 'unit-test-cloud-three.ca',
-            'project_domain_name': 'Default',
+            'project_domain_name': "'Default'",
+            'project_domain_id': '',
             'project': 'unit-test-cloud-three',
             'user_domain_name': 'Default',
+            'user_domain_id': '',
             'username': ut_id(gvar, 'ctu3'),
             'keyname': None,
             'cacertificate': None,
@@ -261,7 +266,7 @@ def main(gvar, user_secret):
             'flavor_exclusions': None,
             'flavor_names': None,
             'group_exclusions': None,
-            'metadata_names': '%s,%s,%s' % (ut_id(gvar, 'cty2'), ut_id(gvar, 'cty3'), ut_id(gvar, 'cty3.yaml')) 
+            'metadata_names': '%s,%s,%s' % (ut_id(gvar, 'cty2'), ut_id(gvar, 'cty3'), ut_id(gvar, 'cty3.yaml')),
             },
         server_user=ut_id(gvar, 'ctu3'), server_pw=user_secret
     )

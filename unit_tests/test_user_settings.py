@@ -36,26 +36,19 @@ def main(gvar, user_secret):
 
     # 4
     execute_csv2_request(
-        gvar, 1, 'UV', 'invalid method "GET" specified.',
-        '/user/settings/',
-        server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
-    )
-
-    # 5
-    execute_csv2_request(
         gvar, 1, 'UV', 'cannot switch to invalid group "invalid-unit-test".',
         '/user/settings/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 6
+    # 5
     execute_csv2_request(
         gvar, 1, 'UV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'utg2')),
         '/user/settings/', group=ut_id(gvar, 'utg2'),
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 7
+    # 6
     execute_csv2_request(
         gvar, 1, 'UV', 'request contained a unnamed/bad parameter "invalid-unit-test".',
         '/user/settings/'
@@ -63,7 +56,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 8
+    # 7
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
         '/user/settings/'
@@ -71,7 +64,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 9
+    # 8
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/settings/'
@@ -79,7 +72,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 10
+    # 9
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/'
@@ -87,7 +80,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 11
+    # 10
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/'
@@ -95,7 +88,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=new_secret
     )
 
-    # 12
+    # 11
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a password but no verify password; both are required.',
         '/user/settings/'
@@ -103,7 +96,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 13
+    # 12
     execute_csv2_request(
         gvar, 1, 'UV', 'password update received a verify password but no password; both are required.',
         '/user/settings/'
@@ -111,7 +104,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 14
+    # 13
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less than 6 characters.',
         '/user/settings/'
@@ -122,7 +115,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 15
+    # 14
     execute_csv2_request(
         gvar, 1, 'UV', 'value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         '/user/settings/'
@@ -133,7 +126,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 16
+    # 15
     execute_csv2_request(
         gvar, 1, 'UV', 'values specified for passwords do not match.',
         '/user/settings/'
@@ -144,7 +137,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 17
+    # 16
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/'
@@ -155,7 +148,7 @@ def main(gvar, user_secret):
         server_user=ut_id(gvar, 'utu3'), server_pw=user_secret
     )
 
-    # 18
+    # 17
     execute_csv2_request(
         gvar, 0, None, 'user "{}" successfully updated.'.format(ut_id(gvar, 'utu3')),
         '/user/settings/'

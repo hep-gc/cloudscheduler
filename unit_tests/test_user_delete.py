@@ -41,7 +41,7 @@ def main(gvar, user_secret):
 
     # 05
     execute_csv2_request(
-        gvar, 1, 'UV', 'invalid method "GET" specified.',
+        gvar, 1, 'UV', 'user delete did not contain mandatory parameter "username".',
         '/user/delete/'
     )
 
@@ -80,7 +80,7 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_request(
-        gvar, 1, 'UV', 'request did not contain mandatory parameter "username".',
+        gvar, 1, 'UV', 'user delete did not contain mandatory parameter "username".',
         '/user/delete/', group=ut_id(gvar, 'utg1'),
         server_user=ut_id(gvar, 'utu4'), server_pw=user_secret
     )
