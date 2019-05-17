@@ -513,7 +513,7 @@ def add(request):
                     
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud add, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud add request did not contain mandatory parameter "cloud_name".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 

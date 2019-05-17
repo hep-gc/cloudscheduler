@@ -206,7 +206,7 @@ def delete(request):
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s user delete, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s user delete did not contain mandatory parameter "username".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 
