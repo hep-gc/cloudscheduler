@@ -8,118 +8,190 @@
   <!-- <meta http-equiv="refresh" content="30"> -->
   </head>
 
+<script type="text/javascript">
 
-  <body>
+var os_list = {{operating_systems|safe}}
+var arch_list = {{architectures|safe}}
+var alias_list = {{owner_aliases|safe}}
 
-
-      <div class="filter-div">
-
-        <table>
-          <tr class="title-row">
-
-          {% for os in operating_systems %}
-            <th>{{ os.operating_system }}</th>
-          {% endfor %}
-
-          </tr>
-          <tr class="box-row">
-
-          {% for os in operating_systems %}
-            <td><input type="checkbox" value="{{ os.operating_system }}" onchange="updateList('{{ os.operating_system }}', 4);" checked/></td>
-          {% endfor %}
-
-          </tr>
-        </table>
-
-
-        <table>
-          <tr class="title-row">
-          
-          {% for arch in architectures %}
-            <th>{{ arch.architecture }}</th>
-          {% endfor %}
-
-          </tr>
-          <tr class="box-row">
-
-          {% for arch in architectures %}
-            <td><input type="checkbox" onchange="updateList('{{ arch.architecture }}', 4);" checked/></td>
-          {% endfor %}
-
-          </tr>
-        </table>
-
-
-        <table>
-          <tr class="title-row">
-          
-          {% for alias in owner_aliases %}
-
-            <th>{{ alias.alias }}</th>
-          {% endfor %}
-
-          </tr>
-          <tr class="box-row">
-          {% for alias in owner_aliases %}
-            <td><input type="checkbox" onchange="updateList('{{ alias.alias }}', 1);" checked/></td>
-          {% endfor %}
-
-          </tr>
-        </table>
+var ec2_filters = {{ec2_image_filters|safe}}
 
 
 
+var os_filter = ec2_filters[0].operating_systems.split(",")
+var arch_filter = ec2_filters[0].architectures.split(",")
+var alias_filter = ec2_filters[0].owner_aliases.split(",")
 
 
-      </div>
+function updateCSV(os_type){
+  var os_string = document.getElementById('os_string').value;
+  console.log(os_string);
+}
+
+function getOfffered_Service(chkbox){
+  var chks = document.getElementsByName('service_offered[]');
+  var checkCount = 0;
+  var text = new Array();
+  var strtext = "";
+   
+  for (var i = 0; i < chks.length; i++){
+    if (chks[i].checked){
+      var arlength = text.length;
+      text[arlength] = chks[i].value;
+    } 
+  }
+  strtext = text.join(",");
+  document.getElementById("t").value = strtext ;
+}
+
+function checkSelected(){
+
+  var i
+
+
+  for (i = 0; i < os_filter.length; i++){
+    var id = "os-"+os_filter[i];
+    document.getElementById(id).checked = true;
+  }
+
+  for (i = 0; i < arch_filter.length; i++){
+    var id = "arch-"+arch_filter[i];
+    document.getElementById(id).checked = true;
+  }
+
+
+  for (i = 0; i < alias_filter.length; i++){
+    var id = "alias-"+alias_filter[i];
+    document.getElementById(id).checked = true;
+  }
 
 
 
 
 
 
-      <div class="vm-div">
+}
+
+</script>
+
+<body onpageshow="checkSelected();">
 
 
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="group" value="{{ active_group }}">
-  
-        <div class=vm-table>
-          <table id="vmsTable">
-              <tr>
-                <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
-                <th onclick="sortTable(1)">Image Location &#8597;</th>
+    <div class="filter-div">
 
-                <th onclick="sortTable(2)">ID &#8597;</th>
+      <table>
+        <tr class="title-row">
+
+        {% for os in operating_systems %}
+          <th>{{ os.operating_system }}</th>
+        {% endfor %}
+
+        <th>OS filter string</th>
+
+        </tr>
+        <tr class="box-row">
+
+
+        {% for os in operating_systems %}
+          <td><input type="checkbox" id="os-{{os.operating_system}}" value="{{ os.operating_system }}" onchange=""/></td>
+        {% endfor %}
+
+          <td><input type="text" id="os_string" value="{{ec2_image_filters.0.operating_systems}}" /></td>
+        </tr>
+      </table>
+
+
+      <table>
+        <tr class="title-row">
+        
+        {% for arch in architectures %}
+          <th>{{ arch.architecture }}</th>
+        {% endfor %}
+
+        <th>Arch filter string</th>
+
+        </tr>
+        <tr class="box-row">
+
+        {% for arch in architectures %}
+          <td><input type="checkbox" id="arch-{{arch.architecture}}" onchange=""/></td>
+        {% endfor %}
+          <td><input type="text" id="arch_string" value="{{ec2_image_filters.0.architectures}}" /></td>
+        </tr>
+      </table>
+
+
+      <table>
+        <tr class="title-row">
+        
+        {% for alias in owner_aliases %}
+
+          <th>{{ alias.alias }}</th>
+        {% endfor %}
+
+        <th>Alias filter string</th>
+        </tr>
+        <tr class="box-row">
+        {% for alias in owner_aliases %}
+          <td><input type="checkbox" id="alias-{{alias.alias}}" value="{{alias.alias}}" onchange=""/></td>
+        {% endfor %}
+          <td><input type="text" id="arch_string" value="{{ec2_image_filters.0.owner_aliases}}" /></td>
+        </tr>
+      </table>
+
+
+
+
+
+    </div>
+
+
+
+
+
+
+    <div class="vm-div">
+
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="group" value="{{ active_group }}">
+
+      <div class=vm-table>
+        <table id="vmsTable">
+            <tr>
+              <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
+              <th onclick="sortTable(1)">Image Location &#8597;</th>
+
+              <th onclick="sortTable(2)">ID &#8597;</th>
+
+            </tr>
+          <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
+
+
+            {% for image in ec2_images %}
+
+                <tr>
+                <td><input type="checkbox" name="images.{{ forloop.counter }}" value={{image.name}}></td>
+                <td>{{image.image_location}}</td>
+                <td>{{image.id}}</td>
 
               </tr>
-            <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
+            {% endfor %}
 
+        </table>
+      </div>
+    </form>
+  </div>
+  <!-- Footer -->
 
-              {% for image in ec2_images %}
+  <div class="footer"
+      {% if response_code == 1 %}
+          <tr><td><b>Error: {{ message }}</b></td></tr>
+      {% elif message is not None %}
+          <tr><td>{{ message }}</td></tr>
+      {% endif %}
+  </div>
 
-                  <tr>
-                  <td><input type="checkbox" name="images.{{ forloop.counter }}" value={{image.name}}></td>
-                  <td>{{image.image_location}}</td>
-                  <td>{{image.id}}</td>
-
-                </tr>
-              {% endfor %}
-
-          </table>
-        </div>
-      </form>
-    </div>
-    <!-- Footer -->
-
-    <div class="footer"
-        {% if response_code == 1 %}
-            <tr><td><b>Error: {{ message }}</b></td></tr>
-        {% elif message is not None %}
-            <tr><td>{{ message }}</td></tr>
-        {% endif %}
-    </div>
-
-  </body>
+</body>
 </html>
