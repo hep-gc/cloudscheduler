@@ -27,6 +27,16 @@ CREATE TABLE `ec2_image_well_known_owner_aliases` (
   PRIMARY KEY (`alias`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ec2_image_well_known_owner_aliases`
+--
+
+LOCK TABLES `ec2_image_well_known_owner_aliases` WRITE;
+/*!40000 ALTER TABLE `ec2_image_well_known_owner_aliases` DISABLE KEYS */;
+INSERT INTO `ec2_image_well_known_owner_aliases` VALUES ('amazon'),('microsoft'),('self'),('shared');
+/*!40000 ALTER TABLE `ec2_image_well_known_owner_aliases` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -37,4 +47,4 @@ CREATE TABLE `ec2_image_well_known_owner_aliases` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-16 10:26:48
+-- Dump completed on 2019-05-22 11:53:48
