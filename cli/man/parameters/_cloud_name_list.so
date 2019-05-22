@@ -1,0 +1,3 @@
+.TP
+\fB\-cn \fIname1[,name2,...nameN]\fR, \fB\-\-cloud-name \fIname1[,name2,...nameN]\fR
+A comma seperated list of cloud names, each previously defined within the group.

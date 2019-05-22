@@ -1,0 +1,7 @@
+.TP
+\fB\-itp \fIprocessor1\fR[,processor2,... processorN], \fB\-\-ec2-instance-type-processors \fIprocessor1\fR[,processor2,... processorN]
+Specifies a comma-seperated list of processors of interest.
+Valid operating systems are displayed in the \fBProcessor Filter\fR optional table (see \fB--with\fR below).
+The \fBec2\fR object is to filter out instance-types with a processor other than specified by this parameter.
+
+Default: (defined in the system configuration)

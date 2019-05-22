@@ -1,0 +1,6 @@
+.TP
+\fB\-itc \fIcount1\fR[,count2,... countN], \fB\-\-ec2-instance-type-cores \fIcount1\fR[,count2,... countN]
+Specifies a comma-seperated list of cores (number of processors) of interest.
+The \fBec2\fR object is to filter out instance-types with an unlisted core count.
+
+Default: (defined in the system configuration)
