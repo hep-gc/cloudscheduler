@@ -1,0 +1,147 @@
+.so ../man/_header.so
+\fBcloudscheduler ec2 instance-types\fR \- filter and list EC2 instance-types to be made available to cloudscheduler version 2 (csv2).
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B ec2
+.B instance-types
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_ec2_instance-types.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_cloud_name.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+Optional parameters are used to modify the filters for the specified cloud.
+.so ../man/_options.so
+.so ../man/parameters/_ec2_instance_type_cores.so
+.so ../man/parameters/_ec2_instance_type_families.so
+.so ../man/parameters/_ec2_instance_type_memory_min_gigabytes_per_core.so
+.so ../man/parameters/_ec2_instance_type_memory_max_gigabytes_per_core.so
+.so ../man/parameters/_ec2_instance_type_operating_systems.so
+.so ../man/parameters/_ec2_instance_type_processors.so
+.so ../man/parameters/_ec2_instance_type_processor_manufacturers.so
+
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+View EC2 instance-type filters and instance-types together with optional tables \fBManufacturer Filter\fR and \fBCores Filter\fR:
+
+.EX
+$ cloudscheduler ec2 instance-types -cn amazon-east -w man,core 
+Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
+
+EC2 Instance Type Filters:
++---------+-------------+-----------------------------------+--------------------+------------+-------------------------+-------+-----------------------+-----------------------+
++         |             |                                   |                    |            |                         |       |             Memory (GiB per core)             +
++  Group  |    Cloud    |             Families              | Operatings Systems | Processors | Processor Manufacturers | Cores |          Min                     Max          +
++---------+-------------+-----------------------------------+--------------------+------------+-------------------------+-------+-----------------------+-----------------------+
+| testing | amazon-east | Compute optimized,general purpose | Linux,RHEL,SUSE    | None       | None                    | 1     | 0.0                   | 0.0                   |
++---------+-------------+-----------------------------------+--------------------+------------+-------------------------+-------+-----------------------+-----------------------+
+Rows: 1
+
+Manufacturer Filter:
++--------------+
++ Manufacturer +
++--------------+
+| AMD          |
+| AWS          |
+| Intel        |
+| Variable     |
++--------------+
+Rows: 4
+
+Cores Filter:
++-------------+
++ Cores       +
++-------------+
+| 1           |
+| 2           |
+| 4           |
+| 8           |
+| 12          |
+| 16          |
+| 17          |
+| 24          |
+| 32          |
+| 36          |
+| 40          |
+| 48          |
+| 64          |
+| 72          |
+| 96          |
+| 128         |
++-------------+
+Rows: 16
+
+EC2 Instance Types:
++-----------+---------------+------------------+-----------------+------------------------+--------------+-------------+-----------------------+-----------------------+----------+-----------------------+
++ Region    | Instance Type | Operating System | Family          | Processor              | Manufacturer | Cores       | Memory                | Memory per Core       | Storage  | Cost per Hour         +
++-----------+---------------+------------------+-----------------+------------------------+--------------+-------------+-----------------------+-----------------------+----------+-----------------------+
+| us-east-1 | a1.medium     | SUSE             | General purpose | AWS Graviton Processor | AWS          | 1           | 2.0                   | 2.0                   | EBS only | 0.0                   |
+| us-east-1 | t2.nano       | SUSE             | General purpose | Intel Xeon Family      | Intel        | 1           | 0.5                   | 0.5                   | EBS only | 0.0                   |
++-----------+---------------+------------------+-----------------+------------------------+--------------+-------------+-----------------------+-----------------------+----------+-----------------------+
+Rows: 2
+$
+.EE
+.TP
+2.
+Update the filter to list instance-types for manufacturers Intel and AMD (\fB--instance-type-processor-manufacturers\fR), having 1, 2, or 8 cores (\fB--instance-typer-cores\fR), and a memory range of 1.5 to 3.0 gigabytes per core (\fB--instance-type-memory-min-gigabytes-per-core\fR and \fB--instance-type-memory-max-gigabytes-per-core\fR):
+
+.EX
+$ cloudscheduler ec2 instance-types -cn amazon-east -itpm intel,amd -itc 1,2,4,8 -itmn 1.5 -itmx 3.0
+Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
+
+EC2 Instance Type Filters:
++---------+-------------+-----------------------------------+--------------------+------------+-------------------------+---------+-----------------------+-----------------------+
++         |             |                                   |                    |            |                         |         |             Memory (GiB per core)             +
++  Group  |    Cloud    |             Families              | Operatings Systems | Processors | Processor Manufacturers |  Cores  |          Min                     Max          +
++---------+-------------+-----------------------------------+--------------------+------------+-------------------------+---------+-----------------------+-----------------------+
+| testing | amazon-east | Compute optimized,general purpose | Linux,RHEL,SUSE    | None       | AMD,Intel               | 1,2,4,8 | 1.5                   | 3.0                   |
++---------+-------------+-----------------------------------+--------------------+------------+-------------------------+---------+-----------------------+-----------------------+
+Rows: 1
+
+EC2 Instance Types:
++-----------+---------------+------------------+-------------------+------------------------------------+--------------+-------------+-----------------------+-----------------------+------------------+-----------------------+
++ Region    | Instance Type | Operating System | Family            | Processor                          | Manufacturer | Cores       | Memory                | Memory per Core       | Storage          | Cost per Hour         +
++-----------+---------------+------------------+-------------------+------------------------------------+--------------+-------------+-----------------------+-----------------------+------------------+-----------------------+
+| us-east-1 | c3.2xlarge    | Linux            | Compute optimized | Intel Xeon E5-2680 v2 (Ivy Bridge) | Intel        | 8           | 15.0                  | 1.875                 | 2 x 80 SSD       | 0.597                 |
+| us-east-1 | c3.large      | Linux            | Compute optimized | Intel Xeon E5-2680 v2 (Ivy Bridge) | Intel        | 2           | 3.75                  | 1.875                 | 2 x 16 SSD       | 0.183                 |
+| us-east-1 | c4.large      | SUSE             | Compute optimized | Intel Xeon E5-2666 v3 (Haswell)    | Intel        | 2           | 3.75                  | 1.875                 | EBS only         | 0.0                   |
+| us-east-1 | c5.2xlarge    | Linux            | Compute optimized | Intel Xeon Platinum 8124M          | Intel        | 8           | 16.0                  | 2.0                   | EBS only         | 0.36                  |
+| us-east-1 | c5.xlarge     | Linux            | Compute optimized | Intel Xeon Platinum 8124M          | Intel        | 4           | 8.0                   | 2.0                   | EBS only         | 0.66                  |
+| us-east-1 | c5d.xlarge    | Linux            | Compute optimized | Intel Xeon Platinum 8124M          | Intel        | 4           | 8.0                   | 2.0                   | 1 x 100 NVMe SSD | 1.692                 |
+| us-east-1 | c5n.2xlarge   | Linux            | Compute optimized | Intel Xeon Platinum 8124M          | Intel        | 8           | 21.0                  | 2.625                 | EBS only         | 0.0                   |
+| us-east-1 | c5n.large     | Linux            | Compute optimized | Intel Xeon Platinum 8124M          | Intel        | 2           | 5.25                  | 2.625                 | EBS only         | 0.0                   |
+| us-east-1 | t2.medium     | RHEL             | General purpose   | Intel Xeon Family                  | Intel        | 2           | 4.0                   | 2.0                   | EBS only         | 0.1064                |
++-----------+---------------+------------------+-------------------+------------------------------------+--------------+-------------+-----------------------+-----------------------+------------------+-----------------------+
+Rows: 9
+$
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_ec2 (1)
+.BR csv2_ec2_instance_types (1)

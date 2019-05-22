@@ -1,0 +1,10 @@
+.TP
+\fB\-il \fIstring1\fR[,string2,... stringN], \fB\-\-ec2-image-like \fIstring1\fR[,string2,... stringN]
+Specifies a comma-seperated list of strings to be matched against the images location.
+Images whose location match string1 \fBand\fR string2 \fBand\fR etc. are considered of interest and included in the list.
+All other images will be filtered out by the ec2 object.
+
+Why match the image location? Unlike the image name and the image description, the image location is mandatory and normally reflects
+what the image is.
+
+Default: None.

@@ -1,0 +1,4 @@
+Amazon EC2 offers a large collection of instance-types (flavors) to host Virtual Machines (VMs).
+The \fBec2 instance-types\fR function of cloudscheduler version 2 (CSV2) provides a filtering system to facilitate finding and managing instance-types of interest.
+Since different instance-types may be available to different regions, filtering is performed on a cloud by cloud basis.
+It is therefore necessary to specify from which cloud connection the instance-types are to be viewed.

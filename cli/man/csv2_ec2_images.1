@@ -1,0 +1,133 @@
+.so ../man/_header.so
+\fBcloudscheduler ec2 images\fR \- filter and list EC2 images to be made available to cloudscheduler version 2 (csv2).
+.\" --------------------------------------------------------------------
+.SH SYNOPSIS
+.\" --------------------------------------------------------------------
+.SY cloudscheduler
+.B ec2
+.B images
+.RI "[" "options" " ...]"
+.YS
+.\" --------------------------------------------------------------------
+.SH DESCRIPTION
+.\" --------------------------------------------------------------------
+.so ../man/descriptions/_ec2_images.so
+.\" --------------------------------------------------------------------
+.SH OPTIONS
+.\" --------------------------------------------------------------------
+.\" --------------------------------------------------------------------
+.SS Mandatory
+.\" --------------------------------------------------------------------
+.so ../man/_mandatory_parameters.so
+.so ../man/parameters/_cloud_name.so
+.\" --------------------------------------------------------------------
+.SS Optional
+.\" --------------------------------------------------------------------
+Optional parameters are used to modify the filters for the specified cloud.
+.so ../man/_options.so
+.so ../man/parameters/_ec2_image_architectures.so
+.so ../man/parameters/_ec2_image_like.so
+.so ../man/parameters/_ec2_image_not_like.so
+.so ../man/parameters/_ec2_image_owner_aliases.so
+.so ../man/parameters/_ec2_image_owner_ids.so
+.so ../man/parameters/_ec2_image_operating_systems.so
+.\" --------------------------------------------------------------------
+.SS Table
+.\" --------------------------------------------------------------------
+.so ../man/_table_options.so
+.\" --------------------------------------------------------------------
+.SS Global
+.\" --------------------------------------------------------------------
+.so ../man/_global_options.so
+.\" --------------------------------------------------------------------
+.SH EXAMPLES
+.\" --------------------------------------------------------------------
+.TP
+1.
+View EC2 image filters and images together with optional tables \fBArchitecture Filter\fR and \fBOwner Alias Filter\fR:
+
+.EX
+$ cloudscheduler ec2 images -cn amazon-east --with owner,arch
+Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
+
+EC2 Image Filters:
++---------+-------------+-------------+--------------+--------+----------+-------------------+---------------+
++         |             |           Owner            |      Images       |                   |               +
++  Group  |    Cloud    |   Aliases         IDs      |  Like    Not Like | Operating Systems | Architectures +
++---------+-------------+-------------+--------------+--------+----------+-------------------+---------------+
+| testing | amazon-east | self,shared | 206029621532 | None   | None     | linux             | 32bit         |
++---------+-------------+-------------+--------------+--------+----------+-------------------+---------------+
+Rows: 1
+
+Architecture Filter:
++--------------+
++ Architecture +
++--------------+
+| 32bit        |
+| 64bit        |
+| arm64        |
+| xml          |
++--------------+
+Rows: 4
+
+Owner Alias Filter:
++-----------+
++ Alias     +
++-----------+
+| amazon    |
+| microsoft |
+| self      |
+| shared    |
++-----------+
+Rows: 4
+
+EC2 Images:
++-----------+----------------------------------------+--------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
++           |                                        |              |         Owner         |             |                  |              |             |             |            |              +
++  Region   |                Location                |      ID      | Alias         ID      | Borrower ID | Operating System | Architecture | Disk Fromat |    Size     | Visibility | Last Updated +
++-----------+----------------------------------------+--------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
+| us-east-1 | amazon/ami-vpc-nat-1.1.0-beta.i386-ebs | ami-2e1bc047 | amazon | 206029621532 | not_shared  | linux            | 32bit        | ebs         | 8           | 1          | 1557784233   |
+| us-east-1 | amazon/fedora-8-i386-v1.14-std         | ami-84db39ed | amazon | 206029621532 | not_shared  | linux            | 32bit        | ebs         | 15          | 1          | 1557784233   |
+| us-east-1 | amazon/ami-vpc-nat-1.0.0-beta.i386-ebs | ami-d8699bb1 | amazon | 206029621532 | not_shared  | linux            | 32bit        | ebs         | 8           | 1          | 1557784233   |
++-----------+----------------------------------------+--------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
+Rows: 3
+$
+.EE
+.TP
+2.
+Update the filter to list 64 bit images (\fB--image-architetures\fR), include Amazon public images (\fB--imager-owner-aliases\fR), and select only the latest SUSE distribution images (\fB--image-like\fR):
+
+.EX
+$ cloudscheduler ec2 images -cn amazon-east -ia 64bit -ioa amazon,self,shared -il suse-sles-12-sp4
+Server: dev, Active User: crlb, Active Group: testing, User's Groups: ['crlb', 'demo', 'test', 'test-dev2', 'testing']
+
+EC2 Image Filters:
++---------+-------------+--------------------+--------------+------------------+----------+-------------------+---------------+
++         |             |               Owner               |           Images            |                   |               +
++  Group  |    Cloud    |      Aliases             IDs      |       Like         Not Like | Operating Systems | Architectures +
++---------+-------------+--------------------+--------------+------------------+----------+-------------------+---------------+
+| testing | amazon-east | amazon,self,shared | 206029621532 | suse-sles-12-sp4 | None     | linux             | 64bit         |
++---------+-------------+--------------------+--------------+------------------+----------+-------------------+---------------+
+Rows: 1
+
+EC2 Images:
++-----------+-------------------------------------------------------+-----------------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
++           |                                                       |                       |         Owner         |             |                  |              |             |             |            |              +
++  Region   |                       Location                        |          ID           | Alias         ID      | Borrower ID | Operating System | Architecture | Disk Fromat |    Size     | Visibility | Last Updated +
++-----------+-------------------------------------------------------+-----------------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
+| us-east-1 | amazon/suse-sles-12-sp4-byos-v20190314-hvm-ssd-x86_64 | ami-016ddc817bedb3d8e | amazon | 013907871322 | not_shared  | linux            | 64bit        | ebs         | 10          | 1          | 1557784233   |
+| us-east-1 | amazon/suse-sles-12-sp4-v20190314-ecs-hvm-ssd-x86_64  | ami-0295228f2225d55a9 | amazon | 013907871322 | not_shared  | linux            | 64bit        | ebs         | 10          | 1          | 1557784233   |
+| us-east-1 | amazon/suse-sles-12-sp4-v20190314-hvm-ssd-x86_64      | ami-0787571b4033204ad | amazon | 013907871322 | not_shared  | linux            | 64bit        | ebs         | 10          | 1          | 1557784233   |
+| us-east-1 | amazon/suse-sles-12-sp4-byos-v20181212-hvm-ssd-x86_64 | ami-0ba0b96806bf03d31 | amazon | 013907871322 | not_shared  | linux            | 64bit        | ebs         | 10          | 1          | 1557784233   |
+| us-east-1 | amazon/suse-sles-12-sp4-v20181212-hvm-ssd-x86_64      | ami-0c55353c85ac52c96 | amazon | 013907871322 | not_shared  | linux            | 64bit        | ebs         | 10          | 1          | 1557784233   |
+| us-east-1 | amazon/suse-sles-12-sp4-v20181212-ecs-hvm-ssd-x86_64  | ami-0cc46b3d7956578d4 | amazon | 013907871322 | not_shared  | linux            | 64bit        | ebs         | 10          | 1          | 1557784233   |
++-----------+-------------------------------------------------------+-----------------------+--------+--------------+-------------+------------------+--------------+-------------+-------------+------------+--------------+
+Rows: 6
+$
+.EE
+.\" --------------------------------------------------------------------
+.SH SEE ALSO
+.\" --------------------------------------------------------------------
+.BR csv2 (1)
+.BR csv2_ec2 (1)
+.BR csv2_ec2_instance_types (1)
