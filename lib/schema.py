@@ -567,21 +567,6 @@ ec2_regions = Table('ec2_regions', metadata,
   Column('endpoint', String(128))
   )
 
-kill_retire_priority_list = Table('kill_retire_priority_list', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('vmid', String(128)),
-  Column('flavor_id', String(128)),
-  Column('machine', String(256)),
-  Column('killed', Integer),
-  Column('retired', Integer),
-  Column('priority', Integer),
-  Column('flavor_cores', Integer),
-  Column('flavor_ram', Integer),
-  Column('cores', Integer),
-  Column('ram', Integer)
-  )
-
 silk_profile = Table('silk_profile', metadata,
   Column('id', Integer, primary_key=True),
   Column('name', String(300)),
