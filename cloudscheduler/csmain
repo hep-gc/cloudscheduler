@@ -9,24 +9,20 @@ import logging
 import multiprocessing
 from collections import defaultdict
 
-import cloudmanager
+from sqlalchemy import exists
+from sqlalchemy.sql import select
+from sqlalchemy.exc import TimeoutError
 
+import cloudmanager
 from cloudscheduler.lib.schema import view_idle_vms
 from cloudscheduler.lib.schema import view_groups_of_idle_jobs
 from cloudscheduler.lib.schema import view_available_resources
 from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
 from cloudscheduler.lib.schema import view_metadata_collation_json
-
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.log_tools import get_frame_info
-
 from cloudscheduler.lib.ec2_translations import get_ami_dictionary
-
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
-
-from sqlalchemy import exists
-from sqlalchemy.sql import select
-from sqlalchemy.exc import TimeoutError
 
 
 def main():
@@ -307,7 +303,7 @@ def main():
                                                    flavor=cloud.flavor,
                                                    job=idle_job,
                                                    template_dict=template_dict,
-                                                   image = use_image)
+                                                   image=use_image)
                                     log.debug('done booting on cloud %s', cloud.cloud_name)
                                     cloud_booted_on.add(cloud.cloud_name)
                                     break
@@ -344,15 +340,16 @@ def verify_idle_jobs(group, config):
     # TODO Make this stand alone and spin it out into a separate multiprocessing piece
     try:
         config.db_open()
-        idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied).filter(
-            view_condor_jobs_group_defaults_applied.c.group_name == group,
+        idle_jobs_for_group = config.db_session.query(view_condor_jobs_group_defaults_applied)\
+            .filter(view_condor_jobs_group_defaults_applied.c.group_name == group,
             view_condor_jobs_group_defaults_applied.c.job_status == 1)
         bad_jobs = {}
         for job in idle_jobs_for_group:
             if not job.image:
                 bad_jobs[job.global_job_id] = "Missing Image"
         condor_jobs = config.db_map.classes.condor_jobs
-        jobs = config.db_session.query(condor_jobs).filter(condor_jobs.global_job_id.in_(bad_jobs.keys()))
+        jobs = config.db_session.query(condor_jobs)\
+            .filter(condor_jobs.global_job_id.in_(bad_jobs.keys()))
 
         for job in jobs:
             try:
@@ -382,7 +379,8 @@ def count_cloud_flavors(group, config):
     log = logging.getLogger(__name__)
     try:
         config.db_open()
-        available = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == group)
+        available = config.db_session.query(view_available_resources)\
+            .filter(view_available_resources.c.group_name == group)
         vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         for res in available:
             count = res.flavor_VMs - res.flavor_error - res.flavor_retiring
@@ -407,7 +405,8 @@ def check_view_idle_vms():
     """Query view_idle_vms and retire as needed."""
     multiprocessing.current_process().name = "csmain_idle_vms"
     log = logging.getLogger(__name__)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain',
+                    pool_size=15, refreshable=True)
     config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
@@ -417,8 +416,8 @@ def check_view_idle_vms():
         log.debug("-------------------check_view_idle_vms-------------------")
         try:
             config.db_open()
-            results = config.db_session.query(view_idle_vms).filter(view_idle_vms.c.retire == 0,
-                                                                    view_idle_vms.c.terminate == 0)
+            results = config.db_session.query(view_idle_vms)\
+                .filter(view_idle_vms.c.retire == 0, view_idle_vms.c.terminate == 0)
             vmids = []
             for res in results:
                 vmids.append(res.vmid)
@@ -431,7 +430,8 @@ def check_view_idle_vms():
                     old_updater = row.updater
                     row.updater = get_frame_info() + ":r1"
                     config.db_session.merge(row)
-                    log.debug("Set retire flag on %s, previous updater: %s", (row.hostname, old_updater))
+                    log.debug("Set retire flag on %s, previous updater: %s",
+                              row.hostname, old_updater)
             config.db_close(commit=True)
         except TimeoutError as ex:
             log.exception(ex)
@@ -447,7 +447,8 @@ def check_unregistered_machines():
     so need to account for the hostnames matching the CS hostname pattern, belonging to correct group etc."""
     log = logging.getLogger(__name__)
     multiprocessing.current_process().name = "csmain_unregistered_vms"
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=15, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain',
+                    pool_size=15, refreshable=True)
     config.db_engine.dispose()
     while True:
         log.debug("--------------------Check Unregistered Machines--------------------")
@@ -458,8 +459,8 @@ def check_unregistered_machines():
             vms = config.db_map.classes.csv2_vms
             clouds = config.db_map.classes.csv2_clouds
             group_clouds = config.db_session.query(clouds)
-            unregistered_vms = config.db_session.query(vms).filter(~exists().
-                                                                   where(machines.machine.contains(vms.hostname)))
+            unregistered_vms = config.db_session.query(vms)\
+                .filter(~exists().where(machines.machine.contains(vms.hostname)))
             cloud_names = []
             for cloud in group_clouds:
                 cloud_names.append(cloud.cloud_name)
@@ -474,23 +475,28 @@ def check_unregistered_machines():
                         continue
                     cname = hostname_split[1]
                     if cname in cloud_names: # name prefix matches a valid cloud name
-                        if int(time.time()) - vm.last_updated > config.categories['csmain']['unregistered_machine_time_limit'] and not vm.terminate: # not registered after some period of time
+                        if int(time.time()) - vm.last_updated >\
+                                config.categories['csmain']['unregistered_machine_time_limit']\
+                                and not vm.terminate: # not registered after some period of time
                             to_terminate.append(vm.vmid)
-                            log.debug("Set terminate flag on vm due to exceeding registration time limit: %s", vm.hostname)
+                            log.debug("Set terminate flag on vm due to"
+                                      " exceeding registration time limit: %s", vm.hostname)
                         elif not vm.terminate and vm.retire:
                             to_terminate.append(vm.vmid)
                             log.debug("Set terminate flag on vm has been retired: %s", vm.hostname)
                         else:
                             log.debug("%s unregistered for: %s seconds. Terminate flag: %s", vm.hostname,
                                       str(int(time.time()) - vm.last_updated), vm.terminate)
-                            new_vms[vm.cloud_name].append((vm.cloud_name,vm.hostname,vm.flavor_id))
+                            new_vms[vm.cloud_name].append((vm.cloud_name, vm.hostname, vm.flavor_id))
                 except Exception as ex:
                     log.exception("Problem going through unregistered VMs: %s", ex)
             if to_terminate:
-                log.debug("Setting flag in db on %s VMs. With IDs: %s", len(to_terminate), to_terminate)
+                log.debug("Setting flag in db on %s VMs. With IDs: %s",
+                          len(to_terminate), to_terminate)
                 update_result = config.db_session.query(vms).filter(vms.vmid.in_(to_terminate))
                 for vm in update_result:
-                    log.debug("Update terminate flag on %s, previous updater: %s", (vm.hostname, vm.updater))
+                    log.debug("Update terminate flag on %s, previous updater: %s",
+                              vm.hostname, vm.updater)
                     vm.terminate = 1
                     vm.updater = get_frame_info() + ":t=1"
                     config.db_session.merge(vm)
@@ -525,8 +531,9 @@ if __name__ == '__main__':
     log = procMon.get_logging()
     version = config.get_version()
 
-    log.info(
-        "**************************** starting CSv2 Scheduler processes - Running %s *********************************", version)
+    log.info("****************************"
+             " starting CSv2 Scheduler processes - Running %s "
+             "*********************************", version)
 
     # Wait for keyboard input to exit
     try:
