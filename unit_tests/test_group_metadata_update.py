@@ -20,17 +20,17 @@ def main(gvar, user_secret):
 
     # 02
     execute_csv2_request(
-        gvar, 1, 'GV', 'invalid method "GET" specified.',
+        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
         '/group/metadata-update/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     # 03
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
+        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu2'),
         '/group/metadata-update/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
-        server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
+        server_user=ut_id(gvar, 'gtu2'), server_pw=user_secret
     )
 
     # 04
@@ -43,7 +43,7 @@ def main(gvar, user_secret):
 
     # 05
     execute_csv2_request(
-        gvar, 1, 'GV', 'group metadata-update "{}::invalid-unit-test" failed'.format(ut_id(gvar, 'gtg1')),
+        gvar, 1, 'GV', 'group metadata-update "%s::invalid-unit-test" specified no fields to update and was ignored.' % ut_id(gvar, 'gtg4'),
         '/group/metadata-update/'
 , form_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret

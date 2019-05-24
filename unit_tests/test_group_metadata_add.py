@@ -27,7 +27,7 @@ def main(gvar, user_secret):
 
     # 03
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
+        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
         '/group/metadata-add/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
@@ -35,7 +35,7 @@ def main(gvar, user_secret):
 
     # 04
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
+        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu2'),
         '/group/metadata-add/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu2'), server_pw=user_secret

@@ -27,7 +27,7 @@ def main(gvar, user_secret):
 
     # 03
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
+        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
         '/group/metadata-delete/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
@@ -116,7 +116,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'GV', 'group metadata_delete, invalid method "GET" specified.',
+        gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
