@@ -161,6 +161,9 @@
                                     {% endif %}
                                     </td></tr>
 
+                                    <tr class="highlight3"><td><label for="priority">Priority</label></td>
+                                    <td><input type="text" name="priority" title="Lower number is higher priority" value="{{cloud.cloud_priority}}" /></td></tr>
+
 
                                     <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                                     <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "{{cloud.cloud_name}}")'>
@@ -305,7 +308,7 @@
                                     <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
 
                                     <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
-                                    <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
+                                    <td><input type="text" name="spot_price" title="-1 to disable" value="{{cloud.spot_price}}" /></td></tr>
 
                                 </table>
 
@@ -313,13 +316,13 @@
 
                                 <table>
                                     <tr class="highlight2"><td><label for="cores_softmax">Cores Softmax</label></td>
-                                    <td><input type="text" name="cores_softmax" value="{{cloud.cores_softmax}}" /></td></tr>
+                                    <td><input type="text" name="cores_softmax" title="-1 to use hard max" value="{{cloud.cores_softmax}}" /></td></tr>
 
                                     <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
                                     <td>
                                         
                                         <input type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" oninput="cores_ctl.value=cores_slider.value" />
-                                        <input type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" oninput="cores_slider.value=cores_ctl.value" />
+                                        <input type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" title="-1 to use system max" oninput="cores_slider.value=cores_ctl.value" />
                                         / {{cloud.cores_max}}
                                     </td></tr>
                                     <!--<td>
@@ -331,7 +334,7 @@
                                     <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
                                     <td>
                                         <input type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" oninput="ram_ctl.value=ram_slider.value" />
-                                        <input type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" oninput="ram_slider.value=ram_ctl.value" />
+                                        <input type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" title="-1 to use system max" oninput="ram_slider.value=ram_ctl.value" />
                                         / {{cloud.ram_max}} KB
                                     </td></tr>
                                     <!--<td>
@@ -534,6 +537,9 @@
                             
                             <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
                             <td><input type="checkbox" name="enabled" value="1" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="priority">Priority</label></td>
+                            <td><input type="text" name="priority" title="Lower number is higher priority" value="0" /></td></tr>
 
                             <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
                             <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "add")'/>
