@@ -66,7 +66,7 @@ class EC2Cloud(basecloud.BaseCloud):
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
         instancetype_dict = self._attr_list_to_dict(job.instance_type)
-
+        tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join([self.group, self.name, self.config.csv2_host_id])}]}]
         client = self._get_client()
         if not client:
             self.log.error("Failed to get client for ec2. Check Configuration.")
@@ -76,11 +76,13 @@ class EC2Cloud(basecloud.BaseCloud):
                 new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
                                               InstanceType=instancetype_dict[self.name],
                                               UserData=userdata, KeyName=self.keyname,
-                                              SecurityGroups=self.default_security_groups)
+                                              SecurityGroups=self.default_security_groups,
+                                              TagSpecifications=tags)
             else:
                 new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
                                               InstanceType=instancetype_dict[self.name],
-                                              UserData=userdata, SecurityGroups=self.default_security_groups)
+                                              UserData=userdata, SecurityGroups=self.default_security_groups,
+                                              TagSpecifications=tags)
         else:
             specs = {'ImageId': image,
                      'InstanceType': instancetype_dict[self.name],
@@ -118,6 +120,8 @@ class EC2Cloud(basecloud.BaseCloud):
                 db_session.merge(new_vm)
             db_session.commit()
         elif 'SpotInstanceRequests' in new_vm.keys():
+            # TODO Need to attach the tags to the spot instances
+
             engine = self._get_db_engine()
             base = automap_base()
             base.prepare(engine, reflect=True)
@@ -126,6 +130,7 @@ class EC2Cloud(basecloud.BaseCloud):
 
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
+                client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
