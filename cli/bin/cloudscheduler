@@ -459,14 +459,17 @@ def _args(gvar, arg_list):
         else:
             _recognized = False
             for _iy in range(len(gvar['command_keys'])):
-                _key_mnemonic = '%s|%s' % (gvar['command_keys'][_iy][0], gvar['command_keys'][_iy][1])
                 if gvar['command_keys'][_iy][2] and \
-                _ix < _max_ix and \
                 (arg_list[_ix] == gvar['command_keys'][_iy][0] or \
                 arg_list[_ix] == gvar['command_keys'][_iy][1]):
-                    _recognized = True
-                    _skip_next = True
-                    response[gvar['command_keys'][_iy][1][2:]] = arg_list[_ix+1]
+                    if _ix < _max_ix:
+                        _recognized = True
+                        _skip_next = True
+                        response[gvar['command_keys'][_iy][1][2:]] = arg_list[_ix+1]
+
+                    else:
+                        print('Error: Value omitted for option: %s | %s' % (gvar['command_keys'][_iy][0], gvar['command_keys'][_iy][1]))
+                        exit(1)
 
                 elif not gvar['command_keys'][_iy][2] and \
                 (arg_list[_ix] == gvar['command_keys'][_iy][0] or \
