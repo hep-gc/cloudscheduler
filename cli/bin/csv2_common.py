@@ -690,8 +690,8 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=Fa
             lists.append(_row)
 
     if 'comma-separated-values' in gvar['user_settings']:
-        if 'comma-separated-value-separator' in gvar['user_settings']:
-            separator =  gvar['user_settings']['comma-separated-value-separator']
+        if 'comma-separated-values-separator' in gvar['user_settings']:
+            separator =  gvar['user_settings']['comma-separated-values-separator']
         else:
             separator = ','
 
