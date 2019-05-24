@@ -1,0 +1,16 @@
+merge_type: 'list(append)+dict(recurse_array)+str()'
+write_files:
+-   content: |
+        #!/bin/bash
+        M=$((cd /var/log/condor;awk '/Error/{split($0,W,"Error");print W[2]}/ERROR/{split($0,W,"ERROR");print W[2]}' MasterLog StartLog)|tr ":" " "|awk 'NF>2{print "/"$1"_"$2"_"$3}'|sort -u|tr -d '\n')
+        if [ "X${M}" != 'X' ]; then
+          curl https://{{cs_condor_host}}/$(hostname -s)/STARTD${M}
+        fi
+    owner: root:root
+    permissions: 0700
+    path: /root/csv2HTC
+-   content: |
+        */5 * * * * root /root/csv2HTC
+    owner: root:root
+    permissions: 0600
+    path: /etc/cron.d/csv2HTC

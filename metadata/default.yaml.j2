@@ -1,0 +1,636 @@
+#cloud-config
+merge_type: 'list(append)+dict(recurse_array)+str()'
+
+write_files:
+-   content: |
+        {{cs_cloud_type}}
+    owner: root:root
+    permissions: 0644
+    path: /var/lib/cloud_type
+-   content: |
+        {{cs_cloud_name}}
+    owner: root:root
+    permissions: 0644
+    path: /var/lib/cloud_name
+-   content: |
+        # Local config for Cloud Scheduler
+
+        ## Set this to the group_name using this VM
+        group_name = "{{cs_group_name}}"
+        flavor = "{{cs_flavor}}"
+        target_alias = "{{cs_cloud_alias}}"
+
+        ## Hostname of the central manager.
+        # Prefer value contextualized by Cloud Scheduler and then use central_manager
+        CONDOR_HOST={{cs_condor_host}}
+
+        SEC_DAEMON_AUTHENTICATION =
+        SEC_DAEMON_AUTHENTICATION_METHODS =
+        SEC_CLIENT_AUTHENTICATION_METHODS =
+        SEC_PASSWORD_FILE =
+
+        ## Execute spool directory. - Verify that these directory's exist - or change to desired location
+        # EXECUTE=/var/condor/execute # EXECUTE=$HOME/execute below
+        # LOCK=/var/condor/lock # LOCK=$(LOG) in condor_config
+        LOG=/var/log/condor
+        RUN=/var/run/condor
+        SPOOL=/var/lib/condor/spool
+
+        ## Point to the java executable.
+        JAVA = /usr/lib/jvm/jre-1.6.0-openjdk.x86_64/bin/java
+
+        ###### You should not need to make changes below here ########
+        HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
+        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
+        HOSTALLOW_ADMINISTRATOR = $(CONDOR_HOST)
+        ALLOW_ADMINISTRATOR = $(CONDOR_HOST)
+
+        CCB_ADDRESS = $(CONDOR_HOST)
+
+        TRUST_UID_DOMAIN = False
+        ## If you require jobs to run as a user set TRUST_UID_DOMAIN to True and uncomment the following
+        #SCHEDD_HOST=$(CONDOR_HOST)
+        #UID_DOMAIN=$(CONDOR_HOST)
+        #FILESYSTEM_DOMAIN=$(CONDOR_HOST)
+
+        START = (Owner == "{{cs_user}}")
+
+        DAEMON_LIST = MASTER, STARTD
+
+        MaxJobRetirementTime = 3600 * 24 * 2
+        SHUTDOWN_GRACEFUL_TIMEOUT = 3600 * 25 * 2
+
+        NUM_SLOTS = 1
+        NUM_SLOTS_TYPE_1 = 1
+        SLOT_TYPE_1 = cpus=100%
+        SLOT_TYPE_1_PARTITIONABLE = True
+        SLOT1_1_USER = slot01
+        SLOT1_2_USER = slot02
+        SLOT1_3_USER = slot03
+        SLOT1_4_USER = slot04
+        SLOT1_5_USER = slot05
+        SLOT1_6_USER = slot06
+        SLOT1_7_USER = slot07
+        SLOT1_8_USER = slot08
+        SLOT1_9_USER = slot09
+        SLOT1_10_USER = slot10
+        SLOT1_11_USER = slot11
+        SLOT1_12_USER = slot12
+        SLOT1_13_USER = slot13
+        SLOT1_14_USER = slot14
+        SLOT1_15_USER = slot15
+        SLOT1_16_USER = slot16
+        DEDICATED_EXECUTE_ACCOUNT_REGEXP = slot[0-9]+
+        STARTER_ALLOW_RUNAS_OWNER = False
+        EXECUTE = /var/lib/condor/execute
+
+        GSI_DAEMON_DIRECTORY = /etc/grid-security
+        GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem
+        GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem
+
+        SUSPEND = False
+        CONTINUE = True
+        PREEMPT = False
+        KILL = False
+
+        STARTD_ATTRS = COLLECTOR_HOST_STRING group_name flavor target_alias
+
+        HIGHPORT = 50000
+        LOWPORT = 40000
+    owner: root:root
+    permissions: '0644'
+    path: /etc/condor/condor_config.local
+-   content: |
+        #! /bin/sh
+        ##**************************************************************
+        ##
+        ## Copyright (C) 1990-2009, Condor Team, Computer Sciences Department,
+        ## University of Wisconsin-Madison, WI.
+        ##
+        ## Licensed under the Apache License, Version 2.0 (the "License"); you
+        ## may not use this file except in compliance with the License.  You may
+        ## obtain a copy of the License at
+        ##
+        ##    http://www.apache.org/licenses/LICENSE-2.0
+        ##
+        ## Unless required by applicable law or agreed to in writing, software
+        ## distributed under the License is distributed on an "AS IS" BASIS,
+        ## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        ## See the License for the specific language governing permissions and
+        ## limitations under the License.
+        ##
+        ##**************************************************************
+
+        #
+        # chkconfig: 2345 98 10
+        # description: Condor HTC computing platform
+        #
+        # condor script for SysV-style init boot scripts.
+        #
+
+        ### BEGIN INIT INFO
+        # Provides:          condor
+        # Required-Start:    $network $local_fs
+        # Required-Stop:
+        # Should-Start:
+        # Default-Start:     2 3 4 5
+        # Default-Stop:      0 1 6
+        # Short-Description: Manage condor daemons
+        # Description: Condor HTC computing platform
+        ### END INIT INFO
+
+        # Ensure that the settings below are correct for your Condor
+        # installation.
+        EC2_METADATA=169.254.169.254
+        CENTRAL_MANAGER=`cat /etc/condor/central_manager 2>/dev/null`
+        START_REQUIREMENT=`cat /etc/condor/start_req_config 2>/dev/null`
+        CONDOR_CONFIG=/etc/condor/condor_config
+        CONDOR_CONFIG_VAL=/usr/bin/condor_config_val
+
+        IMAGE_METADATA=/.image.metadata
+
+        PIDFILE=
+
+        MAX_STOP_WAIT=30
+
+        # Assuming a typical Condor installation, the following settings
+        # will be automatically detected.
+        PS=
+        CONDOR_LOG=
+        CONDOR_SBIN=
+        CONDOR_OFF=
+        CONDOR_RECONFIG=
+        CONDOR_MASTER=
+
+
+
+        # There are no settings beyond this point.
+
+        ################################################################################
+
+        echon() {
+            if [ "`echo -n`" = "-n" ]; then
+                echo "$@""\c"
+            else
+                echo -n "$@"
+            fi
+        }
+
+        fatal_error() {
+                echo "FATAL: $1"
+                exit 1
+        }
+
+        verify_executable() {
+            if [ ! \( -f "$1" -o -L "$1" \) ]; then
+                fatal_error "Required executable $1 does not exist."
+            fi
+            if [ -d "$1" ]; then
+                fatal_error "Required executable $1 is a directory instead of a file."
+            fi
+            if [ ! -x "$1" ]; then
+                fatal_error "Required executable $1 is not executable."
+            fi
+            return 0
+        }
+
+        verify_readable_directory() {
+            if [ ! -d "$1" ]; then
+                fatal_error "Required directory $1 does not exist, or is not a directory."
+            fi
+            if [ ! -r "$1" ]; then
+                fatal_error "Required executable $1 is not readable."
+            fi
+            return 0
+        }
+
+        get_condor_config_val() {
+            TMPVAL=`"$CONDOR_CONFIG_VAL" $1`
+            if [ "$TMPVAL" = "" ]; then
+                fatal_error "Unable to locate $1 in $CONDOR_CONFIG"
+            fi
+            echo "$TMPVAL"
+        }
+
+        init_condor_sbin() {
+            if [ "$CONDOR_SBIN" != "" ]; then
+                return 0;
+            fi
+            CONDOR_SBIN=`get_condor_config_val SBIN`
+            verify_readable_directory "$CONDOR_SBIN"
+            return 0;
+        }
+
+        init_condor_run() {
+            if [ "$CONDOR_RUN" != "" ]; then
+                return 0
+            fi
+            CONDOR_RUN=`get_condor_config_val RUN`
+            verify_readable_directory "$CONDOR_RUN"
+            return 0
+        }
+
+        init_condor_master() {
+            if [ "$CONDOR_MASTER" = "" ]; then
+                CONDOR_MASTER=`get_condor_config_val MASTER`
+            fi
+            verify_executable "$CONDOR_MASTER"
+            return 0
+        }
+
+        init_condor_reconfig() {
+            if [ "$CONDOR_RECONFIG" = "" ]; then
+                init_condor_sbin
+                CONDOR_RECONFIG="$CONDOR_SBIN/condor_reconfig"
+            fi
+            verify_executable "$CONDOR_RECONFIG"
+            return 0
+        }
+
+        init_condor_off() {
+            if [ "$CONDOR_OFF" = "" ]; then
+                init_condor_sbin
+                CONDOR_OFF="$CONDOR_SBIN/condor_off"
+            fi
+            verify_executable "$CONDOR_OFF"
+            return 0
+        }
+
+        init_ps() {
+            if [ "$PS" != "" ]; then
+                return 0;
+            fi
+
+            PS="/bin/ps -efwwww"
+            $PS > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                return 0
+            fi
+
+            PS="/bin/ps auwx"
+            $PS > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                return 0
+            fi
+
+            PS="/bin/ps -ef"
+            $PS > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                return 0
+            fi
+
+            fatal_error "Could not determine how to call ps. Edit this script to explicitly set PS as documented there."
+        }
+
+        condor_pid() {
+            if [ ! -f "$PIDFILE" ]; then return 1; fi # Isn't a file
+            if [ ! -r "$PIDFILE" ]; then return 1; fi # Isn't readable
+            if [ ! -s "$PIDFILE" ]; then return 1; fi # Is empty
+            masterpid=`cat "$PIDFILE"`
+            if [ "$masterpid" = "" ]; then return 1; fi # Empty? Unreadable?
+                init_ps
+                foundpid=`$PS | grep condor_master | grep -v grep | awk '{print $2}' | grep "^$masterpid$"`
+            if [ "$foundpid" = "" ]; then return 1; fi # No longer running.
+            echo "$masterpid"
+            return 0
+        }
+
+        wait_for_exit() {
+            max_wait=$2
+            sleep_time=$1
+            stop_duration=0
+            while [ "`condor_pid`" != "" -a $stop_duration -lt $max_wait ]; do
+                sleep $sleep_time
+                stop_duration=`expr $stop_duration + $sleep_time`
+            done
+
+            if [ "`condor_pid`" = "" ]; then
+                return 0
+            else
+                return 1
+            fi
+        }
+
+        replace_or_append() {
+            replace_this=$1
+            with_this=$2
+            on_this_file=$3
+            grep -e "^$replace_this[ =]" $on_this_file >/dev/null 2>&1
+            REPLACE=$?
+            if [ $REPLACE -eq 0 ]; then
+                sed -i "s/^$replace_this[ =].*/$with_this/" $on_this_file
+            else
+                echo $with_this >> $on_this_file
+            fi
+        }
+
+        # set up condor ccb if only private networking is available
+        setup_ccb_ec2() {
+            LOCAL_ADDRESS=`hostname -i`
+            EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
+            echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
+        }
+        setup_ccb_gce() {
+            LOCAL_ADDRESS=`hostname -i`
+            EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/attributes/hostname`
+            echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
+        }
+        setup_ccb_azure() {
+            LOCAL_ADDRESS=`hostname -i`
+            EXTHOSTNAME=`hostname`
+            echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
+        }
+
+        setup_on_ec2() {
+
+            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
+            public_ip=`curl -m 10 -s http://$EC2_METADATA/latest/meta-data/public-ipv4`
+            test $public_ip != "0.0.0.0" > /dev/null 2>&1
+            HAS_PUBLIC_IP=$?
+
+            curl -m 10 -s http://$EC2_METADATA/ >/dev/null 2>&1
+            IS_EC2=$?
+            if [ $IS_EC2 -eq 0 ] ; then
+
+                if [ $HAS_PUBLIC_IP -eq 0 ] ; then
+
+                    EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
+                    VALID_HOST=$?
+                    if [ $VALID_HOST -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
+                        hostname $EXTHOSTNAME
+                        private_network_name=amazon-ec2-`curl -s http://$EC2_METADATA/latest/meta-data/placement/availability-zone`
+                        replace_or_append "PRIVATE_NETWORK_NAME" "PRIVATE_NETWORK_NAME=$private_network_name" $local_file
+                        tcp_forwarding_host=`curl -s http://$EC2_METADATA/latest/meta-data/public-ipv4`
+                        replace_or_append "TCP_FORWARDING_HOST" "TCP_FORWARDING_HOST=$tcp_forwarding_host" $local_file
+                        private_network_interface=`curl -s http://$EC2_METADATA/latest/meta-data/local-ipv4`
+                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
+                    fi
+                else
+                    # EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/instance-id`
+                    EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
+                    VALID_ID=$?
+                    if [ $VALID_ID -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
+                        hostname $EXTHOSTNAME
+
+                        private_network_interface=`curl -s http://$EC2_METADATA/latest/meta-data/local-ipv4`
+                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
+                    fi
+                fi
+            fi
+
+        }
+
+        setup_on_gce() {
+
+            local_file=`get_condor_config_val LOCAL_CONFIG_FILE`
+            public_ip=`curl -m 10 -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H "Metadata-Flavor: Google"`
+            test $public_ip != "0.0.0.0" > /dev/null 2>&1
+            HAS_PUBLIC_IP=$?
+            curl -m 10 -s http://metadata/ >/dev/null 2>&1
+            IS_EC2=$?
+            if [ $IS_EC2 -eq 0 ] ; then
+
+                if [ $HAS_PUBLIC_IP -eq 0 ] ; then
+
+                    EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google"`
+                    VALID_HOST=$?
+                    if [ $VALID_HOST -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
+                        hostname $EXTHOSTNAME
+                        tcp_forwarding_host=`curl -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H "Metadata-Flavor: Google"`
+                        replace_or_append "TCP_FORWARDING_HOST" "TCP_FORWARDING_HOST=$tcp_forwarding_host" $local_file
+                        private_network_interface=`curl -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip -H "Metadata-Flavor: Google"`
+                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
+                    fi
+                else
+                    EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/hostname -H "Metadata-Flavor: Google"`
+                    VALID_ID=$?
+                    if [ $VALID_ID -eq 0 ] && [[ $EXTHOSTNAME != ??xml* ]] && [[ $EXTHOSTNAME != ?html* ]] ; then
+                        hostname $EXTHOSTNAME
+                        private_network_interface=`curl -s http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip -H "Metadata-Flavor: Google"`
+                        replace_or_append "PRIVATE_NETWORK_INTERFACE" "PRIVATE_NETWORK_INTERFACE=$private_network_interface" $local_file
+                    fi
+                fi
+            fi
+
+        }
+
+        set_hostkey_permissions () {
+            HOST_KEY=`get_condor_config_val GSI_DAEMON_KEY`
+            if [ -f $HOST_KEY ]; then
+            chmod 400 $HOST_KEY
+            else
+            echo "Grid certificate host key not found. $HOST_KEY"
+            fi
+        }
+
+        cleanup_ccb () {
+            sed -i '/# Added for Condor CCB/d' /etc/hosts
+        }
+
+        verify_execute () {
+            execute_dir=`get_condor_config_val EXECUTE`
+            if [ ! -d $execute_dir ]; then
+                mkdir -p $execute_dir
+            fi
+
+            execute_owner=`stat -c %U $execute_dir`
+            if [ "$execute_owner" != "condor" ]; then
+                chown condor:condor $execute_dir
+            fi
+
+            execute_rights=`stat -c %a $execute_dir`
+            if [ $execute_rights -ne 755 ]; then
+                chmod 755 $execute_dir
+            fi
+        }
+
+        start() {
+            set_hostkey_permissions
+            if [ -f "/var/lib/cloud_type" ]; then
+                cloud_type=`cat /var/lib/cloud_type`
+                if [ "$cloud_type" = "Azure" ]; then
+                    setup_on_azure
+                    setup_ccb_azure
+                elif [ "$cloud_type" = "gce" ]; then
+                    setup_on_gce
+                    setup_ccb_gce
+                else
+                    setup_on_ec2
+                    setup_ccb_ec2
+                fi
+            fi
+            verify_execute
+            init_condor_master
+            echon "Starting up Condor..."
+            "$CONDOR_MASTER" -pidfile "$PIDFILE"
+            RETVAL=$?
+            [ $RETVAL -eq 0 ] && touch /var/lock/subsys/condor;
+            echo "done."
+            return 0
+        }
+
+        xstop() {
+            cleanup_ccb
+            echon "Shutting down Condor (fast-shutdown mode)..."
+            master_pid=`condor_pid`
+            if [ "$master_pid" != "" ]; then
+                echon "using kill..."
+                kill -QUIT "$master_pid"
+            else
+                init_condor_off
+                echon "using condor_off..."
+                "$CONDOR_OFF" -fast -master | grep -v 'Sent "Kill-Daemon-Fast" command'
+                if [ $? -gt 0 ]; then
+                    echo "Failed to stop Condor (non-0 exit)."
+                    return 1
+                fi
+            fi
+
+            wait_for_exit 1 $MAX_STOP_WAIT
+            if [ $? -gt 0 ]; then
+                echo "Failed to stop Condor (timed out)."
+                return 1
+            fi
+
+            if [ -f "$PIDFILE" ]; then
+                rm "$PIDFILE"
+            fi
+
+            echo "done."
+            rm /var/lock/subsys/condor
+            return 0
+        }
+
+        reload() {
+            init_condor_reconfig
+            echon "Reloading Condor configuration..."
+            "$CONDOR_RECONFIG" | grep -v 'Sent "Reconfig" command to local master'
+            echo "done."
+            return 0
+        }
+
+        status() {
+            master_pid=`condor_pid`
+            if [ "$master_pid" != "" ]; then
+                echo "Condor is running (pid $master_pid)"
+                return 0
+            else
+                echo "Condor is not running"
+                return 3;
+            fi
+        }
+
+        ################################################################################
+
+        INIT_COMMAND=$1
+
+        verify_executable "$CONDOR_CONFIG_VAL"
+
+        # We don't use CONDOR_CONFIG directly, it's used by the
+        # Condor tools.
+        if [ "$CONDOR_CONFIG" != "" ]; then
+            export CONDOR_CONFIG
+        fi
+
+
+        if [ "$PIDFILE" = "" ]; then
+            init_condor_run
+            PIDFILE="$CONDOR_RUN/master.pid"
+        fi
+
+        case $INIT_COMMAND in
+        'start')
+            start
+            ;;
+
+        'stop')
+            xstop
+            ;;
+
+        'restart')
+            xstop
+            start
+            ;;
+
+        'try-restart')
+            if [ "`condor_pid`" = "" ]; then exit 0; fi # Not running
+            xstop
+            start
+            ;;
+
+        'reload')
+            reload
+            ;;
+
+        'force-reload')
+            reload
+            ;;
+
+        'status')
+            status
+            ;;
+
+        *)
+            echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+            ;;
+
+        esac
+    owner: root:root
+    permissions: '0755'
+    path: /etc/init.d/condor
+
+groups:
+  - condor: [slot01,slot02,slot03,slot04,slot05,slot06,slot07,slot08,slot09,slot10,slot11,slot12,slot13,slot14,slot15,slot16]
+
+users:
+  - name: slot01
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot02
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot03
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot04
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot05
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot06
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot07
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot08
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot09
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot10
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot11
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot12
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot13
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot14
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot15
+    groups: condor
+    shell: /sbin/nologin
+  - name: slot16
+    groups: condor
+    shell: /sbin/nologin
+
+runcmd:
+ - [ service, condor, start ]
