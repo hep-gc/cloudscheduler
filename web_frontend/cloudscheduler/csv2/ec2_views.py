@@ -21,6 +21,7 @@ from cloudscheduler.lib.schema import *
 from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
+import json
 
 # lno: EV - error code identifier.
 MODID = 'EC2'
@@ -29,7 +30,7 @@ MODID = 'EC2'
 
 @silkp(name="EC2 Images List")
 @requires_csrf_token
-def images(request):
+def images(request, message=None, response_code=0):
 
     keys = {
         'auto_active_group': True,
@@ -81,11 +82,29 @@ def images(request):
 
     # Retrieve EC2 image filters.
     ec2_image_filters = qt(config.db_connection.execute('select * from ec2_image_filters where group_name="%s" and cloud_name="%s"' % (active_user.active_group, active_user.kwargs['cloud_name'])))
+    ec2_image_filters_json = json.dumps( ec2_image_filters );
 
     # Retrieve EC2 image filter options.
     architectures = qt(config.db_connection.execute('select distinct arch as architecture from view_ec2_images order by architecture'))
     operating_systems = qt(config.db_connection.execute('select distinct opsys as operating_system from view_ec2_images order by operating_system'))
     owner_aliases = qt(config.db_connection.execute('select distinct alias from ec2_image_well_known_owner_aliases order by alias'))
+
+
+    arch_list = []
+    for arch in architectures:
+        for value in arch.values():
+            arch_list.append(value)
+
+    os_list = []
+    for os in operating_systems:
+        for value in os.values():
+            os_list.append(value)
+
+    alias_list = []
+    for alias in owner_aliases:
+        for value in alias.values():
+            alias_list.append(value)
+
 
     # Retrieve EC2 images.
     rc, msg, sql_select = select_ec2_images(config, active_user.active_group, active_user.kwargs['cloud_name'])
@@ -104,12 +123,16 @@ def images(request):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'ec2_image_filters': ec2_image_filters,
+            'ec2_image_filters_json': ec2_image_filters_json,
             'ec2_images': ec2_images,
             'architectures': architectures,
             'operating_systems': operating_systems,
             'owner_aliases': owner_aliases,
-            'response_code': 0,
-            'message': None,
+            'arch_list': arch_list,
+            'os_list': os_list,
+            'alias_list': alias_list,
+            'response_code': response_code,
+            'message': message,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
