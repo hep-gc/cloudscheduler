@@ -1519,7 +1519,7 @@ def vm_poller():
                 # Retrieve VM list for this cloud.
                 nova = _get_ec2_client(session)
                 try:
-                    vm_list = nova.servers.list()
+                    vm_list = nova.describe_instances()
                 except Exception as exc:
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
                     logging.error("Exception type: %s" % type(exc))
@@ -1585,7 +1585,7 @@ def vm_poller():
                                     for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
                                 else:
                                     # no entry yet
-                                    for_vm_dict[auth_url + "--" + vm['InstanceType']= {
+                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
                                         'count': 1,
                                         'region': cloud_obj.region,
                                         'project': cloud_obj.project,
@@ -1738,11 +1738,11 @@ def vm_poller():
             logging.debug("Calling delete function")
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
 
-
+            # TODO FOR AMAZON
             # Check on the core limits to see if any clouds need to be scaled down.
-            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota)
-            for cloud in over_quota_clouds:
-                kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
+            #over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota)
+            #for cloud in over_quota_clouds:
+            #    kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
 
 
             logging.debug("Completed VM poller cycle")
