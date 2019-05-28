@@ -132,8 +132,6 @@ function updateFilter(target){
 
 <body onpageshow="checkSelected();">
 
-...{{message}}...
-
 
   <form name="ec2_filters" action="/ec2/images/" method="post">
     {% csrf_token %}
@@ -205,14 +203,33 @@ function updateFilter(target){
 
       <table>
         <tr class="highlight3"><td><label for="like">Like</label></td>
-        <td><input type="text" name="like"  value="{{ec2_image_filters.0.like}}" /></td></tr>
+        <td>
+        {% if ec2_image_filters.0.like == None %}
+          <input type="text" name="like"  value="" />
+        {% else %}
+          <input type="text" name="like"  value="{{ec2_image_filters.0.like}}" />
+        {% endif %}
+        </td></tr>
 
         <tr class="highlight3"><td><label for="not_like">Not like</label></td>
-        <td><input type="text" name="not_like"  value="{{ec2_image_filters.0.not_like}}" /></td></tr>
+        <td>
+        {% if ec2_image_filters.0.not_like == None %}
+          <input type="text" name="not_like"  value="" />
+        {% else %}
+          <input type="text" name="not_like"  value="{{ec2_image_filters.0.not_like}}" />
+        {% endif %}
+        </td></tr>
+
+
 
         <tr class="highlight3"><td><label for="owner_ids">Owner IDs</label></td>
-        <td><input type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids}}" /></td></tr>
-
+        <td>
+        {% if ec2_image_filters.0.owner_ids == None %}
+          <input type="text" name="owner_ids"  value="" />
+        {% else %}
+          <input type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids}}" />
+        {% endif %}
+        </td></tr>
 
         <tr><td><input type="submit" value="Update filter" /></td><td></td></tr> 
       </table>

@@ -78,6 +78,9 @@ def images(request, message=None, response_code=0):
 
         config.db_session.commit()
 
+        response_code = 0
+        message = "update successful"
+
         active_user.kwargs['cloud_name'] = fields['cloud_name']
 
     # Retrieve EC2 image filters.
@@ -144,7 +147,7 @@ def images(request, message=None, response_code=0):
 
 @silkp(name="EC2 Instance Type List")
 @requires_csrf_token
-def instance_types(request):
+def instance_types(request, message=None, response_code=0):
 
     keys = {
         'auto_active_group': True,

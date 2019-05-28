@@ -10,6 +10,7 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
 <script type="text/javascript">
 
@@ -119,7 +120,6 @@
             }
         }
     }
-
 
 </script>
 
@@ -288,7 +288,15 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
-                                    </td></tr>
+
+                                    </td>
+
+                                    <td>                                    
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <a onclick='document.getElementById("vms-iframe").src="/ec2/images/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Image filter</a>
+                                    {% endif %}
+                                    </td>
+                                    </tr>
 
                                     <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
                                     <td><select name="vm_flavor" class="dropdown"/>
@@ -302,7 +310,13 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
-                                    </td></tr>
+                                    </td>
+                                    <td>                                    
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <a onclick='document.getElementById("vms-iframe").src="/ec2/instance_types/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Flavor filter</a>
+                                    {% endif %}
+                                    </td>
+                                    </tr>
 
                                     <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                     <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
@@ -603,6 +617,15 @@
 
 
 </div>
+
+<div id="vms-overlay" class="overlay">
+    <div class="popup">
+        <a class="close" id="timer-count" onclick="parent.location=window.top.location.pathname;" href="#">&times;</a>
+        <iframe id="vms-iframe" class="content" src=""></iframe>
+    </div>
+</div>
+
+
 
 <div class="footer" id="message">
     {% if response_code == 1 %}
