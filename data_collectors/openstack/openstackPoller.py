@@ -1224,7 +1224,7 @@ def vm_poller():
 
                 if session is False:
                     logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
-                    if cloud_obj.group_name+auth_url not in failure_dict:
+                    if cloud_obj.group_name+auth_url not in failure_dict.keys():
                         failure_dict[cloud_obj.group_name+auth_url] = 1
                     else:
                         failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
@@ -1240,7 +1240,7 @@ def vm_poller():
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
                     logging.error("Exception type: %s" % type(exc))
                     logging.error(exc)
-                    if cloud_obj.group_name+auth_url not in failure_dict:
+                    if cloud_obj.group_name+auth_url not in failure_dict.keys():
                         failure_dict[cloud_obj.group_name+auth_url] = 1
                     else:
                         failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
