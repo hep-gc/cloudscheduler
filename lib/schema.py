@@ -326,6 +326,11 @@ csv2_clouds = Table('csv2_clouds', metadata,
   Column('error_time', Integer)
   )
 
+csv2_config = Table('csv2_config', metadata,
+  Column('config_name', String(64), primary_key=True),
+  Column('yaml', String)
+  )
+
 csv2_configuration = Table('csv2_configuration', metadata,
   Column('category', String(32), primary_key=True),
   Column('config_key', String(32), primary_key=True),
@@ -374,6 +379,11 @@ csv2_job_schedulers = Table('csv2_job_schedulers', metadata,
 
 csv2_mime_types = Table('csv2_mime_types', metadata,
   Column('mime_type', String(32), primary_key=True)
+  )
+
+csv2_poll_times = Table('csv2_poll_times', metadata,
+  Column('process_id', String(64), primary_key=True),
+  Column('last_poll', Integer)
   )
 
 csv2_service_catalog = Table('csv2_service_catalog', metadata,
@@ -457,7 +467,8 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
-  Column('htcondor_startd_errors', String(128)),
+  Column('htcondor_startd_errors', String(256)),
+  Column('htcondor_startd_time', Integer),
   Column('htcondor_partitionable_slots', Integer),
   Column('htcondor_dynamic_slots', Integer),
   Column('htcondor_slots_timestamp', Integer),
@@ -566,66 +577,6 @@ ec2_regions = Table('ec2_regions', metadata,
   Column('region', String(64), primary_key=True),
   Column('location', String(64)),
   Column('endpoint', String(128))
-  )
-
-silk_profile = Table('silk_profile', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('name', String(300)),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('file_path', String(300)),
-  Column('line_num', Integer),
-  Column('end_line_num', Integer),
-  Column('func_name', String(300)),
-  Column('exception_raised', Integer),
-  Column('dynamic', Integer),
-  Column('request_id', String(36))
-  )
-
-silk_profile_queries = Table('silk_profile_queries', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('profile_id', Integer),
-  Column('sqlquery_id', Integer)
-  )
-
-silk_request = Table('silk_request', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('path', String(190)),
-  Column('query_params', String),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('method', String(10)),
-  Column('start_time', Integer),
-  Column('view_name', String(190)),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('encoded_headers', String),
-  Column('meta_time', Float),
-  Column('meta_num_queries', Integer),
-  Column('meta_time_spent_queries', Float),
-  Column('pyprofile', String),
-  Column('num_sql_queries', Integer),
-  Column('prof_file', String(300))
-  )
-
-silk_response = Table('silk_response', metadata,
-  Column('id', String(36), primary_key=True),
-  Column('status_code', Integer),
-  Column('raw_body', String),
-  Column('body', String),
-  Column('encoded_headers', String),
-  Column('request_id', String(36))
-  )
-
-silk_sqlquery = Table('silk_sqlquery', metadata,
-  Column('id', Integer, primary_key=True),
-  Column('query', String),
-  Column('start_time', Integer),
-  Column('end_time', Integer),
-  Column('time_taken', Float),
-  Column('traceback', String),
-  Column('request_id', String(36))
   )
 
 view_available_resources = Table('view_available_resources', metadata,
@@ -1199,6 +1150,8 @@ view_vms = Table('view_vms', metadata,
   Column('task', String(32)),
   Column('power_status', Integer),
   Column('manual_control', Integer),
+  Column('htcondor_startd_errors', String(256)),
+  Column('htcondor_startd_time', Integer),
   Column('htcondor_partitionable_slots', Integer),
   Column('htcondor_dynamic_slots', Integer),
   Column('htcondor_slots_timestamp', Integer),
