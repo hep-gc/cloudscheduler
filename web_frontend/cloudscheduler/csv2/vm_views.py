@@ -147,11 +147,13 @@ def list(request, args=None, response_code=0, message=None):
     s = select([view_vms]).where(view_vms.c.group_name == active_user.active_group)
 
     vm_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['cloud_name', 'poller_status', 'hostname'], args, aliases=ALIASES), convert={
+        'htcondor_slots_timestamp': 'datetime',
+        'htcondor_startd_time': 'datetime',
+        'last_updated': 'datetime',
+        'retire_time': 'datetime',
         'start_time': 'datetime',
         'status_changed_time': 'datetime',
-        'retire_time': 'datetime',
-        'terminate_time': 'datetime',
-        'last_updated': 'datetime'
+        'terminate_time': 'datetime'
         })
 
     config.db_close()
