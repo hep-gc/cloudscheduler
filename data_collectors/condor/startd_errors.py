@@ -29,7 +29,7 @@ def startd_poller():
 
 
             with open(config.categories['startd_errors.py']['ssl_access_log']) as fd:
-                fd.seek(ckpt)
+                fd.seek(checkpoint)
                 ssl_access_log =fd.read()
 
             ssl_access_log_size = len(ssl_access_log)
@@ -43,7 +43,7 @@ def startd_poller():
 
             if len(vms_in_error) > 0:
                 for hostname in sorted(vms_in_error):
-                      config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s" where hostname="%s"' % (vms_in_error[hostname], hostname))
+                      config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp() where hostname="%s"' % (vms_in_error[hostname], hostname))
 
                 config.db_session.commit()
 
