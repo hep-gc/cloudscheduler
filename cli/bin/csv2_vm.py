@@ -94,6 +94,8 @@ def list(gvar):
             'task/Task',
             'power_status/Power Status',
             'start_time/Start Time',
+            'htcondor_startd_errors/STARTD Errors/HTCondor',
+            'htcondor_startd_time/STARTD Time/HTCondor',
             'htcondor_partitionable_slots/Primary Slots/HTCondor',
             'htcondor_dynamic_slots/Dynamic Slots/HTCondor',
             'htcondor_slots_timestamp/Slots Timestamp/HTCondor',
