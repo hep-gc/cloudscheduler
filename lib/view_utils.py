@@ -744,6 +744,7 @@ def set_user_groups(config, request, super_user=True):
             table = view_user_groups
             csv2_user = config.db_connection.execute(select([table]).where((table.c.username==remote_user) | (table.c.cert_cn==remote_user)))
 
+            user = None
             for user in csv2_user:
                 self.username = user['username']
                 self.cert_cn = user['cert_cn']
