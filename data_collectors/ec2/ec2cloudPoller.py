@@ -444,7 +444,7 @@ def image_poller():
                             {'Name': 'image-type', 'Values':['machine']},
                             {'Name': 'state', 'Values':['available']},
                         ]
-                        image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                        image_list = client.describe_images(Owners=user_list, Filters=filters)
                         for image in image_list["Images"]:
                             size = 0
                             if image['BlockDeviceMappings']:
@@ -507,6 +507,7 @@ def image_poller():
 
                             new_image = EC2_IMAGE(**img_dict)
                             try:
+                                logging.debug("adding self/shared image: %s" % nm)
                                 db_session.merge(new_image)
                                 uncommitted_updates += 1
                             except Exception as exc:
@@ -1447,11 +1448,19 @@ def vm_poller():
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
     CLOUD = config.db_map.classes.csv2_clouds
+    EC2_STATUS = config.db_map.classes.ec2_instance_status_codes
 
     cycle_start_time = 0
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
     failure_dict = {}
+    ec2_status_dict = {}
+
+    config.db_open()
+    ec2_status = config.db_session.query(EC2_STATUS)
+    for row in ec2_status:
+        ec2_status_dict[row.ec2_state] = row.csv2_state
+    config.db_close()
     
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20), cloud_type="amazon")
@@ -1559,7 +1568,14 @@ def vm_poller():
                         # This first part is particulairly important because its the only way we will know what group/cloud
                         # the vm will belong to
                         try:
-                            host_tokens = vm.tags["Instance"]["csv2"].split("--") # THIS WILL BE REPLACED BY THE TAG
+                            host_tokens = None
+                            tags_list = vm["Tags"]
+                            for tag_dict in tags_list:
+                                if tag_dict["Key"] == "csv2":
+                                    host_tokens = tag_dict["Value"].split("--")
+                                    logging.debug("Tag found, host tokens = %s" % host_tokens)
+                                    break
+                            # if host tokens is none here we have a FVM
                             vm_group_name = host_tokens[0]
                             vm_cloud_name = host_tokens[1]
                             
@@ -1640,7 +1656,7 @@ def vm_poller():
                             'cloud_type': 'amazon',
                             'hostname': vm['PublicDnsName'],
                             'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm.keys() else vm['InstanceId'],                                
-                            'status': vm['State']['Name'],
+                            'status': ec2_status_dict[vm['State']['Name']],
                             'flavor_id': vm['InstanceType'],
                             'vm_ips': str(ip_addrs),
                             'last_updated': new_poll_time
@@ -1651,7 +1667,7 @@ def vm_poller():
                             logging.error("unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm['PublicDnsName'], vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
                             continue
 
                         new_vm = VM(**vm_dict)

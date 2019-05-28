@@ -66,11 +66,16 @@ class EC2Cloud(basecloud.BaseCloud):
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
         instancetype_dict = self._attr_list_to_dict(job.instance_type)
-        tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join([self.group, self.name, self.config.csv2_host_id])}]}]
+        tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join([self.group, self.name, str(self.config.csv2_host_id)])}]}]
         client = self._get_client()
         if not client:
             self.log.error("Failed to get client for ec2. Check Configuration.")
             return -1
+
+
+        # need to check on instance type, if one isn't specified by the job itself we inherit from the cloud (aka the 'flavor' parameter)
+        if self.name not in instancetype_dict.keys():
+             instancetype_dict = self._attr_list_to_dict(flavor)
         if self.spot_price <= 0:
             if self.keyname:
                 new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
