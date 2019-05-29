@@ -1611,9 +1611,10 @@ def vm_poller():
 
                                 #foreign vm
                                 continue
-                        except IndexError as exc:
+                        except Exception as exc:
                             #not enough tokens, bad hostname or foreign vm
                             logging.debug("No tags, or other error for: %s, registering as fvm" % vm['PublicDnsName'])
+                            logging.debug("   Exeption: %s" % exc)
                             if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
                                 for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
                             else:
