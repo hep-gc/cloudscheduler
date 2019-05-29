@@ -1584,7 +1584,7 @@ def vm_poller():
                                 logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm['PublicDnsName'])
                                 logging.debug(group_list)
                                 if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
-                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] + 1
+                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
                                 else:
                                     # no entry yet
                                     for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
@@ -1613,7 +1613,7 @@ def vm_poller():
                                 continue
                         except IndexError as exc:
                             #not enough tokens, bad hostname or foreign vm
-                            logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm['PublicDnsName'])
+                            logging.debug("No tags, or other error for: %s, registering as fvm" % vm['PublicDnsName'])
                             if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
                                 for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
                             else:
