@@ -10,7 +10,7 @@ write_files:
          tail -n +$((S+1)) $I$1
         }   
             
-         which condor_master &>/dev/null||(curl https://{{cs_condor_host}}/$(hostname -s)/STARTD/HTCondor_is_not_installed && exit)
+         which condor_config_val &>/dev/null||(curl https://{{cs_condor_host}}/$(hostname -s)/STARTD/HTCondor_is_not_installed && exit)
 
          I=/var/log/condor/
          K=/tmp/csv2htc.K.
