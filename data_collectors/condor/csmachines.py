@@ -131,9 +131,10 @@ def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor", "TotalDisk"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
+                           "cloud_name", "cs_host_id", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=6)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL", pool_size=6)
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -238,6 +239,23 @@ def machine_poller():
                         else:
                             machine_errors["nogrp"] = machine_errors["nogrp"] + 1
                         continue
+                    if 'cloud_name' not in r_dict:
+                        logging.debug("Skipping resource with no group_name.")
+                        forgein_machines = forgein_machines + 1
+                        if "nocld" not in machine_errors:
+                            machine_errors["nocld"] = 1
+                        else:
+                            machine_errors["nocld"] = machine_errors["nocld"] + 1
+                        continue
+                    if 'cs_host_id' not in r_dict:
+                        logging.debug("Skipping resource with no group_name.")
+                        forgein_machines = forgein_machines + 1
+                        if "nohost" not in machine_errors:
+                            machine_errors["nohost"] = 1
+                        else:
+                            machine_errors["nohost"] = machine_errors["nohost"] + 1
+                        continue
+                        # check group name
                     if r_dict['group_name'] not in host_groups:
                         logging.debug("Skipping resource, group did not match any valid groups for this host: %s" % r_dict['group_name'])
                         forgein_machines = forgein_machines + 1
@@ -246,9 +264,8 @@ def machine_poller():
                         else:
                             machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
-                    mach_str = r_dict['Machine'].split("--")
-                    # check group name from machine string
-                    if mach_str[0] not in host_groups:
+                    # check cs host
+                    if r_dict['cs_host_id'] != config.csv2_host_id:
                         logging.debug("Skipping resource with bad group name in machine string %s" % r_dict['Machine'])
                         forgein_machines = forgein_machines + 1
                         if "badgrp" not in machine_errors:
@@ -256,8 +273,8 @@ def machine_poller():
                         else:
                             machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
-                    # check cloud name form machine string
-                    if mach_str[1] not in host_groups[r_dict['group_name']]:
+                    # check cloud name
+                    if r_dict['cloud_name'] not in host_groups[r_dict['group_name']]:
                         logging.debug("Skipping resource with cloud name that is invalid for group")
                         forgein_machines = forgein_machines + 1
                         if "badcld" not in machine_errors:
@@ -299,6 +316,12 @@ def machine_poller():
                         logging.info("    %s ignored for bad group name" % machine_errors["badgrp"])
                     if "badcld" in machine_errors:
                         logging.info("    %s ignored for invalid cloud name" % machine_errors["badcld"])
+                    if "nocld" in machine_errors:
+                        logging.info("    %s ignored for invalid cloud name" % machine_errors["nocld"])
+                    if "nohost" in machine_errors:
+                        logging.info("    %s ignored for missing host id" % machine_errors["nohost"])
+                    if "badhost" in machine_errors:
+                        logging.info("    %s ignored for missing host id" % machine_errors["badhost"])
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
