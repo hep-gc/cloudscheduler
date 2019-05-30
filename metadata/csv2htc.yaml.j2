@@ -2,7 +2,7 @@ merge_type: 'list(append)+dict(recurse_array)+str()'
 write_files:
 -   content: |
         #!/bin/bash
-        function T () 
+        T () 
         {
           touch $K$1
           S=$(cat $K$1)
