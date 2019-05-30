@@ -1430,12 +1430,13 @@ def vm_poller():
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
             # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
             #     failure_dict needs to be remapped before calling
-            logging.debug("Expanding failure_dict")
+            logging.debug("Expanding failure_dict: %s" % failure_dict)
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             new_f_dict = {}
             for cloud in cloud_list:
-                if cloud.cloud_name + cloud.authurl in failure_dict.keys():
+                key = cloud.group_name + cloud.authurl
+                if key in failure_dict.keys():
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
-            logging.debug("Calling delete function")
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
 
