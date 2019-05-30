@@ -84,8 +84,19 @@ from (
             cv.group_name,
             cv.cloud_name,
             sum(cv.VMs) as VMs,
-            sum(cf.cores) as cores_native,
-            sum(cf.ram) as ram_native,
+
+            case when ei.instance_type is null then
+                sum(cf.cores)
+            else
+                sum(ei.cores)
+            end as cores_native,
+
+            case when ei.instance_type is null then
+                sum(cf.ram)
+            else
+                sum(ei.memory * 1024)
+            end as ram_native,
+
             sum(case when cv.poller_status='manual'       then 1 else 0 end) as VMs_manual,
             sum(case when cv.poller_status='error'        then 1 else 0 end) as VMs_in_error,
             sum(case when cv.poller_status='starting'     then 1 else 0 end) as VMs_starting,
@@ -131,6 +142,12 @@ from (
             cv.group_name=cf.group_name and
             cv.cloud_name=cf.cloud_name and
             cv.flavor_id=cf.id
+        left outer join csv2_clouds as cc on
+            cv.group_name=cc.group_name and
+            cv.cloud_name=cc.cloud_name
+        left outer join ec2_instance_types as ei on
+            cc.region=ei.region and
+            cv.flavor_id=ei.instance_type
         left outer join (
             /* n04 - Retrieve (native) condor slot information */
             select
