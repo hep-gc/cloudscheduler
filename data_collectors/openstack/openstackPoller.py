@@ -1170,7 +1170,7 @@ def vm_poller():
     failure_dict = {}
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<10), cloud_type="openstack")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1353,7 +1353,7 @@ def vm_poller():
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<10)):
                         continue
 
                     new_vm = VM(**vm_dict)
@@ -1430,12 +1430,13 @@ def vm_poller():
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
             # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
             #     failure_dict needs to be remapped before calling
-            logging.debug("Expanding failure_dict")
+            logging.debug("Expanding failure_dict: %s" % failure_dict)
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             new_f_dict = {}
             for cloud in cloud_list:
-                if cloud.cloud_name + cloud.authurl in failure_dict.keys():
+                key = cloud.group_name + cloud.authurl
+                if key in failure_dict.keys():
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
-            logging.debug("Calling delete function")
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
 
