@@ -443,6 +443,7 @@ csv2_vms = Table('csv2_vms', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
   Column('vmid', String(128), primary_key=True),
+  Column('spot_instance', Integer),
   Column('instance_id', String(64)),
   Column('cloud_type', String(64)),
   Column('vm_ips', String(128)),
@@ -661,9 +662,9 @@ view_available_resources = Table('view_available_resources', metadata,
   Column('cores_used', Integer),
   Column('cores_foreign', Integer),
   Column('disk_used', Integer),
-  Column('ram_max', Integer),
+  Column('ram_max', Float),
   Column('ram_used', Integer),
-  Column('ram_foreign', Integer),
+  Column('ram_foreign', Float),
   Column('swap_used', Integer),
   Column('flavor', String(161)),
   Column('flavor_id', String(128)),
@@ -701,7 +702,7 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('VMs_idle', Integer),
   Column('VMs_running', Integer),
   Column('cores_native', Integer),
-  Column('ram_native', Integer),
+  Column('ram_native', Float),
   Column('slot_count', Integer),
   Column('slot_core_count', Integer),
   Column('slot_idle_core_count', Integer),
@@ -718,8 +719,8 @@ view_cloud_status = Table('view_cloud_status', metadata,
   Column('ram_ctl', Integer),
   Column('ram_limit', Integer),
   Column('ram_quota', Integer),
-  Column('ram_foreign', Integer),
-  Column('ram_native_foreign', Integer)
+  Column('ram_foreign', Float),
+  Column('ram_native_foreign', Float)
   )
 
 view_cloud_status_slot_detail = Table('view_cloud_status_slot_detail', metadata,
@@ -1009,7 +1010,7 @@ view_foreign_flavors = Table('view_foreign_flavors', metadata,
   Column('count', Integer),
   Column('name', String(128)),
   Column('cores', Integer),
-  Column('ram', Integer)
+  Column('ram', Float)
   )
 
 view_foreign_resources = Table('view_foreign_resources', metadata,
@@ -1017,7 +1018,7 @@ view_foreign_resources = Table('view_foreign_resources', metadata,
   Column('cloud_name', String(32)),
   Column('count', Integer),
   Column('cores', Integer),
-  Column('ram', Integer)
+  Column('ram', Float)
   )
 
 view_groups_of_idle_jobs = Table('view_groups_of_idle_jobs', metadata,
@@ -1126,6 +1127,14 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('cloud_name', String(32))
   )
 
+view_t0 = Table('view_t0', metadata,
+  Column('group_name', String(32)),
+  Column('cloud_name', String(32)),
+  Column('count', Integer),
+  Column('cores', Integer),
+  Column('ram', Float)
+  )
+
 view_user_groups = Table('view_user_groups', metadata,
   Column('username', String(32)),
   Column('cert_cn', String(128)),
@@ -1154,11 +1163,11 @@ view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadat
   Column('cores_max', Integer),
   Column('cores_native', Integer),
   Column('cores_foreign', Integer),
-  Column('ram', Integer),
+  Column('ram', Float),
   Column('ram_ctl', Integer),
   Column('ram_max', Integer),
   Column('ram_native', Integer),
-  Column('ram_foreign', Integer)
+  Column('ram_foreign', Float)
   )
 
 view_vm_kill_retire_priority_age = Table('view_vm_kill_retire_priority_age', metadata,

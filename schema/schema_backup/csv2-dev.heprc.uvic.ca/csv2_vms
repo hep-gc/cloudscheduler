@@ -26,6 +26,7 @@ CREATE TABLE `csv2_vms` (
   `group_name` varchar(32) NOT NULL,
   `cloud_name` varchar(32) NOT NULL,
   `vmid` varchar(128) NOT NULL,
+  `spot_instance` tinyint(1) NOT NULL DEFAULT 0,
   `instance_id` varchar(64) DEFAULT NULL,
   `cloud_type` varchar(64) DEFAULT NULL,
   `vm_ips` varchar(128) DEFAULT NULL,
@@ -40,7 +41,8 @@ CREATE TABLE `csv2_vms` (
   `task` varchar(32) DEFAULT NULL,
   `power_status` int(11) DEFAULT NULL,
   `manual_control` tinyint(1) NOT NULL DEFAULT 0,
-  `htcondor_startd_errors` varchar(128) DEFAULT NULL,
+  `htcondor_startd_errors` varchar(256) DEFAULT NULL,
+  `htcondor_startd_time` int(11) DEFAULT NULL,
   `htcondor_partitionable_slots` int(11) DEFAULT NULL,
   `htcondor_dynamic_slots` int(11) DEFAULT NULL,
   `htcondor_slots_timestamp` int(11) DEFAULT NULL,
@@ -64,4 +66,4 @@ CREATE TABLE `csv2_vms` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-24 13:23:31
+-- Dump completed on 2019-05-30 14:04:03
