@@ -77,6 +77,7 @@ class EC2Cloud(basecloud.BaseCloud):
         if self.name not in instancetype_dict.keys():
              instancetype_dict = self._attr_list_to_dict(flavor)
         if self.spot_price <= 0:
+            flag_spot_instance = 0
             if self.keyname:
                 new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
                                               InstanceType=instancetype_dict[self.name],
@@ -89,6 +90,7 @@ class EC2Cloud(basecloud.BaseCloud):
                                               UserData=userdata, SecurityGroups=self.default_security_groups,
                                               TagSpecifications=tags)
         else:
+            flag_spot_instance = 1
             specs = {'ImageId': image,
                      'InstanceType': instancetype_dict[self.name],
                      'UserData': base64.b64encode(userdata).decode(),  # Dumb encoding hack required for spot instances since boto behaves different on request_spot vs run_instance
@@ -107,6 +109,7 @@ class EC2Cloud(basecloud.BaseCloud):
                 self.log.debug(vm)
                 hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm.keys() and vm['PublicDnsName'] \
                     else vm['PrivateDnsName']
+                flag = 0 if 2<=1 else 1
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
@@ -115,6 +118,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'project': self.project,
                     'hostname': hostname,
                     'vmid': vm['InstanceId'],
+                    'spot_instance': flag_spot_instance,
                     'status': vm['State']['Name'],
                     'flavor_id': vm['InstanceType'],
                     'last_updated': int(time.time()),
