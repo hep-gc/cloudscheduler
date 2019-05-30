@@ -7,7 +7,7 @@ write_files:
           touch $K$1
           S=$(cat $K$1)
           C=$(wc -l <$I$1|tee $K$1)
-          [ $S -gt $C ] && S=0
+          [ "$S" != "" ] && [ $S -gt $C ] && S=0
           tail -n +$((S+1)) $I$1
         }   
             
@@ -15,10 +15,9 @@ write_files:
 
          I=/var/log/condor/
          K=/tmp/csv2htc.K.
-         O="$(T MasterLog)"
-         O="$O""$(T StartLog)"
+         O="$(T MasterLog)$(T StartLog)"
          
-        M=$(echo "${O}"|awk '/Error/{split($0,W,"Error");print W[2]}/ERROR/{split($0,W,"ERROR");print W[2]}'|tr ":" " "|awk 'NF>2{print "/"$1"_"$2"_"$3}'|sort -u|tr -d '\n')
+        M=$(echo "${O}"|awk '/Error/{split($0,W,"Error");print W[2]}/ERROR/{split($0,W,"ERROR");print W[2]}'|tr ":" " "|awk 'NF>2{print "/"$1"_"$2"_"$3"_"$4"_"$5"&"}'|sort -u|tr -d '\n')
         if [ "$M" != "" ];then while true; do curl https://{{cs_condor_host}}/$(hostname -s)/STARTD${M} && break;sleep 30;done;fi
     owner: root:root
     permissions: 0700
