@@ -4,10 +4,11 @@ write_files:
         #!/bin/bash
         function T () 
         {
-         touch $K$1
-         S=$(cat $K$1)
-         wc -l <$I$1>$K$1
-         tail -n +$((S+1)) $I$1
+          touch $K$1
+          S=$(cat $K$1)
+          C=$(wc -l <$I$1|tee $K$1)
+          [ $S -gt $C ] && S=0
+          tail -n +$((S+1)) $I$1
         }   
             
          which condor_config_val &>/dev/null||(curl https://{{cs_condor_host}}/$(hostname -s)/STARTD/HTCondor_is_not_installed && exit)
