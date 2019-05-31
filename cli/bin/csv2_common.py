@@ -12,7 +12,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
     mandatory = []
     required = []
     options = []
-    valid_keys = ['server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user']
+    valid_keys = ['server-address', 'server-password', 'server-user']
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
@@ -255,24 +255,29 @@ def _requests(gvar, request, form_data={}, query_data={}):
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['pid_defaults']['server'])
         exit(1)
 
-    if 'server-grid-cert' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-        'server-grid-key' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-key']):
+    if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):
+        authentication_method = 'X509'
 
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-grid-cert'])
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], 'xxx')
 
-        _r = _function(
-            _request,
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-            cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
-            data=_form_data,
-            cookies=gvar['cookies']
-            )
+        try:
+            _r = _function(
+                _request,
+                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+                cert=('/tmp/x509up_u%s' % gvar['uid']),
+                data=_form_data,
+                cookies=gvar['cookies']
+                )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
 
     elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
             gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
+
+        authentication_method = '%s, <password>' % gvar['user_settings']['server-user']
 
         _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
 
@@ -313,26 +318,17 @@ def _requests(gvar, request, form_data={}, query_data={}):
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
             "  py_requests.%s(\n" \
-            "    %s,\n" \
-            "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
-                _function.__name__,
-                _request,
-                gvar['user_settings']['server-address'],
-                )
-            )
-
-        if 'server-grid-cert' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-            'server-grid-key' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['server-grid-key']):
-            print("    cert=('%s', '%s')," % (gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']))
-        else:
-            print("    auth=('%s', <password>)," % gvar['user_settings']['server-user'])
-
-        print("    data=%s,\n" \
+            "    %s\n" \
+            "    headers={'Accept': 'application/json', 'Referer': '%s'}\n" \
+            "    auth=(%s)\n" \
+            "    data=%s\n" \
             "    cookies='%s'\n" \
             "    )\n\n" \
             "  Response: {" % (
+                _function.__name__,
+                _request,
+                gvar['user_settings']['server-address'],
+                authentication_method,
                 _form_data,
                 gvar['cookies']
                 )
@@ -418,10 +414,10 @@ def requests_no_credentials_error(gvar):
 
     print(
         '***\n' \
-        '*** Please identify the URL (-sa | --server-address, eg. "-sa https://mycsv2.example.ca") of the server with which\n' \
-        '*** you wish to communicate. Servers require either certificate (-sC | --server-grid-cert, -sK | --server-grid-key)\n' \
-        '*** or username/password (-su | --server-user, -spw | --server-password) authentication. These options can be saved\n' \
-        '*** for multiple servers by name using the following command:\n' \
+        '*** Please identify the URL (\033[1m--server-address\033[0m, eg. "-sa https://mycsv2.example.ca") of the server with which you\n' \
+        '*** wish to communicate. Servers require either grid proxy certificate authentication (\033[1muse grid-proxy-init\033[0m) or\n' \
+        '*** username/password authentication (\033[1m--server-user\033[0m/\033[1m--server-password\033[0m). These options can be saved for multiple\n' \
+        '*** servers by name using the following command:\n' \
         '***\n' \
         '***     %s defaults set -s <sever_name> -sa <server_address> ...\n' \
         '***\n' \
@@ -935,6 +931,17 @@ def verify_yaml_file(file_path):
     return {
         'metadata': file_string,
         }
+
+#-------------------------------------------------------------------------------
+              
+def yaml_full_load(yaml_string):
+    import yaml
+
+    if hasattr(yaml, 'full_load'):
+        return yaml.full_load(yaml_string)
+    else:
+        return yaml.load(yaml_string)
+
 
 #-------------------------------------------------------------------------------
               
