@@ -1,4 +1,4 @@
-from csv2_common import check_keys, show_table
+from csv2_common import check_keys, show_table, yaml_full_load
 
 import json
 import os
@@ -62,7 +62,7 @@ def list(gvar):
     _keys = ['server,k']
     for _ix in range(len(gvar['command_keys'])):
         key = gvar['command_keys'][_ix][1][2:]
-        if key not in _keys:
+        if key not in _keys and '%s,k' % key not in _keys:
             _keys.append(key)
     _keys = [_keys[0]] + sorted(_keys[1:])
 
@@ -76,7 +76,7 @@ def list(gvar):
         if os.path.isdir(server_path):
             if 'server' not in gvar['command_args'] or server == gvar['command_args']['server']:
                 _fd = open('%s/settings.yaml' % server_path)
-                _settings = yaml.full_load(_fd.read())
+                _settings = yaml_full_load(_fd.read())
                 _fd.close()
 
                 for key in sorted(_keys):

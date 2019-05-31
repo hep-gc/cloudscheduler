@@ -232,7 +232,6 @@ def main(args):
             ('-r',    '--rotate', False),
             ('-s',    '--server', True),
             ('-sa',   '--server-address', True),
-            ('-sC',   '--server-grid-cert', True),
             ('-sic',  '--sleep-interval-cleanup', True),
             ('-siC',  '--sleep-interval-command', True),
             ('-sif',  '--sleep-interval-flavor', True),
@@ -243,7 +242,6 @@ def main(args):
             ('-sim',  '--sleep-interval-machine', True),
             ('-sin',  '--sleep-interval-network', True),
             ('-siv',  '--sleep-interval-vm', True),
-            ('-sK',   '--server-grid-key', True),
             ('-sml',  '--sleep-interval-main-long', True),
             ('-sms',  '--sleep-interval-main-short', True),
             ('-spw',  '--server-password', True),
@@ -284,8 +282,9 @@ def main(args):
         'function_args': None,
         'home_dir': str(Path.home()),
         'object': None,
-        'tables_shown': 0,
         'retrieve_options': False,
+        'tables_shown': 0,
+        'uid': os.getuid(),
         }
     
     # Check for interactive parent process and set the pid_file path.
