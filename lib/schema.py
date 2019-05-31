@@ -442,6 +442,7 @@ csv2_user_groups = Table('csv2_user_groups', metadata,
 csv2_vms = Table('csv2_vms', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
+  Column('region', String(32)),
   Column('vmid', String(128), primary_key=True),
   Column('spot_instance', Integer),
   Column('instance_id', String(64)),
@@ -477,7 +478,8 @@ csv2_vms_foreign = Table('csv2_vms_foreign', metadata,
   Column('region', String(32), primary_key=True),
   Column('project', String(32), primary_key=True),
   Column('flavor_id', String(128), primary_key=True),
-  Column('count', Integer)
+  Column('count', Integer),
+  Column('cloud_type', String(32))
   )
 
 django_admin_log = Table('django_admin_log', metadata,
@@ -1130,9 +1132,18 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
 view_t0 = Table('view_t0', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
-  Column('count', Integer),
+  Column('cloud_type', String(64)),
   Column('cores', Integer),
-  Column('ram', Float)
+  Column('cores_ctl', Integer),
+  Column('cores_softmax', Integer),
+  Column('cores_max', Integer),
+  Column('cores_native', Integer),
+  Column('cores_foreign', Integer),
+  Column('ram', Float),
+  Column('ram_ctl', Integer),
+  Column('ram_max', Integer),
+  Column('ram_native', Integer),
+  Column('ram_foreign', Float)
   )
 
 view_user_groups = Table('view_user_groups', metadata,
@@ -1157,6 +1168,7 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
 view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
+  Column('cloud_type', String(64)),
   Column('cores', Integer),
   Column('cores_ctl', Integer),
   Column('cores_softmax', Integer),
@@ -1166,7 +1178,7 @@ view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadat
   Column('ram', Float),
   Column('ram_ctl', Integer),
   Column('ram_max', Integer),
-  Column('ram_native', Integer),
+  Column('ram_native', Float),
   Column('ram_foreign', Float)
   )
 
