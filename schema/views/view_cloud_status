@@ -142,11 +142,8 @@ from (
             cv.group_name=cf.group_name and
             cv.cloud_name=cf.cloud_name and
             cv.flavor_id=cf.id
-        left outer join csv2_clouds as cc on
-            cv.group_name=cc.group_name and
-            cv.cloud_name=cc.cloud_name
         left outer join ec2_instance_types as ei on
-            cc.region=ei.region and
+            cv.region=ei.region and
             cv.flavor_id=ei.instance_type
         left outer join (
             /* n04 - Retrieve (native) condor slot information */
