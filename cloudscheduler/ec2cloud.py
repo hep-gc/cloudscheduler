@@ -114,6 +114,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'group_name': self.group,
                     'cloud_name': self.name,
                     'cloud_type': 'amazon',
+                    'region': self.region,
                     'auth_url': self.authurl,
                     'project': self.project,
                     'hostname': hostname,
@@ -143,6 +144,7 @@ class EC2Cloud(basecloud.BaseCloud):
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
+                    'region': self.region,
                     'cloud_type': 'amazon',
                     'auth_url': self.authurl,
                     'project': self.project,

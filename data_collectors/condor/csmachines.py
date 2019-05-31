@@ -317,7 +317,7 @@ def machine_poller():
                     if "badcld" in machine_errors:
                         logging.info("    %s ignored for invalid cloud name" % machine_errors["badcld"])
                     if "nocld" in machine_errors:
-                        logging.info("    %s ignored for invalid cloud name" % machine_errors["nocld"])
+                        logging.info("    %s ignored for missing cloud name" % machine_errors["nocld"])
                     if "nohost" in machine_errors:
                         logging.info("    %s ignored for missing host id" % machine_errors["nohost"])
                     if "badhost" in machine_errors:
