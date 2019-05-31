@@ -63,6 +63,28 @@ def _get_ec2_session(cloud):
 def _get_ec2_client(session):
     return session.client('ec2')
 
+
+def _tag_instance(tag_dict, instance_id, spot_id, client):
+    if tag_dict is None:
+        tag_dict = {}
+        requests = client.describe_spot_instance_requests()
+        instances = requests['SpotInstanceRequests']
+        for instance_req in instances:
+            if "Tags" in instance_req.keys():
+                tag_dict[instance_req['SpotInstanceRequestId']] = instance_req['Tags']
+
+    #tag the instance if a tag exists for the SIR
+    if spot_id in tag_dict.keys():
+        try:
+            logging.info("Tagging spot instance %s with tags: %s" %(instance_id, tag_dict[spot_id]))
+            client.create_tags(Resources=[instance_id], Tags=tag_dict[spot_id])
+        except Exception as exc:
+            logging.error("Failed to tag %s with tag %s" % (instance_id, tag_dict[instance_id]))
+            logging.error(exc)
+        return (tag_dict, tag_dict[spot_id]) # return tag for proccessing
+    return (tag_dict, False) #no tag for instance
+
+
 # This function checks that the local files exist, and that they are not older than a week
 def check_instance_types(config):
     REGIONS = config.db_map.classes.ec2_regions
@@ -243,7 +265,7 @@ def ec2_filterer():
                         'cloud_name': cloud.cloud_name,
                         'name': flavor["instance_type"],
                         'cloud_type': "amazon",
-                        'ram': flavor["memory"],
+                        'ram': flavor["memory"] * 1024, #from amazon its in gigs
                         'cores': flavor["cores"],
                         'id': flavor["instance_type"],
                         #'swap': swap, #No concept in amazon
@@ -1463,7 +1485,7 @@ def vm_poller():
     config.db_close()
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20), cloud_type="amazon")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.log_level<10), cloud_type="amazon")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1553,23 +1575,23 @@ def vm_poller():
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
                 # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
                 uncommitted_updates = 0
+                tag_dict = None
                 for reservation in vm_list['Reservations']:
                     for vm in reservation['Instances']:
-                        #~~~~~~~~
-                        # figure out if it is foreign to this group or not based on tokenized hostname:
-                        # hostname example: testing--otter--2049--256153399971170-1
-                        # tokenized:        group,   cloud, csv2_host_id, ?vm identifier?
-                        #
-                        # at the end some of the dictionary enteries might not have a previous database object
-                        # due to emergent flavors and thus a new obj will need to be created
-                        #~~~~~~~~
 
-                        #WE NEED TO FIGURE OUT TAGS FOR FVM TRACKING
                         # This first part is particulairly important because its the only way we will know what group/cloud
                         # the vm will belong to
                         try:
                             host_tokens = None
-                            tags_list = vm["Tags"]
+                            # check for tags
+                            if "Tags" in vm.keys():
+                                tags_list = vm["Tags"]
+                            #if there is no tags, check to see if it is an untagged spot instance
+                            elif 'SpotInstanceRequestId' in vm.keys():
+                                tag_dict, tag_list =  _tag_instance(tag_dict, vm['InstanceId'], vm['SpotInstanceRequestId'], nova)
+                            # else its is a foreign VM so we can throw an exception
+                            else:
+                                raise Exception('No tags on non-spot instance, registering %s as FVM.' % vm['InstanceId']) 
                             for tag_dict in tags_list:
                                 if tag_dict["Key"] == "csv2":
                                     host_tokens = tag_dict["Value"].split("--")
@@ -1613,7 +1635,7 @@ def vm_poller():
                                 continue
                         except Exception as exc:
                             #not enough tokens, bad hostname or foreign vm
-                            logging.debug("No tags, or other error for: %s, registering as fvm" % vm['PublicDnsName'])
+                            logging.error("No tags, or other error for: %s, registering as fvm" % vm['PublicDnsName'])
                             logging.debug("   Exeption: %s" % exc)
                             if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
                                 for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
@@ -1663,12 +1685,16 @@ def vm_poller():
                             'last_updated': new_poll_time
                         }
 
+                        if 'SpotInstanceRequestId' in vm.keys() and 'InstanceId' in vm.keys():
+                            logging.error("~~~SIR:%s    ID:%s" % (vm['SpotInstanceRequestId'], vm['InstanceId']))
+                            vm_dict['instance_id'] = vm['InstanceId']
+
                         vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
                         if unmapped:
                             logging.error("unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm['PublicDnsName'], vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.log_level<10)):
                             continue
 
                         new_vm = VM(**vm_dict)
@@ -1707,6 +1733,7 @@ def vm_poller():
                 # proccess FVM dict
                 # check if any rows have a zero count and delete them, otherwise update with new count
                 # TO BE IMPLEMENTED VIA TAGS
+                logging.error("FVMD: %s" % for_vm_dict)
                 for key in for_vm_dict:
                     split_key = key.split("--")
                     if for_vm_dict[key]['count'] == 0:
@@ -1753,7 +1780,7 @@ def vm_poller():
                 if cloud.cloud_name + cloud.authurl in failure_dict.keys():
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
             logging.debug("Calling delete function")
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'vmid', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
 
             # TODO FOR AMAZON
             # Check on the core limits to see if any clouds need to be scaled down.
