@@ -22,6 +22,7 @@ from cloudscheduler.lib.log_tools import get_frame_info
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 # lno: EV - error code identifier.
 MODID = 'EC2'
@@ -196,10 +197,15 @@ def instance_types(request, message=None, response_code=0):
 
         config.db_session.commit()
 
+        response_code = 0
+        message = "update successful"
+
+
         active_user.kwargs['cloud_name'] = fields['cloud_name']
 
     # Retrieve EC2 instance type filters.
     ec2_instance_type_filters = qt(config.db_connection.execute('select * from ec2_instance_type_filters where group_name="%s" and cloud_name="%s"' % (active_user.active_group, active_user.kwargs['cloud_name'])))
+    ec2_instance_type_filters_json = json.dumps( ec2_instance_type_filters, cls=DjangoJSONEncoder );
 
     # Retrieve EC2 instance type filter options.
     families = qt(config.db_connection.execute('select distinct instance_family from view_ec2_instance_types order by instance_family'))
@@ -207,6 +213,34 @@ def instance_types(request, message=None, response_code=0):
     processors = qt(config.db_connection.execute('select distinct processor from view_ec2_instance_types order by processor'))
     manufacturers = qt(config.db_connection.execute('select distinct processor_manufacturer from view_ec2_instance_types order by processor_manufacturer'))
     cores = qt(config.db_connection.execute('select distinct cores from view_ec2_instance_types order by cores'))
+
+
+    families_list = []
+    for family in families:
+        for value in family.values():
+            families_list.append(value)
+
+    os_list = []
+    for os in operating_systems:
+        for value in os.values():
+            os_list.append(value)
+
+    proc_list = []
+    for proc in processors:
+        for value in proc.values():
+            proc_list.append(value)
+
+    manu_list = []
+    for manu in manufacturers:
+        for value in manu.values():
+            manu_list.append(value)
+
+    cores_list = []
+    for core in cores:
+        for value in core.values():
+            cores_list.append(value)
+
+
 
     # Retrieve EC2 instance types.
     rc, msg, sql_select = select_ec2_instance_types(config, active_user.active_group, active_user.kwargs['cloud_name'])
@@ -224,14 +258,20 @@ def instance_types(request, message=None, response_code=0):
             'active_group': active_user.active_group,
             'user_groups': active_user.user_groups,
             'ec2_instance_type_filters': ec2_instance_type_filters,
+            'ec2_instance_type_filters_json': ec2_instance_type_filters_json,           
             'ec2_instance_types': ec2_instance_types,
             'families': families,
             'operating_systems': operating_systems,
             'processors': processors,
             'manufacturers': manufacturers,
             'cores': cores,
-            'response_code': 0,
-            'message': None,
+            'families_list': families_list,
+            'os_list': os_list,
+            'proc_list': proc_list,
+            'manu_list': manu_list,
+            'cores_list': cores_list,
+            'response_code': response_code,
+            'message': message,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
