@@ -1091,6 +1091,7 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
 view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
+  Column('cloud_type', String(64)),
   Column('cores', Integer),
   Column('cores_ctl', Integer),
   Column('cores_softmax', Integer),
@@ -1100,7 +1101,7 @@ view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadat
   Column('ram', Float),
   Column('ram_ctl', Integer),
   Column('ram_max', Integer),
-  Column('ram_native', Integer),
+  Column('ram_native', Float),
   Column('ram_foreign', Float)
   )
 
