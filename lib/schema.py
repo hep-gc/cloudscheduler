@@ -1129,23 +1129,6 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('cloud_name', String(32))
   )
 
-view_t0 = Table('view_t0', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('cloud_type', String(64)),
-  Column('cores', Integer),
-  Column('cores_ctl', Integer),
-  Column('cores_softmax', Integer),
-  Column('cores_max', Integer),
-  Column('cores_native', Integer),
-  Column('cores_foreign', Integer),
-  Column('ram', Float),
-  Column('ram_ctl', Integer),
-  Column('ram_max', Integer),
-  Column('ram_native', Integer),
-  Column('ram_foreign', Float)
-  )
-
 view_user_groups = Table('view_user_groups', metadata,
   Column('username', String(32)),
   Column('cert_cn', String(128)),
