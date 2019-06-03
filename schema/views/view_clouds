@@ -114,7 +114,7 @@ from (
     password,
     keyname,
     cacertificate,
-    region,
+    cc.region,
     cc.cloud_type,
 
     case when cores_ctl<0 then
