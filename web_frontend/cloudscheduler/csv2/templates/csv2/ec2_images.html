@@ -202,34 +202,20 @@ function updateFilter(target){
       </table>
 
       <table>
-        <tr class="highlight3"><td><label for="like">Like</label></td>
-        <td>
-        {% if ec2_image_filters.0.like == None %}
-          <input type="text" name="like"  value="" />
-        {% else %}
-          <input type="text" name="like"  value="{{ec2_image_filters.0.like}}" />
-        {% endif %}
-        </td></tr>
+        <tr class="title-row">
+        <th><label for="like">Like</label></th>
+        <td><input type="text" name="like"  value="{{ec2_image_filters.0.like|default_if_none:''}}" /></td>
+        </tr>
 
-        <tr class="highlight3"><td><label for="not_like">Not like</label></td>
-        <td>
-        {% if ec2_image_filters.0.not_like == None %}
-          <input type="text" name="not_like"  value="" />
-        {% else %}
-          <input type="text" name="not_like"  value="{{ec2_image_filters.0.not_like}}" />
-        {% endif %}
-        </td></tr>
+        <tr class="title-row">
+        <th><label for="not_like">Not like</label></th>
+        <td><input type="text" name="not_like"  value="{{ec2_image_filters.0.not_like|default_if_none:''}}" /></td>
+        </tr>
 
-
-
-        <tr class="highlight3"><td><label for="owner_ids">Owner IDs</label></td>
-        <td>
-        {% if ec2_image_filters.0.owner_ids == None %}
-          <input type="text" name="owner_ids"  value="" />
-        {% else %}
-          <input type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids}}" />
-        {% endif %}
-        </td></tr>
+        <tr class="title-row">
+        <th><label for="owner_ids">Owner IDs</label></th>
+        <td><input type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids|default_if_none:''}}" /></td>
+        </tr>
 
         <tr><td><input type="submit" value="Update filter" /></td><td></td></tr> 
       </table>
