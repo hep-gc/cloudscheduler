@@ -36,7 +36,7 @@ CREATE TABLE `csv2_system_status` (
   `csv2_jobs_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
   `csv2_machines_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_machines_status` tinyint(1) NOT NULL DEFAULT 0,
-  `csv2_machines_msg` varchar(512) CHARACTER SET utf8 NOT NULL,
+  `csv2_machines_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
   `csv2_status_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_status_status` tinyint(4) NOT NULL DEFAULT 0,
   `csv2_status_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
@@ -72,4 +72,4 @@ CREATE TABLE `csv2_system_status` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-22 12:09:45
+-- Dump completed on 2019-06-03 11:25:08

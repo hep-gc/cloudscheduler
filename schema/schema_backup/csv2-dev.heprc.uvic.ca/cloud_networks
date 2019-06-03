@@ -28,8 +28,8 @@ CREATE TABLE `cloud_networks` (
   `id` varchar(128) NOT NULL,
   `name` varchar(256) NOT NULL,
   `cloud_type` varchar(64) DEFAULT NULL,
-  `subnets` varchar(256) NOT NULL,
-  `tenant_id` varchar(128) NOT NULL,
+  `subnets` varchar(256) DEFAULT NULL,
+  `tenant_id` varchar(128) DEFAULT NULL,
   `external_route` tinyint(1) NOT NULL,
   `shared` tinyint(1) NOT NULL,
   `last_updated` int(11) NOT NULL,
@@ -46,4 +46,4 @@ CREATE TABLE `cloud_networks` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-05 12:47:28
+-- Dump completed on 2019-06-03 11:25:07
