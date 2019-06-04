@@ -577,6 +577,66 @@ ec2_regions = Table('ec2_regions', metadata,
   Column('endpoint', String(128))
   )
 
+silk_profile = Table('silk_profile', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('name', String(300)),
+  Column('start_time', Integer),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('file_path', String(300)),
+  Column('line_num', Integer),
+  Column('end_line_num', Integer),
+  Column('func_name', String(300)),
+  Column('exception_raised', Integer),
+  Column('dynamic', Integer),
+  Column('request_id', String(36))
+  )
+
+silk_profile_queries = Table('silk_profile_queries', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('profile_id', Integer),
+  Column('sqlquery_id', Integer)
+  )
+
+silk_request = Table('silk_request', metadata,
+  Column('id', String(36), primary_key=True),
+  Column('path', String(190)),
+  Column('query_params', String),
+  Column('raw_body', String),
+  Column('body', String),
+  Column('method', String(10)),
+  Column('start_time', Integer),
+  Column('view_name', String(190)),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('encoded_headers', String),
+  Column('meta_time', Float),
+  Column('meta_num_queries', Integer),
+  Column('meta_time_spent_queries', Float),
+  Column('pyprofile', String),
+  Column('num_sql_queries', Integer),
+  Column('prof_file', String(300))
+  )
+
+silk_response = Table('silk_response', metadata,
+  Column('id', String(36), primary_key=True),
+  Column('status_code', Integer),
+  Column('raw_body', String),
+  Column('body', String),
+  Column('encoded_headers', String),
+  Column('request_id', String(36))
+  )
+
+silk_sqlquery = Table('silk_sqlquery', metadata,
+  Column('id', Integer, primary_key=True),
+  Column('query', String),
+  Column('start_time', Integer),
+  Column('end_time', Integer),
+  Column('time_taken', Float),
+  Column('traceback', String),
+  Column('request_id', String(36))
+  )
+
 view_available_resources = Table('view_available_resources', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
@@ -705,6 +765,7 @@ view_clouds = Table('view_clouds', metadata,
   Column('cacertificate', String),
   Column('region', String(20)),
   Column('cloud_type', String(64)),
+  Column('ec2_owner_id', String(32)),
   Column('cores_ctl', Integer),
   Column('cores_softmax', Integer),
   Column('cores_max', Integer),
