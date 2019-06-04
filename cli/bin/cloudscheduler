@@ -293,6 +293,12 @@ def main(args):
     else:
         gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
 
+    # Check for authentication by grid proxy certificate.
+    if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):
+        gvar['grid_proxy_user'] = '/tmp/x509up_u%s' % gvar['uid']
+    else:
+        gvar['grid_proxy_user'] = None
+
     # Retrieve arguments.
     gvar['command_args'] = _args(gvar, args[1:])
 
