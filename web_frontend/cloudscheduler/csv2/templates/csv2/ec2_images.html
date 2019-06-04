@@ -146,61 +146,61 @@ function updateFilter(target){
 
       <table>
         <tr class="title-row">
+          <th>OS filter string</th>
 
         {% for os in operating_systems %}
           <th>{{ os.operating_system }}</th>
         {% endfor %}
 
-        <th>OS filter string</th>
 
         </tr>
         <tr class="box-row">
-
+          <td><input type="text" name="operating_systems" id="os_string" value="" /></td>
 
         {% for os in operating_systems %}
           <td><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/></td>
         {% endfor %}
 
-          <td><input type="text" name="operating_systems" id="os_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
-        
+          <th>Arch filter string</th>
+
         {% for arch in architectures %}
           <th>{{ arch.architecture }}</th>
         {% endfor %}
 
-        <th>Arch filter string</th>
 
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="architectures" id="arch_string" value="" /></td>
 
         {% for arch in architectures %}
           <td><input type="checkbox" id="arch-{{arch.architecture}}" onchange='updateFilter("arch")'/></td>
         {% endfor %}
-          <td><input type="text" name="architectures" id="arch_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
-        
+          <th>Alias filter string</th>
+
         {% for alias in owner_aliases %}
 
           <th>{{ alias.alias }}</th>
         {% endfor %}
 
-        <th>Alias filter string</th>
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="owner_aliases" id="alias_string" value="" /></td>
+
         {% for alias in owner_aliases %}
           <td><input type="checkbox" id="alias-{{alias.alias}}" value="" onchange='updateFilter("alias")'/></td>
         {% endfor %}
-          <td><input type="text" name="owner_aliases" id="alias_string" value="" /></td>
         </tr>
       </table>
 
@@ -240,7 +240,7 @@ function updateFilter(target){
         <table id="vmsTable">
             <tr>
               <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
-              <th onclick="sortTable(1)">Image Location &#8597;</th>
+              <th onclick="sortTable(1)">Name &#8597;</th>
 
               <th onclick="sortTable(2)">ID &#8597;</th>
 
@@ -253,7 +253,6 @@ function updateFilter(target){
                 <tr>
                 <td><input type="checkbox" name="images.{{ forloop.counter }}" value=""></td>
                 <td>{{image.name}}</td>
-                <td>{{image.image_location}}</td>
                 <td>{{image.id}}</td>
 
               </tr>

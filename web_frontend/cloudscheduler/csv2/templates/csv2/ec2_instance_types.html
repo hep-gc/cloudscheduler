@@ -176,80 +176,89 @@ function updateFilter(target){
 
       <table>
         <tr class="title-row">
+          <th>Processor Families</th>
+
         {% for family in families %}
           <th>{{ family.instance_family }}</th>
         {% endfor %}
-        <th>Families</th>
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="families" id="families_string" value="" /></td>
+
         {% for family in families %}
           <td><input type="checkbox" id="families-{{family.instance_family}}" value="" onchange='updateFilter("families")'/></td>
         {% endfor %}
-          <td><input type="text" name="families" id="families_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
+          <th>Operating Systems</th>
+
         {% for os in operating_systems %}
           <th>{{ os.operating_system }}</th>
         {% endfor %}
-        <th>OS filter string</th>
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="operating_systems" id="os_string" value="" /></td>
+
         {% for os in operating_systems %}
           <td><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/></td>
         {% endfor %}
-          <td><input type="text" name="operating_systems" id="os_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
+          <th>Processors</th>
+
         {% for proc in  processors%}
           <th>{{ proc.processor }}</th>
         {% endfor %}
-        <th>Processor filter string</th>
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="processors" id="proc_string" value="" /></td>
+
         {% for proc in  processors %}
           <td><input type="checkbox" id="proc-{{proc.processor}}" onchange='updateFilter("proc")'/></td>
         {% endfor %}
-          <td><input type="text" name="processors" id="proc_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
+          <th>Manufacturers</th>
         {% for manu in manufacturers %}
           <th>{{ manu.processor_manufacturer }}</th>
         {% endfor %}
-        <th>Manufacturers filter string</th>
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="processor_manufacturers" id="manu_string" value="" /></td>
+
         {% for manu in manufacturers %}
           <td><input type="checkbox" id="manu-{{manu.processor_manufacturer}}" onchange='updateFilter("manu")'/></td>
         {% endfor %}
-          <td><input type="text" name="processor_manufacturers" id="manu_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
+          <th>Cores</th>
+
         {% for core in cores %}
           <th>{{ core.cores }}</th>
         {% endfor %}
-        <th>Cores filter string</th>
         </tr>
         <tr class="box-row">
+          <td><input type="text" name="cores" id="cores_string" value="" /></td>
+
         {% for core in cores %}
           <td><input type="checkbox" id="cores-{{core.cores}}" onchange='updateFilter("cores")'/></td>
         {% endfor %}
-          <td><input type="text" name="cores" id="cores_string" value="" /></td>
         </tr>
       </table>
 
