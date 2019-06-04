@@ -12,6 +12,9 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.signal_manager import register_signal_receiver
+from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
+from cloudscheduler.lib.view_utils import kill_retire
+from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.view_utils import qt
 
 from cloudscheduler.lib.poller_functions import \
@@ -75,13 +78,14 @@ def _tag_instance(tag_dict, instance_id, spot_id, client):
 
     #tag the instance if a tag exists for the SIR
     if spot_id in tag_dict.keys():
-        try:
-            logging.info("Tagging spot instance %s with tags: %s" %(instance_id, tag_dict[spot_id]))
-            client.create_tags(Resources=[instance_id], Tags=tag_dict[spot_id])
-        except Exception as exc:
-            logging.error("Failed to tag %s with tag %s" % (instance_id, tag_dict[instance_id]))
-            logging.error(exc)
-        return (tag_dict, tag_dict[spot_id]) # return tag for proccessing
+        if len(tag_dict[spot_id]) != 0:
+            try:
+                logging.info("Tagging spot instance %s with tags: %s" %(instance_id, tag_dict[spot_id]))
+                client.create_tags(Resources=[instance_id], Tags=tag_dict[spot_id])
+            except Exception as exc:
+                logging.error("Failed to tag %s with tag %s" % (instance_id, tag_dict[instance_id]))
+                logging.error(exc)
+            return (tag_dict, tag_dict[spot_id]) # return tag for proccessing
     return (tag_dict, False) #no tag for instance
 
 
@@ -1485,7 +1489,7 @@ def vm_poller():
     config.db_close()
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.log_level<10), cloud_type="amazon")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.log_level<20), cloud_type="amazon")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1583,6 +1587,9 @@ def vm_poller():
                         # the vm will belong to
                         try:
                             host_tokens = None
+                            vm_group_name = None
+                            vm_cloud_name = None
+                            tags_list = None
                             # check for tags
                             if "Tags" in vm.keys():
                                 tags_list = vm["Tags"]
@@ -1592,9 +1599,9 @@ def vm_poller():
                             # else its is a foreign VM so we can throw an exception
                             else:
                                 raise Exception('No tags on non-spot instance, registering %s as FVM.' % vm['InstanceId']) 
-                            for tag_dict in tags_list:
-                                if tag_dict["Key"] == "csv2":
-                                    host_tokens = tag_dict["Value"].split("--")
+                            for tag_d in tags_list:
+                                if tag_d["Key"] == "csv2":
+                                    host_tokens = tag_d["Value"].split("--")
                                     logging.debug("Tag found, host tokens = %s" % host_tokens)
                                     break
                             # if host tokens is none here we have a FVM
@@ -1671,9 +1678,11 @@ def vm_poller():
                             ip_addrs.append(vm['PublicIpAddress'])
                         if 'PrivateIpAddress' in vm.keys():
                             ip_addrs.append(vm['PrivateIpAddress'])
+                        logging.info("VM STATE: %s" % vm['State']['Name'])
                         vm_dict = {
                             'group_name': vm_group_name,
                             'cloud_name': vm_cloud_name,
+                            'region': cloud_obj.region,
                             'auth_url': cloud_obj.authurl,
                             'project': cloud_obj.project,
                             'cloud_type': 'amazon',
@@ -1686,15 +1695,14 @@ def vm_poller():
                         }
 
                         if 'SpotInstanceRequestId' in vm.keys() and 'InstanceId' in vm.keys():
-                            logging.error("~~~SIR:%s    ID:%s" % (vm['SpotInstanceRequestId'], vm['InstanceId']))
                             vm_dict['instance_id'] = vm['InstanceId']
 
-                        vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
+                        vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict)
                         if unmapped:
                             logging.error("unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.log_level<10)):
+                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
                             continue
 
                         new_vm = VM(**vm_dict)
@@ -1709,7 +1717,7 @@ def vm_poller():
                         if uncommitted_updates >= config.batch_commit_size:
                             try:
                                 db_session.commit()
-                                logging.debug("Comitted %s VMs" % uncommitted_updates)
+                                logging.info("Comitted %s VMs" % uncommitted_updates)
                                 uncommitted_updates = 0
                             except Exception as exc:
                                 logging.error("Error during batch commit of VMs:")
@@ -1732,8 +1740,7 @@ def vm_poller():
                     break
                 # proccess FVM dict
                 # check if any rows have a zero count and delete them, otherwise update with new count
-                # TO BE IMPLEMENTED VIA TAGS
-                logging.error("FVMD: %s" % for_vm_dict)
+                logging.debug("FVMD: %s" % for_vm_dict)
                 for key in for_vm_dict:
                     split_key = key.split("--")
                     if for_vm_dict[key]['count'] == 0:
@@ -1751,7 +1758,8 @@ def vm_poller():
                                 'project':    for_vm_dict[key]['project'],
                                 'region':     for_vm_dict[key]['region'],
                                 'flavor_id':  for_vm_dict[key]['flavor_id'],
-                                'count':      for_vm_dict[key]['count']
+                                'count':      for_vm_dict[key]['count'],
+                                'cloud_type': "amazon"
                             }
                             new_fvm = FVM(**fvm_dict)
                             db_session.merge(new_fvm)
@@ -1782,11 +1790,10 @@ def vm_poller():
             logging.debug("Calling delete function")
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'vmid', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
 
-            # TODO FOR AMAZON
             # Check on the core limits to see if any clouds need to be scaled down.
-            #over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota)
-            #for cloud in over_quota_clouds:
-            #    kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
+            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota).filter(view_vm_kill_retire_over_quota.c.cloud_type=="amazon")
+            for cloud in over_quota_clouds:
+                kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
 
 
             logging.debug("Completed VM poller cycle")

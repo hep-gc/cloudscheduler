@@ -442,6 +442,7 @@ csv2_user_groups = Table('csv2_user_groups', metadata,
 csv2_vms = Table('csv2_vms', metadata,
   Column('group_name', String(32), primary_key=True),
   Column('cloud_name', String(32), primary_key=True),
+  Column('region', String(32)),
   Column('vmid', String(128), primary_key=True),
   Column('spot_instance', Integer),
   Column('instance_id', String(64)),
@@ -477,7 +478,8 @@ csv2_vms_foreign = Table('csv2_vms_foreign', metadata,
   Column('region', String(32), primary_key=True),
   Column('project', String(32), primary_key=True),
   Column('flavor_id', String(128), primary_key=True),
-  Column('count', Integer)
+  Column('count', Integer),
+  Column('cloud_type', String(32))
   )
 
 django_admin_log = Table('django_admin_log', metadata,
@@ -763,6 +765,7 @@ view_clouds = Table('view_clouds', metadata,
   Column('cacertificate', String),
   Column('region', String(20)),
   Column('cloud_type', String(64)),
+  Column('ec2_owner_id', String(32)),
   Column('cores_ctl', Integer),
   Column('cores_softmax', Integer),
   Column('cores_max', Integer),
@@ -1127,14 +1130,6 @@ view_redundant_machines = Table('view_redundant_machines', metadata,
   Column('cloud_name', String(32))
   )
 
-view_t0 = Table('view_t0', metadata,
-  Column('group_name', String(32)),
-  Column('cloud_name', String(32)),
-  Column('count', Integer),
-  Column('cores', Integer),
-  Column('ram', Float)
-  )
-
 view_user_groups = Table('view_user_groups', metadata,
   Column('username', String(32)),
   Column('cert_cn', String(128)),
@@ -1157,6 +1152,7 @@ view_user_groups_available = Table('view_user_groups_available', metadata,
 view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
+  Column('cloud_type', String(64)),
   Column('cores', Integer),
   Column('cores_ctl', Integer),
   Column('cores_softmax', Integer),
@@ -1166,7 +1162,7 @@ view_vm_kill_retire_over_quota = Table('view_vm_kill_retire_over_quota', metadat
   Column('ram', Float),
   Column('ram_ctl', Integer),
   Column('ram_max', Integer),
-  Column('ram_native', Integer),
+  Column('ram_native', Float),
   Column('ram_foreign', Float)
   )
 
@@ -1199,7 +1195,9 @@ view_vm_kill_retire_priority_idle = Table('view_vm_kill_retire_priority_idle', m
 view_vms = Table('view_vms', metadata,
   Column('group_name', String(32)),
   Column('cloud_name', String(32)),
+  Column('region', String(32)),
   Column('vmid', String(128)),
+  Column('spot_instance', Integer),
   Column('instance_id', String(64)),
   Column('cloud_type', String(64)),
   Column('vm_ips', String(128)),

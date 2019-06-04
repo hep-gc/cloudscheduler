@@ -96,6 +96,10 @@
 
             document.getElementById(target_cloud+'-project').readOnly = true;
             document.getElementById(target_cloud+'-project').value = "N/A";
+
+            document.getElementById(target_cloud+'-image').style.display = "block";
+            document.getElementById(target_cloud+'-flavor').style.display = "block";
+
         }
         else{
             newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
@@ -106,6 +110,9 @@
 
             document.getElementById(target_cloud+'-project').readOnly = false;
             document.getElementById(target_cloud+'-project').value = "";
+
+            document.getElementById(target_cloud+'-image').style.display = "none";
+            document.getElementById(target_cloud+'-flavor').style.display = "none";
         }
     }
 
@@ -132,9 +139,16 @@
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
-            
+        <div id="{{cloud.cloud_name}}">
+
+        <div class="tab-title">
+            <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
+
+            <!--<a href="#delete-{{cloud.cloud_name}}" class="delete-button">-</a>-->
+        </div>
+
             <div class="menu-target">
+
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
@@ -289,12 +303,13 @@
                                         {% endif %}
                                     {% endfor %}
 
-                                    </td>
-
-                                    <td>                                    
+                                    </td>                           
                                     {% if cloud.cloud_type == "amazon" %}
+                                        <td id="{{cloud.cloud_name}}-image">                                    
+                                    {% else %}
+                                        <td id="{{cloud.cloud_name}}-image" style="display:none">
+                                    {% endif %}                                   
                                         <a onclick='document.getElementById("vms-iframe").src="/ec2/images/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Image filter</a>
-                                    {% endif %}
                                     </td>
                                     </tr>
 
@@ -310,11 +325,13 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
-                                    </td>
-                                    <td>                                    
+                                    </td>                                  
                                     {% if cloud.cloud_type == "amazon" %}
-                                        <a onclick='document.getElementById("vms-iframe").src="/ec2/instance_types/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Flavor filter</a>
-                                    {% endif %}
+                                        <td id="{{cloud.cloud_name}}-flavor">                                    
+                                    {% else %}
+                                        <td id="{{cloud.cloud_name}}-flavor" style="display:none">
+                                    {% endif %} 
+                                        <a onclick='document.getElementById("vms-iframe").src="/ec2/instance-types/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Flavor filter</a>
                                     </td>
                                     </tr>
 
@@ -522,13 +539,7 @@
                 </div>
 
 
-                <div class="tab">
-                    <input id="{{cloud.cloud_name}}-delete" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'delete'); check_target('{{cloud.cloud_name}}-hide')">
-                    <label class="tab-colour" for="{{cloud.cloud_name}}-delete">-</label>
-                    <div class="tab-content">
-                        <a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a>
-                    </div>
-                </div>
+
 
 
             </div>
@@ -620,7 +631,7 @@
 
 <div id="vms-overlay" class="overlay">
     <div class="popup">
-        <a class="close" id="timer-count" onclick="parent.location=window.top.location.pathname;" href="#">&times;</a>
+        <a class="close" id="timer-count" onclick="location.href='/cloud/list/?{{cloud_group_name}}'" href="#">&times;</a>
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>

@@ -7,11 +7,20 @@
 
 <script type="text/javascript">
 
+var families_list = {{families_list|safe}}
 var os_list = {{os_list|safe}}
-var arch_list = {{arch_list|safe}}
-var alias_list = {{alias_list|safe}}
+var manu_list = {{manu_list|safe}}
+var cores_list = {{cores_list|safe}}
+var proc_list = {{proc_list|safe}}
 
-var ec2_filters = {{ec2_image_filters_json|safe}}
+var ec2_filters = {{ec2_instance_type_filters_json|safe}}
+
+if(ec2_filters[0].families){
+  var families_filter = ec2_filters[0].families.split(",")
+}
+else{
+  var families_filter = []
+}
 
 if(ec2_filters[0].operating_systems){
   var os_filter = ec2_filters[0].operating_systems.split(",")
@@ -20,20 +29,33 @@ else{
   var os_filter = []
 }
 
-if(ec2_filters[0].architectures){
-  var arch_filter = ec2_filters[0].architectures.split(",")
+if(ec2_filters[0].processors){
+  var proc_filter = ec2_filters[0].processors.split(",")
 }
 else{
-  var arch_filter = []
+  var proc_filter = []
 }
 
-if(ec2_filters[0].owner_aliases){
-  var alias_filter = ec2_filters[0].owner_aliases.split(",")
+if(ec2_filters[0].processor_manufacturers){
+  var manu_filter = ec2_filters[0].processor_manufacturers.split(",")
 }
 else{
-  var alias_filter = []
+  var manu_filter = [] 
 }
 
+
+if(ec2_filters[0].cores){
+  var cores_filter = ec2_filters[0].cores.split(",")
+}
+else{
+  var cores_filter = []
+}
+
+
+//var mem_min_filter = ec2_filters[0].memory_min_gigabytes_per_core.split(",")
+//var mem_max_filter = ec2_filters[0].memory_max_gigabytes_per_core.split(",")
+
+console.log(manu_filter)
 
 function checkBoxes(target, target_list, target_filter){
 
@@ -57,11 +79,15 @@ function checkBoxes(target, target_list, target_filter){
   console.log(id)
 }
 
+
+
 function checkSelected(){
 
+  checkBoxes("families", families_list, families_filter);
   checkBoxes("os", os_list, os_filter);
-  checkBoxes("arch", arch_list, arch_filter);
-  checkBoxes("alias", alias_list, alias_filter);
+  checkBoxes("manu", manu_list, manu_filter);
+  checkBoxes("cores", cores_list, cores_filter);
+  checkBoxes("proc", proc_list, proc_filter);
 }
 
 
@@ -73,13 +99,17 @@ function updateFilter(target){
 
 
   if(target=="os"){var targ_list = os_list}
-  else if(target=="arch"){var targ_list = arch_list}
-  else if(target=="alias"){var targ_list = alias_list}
+  else if(target=="families"){var targ_list = families_list}
+  else if(target=="manu"){var targ_list = manu_list}
+  else if(target=="cores"){var targ_list = cores_list}
+  else if(target=="proc"){var targ_list = proc_list}
   else{
     console.log("Invalid target: "+target)
     return
   }
 
+  console.log(document.getElementById(target+"_string").value)
+  
   targ_filter = document.getElementById(target+"_string").value.split(",")
 
 
@@ -135,32 +165,42 @@ function updateFilter(target){
 
 <body onpageshow="checkSelected();">
 
-
-  <form name="ec2_filters" action="/ec2/images/" method="post">
+  <form name="ec2_filters" action="/ec2/instance-types/" method="post">
     {% csrf_token %}
-    <input type="hidden" name="group" value="{{ ec2_image_filters.0.group_name }}">
-    <input type="hidden" name="cloud_name" value="{{ ec2_image_filters.0.cloud_name }}" />
+    <input type="hidden" name="group" value="{{ ec2_instance_type_filters.0.group_name }}">
+    <input type="hidden" name="cloud_name" value="{{ ec2_instance_type_filters.0.cloud_name }}" />
 
 
     <div class="filter-div">
 
+
       <table>
         <tr class="title-row">
+        {% for family in families %}
+          <th>{{ family.instance_family }}</th>
+        {% endfor %}
+        <th>Families</th>
+        </tr>
+        <tr class="box-row">
+        {% for family in families %}
+          <td><input type="checkbox" id="families-{{family.instance_family}}" value="" onchange='updateFilter("families")'/></td>
+        {% endfor %}
+          <td><input type="text" name="families" id="families_string" value="" /></td>
+        </tr>
+      </table>
 
+
+      <table>
+        <tr class="title-row">
         {% for os in operating_systems %}
           <th>{{ os.operating_system }}</th>
         {% endfor %}
-
         <th>OS filter string</th>
-
         </tr>
         <tr class="box-row">
-
-
         {% for os in operating_systems %}
           <td><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/></td>
         {% endfor %}
-
           <td><input type="text" name="operating_systems" id="os_string" value="" /></td>
         </tr>
       </table>
@@ -168,62 +208,55 @@ function updateFilter(target){
 
       <table>
         <tr class="title-row">
-        
-        {% for arch in architectures %}
-          <th>{{ arch.architecture }}</th>
+        {% for proc in  processors%}
+          <th>{{ proc.processor }}</th>
         {% endfor %}
-
-        <th>Arch filter string</th>
-
+        <th>Processor filter string</th>
         </tr>
         <tr class="box-row">
-
-        {% for arch in architectures %}
-          <td><input type="checkbox" id="arch-{{arch.architecture}}" onchange='updateFilter("arch")'/></td>
+        {% for proc in  processors %}
+          <td><input type="checkbox" id="proc-{{proc.processor}}" onchange='updateFilter("proc")'/></td>
         {% endfor %}
-          <td><input type="text" name="architectures" id="arch_string" value="" /></td>
+          <td><input type="text" name="processors" id="proc_string" value="" /></td>
         </tr>
       </table>
 
 
       <table>
         <tr class="title-row">
-        
-        {% for alias in owner_aliases %}
-
-          <th>{{ alias.alias }}</th>
+        {% for manu in manufacturers %}
+          <th>{{ manu.processor_manufacturer }}</th>
         {% endfor %}
-
-        <th>Alias filter string</th>
+        <th>Manufacturers filter string</th>
         </tr>
         <tr class="box-row">
-        {% for alias in owner_aliases %}
-          <td><input type="checkbox" id="alias-{{alias.alias}}" value="" onchange='updateFilter("alias")'/></td>
+        {% for manu in manufacturers %}
+          <td><input type="checkbox" id="manu-{{manu.processor_manufacturer}}" onchange='updateFilter("manu")'/></td>
         {% endfor %}
-          <td><input type="text" name="owner_aliases" id="alias_string" value="" /></td>
+          <td><input type="text" name="processor_manufacturers" id="manu_string" value="" /></td>
         </tr>
       </table>
+
 
       <table>
         <tr class="title-row">
-        <th><label for="like">Like</label></th>
-        <td><input type="text" name="like"  value="{{ec2_image_filters.0.like|default_if_none:''}}" /></td>
+        {% for core in cores %}
+          <th>{{ core.cores }}</th>
+        {% endfor %}
+        <th>Cores filter string</th>
         </tr>
-
-        <tr class="title-row">
-        <th><label for="not_like">Not like</label></th>
-        <td><input type="text" name="not_like"  value="{{ec2_image_filters.0.not_like|default_if_none:''}}" /></td>
+        <tr class="box-row">
+        {% for core in cores %}
+          <td><input type="checkbox" id="cores-{{core.cores}}" onchange='updateFilter("cores")'/></td>
+        {% endfor %}
+          <td><input type="text" name="cores" id="cores_string" value="" /></td>
         </tr>
-
-        <tr class="title-row">
-        <th><label for="owner_ids">Owner IDs</label></th>
-        <td><input type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids|default_if_none:''}}" /></td>
-        </tr>
-
-        <tr><td><input type="submit" value="Update filter" /></td><td></td></tr> 
       </table>
-    </div>
 
+
+      <input type="submit" value="Update filter" />
+
+     
 
   </form>
 
@@ -240,22 +273,27 @@ function updateFilter(target){
         <table id="vmsTable">
             <tr>
               <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
-              <th onclick="sortTable(1)">Image Location &#8597;</th>
-
-              <th onclick="sortTable(2)">ID &#8597;</th>
+              <th onclick="sortTable(1)">Type &#8597;</th>
+              <th onclick="sortTable(2)">OS &#8597;</th>
+              <th onclick="sortTable(3)">Family &#8597;</th>
+              <th onclick="sortTable(4)">Processor &#8597;</th>
+              <th onclick="sortTable(5)">Cores &#8597;</th>
+              <th onclick="sortTable(6)">RAM &#8597;</th>
 
             </tr>
           <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
 
 
-            {% for image in ec2_images %}
+            {% for type in ec2_instance_types %}
 
                 <tr>
-                <td><input type="checkbox" name="images.{{ forloop.counter }}" value=""></td>
-                <td>{{image.name}}</td>
-                <td>{{image.image_location}}</td>
-                <td>{{image.id}}</td>
-
+                <td><input type="checkbox" name="type.{{ forloop.counter }}" value=""></td>
+                <td>{{type.instance_type}}</td>
+                <td>{{type.operating_system}}</td>
+                <td>{{type.instance_family}}</td>
+                <td>{{type.processor}}</td>
+                <td>{{type.cores}}</td>
+                <td>{{type.memory}}</td>
               </tr>
             {% endfor %}
 

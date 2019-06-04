@@ -1334,6 +1334,7 @@ def vm_poller():
                     vm_dict = {
                         'group_name': vm_group_name,
                         'cloud_name': vm_cloud_name,
+                        "region": cloud_obj.region,
                         'auth_url': cloud_obj.authurl,
                         'project': cloud_obj.project,
                         'cloud_type': "openstack",
@@ -1408,7 +1409,8 @@ def vm_poller():
                                 'project':    for_vm_dict[key]['project'],
                                 'region':     for_vm_dict[key]['region'],
                                 'flavor_id':  for_vm_dict[key]['flavor_id'],
-                                'count':      for_vm_dict[key]['count']
+                                'count':      for_vm_dict[key]['count'],
+                                'cloud_type': "openstack"
                             }
                             new_fvm = FVM(**fvm_dict)
                             db_session.merge(new_fvm)
@@ -1442,7 +1444,7 @@ def vm_poller():
 
             # Check on the core limits to see if any clouds need to be scaled down.
             logging.debug("checking for over-quota clouds")
-            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota)
+            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota).filter(view_vm_kill_retire_over_quota.c.cloud_type=="openstack")
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
 

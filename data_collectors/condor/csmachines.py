@@ -132,7 +132,7 @@ def machine_poller():
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
-                           "cloud_name", "cs_host_id", "flavor", "TotalDisk"]
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=6)
 
@@ -172,6 +172,7 @@ def machine_poller():
             #       - group_name (in both group_name and machine)
             #       - cloud_name (only in machine?)
             host_groups = {}
+            groups = db_session.query(GROUPS)
             for group in groups:
                 cloud_list = []
                 clouds = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name)
@@ -240,7 +241,7 @@ def machine_poller():
                             machine_errors["nogrp"] = machine_errors["nogrp"] + 1
                         continue
                     if 'cloud_name' not in r_dict:
-                        logging.debug("Skipping resource with no group_name.")
+                        logging.debug("Skipping resource with no cloud_name.")
                         forgein_machines = forgein_machines + 1
                         if "nocld" not in machine_errors:
                             machine_errors["nocld"] = 1
@@ -248,7 +249,7 @@ def machine_poller():
                             machine_errors["nocld"] = machine_errors["nocld"] + 1
                         continue
                     if 'cs_host_id' not in r_dict:
-                        logging.debug("Skipping resource with no group_name.")
+                        logging.debug("Skipping resource with no host id.")
                         forgein_machines = forgein_machines + 1
                         if "nohost" not in machine_errors:
                             machine_errors["nohost"] = 1
@@ -265,8 +266,8 @@ def machine_poller():
                             machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
                     # check cs host
-                    if r_dict['cs_host_id'] != config.csv2_host_id:
-                        logging.debug("Skipping resource with bad group name in machine string %s" % r_dict['Machine'])
+                    if str(r_dict['cs_host_id']) != str(config.csv2_host_id):
+                        logging.debug("Skipping resource with bad cs_host_id: %s, should be %s" % (r_dict['cs_host_id'], config.csv2_host_id))
                         forgein_machines = forgein_machines + 1
                         if "badgrp" not in machine_errors:
                             machine_errors["badgrp"] = 1
@@ -292,8 +293,6 @@ def machine_poller():
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)
 
-                    r_dict["condor_host"] = condor_host
-
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], "-", r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
@@ -317,7 +316,7 @@ def machine_poller():
                     if "badcld" in machine_errors:
                         logging.info("    %s ignored for invalid cloud name" % machine_errors["badcld"])
                     if "nocld" in machine_errors:
-                        logging.info("    %s ignored for invalid cloud name" % machine_errors["nocld"])
+                        logging.info("    %s ignored for missing cloud name" % machine_errors["nocld"])
                     if "nohost" in machine_errors:
                         logging.info("    %s ignored for missing host id" % machine_errors["nohost"])
                     if "badhost" in machine_errors:

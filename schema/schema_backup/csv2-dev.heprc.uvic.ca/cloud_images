@@ -29,9 +29,9 @@ CREATE TABLE `cloud_images` (
   `cloud_type` varchar(64) DEFAULT NULL,
   `container_format` varchar(128) DEFAULT NULL,
   `disk_format` varchar(128) DEFAULT NULL,
-  `name` varchar(256) NOT NULL,
+  `name` varchar(256) DEFAULT NULL,
   `size` bigint(13) DEFAULT NULL,
-  `visibility` varchar(128) NOT NULL,
+  `visibility` varchar(128) DEFAULT NULL,
   `min_disk` int(11) NOT NULL DEFAULT 0,
   `min_ram` int(11) NOT NULL DEFAULT 0,
   `last_updated` int(11) NOT NULL,
@@ -48,4 +48,4 @@ CREATE TABLE `cloud_images` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-16 10:26:47
+-- Dump completed on 2019-06-03 11:25:07

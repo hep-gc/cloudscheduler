@@ -197,6 +197,8 @@ class OpenStackCloud(basecloud.BaseCloud):
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
+                    'region': self.region,
+                    'cloud_type': "openstack",
                     'auth_url': self.authurl,
                     'project': self.project,
                     'hostname': vm.name,

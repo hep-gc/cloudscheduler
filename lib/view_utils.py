@@ -1240,3 +1240,52 @@ def _validate_fields_pw_check(pw1, pw2=None):
 
     return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
 
+#-------------------------------------------------------------------------------
+
+def verify_cloud_credentials(config, fields, active_user):
+    """
+    Validate Amazon EC2 credentials and return OwnerId.
+    """
+
+    import boto3
+
+    if 'authurl' in fields and \
+        'cloud_type' in fields and \
+        'region' in fields and \
+        'username' in fields and \
+        'password' in fields:
+
+        authurl = fields['authurl']
+        cloud_type = fields['cloud_type']
+        region = fields['region']
+        username = fields['username']
+        password = fields['password']
+
+    else:
+        cloud_list = qt(config.db_session.execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (active_user.active_group, fields['cloud_name'])))
+        if len(cloud_list) != 1:
+            return 1, 'cloud "%s::%s" does not exist' % (active_user.active_group, fields['cloud_name']), None
+
+        authurl = fields.get('authurl', cloud_list[0]['authurl'])
+        cloud_type = fields.get('cloud_type', cloud_list[0]['cloud_type'])
+        region = fields.get('region', cloud_list[0]['region'])
+        username = fields.get('username', cloud_list[0]['username'])
+        password = fields.get('password', cloud_list[0]['password'])
+
+    if cloud_type == 'amazon':
+        try:
+            session = boto3.session.Session(region_name=region,
+                aws_access_key_id=username,
+                aws_secret_access_key=password)
+
+            return 0, None, session.client('sts').get_caller_identity().get('Account')
+
+        except:
+            return 1, 'invalid Amazon EC2 credentials', None
+
+    elif cloud_type == 'openstack':
+       return 0, None, None
+
+    else:
+       return 0, None, None
+
