@@ -15,7 +15,7 @@ from cloudscheduler.lib.signal_manager import register_signal_receiver
 from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
-from cloudscheduler.lib.view_utils import qt
+from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials 
 
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -450,6 +450,10 @@ def image_poller():
                     #First get the filters and check if self or shared images are enabled
                     self_filter = False
                     shared_filter = False
+
+                    # ~~~~~~~~~~~ TODO ~~~~~~~~~~~~
+                    ## THIS ROUTINE MAY NEED TO BE UPDATED TO BE ROW SPECIFIC AS IF MULTIPLE AMAZON-EAST ENTRIES EXIST WITH DIFFERENT USERS THERE WILL BE DIFFERENT OWNER_IDS
+
                     try:
                         filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
                         if "self" in filter_row.owner_aliases:
@@ -459,10 +463,28 @@ def image_poller():
                     except:
                         logging.info("No filter row for cloud %s::%s" % (cloud.group_name, cloud.cloud_name))
                         continue
+                    requester_id = None
+                    if cloud.ec2_owner_id is None or cloud.ec2_owner_id == "":
+                        rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, cloud)
+                        if rc != 0 or owner_id is None:
+                            logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud.group_name, cloud.cloud_name, msg))
+                            continue
+                        else:
+                            requester_id = owner_id
+                      
 
                     # get self-owned and directly shared images
                     if shared_filter or self_filter:
-                        requester_id = cloud.ec2_owner_id
+                        requester_id = None
+                        if cloud.ec2_owner_id is None or cloud.ec2_owner_id == "":
+                            rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, cloud)
+                            if rc != 0:
+                                logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud.group_name, cloud.cloud_name, msg))
+                                continue
+                            else:
+                                requester_id = owner_id
+                        else:
+                            requester_id = cloud.ec2_owner_id
                         session = _get_ec2_session(cloud)
                         client = _get_ec2_client(session)
                         user_list = ['self']
