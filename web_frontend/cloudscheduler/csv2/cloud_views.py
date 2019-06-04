@@ -18,7 +18,9 @@ from cloudscheduler.lib.view_utils import \
     set_user_groups, \
     table_fields, \
     validate_by_filtered_table_entries, \
-    validate_fields
+    validate_fields, \
+    verify_cloud_credentials
+
 import bcrypt
 
 from sqlalchemy import exists
@@ -479,6 +481,14 @@ def add(request):
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud add, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
 
+        # Verify cloud credentials.
+        rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
+        if rc == 0:
+            fields['ec2_owner_id'] = owner_id
+        else:
+            config.db_close()
+            return list(request, active_user=active_user, response_code=1, message='%s cloud add "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
+
         # Add the cloud.
         table = tables['csv2_clouds']
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
@@ -575,7 +585,8 @@ def delete(request):
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
+#       return list(request, active_user=active_user, response_code=1, message='%s cloud delete, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud delete request did not contain mandatory parameter "cloud_name".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 
@@ -762,7 +773,8 @@ def metadata_add(request):
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method))
+#       return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_add, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-add request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 
@@ -881,7 +893,8 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno(MODID), request.method))
+#       return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_delete, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-delete request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 
@@ -1164,7 +1177,8 @@ def metadata_update(request):
 
     ### Bad request.
     else:
-        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method))
+#       return list(request, active_user=active_user, response_code=1, message='%s cloud metadata_update, invalid method "%s" specified.' % (lno(MODID), request.method))
+        return list(request, active_user=active_user, response_code=1, message='%s cloud metadata-update request did not contain mandatory parameters "cloud_name" and "metadata_name".' % lno(MODID))
 
 #-------------------------------------------------------------------------------
 
@@ -1525,6 +1539,14 @@ def update(request):
             if rc != 0:
                 config.db_close()
                 return list(request, active_user=active_user, response_code=1, message='%s cloud update, "%s" failed - %s.' % (lno(MODID), fields['cloud_name'], msg))
+
+        # Verify cloud credentials.
+        rc, msg, owner_id = verify_cloud_credentials(config, fields, active_user)
+        if rc == 0:
+            fields['ec2_owner_id'] = owner_id
+        else:
+            config.db_close()
+            return list(request, active_user=active_user, response_code=1, message='%s cloud update "%s::%s" failed - %s.' % (lno(MODID), fields['group_name'], fields['cloud_name'], msg))
 
         # update the cloud.
         table = tables['csv2_clouds']

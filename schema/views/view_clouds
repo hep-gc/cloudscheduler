@@ -116,6 +116,7 @@ from (
     cacertificate,
     cc.region,
     cc.cloud_type,
+    cc.ec2_owner_id,
 
     case when cores_ctl<0 then
         -1
