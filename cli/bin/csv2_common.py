@@ -255,16 +255,16 @@ def _requests(gvar, request, form_data={}, query_data={}):
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['pid_defaults']['server'])
         exit(1)
 
-    if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):
+    if gvar['grid_proxy_user']:
         authentication_method = 'X509'
 
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], 'xxx')
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['grid_proxy_user'])
 
         try:
             _r = _function(
                 _request,
                 headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-                cert=('/tmp/x509up_u%s' % gvar['uid']),
+                cert=(gvar['grid_proxy_user']),
                 data=_form_data,
                 cookies=gvar['cookies']
                 )
@@ -310,7 +310,10 @@ def _requests(gvar, request, form_data={}, query_data={}):
         gvar['active_group'] = response['active_group']
 
     if 'active_user' in response and 'active_group' in response:
-        update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
+        if gvar['grid_proxy_user']:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=gvar['grid_proxy_user'], group=response['active_group'])
+        else:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
 
     if 'super_user' in response:
         gvar['super_user'] = response['super_user']
