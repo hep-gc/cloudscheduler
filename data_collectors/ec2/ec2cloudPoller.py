@@ -452,7 +452,9 @@ def image_poller():
                     shared_filter = False
 
                     # ~~~~~~~~~~~ TODO ~~~~~~~~~~~~
+                    #
                     ## THIS ROUTINE MAY NEED TO BE UPDATED TO BE ROW SPECIFIC AS IF MULTIPLE AMAZON-EAST ENTRIES EXIST WITH DIFFERENT USERS THERE WILL BE DIFFERENT OWNER_IDS
+                    # infact since each cloud row can have its own filters it would be ideal to loop over each row instead of getting fancy with regional polling.
 
                     try:
                         filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
@@ -465,7 +467,9 @@ def image_poller():
                         continue
                     requester_id = None
                     if cloud.ec2_owner_id is None or cloud.ec2_owner_id == "":
-                        rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, cloud)
+                        obj = lambda: None
+                        obj.active_group = cloud.group_name
+                        rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, obj)
                         if rc != 0 or owner_id is None:
                             logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud.group_name, cloud.cloud_name, msg))
                             continue
@@ -475,16 +479,6 @@ def image_poller():
 
                     # get self-owned and directly shared images
                     if shared_filter or self_filter:
-                        requester_id = None
-                        if cloud.ec2_owner_id is None or cloud.ec2_owner_id == "":
-                            rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, cloud)
-                            if rc != 0:
-                                logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud.group_name, cloud.cloud_name, msg))
-                                continue
-                            else:
-                                requester_id = owner_id
-                        else:
-                            requester_id = cloud.ec2_owner_id
                         session = _get_ec2_session(cloud)
                         client = _get_ec2_client(session)
                         user_list = ['self']
