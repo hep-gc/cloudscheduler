@@ -10,6 +10,7 @@ import json
 import os
 import yaml
 
+from csv2_common import yaml_full_load
 from csv2_group import defaults, metadata_delete, metadata_edit, metadata_list, metadata_load, metadata_update
 
 KEY_MAP = {
@@ -344,7 +345,7 @@ def _get_repository_and_servers(gvar):
             continue
 
         _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], host_dir))
-        servers[host_dir] = yaml.full_load(_fd)
+        servers[host_dir] = yaml_full_load(_fd)
         _fd.close()
 
         if 'server-address' in servers[host_dir]:
