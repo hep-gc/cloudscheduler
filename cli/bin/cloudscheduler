@@ -4,7 +4,7 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import requests, requests_no_credentials_error, update_pid_defaults
+from csv2_common import requests, requests_no_credentials_error, update_pid_defaults, yaml_full_load
 
 import os
 import sys
@@ -306,7 +306,7 @@ def main(args):
     if os.path.isfile(gvar['pid_file']):
         gvar['pid_defaults_update'] = False
         fd = open(gvar['pid_file'])
-        gvar['pid_defaults'] = yaml.full_load(fd.read())
+        gvar['pid_defaults'] = yaml_full_load(fd.read())
         fd.close()
     else:
         update_pid_defaults(gvar)
@@ -346,7 +346,7 @@ def main(args):
     else:
         if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server'])):
             fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server']))
-            gvar['user_settings'] = yaml.full_load(fd)
+            gvar['user_settings'] = yaml_full_load(fd)
             fd.close()
         else:
             gvar['user_settings'] = {}
