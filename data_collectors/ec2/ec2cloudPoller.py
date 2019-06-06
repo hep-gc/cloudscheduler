@@ -164,7 +164,6 @@ def refresh_instance_types(config, file_path, region):
                         'storage': itxsku['products'][sku]['attributes']['storage'],
                         'cores': int(itxsku['products'][sku]['attributes']['vcpu']),
                         'memory': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]),
-                        'mem_per_core': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]) / int(itxsku['products'][sku]['attributes']['vcpu']),
                         'cost_per_hour': cost
                     }
                 except Exception as exc:
@@ -331,6 +330,7 @@ def ec2_filterer():
         except Exception as exc:
             logging.error("Exception during general operation of ec2 filterer:")
             logging.exception(exc)
+            config.db_close()
 
            
     return false
@@ -475,10 +475,13 @@ def image_poller():
                             continue
                         else:
                             requester_id = owner_id
+                    else:
+                        requester_id = cloud.ec2_owner_id
                       
 
                     # get self-owned and directly shared images
                     if shared_filter or self_filter:
+                        logging.debug("Getting self and/or shared images")
                         session = _get_ec2_session(cloud)
                         client = _get_ec2_client(session)
                         user_list = ['self']
@@ -487,7 +490,9 @@ def image_poller():
                             {'Name': 'state', 'Values':['available']},
                         ]
                         image_list = client.describe_images(Owners=user_list, Filters=filters)
+                        logging.debug("~~ IMAGE LIST: %s" % image_list["Images"])
                         for image in image_list["Images"]:
+                            logging.debug(image)
                             size = 0
                             if image['BlockDeviceMappings']:
                                 for device in image['BlockDeviceMappings']:
@@ -504,19 +509,22 @@ def image_poller():
                                     ioa = None
                                 if 'Name' in image.keys():
                                     nm =  image['Name']
+                                    logging.debug(image['Name'])
                                 else:
                                     nm = "NoName"
                                 if 'Description' in image.keys():
                                     desc =  image['Description']
                                 else:
                                     desc = None
-                                if image['OwnerId'] is not requester_id:
+                                if image['OwnerId'] != str(requester_id):
                                     borrower_id = requester_id
                                     if not shared_filter:
+                                        logging.debug("Ignoring shared image..")
                                         continue
                                 else:
                                     borrower_id = "not_shared"
                                     if not self_filter:
+                                        logging.debug("Ignoring self image..")
                                         continue
                                 img_dict = {
                                     'region': cloud.region,
