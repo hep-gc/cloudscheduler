@@ -10,11 +10,13 @@
 var families_list = {{families_list|safe}}
 var os_list = {{os_list|safe}}
 var manu_list = {{manu_list|safe}}
-var cores_list = {{cores_list|safe}}
-var proc_list = {{proc_list|safe}}
 
+var cores_list = {{cores_list|safe}}.map(String)
+
+var proc_list = {{proc_list|safe}}
 var ec2_filters = {{ec2_instance_type_filters_json|safe}}
 
+//Spit the filter strings into arrays:
 if(ec2_filters[0].families){
   var families_filter = ec2_filters[0].families.split(",")
 }
@@ -43,7 +45,6 @@ else{
   var manu_filter = [] 
 }
 
-
 if(ec2_filters[0].cores){
   var cores_filter = ec2_filters[0].cores.split(",")
 }
@@ -55,15 +56,12 @@ else{
 //var mem_min_filter = ec2_filters[0].memory_min_gigabytes_per_core.split(",")
 //var mem_max_filter = ec2_filters[0].memory_max_gigabytes_per_core.split(",")
 
-console.log(manu_filter)
 
 function checkBoxes(target, target_list, target_filter){
 
   var i
   var id
   var filter_string
-
-  console.log(target_filter.length)
 
   filter_string = ""
   for (i = 0; i < target_filter.length; i++){
@@ -75,8 +73,6 @@ function checkBoxes(target, target_list, target_filter){
     filter_string += target_filter[i]
   }
   document.getElementById(target+"_string").value = filter_string
-
-  console.log(id)
 }
 
 
@@ -107,8 +103,6 @@ function updateFilter(target){
     console.log("Invalid target: "+target)
     return
   }
-
-  console.log(document.getElementById(target+"_string").value)
   
   targ_filter = document.getElementById(target+"_string").value.split(",")
 
@@ -150,10 +144,9 @@ function updateFilter(target){
       document.getElementById(id).checked = true;
     }
     if(i>0){filter_string += ","}
-    filter_string += targ_filter[i]
+    filter_string += targ_filter[i].toString()
   }
 
-  console.log(targ_filter)
 
   document.getElementById(target+"_string").value = filter_string
 
