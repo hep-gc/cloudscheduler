@@ -91,7 +91,7 @@ def _bracket_and_bracket_to_or(sql):
     Return a clause to select where a column is equal to one or more values.
     """
     
-    if sql[-2][-1] == ')' and sql[-1][:5] == 'and (':
+    if len(sql) > 1 and len(sql[-2]) > 0 and len(sql[-1]) > 5 and sql[-2][-1] == ')' and sql[-1][:5] == 'and (':
         sql[-2] = sql[-2][:-1] + ' or ' + sql[-1][5:]
         del sql[-1]
 
