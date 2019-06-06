@@ -148,8 +148,9 @@ from (
         left outer join (
             /* n04 - Retrieve (native) condor slot information */
             select
-                substring_index(machine, '--', 1) as group_name,
-                substring_index(substring_index(machine, '--', 2), '--', -1) as cloud_name,
+                group_name,
+                cloud_name,
+                machine,
                 substring_index(machine, '.', 1) as hostname,
                 sum(case when slot_type='Dynamic' then 1 else 0 end) as slot_count,
                 sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
@@ -163,7 +164,7 @@ from (
             ) as n04 on
             cv.group_name=n04.group_name and
             cv.cloud_name=n04.cloud_name and
-            cv.hostname=n04.hostname
+            (cv.hostname=n04.machine or cv.hostname=n04.hostname)
         group by
             cv.group_name,
             cv.cloud_name,

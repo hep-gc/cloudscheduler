@@ -26,5 +26,6 @@ left outer join (
         machine,
         condor_host
     ) as cm on
-    cv.hostname=substring_index(cm.machine, '.', 1)
+    cv.hostname=cm.machine or 
+    cv.hostname=substring_index(cm.machine, '.', 1) 
 ;
