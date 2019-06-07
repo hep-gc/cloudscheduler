@@ -10,6 +10,68 @@ UTILITY FUNCTIONS
 
 #-------------------------------------------------------------------------------
 
+def cskv(key_values, opt='dict'):
+    """
+    Parse comma separated key/value pairs. Values containing commas and null
+    values must be quoted.
+    """
+
+    msg = None
+    rc = 0  
+
+    if opt == 'dict':
+        result = {}
+    else:
+        result = []
+
+    if key_values:
+        while len(key_values) > 0:
+            key_value = key_values.split('=', 1)
+            if len(key_value) == 2:
+                if len(key_value[1]) > 0 and key_value[1][0] == "'": 
+                    value_key_values = key_value[1][1:].split("'", 1)
+                elif len(key_value[1]) > 0 and key_value[1][0] == '"': 
+                    value_key_values = key_value[1][1:].split('"', 1)
+                else:
+                    value_key_values = key_value[1].split(',', 1)
+
+                if len(value_key_values) == 2:
+                    if opt == 'dict':
+                        result[key_value[0]] = value_key_values[0]
+                    else:
+                        result.append([key_value[0], value_key_values[0]])
+
+                    if len(value_key_values[1]) > 0 and value_key_values[1][0] == ',': 
+                        key_values = value_key_values[1][1:]
+                    else:
+                        key_values = value_key_values[1]
+
+                else:
+                    if len(key_value[1]) > 0 and (key_value[1][0] == "'" or key_value[1][0] == '"'):
+                        msg = 'end quote missing from value ((key "%s").' % key_values
+                        rc = 1
+                        break
+                    else:
+                        if len(value_key_values[0]) > 0:
+                            if opt == 'dict':
+                                result[key_value[0]] = value_key_values[0]
+                            else:
+                                result.append([key_value[0], value_key_values[0]])
+                            key_values = ''
+                        else:
+                            msg = 'null values must be quoted ((key "%s").' % key_values
+                            rc = 1
+                            break
+
+            else:
+                msg = 'no value specified ((key "%s").' % key_values
+                rc = 1
+                break
+
+    return rc, msg, result
+
+#-------------------------------------------------------------------------------
+
 def diff_lists(list1,list2, option=None):
     """
     if option equal 'and', return a list of items which are in both list1
