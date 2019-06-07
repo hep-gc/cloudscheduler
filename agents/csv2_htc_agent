@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+from subprocess import Popen, PIPE
+import logging
+import pika
+import socket
+import yaml
+
+def callback(ch, method, properties, body):
+    p = Popen(['echo', body], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p.communicate()
+
+    if p.returncode == 0:
+        print(stdout)
+        logger.info('Successfully issued: %s' % body)
+    else:
+        logger.warn('Return code %s from: %s - %s' % (p.returncode, body, stderr))
+
+def yaml_full_load(yaml_string):
+    if hasattr(yaml, 'full_load'):
+        return yaml.full_load(yaml_string)
+    else:
+        return yaml.load(yaml_string)
+       
+#fd = open('/etc/cloudscheduler/csv2_htc_agent.conf')
+fd = open('../etc/cloudscheduler/csv2_htc_agent.conf')
+config = yaml_full_load(fd.read())
+fd.close()
+
+logger = logging.getLogger()
+logging.basicConfig(
+    filename=config['log_file'],
+    level=config['log_level'],
+    format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+
+my_host_name = socket.gethostname()
+csv2_queue = '%s_%s' % (config['csv2_queue'], my_host_name)
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(config['csv2_host'], config['csv2_port']))
+channel = connection.channel()
+
+channel.queue_declare(queue=csv2_queue)
+
+channel.basic_consume(queue=csv2_queue,
+                      auto_ack=True,
+                      on_message_callback=callback)
+
+logger.info('Waiting for messages.')
+channel.start_consuming()
+

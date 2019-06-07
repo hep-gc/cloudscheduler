@@ -1,0 +1,13 @@
+[Unit]
+Description=Process AMQP messages sent by cloudscheduler V2.
+After=network.target
+
+[Service]
+Type=simple
+User=cloudscheduler
+ExecStart=/usr/bin/python3 /opt/cloudscheduler/agents/csv2_htc_agent
+Restart=always
+
+
+[Install]
+WantedBy=multi-user.target
