@@ -2,7 +2,7 @@
   <head>
   {% load static %}
   <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
-  <link rel="stylesheet" type="text/css" href="{% static "csv2/vms.css" %}?{{version}}">
+  <link rel="stylesheet" type="text/css" href="{% static "csv2/filters.css" %}?{{version}}">
   </head>
 
 <script type="text/javascript">
@@ -129,7 +129,61 @@ function updateFilter(target){
 
 }
 
-
+// To sort by clicking the headers
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("filterTable");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc";
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.getElementsByTagName("TR");
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
 
 </script>
 
@@ -142,87 +196,60 @@ function updateFilter(target){
     <input type="hidden" name="cloud_name" value="{{ ec2_image_filters.0.cloud_name }}" />
 
 
-    <div class="filter-div">
+    <nav role="navigation">
+      <ul>
 
-      <table>
-        <tr class="title-row">
-          <th>OS filter string</th>
-
-        {% for os in operating_systems %}
-          <th>{{ os.operating_system }}</th>
-        {% endfor %}
+        <li><br><input type="submit" value="Update filter" />
+        </li>
 
 
-        </tr>
-        <tr class="box-row">
-          <td><input type="text" name="operating_systems" id="os_string" value="" /></td>
+        <li><a href="#">Operating Systems</a><br>
+          <input class="text-field" type="text" name="operating_systems" id="os_string" value="" />
+          <ul class="dropdown" aria-label="submenu">
+            {% for os in operating_systems %}
+              <li><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/>{{os.operating_system}}</li>
+            {% endfor %}
+          </ul>
+        </li>
 
-        {% for os in operating_systems %}
-          <td><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/></td>
-        {% endfor %}
-
-        </tr>
-      </table>
-
-
-      <table>
-        <tr class="title-row">
-          <th>Arch filter string</th>
-
-        {% for arch in architectures %}
-          <th>{{ arch.architecture }}</th>
-        {% endfor %}
+        <li><a href="#">Architectures</a><br>
+          <input class="text-field" type="text" name="architectures" id="arch_string" value="" />
+          <ul class="dropdown" aria-label="submenu">
+            {% for arch in architectures %}
+              <li><input type="checkbox" id="arch-{{arch.architecture}}" onchange='updateFilter("arch")'/>{{ arch.architecture }}</li>
+            {% endfor %}
+          </ul>
+        </li>
 
 
-        </tr>
-        <tr class="box-row">
-          <td><input type="text" name="architectures" id="arch_string" value="" /></td>
+        <li><a href="#">Owner Alias</a><br>
+          <input class="text-field" type="text" name="owner_aliases" id="alias_string" value="" />
+          <ul class="dropdown" aria-label="submenu">
+            {% for alias in owner_aliases %}
+              <li><input type="checkbox" id="alias-{{alias.alias}}" value="" onchange='updateFilter("alias")'/>{{ alias.alias }}</li>
+            {% endfor %}
+          </ul>
+        </li>
 
-        {% for arch in architectures %}
-          <td><input type="checkbox" id="arch-{{arch.architecture}}" onchange='updateFilter("arch")'/></td>
-        {% endfor %}
-        </tr>
-      </table>
+        <li><a href="#">Like</a><br>
+          <input class="text-field" type="text" name="like"  value="{{ec2_image_filters.0.like|default_if_none:''}}" />
+        </li>
+
+        <li><a href="#">Not Like</a><br>
+          <input class="text-field" type="text" name="not_like"  value="{{ec2_image_filters.0.not_like|default_if_none:''}}" />
+        </li>
+
+        <li><a href="#">Owner IDs</a><br>
+          <input class="text-field" type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids|default_if_none:''}}" />
+        </li>
 
 
-      <table>
-        <tr class="title-row">
-          <th>Alias filter string</th>
+      </ul>
+    </nav>
 
-        {% for alias in owner_aliases %}
 
-          <th>{{ alias.alias }}</th>
-        {% endfor %}
 
-        </tr>
-        <tr class="box-row">
-          <td><input type="text" name="owner_aliases" id="alias_string" value="" /></td>
 
-        {% for alias in owner_aliases %}
-          <td><input type="checkbox" id="alias-{{alias.alias}}" value="" onchange='updateFilter("alias")'/></td>
-        {% endfor %}
-        </tr>
-      </table>
-
-      <table>
-        <tr class="title-row">
-        <th><label for="like">Like</label></th>
-        <td><input type="text" name="like"  value="{{ec2_image_filters.0.like|default_if_none:''}}" /></td>
-        </tr>
-
-        <tr class="title-row">
-        <th><label for="not_like">Not like</label></th>
-        <td><input type="text" name="not_like"  value="{{ec2_image_filters.0.not_like|default_if_none:''}}" /></td>
-        </tr>
-
-        <tr class="title-row">
-        <th><label for="owner_ids">Owner IDs</label></th>
-        <td><input type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids|default_if_none:''}}" /></td>
-        </tr>
-
-        <tr><td><input type="submit" value="Update filter" /></td><td></td></tr> 
-      </table>
-    </div>
 
 
   </form>

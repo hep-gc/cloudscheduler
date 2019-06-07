@@ -1,11 +1,13 @@
  a {
   text-decoration: none;
 }
-/*
+
 nav {
-    font-family: monospace;
+    /*font-family: monospace;*/
+    font-size: 75%;
+
 }
-*/
+
 ul {
   background: darkorange;
   list-style: none;
@@ -62,8 +64,13 @@ ul li ul li {
   width: 100%;
 }
 
+.text-field {
+  width: 100;
+}
 
-
+.num-field {
+  width: 100;
+}
 
 
 .vm-table {

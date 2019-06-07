@@ -226,7 +226,7 @@ function sortTable(n) {
         </li>
 
         <li><a href="#">Processor Families</a><br>
-          <input type="text" name="families" id="families_string" value="" />
+          <input class="text-field" type="text" name="families" id="families_string" value="" />
           <ul class="dropdown" aria-label="submenu">
             {% for family in families %}
               <li><input type="checkbox" id="families-{{family.instance_family}}" value="" onchange='updateFilter("families")'/>{{ family.instance_family }}</li>
@@ -235,7 +235,7 @@ function sortTable(n) {
         </li>
 
         <li><a href="#">Operating Systems</a><br>
-          <input type="text" name="operating_systems" id="os_string" value="" />
+          <input class="text-field" type="text" name="operating_systems" id="os_string" value="" />
           <ul class="dropdown" aria-label="submenu">
             {% for os in operating_systems %}
               <li><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/>{{os.operating_system}}</li>
@@ -243,7 +243,7 @@ function sortTable(n) {
           </ul>
         </li>
         <li><a href="#">Processors</a><br>
-          <input type="text" name="processors" id="proc_string" value="" />
+          <input class="text-field" type="text" name="processors" id="proc_string" value="" />
           <ul class="dropdown" aria-label="submenu">
             {% for proc in  processors %}
               <li><input type="checkbox" id="proc-{{proc.processor}}" onchange='updateFilter("proc")'/>{{proc.processor}}</li>
@@ -251,7 +251,7 @@ function sortTable(n) {
           </ul>
         </li>
         <li><a href="#">Manufacturers</a><br>
-          <input type="text" name="processor_manufacturers" id="manu_string" value="" />
+          <input class="text-field" type="text" name="processor_manufacturers" id="manu_string" value="" />
           <ul class="dropdown" aria-label="submenu">
             {% for manu in manufacturers %}
               <li><input type="checkbox" id="manu-{{manu.processor_manufacturer}}" onchange='updateFilter("manu")'/>{{manu.processor_manufacturer}}</li>
@@ -259,18 +259,18 @@ function sortTable(n) {
           </ul>
         </li>
         <li><a href="#">Cores</a><br>
-          <input type="text" name="cores" id="cores_string" value="" />
+          <input class="text-field" type="text" name="cores" id="cores_string" value="" />
           <ul class="dropdown" aria-label="submenu">
             {% for core in cores %}
               <li><input type="checkbox" id="cores-{{core.cores}}" onchange='updateFilter("cores")'/>{{core.cores}}</li>
             {% endfor %}
           </ul>
         </li>
-        <li><a href="#">RAM Min</a><br>
-          <input type="text" name="memory_min_gigabytes_per_core" id="mem_min_string" value="{{ec2_instance_type_filters.0.memory_min_gigabytes_per_core}}" />
+        <li><a href="#">Min RAM (GB)</a><br>
+          <input class="num-field" type="number" name="memory_min_gigabytes_per_core" id="mem_min_string" value="{{ec2_instance_type_filters.0.memory_min_gigabytes_per_core}}" />
         </li>
-        <li><a href="#">RAM Max</a><br>
-          <input type="text" name="memory_max_gigabytes_per_core" id="mem_max_string" value="{{ec2_instance_type_filters.0.memory_max_gigabytes_per_core}}" />
+        <li><a href="#">Max RAM (GB)</a><br>
+          <input class="num-field" type="number" name="memory_max_gigabytes_per_core" id="mem_max_string" value="{{ec2_instance_type_filters.0.memory_max_gigabytes_per_core}}" />
         </li>
 
 
