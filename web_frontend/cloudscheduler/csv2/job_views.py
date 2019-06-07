@@ -25,6 +25,7 @@ import sqlalchemy.exc
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 # lno: JV - error code identifier.
+MODID = 'JV'
 
 #-------------------------------------------------------------------------------
 
@@ -80,13 +81,13 @@ def list(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     # Validate input fields (should be none).
     rc, msg, fields, tables, columns = validate_fields(config, request, [LIST_KEYS], [], active_user)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno('JV00'), msg)})
+        return render(request, 'csv2/jobs.html', {'response_code': 1, 'message': '%s job list, %s' % (lno(MODID), msg)})
 
     # Retrieve VM information.
     s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)

@@ -2,25 +2,7 @@ from csv2_common import check_keys, requests, show_active_user_groups, show_tabl
 
 KEY_MAP = {
     '-cc':  'category',
-    '-dci': 'delete_cycle_interval',
-    '-djg': 'default_job_group',
-    '-eg':  'enable_glint',
-    '-lf':  'log_file',
-    '-ll':  'log_level',
-    '-nld': 'no_limit_default',
-    '-c':  'cacerts',
-    '-sic': 'sleep_interval_cleanup',
-    '-siC': 'sleep_interval_command',
-    '-sif': 'sleep_interval_flavor',
-    '-sii': 'sleep_interval_image',
-    '-sij': 'sleep_interval_job',
-    '-sik': 'sleep_interval_keypair',
-    '-sil': 'sleep_interval_limit',
-    '-sim': 'sleep_interval_machine',
-    '-sin': 'sleep_interval_network',
-    '-siv': 'sleep_interval_vm',
-    '-sml': 'sleep_interval_main_long',
-    '-sms': 'sleep_interval_main_short',
+    '-ckv': 'config_key_values',
     }
 
 def config(gvar):
@@ -30,7 +12,7 @@ def config(gvar):
 
     mandatory = []
     required = []
-    optional = ['-c', '-cc', '-CSEP', '-CSV', '-dci', '-djg', '-eg', '-g', '-H', '-h', '-lf', '-ll', '-nld', '-NV', '-ok', '-r', '-s', '-sic', '-siC', '-sif', '-sii', '-sij', '-sik', '-sil', '-sim', '-sin', '-siv', '-sml', '-sms', '-V', '-VC', '-xA']
+    optional = ['-cc', '-ckv', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

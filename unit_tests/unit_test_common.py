@@ -23,7 +23,7 @@ def _execute_selections(gvar, request, expected_text, expected_values):
         print('%04d (%04d) %s Skipping: %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, expected_text, expected_values))
         return False
    
-def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, list=None, columns=None):
+def execute_csv2_command(gvar, expected_rc, expected_modid, expected_text, cmd, list=None, columns=None):
 
     from subprocess import Popen, PIPE
     from unit_test_common import _caller, _execute_selections
@@ -34,13 +34,14 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
 
         failed = False
 
-        if (expected_rc != None) and (expected_rc != p.returncode):
+        if expected_rc and expected_rc != p.returncode:
             failed = True
 
-        error_code = str(stdout)[9:11]
-        if expected_rc and expected_rc != 0 and expected_ec:
-            truncated_expected_ec = expected_ec[:2]
-            if error_code != truncated_expected_ec:
+        if p.returncode == 0 or not expected_modid:
+            modid = expected_modid
+        else:
+            modid = decode_bytes(stdout).replace('-', ' ').split()[1]
+            if expected_modid and modid != expected_modid:
                 failed = True
 
         list_error = ''
@@ -66,9 +67,9 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
         if failed:
             gvar['ut_failed'] += 1
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), cmd, expected_rc, expected_ec, expected_text))
+                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), cmd, expected_rc, expected_modid, expected_text))
                 print('    return code=%s' % p.returncode)
-                print('    error code=%s' % error_code)
+                print('    module ID=%s' % modid)
                 print('    stdout=%s' % str(stdout))
                 print('    stderr=%s' % str(stderr))
                 if list_error:
@@ -78,12 +79,12 @@ def execute_csv2_command(gvar, expected_rc, expected_ec, expected_text, cmd, lis
             return 1
         else:
             if not gvar['hidden']:
-                print('%04d (%04d) %s OK: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), cmd, expected_rc, expected_ec, expected_text))
+                print('%04d (%04d) %s OK: %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), cmd, expected_rc, expected_modid, expected_text))
             return 0
     else:
         return 0
 
-def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request, group=None, form_data={}, query_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None, html=False):
+def execute_csv2_request(gvar, expected_rc, expected_modid, expected_text, request, group=None, form_data={}, query_data={}, list=None, filter=None, values=None, server_user=None, server_pw=None, html=False):
     """
     Make RESTful requests via the _requests function and return the response. This function will
     obtain a CSRF (for POST requests) prior to making the atual request.
@@ -170,10 +171,11 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
         if expected_rc and expected_rc != response['response_code']:
             failed = True
 
-        error_code = str(response['message'])[0:2]
-        if expected_rc and expected_rc != 0 and expected_ec:
-            truncated_expected_ec = expected_ec[:2]
-            if error_code != truncated_expected_ec:
+        if response['response_code'] == 0 or not expected_modid:
+            modid = expected_modid
+        else:
+            modid = response['message'].replace('-', ' ').split()[0]
+            if expected_modid and modid != expected_modid:
                 failed = True
 
         if expected_text and str(response['message']).find(expected_text) < 0:
@@ -183,14 +185,14 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
             gvar['ut_failed'] += 1
 
             if not gvar['hidden']:
-                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, query_data, expected_rc, expected_ec, expected_text))
+                print('\n%04d (%04d) %s Failed: %s, %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, query_data, expected_rc, expected_modid, expected_text))
                 if gvar['user_settings']['server-address'] in gvar['active_server_user_group'] and server_user in gvar['active_server_user_group'][gvar['user_settings']['server-address']]:
                     print('    server=%s, user=%s, group=%s' % (gvar['server'], server_user, gvar['active_server_user_group'][gvar['user_settings']['server-address']][server_user]))
                 else:
                     print('    server=%s, user=%s, group=None' % (gvar['server'], server_user))
                 print('    response code=%s' % response['response_code'])
                 if response['response_code'] != 0:
-                    print('    error code=%s' % error_code)
+                    print('    module ID=%s' % modid)
                 print('    message=%s\n' % response['message'])
 
             return 1
@@ -237,7 +239,7 @@ def execute_csv2_request(gvar, expected_rc, expected_ec, expected_text, request,
                     return 0
 
             if not gvar['hidden']:
-                print('%04d (%04d) %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, expected_rc, expected_ec, expected_text))
+                print('%04d (%04d) %s OK: %s, %s, %s, %s, %s' % (gvar['ut_count'][0], gvar['ut_count'][1], _caller(), request, form_data, expected_rc, expected_modid, expected_text))
     else:
         return 0
 

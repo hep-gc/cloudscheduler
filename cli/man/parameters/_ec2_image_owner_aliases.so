@@ -1,0 +1,11 @@
+.TP
+\fB\-ioa \fIalias1\fR[,alias2,... aliasN], \fB\-\-ec2-image-owner-aliases \fIalias1\fR[,alias2,... aliasN]
+Specifies a comma-seperated list of owner aliases of interest.
+The \fBec2\fR object is to filter out images belonging to owners other than specified by this parameter or the \fB\-\-ec2-image-owner-ids\fR parameter.
+
+Unlike other filters, this parameter and the \fB\-\-ec2-image-owner-ids\fR parameter also determine what is retrieved from Amazon EC2. Because there are 
+so many images (millions?) available, only images belonging to the owners identified are retrieved.
+
+The special aliases of "self" (images belonging to you) and "shared" (images specifically shared with you by someone else) are recommeded.
+
+Default: (defined in the system configuration).

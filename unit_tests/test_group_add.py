@@ -13,7 +13,7 @@ def main(gvar, user_secret):
     
     # 01
     execute_csv2_request(
-        gvar, 1, 'GV05', 'invalid method "GET" specified.',
+        gvar, 1, 'GV', 'invalid method "GET" specified.',
         '/group/add/'
     )
 
@@ -33,49 +33,49 @@ def main(gvar, user_secret):
 
     # 04
     execute_csv2_request(
-        gvar, 1, 'GV00', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/add/', group='invalid-unit-test'
     )
 
     # 05
     execute_csv2_request(
-        gvar, 1, 'GV01', 'request did not contain mandatory parameter "group_name".',
+        gvar, 1, 'GV', 'request did not contain mandatory parameter "group_name".',
         '/group/add/', form_data={'htcondor_fqdn': 'invalid-unit-test'}
     )
 
     # 06
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Data too long for column \'group_name\' at row 1',
+        gvar, 1, 'GV', 'Data too long for column \'group_name\' at row 1',
         '/group/add/', form_data={'group_name': ut_id(gvar, 'group-invalid-unit-test')}
     )
 
     # 07
     execute_csv2_request(
-        gvar, 1, 'GV01', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
         '/group/add/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
     # 08
     execute_csv2_request(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={'group_name': 'Invalid-Unit-Test'}
     )
 
     # 09
     execute_csv2_request(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={'group_name': 'invalid-unit-test-'}
     )
 
     # 10
     execute_csv2_request(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={'group_name': 'invalid!unit!test'}
     )
 
     # 11
     execute_csv2_request(
-        gvar, 1, 'GV03', 'Data too long for column \'group_name\' at row 1',
+        gvar, 1, 'GV', 'Data too long for column \'group_name\' at row 1',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'thisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabasethisisagroupnametoolongtoinsertintothedatabase'),
             'htcondor_fqdn': 'invalid-unit-test'
@@ -84,7 +84,7 @@ def main(gvar, user_secret):
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'GV01', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/add/', form_data={
             'group_name': '',
             'htcondor_fqdn': 'invalid-unit-test'
@@ -94,7 +94,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'GV01', 'parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
         '/group/add/', form_data={
             'group_name': 'invalid-unit-test',
             'htcondor_fqdn': ''
@@ -103,7 +103,7 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'GV02', 'specified user "invalid-unit-test" does not exist.',
+        gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
         '/group/add/', form_data={
             'username.1': 'invalid-unit-test',
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
@@ -113,7 +113,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'GV01', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
+        gvar, 1, 'GV', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
         '/group/add/', form_data={
             'user_option': 'invalid-unit-test',
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
@@ -123,7 +123,7 @@ def main(gvar, user_secret):
 
     # 16
     execute_csv2_request(
-        gvar, 1, 'GV02', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'group-invalid-unit-test'), ut_id(gvar, 'gtu3')),
+        gvar, 1, 'GV', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'group-invalid-unit-test'), ut_id(gvar, 'gtu3')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'group-invalid-unit-test'),
             'username.1': ut_id(gvar, 'gtu3'),
@@ -160,7 +160,7 @@ def main(gvar, user_secret):
 
     # 20
     execute_csv2_request(
-        gvar, 1, 'GV03', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
+        gvar, 1, 'GV', '"{0}" failed - (1062, "Duplicate entry \'{0}\' for key \'PRIMARY\'").'.format(ut_id(gvar, 'gtg1')),
         '/group/add/', form_data={'group_name': ut_id(gvar, 'gtg1'), 'htcondor_fqdn': 'invalid-unit-test'}
     )
 
@@ -183,7 +183,7 @@ def main(gvar, user_secret):
 
     # 23
     execute_csv2_request(
-        gvar, 1, 'GV01', 'group add value specified for "job_cpus" must be an integer value.',
+        gvar, 1, 'GV', 'group add value specified for "job_cpus" must be an integer value.',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'htcondor_fqdn': 'unit-test-group-three.ca',
@@ -193,7 +193,7 @@ def main(gvar, user_secret):
 
     # 24
     execute_csv2_request(
-        gvar, 1, 'GV01', 'group add value specified for "job_ram" must be an integer value.',
+        gvar, 1, 'GV', 'group add value specified for "job_ram" must be an integer value.',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'htcondor_fqdn': 'unit-test-group-three.ca',
@@ -203,7 +203,7 @@ def main(gvar, user_secret):
 
     # 25
     execute_csv2_request(
-        gvar, 1, 'GV01', 'group add value specified for "job_disk" must be an integer value.',
+        gvar, 1, 'GV', 'group add value specified for "job_disk" must be an integer value.',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'htcondor_fqdn': 'unit-test-group-three.ca',
@@ -213,7 +213,7 @@ def main(gvar, user_secret):
 
     # 26
     execute_csv2_request(
-        gvar, 1, 'GV01', 'request contained a rejected/bad parameter "job_scratch".',
+        gvar, 1, 'GV', 'request contained a rejected/bad parameter "job_scratch".',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'htcondor_fqdn': 'unit-test-group-three.ca',
@@ -223,7 +223,7 @@ def main(gvar, user_secret):
 
     # 27
     execute_csv2_request(
-        gvar, 1, 'GV01', 'group add value specified for "job_swap" must be an integer value.',
+        gvar, 1, 'GV', 'group add value specified for "job_swap" must be an integer value.',
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'gtg3'),
             'htcondor_fqdn': 'unit-test-group-three.ca',
@@ -250,7 +250,7 @@ def main(gvar, user_secret):
 
     # 29
     execute_csv2_request(
-        gvar, 1, 'GV97', 'group add, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_image=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'htcondor_fqdn': 'invalid-unit-test.ca',
@@ -260,7 +260,7 @@ def main(gvar, user_secret):
 
     # 30
     execute_csv2_request(
-        gvar, 1, 'GV96', 'group add, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_flavor=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'htcondor_fqdn': 'invalid-unit-test.ca',
@@ -270,7 +270,7 @@ def main(gvar, user_secret):
 
     # 31
     execute_csv2_request(
-        gvar, 1, 'GV95', 'group add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_network=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'htcondor_fqdn': 'invalid-unit-test.ca',
@@ -280,7 +280,7 @@ def main(gvar, user_secret):
 
     # 32
     execute_csv2_request(
-        gvar, 1, 'GV95', 'group add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
+        gvar, 1, 'GV', 'group add, "{0}" failed - specified item does not exist: vm_keyname=invalid-unit-test, group_name={0}.'.format(ut_id(gvar, 'invalid-unit-test')),
         '/group/add/', form_data={
             'group_name': ut_id(gvar, 'invalid-unit-test'),
             'htcondor_fqdn': 'invalid-unit-test.ca',

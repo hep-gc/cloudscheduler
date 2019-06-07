@@ -414,7 +414,6 @@ def image_poller():
                             img_dict = {
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
-                                'cloud_type': 'openstack',
                                 'container_format': image.container_format,
                                 'disk_format': image.disk_format,
                                 'min_ram': image.min_ram,
@@ -1202,7 +1201,7 @@ def vm_poller():
                 group_list = group_list +unique_cloud_dict[cloud]['groups']
 
             for cloud in unique_cloud_dict:
-                cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                auth_url = unique_cloud_dict[cloud]['cloud_obj'].authurl
                 cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
                 foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
@@ -1218,18 +1217,18 @@ def vm_poller():
                         "authurl": cloud_obj.authurl,
                         "project": cloud_obj.project
                     }
-                    for_vm_dict[cloud_name + "--" + for_vm.flavor_id] = fvm_dict
+                    for_vm_dict[auth_url + "--" + for_vm.flavor_id] = fvm_dict
 
-                logging.debug("Polling VMs from cloud: %s" % cloud_name)
+                logging.debug("Polling VMs from cloud: %s" % auth_url)
                 session = _get_openstack_session(cloud_obj)
 
                 if session is False:
                     logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
-                    if cloud_obj.group_name+cloud_name not in failure_dict:
-                        failure_dict[cloud_obj.group_name+cloud_name] = 1
+                    if cloud_obj.group_name+auth_url not in failure_dict.keys():
+                        failure_dict[cloud_obj.group_name+auth_url] = 1
                     else:
-                        failure_dict[cloud_obj.group_name+cloud_name] = failure_dict[cloud_obj.group_name+cloud_name] + 1
-                    if failure_dict[cloud_obj.group_name+cloud_name] > 3: #could be configurable
+                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
+                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #could be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
                     continue
 
@@ -1241,11 +1240,11 @@ def vm_poller():
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
                     logging.error("Exception type: %s" % type(exc))
                     logging.error(exc)
-                    if cloud_obj.group_name+cloud_name not in failure_dict:
-                        failure_dict[cloud_obj.group_name+cloud_name] = 1
+                    if cloud_obj.group_name+auth_url not in failure_dict.keys():
+                        failure_dict[cloud_obj.group_name+auth_url] = 1
                     else:
-                        failure_dict[cloud_obj.group_name+cloud_name] = failure_dict[cloud_obj.group_name+cloud_name] + 1
-                    if failure_dict[cloud_obj.group_name+cloud_name] > 3: #should be configurable
+                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
+                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #should be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
                     continue
 
@@ -1255,7 +1254,7 @@ def vm_poller():
                     continue
 
                 # if we get here the connection to openstack has been succussful and we can remove the error status
-                failure_dict.pop(cloud_obj.group_name+cloud_name, None)
+                failure_dict.pop(cloud_obj.group_name+auth_url, None)
 
                 # Process VM list for this cloud.
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1279,11 +1278,11 @@ def vm_poller():
                         if (host_tokens[0], host_tokens[1]) not in group_list:
                             logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm.name)
                             logging.debug(group_list)
-                            if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
-                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                            if auth_url + "--" + vm.flavor["id"] in for_vm_dict:
+                                for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] = for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] + 1
                             else:
                                 # no entry yet
-                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                for_vm_dict[auth_url + "--" + vm.flavor["id"]]= {
                                     'count': 1,
                                     'region': cloud_obj.region,
                                     'project': cloud_obj.project,
@@ -1293,11 +1292,11 @@ def vm_poller():
                             continue
                         elif int(host_tokens[2]) != int(config.csv2_host_id):
                             logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
-                            if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
-                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                            if auth_url + "--" + vm.flavor["id"] in for_vm_dict:
+                                for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] = for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] + 1
                             else:
                                 # no entry yet
-                                for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                                for_vm_dict[auth_url + "--" + vm.flavor["id"]]= {
                                     'count': 1,
                                     'region': cloud_obj.region,
                                     'project': cloud_obj.project,
@@ -1310,11 +1309,11 @@ def vm_poller():
                     except IndexError as exc:
                         #not enough tokens, bad hostname or foreign vm
                         logging.debug("Not enough tokens from hostname, bad hostname or foreign vm: %s" % vm.name)
-                        if cloud_name + "--" + vm.flavor["id"] in for_vm_dict:
-                            for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] = for_vm_dict[cloud_name + "--" + vm.flavor["id"]]["count"] + 1
+                        if auth_url + "--" + vm.flavor["id"] in for_vm_dict:
+                            for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] = for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] + 1
                         else:
                             # no entry yet
-                            for_vm_dict[cloud_name + "--" + vm.flavor["id"]]= {
+                            for_vm_dict[auth_url + "--" + vm.flavor["id"]]= {
                                 'count': 1,
                                 'region': cloud_obj.region,
                                 'project': cloud_obj.project,
@@ -1335,6 +1334,7 @@ def vm_poller():
                     vm_dict = {
                         'group_name': vm_group_name,
                         'cloud_name': vm_cloud_name,
+                        "region": cloud_obj.region,
                         'auth_url': cloud_obj.authurl,
                         'project': cloud_obj.project,
                         'cloud_type': "openstack",
@@ -1409,7 +1409,8 @@ def vm_poller():
                                 'project':    for_vm_dict[key]['project'],
                                 'region':     for_vm_dict[key]['region'],
                                 'flavor_id':  for_vm_dict[key]['flavor_id'],
-                                'count':      for_vm_dict[key]['count']
+                                'count':      for_vm_dict[key]['count'],
+                                'cloud_type': "openstack"
                             }
                             new_fvm = FVM(**fvm_dict)
                             db_session.merge(new_fvm)
@@ -1429,11 +1430,21 @@ def vm_poller():
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+            # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
+            #     failure_dict needs to be remapped before calling
+            logging.debug("Expanding failure_dict: %s" % failure_dict)
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+            new_f_dict = {}
+            for cloud in cloud_list:
+                key = cloud.group_name + cloud.authurl
+                if key in failure_dict.keys():
+                    new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
 
             # Check on the core limits to see if any clouds need to be scaled down.
-            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota)
+            logging.debug("checking for over-quota clouds")
+            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota).filter(view_vm_kill_retire_over_quota.c.cloud_type=="openstack")
             for cloud in over_quota_clouds:
                 kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
 

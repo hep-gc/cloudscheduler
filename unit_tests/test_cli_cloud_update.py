@@ -85,7 +85,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_command(
-        gvar, 1, 'CV35', 'value specified for "ram_ctl" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "ram_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-vr', 'invalid-unit-test'
@@ -94,7 +94,7 @@ def main(gvar, user_secret):
     
     # 14
     execute_csv2_command(
-        gvar, 1, 'CV35', 'value specified for "cores_ctl" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "cores_ctl" must be an integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-vc', 'invalid-unit-test'
@@ -103,7 +103,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_command(
-        gvar, 1, 'CV35', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'CV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-ce', 'invalid-unit-test'
@@ -112,7 +112,7 @@ def main(gvar, user_secret):
 
     # 16
     execute_csv2_command(
-        gvar, 1, 'CV35', 'value specified for "vm_keep_alive" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "vm_keep_alive" must be an integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-vka', 'invalid-unit-test'
@@ -121,7 +121,7 @@ def main(gvar, user_secret):
 
     # 17
     execute_csv2_command(
-        gvar, 1, 'CV35', 'value specified for "spot_price" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "spot_price" must be an integer value.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-csp', 'invalid-unit-test'
@@ -130,7 +130,7 @@ def main(gvar, user_secret):
 
     # 18
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
+        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', 'invalid-unit-test'
@@ -139,7 +139,7 @@ def main(gvar, user_secret):
 
     # 19
     execute_csv2_command(
-        gvar, 1, 'CV35', 'value specified for "metadata_option" must be one of the following options: [\\\'add\\\', \\\'delete\\\'].',
+        gvar, 1, 'CV', 'value specified for "metadata_option" must be one of the following options: [\\\'add\\\', \\\'delete\\\'].',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gmo', 'invalid-unit-test'
@@ -148,7 +148,7 @@ def main(gvar, user_secret):
 
     # 20
     execute_csv2_command(
-        gvar, 1, 'CV23', 'cloud update must specify at least one field to update.',
+        gvar, 1, 'CV', 'cloud update must specify at least one field to update.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gmo', 'add'
@@ -157,7 +157,7 @@ def main(gvar, user_secret):
 
     # 21
     execute_csv2_command(
-        gvar, 1, 'CV23', 'cloud update must specify at least one field to update.',
+        gvar, 1, 'CV', 'cloud update must specify at least one field to update.',
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gmo', 'delete'
@@ -166,7 +166,7 @@ def main(gvar, user_secret):
 
     # 22
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
+        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', 'invalid-unit-test',
@@ -176,7 +176,7 @@ def main(gvar, user_secret):
 
     # 23
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
+        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', 'invalid-unit-test',
@@ -186,7 +186,7 @@ def main(gvar, user_secret):
 
     # 24
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
+        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2'))
@@ -195,7 +195,7 @@ def main(gvar, user_secret):
 
     # 25
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
+        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
@@ -205,7 +205,7 @@ def main(gvar, user_secret):
 
     # 26
     execute_csv2_command(
-        gvar, 1, 'CV03', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
+        gvar, 1, 'CV', 'cloud update, "{}" failed - specified metadata_name "invalid-unit-test" does not exist.'.format(ut_id(gvar, 'clc2')),
         ['cloudscheduler', 'cloud', 'update',
             '-cn', ut_id(gvar, 'clc2'),
             '-gme', '{},invalid-unit-test'.format(ut_id(gvar, 'clm2')),
@@ -220,10 +220,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update.ca',
             '-cpw', 'command-line-cloud-update',
-            '-cp', 'command-line-cloud-update',
+            '-cP', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-ce', 'no',
             '-vi', '',
             '-vf', '',
@@ -242,10 +242,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update.ca',
             '-cpw', 'command-line-cloud-update',
-            '-cp', 'command-line-cloud-update',
+            '-cP', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-gme', ut_id(gvar, 'clm2.yaml,clm3')
         ]
     )
@@ -257,10 +257,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update.ca',
             '-cpw', 'command-line-cloud-update',
-            '-cp', 'command-line-cloud-update',
+            '-cP', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-gme', ut_id(gvar, 'clm2.yaml'),
             '-gmo', 'delete'
         ]
@@ -273,10 +273,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update.ca',
             '-cpw', 'command-line-cloud-update',
-            '-cp', 'command-line-cloud-update',
+            '-cP', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-gme', ut_id(gvar, 'clm2,clm3'),
             '-gmo', 'delete'
         ]
@@ -289,10 +289,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update.ca',
             '-cpw', 'command-line-cloud-update',
-            '-cp', 'command-line-cloud-update',
+            '-cP', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-gme', ut_id(gvar, 'clm2'),
             '-gmo', 'add'
         ]
@@ -305,10 +305,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update.ca',
             '-cpw', 'command-line-cloud-update',
-            '-cp', 'command-line-cloud-update',
+            '-cP', 'command-line-cloud-update',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-gme', ut_id(gvar, 'clm2.yaml,clm3'),
             '-gmo', 'add'
         ]
@@ -321,10 +321,10 @@ def main(gvar, user_secret):
             '-cn', ut_id(gvar, 'clc2'),
             '-ca', 'command-line-cloud-update2.ca',
             '-cpw', 'command-line-cloud-update2',
-            '-cp', 'command-line-cloud-update2',
+            '-cP', 'command-line-cloud-update2',
             '-cr', 'clc10-r',
             '-ct', 'local',
-            '-cu', ut_id(gvar, 'clc10'),
+            '-cU', ut_id(gvar, 'clc10'),
             '-gmo', 'add',
             '-g', ut_id(gvar, 'clg1'),
             '-s', 'unit-test',

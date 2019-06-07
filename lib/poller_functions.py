@@ -96,6 +96,10 @@ def delete_obsolete_database_items(type, inventory, db_session, base_class, base
 
             uncommitted_updates = 0
             for item in obsolete_items:
+                if type == 'VM' and cloud_type == "amazon":
+                    if item.vmid[0:3].lower() == "sir" and (item.instance_id is None or item.instance_id == "") and item.terminate < 2:
+                        #don't delete it since its a spot request that never got a vm
+                        continue
                 if base_class_key == '-' and poll_time:
                     if inventory[group_name][cloud_name]['-']['poll_time'] >= poll_time:
                         continue

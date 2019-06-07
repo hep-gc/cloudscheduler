@@ -1,5 +1,38 @@
 """
-Extract HTML tables from a URL, file, or string and return a dictionary.
+Extract HTML tables from a URL, file, or string and return a dictionary:
+
+   {
+       'table1': {
+           'heads': [ 'col_hdg1', 'col_hdg2', ... 'col_hdgN' ],
+           'rows': [
+               [ 'col_val1', 'col_val2', ... 'col_valN' ],
+               [ 'col_val1', 'col_val2', ... 'col_valN' ],
+               [ 'col_val1', 'col_val2', ... 'col_valN' ],
+                  .
+                  .
+                  .
+               ]
+            },
+        'table2': {
+           'heads': [ 'col_hdg1', 'col_hdg2', ... 'col_hdgN' ],
+           'rows': [
+               [ 'col_val1', 'col_val2', ... 'col_valN' ],
+               [ 'col_val1', 'col_val2', ... 'col_valN' ],
+               [ 'col_val1', 'col_val2', ... 'col_valN' ],
+                  .
+                  .
+                  .
+               ]
+            },
+              .
+              .
+              .
+        }
+
+    
+    Note: The table names are taken from the heading immediately preceeding the table
+          definition or, if no heading precedes the table definition, is generated as
+          'Unlabelled Table NN', where 'NN' is the table's sequence number.
 """
 
 from urllib.request import *

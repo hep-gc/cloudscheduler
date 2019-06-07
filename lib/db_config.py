@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 class Config:
-    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0):
+    def __init__(self, db_yaml, categories, db_config_dict=False, db_config_only=False, pool_size=5, max_overflow=0, refreshable=False):
         """
         Read the DB configuration file and the specified categories configuration from the database.
         """
@@ -37,6 +37,8 @@ class Config:
             if 'db_table' not in db_config:
                 db_config['db_table'] = 'configuration'
 
+            self.db_table = db_config['db_table']
+
         if db_config_dict or db_config_only:
             self.db_config = db_config
 
@@ -58,22 +60,21 @@ class Config:
         if db_config_only:
             return
 
-        self.db_connection = None
         self.db_map = automap_base()
         self.db_map.prepare(self.db_engine, reflect=True)
 
         # Create a unique instance ID from our FQDN and, if necessary, save it in the database
         self.csv2_host_id = sum(socket.getfqdn().encode())
 
-        self.db_session = Session(self.db_engine)
-        rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
-            (self.db_map.classes[db_config['db_table']].category == 'SQL') &
-            (self.db_map.classes[db_config['db_table']].config_key == 'csv2_host_id')
+        self.db_open()
+        rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+            (self.db_map.classes[self.db_table].category == 'SQL') &
+            (self.db_map.classes[self.db_table].config_key == 'csv2_host_id')
             )
 
         if self.csv2_host_id != rows[0].config_value:
             try:
-                self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (db_config['db_table'], self.csv2_host_id))
+                self.db_session.execute('update %s set config_value="%s" where category="SQL" and config_key="csv2_host_id";' % (self.db_table, self.csv2_host_id))
 
                 self.db_session.commit()
 
@@ -81,31 +82,35 @@ class Config:
                 print("Error updating csv2_host_id in db_config: %s" % msg)
 
         # Retrieve the configuration for the specified category.
-        if isinstance(categories, str):
-            category_list = [ categories ]
+        if refreshable:
+            self.categories = self.get_config_by_category(categories)
+
+        # Retrieve the configuration for the specified category.
         else:
-            category_list = categories
+            if isinstance(categories, str):
+                category_list = [ categories ]
+            else:
+                category_list = categories
 
-        for category in category_list:
-            rows = self.db_session.query(self.db_map.classes[db_config['db_table']]).filter(
-                self.db_map.classes[db_config['db_table']].category == category
-                )
+            for category in category_list:
+                rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+                    self.db_map.classes[self.db_table].category == category
+                    )
 
-            for row in rows:
-                if row.config_type == 'bool':
-                    self.__dict__[row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
-                elif row.config_type == 'float':
-                    self.__dict__[row.config_key] = float(row.config_value)
-                elif row.config_type == 'int':
-                    self.__dict__[row.config_key] = int(row.config_value)
-                elif row.config_type == 'null':
-                    self.__dict__[row.config_key] = None
-                else:
-                    self.__dict__[row.config_key] = row.config_value
+                for row in rows:
+                    if row.config_type == 'bool':
+                        self.__dict__[row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
+                    elif row.config_type == 'float':
+                        self.__dict__[row.config_key] = float(row.config_value)
+                    elif row.config_type == 'int':
+                        self.__dict__[row.config_key] = int(row.config_value)
+                    elif row.config_type == 'null':
+                        self.__dict__[row.config_key] = None
+                    else:
+                        self.__dict__[row.config_key] = row.config_value
 
         # Close the session.
-        self.db_session.close()
-        self.db_session = None
+        self.db_close()
 
 #-------------------------------------------------------------------------------
 
@@ -160,6 +165,58 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
+    def get_config_by_category(self, categories):
+
+        # If closed, open the database.
+        if self.db_connection:
+            close_on_exit = False
+        else:
+            close_on_exit = True
+            self.db_open()
+
+        # Retrieve the configuration for the specified category.
+        if isinstance(categories, str):
+            category_list = [ categories ]
+        else:
+            category_list = categories
+
+        target_dict = {}
+        for category in category_list:
+            if category in target_dict:
+                continue
+
+            target_dict[category] = {}
+
+            rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
+                self.db_map.classes[self.db_table].category == category
+                )
+
+            for row in rows:
+                if row.config_type == 'bool':
+                    target_dict[category][row.config_key] = row.config_value == '1' or row.config_value.lower() == 'yes' or row.config_value.lower() == 'true'
+                elif row.config_type == 'float':
+                    target_dict[category][row.config_key] = float(row.config_value)
+                elif row.config_type == 'int':
+                    target_dict[category][row.config_key] = int(row.config_value)
+                elif row.config_type == 'null':
+                    target_dict[category][row.config_key] = None
+                else:
+                    target_dict[category][row.config_key] = row.config_value
+
+        if close_on_exit:
+            self.db_close()
+
+        return target_dict
+
+
+#-------------------------------------------------------------------------------
+
+    def get_version(self):
+        return self.version
+
+
+#-------------------------------------------------------------------------------
+
     def incr_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
         cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
@@ -174,6 +231,12 @@ class Config:
 
 #-------------------------------------------------------------------------------
 
+    def refresh(self):
+        self.categories = self.get_config_by_category(list(self.categories.keys()))
+
+
+#-------------------------------------------------------------------------------
+
     def reset_cloud_error(self, group_name, cloud_name):
         CLOUD = self.db_map.classes.csv2_clouds
         cloud = self.db_session.query(CLOUD).filter(CLOUD.group_name == group_name, CLOUD.cloud_name == cloud_name)[0]
@@ -182,9 +245,6 @@ class Config:
         self.db_session.commit()
         return 1
 
-#-------------------------------------------------------------------------------
-    def get_version(self):
-        return self.version
 
 #-------------------------------------------------------------------------------
 

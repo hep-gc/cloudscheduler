@@ -22,7 +22,7 @@ from (
     from (
         select
             cv.group_name,
-            cloud_name,
+            cv.cloud_name,
             vmid,
             flavor_id,
             machine,
@@ -35,7 +35,11 @@ from (
             end as priority
         from csv2_vms as cv
         left outer join condor_machines as cm on
-            cv.hostname=substring_index(cm.machine,'.',1)
+            cv.group_name=cm.group_name and
+            cv.cloud_name=cm.cloud_name and
+            (cv.hostname=cm.machine or cv.hostname=substring_index(cm.machine,'.',1))
+        where
+            cv.manual_control=0
         ) as cms
     group by
         group_name,

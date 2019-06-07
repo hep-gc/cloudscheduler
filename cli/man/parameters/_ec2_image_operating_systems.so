@@ -1,0 +1,7 @@
+.TP
+\fB\-ios \fIos1\fR[,os2,... osN], \fB\-\-ec2-image-operating-systems \fIos1\fR[,os2,... osN]
+Specifies a comma-seperated list of operating systems of interest.
+Valid operating systems are displayed in the \fBOperating Systems\fR optional table (see \fB--with\fR below). 
+The \fBec2\fR object is to filter out images with an operating system other than specified by this parameter.
+
+Default: (defined in the system configuration)

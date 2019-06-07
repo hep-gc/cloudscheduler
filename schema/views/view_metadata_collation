@@ -18,7 +18,7 @@ from (
     cc.group_name,
     cc.cloud_name,
     "group" as type,
-    priority,
+    cgm.priority,
     cgm.metadata_name,
     cgm.mime_type
 

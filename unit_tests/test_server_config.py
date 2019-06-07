@@ -27,7 +27,7 @@ def main(gvar, user_secret):
 
     # 03
     execute_csv2_request(
-        gvar, 1, 'SV03', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'stu2')),
+        gvar, 1, 'SV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'stu2')),
         '/server/config/',
         server_user=ut_id(gvar, 'stu2'), server_pw=user_secret
     )
@@ -57,14 +57,14 @@ def main(gvar, user_secret):
 
     # 07
     execute_csv2_request(
-        gvar, 1, 'SV03', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'SV', 'cannot switch to invalid group "invalid-unit-test".',
         '/server/config/', group='invalid-unit-test',
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
 
     # 08
     execute_csv2_request(
-        gvar, 1, 'SV03', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'stg1')),
+        gvar, 1, 'SV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'stg1')),
         '/server/config/', group=ut_id(gvar, 'stg1'),
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
     )
@@ -78,7 +78,7 @@ def main(gvar, user_secret):
 
     # 10
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'SV', 'server config update request contained a bad parameter "invalid-unit-test".',
         '/server/config/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
@@ -86,7 +86,7 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update request contained a bad parameter "config-key".',
+        gvar, 1, 'SV', 'server config update request contained a bad parameter "config-key".',
         '/server/config/'
 , form_data={'config-key': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
@@ -94,7 +94,7 @@ def main(gvar, user_secret):
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update request contained a bad parameter "config-value".',
+        gvar, 1, 'SV', 'server config update request contained a bad parameter "config-value".',
         '/server/config/'
 , form_data={'config-value': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
@@ -102,7 +102,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update value specified for "category" must be one of the following options:',
+        gvar, 1, 'SV', 'server config update value specified for "category" must be one of the following options:',
         '/server/config/'
 , form_data={'category': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'stu4'), server_pw=user_secret
@@ -110,7 +110,7 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'SV01', 'server config update failed - the request did not match any rows',
+        gvar, 1, 'SV', 'server config update failed - the request did not match any rows',
         '/server/config/'
 , form_data={
             'category': 'web_frontend',
@@ -121,7 +121,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update value specified for "log_level" must be an integer value.',
+        gvar, 1, 'SV', 'server config update value specified for "log_level" must be an integer value.',
         '/server/config/'
 , form_data={
             'category': 'csjobs.py',
@@ -132,7 +132,7 @@ def main(gvar, user_secret):
 
     # 16
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update value specified for "enable_glint" must be one of the following options: [\'False\', \'True\'].',
+        gvar, 1, 'SV', 'server config update value specified for "enable_glint" must be one of the following options: [\'False\', \'True\'].',
         '/server/config/'
 , form_data={
             'category': 'web_frontend',
@@ -143,7 +143,7 @@ def main(gvar, user_secret):
 
     # 17
     execute_csv2_request(
-        gvar, 1, 'SV02', 'server config update request did not contain mandatory parameter "category".',
+        gvar, 1, 'SV', 'server config update request did not contain mandatory parameter "category".',
         '/server/config/'
 , form_data={
             'enable_glint': 'False',
@@ -153,7 +153,7 @@ def main(gvar, user_secret):
 
     # 18
     execute_csv2_request(
-        gvar, 1, 'SV00', 'server config must specify at least one field to update.',
+        gvar, 1, 'SV', 'server config must specify at least one field to update.',
         '/server/config/'
 , form_data={
             'category': 'web_frontend',

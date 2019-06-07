@@ -30,13 +30,13 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV05', 'invalid method "GET" specified.',
+        gvar, 1, 'VV', 'invalid method "GET" specified.',
         '/vm/update/',
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV02', 'vm update request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'VV', 'vm update request contained a bad parameter "invalid-unit-test".',
         '/vm/update/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
@@ -49,7 +49,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV02', 'vm update request did not contain mandatory parameter "vm_option".',
+        gvar, 1, 'VV', 'vm update request did not contain mandatory parameter "vm_option".',
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_hosts': ''},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
@@ -61,7 +61,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV02', "vm update value specified for \"vm_option\" must be one of the following options: ['kill', 'manctl', 'retain', 'retire', 'sysctl'].",
+        gvar, 1, 'VV', "vm update value specified for \"vm_option\" must be one of the following options: ['kill', 'manctl', 'retain', 'retire', 'sysctl'].",
         '/vm/update/', group=ut_id(gvar, 'vtg1'), form_data={'vm_option': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret
     )
@@ -95,7 +95,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'VV02', "vm update value specified for \"poller_status\" must be one of the following options: ['error', 'idle', 'manual', 'native', 'other', 'retiring', 'running', 'starting', 'unregistered'].",
+        gvar, 1, 'VV', "vm update value specified for \"poller_status\" must be one of the following options: ['error', 'idle', 'manual', 'native', 'other', 'retiring', 'running', 'starting', 'unregistered'].",
         '/vm/update/'
 , form_data={'vm_option': 'sysctl', 'poller_status': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'vtu3'), server_pw=user_secret

@@ -168,7 +168,8 @@ else if (refresh_interval < 1) stop_refresh;
                     <colgroup>
                         <col class="clear" span="1" />
                         <col class="red" span="1" />
-                        <col class="clear" span="7" />
+                        <col class="clear" span="6" />
+                        <col class="extra-row clear" span="2" />
 
                     </colgroup>
                     <tr class="header-row">
@@ -247,7 +248,7 @@ else if (refresh_interval < 1) stop_refresh;
                             <tr class="extra-row">
                                 <td></td>
                                 <td></td>
-                                <td colspan="5">
+                                <td colspan="10">
                                     <table class="job-extra-row">
                                         {% for job in job_totals_list %}
                                             {% if job.group_name == group.group_name %}
@@ -301,7 +302,7 @@ else if (refresh_interval < 1) stop_refresh;
                     {% endfor %}
 
                     <tr class="bottom-row">
-                        <td colspan="9"></td>
+                        <td colspan="10"></td>
                         <td class="extra-row">&nbsp;</td>
                     </tr>
 
@@ -352,10 +353,17 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="native-style">RAM</th>
 
                         <th class="col-spacer">&nbsp;</th>
-
-                        <th class="foreign-style">Foreign<br>VMs</th>
-                        <th class="foreign-style">Foreign<br>Cores</th>
-                        <th class="foreign-style">RAM</th>
+                        
+                        <th class="foreign-style" colspan="3">
+                            <table>
+                                <tr colspan="3">Foreign</tr>
+                                <tr>
+                                    <th>VMs</th>
+                                    <th>Cores</th>
+                                    <th>RAM</th>
+                                </tr>
+                            </table>
+                        </th>
 
                         <th class="col-spacer">&nbsp;</th>
 
@@ -364,9 +372,9 @@ else if (refresh_interval < 1) stop_refresh;
                             <table>
                                 <tr colspan="3">Global</tr>
                                 <tr>
+                                    <th>VMs</th>
                                     <th>Cores</th>
                                     <th>RAM</th>
-                                    <th>VMs</th>
                                 </tr>
                             </table>
                         </th>
@@ -520,15 +528,20 @@ else if (refresh_interval < 1) stop_refresh;
 
                                     <td class="col-spacer">&nbsp;</td>
 
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="plottable">
-                                        {% with total=cloud.cores_quota %}
-                                            {% if total == 0 %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
-                                            {% else %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.cores_native_foreign }}"></meter>
-                                            {% endif %}
-                                        {% endwith %}                        
-                                    </td>
+                                    {% if cloud.VMs_native_foreign == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign" class="zero-style plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign" class="more-style plottable">{{ cloud.VMs_native_foreign }}</td>
+                                    {% endif %}
+
+
+
+                                    {% if cloud.cores_native_foreign == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="zero-style plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign" class="more-style plottable">{{ cloud.cores_native_foreign }}</td>
+                                    {% endif %}
+
 
 
                                     <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign" class="plottable">
@@ -541,15 +554,7 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endwith %}                        
                                     </td>
 
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_quota" class="plottable">
-                                        {% with total=cloud.VMs_quota %}
-                                            {% if total == 0 %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
-                                            {% else %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{cloud.VMs_native_foreign}}"></meter>
-                                            {% endif %}
-                                        {% endwith %}                        
-                                    </td>
+
 
                                     <td class="col-spacer">&nbsp;</td>
 
@@ -634,9 +639,12 @@ else if (refresh_interval < 1) stop_refresh;
                                     <td class="col-spacer">&nbsp;</td>
 
                                     <td colspan="2">
-                                    {% if cloud.cores_ctl == -1 %}
-                                        <p>System limit</p>
-                                    {% else %}
+
+                                    {% if cloud.cores_ctl == -1 and cloud.cores_soft_quota == -1 %}
+                                        <p>Hard max</p>
+                                    {% elif cloud.cores_ctl == -1 and cloud.cores_soft_quota > -1 %}
+                                        <p>Soft max</p>
+                                    {% else%}
                                         <p>User limit</p>
                                     {% endif %}
                                     </td>
@@ -669,6 +677,8 @@ else if (refresh_interval < 1) stop_refresh;
                                     </td>
                                     <td class="col-spacer">&nbsp;</td>
 
+                                    <td>{{cloud.VMs_native_foreign}} / {{cloud.VMs_quota}}</td>
+
 
                                     <td>{{cloud.cores_native_foreign}} / 
                                         {% if cloud.cores_quota >= 999999999 %}
@@ -687,7 +697,6 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endwith %}
                                     </td>
 
-                                    <td>{{cloud.VMs_native_foreign}} / {{cloud.VMs_quota}}</td>
 
                                     <td class="col-spacer">&nbsp;</td>
 
@@ -848,13 +857,18 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <td class="col-spacer">&nbsp;</td>
 
-                        <td data-path="{{group_name}} ram_native_foreign_total" class="plottable">
-                            {% with total=group_total.cores_quota %}
-                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.cores_quota}}" value="{{ group_total.cores_native_foreign }}"></meter>
-                            {% endwith %}
-                        </td>
 
+                        {% if group_total.VMs_native_foreign == 0 %}
+                            <td data-path="{{group_name}}  VMs_native_foreign" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{group_name}}  VMs_native_foreign" class="more-style plottable">{{ group_total.VMs_native_foreign }}</td>
+                        {% endif %}
 
+                        {% if group_total.cores_native_foreign == 0 %}
+                            <td data-path="{{group_name}} cores_native_foreign" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{group_name}} cores_native_foreign" class="more-style plottable">{{ group_total.cores_native_foreign }}</td>
+                        {% endif %}
 
 
                         <td data-path="{{group_name}} ram_native_foreign_total" class="plottable">
@@ -863,11 +877,7 @@ else if (refresh_interval < 1) stop_refresh;
                             {% endwith %}
                         </td>
 
-                        <td>
-                            {% with total=group_total.VMs_quota %}
-                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.VMs_quota}}" value="{{group_total.VMs_native_foreign}}"></meter>
-                            {% endwith %}   
-                        </td>
+
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -978,6 +988,8 @@ else if (refresh_interval < 1) stop_refresh;
                         </td>
                         <td class="col-spacer">&nbsp;</td>
 
+                        <td>{{group_total.VMs_native_foreign}} / {{group_total.VMs_quota}}</td>
+
                         <td>{{group_total.cores_native_foreign}} / 
                             {% if group_total.cores_quota >= 999999999 %}
                                 &#x221E;
@@ -994,8 +1006,6 @@ else if (refresh_interval < 1) stop_refresh;
                                 {% endif %}
                             {% endwith %}                    
                         </td>
-
-                        <td>{{group_total.VMs_native_foreign}} / {{group_total.VMs_quota}}</td>
 
                         <td class="col-spacer">&nbsp;</td>
 

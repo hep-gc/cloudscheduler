@@ -1,13 +1,13 @@
--- MySQL dump 10.16  Distrib 10.2.16-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.17  Distrib 10.3.15-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
--- Server version	10.2.16-MariaDB
+-- Server version	10.3.15-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -27,13 +27,13 @@ CREATE TABLE `cloud_images` (
   `cloud_name` varchar(32) NOT NULL,
   `id` varchar(128) NOT NULL,
   `cloud_type` varchar(64) DEFAULT NULL,
-  `container_format` varchar(128) NOT NULL,
-  `disk_format` varchar(128) NOT NULL,
-  `name` varchar(256) NOT NULL,
+  `container_format` varchar(128) DEFAULT NULL,
+  `disk_format` varchar(128) DEFAULT NULL,
+  `name` varchar(256) DEFAULT NULL,
   `size` bigint(13) DEFAULT NULL,
-  `visibility` varchar(128) NOT NULL,
-  `min_disk` int(11) NOT NULL,
-  `min_ram` int(11) NOT NULL,
+  `visibility` varchar(128) DEFAULT NULL,
+  `min_disk` int(11) NOT NULL DEFAULT 0,
+  `min_ram` int(11) NOT NULL DEFAULT 0,
   `last_updated` int(11) NOT NULL,
   PRIMARY KEY (`group_name`,`cloud_name`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -48,4 +48,4 @@ CREATE TABLE `cloud_images` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-10 13:03:35
+-- Dump completed on 2019-06-03 11:44:21

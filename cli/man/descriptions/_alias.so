@@ -1,0 +1,2 @@
+The \fBalias\fR object allows for the creation and management of cloud subsets within a group.
+Subsequently, jobs can be directed to execute on a specific subset of clouds within a group by specifying an appropriate \fBtarget_alias\fR option inside the Job Definition Language (JDL) file that is submitted to HTCondor.

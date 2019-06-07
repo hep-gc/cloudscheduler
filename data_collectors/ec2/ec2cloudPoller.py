@@ -12,7 +12,10 @@ from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.signal_manager import register_signal_receiver
-from cloudscheduler.lib.view_utils import qt
+from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
+from cloudscheduler.lib.view_utils import kill_retire
+from cloudscheduler.lib.log_tools import get_frame_info
+from cloudscheduler.lib.view_utils import qt, verify_cloud_credentials 
 
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -62,6 +65,29 @@ def _get_ec2_session(cloud):
 
 def _get_ec2_client(session):
     return session.client('ec2')
+
+
+def _tag_instance(tag_dict, instance_id, spot_id, client):
+    if tag_dict is None:
+        tag_dict = {}
+        requests = client.describe_spot_instance_requests()
+        instances = requests['SpotInstanceRequests']
+        for instance_req in instances:
+            if "Tags" in instance_req.keys():
+                tag_dict[instance_req['SpotInstanceRequestId']] = instance_req['Tags']
+
+    #tag the instance if a tag exists for the SIR
+    if spot_id in tag_dict.keys():
+        if len(tag_dict[spot_id]) != 0:
+            try:
+                logging.info("Tagging spot instance %s with tags: %s" %(instance_id, tag_dict[spot_id]))
+                client.create_tags(Resources=[instance_id], Tags=tag_dict[spot_id])
+            except Exception as exc:
+                logging.error("Failed to tag %s with tag %s" % (instance_id, tag_dict[instance_id]))
+                logging.error(exc)
+            return (tag_dict, tag_dict[spot_id]) # return tag for proccessing
+    return (tag_dict, False) #no tag for instance
+
 
 # This function checks that the local files exist, and that they are not older than a week
 def check_instance_types(config):
@@ -138,7 +164,6 @@ def refresh_instance_types(config, file_path, region):
                         'storage': itxsku['products'][sku]['attributes']['storage'],
                         'cores': int(itxsku['products'][sku]['attributes']['vcpu']),
                         'memory': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]),
-                        'mem_per_core': float(itxsku['products'][sku]['attributes']['memory'].replace(',', '').split()[0]) / int(itxsku['products'][sku]['attributes']['vcpu']),
                         'cost_per_hour': cost
                     }
                 except Exception as exc:
@@ -243,7 +268,7 @@ def ec2_filterer():
                         'cloud_name': cloud.cloud_name,
                         'name': flavor["instance_type"],
                         'cloud_type': "amazon",
-                        'ram': flavor["memory"],
+                        'ram': flavor["memory"] * 1024, #from amazon its in gigs
                         'cores': flavor["cores"],
                         'id': flavor["instance_type"],
                         #'swap': swap, #No concept in amazon
@@ -279,27 +304,33 @@ def ec2_filterer():
             obsolete_image_rows = config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon")
             obsolete_flavor_rows = config.db_session.query(FLAVOR).filter(FLAVOR.last_updated<new_poll_time, FLAVOR.cloud_type == "amazon")
 
+            # it should be possible to delete the query results without looping through them
+            # i believe you can just take the above generators and do a .delete() ie obsolete_image_rows.delete(), then commit it
+            # to save even more LOC, you could just add the .delete() to the query like so:
+            #    config.db_session.query(IMAGE).filter(IMAGE.last_updated<new_poll_time, IMAGE.cloud_type == "amazon").delete()
+
             for row in obsolete_image_rows:
-                db_session.delete(row)
+                config.db_session.delete(row)
                 deletions += 1
 
             for row in obsolete_flavor_rows:
-                db_session.delete(row)
+                config.db_session.delete(row)
                 deletions += 1
 
             if deletions > 0:
                 logging.info("Comitting %s image and flavor deletes" % deletions)
-                db_session.commit()
+                config.db_session.commit()
 
-            #need to make sleep configurable and add signaling
+            #need to add signaling
             config.db_close()
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_filterer)
 
 
 
         except Exception as exc:
             logging.error("Exception during general operation of ec2 filterer:")
             logging.exception(exc)
+            config.db_close()
 
            
     return false
@@ -337,7 +368,7 @@ def flavor_poller():
 
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_flavor)
 
 
         except Exception as exc:
@@ -419,6 +450,12 @@ def image_poller():
                     #First get the filters and check if self or shared images are enabled
                     self_filter = False
                     shared_filter = False
+
+                    # ~~~~~~~~~~~ TODO ~~~~~~~~~~~~
+                    #
+                    ## THIS ROUTINE MAY NEED TO BE UPDATED TO BE ROW SPECIFIC AS IF MULTIPLE AMAZON-EAST ENTRIES EXIST WITH DIFFERENT USERS THERE WILL BE DIFFERENT OWNER_IDS
+                    # infact since each cloud row can have its own filters it would be ideal to loop over each row instead of getting fancy with regional polling.
+
                     try:
                         filter_row = db_session.query(EC2_IMAGE_FILTER).filter(EC2_IMAGE_FILTER.group_name == cloud.group_name, EC2_IMAGE_FILTER.cloud_name == cloud.cloud_name)[0]
                         if "self" in filter_row.owner_aliases:
@@ -428,10 +465,23 @@ def image_poller():
                     except:
                         logging.info("No filter row for cloud %s::%s" % (cloud.group_name, cloud.cloud_name))
                         continue
+                    requester_id = None
+                    if cloud.ec2_owner_id is None or cloud.ec2_owner_id == "":
+                        obj = lambda: None
+                        obj.active_group = cloud.group_name
+                        rc, msg, owner_id = verify_cloud_credentials(config, {'cloud_name': cloud.cloud_name}, obj)
+                        if rc != 0 or owner_id is None:
+                            logging.error("unable to retrieve owner id skipping cloud %s:%s message: %s" % (cloud.group_name, cloud.cloud_name, msg))
+                            continue
+                        else:
+                            requester_id = owner_id
+                    else:
+                        requester_id = cloud.ec2_owner_id
+                      
 
                     # get self-owned and directly shared images
                     if shared_filter or self_filter:
-                        requester_id = cloud.ec2_owner_id
+                        logging.debug("Getting self and/or shared images")
                         session = _get_ec2_session(cloud)
                         client = _get_ec2_client(session)
                         user_list = ['self']
@@ -439,8 +489,10 @@ def image_poller():
                             {'Name': 'image-type', 'Values':['machine']},
                             {'Name': 'state', 'Values':['available']},
                         ]
-                        image_list = client.describe_images(ExecutableUsers=user_list, Filters=filters)
+                        image_list = client.describe_images(Owners=user_list, Filters=filters)
+                        logging.debug("~~ IMAGE LIST: %s" % image_list["Images"])
                         for image in image_list["Images"]:
+                            logging.debug(image)
                             size = 0
                             if image['BlockDeviceMappings']:
                                 for device in image['BlockDeviceMappings']:
@@ -457,19 +509,22 @@ def image_poller():
                                     ioa = None
                                 if 'Name' in image.keys():
                                     nm =  image['Name']
+                                    logging.debug(image['Name'])
                                 else:
                                     nm = "NoName"
                                 if 'Description' in image.keys():
                                     desc =  image['Description']
                                 else:
                                     desc = None
-                                if image['OwnerId'] is not requester_id:
+                                if image['OwnerId'] != str(requester_id):
                                     borrower_id = requester_id
                                     if not shared_filter:
+                                        logging.debug("Ignoring shared image..")
                                         continue
                                 else:
                                     borrower_id = "not_shared"
                                     if not self_filter:
+                                        logging.debug("Ignoring self image..")
                                         continue
                                 img_dict = {
                                     'region': cloud.region,
@@ -502,6 +557,7 @@ def image_poller():
 
                             new_image = EC2_IMAGE(**img_dict)
                             try:
+                                logging.debug("adding self/shared image: %s" % nm)
                                 db_session.merge(new_image)
                                 uncommitted_updates += 1
                             except Exception as exc:
@@ -693,12 +749,16 @@ def image_poller():
                 # instead we will rely in the last updated field to purge out of date images
                 #
                 # query based on new_poll_time 
+
                 obsolete_rows = db_session.query(EC2_IMAGE).filter(EC2_IMAGE.last_updated<new_poll_time)
+                deletions = obsolete_rows.count()
+                obsolete_rows.delete()
+                '''
                 deletions = 0
                 for row in obsolete_rows:
                     db_session.delete(row)
                     deletions += 1
-
+                '''
                 if deletions > 0:
                     logging.info("Comitting %s deletes" % deletions)
                     db_session.commit()
@@ -1433,179 +1493,309 @@ def security_group_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
     CLOUD = config.db_map.classes.csv2_clouds
+    EC2_STATUS = config.db_map.classes.ec2_instance_status_codes
 
     cycle_start_time = 0
     new_poll_time = 0
-    poll_time_history = [0, 0, 0, 0]
+    poll_time_history = [0,0,0,0]
     failure_dict = {}
+    ec2_status_dict = {}
 
+    config.db_open()
+    ec2_status = config.db_session.query(EC2_STATUS)
+    for row in ec2_status:
+        ec2_status_dict[row.ec2_state] = row.csv2_state
+    config.db_close()
+    
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname',
-                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.log_level<20), cloud_type="amazon")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
-            logging.debug("Beginning EC2 VM poller cycle")
+            logging.debug("Beginning VM poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
             db_session = config.db_session
 
-            # For each OpenStack cloud, retrieve and process VMs.
+            # For each amazon region, retrieve and process VMs.
             abort_cycle = False
             group_list = db_session.query(GROUP)
-            for group in group_list:
-                logging.debug("Polling Group: %s" % group.group_name)
-                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon",
-                                                            CLOUD.group_name == group.group_name)
 
-                for cloud in cloud_list:
-                    group_name = group.group_name
-                    cloud_name = cloud.cloud_name
-                    logging.debug("Polling VMs from cloud: %s" % cloud_name)
-                    session = _get_ec2_session(cloud)
-                    if session is False:
-                        logging.error("Failed to establish session with %s::%s, skipping this cloud..." % (
-                        group_name, cloud_name))
-                        if group_name + cloud_name not in failure_dict:
-                            failure_dict[group_name + cloud_name] = 1
-                        else:
-                            failure_dict[group_name + cloud_name] = failure_dict[group_name + cloud_name] + 1
-                        if failure_dict[group_name + cloud_name] > 3:  # should be configurable
-                            logging.error(
-                                "Failure threshold limit reached for %s:%s, manual action required, skipping" % (
-                                group_name, cloud_name))
-                        continue
+            cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
-                    # Retrieve VM list for this cloud.
-                    nova = _get_ec2_client(session)
-                    try:
-                        vm_list = nova.describe_instances()
-                        #spot_list = nova.describe_spot_instance_requests()
-                    except Exception as exc:
-                        logging.error(
-                            "Failed to retrieve VM data for %s::%s, skipping this cloud..." % (group_name, cloud_name))
-                        logging.error("Exception type: %s" % type(exc))
-                        logging.error(exc)
-                        if group_name + cloud_name not in failure_dict:
-                            failure_dict[group_name + cloud_name] = 1
-                        else:
-                            failure_dict[group_name + cloud_name] = failure_dict[group_name + cloud_name] + 1
-                        if failure_dict[group_name + cloud_name] > 3:  # should be configurable
-                            logging.error(
-                                "Failure threshold limit reached for %s::%s, manual action required, skipping" % (
-                                group_name, cloud_name))
-                        continue
+            # build unique cloud list to only query a given cloud once per cycle
+            unique_cloud_dict = {}
+            for cloud in cloud_list:
+                if cloud.authurl+cloud.project+cloud.region not in unique_cloud_dict:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region] = {
+                        'cloud_obj': cloud,
+                        'groups': [(cloud.group_name, cloud.cloud_name)]
+                    }
+                else:
+                    unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
-                    if ('Reservations' in vm_list.keys() and len(vm_list['Reservations']) == 0):
-                        logging.info("No VMs defined for %s::%s, skipping this cloud..." % (group_name, cloud_name))
-                        del nova
-                        continue
+            group_list = []
+            for cloud in unique_cloud_dict:
+                group_list = group_list + unique_cloud_dict[cloud]['groups']
 
-                    # if we get here the connection to openstack has been succussful and we can remove the error status
-                    failure_dict.pop(group_name + cloud_name, None)
+            for cloud in unique_cloud_dict:
+                auth_url = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
 
-                    # Process VM list for this cloud.
-                    # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
-                    # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
-                    uncommitted_updates = 0
-                    for reservation in vm_list['Reservations']:
-                        for vm in reservation['Instances']:
-                            # ~~~~~~~~
-                            # figure out if it is foreign to this group or not based on tokenized hostname:
-                            # hostname example: testing--otter--2049--256153399971170-1
-                            # tokenized:        group,   cloud, csv2_host_id, ?vm identifier?
-                            #
-                            # at the end some of the dictionary enteries might not have a previous database object
-                            # due to emergent flavors and thus a new obj will need to be created
-                            #
-                            # For EC2/Amazon due to having no control over hostname it is suggested/assumed that the
-                            # account credentials being used are being used solely for CloudScheduler and there will be no
-                            # foreign VMs to deal with.
-                            # ~~~~~~~~
-                            ip_addrs = []
-                            floating_ips = []
-                            for net in vm['NetworkInterfaces']:
-                                for addr in net['PrivateIpAddresses']:
-                                    ip_addrs.append(addr['Association']['PublicIp'])
-                            ip_addrs.append(vm['PublicIpAddress'])
-                            ip_addrs.append(vm['PrivateIpAddress'])
-                            strt_time = vm["LaunchTime"] # datetime(2015, 1, 1) might need to fiddle with this and next section
-                            try:
-                                from_zone = tz.gettz('UTC')
-                                to_zone = tz.gettz('America/Vancouver')
-                                dt_strt_time = datetime.datetime.strptime(strt_time, '%Y-%m-%dT%H:%M:%S.%f')
-                                dt_strt_time = dt_strt_time.replace(tzinfo=from_zone)
-                                local_strt_time = dt_strt_time.astimezone(to_zone)
-                                vm_start_time = local_strt_time.strftime('%s')
-                            except:
-                                logging.info(
-                                    "No start time because VM still booting: %s, %s - setting start time equal to current time." % (
-                                    type(strt_time), strt_time))
-                                vm_start_time = new_poll_time
-                            vm_dict = {
-                                'group_name': cloud.group_name,
-                                'cloud_name': cloud.cloud_name,
-                                'auth_url': cloud.authurl,
-                                'project': cloud.project,
-                                'hostname': vm['PublicDnsName'],
-                                'vmid': vm['SpotInstanceRequestId'] if vm['SpotInstanceRequestId'] else vm['InstanceId'],
-                                'instance_id': vm['InstanceId'] if vm['SpotInstanceRequestId'] else None,
-                                'status': vm['State']['Name'],
-                                'flavor_id': vm['InstanceType'],
-                                'vm_ips': str(ip_addrs),
-                                'start_time': vm_start_time,
-                                'last_updated': new_poll_time
-                            }
+                foreign_vm_list = db_session.query(FVM).filter(FVM.authurl == cloud_obj.authurl, FVM.region == cloud_obj.region, FVM.project == cloud_obj.project)
 
-                            vm_dict, unmapped = map_attributes(src="os_vms", dest="csv2", attr_dict=vm_dict)
-                            if unmapped:
-                                logging.error("unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                #set foreign vm counts to zero as we will recalculate them as we go, any rows left at zero should be deleted
+                # dict[cloud+flavor]
+                for_vm_dict = {}
+                for for_vm in foreign_vm_list:
+                    fvm_dict = {
+                        "fvm_obj": for_vm,
+                        "count": 0,
+                        "region": cloud_obj.region,
+                        "authurl": cloud_obj.authurl,
+                        "project": cloud_obj.project
+                    }
+                    for_vm_dict[auth_url + "--" + for_vm.flavor_id] = fvm_dict
 
-                            if test_and_set_inventory_item_hash(inventory, cloud.group_name, cloud.cloud_name, vm.name,
-                                                                vm_dict, new_poll_time, debug_hash=(config.log_level < 20)):
-                                continue
+                logging.debug("Polling VMs from cloud: %s" % auth_url)
+                session = _get_ec2_session(cloud_obj)
 
-                            new_vm = VM(**vm_dict)
-                            try:
-                                db_session.merge(new_vm)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge VM entry for %s::%s::%s, aborting cycle..." % (
-                                group_name, cloud_name, vm.name))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
-                            if uncommitted_updates >= config.batch_commit_size:
-                                try:
-                                    db_session.commit()
-                                    logging.debug("Comitted %s VMs" % uncommitted_updates)
-                                    uncommitted_updates = 0
-                                except Exception as exc:
-                                    logging.error("Error during batch commit of VMs:")
-                                    logging.error(exc)
+                if session is False:
+                    logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                    if cloud_obj.group_name+auth_url not in failure_dict:
+                        failure_dict[cloud_obj.group_name+auth_url] = 1
+                    else:
+                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
+                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #could be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                    continue
 
+                # Retrieve VM list for this cloud.
+                nova = _get_ec2_client(session)
+                try:
+                    vm_list = nova.describe_instances()
+                except Exception as exc:
+                    logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
+                    logging.error("Exception type: %s" % type(exc))
+                    logging.error(exc)
+                    if cloud_obj.group_name+auth_url not in failure_dict:
+                        failure_dict[cloud_obj.group_name+auth_url] = 1
+                    else:
+                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
+                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #should be configurable
+                        logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                    continue
+
+                if vm_list is False:
+                    logging.info("No VMs defined for %s::%s:%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
                     del nova
-                    if abort_cycle:
-                        break
+                    continue
 
-                    if uncommitted_updates > 0:
+                # if we get here the connection to amazon has been succussful and we can remove the error status
+                failure_dict.pop(cloud_obj.group_name+auth_url, None)
+
+                # Process VM list for this cloud.
+                # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
+                # This is because we are only pushing updates to the csv2 database when the state of a vm is changed and thus it would be logically equivalent
+                uncommitted_updates = 0
+                tag_dict = None
+                for reservation in vm_list['Reservations']:
+                    for vm in reservation['Instances']:
+
+                        # This first part is particulairly important because its the only way we will know what group/cloud
+                        # the vm will belong to
                         try:
-                            db_session.commit()
-                            logging.info("VM updates committed: %d" % uncommitted_updates)
+                            host_tokens = None
+                            vm_group_name = None
+                            vm_cloud_name = None
+                            tags_list = None
+                            # check for tags
+                            if "Tags" in vm.keys():
+                                tags_list = vm["Tags"]
+                            #if there is no tags, check to see if it is an untagged spot instance
+                            elif 'SpotInstanceRequestId' in vm.keys():
+                                tag_dict, tag_list =  _tag_instance(tag_dict, vm['InstanceId'], vm['SpotInstanceRequestId'], nova)
+                            # else its is a foreign VM so we can throw an exception
+                            else:
+                                raise Exception('No tags on non-spot instance, registering %s as FVM.' % vm['InstanceId']) 
+                            for tag_d in tags_list:
+                                if tag_d["Key"] == "csv2":
+                                    host_tokens = tag_d["Value"].split("--")
+                                    logging.debug("Tag found, host tokens = %s" % host_tokens)
+                                    break
+                            # if host tokens is none here we have a FVM
+                            vm_group_name = host_tokens[0]
+                            vm_cloud_name = host_tokens[1]
+                            
+
+                            if (host_tokens[0], host_tokens[1]) not in group_list:
+                                logging.debug("Group-Cloud combination doesn't match any in csv2, marking %s as foreign vm" % vm['PublicDnsName'])
+                                logging.debug(group_list)
+                                if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
+                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
+                                        'count': 1,
+                                        'region': cloud_obj.region,
+                                        'project': cloud_obj.project,
+                                        'authurl': cloud_obj.authurl, 
+                                        'flavor_id': vm['InstanceType']
+                                    }
+                                continue
+                            elif int(host_tokens[2]) != int(config.csv2_host_id):
+                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm['PublicDnsName']))
+                                if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
+                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
+                                else:
+                                    # no entry yet
+                                    for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
+                                        'count': 1,
+                                        'region': cloud_obj.region,
+                                        'project': cloud_obj.project,
+                                        'authurl': cloud_obj.authurl, 
+                                        'flavor_id': vm['InstanceType']
+                                    }
+
+                                #foreign vm
+                                continue
                         except Exception as exc:
-                            logging.exception(
-                                "Failed to commit VM updates for %s::%s, aborting cycle..." % (group_name, cloud_name))
+                            #not enough tokens, bad hostname or foreign vm
+                            logging.error("No tags, or other error for: %s, registering as fvm" % vm['PublicDnsName'])
+                            logging.debug("   Exeption: %s" % exc)
+                            if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
+                                for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
+                            else:
+                                # no entry yet
+                                for_vm_dict[auth_url + "--" + vm['InstanceType']]= {
+                                    'count': 1,
+                                    'region': cloud_obj.region,
+                                    'project': cloud_obj.project,
+                                    'authurl': cloud_obj.authurl, 
+                                    'flavor_id': vm['InstanceType']
+                                }
+
+                            continue
+                        
+                        #
+                        # We'll want to check if the vm is in the shutdown state and throw it out if it is
+                        # before we commit to doing this however we need a way to monitor the number of 
+                        # cores/ram/instances in use since we cant get that information via limits
+                        #
+                        # states: pending | running | shutting-down | terminated | stopping | stopped
+                        #
+                        if vm['State']['Name'] == "terminated":
+                            logging.debug("VM already terminated, skipping %s" % vm['InstanceId'])
+                            continue
+
+                        ip_addrs = []
+                        floating_ips = []
+                        for net in vm['NetworkInterfaces']:
+                            for addr in net['PrivateIpAddresses']:
+                                ip_addrs.append(addr['Association']['PublicIp'])
+                        if 'PublicIpAddress' in vm.keys():
+                            ip_addrs.append(vm['PublicIpAddress'])
+                        if 'PrivateIpAddress' in vm.keys():
+                            ip_addrs.append(vm['PrivateIpAddress'])
+                        logging.info("VM STATE: %s" % vm['State']['Name'])
+                        vm_dict = {
+                            'group_name': vm_group_name,
+                            'cloud_name': vm_cloud_name,
+                            'region': cloud_obj.region,
+                            'auth_url': cloud_obj.authurl,
+                            'project': cloud_obj.project,
+                            'cloud_type': 'amazon',
+                            'hostname': vm['PublicDnsName'],
+                            'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm.keys() else vm['InstanceId'],                                
+                            'status': ec2_status_dict[vm['State']['Name']],
+                            'flavor_id': vm['InstanceType'],
+                            'vm_ips': str(ip_addrs),
+                            'last_updated': new_poll_time
+                        }
+
+                        if 'SpotInstanceRequestId' in vm.keys() and 'InstanceId' in vm.keys():
+                            vm_dict['instance_id'] = vm['InstanceId']
+
+                        vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict)
+                        if unmapped:
+                            logging.error("unmapped attributes found during mapping, discarding:")
+                            logging.error(unmapped)
+
+                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            continue
+
+                        new_vm = VM(**vm_dict)
+                        try:
+                            db_session.merge(new_vm)
+                            uncommitted_updates += 1
+                        except Exception as exc:
+                            logging.exception("Failed to merge VM entry for %s::%s::%s, using group %s's credentials aborting cycle..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
                             logging.error(exc)
                             abort_cycle = True
                             break
+                        if uncommitted_updates >= config.batch_commit_size:
+                            try:
+                                db_session.commit()
+                                logging.info("Comitted %s VMs" % uncommitted_updates)
+                                uncommitted_updates = 0
+                            except Exception as exc:
+                                logging.error("Error during batch commit of VMs:")
+                                logging.error(exc)
+
+                del nova
                 if abort_cycle:
                     break
+
+                if uncommitted_updates > 0:
+                    try:        
+                        db_session.commit()
+                        logging.info("VM updates committed: %d" % uncommitted_updates)
+                    except Exception as exc:
+                        logging.exception("Failed to commit VM updates for %s::%s:%s, using group %s's credentials aborting cycle..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
+                        logging.error(exc)
+                        abort_cycle = True
+                        break
+                if abort_cycle:
+                    break
+                # proccess FVM dict
+                # check if any rows have a zero count and delete them, otherwise update with new count
+                logging.debug("FVMD: %s" % for_vm_dict)
+                for key in for_vm_dict:
+                    split_key = key.split("--")
+                    if for_vm_dict[key]['count'] == 0:
+                        # delete this row
+                        db_session.delete(for_vm_dict[key]['fvm_obj'])
+                    else:
+                        try:
+                            # if we get here there is at least 1 count of this flavor, though there may not be a database object yet
+                            for_vm_dict[key]['fvm_obj'].count = for_vm_dict[key]['count']
+                            db_session.merge(for_vm_dict[key]['fvm_obj'])
+                        except KeyError:
+                            # need to create new db obj for this entry
+                            fvm_dict = {
+                                'authurl':    for_vm_dict[key]['authurl'],
+                                'project':    for_vm_dict[key]['project'],
+                                'region':     for_vm_dict[key]['region'],
+                                'flavor_id':  for_vm_dict[key]['flavor_id'],
+                                'count':      for_vm_dict[key]['count'],
+                                'cloud_type': "amazon"
+                            }
+                            new_fvm = FVM(**fvm_dict)
+                            db_session.merge(new_fvm)
+                
+                try:
+                    db_session.commit()
+                except Exception as exc:
+                    logging.exception("Failed to commit foreign VM updates, aborting cycle...")
+                    logging.error(exc)
+                    abort_cycle = True
+                    break
+
 
             if abort_cycle:
                 config.db_close()
@@ -1613,9 +1803,22 @@ def vm_poller():
                 time.sleep(config.sleep_interval_vm)
                 continue
 
-            # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
-            delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time,
-                                           failure_dict=failure_dict)
+            # Scan the VMs in the database, removing each one that is not in the inventory.
+            # VMs have a different failure dict schema using group_name + auth_url instead of group_name + cloud_name
+            #     failure_dict needs to be remapped before calling
+            logging.debug("Expanding failure_dict")
+            new_f_dict = {}
+            for cloud in cloud_list:
+                if cloud.cloud_name + cloud.authurl in failure_dict.keys():
+                    new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+            logging.debug("Calling delete function")
+            delete_obsolete_database_items('VM', inventory, db_session, VM, 'vmid', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")
+
+            # Check on the core limits to see if any clouds need to be scaled down.
+            over_quota_clouds = db_session.query(view_vm_kill_retire_over_quota).filter(view_vm_kill_retire_over_quota.c.cloud_type=="amazon")
+            for cloud in over_quota_clouds:
+                kill_retire(config, cloud.group_name, cloud.cloud_name, "control", [cloud.cores, cloud.ram], get_frame_info())
+
 
             logging.debug("Completed VM poller cycle")
             config.db_close()
@@ -1626,6 +1829,7 @@ def vm_poller():
         logging.exception("VM poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
+        del db_session
 
 
 def service_registrar():
@@ -1671,7 +1875,7 @@ if __name__ == '__main__':
         'keypair': keypair_poller,
         'limit': limit_poller,
         'network': network_poller,
-        #'vm': vm_poller,
+        'vm': vm_poller,
         'registrar': service_registrar,
         'filterer': ec2_filterer,
         'security_group_poller': security_group_poller

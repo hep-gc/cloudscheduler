@@ -1,0 +1,6 @@
+Amazon EC2 offers a vast collection of Virtual Machine (VM) images available for excution.
+In addition to the public images offered by Amazon, any user can create and upload images, make them public, share them with other specific users, or keep them for private use.
+With so many images to choose from, the process of image selection can be rather daunting.
+The \fBec2 images\fR function of cloudscheduler version 2 (CSV2) provides a filtering system to ease the problem of finding appropriate images and reduce the overhead of managing the images of interest.
+Since different images may be available to different regions, filtering is performed on a cloud by cloud basis.
+It is therefore necessary to specify from which cloud connection the images are to be viewed.

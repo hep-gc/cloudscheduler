@@ -1,7 +1,15 @@
 from django.conf.urls import url
 from django.urls import path
 
-from . import alias_views, cloud_views, group_views, job_views, server_views, settings_views, user_views, vm_views
+from . import alias_views, \
+    cloud_views, \
+    ec2_views, \
+    group_views, \
+    job_views, \
+    server_views, \
+    settings_views, \
+    user_views, \
+    vm_views
 
 urlpatterns = [
 
@@ -24,9 +32,11 @@ urlpatterns = [
     path('cloud/metadata-fetch/',                  cloud_views.metadata_fetch),
     path('cloud/metadata-list/',                   cloud_views.metadata_list),
     path('cloud/metadata-new/',                    cloud_views.metadata_new),
+    path('cloud/metadata-query/',                  cloud_views.metadata_query),
     path('cloud/metadata-update/',                 cloud_views.metadata_update),
 
-    path('ec2-instance-type/list/',                group_instance_type_views.list),
+    path('ec2/images/',                            ec2_views.images),
+    path('ec2/instance-types/',                    ec2_views.instance_types),
 
     path('group/add/',                             group_views.add),
     path('group/defaults/',                        group_views.defaults),
@@ -38,6 +48,7 @@ urlpatterns = [
     path('group/metadata-fetch/',                  group_views.metadata_fetch),
     path('group/metadata-list/',                   group_views.metadata_list),
     path('group/metadata-new/',                    group_views.metadata_new),
+    path('group/metadata-query/',                  group_views.metadata_query),
     path('group/metadata-update/',                 group_views.metadata_update),
 
     path('job/list/',                              job_views.list),

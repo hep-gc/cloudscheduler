@@ -2,7 +2,13 @@
     {% load static %}
     <link rel="icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static "csv2/navigation.css" %}?{{version}}">
+    <title id="title"></title>
 </head>
+
+<script>
+    var title = window.location.hostname.split(".");
+    document.getElementById('title').innerHTML = title[0];
+</script>
 
 <nav class="top-nav">
     <ul>

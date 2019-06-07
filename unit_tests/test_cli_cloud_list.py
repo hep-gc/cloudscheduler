@@ -98,7 +98,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_command(
-        gvar, 0, None, 'cloud list, 1. Clouds: keys=group_name,cloud_name, columns=enabled,authurl,project_domain_name,project,user_domain_name,username,region,spot_price,cloud_type,cores_ctl,cores_softmax,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,vm_keyname,vm_network,vm_security_groups,cascading_vm_flavor,cascading_vm_image,cascading_vm_keep_alive,cascading_vm_keyname,cascading_vm_network,cascading_vm_security_groups,cacertificate,flavor_exclusions,flavor_names,group_exclusions,metadata_names\\ncloud list, 2. Flavors (optional): keys=group_name,cloud_name, columns=name\\ncloud list, 3. Images (optional): keys=group_name,cloud_name, columns=name\\ncloud list, 4. Networks (optional): keys=group_name,cloud_name, columns=name\\ncloud list, 5. Security Groups (optional): keys=group_name,cloud_name, columns=name',
+        gvar, 0, None, 'cloud list, 1. Clouds: keys=group_name,cloud_name, columns=enabled,cloud_priority,authurl,project,project_domain_name,project_domain_id,username,user_domain_name,user_domain_id,region,spot_price,cloud_type,cores_ctl,cores_softmax,cores_max,ram_ctl,ram_max,vm_flavor,vm_image,vm_keep_alive,vm_keyname,vm_network,vm_security_groups,cascading_vm_flavor,cascading_vm_image,cascading_vm_keep_alive,cascading_vm_keyname,cascading_vm_network,cascading_vm_security_groups,cacertificate,flavor_exclusions,flavor_names,group_exclusions,metadata_names\\ncloud list, 2. Flavors (optional): keys=group_name,cloud_name, columns=name\\ncloud list, 3. Images (optional): keys=group_name,cloud_name, columns=name\\ncloud list, 4. Networks (optional): keys=group_name,cloud_name, columns=name\\ncloud list, 5. Security Groups (optional): keys=group_name,cloud_name, columns=name',
         ['cloudscheduler', 'cloud', 'list', '-VC']
     )
 
@@ -106,7 +106,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-NV'],
-        list='Clouds', columns=['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project', 'Domain', 'User', 'Region', 'Spot', 'Price', 'Type', 'Control', 'SoftMax', 'Max', 'Default', 'Cascading', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'Security', 'Groups', 'Metadata', 'CA', 'Certificate', 'Exclusions', 'Flavors', 'Filenames']
+        list='Clouds', columns=['Project', 'User', 'Cores', 'Group', 'Cloud', 'Enabled', 'Priority', 'URL', 'Name', 'Domain', 'Name', 'Domain', 'ID', 'Name', 'Domain', 'Name', 'Domain', 'ID', 'Region', 'Spot', 'Price', 'Cloud', 'Type', 'Control', 'Cores', 'RAM', 'Cloud', 'Default', 'Cascading', 'Default', 'Group', 'Cloud', 'SoftMax', 'Max', 'Control', 'Max', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'Security', 'Groups', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Cascading', 'Default', 'Cloud', 'Metadata', 'Group', 'Cloud', 'Network', 'Security', 'Groups', 'CA', 'Certificate', 'Flavor', 'Exclusions', 'Flavors', 'Group', 'Exclusions', 'Filenames']
     )
 
     # 17
@@ -134,7 +134,7 @@ def main(gvar, user_secret):
     execute_csv2_command(
         gvar, 0, None, None,
         ['cloudscheduler', 'cloud', 'list', '-NV'],
-        list='Clouds', columns= ['Cores', 'RAM', 'Group', 'Cloud', 'Enabled', 'URL', 'Project', 'Domain', 'User', 'Region', 'Spot', 'Price', 'Type', 'Control', 'SoftMax', 'Max', 'Default', 'Cascading', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'Security', 'Groups', 'Metadata', 'CA', 'Certificate', 'Exclusions', 'Flavors', 'Filenames']
+        list='Clouds', columns= ['Project', 'User', 'Cores', 'Group', 'Cloud', 'Enabled', 'Priority', 'URL', 'Name', 'Domain', 'Name', 'Domain', 'ID', 'Name', 'Domain', 'Name', 'Domain', 'ID', 'Region', 'Spot', 'Price', 'Cloud', 'Type', 'Control', 'Cores', 'RAM', 'Cloud', 'Default', 'Cascading', 'Default', 'Group', 'Cloud', 'SoftMax', 'Max', 'Control', 'Max', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Network', 'Security', 'Groups', 'Flavor', 'Image', 'Keep', 'Alive', 'Keyname', 'Cascading', 'Default', 'Cloud', 'Metadata', 'Group', 'Cloud', 'Network', 'Security', 'Groups', 'CA', 'Certificate', 'Flavor', 'Exclusions', 'Flavors', 'Group', 'Exclusions', 'Filenames']
     )
 
 if __name__ == "__main__":

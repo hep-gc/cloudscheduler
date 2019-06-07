@@ -9,16 +9,17 @@ KEY_MAP = {
     '-ce':  'enabled',
     '-cfe': 'flavor_name',
     '-cfo': 'flavor_option',
-    '-cpw': 'password',
     '-cn':  'cloud_name',
-    '-cp':  'project',
+    '-cp':  'priority',
+    '-cpw': 'password',
+    '-cP':  'project',
     '-cr':  'region',
     '-csp': 'spot_price',
     '-ct':  'cloud_type',
-    '-cu':  'username',
-    '-cP':  'project_domain_name',
+    '-cU':  'username',
+    '-cPD': 'project_domain_name',
     '-cPI': 'project_domain_id',
-    '-cU':  'user_domain_name',
+    '-cUD':  'user_domain_name',
     '-cUI': 'user_domain_id',
     '-g':   'group',
     '-ga':  'cacertificate',
@@ -63,9 +64,9 @@ def add(gvar):
     Add a cloud to the active group.
     """
 
-    mandatory = ['-ca', '-cn', '-cp', '-cpw', '-cr', '-ct', '-cu']
+    mandatory = ['-ca', '-cn', '-cP', '-cpw', '-cr', '-ct', '-cU']
     required = []
-    optional = ['-ce', '-cfe', '-cP', '-cPI', '-csp', '-cU', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -169,6 +170,7 @@ def list(gvar):
             'group_name/Group,k',
             'cloud_name/Cloud,k',
             'enabled/Enabled',
+            'cloud_priority/Priority',
             'authurl/URL',
             'project/Name/Project',
             'project_domain_name/Domain Name/Project',
@@ -338,7 +340,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cP', '-cPI', '-cp', '-cr', '-csp', '-ct', '-cU', '-cUI', '-cu', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -575,7 +577,7 @@ def metadata_load(gvar):
 
     mandatory = ['-cn', '-f', '-mn']
     required = []
-    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+    optional = ['-F', '-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -593,10 +595,31 @@ def metadata_load(gvar):
         print('Error: The specified metadata file "%s" does not exist.' % gvar['user_settings']['file-path'])
         exit(1)
 
+    # Set the default load command.
+    url_command = '/cloud/metadata-add/'
+
+    # If the "--force" option is used, change the url_command to overwrite the metadata if it already exists.
+    if gvar['user_settings']['force']:
+        # Replace the metadata file.
+        response = requests(
+            gvar,
+            '/cloud/metadata-query/',
+            {
+                'cloud_name': form_data['cloud_name'],
+                'metadata_name': form_data['metadata_name'],
+                }
+            )
+        
+        if response['message']:
+            print(response['message'])
+
+        if response['metadata_exists']:
+            url_command = '/cloud/metadata-update/'
+
     # Replace the metadata file.
     response = requests(
         gvar,
-        '/cloud/metadata-add/',
+        url_command,
         {
             **form_data,
             **verify_yaml_file(gvar['user_settings']['file-path']),

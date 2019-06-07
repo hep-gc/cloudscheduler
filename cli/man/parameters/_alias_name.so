@@ -1,0 +1,4 @@
+.TP
+\fB\-an \fIname\fR, \fB\-\-alias-name \fIname\fR
+The alias name.
+The value for \fIname\fR must be one to thirty-two characters, all lower case and numeric digits.

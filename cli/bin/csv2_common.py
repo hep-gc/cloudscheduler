@@ -12,7 +12,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
     mandatory = []
     required = []
     options = []
-    valid_keys = ['server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user']
+    valid_keys = ['server-address', 'server-password', 'server-user']
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
@@ -255,24 +255,29 @@ def _requests(gvar, request, form_data={}, query_data={}):
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['pid_defaults']['server'])
         exit(1)
 
-    if 'server-grid-cert' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-        'server-grid-key' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-key']):
+    if gvar['grid_proxy_user']:
+        authentication_method = 'X509'
 
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-grid-cert'])
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['grid_proxy_user'])
 
-        _r = _function(
-            _request,
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-            cert=(gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']),
-            data=_form_data,
-            cookies=gvar['cookies']
-            )
+        try:
+            _r = _function(
+                _request,
+                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+                cert=(gvar['grid_proxy_user']),
+                data=_form_data,
+                cookies=gvar['cookies']
+                )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
 
     elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
             gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
+
+        authentication_method = '%s, <password>' % gvar['user_settings']['server-user']
 
         _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
 
@@ -305,7 +310,10 @@ def _requests(gvar, request, form_data={}, query_data={}):
         gvar['active_group'] = response['active_group']
 
     if 'active_user' in response and 'active_group' in response:
-        update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
+        if gvar['grid_proxy_user']:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=gvar['grid_proxy_user'], group=response['active_group'])
+        else:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
 
     if 'super_user' in response:
         gvar['super_user'] = response['super_user']
@@ -313,26 +321,17 @@ def _requests(gvar, request, form_data={}, query_data={}):
     if gvar['user_settings']['expose-API']:
         print("Expose API requested:\n" \
             "  py_requests.%s(\n" \
-            "    %s,\n" \
-            "    headers={'Accept': 'application/json', 'Referer': '%s'}," % (
-                _function.__name__,
-                _request,
-                gvar['user_settings']['server-address'],
-                )
-            )
-
-        if 'server-grid-cert' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-            'server-grid-key' in gvar['user_settings'] and \
-            os.path.exists(gvar['user_settings']['server-grid-key']):
-            print("    cert=('%s', '%s')," % (gvar['user_settings']['server-grid-cert'], gvar['user_settings']['server-grid-key']))
-        else:
-            print("    auth=('%s', <password>)," % gvar['user_settings']['server-user'])
-
-        print("    data=%s,\n" \
+            "    %s\n" \
+            "    headers={'Accept': 'application/json', 'Referer': '%s'}\n" \
+            "    auth=(%s)\n" \
+            "    data=%s\n" \
             "    cookies='%s'\n" \
             "    )\n\n" \
             "  Response: {" % (
+                _function.__name__,
+                _request,
+                gvar['user_settings']['server-address'],
+                authentication_method,
                 _form_data,
                 gvar['cookies']
                 )
@@ -418,10 +417,10 @@ def requests_no_credentials_error(gvar):
 
     print(
         '***\n' \
-        '*** Please identify the URL (-sa | --server-address, eg. "-sa https://mycsv2.example.ca") of the server with which\n' \
-        '*** you wish to communicate. Servers require either certificate (-sC | --server-grid-cert, -sK | --server-grid-key)\n' \
-        '*** or username/password (-su | --server-user, -spw | --server-password) authentication. These options can be saved\n' \
-        '*** for multiple servers by name using the following command:\n' \
+        '*** Please identify the URL (\033[1m--server-address\033[0m, eg. "-sa https://mycsv2.example.ca") of the server with which you\n' \
+        '*** wish to communicate. Servers require either grid proxy certificate authentication (\033[1muse grid-proxy-init\033[0m) or\n' \
+        '*** username/password authentication (\033[1m--server-user\033[0m/\033[1m--server-password\033[0m). These options can be saved for multiple\n' \
+        '*** servers by name using the following command:\n' \
         '***\n' \
         '***     %s defaults set -s <sever_name> -sa <server_address> ...\n' \
         '***\n' \
@@ -461,7 +460,7 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=Fa
     if 'views' not in gvar:
         if os.path.exists('%s/.csv2/views.yaml' % gvar['home_dir']):
             fd = open('%s/.csv2/views.yaml' % gvar['home_dir'])
-            gvar['views'] = yaml.full_load(fd.read())
+            gvar['views'] = yaml_full_load(fd.read())
             fd.close()
         else:
             gvar['views'] = {}
@@ -489,18 +488,21 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=Fa
 
     skip_optional = True
     if optional and not gvar['user_settings']['view-columns'] and 'with' in gvar['user_settings']:
-        lower_title = title.lower()
-        words = gvar['user_settings']['with'].lower().split(',')
-        for word in words:
-            try:
-                int_word = int(word)
-            except:
-                int_word = 0
+        if gvar['user_settings']['with'] == 'ALL':
+            skip_optional = False
+        else:
+            lower_title = title.lower()
+            words = gvar['user_settings']['with'].lower().split(',')
+            for word in words:
+                try:
+                    int_word = int(word)
+                except:
+                    int_word = 0
 
-            if int_word > 0 and int_word == gvar['tables_shown']+1 or \
-                word == lower_title[:len(word)]:
-                    skip_optional = False
-                    break
+                if int_word > 0 and int_word == gvar['tables_shown']+1 or \
+                    word == lower_title[:len(word)]:
+                        skip_optional = False
+                        break
             
     if optional and not gvar['user_settings']['view-columns'] and skip_optional:
         gvar['tables_shown'] += 1
@@ -687,8 +689,8 @@ def show_table(gvar, queryset, columns, allow_null=True, title=None, optional=Fa
             lists.append(_row)
 
     if 'comma-separated-values' in gvar['user_settings']:
-        if 'comma-separated-value-separator' in gvar['user_settings']:
-            separator =  gvar['user_settings']['comma-separated-value-separator']
+        if 'comma-separated-values-separator' in gvar['user_settings']:
+            separator =  gvar['user_settings']['comma-separated-values-separator']
         else:
             separator = ','
 
@@ -935,11 +937,22 @@ def verify_yaml_file(file_path):
 
 #-------------------------------------------------------------------------------
               
+def yaml_full_load(yaml_string):
+    import yaml
+
+    if hasattr(yaml, 'full_load'):
+        return yaml.full_load(yaml_string)
+    else:
+        return yaml.load(yaml_string)
+
+
+#-------------------------------------------------------------------------------
+              
 def _yaml_load_and_verify(yaml_string):
     import yaml
 
     try:
-        _yaml = yaml.full_load(yaml_string)
+        _yaml = yaml_full_load(yaml_string)
         return [1, _yaml]
     except yaml.scanner.ScannerError as ex:
         return [0, 'scanner error', ex]

@@ -70,7 +70,7 @@ class ProcessMonitor:
             proc = subprocess.Popen(['tail', '-n', '50', self.config.log_file], stdout=subprocess.PIPE)
             lines = proc.stdout.readlines()
             timestamp = str(datetime.date.today())
-            with open(''.join([self.config.log_file, '-', timestamp]), 'wb') as f:
+            with open(''.join([self.config.log_file, '-crash-', timestamp]), 'wb') as f:
                 for line in lines:
                     f.write(line)
         except Exception as ex:

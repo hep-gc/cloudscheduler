@@ -91,8 +91,10 @@ def _bracket_and_bracket_to_or(sql):
     Return a clause to select where a column is equal to one or more values.
     """
     
-    sql[-2] = sql[-2][:-1] + ' or ' + sql[-1][5:]
-    del sql[-1]
+    if len(sql) > 1 and len(sql[-2]) > 0 and len(sql[-1]) > 5 and sql[-2][-1] == ')' and sql[-1][:5] == 'and (':
+        sql[-2] = sql[-2][:-1] + ' or ' + sql[-1][5:]
+        del sql[-1]
+
     return
 
 #-------------------------------------------------------------------------------
@@ -184,12 +186,12 @@ def _get_ec2_region_and_owner_id(config, group_name, cloud_name):
     if len(cloud) != 1:
         if close_db_on_exit:
             config.db_close()
-        return 1, 'specified cloud "%s::%s" does not exist.' % (group_name, cloud_name), None, None
+        return 1, 'specified cloud "%s::%s" does not exist.' % (group_name, cloud_name), None, None, None
 
     if cloud[0]['cloud_type'] != 'amazon':
         if close_db_on_exit:
             config.db_close()
-        return 1, 'specified cloud "%s::%s" is not an "amazon" cloud.' % (group_name, cloud_name), None, None
+        return 1, 'specified cloud "%s::%s" is not an "amazon" cloud.' % (group_name, cloud_name), None, None, None
 
     return 0,  None, close_db_on_exit, cloud[0]['region'], cloud[0]['ec2_owner_id']
 

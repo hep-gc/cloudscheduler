@@ -18,19 +18,19 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV34', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
+        gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/metadata-fetch/', query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV34', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-fetch/', group='invalid-unit-test', query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     execute_csv2_request(
-        gvar, 1, 'GV34', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-fetch/', group=ut_id(gvar, 'gtg7'), query_data={'metadata_name': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

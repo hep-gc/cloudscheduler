@@ -2,9 +2,13 @@
 EC2 API Cloud Connector Module. Using Boto
 """
 import time
+import gzip
 import boto3
+import base64
 import logging
 import botocore
+
+from io import StringIO
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -29,21 +33,30 @@ class EC2Cloud(basecloud.BaseCloud):
         self.password = resource.password  # Secret key
         self.region = resource.region
         self.authurl = resource.authurl  # endpoint_url
-        self.keyname = resource.keyname
+        self.keyname = resource.default_keyname if resource.default_keyname else ""
         self.project = resource.project
         self.spot_price = resource.spot_price
+        self.default_security_groups = resource.default_security_groups
+        self.keep_alive = resource.default_keep_alive
+        try:
+            self.default_security_groups = self.default_security_groups.split(
+                ',') if self.default_security_groups else ['default']
+        except:
+            raise Exception
 
 
     def _get_client(self):
         client = None
         try:
-            client = boto3.client('ec2', region_name=self.region, endpoint_url=self.authurl,
-                                  aws_access_key_id=self.username, aws_secret_access_key=self.password)
-        except:
-            pass
+            session = boto3.session.Session(region_name=self.region,
+                                 aws_access_key_id=self.username,
+                                 aws_secret_access_key=self.password)
+            client = session.client('ec2')
+        except Exception as ex:
+            self.log.exception(ex)
         return client
 
-
+# base64.b64encode(user_data.encode("ascii")).decode('ascii')
     def vm_create(self, num=1, job=None, flavor=None, template_dict=None, image=None):
         self.log.debug("vm_create from ec2 cloud.")
         template_dict['cs_cloud_type'] = self.__class__.__name__
@@ -52,17 +65,39 @@ class EC2Cloud(basecloud.BaseCloud):
         user_data_list = job.user_data.split(',') if job.user_data else []
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
+        instancetype_dict = self._attr_list_to_dict(job.instance_type)
+        tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join([self.group, self.name, str(self.config.csv2_host_id)])}]}]
         client = self._get_client()
+        if not client:
+            self.log.error("Failed to get client for ec2. Check Configuration.")
+            return -1
+
+
+        # need to check on instance type, if one isn't specified by the job itself we inherit from the cloud (aka the 'flavor' parameter)
+        if self.name not in instancetype_dict.keys():
+             instancetype_dict = self._attr_list_to_dict(flavor)
         if self.spot_price <= 0:
-            new_vm = client.run_instances(ImageId=job.image, MinCount=1, MaxCount=num, InstanceType=flavor,
-                                          UserData=userdata, KeyName=self.keyname, SecurityGroups=job.security_groups)
+            flag_spot_instance = 0
+            if self.keyname:
+                new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
+                                              InstanceType=instancetype_dict[self.name],
+                                              UserData=userdata, KeyName=self.keyname,
+                                              SecurityGroups=self.default_security_groups,
+                                              TagSpecifications=tags)
+            else:
+                new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
+                                              InstanceType=instancetype_dict[self.name],
+                                              UserData=userdata, SecurityGroups=self.default_security_groups,
+                                              TagSpecifications=tags)
         else:
-            specs = {'ImageId': job.image,
-                     'InstanceType': flavor,
-                     'KeyName': self.keyname,
-                     'Userdata': userdata,
-                     'SecurityGroups': job.security_groups}
-            new_vm = client.request_spot_instances(SpotPrice=self.spot_price, Type='one-time', InstanceCount=num, LaunchSpecifications=specs)
+            flag_spot_instance = 1
+            specs = {'ImageId': image,
+                     'InstanceType': instancetype_dict[self.name],
+                     'UserData': base64.b64encode(userdata).decode(),  # Dumb encoding hack required for spot instances since boto behaves different on request_spot vs run_instance
+                     'SecurityGroups': self.default_security_groups}
+            if self.keyname:
+                specs['KeyName'] = self.keyname
+            new_vm = client.request_spot_instances(SpotPrice=str(self.spot_price), Type='one-time', InstanceCount=num, LaunchSpecification=specs)
         if 'Instances' in new_vm.keys():
             engine = self._get_db_engine()
             base = automap_base()
@@ -74,13 +109,17 @@ class EC2Cloud(basecloud.BaseCloud):
                 self.log.debug(vm)
                 hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm.keys() and vm['PublicDnsName'] \
                     else vm['PrivateDnsName']
+                flag = 0 if 2<=1 else 1
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
+                    'cloud_type': 'amazon',
+                    'region': self.region,
                     'auth_url': self.authurl,
                     'project': self.project,
                     'hostname': hostname,
                     'vmid': vm['InstanceId'],
+                    'spot_instance': flag_spot_instance,
                     'status': vm['State']['Name'],
                     'flavor_id': vm['InstanceType'],
                     'last_updated': int(time.time()),
@@ -91,6 +130,8 @@ class EC2Cloud(basecloud.BaseCloud):
                 db_session.merge(new_vm)
             db_session.commit()
         elif 'SpotInstanceRequests' in new_vm.keys():
+            # TODO Need to attach the tags to the spot instances
+
             engine = self._get_db_engine()
             base = automap_base()
             base.prepare(engine, reflect=True)
@@ -99,9 +140,12 @@ class EC2Cloud(basecloud.BaseCloud):
 
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
+                client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
+                    'region': self.region,
+                    'cloud_type': 'amazon',
                     'auth_url': self.authurl,
                     'project': self.project,
                     'vmid': vm['SpotInstanceRequestId'],

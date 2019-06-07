@@ -41,61 +41,61 @@ def main(gvar, user_secret):
 
     # 05
     execute_csv2_request(
-        gvar, 1, 'GV47', 'invalid method "GET" specified.',
+        gvar, 1, 'GV', 'invalid method "GET" specified.',
         '/group/update/'
     )
 
     # 06
     execute_csv2_request(
-        gvar, 1, 'GV36', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/update/', group='invalid-unit-test'
     )
 
     # 07
     execute_csv2_request(
-        gvar, 1, 'GV42', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
         '/group/update/', form_data={'invalid-unit-test': 'invalid-unit-test'}
     )
 
     # 08
     execute_csv2_request(
-        gvar, 1, 'GV42', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/update/', form_data={'group_name': ut_id(gvar, 'Gtg1')}
     )
 
     # 09
     execute_csv2_request(
-        gvar, 1, 'GV42', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg!1')}
     )
 
     # 10
     execute_csv2_request(
-        gvar, 1, 'GV42', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
+        gvar, 1, 'GV', 'value specified for "group_name" must be all lower case, numeric digits, and dashes but cannot start or end with dashes.',
         '/group/update/', form_data={'group_name': ut_id(gvar, 'gtg1-')}
     )
 
     # 11
     execute_csv2_request(
-        gvar, 1, 'GV45', 'group update must specify at least one field to update.',
+        gvar, 1, 'GV', 'group update must specify at least one field to update.',
         '/group/update/', form_data={'group_name': 'invalid-unit-test'}
     )
 
     # 12
     execute_csv2_request(
-        gvar, 1, 'GV42', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
+        gvar, 1, 'GV', 'value specified for "user_option" must be one of the following options: [\'add\', \'delete\'].',
         '/group/update/', form_data={'user_option': 'invalid-unit-test'}
     )
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'GV42', 'group update request did not contain mandatory parameter "group_name".',
+        gvar, 1, 'GV', 'group update request did not contain mandatory parameter "group_name".',
         '/group/update/', form_data={'username': 'invalid-unit-test'}
     )
 
     # 14
     execute_csv2_request(
-        gvar, 1, 'GV44', 'the request did not match any rows.',
+        gvar, 1, 'GV', 'the request did not match any rows.',
         '/group/update/', form_data={
             'group_name': 'invalid-unit-test',
             'htcondor_fqdn': 'invalid-unit-test'
@@ -104,7 +104,7 @@ def main(gvar, user_secret):
 
     # 15
     execute_csv2_request(
-        gvar, 1, 'GV42', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'htcondor_fqdn': ''
@@ -130,7 +130,7 @@ def main(gvar, user_secret):
 
     # 18
     execute_csv2_request(
-        gvar, 1, 'GV43', 'specified user "invalid-unit-test" does not exist.',
+        gvar, 1, 'GV', 'specified user "invalid-unit-test" does not exist.',
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': 'invalid-unit-test'
@@ -139,7 +139,7 @@ def main(gvar, user_secret):
 
     # 19
     execute_csv2_request(
-        gvar, 1, 'GV43', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu4')),
+        gvar, 1, 'GV', 'group update, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'gtg4'), ut_id(gvar, 'gtu4')),
         '/group/update/', form_data={
             'group_name': ut_id(gvar, 'gtg4'),
             'username.1': ut_id(gvar, 'gtu4'),

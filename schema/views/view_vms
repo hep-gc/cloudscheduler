@@ -15,7 +15,7 @@ select
     cm.my_current_time,
     cm.entered_current_state,
     cm.idle_time,
-    case when concat(lower(cv.group_name),"--",lower(cv.cloud_name))=substring_index(cv.hostname, '--', 2) then False else True end as foreign_vm,
+    False as foreign_vm,
     cores,
     disk + ephemeral_disk as disk,
     ram,
@@ -53,10 +53,10 @@ left outer join cloud_flavors as cf on
     cv.flavor_id=cf.id
 left outer join (
     select
-        substring_index(machine,'--',1) as group_name,
-        substring_index(substring_index(machine,'--',2),'--',-1) as cloud_name,
-        substring_index(machine,'.',1) as hostname,
+        group_name,
+        cloud_name,
         machine,
+        substring_index(machine,'.',1) as hostname,
         sum(case when slot_type='Partitionable' then total_slots else 0 end) as condor_slots,
         max(case when slot_type='Partitionable' then idle_time else 0 end) as idle_time,
         max(case when slot_type='Dynamic' then my_current_time else 0 end) as my_current_time,
@@ -75,5 +75,5 @@ left outer join (
     ) as cm on
     cv.group_name=cm.group_name and
     cv.cloud_name=cm.cloud_name and
-    cv.hostname=cm.hostname
+    (cv.hostname=cm.machine or cv.hostname=cm.hostname)
 ;

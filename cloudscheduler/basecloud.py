@@ -15,6 +15,8 @@ try:
 except:
     import cloudscheduler.cloud_init_util
 from cloudscheduler.lib.db_config import Config
+import config as csconfig
+from sqlalchemy import create_engine
 
 
 class BaseCloud(ABC):
@@ -119,3 +121,14 @@ class BaseCloud(ABC):
                 raise ValueError("Can't split '%s' into suitable host attribute pair: %s"
                                  % (keyvalue, self.name))
         return attr_dict
+
+    def _get_db_engine(self):
+        """
+        Get a connection to the database.
+        :return: db connection object.
+        """
+        return create_engine("mysql://" + csconfig.config.db_user + ":" +
+                             csconfig.config.db_password + "@" +
+                             csconfig.config.db_host + ":" +
+                             str(csconfig.config.db_port) + "/" +
+                             csconfig.config.db_name)

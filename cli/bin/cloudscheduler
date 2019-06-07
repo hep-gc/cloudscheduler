@@ -4,7 +4,7 @@ This is the command line interface to cloudscheduler version 2.
 """
 
 from pathlib import Path
-from csv2_common import requests, requests_no_credentials_error, update_pid_defaults
+from csv2_common import requests, requests_no_credentials_error, update_pid_defaults, yaml_full_load
 
 import os
 import sys
@@ -15,6 +15,7 @@ import json
 import csv2_alias
 import csv2_cloud
 import csv2_defaults
+import csv2_ec2
 import csv2_group
 import csv2_help
 import csv2_helpers
@@ -69,6 +70,13 @@ def main(args):
                     'delete':                             csv2_defaults.delete,
                     'list':                               csv2_defaults.list,
                     'set':                                csv2_defaults.set,
+                    }
+                ],
+            'ec2': [
+                False, # super_user?
+                {
+                    'images':                             csv2_ec2.images,
+                    'instance-types':                     csv2_ec2.instance_types,
                     }
                 ],
             'group': [
@@ -149,28 +157,28 @@ def main(args):
             ('-c',    '--cacerts', True),
             ('-ca',   '--cloud-address', True),
             ('-cc',   '--config-category', True),
+            ('-ckv',  '--config-key-values', True),
             ('-ce',   '--cloud-enabled', True),
             ('-cfe',  '--cloud-flavor-exclusion', True),
             ('-cfo',  '--cloud-flavor-option', True),
             ('-cn',   '--cloud-name', True),
             ('-co',   '--cloud-option', True),
             ('-cpw',  '--cloud-password', True),
-            ('-cP',   '--cloud-project-domain', True),
+            ('-cp',   '--cloud-priority', True),
+            ('-cP',   '--cloud-project', True),
+            ('-cPD',  '--cloud-project-domain', True),
             ('-cPI',  '--cloud-project-domain-id', True),
-            ('-cp',   '--cloud-project', True),
             ('-cr',   '--cloud-region', True),
             ('-CSV',  '--comma-separated-values', True),
             ('-CSEP', '--comma-separated-values-separator', True),
             ('-csp',  '--cloud-spot-price', True),
             ('-ct',   '--cloud-type', True),
-            ('-cU',   '--cloud-user-domain', True),
+            ('-cUD',  '--cloud-user-domain', True),
             ('-cUI',  '--cloud-user-domain-id', True),
-            ('-cu',   '--cloud-user', True),
-            ('-dci',  '--delete_cycle_interval', True),
-            ('-djg',  '--default_job_group', True),
+            ('-cU',   '--cloud-user', True),
             ('-ds',   '--default-server', False),   #### special case in _args() ###
-            ('-eg',   '--enable_glint', True),
             ('-f',    '--file-path', True),
+            ('-F',    '--force', False),
             ('-g',    '--group', True),
             ('-gme',  '--group-metadata-exclusion', True),
             ('-gmo',  '--group-metadata-option', True),
@@ -181,6 +189,19 @@ def main(args):
             ('-htcf', '--htcondor-fqdn', True),
             ('-htch', '--htcondor-container-hostname', True),
             ('-htcu', '--htcondor-users', True),
+            ('-ia',   '--ec2-image-architectures', True),
+            ('-il',   '--ec2-image-like', True),
+            ('-inl',  '--ec2-image-not-like', True),
+            ('-ioa',  '--ec2-image-owner-aliases', True),
+            ('-ioi',  '--ec2-image-owner-ids', True),
+            ('-ios',  '--ec2-image-operating-systems', True),
+            ('-itc',  '--ec2-instance-type-cores', True),
+            ('-itf',  '--ec2-instance-type-families', True),
+            ('-itmn', '--ec2-instance-type-memory-min-gigabytes-per-core', True),
+            ('-itmx', '--ec2-instance-type-memory-max-gigabytes-per-core', True),
+            ('-itos', '--ec2-instance-type-operating-systems', True),
+            ('-itp',  '--ec2-instance-type-processors', True),
+            ('-itpm', '--ec2-instance-type-processor-manufacturers', True),
             ('-jc',   '--job-cores', True),
             ('-jd',   '--job-disk', True),
             ('-jh',   '--job-hold', True),
@@ -197,35 +218,19 @@ def main(args):
             ('-js',   '--job-swap', True),
             ('-jtc',  '--job-target-clouds', True),
             ('-ju',   '--job-user', True),
-            ('-lf',   '--log_file', True),
-            ('-ll',   '--log_level', True),
             ('-me',   '--metadata-enabled', True),
             ('-mmt',  '--metadata-mime-type', True),
             ('-mn',   '--metadata-name', True),
             ('-mp',   '--metadata-priority', True),
-            ('-nld',  '--no_limit_default', True),
+            ('-nld',  '--no-limit-default', True),
             ('-NV',   '--no-view', False),
             ('-ok',   '--only-keys', False),
             ('-r',    '--rotate', False),
             ('-s',    '--server', True),
             ('-sa',   '--server-address', True),
-            ('-sC',   '--server-grid-cert', True),
-            ('-sic',  '--sleep_interval_cleanup', True),
-            ('-siC',  '--sleep_interval_command', True),
-            ('-sif',  '--sleep_interval_flavor', True),
-            ('-sii',  '--sleep_interval_image', True),
-            ('-sij',  '--sleep_interval_job', True),
-            ('-sik',  '--sleep_interval_keypair', True),
-            ('-sil',  '--sleep_interval_limit', True),
-            ('-sim',  '--sleep_interval_machine', True),
-            ('-sin',  '--sleep_interval_network', True),
-            ('-siv',  '--sleep_interval_vm', True),
-            ('-sK',   '--server-grid-key', True),
-            ('-sml',  '--sleep-interval-main-long', True),
-            ('-sms',  '--sleep-interval-main-short', True),
             ('-spw',  '--server-password', True),
             ('-sgs',  '--status-global-switch', True),
-            ('-sri',  '--status-refresh-internal', True),
+            ('-sri',  '--status-refresh-interval', True),
             ('-SU',   '--super-user', True),
             ('-su',   '--server-user', True),
             ('-te',   '--text-editor', True),
@@ -261,8 +266,9 @@ def main(args):
         'function_args': None,
         'home_dir': str(Path.home()),
         'object': None,
-        'tables_shown': 0,
         'retrieve_options': False,
+        'tables_shown': 0,
+        'uid': os.getuid(),
         }
     
     # Check for interactive parent process and set the pid_file path.
@@ -271,6 +277,12 @@ def main(args):
     else:
         gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
 
+    # Check for authentication by grid proxy certificate.
+    if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):
+        gvar['grid_proxy_user'] = '/tmp/x509up_u%s' % gvar['uid']
+    else:
+        gvar['grid_proxy_user'] = None
+
     # Retrieve arguments.
     gvar['command_args'] = _args(gvar, args[1:])
 
@@ -278,7 +290,7 @@ def main(args):
     if os.path.isfile(gvar['pid_file']):
         gvar['pid_defaults_update'] = False
         fd = open(gvar['pid_file'])
-        gvar['pid_defaults'] = yaml.full_load(fd.read())
+        gvar['pid_defaults'] = yaml_full_load(fd.read())
         fd.close()
     else:
         update_pid_defaults(gvar)
@@ -318,7 +330,7 @@ def main(args):
     else:
         if os.path.isfile('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server'])):
             fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], gvar['pid_defaults']['server']))
-            gvar['user_settings'] = yaml.full_load(fd)
+            gvar['user_settings'] = yaml_full_load(fd)
             fd.close()
         else:
             gvar['user_settings'] = {}
@@ -436,14 +448,17 @@ def _args(gvar, arg_list):
         else:
             _recognized = False
             for _iy in range(len(gvar['command_keys'])):
-                _key_mnemonic = '%s|%s' % (gvar['command_keys'][_iy][0], gvar['command_keys'][_iy][1])
                 if gvar['command_keys'][_iy][2] and \
-                _ix < _max_ix and \
                 (arg_list[_ix] == gvar['command_keys'][_iy][0] or \
                 arg_list[_ix] == gvar['command_keys'][_iy][1]):
-                    _recognized = True
-                    _skip_next = True
-                    response[gvar['command_keys'][_iy][1][2:]] = arg_list[_ix+1]
+                    if _ix < _max_ix:
+                        _recognized = True
+                        _skip_next = True
+                        response[gvar['command_keys'][_iy][1][2:]] = arg_list[_ix+1]
+
+                    else:
+                        print('Error: Value omitted for option: %s | %s' % (gvar['command_keys'][_iy][0], gvar['command_keys'][_iy][1]))
+                        exit(1)
 
                 elif not gvar['command_keys'][_iy][2] and \
                 (arg_list[_ix] == gvar['command_keys'][_iy][0] or \

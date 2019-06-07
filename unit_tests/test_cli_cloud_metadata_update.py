@@ -23,7 +23,7 @@ def main(gvar, user_secret):
 
     execute_csv2_command(
         gvar, 1, None, 'The following command line arguments were invalid: cloud-project',
-        ['cloudscheduler', 'cloud', 'metadata-update', '-cp', 'invalid-unit-test']
+        ['cloudscheduler', 'cloud', 'metadata-update', '-cP', 'invalid-unit-test']
     )
 
     execute_csv2_command(
@@ -67,27 +67,27 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV30', 'the request did not match any rows.',
+        gvar, 1, 'CV', 'the request did not match any rows.',
         ['cloudscheduler', 'cloud', 'metadata-update', '-cn', 'invalid-unit-test', '-mn', 'invalid-unit-test', '-me', '0']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV30', 'the request did not match any rows.',
+        gvar, 1, 'CV', 'the request did not match any rows.',
         ['cloudscheduler', 'cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', 'invalid-unit-test', '-me', '0']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV29', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
+        gvar, 1, 'CV', 'boolean value specified for "enabled" must be one of the following: true, false, yes, no, 1, or 0.',
         ['cloudscheduler', 'cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-me', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV29', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
+        gvar, 1, 'CV', r'value specified for "mime_type" must be one of the following options: [\'cloud-config\', \'ucernvm-config\'].',
         ['cloudscheduler', 'cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-mmt', 'invalid-unit-test']
     )
 
     execute_csv2_command(
-        gvar, 1, 'CV29', 'value specified for "priority" must be an integer value.',
+        gvar, 1, 'CV', 'value specified for "priority" must be an integer value.',
         ['cloudscheduler', 'cloud', 'metadata-update', '-cn', ut_id(gvar, 'clc2'), '-mn', ut_id(gvar, 'clm2'), '-mp', 'invalid-unit-test']
     )
 

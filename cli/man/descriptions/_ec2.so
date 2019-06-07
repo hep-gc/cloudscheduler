@@ -1,0 +1,7 @@
+The \fBec2\fR object manages filters and lists information retrieved from Amazon EC2.
+Seperate actions are defined for each kind of information that can be filtered/listed (see \fBACTIONS\fR, below).
+When a user defines a cloud of cloud type "amazon", default filters for each action are also created.
+These filters determine the information listed and control the selection of information mirrored in the 
+corresponding CSV2 tables.
+Users are able to modify filters, selecting the appropriate subset of information to be viewed and controlling
+the resources available to CSV2.

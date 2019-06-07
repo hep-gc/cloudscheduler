@@ -1,3 +1,5 @@
 .TP
 \fB\-VC\fR, \fB\-\-view-columns\fR
-View the columns of the tables associated with this list.
+View all table and column names associated with this command.
+For each table of information returned by the command, a table number, table name, a possible "optional" designation, the "key" column (those that are displayed at the beginning of every segment) names, and all remaining column names are displayed.
+This information is useful when creating views (see \fB--view\fR) or when selecting columns for comma separated output (see \fB--comma-separated-values\fR).

@@ -1,0 +1,7 @@
+.TP
+\fB\-ia \fIarch1\fR[,arch2,... archN], \fB\-\-ec2-image-architectures \fIarch1\fR[,arch2,... archN]
+Specifies a comma-seperated list of architectures of interest.
+Valid architectures are displayed in the \fBArchitectures\fR optional table (see \fBcloudscheduler -H\fR, the \fB\-\-with\fR clause). 
+The \fBec2\fR object is to filter out images with an architecture other than specified by this parameter.
+
+Default: (defined in the system configuration)

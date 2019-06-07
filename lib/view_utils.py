@@ -10,6 +10,68 @@ UTILITY FUNCTIONS
 
 #-------------------------------------------------------------------------------
 
+def cskv(key_values, opt='dict'):
+    """
+    Parse comma separated key/value pairs. Values containing commas and null
+    values must be quoted.
+    """
+
+    msg = None
+    rc = 0  
+
+    if opt == 'dict':
+        result = {}
+    else:
+        result = []
+
+    if key_values:
+        while len(key_values) > 0:
+            key_value = key_values.split('=', 1)
+            if len(key_value) == 2:
+                if len(key_value[1]) > 0 and key_value[1][0] == "'": 
+                    value_key_values = key_value[1][1:].split("'", 1)
+                elif len(key_value[1]) > 0 and key_value[1][0] == '"': 
+                    value_key_values = key_value[1][1:].split('"', 1)
+                else:
+                    value_key_values = key_value[1].split(',', 1)
+
+                if len(value_key_values) == 2:
+                    if opt == 'dict':
+                        result[key_value[0]] = value_key_values[0]
+                    else:
+                        result.append([key_value[0], value_key_values[0]])
+
+                    if len(value_key_values[1]) > 0 and value_key_values[1][0] == ',': 
+                        key_values = value_key_values[1][1:]
+                    else:
+                        key_values = value_key_values[1]
+
+                else:
+                    if len(key_value[1]) > 0 and (key_value[1][0] == "'" or key_value[1][0] == '"'):
+                        msg = 'end quote missing from value ((key "%s").' % key_values
+                        rc = 1
+                        break
+                    else:
+                        if len(value_key_values[0]) > 0:
+                            if opt == 'dict':
+                                result[key_value[0]] = value_key_values[0]
+                            else:
+                                result.append([key_value[0], value_key_values[0]])
+                            key_values = ''
+                        else:
+                            msg = 'null values must be quoted ((key "%s").' % key_values
+                            rc = 1
+                            break
+
+            else:
+                msg = 'no value specified ((key "%s").' % key_values
+                rc = 1
+                break
+
+    return rc, msg, result
+
+#-------------------------------------------------------------------------------
+
 def diff_lists(list1,list2, option=None):
     """
     if option equal 'and', return a list of items which are in both list1
@@ -107,7 +169,7 @@ def lno(id):
     from inspect import currentframe
 
     cf = currentframe()
-    return '%s-%s' % (id, cf.f_back.f_lineno)
+    return '%s-%05d' % (id, cf.f_back.f_lineno)
 
 #-------------------------------------------------------------------------------
 
@@ -744,6 +806,7 @@ def set_user_groups(config, request, super_user=True):
             table = view_user_groups
             csv2_user = config.db_connection.execute(select([table]).where((table.c.username==remote_user) | (table.c.cert_cn==remote_user)))
 
+            user = None
             for user in csv2_user:
                 self.username = user['username']
                 self.cert_cn = user['cert_cn']
@@ -925,7 +988,11 @@ def validate_fields(config, request, fields, tables, active_user):
     Possible format strings are:
 
     ['opt1', 'opt2', ...]  - A list of valid options.
-    ('table', 'column')    - A list of valid options derrived from the named table and column.
+    ('table', 'column', <False/True>, <False/True>) - A list of valid options derrived from the
+                             named table and column.  If the first optional boolean column is set
+                             to True, then a comma seperated list of values will be validated. If
+                             the second optional boolean column is set to True, then an empty
+                             string (null value) can be accepted.
     boolean                - A value of True or False will be inserted into the output fields.
     dboolean               - Database boolean values are either 0 or 1; allow and
                              convert true/false/yes/no/on/off.
@@ -934,6 +1001,7 @@ def validate_fields(config, request, fields, tables, active_user):
     integer                - An integer value.
     lowercase              - Make sure the input value is all lowercase (or error).
     lowerdash              - Make sure the input value is all lowercase, nummerics, and dashes but 
+    lowernull              - Make sure the input value is all lowercasei or empty string (null).
                              can't start or end with a dash (or error).
     metadata               - Identifies a pair of fields (eg. "xxx' and xxx_name) that contain ar
                              metadata string and a metadata filename. If the filename conforms to
@@ -1033,21 +1101,44 @@ def validate_fields(config, request, fields, tables, active_user):
                 if isinstance(Formats[field], (list, tuple)):
                     if isinstance(Formats[field], tuple):
                         options = []
-                        s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]])
+                        s = select([cloudscheduler.lib.schema.__dict__[Formats[field][0]]]).distinct()
                         for row in config.db_connection.execute(s):
                            if Formats[field][1] in row and (not row[Formats[field][1]] in options):
                               options.append(row[Formats[field][1]])
                     else:
                         options = Formats[field]
 
-                    lower_value = value.lower()
-                    value = None
-                    for opt in options:
-                        if lower_value == opt.lower():
-                            value = opt
-                            break
+                    good_value = True
 
-                    if not value:
+                    if isinstance(Formats[field], tuple) and len(Formats[field]) > 2 and Formats[field][2]:
+                        if len(Formats[field]) > 3 and Formats[field][3] and value == '':
+                            value = None
+                        else:
+                            values = []
+                            lower_values = value.lower().split(',')
+                            for lower_value in sorted(lower_values):
+                                for ix in range(len(options)+1):
+                                    if ix < len(options):
+                                        if lower_value == str(options[ix]).lower():
+                                            values.append(str(options[ix]))
+                                            break
+                                    else:
+                                        good_value = False
+
+                            if good_value:
+                                value = ','.join(values)
+
+                    else:
+                        lower_value = value.lower()
+                        for ix in range(len(options)+1):
+                            if ix < len(options):
+                                if lower_value == str(options[ix]).lower():
+                                    value = str(options[ix])
+                                    break
+                            else:
+                                good_value = False
+
+                    if not good_value:
                         return 1, 'value specified for "%s" must be one of the following options: %s.' % (field, sorted(options)), None, None, None
 
                 elif Formats[field] == 'dboolean':
@@ -1081,6 +1172,14 @@ def validate_fields(config, request, fields, tables, active_user):
                     value = request.POST[field].lower()
                     if request.POST[field] != value:
                         return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
+
+                elif Formats[field] == 'lowernull':
+                    value = request.POST[field].lower()
+                    if value == '':
+                        value = None
+                    else:
+                        if request.POST[field] != value:
+                            return 1, 'value specified for "%s" must be all lower case.' % field, None, None, None
 
                 elif Formats[field] == 'mandatory':
                     if value.strip() == '':
@@ -1202,4 +1301,53 @@ def _validate_fields_pw_check(pw1, pw2=None):
 
 
     return 0, bcrypt.hashpw(pw1.encode(), bcrypt.gensalt(prefix=b"2a"))
+
+#-------------------------------------------------------------------------------
+
+def verify_cloud_credentials(config, fields, active_user):
+    """
+    Validate Amazon EC2 credentials and return OwnerId.
+    """
+
+    import boto3
+
+    if 'authurl' in fields and \
+        'cloud_type' in fields and \
+        'region' in fields and \
+        'username' in fields and \
+        'password' in fields:
+
+        authurl = fields['authurl']
+        cloud_type = fields['cloud_type']
+        region = fields['region']
+        username = fields['username']
+        password = fields['password']
+
+    else:
+        cloud_list = qt(config.db_session.execute('select * from csv2_clouds where group_name="%s" and cloud_name="%s"' % (active_user.active_group, fields['cloud_name'])))
+        if len(cloud_list) != 1:
+            return 1, 'cloud "%s::%s" does not exist' % (active_user.active_group, fields['cloud_name']), None
+
+        authurl = fields.get('authurl', cloud_list[0]['authurl'])
+        cloud_type = fields.get('cloud_type', cloud_list[0]['cloud_type'])
+        region = fields.get('region', cloud_list[0]['region'])
+        username = fields.get('username', cloud_list[0]['username'])
+        password = fields.get('password', cloud_list[0]['password'])
+
+    if cloud_type == 'amazon':
+        try:
+            session = boto3.session.Session(region_name=region,
+                aws_access_key_id=username,
+                aws_secret_access_key=password)
+
+            return 0, None, session.client('sts').get_caller_identity().get('Account')
+
+        except:
+            return 1, 'invalid Amazon EC2 credentials', None
+
+    elif cloud_type == 'openstack':
+       return 0, None, None
+
+    else:
+       return 0, None, None
 
