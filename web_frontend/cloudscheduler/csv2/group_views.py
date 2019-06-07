@@ -207,7 +207,7 @@ def add(request):
 
 
         # Add the default metadata file.
-        filepath = '/opt/cloudscheduler/'
+        filepath = '/opt/cloudscheduler/metadata/'
         filename = 'default.yaml.j2'
         filedata = open(filepath+filename, "r").read()
 
@@ -741,7 +741,7 @@ def metadata_delete(request):
 
     ### Bad request.
     else:
-        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata_delete, invalid method "%s" specified.' % (lno(MODID), request.method)})
+        return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-delete request did not contain mandatory parameter "metadata_name".' % lno(MODID)})
 
 
 #-------------------------------------------------------------------------------
@@ -968,10 +968,15 @@ def metadata_update(request):
 
         # Update the group metadata file.
         table = tables['csv2_group_metadata']
+        updates = table_fields(fields, table, columns, 'update')
+        if len(updates) < 1:
+            config.db_close()
+            return render(request, 'csv2/blank_msg.html', {'response_code': 1, 'message': '%s group metadata-update "%s::%s" specified no fields to update and was ignored.' % (lno(MODID), active_user.active_group, fields['metadata_name'])})
+
         rc, msg = config.db_session_execute(table.update().where( \
             (table.c.group_name==active_user.active_group) & \
             (table.c.metadata_name==fields['metadata_name']) \
-            ).values(table_fields(fields, table, columns, 'update')))
+            ).values(updates))
         if rc == 0:
             config.db_close(commit=True)
         
