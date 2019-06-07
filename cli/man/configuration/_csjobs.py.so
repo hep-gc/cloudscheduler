@@ -1,0 +1,22 @@
+.\" --------------------------------------------------------------------
+.SS csjobs.py
+.\" --------------------------------------------------------------------
+This category defines the options for the HTCondor job poller.
+.TP
+\fB\batch_commit_size\fR
+Specifies the number of rows that can be inserted or updated between commits.
+Value type: Integer
++--------------------------+---------------------------------+-------------+----------------------------------------------------------+
+| category                 | config_key                      | config_type | config_value                                             |
++--------------------------+---------------------------------+-------------+----------------------------------------------------------+
+| csjobs.py                | batch_commit_size               | int         | 50                                                       |
+| csjobs.py                | delete_cycle_interval           | int         | 1                                                        |
+| csjobs.py                | log_file                        | str         | /var/log/cloudscheduler/csjobs.log                       |
+| csjobs.py                | log_level                       | int         | 20                                                       |
+| csjobs.py                | orange_threshold                | int         | 3                                                        |
+| csjobs.py                | sleep_interval_cleanup          | int         | 120                                                      |
+| csjobs.py                | sleep_interval_command          | int         | 10                                                       |
+| csjobs.py                | sleep_interval_job              | int         | 15                                                       |
+| csjobs.py                | sleep_interval_main_long        | int         | 10                                                       |
+| csjobs.py                | sleep_interval_main_short       | int         | 1                                                        |
++--------------------------+---------------------------------+-------------+----------------------------------------------------------+

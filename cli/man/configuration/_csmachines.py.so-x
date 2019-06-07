@@ -1,0 +1,21 @@
+.\" --------------------------------------------------------------------
+.SS csmachines.py
+.\" --------------------------------------------------------------------
+This category defines the options for the HTCondor machine poller.
++--------------------------+---------------------------------+-------------+----------------------------------------------------------+
+| category                 | config_key                      | config_type | config_value                                             |
++--------------------------+---------------------------------+-------------+----------------------------------------------------------+
+| csmachines.py            | batch_commit_size               | int         | 50                                                       |
+| csmachines.py            | cacerts                         | str         | /etc/ssl/certs/ca-bundle.crt                             |
+| csmachines.py            | delete_cycle_interval           | int         | 5                                                        |
+| csmachines.py            | log_file                        | str         | /var/log/cloudscheduler/csmachines.log                   |
+| csmachines.py            | log_level                       | int         | 10                                                       |
+| csmachines.py            | orange_threshold                | int         | 3                                                        |
+| csmachines.py            | retire_off                      | bool        | False                                                    |
+| csmachines.py            | sleep_interval_cleanup          | int         | 120                                                      |
+| csmachines.py            | sleep_interval_command          | int         | 10                                                       |
+| csmachines.py            | sleep_interval_machine          | int         | 15                                                       |
+| csmachines.py            | sleep_interval_main_long        | int         | 10                                                       |
+| csmachines.py            | sleep_interval_main_short       | int         | 1                                                        |
+| csmachines.py            | terminate_off                   | bool        | False                                                    |
++--------------------------+---------------------------------+-------------+----------------------------------------------------------+
