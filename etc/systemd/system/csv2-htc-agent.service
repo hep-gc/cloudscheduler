@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=cloudscheduler
+User=condor
 ExecStart=/usr/bin/python3 /opt/cloudscheduler/agents/csv2_htc_agent
 Restart=always
 
