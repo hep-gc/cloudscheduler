@@ -22,6 +22,14 @@
   - container is defined
   - container == True
 
+- name: remove obsolete files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+  - /etc/cron.d/csv2-ec2-instance-types
+  - /etc/logrotate.d/cspollers.conf
+
 - name: install libvirt for cloudscheduler main, redis and grid security certificate package
   yum:
     name: "{{ item }}"
@@ -33,6 +41,7 @@
   - ca_policy_igtf-classic
   - python36u-mod_wsgi
   - apr-util-mysql
+  - rabbitmq-server
 
 - name: install ansible (still uses python 2.7) module prerequisites
   pip:
@@ -48,6 +57,7 @@
   - bcrypt==3.1.4
   - boto3>=1.9.130
   - sqlalchemy
+  - pika
   - python-keystoneclient
   - python-novaclient
   - python-neutronclient
@@ -98,7 +108,7 @@
       repo: 'https://github.com/hep-gc/cloudscheduler.git'
       dest: /opt/cloudscheduler/
       force: no
-      update: no
+      update: yes
       version: "{{ cs_git_branch }}"
 
 - name: recreate favicon link.
@@ -124,6 +134,17 @@
   template:
     src: "/tmp/{{ csv2_host }}//opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2"
     dest: /etc/httpd/conf.d/csv2_ssl.conf
+  notify:
+    restart httpd
+
+- name: allow proxy certificates
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/etc/sysconfig/httpd
+    dest: /etc/sysconfig/httpd
+    owner: root
+    group: root
+    mode: 0644
   notify:
     restart httpd
 
@@ -209,24 +230,15 @@
     group: root
     mode: 0644
   with_items:
+      - csv2-ec2
       - csv2-machines
       - csv2-jobs
       - csv2-openstack
       - csv2-main
+      - csv2-startd-errors
       - csv2-status
       - csv2-timeseries
       - csv2-watch
-
-- name: copy csv2 crontab entries
-  copy:
-    remote_src: yes
-    src: /opt/cloudscheduler/etc/cron.d/{{ item }}
-    dest: /etc/cron.d/{{ item }}
-    owner: root
-    group: root
-    mode: 0644
-  with_items:
-    - csv2-watch
 
 - name: copy logrotate file for pollers
   copy:
@@ -290,15 +302,9 @@
       group: apache
       state: touch
   with_items:
+      - csv2_web.log
       - openstackpoller.log
       - main.log
-
-- name: create the csv2 web log file
-  file:
-      path: /var/log/cloudscheduler/csv2_web.log
-      owner: apache
-      group: apache
-      state: touch
 
 - name: create the csjobs, csstatus, and csmachines log files
   file:
@@ -310,6 +316,13 @@
       - csjobs.log
       - csstatus.log
       - csmachines.log
+
+- name: create the STARTD errors log file
+  file:
+      path: /var/log/cloudscheduler/startd_errors.logging
+      owner: root
+      group: root
+      state: touch
 
 - name: ensure mysql pid is down
   shell: pkill -9 mysql
@@ -337,19 +350,15 @@
     enabled: yes
     state: stopped
   with_items:
+      - csv2-ec2
       - csv2-machines
       - csv2-jobs
       - csv2-openstack
       - csv2-main
+      - csv2-startd-errors
       - csv2-status
       - csv2-timeseries
       - csv2-watch
-
-# name: import csv2 table schema
-# command: /opt/cloudscheduler/utilities/cstable clone {{ table_schema }}.heprc.uvic.ca
-
-# name: redefine csv2 views
-# command: /opt/cloudscheduler/utilities/csview redefine
 
 - name: create signals directories 
   file:
@@ -391,9 +400,6 @@
     
 - name: install csv2 database schema
   command: /opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -r live
-
-- name: install django database schema
-  command: /opt/cloudscheduler/web_frontend/cloudscheduler/manage.py migrate
 
 - name: generate schema
   command: /opt/cloudscheduler/utilities/generate_schema.py
@@ -451,6 +457,24 @@
 - name: add metadata file for csv2-group
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "default.yaml.j2", "1", "0", LOAD_FILE("/opt/cloudscheduler/default.yaml.j2"), "cloud-config")'
   ignore_errors: True
+
+- name: first time retrieve of amazon ec2 data
+  command: "/opt/cloudscheduler/data_collectors/ec2/{{ item }}"
+  with_items:
+    - csv2-ec2-regions
+  become_user: cloudscheduler
+
+- name: copy csv2 crontab entries
+  copy:
+    remote_src: yes
+    src: /opt/cloudscheduler/etc/cron.d/{{ item }}
+    dest: /etc/cron.d/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - csv2-ec2-regions
+    - csv2-watch
 
 - name: create glint cache folders
   file: path=/var/www/glintv2/scratch state=directory owner=celery group=apache mode=0775
@@ -547,13 +571,26 @@
     enabled: yes
     state: restarted
   with_items:
-    - redis
-    - celery
-    - csv2-machines
-    - csv2-jobs
-    - csv2-openstack
-    - csv2-main
-    - csv2-status
-    - csv2-timeseries
-    - csv2-watch
+  - redis
+  - rabbitmq-server
+  - celery
+  - csv2-ec2
+  - csv2-machines
+  - csv2-jobs
+  - csv2-openstack
+  - csv2-main
+  - csv2-startd-errors
+  - csv2-status
+  - csv2-timeseries
+  - csv2-watch
+
+- meta: flush_handlers
+
+# wait_for:
+# args:
+#   delay: 5
+#   host: "{{ i_external_connection.0.ipv4fqdn }}"
+#   port: 443
+#   state: started
+#   timeout: 30
 
