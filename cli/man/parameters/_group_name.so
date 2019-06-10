@@ -1,4 +1,4 @@
 .TP
 \fB\-gn \fIname\fR, \fB\-\-group-name \fIname\fR
-The group name and primary identifier.
-The value for \fIname\fR must be all lower case, numeric digits, and dashes but cannot start or end with dashes.
+The group name.
+The value for \fIname\fR must be one to thirty-two characters, all lower case, numeric digits, and dashes but cannot start or end with dashes.

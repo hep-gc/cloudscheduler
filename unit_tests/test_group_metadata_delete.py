@@ -20,14 +20,14 @@ def main(gvar, user_secret):
 
     # 02
     execute_csv2_request(
-        gvar, 1, 'GV29', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
+        gvar, 1, 'GV', 'user "{}" is not a member of any group.'.format(ut_id(gvar, 'gtu1')),
         '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
     )
 
     # 03
     execute_csv2_request(
-        gvar, 2, None, 'HTTP response code 403, forbidden.',
+        gvar, 1, 'GV', 'user "%s" is not a member of any group.' % ut_id(gvar, 'gtu1'),
         '/group/metadata-delete/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'gtu1'), server_pw=user_secret
@@ -35,14 +35,14 @@ def main(gvar, user_secret):
 
     # 04
     execute_csv2_request(
-        gvar, 1, 'GV30', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
+        gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'),
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )
 
     # 05
     execute_csv2_request(
-        gvar, 1, 'GV30', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'GV', 'request contained a bad parameter "invalid-unit-test".',
         '/group/metadata-delete/'
 , form_data={
             'metadata_name': 'invalid-unit-test',
@@ -53,7 +53,7 @@ def main(gvar, user_secret):
 
     # 06
     execute_csv2_request(
-        gvar, 1, 'GV29', 'cannot switch to invalid group "invalid-unit-test".',
+        gvar, 1, 'GV', 'cannot switch to invalid group "invalid-unit-test".',
         '/group/metadata-delete/', group='invalid-unit-test', form_data={
             'metadata_name': 'invalid-unit-test'
             },
@@ -62,7 +62,7 @@ def main(gvar, user_secret):
 
     # 07
     execute_csv2_request(
-        gvar, 1, 'GV29', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
+        gvar, 1, 'GV', 'cannot switch to invalid group "{}".'.format(ut_id(gvar, 'gtg7')),
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg7'), form_data={
             'metadata_name': 'invalid-unit-test'
             },
@@ -71,7 +71,7 @@ def main(gvar, user_secret):
 
     # 08
     execute_csv2_request(
-        gvar, 1, 'GV31', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
+        gvar, 1, 'GV', '"{}::invalid-unit-test" failed - the request did not match any rows.'.format(ut_id(gvar, 'gtg5')),
         '/group/metadata-delete/', group=ut_id(gvar, 'gtg5'), form_data={
             'metadata_name': 'invalid-unit-test'
             },
@@ -116,7 +116,7 @@ def main(gvar, user_secret):
 
     # 13
     execute_csv2_request(
-        gvar, 1, 'GV32', 'group metadata_delete, invalid method "GET" specified.',
+        gvar, 1, 'GV', 'group metadata-delete request did not contain mandatory parameter "metadata_name".',
         '/group/metadata-delete/',
         server_user=ut_id(gvar, 'gtu3'), server_pw=user_secret
     )

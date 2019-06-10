@@ -1,0 +1,29 @@
+merge_type: 'list(append)+dict(recurse_array)+str()'
+write_files:
+-   content: |
+        #!/bin/bash
+        T () 
+        {
+          touch $K$1
+          S=$(cat $K$1)
+          C=$(wc -l <$I$1|tee $K$1)
+          [ "$S" != "" ] && [ $S -gt $C ] && S=0
+          tail -n +$((S+1)) $I$1
+        }   
+            
+         which condor_config_val &>/dev/null||(curl https://{{cs_condor_host}}/$(hostname -s)/STARTD/HTCondor_is_not_installed && exit)
+
+         I=/var/log/condor/
+         K=/tmp/csv2htc.K.
+         O="$(T MasterLog)$(T StartLog)"
+         
+        M=$(echo "${O}"|awk '/Error/{split($0,W,"Error");print W[2]}/ERROR/{split($0,W,"ERROR");print W[2]}'|tr ":" " "|awk 'NF>2{print "/"$1"_"$2"_"$3"_"$4"_"$5"&"}'|sort -u|tr -d '\n')
+        if [ "$M" != "" ];then while true; do curl https://{{cs_condor_host}}/$(hostname -s)/STARTD${M} && break;sleep 30;done;fi
+    owner: root:root
+    permissions: 0700
+    path: /root/csv2HTC
+-   content: |
+        */5 * * * * root /root/csv2HTC
+    owner: root:root
+    permissions: 0600
+    path: /etc/cron.d/csv2HTC

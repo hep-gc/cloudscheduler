@@ -2,7 +2,7 @@ from django.conf import settings
 config = settings.CSV2_CONFIG
 
 from django.views.decorators.csrf import requires_csrf_token
-from cloudscheduler.lib.view_utils import render, set_user_groups
+from cloudscheduler.lib.view_utils import lno, render, set_user_groups
 from cloudscheduler.lib.schema import *
 from django.contrib.auth import get_user, logout
 
@@ -10,6 +10,7 @@ import time
 
 
 # lno: SV - error code identifier.
+MODID = 'SV'
 
 #-------------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ def prepare(request):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': msg})
+        return render(request, 'csv2/clouds.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     
 

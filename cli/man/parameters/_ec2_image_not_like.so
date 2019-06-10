@@ -1,0 +1,6 @@
+.TP
+\fB\-inl \fIstring1\fR[,string2,... stringN], \fB\-\-ec2-image-not-like \fIstring1\fR[,string2,... stringN]
+Specifies a comma-seperated list of strings that must not match the image location.
+Images whose location match string1 \fBor\fR string2 \fBor\fR etc. are to be excluded from the list by the ec2 object.
+
+Default: None.

@@ -1,0 +1,9 @@
+.TP
+\fB\-ioi \fIid1\fR[,id2,... idN], \fB\-\-ec2-image-owner-ids \fIid1\fR[,id2,... idN]
+Specifies a comma-seperated list of owner IDs of interest.
+The \fBec2\fR object is to filter out images belonging to owners other than specified by this parameter or the \fB\-\-ec2-image-owner-aliases\fR parameter.
+
+Unlike other filters, this parameter and the \fB\-\-ec2-image-owner-aliases\fR parameter also determine what is retrieved from Amazon EC2. Because there are 
+so many images (millions?) available, only images belonging to the owners identified are retrieved.
+
+Default: (defined in the system configuration).

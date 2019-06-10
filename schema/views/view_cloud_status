@@ -28,6 +28,7 @@ select
     VMs+ifnull(vfr.count,0) as VMs_native_foreign,
 
     ifnull(cl.cores_max,0) as cores_quota,
+    cores_softmax as cores_soft_quota,
     ifnull(vfr.cores,0) as cores_foreign,
     ifnull(n02.cores_native,0)+ifnull(vfr.cores,0) as cores_native_foreign,
     ram_ctl,
@@ -83,8 +84,19 @@ from (
             cv.group_name,
             cv.cloud_name,
             sum(cv.VMs) as VMs,
-            sum(cf.cores) as cores_native,
-            sum(cf.ram) as ram_native,
+
+            case when ei.instance_type is null then
+                sum(cf.cores)
+            else
+                sum(ei.cores)
+            end as cores_native,
+
+            case when ei.instance_type is null then
+                sum(cf.ram)
+            else
+                sum(ei.memory * 1024)
+            end as ram_native,
+
             sum(case when cv.poller_status='manual'       then 1 else 0 end) as VMs_manual,
             sum(case when cv.poller_status='error'        then 1 else 0 end) as VMs_in_error,
             sum(case when cv.poller_status='starting'     then 1 else 0 end) as VMs_starting,
@@ -130,11 +142,15 @@ from (
             cv.group_name=cf.group_name and
             cv.cloud_name=cf.cloud_name and
             cv.flavor_id=cf.id
+        left outer join ec2_instance_types as ei on
+            cv.region=ei.region and
+            cv.flavor_id=ei.instance_type
         left outer join (
             /* n04 - Retrieve (native) condor slot information */
             select
-                substring_index(machine, '--', 1) as group_name,
-                substring_index(substring_index(machine, '--', 2), '--', -1) as cloud_name,
+                group_name,
+                cloud_name,
+                machine,
                 substring_index(machine, '.', 1) as hostname,
                 sum(case when slot_type='Dynamic' then 1 else 0 end) as slot_count,
                 sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
@@ -148,7 +164,7 @@ from (
             ) as n04 on
             cv.group_name=n04.group_name and
             cv.cloud_name=n04.cloud_name and
-            cv.hostname=n04.hostname
+            (cv.hostname=n04.machine or cv.hostname=n04.hostname)
         group by
             cv.group_name,
             cv.cloud_name,

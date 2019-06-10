@@ -25,6 +25,7 @@ from novaclient import client as novaclient
 
 import htcondor
 import classad
+import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
@@ -104,6 +105,16 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
             return False
         return sess
 
+
+
+def _get_ec2_session(cloud):
+    return boto3.session.Session(region_name=cloud.region,
+                                 aws_access_key_id=cloud.username,
+                                 aws_secret_access_key=cloud.password)
+
+def _get_ec2_client(session):
+    return session.client('ec2')
+
 # condor likes to return extra keys not defined in the projection
 # this function will trim the extra ones so that we can use kwargs
 # to initiate a valid table row based on the data returned
@@ -120,9 +131,10 @@ def machine_poller():
     multiprocessing.current_process().name = "Machine Poller"
     resource_attributes = ["Name", "Machine", "JobId", "GlobalJobId", "MyAddress", "State", \
                            "Activity", "VMType", "MyCurrentTime", "EnteredCurrentState", "Cpus", \
-                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", "flavor", "TotalDisk"]
+                           "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
+                           "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=6)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=6)
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -160,6 +172,7 @@ def machine_poller():
             #       - group_name (in both group_name and machine)
             #       - cloud_name (only in machine?)
             host_groups = {}
+            groups = db_session.query(GROUPS)
             for group in groups:
                 cloud_list = []
                 clouds = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name)
@@ -167,9 +180,9 @@ def machine_poller():
                     cloud_list.append(cloud.cloud_name)
                 host_groups[group.group_name] = cloud_list
 
-            forgein_machines = 0
             for condor_host in condor_hosts_set:
                 logging.debug("Polling condor host: %s" % condor_host)
+                forgein_machines = 0
                 try:
                     condor_session = htcondor.Collector(condor_host)
                 except Exception as exc:
@@ -227,6 +240,23 @@ def machine_poller():
                         else:
                             machine_errors["nogrp"] = machine_errors["nogrp"] + 1
                         continue
+                    if 'cloud_name' not in r_dict:
+                        logging.debug("Skipping resource with no cloud_name.")
+                        forgein_machines = forgein_machines + 1
+                        if "nocld" not in machine_errors:
+                            machine_errors["nocld"] = 1
+                        else:
+                            machine_errors["nocld"] = machine_errors["nocld"] + 1
+                        continue
+                    if 'cs_host_id' not in r_dict:
+                        logging.debug("Skipping resource with no host id.")
+                        forgein_machines = forgein_machines + 1
+                        if "nohost" not in machine_errors:
+                            machine_errors["nohost"] = 1
+                        else:
+                            machine_errors["nohost"] = machine_errors["nohost"] + 1
+                        continue
+                        # check group name
                     if r_dict['group_name'] not in host_groups:
                         logging.debug("Skipping resource, group did not match any valid groups for this host: %s" % r_dict['group_name'])
                         forgein_machines = forgein_machines + 1
@@ -235,18 +265,17 @@ def machine_poller():
                         else:
                             machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
-                    mach_str = r_dict['Machine'].split("--")
-                    # check group name from machine string
-                    if mach_str[0] not in host_groups:
-                        logging.debug("Skipping resource with bad group name in machine string %s" % r_dict['Machine'])
+                    # check cs host
+                    if str(r_dict['cs_host_id']) != str(config.csv2_host_id):
+                        logging.debug("Skipping resource with bad cs_host_id: %s, should be %s" % (r_dict['cs_host_id'], config.csv2_host_id))
                         forgein_machines = forgein_machines + 1
                         if "badgrp" not in machine_errors:
                             machine_errors["badgrp"] = 1
                         else:
                             machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
-                    # check cloud name form machine string
-                    if mach_str[1] not in host_groups[r_dict['group_name']]:
+                    # check cloud name
+                    if r_dict['cloud_name'] not in host_groups[r_dict['group_name']]:
                         logging.debug("Skipping resource with cloud name that is invalid for group")
                         forgein_machines = forgein_machines + 1
                         if "badcld" not in machine_errors:
@@ -264,8 +293,6 @@ def machine_poller():
                         logging.error("attribute mapper found unmapped variables:")
                         logging.error(unmapped)
 
-                    r_dict["condor_host"] = condor_host
-
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
                     if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], "-", r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
@@ -281,13 +308,19 @@ def machine_poller():
                         abort_cycle = True
                         break
                 if forgein_machines > 0:
-                    logging.info("Ignored %s forgein machines" % forgein_machines)
+                    logging.info("Ignored %s total forgein machines" % forgein_machines)
                     if "nogrp" in machine_errors:
-                        logging.info("%s ignored for missing group name" % machine_errors["nogrp"])
+                        logging.info("    %s ignored for missing group name" % machine_errors["nogrp"])
                     if "badgrp" in machine_errors:
-                        logging.info("%s ignored for bad group name" % machine_errors["badgrp"])
+                        logging.info("    %s ignored for bad group name" % machine_errors["badgrp"])
                     if "badcld" in machine_errors:
-                        logging.info("%s ignored for invalid cloud name" % machine_errors["badcld"])
+                        logging.info("    %s ignored for invalid cloud name" % machine_errors["badcld"])
+                    if "nocld" in machine_errors:
+                        logging.info("    %s ignored for missing cloud name" % machine_errors["nocld"])
+                    if "nohost" in machine_errors:
+                        logging.info("    %s ignored for missing host id" % machine_errors["nohost"])
+                    if "badhost" in machine_errors:
+                        logging.info("    %s ignored for missing host id" % machine_errors["badhost"])
 
                 # Poll successful, update failure_dict accordingly
                 for group in groups:
@@ -493,18 +526,20 @@ def command_poller():
                         logging.error("Unable to retrieve VM row for vmid: %s, skipping terminate..." % resource.vmid)
                         continue
                     if vm_row.manual_control == 1:
-                        logging.info("VM %s uner manual control, skipping terminate..." % resource.vmid)
+                        logging.info("VM %s under manual control, skipping terminate..." % resource.vmid)
+                        continue
 
 
                     # Get session with hosting cloud.
                     cloud = db_session.query(CLOUD).filter(
                         CLOUD.group_name == vm_row.group_name,
                         CLOUD.cloud_name == vm_row.cloud_name).first()
-                    session = _get_openstack_session(cloud)
-                    if session is False:
-                        continue
 
                     if cloud.cloud_type == "openstack":
+                        session = _get_openstack_session(cloud)
+                        if session is False:
+                            continue
+                     
                         if config.terminate_off:
                             logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                             continue
@@ -573,9 +608,49 @@ def command_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
+
+                    elif cloud.cloud_type == "amazon":
+                        if config.terminate_off:
+                            logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
+                            continue
+                        #terminate the vm
+                        amz_session = _get_ec2_session(cloud)
+                        amz_client = _get_ec2_client(amz_session)
+                        try:
+                            vm_row.terminate = vm_row.terminate + 1
+                            old_updater = vm_row.updater
+                            vm_row.updater = str(get_frame_info() + ":t+")
+                            #destroy amazon vm, first we'll need to check if its a reservation
+                            if vm_row.vmid[0:3].lower() == "sir":
+                                #its a reservation just delete it and destroy the vm
+                                # not sure what the difference between a client and connection from csv1 is but there is more work to be done here
+                                #
+                                # need the command to remove reservation:
+                                # cancel_spot_instance_requests(list_of_request_ids)
+                                #
+                                # need to terminate request, and possible image if instance_id isn't empty
+                                try:
+                                    logging.info("Canceling amazon spot price request: %s" % vm_row.vmid)
+                                    amz_client.cancel_spot_instance_requests(SpotInstanceRequestIds=[vm_row.vmid])
+                                    if vm_row.instance_id is not None:
+                                        #spot price vm running need to terminate it:
+                                        logging.info("Terminating amazon vm: %s" % vm_row.instance_id)
+                                        amz_client.terminate_instances(InstanceIds=[vm_row.instance_id])
+                                except Exception as exc:
+                                    logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                                    logging.error(exc)
+                            else:
+                                #its a regular instance and just terminate it
+                                logging.info("Terminating amazon vm: %s" % vm_row.vmid)
+                                amz_client.terminate_instances(InstanceIds=[vm_row.vmid])
+                        except Exception as exc:
+                            logging.error("Unable to terminate %s due to:" % vm_row.vmid)
+                            logging.error(exc)
+
+
                     else:
                         # Other cloud types will need to be implemented here to terminate any vms not from openstack
-                        logging.info("Vm not from openstack cloud, skipping...")
+                        logging.info("Vm not from openstack, or amazon cloud, skipping...")
                         continue
                 if uncommitted_updates > 0:
                     try:

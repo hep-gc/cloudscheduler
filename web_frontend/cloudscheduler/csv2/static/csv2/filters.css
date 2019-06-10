@@ -1,0 +1,111 @@
+ a {
+  text-decoration: none;
+}
+
+nav {
+    /*font-family: monospace;*/
+    font-size: 75%;
+
+}
+
+ul {
+  background: darkorange;
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+li {
+  color: #fff;
+  background: darkorange;
+  display: block;
+  float: left;
+  padding: 1rem;
+  position: relative;
+  text-decoration: none;
+}
+  
+li a {
+  color: #fff;
+}
+
+li:hover,
+li:focus-within {
+  background: red;
+  cursor: pointer;
+}
+
+li:focus-within a {
+  outline: none;
+}
+
+ul li ul {
+  background: orange;
+  visibility: hidden;
+  opacity: 0;
+  min-width: 5rem;
+  position: absolute;
+  margin-top: 1rem;
+  left: 0;
+  display: none;
+}
+
+ul li:hover > ul,
+ul li:focus-within > ul,
+ul li ul:hover,
+ul li ul:focus {
+  visibility: visible;
+  opacity: 1;
+  display: block;
+}
+
+ul li ul li {
+  clear: both;
+  width: 100%;
+}
+
+.text-field {
+  width: 100;
+}
+
+.num-field {
+  width: 100;
+}
+
+
+.vm-table {
+  position: absolute;
+  top:100px;
+  left: 0px;
+  display: block;
+  z-index:-1;
+}
+
+.vm-table table {
+  overflow-x: scroll;
+  padding-bottom: 1px;
+  table-layout: fixed;
+}
+
+.vm-table th, td {
+  border: 1px solid white;
+  padding: 5px;
+}
+
+
+.vm-table th {
+  background-color: powderblue;
+  color: black;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+}
+
+.vm-table tr:nth-child(even) {
+  background-color: #F2F2F2;
+}
+
+.vm-table td {
+  text-align: center;
+}
+

@@ -73,7 +73,7 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_command(
-        gvar, 1, 'GV31', 'the request did not match any rows.',
+        gvar, 1, 'GV', 'the request did not match any rows.',
         ['cloudscheduler', 'metadata', 'delete', '-mn', 'invalid-unit-test', '-Y']
     )
 

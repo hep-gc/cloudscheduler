@@ -73,13 +73,13 @@ def main(gvar, user_secret):
 
     # 11
     execute_csv2_command(
-        gvar, 1, 'GV01', 'default update/list value specified for "job_cpus" must be an integer value.',
+        gvar, 1, 'GV', 'default update/list value specified for "job_cpus" must be an integer value.',
         ['cloudscheduler', 'metadata', 'group-defaults', '-jc', 'invalid-unit-test']
     )
 
     # 12
     execute_csv2_command(
-        gvar, 1, 'GV01', 'default update/list value specified for "job_disk" must be an integer value.',
+        gvar, 1, 'GV', 'default update/list value specified for "job_disk" must be an integer value.',
         ['cloudscheduler', 'metadata', 'group-defaults', '-jd', 'invalid-unit-test']
     )
 
@@ -91,19 +91,19 @@ def main(gvar, user_secret):
 
     # 14
     execute_csv2_command(
-        gvar, 1, 'GV01', 'default update/list value specified for "job_ram" must be an integer value.',
+        gvar, 1, 'GV', 'default update/list value specified for "job_ram" must be an integer value.',
         ['cloudscheduler', 'metadata', 'group-defaults', '-jr', 'invalid-unit-test']
     )
 
     # 15
     execute_csv2_command(
-        gvar, 1, 'GV01', 'default update/list value specified for "job_swap" must be an integer value.',
+        gvar, 1, 'GV', 'default update/list value specified for "job_swap" must be an integer value.',
         ['cloudscheduler', 'metadata', 'group-defaults', '-js', 'invalid-unit-test']
     )
 
     # 16
     execute_csv2_command(
-        gvar, 1, 'GV01', 'default update/list value specified for "vm_keep_alive" must be an integer value.',
+        gvar, 1, 'GV', 'default update/list value specified for "vm_keep_alive" must be an integer value.',
         ['cloudscheduler', 'metadata', 'group-defaults', '-vka', 'invalid-unit-test']
     )
 

@@ -10,11 +10,13 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
 <script type="text/javascript">
 
     var visited = {};
-    
+    var ec2_regions = {{ ec2_regions_list|safe }}
+
     function get_message() {
         if (sessionStorage.getItem("message")){
             document.getElementById("message").innerHTML = sessionStorage.getItem("message");
@@ -70,6 +72,62 @@
         }
     }
 
+    function type_select(cloud_type, target_cloud){
+
+        var oldRegionEl = document.getElementById(target_cloud+"-region").childNodes[0];
+        var newRegionEl = document.createElement('td');
+
+        if(cloud_type=="amazon"){
+            var arrayLength = ec2_regions.length;
+
+            var newHTML = '<select name="region" class="dropdown" id="'+target_cloud+'-selected" onchange=\'set_authurl("'+target_cloud+'")\'>';
+
+            for (var i = 0; i < arrayLength; i++){
+                newHTML+='<option value="'+ec2_regions[i].region+'">'+ec2_regions[i].region+'</option>';
+            }
+
+            newHTML+='</select>';
+
+            newRegionEl.innerHTML=newHTML;
+            oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
+
+            document.getElementById(target_cloud+'-authurl').readOnly = true;
+            document.getElementById(target_cloud+'-authurl').value = ec2_regions[0].endpoint;
+
+            document.getElementById(target_cloud+'-project').readOnly = true;
+            document.getElementById(target_cloud+'-project').value = "N/A";
+
+            document.getElementById(target_cloud+'-image').style.display = "block";
+            document.getElementById(target_cloud+'-flavor').style.display = "block";
+
+        }
+        else{
+            newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
+            oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
+
+            document.getElementById(target_cloud+'-authurl').readOnly = false;
+            document.getElementById(target_cloud+'-authurl').value = "";
+
+            document.getElementById(target_cloud+'-project').readOnly = false;
+            document.getElementById(target_cloud+'-project').value = "";
+
+            document.getElementById(target_cloud+'-image').style.display = "none";
+            document.getElementById(target_cloud+'-flavor').style.display = "none";
+        }
+    }
+
+    function set_authurl(target_cloud){
+
+        var arrayLength = ec2_regions.length;
+        var selectedRegion = document.getElementById(target_cloud+'-selected').value;
+
+        for (var i = 0; i < arrayLength; i++){
+            if( ec2_regions[i].region == selectedRegion ){
+                document.getElementById(target_cloud+'-authurl').value = ec2_regions[i].endpoint;
+            }
+        }
+    }
+
 </script>
 
 <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}?{{version}}"></script>
@@ -77,20 +135,27 @@
 
 </head>
 <body class="clouds-nav" onpageshow="get_message(); set_location()">
-
+{% spaceless %}
 <div class="main-div">
     <div class="menu">
     {% for cloud in cloud_list %}
-        <div id="{{cloud.cloud_name}}"> <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
-            
+        <div id="{{cloud.cloud_name}}">
+
+        <div class="tab-title">
+            <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
+
+            <!--<a href="#delete-{{cloud.cloud_name}}" class="delete-button">-</a>-->
+        </div>
+
             <div class="menu-target">
+
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
                     <label class="tab-colour" for="{{cloud.cloud_name}}-settings">Settings</label>
                     <div class="tab-content">
 
-                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" onchange="msg_tbl.style='display:none;'" autocomplete="nope">
+                        <form name="{{cloud.cloud_name}}" action="/cloud/update/#{{cloud.cloud_name}}" method="post" autocomplete="nope">
                             {% csrf_token %}
                             <table><tr><td>
 
@@ -110,34 +175,12 @@
                                     {% endif %}
                                     </td></tr>
 
-                                    <tr class="highlight3"><td><label for="authurl">URL</label></td>
-                                    <td><input type="text" name="authurl" value="{{cloud.authurl}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="project">Project</label></td>
-                                    <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="username">Username</label></td>
-                                    <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="password">Password</label></td>
-                                    <td><input type="password" name="password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
-
-                                    <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
-                                    <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="region">Region</label></td>
-                                    <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
-                                    <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
-                                    <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
-                                    <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
+                                    <tr class="highlight3"><td><label for="priority">Priority</label></td>
+                                    <td><input type="text" name="priority" title="Lower number is higher priority" value="{{cloud.cloud_priority}}" /></td></tr>
 
 
-                                    <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
-                                    <td><input type="text" name="spot_price" value="{{cloud.spot_price}}" /></td></tr>
-                                </table>
-
-                            <td>    
-
-                                <table>
                                     <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                                    <td><select name="cloud_type" class="dropdown"/>
+                                    <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "{{cloud.cloud_name}}")'>
                                     {% for type in type_list %}
                                         {% if cloud.cloud_type == type.cloud_type %}
                                             <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
@@ -145,9 +188,66 @@
                                             <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
                                         {% endif %}
                                     {% endfor %}
+                                    </select>
                                     </td></tr>
-                                
 
+
+                                    <tr class="highlight3"><td><label for="authurl">URL</label></td>
+                                    <td>
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" readonly />
+                                    {% else %}
+                                        <input type="text" name="authurl" id="{{cloud.cloud_name}}-authurl" value="{{cloud.authurl}}" />
+                                    {% endif %}
+                                    </td></tr>
+                                    
+
+                                    <tr class="highlight3"><td><label for="region">Region</label></td>
+                                    <td id="{{cloud.cloud_name}}-region">
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <select name="region" class="dropdown" id="{{cloud.cloud_name}}-selected" onchange='set_authurl("{{cloud.cloud_name}}")'>
+                                        {% for region in ec2_regions_list %}
+                                            {% if cloud.region == region.region %}
+                                                <option value="{{ region.region }}" selected>{{ region.region }}</option>
+                                            {% else %}
+                                                <option value="{{ region.region }}">{{ region.region }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </select>
+                                    {% else %}
+                                        <input type="text" name="region" value="{{cloud.region}}" />
+                                    {% endif %}
+                                    </td></tr>
+
+
+                                    <tr class="highlight3"><td><label for="project">Project</label></td>
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" readonly/>
+                                    {% else %}
+                                        <td><input type="text" name="project" id="{{cloud.cloud_name}}-project" value="{{cloud.project}}" />
+                                    {% endif %}
+                                    </td></tr>
+
+                                    <tr class="highlight3"><td><label for="username">Username</label></td>
+                                    <td><input type="text" name="username"  value="{{cloud.username}}" /></td></tr>
+                                    
+                                    <tr class="highlight3"><td><label for="password">Password</label></td>
+                                    <td><input type="password" name="password" placeholder="Update password" value="" autocomplete="new-password"/></td></tr>
+
+                                    <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
+                                    <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
+
+                                    <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
+                                    <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                                    
+                                    <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
+                                    <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
+
+                                </table>
+
+                            <td>    
+
+                                <table>
                                     <tr class="highlight3"><td><label for="vm_security_groups">Security Group</label></td>
                                     <td><select name="vm_security_groups" class="dropdown"/>
                                     <option value=""></option>
@@ -202,7 +302,16 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
-                                    </td></tr>
+
+                                    </td>                           
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <td id="{{cloud.cloud_name}}-image">                                    
+                                    {% else %}
+                                        <td id="{{cloud.cloud_name}}-image" style="display:none">
+                                    {% endif %}                                   
+                                        <a onclick='document.getElementById("vms-iframe").src="/ec2/images/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Image filter</a>
+                                    </td>
+                                    </tr>
 
                                     <tr class="highlight3"><td><label for="vm_flavor">VM Flavor</label></td>
                                     <td><select name="vm_flavor" class="dropdown"/>
@@ -216,11 +325,21 @@
                                             {% endif %}
                                         {% endif %}
                                     {% endfor %}
-                                    </td></tr>
+                                    </td>                                  
+                                    {% if cloud.cloud_type == "amazon" %}
+                                        <td id="{{cloud.cloud_name}}-flavor">                                    
+                                    {% else %}
+                                        <td id="{{cloud.cloud_name}}-flavor" style="display:none">
+                                    {% endif %} 
+                                        <a onclick='document.getElementById("vms-iframe").src="/ec2/instance-types/?{{active_group}}&cloud_name={{cloud.cloud_name}}";' href="#vms-overlay">&#9745; Flavor filter</a>
+                                    </td>
+                                    </tr>
 
                                     <tr class="highlight3"><td><label for="vm_keep_alive">VM Keep Alive</label></td>
                                     <td><input type="text" name="vm_keep_alive" value="{{cloud.vm_keep_alive}}" /></td></tr>
 
+                                    <tr class="highlight3"><td><label for="spot_price">Spot Price</label></td>
+                                    <td><input type="text" name="spot_price" title="-1 to disable" value="{{cloud.spot_price}}" /></td></tr>
 
                                 </table>
 
@@ -228,13 +347,13 @@
 
                                 <table>
                                     <tr class="highlight2"><td><label for="cores_softmax">Cores Softmax</label></td>
-                                    <td><input type="text" name="cores_softmax" value="{{cloud.cores_softmax}}" /></td></tr>
+                                    <td><input type="text" name="cores_softmax" title="-1 to use hard max" value="{{cloud.cores_softmax}}" /></td></tr>
 
                                     <tr class="highlight2"><td><label for="cores_ctl">Cores</label></td>
                                     <td>
                                         
-                                        <input id="slider-cores" type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" oninput="cores_ctl.value=cores_slider.value" />
-                                        <input id="ctl-cores" type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" oninput="cores_slider.value=cores_ctl.value" />
+                                        <input type="range" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_slider" oninput="cores_ctl.value=cores_slider.value" />
+                                        <input type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" title="-1 to use system max" oninput="cores_slider.value=cores_ctl.value" />
                                         / {{cloud.cores_max}}
                                     </td></tr>
                                     <!--<td>
@@ -245,8 +364,8 @@
 
                                     <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
                                     <td>
-                                        <input id="slider-ram" type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" oninput="ram_ctl.value=ram_slider.value" />
-                                        <input id="ctl-ram" type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" oninput="ram_slider.value=ram_ctl.value" />
+                                        <input type="range" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_slider" oninput="ram_ctl.value=ram_slider.value" />
+                                        <input type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" title="-1 to use system max" oninput="ram_slider.value=ram_ctl.value" />
                                         / {{cloud.ram_max}} KB
                                     </td></tr>
                                     <!--<td>
@@ -265,10 +384,6 @@
 
                         </table>
                         </form>
-
-                        <div class="bottom-right">
-                            <a href="#delete-{{cloud.cloud_name}}"><button type="button">Delete</button></a>
-                        </div>
 
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
@@ -423,6 +538,10 @@
 
                 </div>
 
+
+
+
+
             </div>
 
         </div>
@@ -440,34 +559,50 @@
 
 
                             <input type="hidden" name="enabled" value="0" />
-                            <tr class="highlight3"><td><label for="authurl">Enabled</label></td>
+                            
+                            <tr class="highlight3"><td><label for="enabled">Enabled</label></td>
                             <td><input type="checkbox" name="enabled" value="1" /></td></tr>
 
+                            <tr class="highlight3"><td><label for="priority">Priority</label></td>
+                            <td><input type="text" name="priority" title="Lower number is higher priority" value="0" /></td></tr>
+
+                            <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
+                            <td><select name="cloud_type" class="dropdown" onchange='type_select(this.value, "add")'/>
+                            {% for type in type_list %}
+                                {% if type.cloud_type == "openstack" %}
+                                    <option value="{{ type.cloud_type }}" selected>{{ type.cloud_type }}</option>
+                                {% else %}
+                                    <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
+                                {% endif %}
+                                }
+                            {% endfor %}
+                            </td></tr>
+
                             <tr class="highlight3"><td><label for="authurl">URL</label></td>
-                            <td><input type="text" name="authurl" value="" /></td></tr>
+                            <td><input type="text" name="authurl" id="add-authurl" value="" /></td></tr>
+                            
+                            <tr class="highlight3"><td><label for="region">Region</label></td>
+                            <td id="add-region"><input type="text" name="region" value="" /></td></tr>
+
                             <tr class="highlight3"><td><label for="project">Project</label></td>
-                            <td><input type="text" name="project" value="{{cloud.project}}" /></td></tr>
+                            <td><input type="text" name="project" id="add-project" value="{{cloud.project}}" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="username">Username</label></td>
                             <td><input type="text" name="username" value="" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="password">Password</label></td>
                             <td><input type="password" name="password" value="" /></td></tr>
 
-
                             <tr class="highlight3"><td><label for="cacertificate">CA certificate</label></td>
                             <td><input type="text" name="cacertificate" value="{{cloud.cacertificate}}" /></td></tr>
-                            <tr class="highlight3"><td><label for="region">Region</label></td>
-                            <td><input type="text" name="region" value="{{cloud.region}}" /></td></tr>
+
                             <tr class="highlight3"><td><label for="user_domain_name">User domain name</label></td>
                             <td><input type="text" name="user_domain_name" value="{{cloud.user_domain_name}}" /></td></tr>
+                            
                             <tr class="highlight3"><td><label for="project_domain_name">Project domain name</label></td>
                             <td><input type="text" name="project_domain_name" value="{{cloud.project_domain_name}}" /></td></tr>
 
 
-                            <tr class="highlight3"><td><label for="cloud_type">Cloud type</label></td>
-                            <td><select name="cloud_type" class="dropdown"/>
-                            {% for type in type_list %}
-                                <option value="{{ type.cloud_type }}">{{ type.cloud_type }}</option>
-                            {% endfor %}
 
                             <tr><td><input type="submit" value="Add Cloud" /></td></tr>
                         </table>
@@ -494,6 +629,15 @@
 
 </div>
 
+<div id="vms-overlay" class="overlay">
+    <div class="popup">
+        <a class="close" id="timer-count" onclick="location.href='/cloud/list/?{{active_group}}'" href="#">&times;</a>
+        <iframe id="vms-iframe" class="content" src=""></iframe>
+    </div>
+</div>
+
+
+
 <div class="footer" id="message">
     {% if response_code == 1 %}
         <tr><td><b>Error: {{ message }}</b></td></tr>
@@ -503,5 +647,5 @@
 </div>
 
 
-
+{% endspaceless %}
 </body>

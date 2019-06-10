@@ -93,12 +93,12 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV15', 'user update, value specified for a password is less than 6 characters.',
+        gvar, 1, 'UV', 'user update, value specified for a password is less than 6 characters.',
         ['cloudscheduler', 'my', 'settings', '-upw', 'abc']
     )
 
     execute_csv2_command(
-        gvar, 1, 'UV15', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
+        gvar, 1, 'UV', 'user update, value specified for a password is less then 16 characters, and does not contain a mixture of upper, lower, and numerics.',
         ['cloudscheduler', 'my', 'settings', '-upw', 'abcdef']
     )
 

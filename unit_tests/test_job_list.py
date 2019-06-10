@@ -30,7 +30,7 @@ def main(gvar, user_secret):
     )
 
     execute_csv2_request(
-        gvar, 1, 'JV00', 'request contained a bad parameter "invalid-unit-test".',
+        gvar, 1, 'JV', 'request contained a bad parameter "invalid-unit-test".',
         '/job/list/'
 , form_data={'invalid-unit-test': 'invalid-unit-test'},
         server_user=ut_id(gvar, 'jtu3'), server_pw=user_secret

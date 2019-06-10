@@ -1,7 +1,10 @@
+/*
+*/
 create or replace view view_vm_kill_retire_over_quota as
 select 
     group_name,
     cloud_name,
+    cloud_type,
     greatest(0,least(cores_ctl,cores_softmax-cores_foreign,cores_max-cores_foreign)) as cores,
     cores_ctl,
     cores_softmax,
@@ -17,6 +20,7 @@ from (
     select
         group_name,
         cloud_name,
+        cloud_type,
         cores_native,
         disk_native,
         ram_native,
@@ -34,6 +38,7 @@ from (
         select 
             tvmr.group_name,
             tvmr.cloud_name,
+            tvmr.cloud_type,
             cores_native,
             disk_native,
             ram_native,
@@ -51,6 +56,7 @@ from (
             select
                 group_name,
                 cloud_name,
+                cloud_type,
                 sum(cores_native) as cores_native,
                 sum(disk_native) as disk_native,
                 sum(ram_native) as ram_native,
@@ -64,10 +70,32 @@ from (
                 select
                     cv.group_name,
                     cv.cloud_name,
-                    cf.cores as cores_native,
-                    cf.disk+cf.ephemeral_disk as disk_native,
-                    cf.ram as ram_native,
-                    cf.swap as swap_native,
+                    cv.cloud_type,
+
+                    case when ei.instance_type is null then
+                        ifnull(cf.cores,0)
+                    else
+                        ifnull(ei.cores,0)
+                    end as cores_native,
+
+                    case when ei.instance_type is null then
+                        ifnull(cf.disk,0)+ifnull(cf.ephemeral_disk,0)
+                    else
+                        0
+                    end as disk_native,
+
+                    case when ei.instance_type is null then
+                        ifnull(cf.ram,0)
+                    else
+                        ifnull(ei.memory,0) * 1024
+                    end as ram_native,
+
+                    case when ei.instance_type is null then
+                        ifnull(cf.swap,0)
+                    else
+                        0
+                    end as swap_native,
+
                     0 as cores_foreign,
                     0 as disk_foreign,
                     0 as ram_foreign,
@@ -77,9 +105,13 @@ from (
                     cv.group_name=cf.group_name and
                     cv.cloud_name=cf.cloud_name and
                     cv.flavor_id=cf.id
+                left outer join ec2_instance_types as ei on 
+                    cv.region=ei.region and
+                    cv.flavor_id=ei.instance_type
                 union all select
                     vfr.group_name,
                     vfr.cloud_name,
+                    cc.cloud_type,
                     0 as cores_native,
                     0 as disk_native,
                     0 as ram_native,
@@ -89,10 +121,14 @@ from (
                     vfr.ram as ram_foreign,
                     0 as swap_foreign
                 from view_foreign_resources as vfr
+                left outer join csv2_clouds as cc on
+                    vfr.group_name=cc.group_name and 
+                    vfr.cloud_name=cc.cloud_name
             ) as avmr
             group by
                 group_name,
-                cloud_name
+                cloud_name,
+                cloud_type
             ) as tvmr
         left outer join csv2_clouds as cc on
             tvmr.group_name=cc.group_name and

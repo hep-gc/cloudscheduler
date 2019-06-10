@@ -1,0 +1,8 @@
+.TP
+\fB\-w \fItable1\fR[,table2,... tableN], \fB\-\-with \fItable1\fR[,table2,... tableN]
+Specifies a comma-seperated list of names of optional tables to be displayed.
+Some commands provide additional information which are not displayed unless specifically requested by name.
+To determine the information returned by any particular command, use the \fB--view-columns\fR (\fB-VC\fR) option which provides a list of table numbers, tables names, and columns, high-lighting optional information.
+This option accepts table numbers as well as tables names and the special value of \fBALL\fR which will display all optional information.
+
+Default: None.

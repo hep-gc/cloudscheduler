@@ -20,6 +20,7 @@ from (
     select
 
     group_name,
+    machine,
     substring_index(machine,'.',1) as hostname,
     condor_host,
     name,
@@ -32,7 +33,7 @@ from (
 
 left outer join csv2_vms as cv on
     cm.group_name=cv.group_name and
-    cm.hostname=cv.hostname
+    (cm.machine=cv.hostname or cm.hostname=cv.hostname)
 
 where cv.cloud_name is null
 

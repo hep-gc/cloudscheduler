@@ -52,8 +52,19 @@ from (
                 cc.project,
                 cv.flavor_id,
                 cv.count,
-                cv.count*cf.cores as cores,
-                cv.count*cf.ram as ram
+
+                case when ei.instance_type is null then
+                    cv.count*cf.cores
+                else
+                    cv.count*ei.cores
+                end as cores,
+
+                case when ei.instance_type is null then
+                    cv.count*cf.ram
+                else
+                    cv.count*ei.memory*1024
+                end as ram
+
             from (
                 select
                     group_name,
@@ -73,6 +84,9 @@ from (
                 cv.group_name=cf.group_name and
                 cv.cloud_name=cf.cloud_name and
                 cv.flavor_id=cf.id
+            left outer join ec2_instance_types as ei on
+                cc.region=ei.region and
+                cv.flavor_id=ei.instance_type
         ) as cff
         group by
             cc.group_name,
@@ -84,8 +98,19 @@ from (
         cc.group_name,
         cc.cloud_name,
         cvf.count,
-        cvf.count*cf.cores as cores,
-        cvf.count*cf.ram as ram
+
+        case when ei.instance_type is null then
+            cvf.count*cf.cores
+        else
+            cvf.count*ei.cores
+        end as cores,
+
+        case when ei.instance_type is null then
+            cvf.count*cf.ram
+        else
+            cvf.count*ei.memory*1024
+        end as ram
+
     from csv2_vms_foreign as cvf
     left outer join csv2_clouds as cc on
         substring_index(cvf.authurl, '/', 3)=substring_index(cc.authurl, '/', 3) and
@@ -95,6 +120,9 @@ from (
         cc.group_name=cf.group_name and
         cc.cloud_name=cf.cloud_name and
         cvf.flavor_id=cf.id
+    left outer join ec2_instance_types as ei on
+        cvf.region=ei.region and
+        cvf.flavor_id=ei.instance_type
 ) as ff
 group by
     group_name,

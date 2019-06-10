@@ -3,7 +3,7 @@
 /*----------footer bar to hold status----------*/
 
 .footer {
-  position: absolute;
+  position: fixed;
   right: 0;
   bottom: 0;
   left: 0;
@@ -33,6 +33,8 @@
 .highlight5 {
   background-color: lightcyan;
 }
+
+input:read-only { color:grey; }
 
 /*---------- useful styling classes ----------*/
 
@@ -107,6 +109,20 @@
   text-decoration: none; /* Remove underline from links */
 
 }
+
+.delete-link {
+  position: relative;
+  top: -38px;
+  width: 5px;
+  right: 0px;
+  left: 170px;
+  background-color: red;
+  color: black;
+  display: block;
+  padding: 12px;
+  text-decoration: none;
+}
+
 
 .menu div.menu-position {
   position: fixed;

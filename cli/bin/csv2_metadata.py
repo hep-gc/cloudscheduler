@@ -10,6 +10,7 @@ import json
 import os
 import yaml
 
+from csv2_common import yaml_full_load
 from csv2_group import defaults, metadata_delete, metadata_edit, metadata_list, metadata_load, metadata_update
 
 KEY_MAP = {
@@ -344,7 +345,7 @@ def _get_repository_and_servers(gvar):
             continue
 
         _fd = open('%s/.csv2/%s/settings.yaml' % (gvar['home_dir'], host_dir))
-        servers[host_dir] = yaml.full_load(_fd)
+        servers[host_dir] = yaml_full_load(_fd)
         _fd.close()
 
         if 'server-address' in servers[host_dir]:
@@ -371,22 +372,12 @@ def _set_host(gvar, servers, server):
 
     try:
         gvar['user_settings']['server-address'] = servers['settings'][server]['server-address']
-        del gvar['user_settings']['server-grid-cert']
-        del gvar['user_settings']['server-grid-key']
         del gvar['user_settings']['server-user']
         del gvar['user_settings']['server-password']
     except:
         pass
 
-    if 'server-grid-cert' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-cert']) and \
-        'server-grid-key' in gvar['user_settings'] and \
-        os.path.exists(gvar['user_settings']['server-grid-key']):
-
-        gvar['user_settings']['server-grid-cert'] = servers['settings'][server]['server-grid-cert']
-        gvar['user_settings']['server-grid-key'] = servers['settings'][server]['server-grid-key']
-
-    elif 'server-user' in gvar['user_settings']:
+    if 'server-user' in gvar['user_settings']:
         gvar['user_settings']['server-user'] = servers['settings'][server]['server-user']
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
             gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))

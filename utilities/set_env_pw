@@ -1,0 +1,3 @@
+#!/bin/bash
+    pw=$(awk '/db_password/ {print substr($2,2,length($2)-2)}' /etc/cloudscheduler/cloudscheduler.yaml)
+    export pw=$pw

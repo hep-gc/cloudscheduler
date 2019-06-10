@@ -1,0 +1,4 @@
+Adds a new alias definition to the current group.
+A group may have multiple alias definitions and each alias definition may contain one or more clouds.
+A single cloud can be a member of multiple aliases.
+All users within a group may create aliases for the group.

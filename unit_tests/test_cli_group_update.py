@@ -79,7 +79,7 @@ def main(gvar, user_secret):
 
     # 012
     execute_csv2_command(
-        gvar, 1, 'GV44', 'the request did not match any rows.',
+        gvar, 1, 'GV', 'the request did not match any rows.',
         ['cloudscheduler', 'group', 'update', '-gn', 'invalid-unit-test', '-htcf', 'invalid-unit-test']
     )
 
@@ -109,13 +109,13 @@ def main(gvar, user_secret):
 
     # 017
     execute_csv2_command(
-        gvar, 1, 'GV42', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
+        gvar, 1, 'GV', 'group update parameter "htcondor_fqdn" contains an empty string which is specifically disallowed.',
         ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-htcf', '']
     )
 
     # 018
     execute_csv2_command(
-        gvar, 1, 'GV43', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3')),
+        gvar, 1, 'GV', 'group add, "{}" failed - user "{}" was specified twice.'.format(ut_id(gvar, 'clg1'), ut_id(gvar, 'clu3')),
         ['cloudscheduler', 'group', 'update', '-gn', ut_id(gvar, 'clg1'), '-un', ut_id(gvar, 'clu3,clu3')]
     )
 

@@ -1,5 +1,6 @@
 #cloud-config
 merge_type: 'list(append)+dict(recurse_array)+str()'
+#### DO NOT EDIT - CHANGES WILL BE OVER_WRITTEN ####
 
 write_files:
 -   content: |
@@ -16,13 +17,18 @@ write_files:
         # Local config for Cloud Scheduler
 
         ## Set this to the group_name using this VM
+        cs_host_id = "{{cs_host_id}}"
         group_name = "{{cs_group_name}}"
+        cloud_name = "{{cs_cloud_name}}"
         flavor = "{{cs_flavor}}"
         target_alias = "{{cs_cloud_alias}}"
 
         ## Hostname of the central manager.
         # Prefer value contextualized by Cloud Scheduler and then use central_manager
+        CS_HOST={{cs_host}}
+        CS_HOST_IP={{cs_host_ip}}
         CONDOR_HOST={{cs_condor_host}}
+        CONDOR_HOST_IP={{cs_condor_host_ip}}
 
         SEC_DAEMON_AUTHENTICATION =
         SEC_DAEMON_AUTHENTICATION_METHODS =
@@ -40,18 +46,20 @@ write_files:
         JAVA = /usr/lib/jvm/jre-1.6.0-openjdk.x86_64/bin/java
 
         ###### You should not need to make changes below here ########
-        HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
-        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST)
-        HOSTALLOW_ADMINISTRATOR = $(CONDOR_HOST)
-        ALLOW_ADMINISTRATOR = $(CONDOR_HOST)
+        HOSTALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        ALLOW_WRITE = $(IP_ADDRESS), $(FULL_HOSTNAME), $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        HOSTALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        ALLOW_ADMINISTRATOR = $(CONDOR_HOST_IP), $(CS_HOST_IP)
+        ALLOW_READ = *
+        HOSTALLOW_READ = *
 
-        CCB_ADDRESS = $(CONDOR_HOST)
+        CCB_ADDRESS = $(CONDOR_HOST_IP)
 
         TRUST_UID_DOMAIN = False
         ## If you require jobs to run as a user set TRUST_UID_DOMAIN to True and uncomment the following
-        #SCHEDD_HOST=$(CONDOR_HOST)
-        #UID_DOMAIN=$(CONDOR_HOST)
-        #FILESYSTEM_DOMAIN=$(CONDOR_HOST)
+        #SCHEDD_HOST=$(CONDOR_HOST_IP)
+        #UID_DOMAIN=$(CONDOR_HOST_IP)
+        #FILESYSTEM_DOMAIN=$(CONDOR_HOST_IP)
 
         START = (Owner == "{{cs_user}}")
 
@@ -92,14 +100,22 @@ write_files:
         CONTINUE = True
         PREEMPT = False
         KILL = False
+        USER_JOB_WRAPPER = /usr/libexec/condor/jobwrapper.sh
+        STARTD_RECOMPUTE_DISK_FREE = true
 
-        STARTD_ATTRS = COLLECTOR_HOST_STRING group_name flavor target_alias
+        STARTD_ATTRS = COLLECTOR_HOST_STRING cs_host_id group_name cloud_name flavor target_alias
 
         HIGHPORT = 50000
         LOWPORT = 40000
     owner: root:root
     permissions: '0644'
     path: /etc/condor/condor_config.local
+-   content: |
+        #!/bin/bash -l
+        exec "$@"
+    owner: root:root
+    permissions: '0755'
+    path: /usr/libexec/condor/jobwrapper.sh
 -   content: |
         #! /bin/sh
         ##**************************************************************
@@ -326,17 +342,17 @@ write_files:
 
         # set up condor ccb if only private networking is available
         setup_ccb_ec2() {
-            LOCAL_ADDRESS=`hostname -i`
+            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
             EXTHOSTNAME=`curl -s http://$EC2_METADATA/latest/meta-data/public-hostname`
             echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
         }
         setup_ccb_gce() {
-            LOCAL_ADDRESS=`hostname -i`
+            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
             EXTHOSTNAME=`curl -s http://metadata/computeMetadata/v1/instance/attributes/hostname`
             echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
         }
         setup_ccb_azure() {
-            LOCAL_ADDRESS=`hostname -i`
+            LOCAL_ADDRESS=`/sbin/ifconfig eth0 | grep "inet addr" | awk '{print $2}' | sed s/addr://`
             EXTHOSTNAME=`hostname`
             echo $LOCAL_ADDRESS $EXTHOSTNAME "# Added for Condor CCB" >> /etc/hosts
         }
@@ -461,6 +477,8 @@ write_files:
             fi
             verify_execute
             init_condor_master
+            # on CC7 this directory might not exist
+            [ -d /var/lock/subsys ] || mkdir /var/lock/subsys
             echon "Starting up Condor..."
             "$CONDOR_MASTER" -pidfile "$PIDFILE"
             RETVAL=$?

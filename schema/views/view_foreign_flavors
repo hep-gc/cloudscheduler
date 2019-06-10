@@ -1,9 +1,24 @@
 create or replace view view_foreign_flavors as 
 select 
     vff.*,
-    cf.name,
-    ifnull(cf.cores,0) as cores,
-    ifnull(cf.ram,0) as ram
+
+    case when ei.instance_type is null then
+        cf.name
+    else
+        ei.instance_type
+    end as name,
+
+    case when ei.instance_type is null then
+        ifnull(cf.cores,0)
+    else
+        ifnull(ei.cores,0)
+    end as cores,
+
+    case when ei.instance_type is null then
+        ifnull(cf.ram,0)
+    else
+        ifnull(ei.memory,0) * 1024
+    end as ram
 from (
     select
         *
@@ -99,4 +114,7 @@ left outer join cloud_flavors as cf on
     vff.group_name=cf.group_name and
     vff.cloud_name=cf.cloud_name and
     vff.flavor_id=cf.id
+left outer join ec2_instance_types as ei on
+    vff.region=ei.region and
+    vff.flavor_id=ei.instance_type
 ;

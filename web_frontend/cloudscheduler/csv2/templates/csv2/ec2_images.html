@@ -1,0 +1,303 @@
+<html>
+  <head>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+  <link rel="stylesheet" type="text/css" href="{% static "csv2/filters.css" %}?{{version}}">
+  </head>
+
+<script type="text/javascript">
+
+var os_list = {{os_list|safe}}
+var arch_list = {{arch_list|safe}}
+var alias_list = {{alias_list|safe}}
+
+var ec2_filters = {{ec2_image_filters_json|safe}}
+
+if(ec2_filters[0].operating_systems){
+  var os_filter = ec2_filters[0].operating_systems.split(",")
+}
+else{
+  var os_filter = []
+}
+
+if(ec2_filters[0].architectures){
+  var arch_filter = ec2_filters[0].architectures.split(",")
+}
+else{
+  var arch_filter = []
+}
+
+if(ec2_filters[0].owner_aliases){
+  var alias_filter = ec2_filters[0].owner_aliases.split(",")
+}
+else{
+  var alias_filter = []
+}
+
+
+function checkBoxes(target, target_list, target_filter){
+
+  var i
+  var id
+  var filter_string
+
+  console.log(target_filter.length)
+
+  filter_string = ""
+  for (i = 0; i < target_filter.length; i++){
+    if(target_list.includes(target_filter[i])){
+      id = target+"-"+target_filter[i];
+      document.getElementById(id).checked = true;
+    }
+    if(i>0){filter_string += ","}
+    filter_string += target_filter[i]
+  }
+  document.getElementById(target+"_string").value = filter_string
+
+  console.log(id)
+}
+
+function checkSelected(){
+
+  checkBoxes("os", os_list, os_filter);
+  checkBoxes("arch", arch_list, arch_filter);
+  checkBoxes("alias", alias_list, alias_filter);
+}
+
+
+
+function updateFilter(target){
+
+  var i
+  var filter_string
+
+
+  if(target=="os"){var targ_list = os_list}
+  else if(target=="arch"){var targ_list = arch_list}
+  else if(target=="alias"){var targ_list = alias_list}
+  else{
+    console.log("Invalid target: "+target)
+    return
+  }
+
+  targ_filter = document.getElementById(target+"_string").value.split(",")
+
+
+  //Remove empty entries:
+  if(targ_filter.includes("")){
+    var index = targ_filter.indexOf("");
+    if (index > -1) {
+      targ_filter.splice(index, 1);
+    }
+  }
+
+  //Loop through the checkboxes and add or remove filter array elements:
+  for (i = 0; i < targ_list.length; i++){
+
+    var id = target+"-"+targ_list[i];
+    if(document.getElementById(id).checked){
+      if(!targ_filter.includes(targ_list[i])){
+        targ_filter.push(targ_list[i])
+      }
+    }
+    else{
+      if(targ_filter.includes(targ_list[i])){
+
+        var index = targ_filter.indexOf(targ_list[i]);
+        if (index > -1) {
+          targ_filter.splice(index, 1);
+        }
+      }
+    }
+  }
+
+
+  //Construct the filter string for text box
+  filter_string = ""
+  for (i = 0; i < targ_filter.length; i++){
+    if(targ_list.includes(targ_filter[i])){
+      var id = target+"-"+targ_filter[i];
+      document.getElementById(id).checked = true;
+    }
+    if(i>0){filter_string += ","}
+    filter_string += targ_filter[i]
+  }
+
+  console.log(targ_filter)
+
+  document.getElementById(target+"_string").value = filter_string
+
+}
+
+// To sort by clicking the headers
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("filterTable");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc";
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.getElementsByTagName("TR");
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+
+</script>
+
+<body onpageshow="checkSelected();">
+
+
+  <form name="ec2_filters" action="/ec2/images/" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="group" value="{{ ec2_image_filters.0.group_name }}">
+    <input type="hidden" name="cloud_name" value="{{ ec2_image_filters.0.cloud_name }}" />
+
+
+    <nav role="navigation">
+      <ul>
+
+        <li><br><input type="submit" value="Update filter" />
+        </li>
+
+
+        <li><a href="#">Operating Systems</a><br>
+          <input class="text-field" type="text" name="operating_systems" id="os_string" value="" />
+          <ul class="dropdown" aria-label="submenu">
+            {% for os in operating_systems %}
+              <li><input type="checkbox" id="os-{{os.operating_system}}" value="" onchange='updateFilter("os")'/>{{os.operating_system}}</li>
+            {% endfor %}
+          </ul>
+        </li>
+
+        <li><a href="#">Architectures</a><br>
+          <input class="text-field" type="text" name="architectures" id="arch_string" value="" />
+          <ul class="dropdown" aria-label="submenu">
+            {% for arch in architectures %}
+              <li><input type="checkbox" id="arch-{{arch.architecture}}" onchange='updateFilter("arch")'/>{{ arch.architecture }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+
+
+        <li><a href="#">Owner Alias</a><br>
+          <input class="text-field" type="text" name="owner_aliases" id="alias_string" value="" />
+          <ul class="dropdown" aria-label="submenu">
+            {% for alias in owner_aliases %}
+              <li><input type="checkbox" id="alias-{{alias.alias}}" value="" onchange='updateFilter("alias")'/>{{ alias.alias }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+
+        <li><a href="#">Like</a><br>
+          <input class="text-field" type="text" name="like"  value="{{ec2_image_filters.0.like|default_if_none:''}}" />
+        </li>
+
+        <li><a href="#">Not Like</a><br>
+          <input class="text-field" type="text" name="not_like"  value="{{ec2_image_filters.0.not_like|default_if_none:''}}" />
+        </li>
+
+        <li><a href="#">Owner IDs</a><br>
+          <input class="text-field" type="text" name="owner_ids"  value="{{ec2_image_filters.0.owner_ids|default_if_none:''}}" />
+        </li>
+
+
+      </ul>
+    </nav>
+
+
+
+
+
+
+  </form>
+
+
+
+    <div class="vm-div">
+
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="group" value="{{ active_group }}">
+
+      <div class=vm-table>
+        <table id="vmsTable">
+            <tr>
+              <th><input type="checkbox" id="select-all" onchange="selectAll();"/></th>
+              <th onclick="sortTable(1)">Name &#8597;</th>
+
+              <th onclick="sortTable(2)">ID &#8597;</th>
+
+            </tr>
+          <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
+
+
+            {% for image in ec2_images %}
+
+                <tr>
+                <td><input type="checkbox" name="images.{{ forloop.counter }}" value=""></td>
+                <td>{{image.name}}</td>
+                <td>{{image.id}}</td>
+
+              </tr>
+            {% endfor %}
+
+        </table>
+      </div>
+    </form>
+  </div>
+  <!-- Footer -->
+
+  <div class="footer"
+      {% if response_code == 1 %}
+          <tr><td><b>Error: {{ message }}</b></td></tr>
+      {% elif message is not None %}
+          <tr><td>{{ message }}</td></tr>
+      {% endif %}
+  </div>
+
+</body>
+</html>
