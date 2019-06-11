@@ -17,6 +17,7 @@ from cloudscheduler.lib.poller_functions import \
     build_inventory_for_condor, \
     start_cycle, \
     wait_cycle
+from cloudscheduler.lib.CondorRpcClient import CondorRpcClient
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -395,9 +396,9 @@ def command_poller():
             uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 try:
-                    condor_session = htcondor.Collector(condor_host)
+                    condor_rpc = CondorRpcClient(condor_host, config.amqp_port, config.csv2_queue + condor_host, config.csv2_queue + condor_host)
                 except Exception as exc:
-                    logging.exception("Failed to locate condor daemon, skipping...:")
+                    logging.exception("Failed to create condor RPC client, skipping...:")
                     logging.error(exc)
                     continue
 
@@ -460,11 +461,27 @@ def command_poller():
 
                     logging.info("Retiring (%s) machine %s primary slots: %s dynamic slots: %s, last updater: %s" % (resource.retire, resource.machine, resource[5], resource[6], resource.updater))
                     try:
-                        if resource.terminate is not None and resource.machine is not "":
-                            condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                        # Old code from before RPC
+                        #if resource.terminate is not None and resource.machine is not "":
+                        #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                        #else:
+                        #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
+                        #master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                        command_dict = {
+                            'command': "retire",
+                            'machine': resource.machine,
+                            'hostname': resource.hostname
+                        }
+                        command_yaml = yaml.dump(command_dict)
+                        command_results = condor_rpc.call(command_yaml)
+                        if command_results[0] != 0:
+                            # command failed
+                            logging.error("RPC retire failed for machine: %s" % resource.machine)
+                            logging.error(command_results[1])
+                            continue
                         else:
-                            condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
-                        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                            #it was successfull
+                            logging.debug("retire results: %s" % command_results[1])
 
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
@@ -493,7 +510,7 @@ def command_poller():
                 except Exception as exc:
                     logging.exception("Failed to commit retire machine, aborting cycle...")
                     logging.error(exc)
-                    del condor_session
+                    #del condor_session
                     config.db_close()
                     del db_session
                     time.sleep(config.sleep_interval_command)
@@ -591,20 +608,35 @@ def command_poller():
                         else:
                             logging.info("Removing classads for machine %s" % resource.hostname)
                         try:
-                            if resource.machine is not None and resource.machine is not "":
-                                condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                            command_dict = {
+                                'command': "invalidate",
+                                'machine': resource.machine,
+                                'hostname': resource.hostname
+                            }
+                            command_yaml = yaml.dump(command_dict)
+                            command_results = condor_rpc.call(command_yaml)
+                            if command_results[0] != 0:
+                                # command failed
+                                logging.error("RPC retire failed for machine: %s" % resource.machine)
+                                logging.error(command_results[1])
+                                continue
                             else:
-                                condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
-                            master_list.append(condor_classad)
+                                #it was successfull
+                                logging.debug("retire results: master: %s  startd: %s" % (command_results[1], command_results[2]))
+                            #if resource.machine is not None and resource.machine is not "":
+                            #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
+                            #else:
+                            #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
+                            #master_list.append(condor_classad)
 
                             # this could be a list of adds if a machine has many slots
-                            condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
-                            for classad in condor_classads:
-                                startd_list.append(classad)
-                        except IndexError as exc:
-                            pass
+                            #condor_classads = condor_session.query(startd_type, 'Machine=="%s"' % resource.hostname)
+                            #for classad in condor_classads:
+                            #    startd_list.append(classad)
+                        #except IndexError as exc:
+                        #    pass
                         except Exception as exc:
-                            logging.error("Failed to retrieve machine classads, aborting...")
+                            logging.error("RPC invalidate failed...")
                             logging.error(exc)
                             abort_cycle = True
                             break
@@ -669,16 +701,16 @@ def command_poller():
                     continue
 
                 # Execute condor_advertise to remove classads.
-                if startd_list:
-                    startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
-                    logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
+                #if startd_list:
+                #    startd_advertise_result = condor_session.advertise(startd_list, "INVALIDATE_STARTD_ADS")
+                #    logging.info("condor_advertise result for startd ads: %s", startd_advertise_result)
 
-                if master_list:
-                    master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
-                    logging.info("condor_advertise result for master ads: %s", master_advertise_result)
+                #if master_list:
+                #    master_advertise_result = condor_session.advertise(master_list, "INVALIDATE_MASTER_ADS")
+                #    logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
             logging.debug("Completed command consumer cycle")
-            del condor_session
+            #del condor_session
             try:
                 config.db_close(commit=True)
             except Exception as exc:
