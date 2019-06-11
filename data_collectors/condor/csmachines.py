@@ -222,7 +222,7 @@ def machine_poller():
                                     fail_count = failure_dict[group.group_name]
 
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
-                    logging.error(exc)
+                    logging.exception(exc)
                     if fail_count > 3:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
@@ -424,8 +424,8 @@ def command_poller():
                     #logging.debug("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s" % (resource.group_name, resource.cloud_name, resource.htcondor_fqdn, resource.vmid, resource.hostname, resource[5], resource[6], resource.retire, resource.retiring, resource.terminate, resource.machine))
                     # First check the slots to see if its time to terminate this machine
 
-                    #check if retire flag set  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
-                    if resource.retire >= 1:
+                    #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
+                    if resource.retire > 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
                             #check if terminate has already been set
                             if resource[9] >= 1:
@@ -483,7 +483,7 @@ def command_poller():
                                 break
 
                     except Exception as exc:
-                        logging.error(exc)
+                        logging.exception(exc)
                         logging.error("Failed to issue DaemonsOffPeacefull to machine: %s, hostname: %s missing classad or condor miscomunication." % (resource.machine, resource.hostname))
                         continue
 

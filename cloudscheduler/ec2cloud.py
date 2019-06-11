@@ -141,6 +141,7 @@ class EC2Cloud(basecloud.BaseCloud):
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
                 client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
+                self.log.debug("STATE: %s" % vm['State'])
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
