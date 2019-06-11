@@ -425,12 +425,13 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
 .overlay {
   position: fixed;
   top: 0;
-  bottom: 70;
+  bottom: 0;
   left: 0;
   right: 0;
   background: rgba(0, 0, 0, 0.7);
   visibility: hidden;
   opacity: 0;
+  z-index: 2;
 }
 .overlay:target {
   visibility: visible;
@@ -438,13 +439,14 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
 }
 
 .popup {
-  position: relative;
-  margin: 70px auto;
+  position: fixed;
   padding: 10px;
   border-radius: 5px;
   background: #fff;
-  width: 90%;
-  height: 85%;
+  top: 20px;
+  bottom: 20px;
+  right: 20px;
+  left: 20px;
 }
 
 

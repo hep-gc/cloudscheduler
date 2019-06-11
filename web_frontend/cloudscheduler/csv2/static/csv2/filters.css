@@ -13,6 +13,7 @@ ul {
   list-style: none;
   margin: 0;
   padding-left: 0;
+  z-index: 20;
 }
 
 li {
@@ -23,6 +24,7 @@ li {
   padding: 1rem;
   position: relative;
   text-decoration: none;
+  z-index: 20;
 }
   
 li a {
@@ -78,7 +80,7 @@ ul li ul li {
   top:100px;
   left: 0px;
   display: block;
-  z-index:-1;
+  z-index:10;
 }
 
 .vm-table table {

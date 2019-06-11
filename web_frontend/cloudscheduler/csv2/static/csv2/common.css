@@ -10,6 +10,7 @@
   height: 30px;
   background-color: #efefef;
   text-align: center;
+  z-index: -10;
 }
 
 /*----------different highligh colours----------*/
