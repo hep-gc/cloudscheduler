@@ -4,6 +4,7 @@ import logging
 import socket
 import os
 import sys
+import yaml
 
 from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.db_config import Config
@@ -396,9 +397,9 @@ def command_poller():
             uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 try:
-                    condor_rpc = CondorRpcClient("localhost", 5672, "csv2_htc" + condor_host, "csv2_htc" + condor_host)
+                    condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue +"_" + condor_host, "csv2_htc_" + condor_host)
                 except Exception as exc:
-                    logging.exception("Failed to create condor RPC client, skipping...:")
+                    logging.error("Failed to create condor RPC client, skipping...:")
                     logging.error(exc)
                     continue
 
@@ -426,7 +427,7 @@ def command_poller():
                     # First check the slots to see if its time to terminate this machine
 
                     #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
-                    if resource.retire > 1:
+                    if resource.retire >= 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
                             #check if terminate has already been set
                             if resource[9] >= 1:
@@ -476,7 +477,8 @@ def command_poller():
                         command_results = condor_rpc.call(command_yaml)
                         if command_results[0] != 0:
                             # command failed
-                            logging.error("RPC retire failed for machine: %s" % resource.machine)
+                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
+                            #logging.error(command_results)
                             logging.error(command_results[1])
                             continue
                         else:
@@ -617,7 +619,7 @@ def command_poller():
                             command_results = condor_rpc.call(command_yaml)
                             if command_results[0] != 0:
                                 # command failed
-                                logging.error("RPC retire failed for machine: %s" % resource.machine)
+                                logging.error("RPC invalidate failed for machine: %s//%s" % (resource.machine, resource.hostname))
                                 logging.error(command_results[1])
                                 continue
                             else:

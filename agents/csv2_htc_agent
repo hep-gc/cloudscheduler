@@ -17,7 +17,16 @@ def callback(ch, method, properties, body):
             session = get_condor_session()
             if session:
                 try:
-                    classad = get_master_classad(session, yaml_dict['machine'])
+                    classad = get_master_classad(session, yaml_dict['machine'], yaml_dict['hostname'])
+                    if not classad:
+                        #classad not in condor
+                        logging.error("Classad not found for %s//%s" % (yaml_dict['machine'], yaml_dict['hostname']))
+                        ch.basic_publish(exchange='',
+                            routing_key=properties.reply_to,
+                            properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+                            body=str([1, "No condor classad"]))
+                        ch.basic_ack(delivery_tag=method.delivery_tag)
+                        return
                     result = condor_off(classad)
                     if result:
                         # should be a success, we need to return to the client now
@@ -39,6 +48,8 @@ def callback(ch, method, properties, body):
                         ch.basic_ack(delivery_tag=method.delivery_tag)
                         return
                 except Exception as exc:
+                    logging.error("Failed to get condor classad or issue condor off")
+                    logging.error(exc)
                     #Failure trying to get classad or issue condor off
                     ch.basic_publish(exchange='',
                         routing_key=properties.reply_to,
@@ -62,6 +73,16 @@ def callback(ch, method, properties, body):
             session = get_condor_session()
             if session:
                 master_classad = get_master_classad(session, yaml_dict['machine'], yaml_dict['hostname'])
+                if not master_classad:
+                    # there was no matching classad
+                    logging.error("Classad not found for %s//%s" % (yaml_dict['machine'], yaml_dict['hostname']))
+                    ch.basic_publish(exchange='',
+                        routing_key=properties.reply_to,
+                        properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+                        body=str([1, "No condor classad"]))
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    return
+
                 master_result = invalidate_master_classad(session, master_classad)
                 startd_classads = get_startd_classads(session, yaml_dict['hostname'])
                 startd_result = invalidate_startd_classads(session, startd_classads)
@@ -195,7 +216,7 @@ channel = connection.channel()
 channel.queue_declare(queue=csv2_queue)
 
 channel.basic_consume(queue=csv2_queue,
-                      auto_ack=True,
+                      #auto_ack=True,
                       on_message_callback=callback)
 
 logger.info('Waiting for messages.')
