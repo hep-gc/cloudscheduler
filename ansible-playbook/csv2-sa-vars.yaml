@@ -5,8 +5,8 @@ admin_email: someone@example.ca
 ansible_deployment_host_ip: '206.12.154.6'
 
 # CSV2 versions to use.
-cs_git_branch: stable-2.3
-schema_model: stable-2.3.1
+cs_git_branch: dev
+schema_model: csv2-dev.heprc.uvic.ca
 favicon_colour: red
 
 # Defines (three) entries to be added to /etc/hosts.
