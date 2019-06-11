@@ -278,14 +278,10 @@ def main():
 
                             log.debug("Would like to boot %s VMs on %s", num_vms_to_boot, cloud.cloud_name)
                             try:
-                                usertmp = idle_job.user.split('@')[0]
-                            except:
-                                usertmp = idle_job.user
-                            try:
                                 cs_condor_host_ip = socket.gethostbyname(csgroup.htcondor_fqdn)
-                            except:
+                            except socket.gaierror:
                                 cs_condor_host_ip = '*** unresolved **'
-                            template_dict = {'cs_user': usertmp,
+                            template_dict = {'cs_user': idle_job.user.split('@')[0],
                                              'cs_host': cs_host,
                                              'cs_host_id': config.csv2_host_id,
                                              'cs_host_ip': cs_host_ip,
