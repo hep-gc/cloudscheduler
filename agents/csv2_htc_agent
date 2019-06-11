@@ -157,7 +157,8 @@ def get_master_classad(session, machine, hostname):
         if machine is not "":
             condor_classad = session.query(MASTER_TYPE, 'Name=="%s"' % machine)[0]
         else:
-             condor_classad = ession.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
+            condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
+        return condor_classad
     except Exception as exc:
         logging.error("Failed to retrieve classad from condor (index error means no matching classad):")
         logging.error(exc)
@@ -181,6 +182,9 @@ def condor_off(condor_classad):
     try:
         logging.debug("Sending condor_off to %s" % condor_classad)
         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+        if master_result is None:
+            # None is good in this case it means it was a success
+            master_result = "Success"
         logging.info("Condor_off result: %s" % master_result)
         return master_result
     except Exception as exc:
