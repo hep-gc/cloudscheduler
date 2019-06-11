@@ -29,6 +29,8 @@ gvar['bread_crumbs'] = gvar['cmd_path'].split('/')
 gvar['bread_crumbs_ix'] = gvar['bread_crumbs'].index('cloudscheduler')
 gvar['root_dir'] = '/'.join(gvar['bread_crumbs'][:gvar['bread_crumbs_ix']+1])
 
+syscmd(gvar, ['sed', '-i', 's/csv2-sa/%s/' % hostname, 'addenda'], cwd='%s/ansible-playbook' % gvar['root_dir'])
+
 syscmd(gvar, ['sed', '-i', 's/csv2-sa/%s/' % hostname, 'README'], cwd='%s/ansible-playbook' % gvar['root_dir'])
 
 syscmd(gvar, ['mv', 'csv2-sa-secrets.yaml', '%s-secrets.yaml' % hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
