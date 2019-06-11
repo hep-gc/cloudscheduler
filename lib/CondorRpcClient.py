@@ -9,7 +9,7 @@ class CondorRpcClient(object):
     #    instead of key/queuename perhaps just host and prefix (prefix defiend in config + relevant condor host)
     def __init__(self, host, port, routing_key, queue_name):
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host, port))
+            pika.ConnectionParameters(host))
         self.channel = self.connection.channel()
         self.queue_name = queue_name
         self.routing_key = routing_key
@@ -47,13 +47,14 @@ class CondorRpcClient(object):
         return list(self.response)
 
 
-condor_rpc = CondorRpcClient(host="", port=99999999, routing_key="", queue_name="")
+#condor_rpc = CondorRpcClient(host="", port=99999999, routing_key="", queue_name="")
 
-yaml_dict = {
-    'command': "retire",
-    'machine': "OTTERMACHINE12345",
-    'hostname': "OTTERHOST12345"
-}
+#yaml_dict = {
+#    'command': "retire",
+#    'machine': "OTTERMACHINE12345",
+#    'hostname': "OTTERHOST12345"
+#}
+#
+#yaml = yaml.dump(yaml_dict)
+#response = condor_rpc.call(yaml)
 
-yaml = yaml.dump(yaml_dict)
-response = condor_rpc.call(yaml)
