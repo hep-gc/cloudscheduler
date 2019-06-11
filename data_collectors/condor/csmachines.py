@@ -396,7 +396,7 @@ def command_poller():
             uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 try:
-                    condor_rpc = CondorRpcClient(condor_host, config.amqp_port, config.csv2_queue + condor_host, config.csv2_queue + condor_host)
+                    condor_rpc = CondorRpcClient("localhost", 5672, "csv2_htc" + condor_host, "csv2_htc" + condor_host)
                 except Exception as exc:
                     logging.exception("Failed to create condor RPC client, skipping...:")
                     logging.error(exc)
