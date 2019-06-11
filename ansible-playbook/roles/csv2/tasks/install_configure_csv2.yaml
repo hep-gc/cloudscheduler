@@ -107,7 +107,7 @@
   git:
       repo: 'https://github.com/hep-gc/cloudscheduler.git'
       dest: /opt/cloudscheduler/
-      force: no
+      force: yes
       update: yes
       version: "{{ cs_git_branch }}"
 
@@ -134,6 +134,22 @@
   template:
     src: "/tmp/{{ csv2_host }}//opt/cloudscheduler/etc/httpd/conf.d/csv2_ssl.conf.j2"
     dest: /etc/httpd/conf.d/csv2_ssl.conf
+  notify:
+    restart httpd
+
+- name: run apache under the cloudscheduler user
+  lineinfile:
+    path: "/etc/httpd/conf/httpd.conf"
+    regexp: '^User apache'
+    line: "User cloudscheduler"
+  notify:
+    restart httpd
+
+- name: run apache under the cloudscheduler group
+  lineinfile:
+    path: "/etc/httpd/conf/httpd.conf"
+    regexp: '^Group apache'
+    line: "Group cloudscheduler"
   notify:
     restart httpd
 
@@ -208,7 +224,7 @@
       repo: 'https://github.com/ajaxorg/ace-builds.git'
       dest: /opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/ace-builds/
       accept_hostkey: yes
-      force: no
+      force: yes
       update: no
       version: master
 
@@ -217,7 +233,7 @@
       repo: 'https://github.com/plotly/plotly.js.git'
       dest: /opt/cloudscheduler/web_frontend/cloudscheduler/csv2/static/plotly.js/
       accept_hostkey: yes
-      force: no
+      force: yes
       update: no
       version: master      
 
