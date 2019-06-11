@@ -1,6 +1,7 @@
 # Destination for any email generated bu the system (letsencrypt).
 admin_email: someone@example.ca
 
+# Change this to the IP of your deployment host.
 ansible_deployment_host_ip: '206.12.154.6'
 
 # CSV2 versions to use.
@@ -12,17 +13,14 @@ favicon_colour: red
 i_etc_hosts:
 -
     # a private IP (v4)
-    unitid: 'csv2-sa'
     fqdn: 'csv2-sa'
     ip: '10.200.200.239'
 -
     # a public IP (v4)
-    unitid: 'csv2-sa'
     fqdn: 'csv2-sa.heprc.uvic.ca'
     ip: '206.12.154.239'
 -
     # a public IP (v6)
-    unitid: 'csv2-sa'
     fqdn: 'csv2-sa.heprc6.uvic.ca'
     ip: '2607:f8f0:c10:70f3:2::239'
 
@@ -32,108 +30,19 @@ i_deleted_users: []
 # Define users.
 i_users:
 -
-    unitid: 'csv2-sa'
-    userid: 'casteels'
-    uid: '193137'
--
-    unitid: 'csv2-sa'
-    userid: 'colsond'
-    uid: '115344'
--
-    unitid: 'csv2-sa'
-    userid: 'crlb'
-    uid: '10795'
--
-    unitid: 'csv2-sa'
-    userid: 'danikam1'
-    uid: '157765'
--
-    unitid: 'csv2-sa'
-    userid: 'frank'
-    uid: '83062'
--
-    unitid: 'csv2-sa'
-    userid: 'mebert'
-    uid: '248591'
--
-    unitid: 'csv2-sa'
-    userid: 'mhp'
-    uid: '89661'
--
-    unitid: 'csv2-sa'
-    userid: 'rptaylor'
-    uid: '87076'
--
-    unitid: 'csv2-sa'
-    userid: 'rsobie'
-    uid: '3881'
--
-    unitid: 'csv2-sa'
-    userid: 'seuster'
-    uid: '71428'
+    userid: 'example'
+    uid: '1234567'
 
 # Users authenticate with ssh keys.
 i_user_keys:
 -
-    userid: 'casteels'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAgEA0qtnTRW99ygnBFpf+pnEfeQKR1cAC0Zs9Ent6AuFYa2RyyI524tMXUJzjV/Mk/QVniODdp1LYtl42WKcP3qRJ/oOud4Iqk71ko5VoJmHpiczrQanKMwg6GOxRQ17bLVpNDjJEsrq1rG3YUBtUCW910wm7eqAuXALGjRmtYtqscOi30vbOMyZLmfLyBDqK6bQ1Dz103B+g7eZTfZX3vk1VXBXmlcRJZU9/VCN6SvZhqNyga32BpGURXmf/OgTs/964GLLQhP8yuJe09gZg52E7ap+hvdsx9EnSqGNDdcT3XwM5+nwYzr86glnOUm+u9ridCkS+20QDiWkDueIZRsZqhTiYC5gmz4NwBveiuEDT3zRfsSFdZ8Ea+VB7abWQvZXshJbezCaLr6qhLgvWimmMCg9CN/tWf9gDTcIadOyPJvWNYnwBkcZvo++AXzX2WKpN65L144gxhjMO7ehIrTeLnbyt9Nossd1Bav4DnIlVtbYGRpsNVAbytUxwR4m+0q4v1ChphD33wkA7wuiFQhcej2hq8/zqMPAdG9H+rnwQRr5MD2791JIEfFBwyTY7k9Vrt16W4MVVhQtBJkcEF0M2Ziq++ZLWq3USDdTWAZDBsIzgaiX33bvx/x7OTYp6V7CF/+jCFRW3E4VpcQjKdsqZW3TrHuI0k+B46NkJAZVSe8= casteels@uvic.ca'
--
-    userid: 'colsond'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDQVAtd7Ufy5qiNhD0Gm3HlrmvmN9vCv2aPcSxKoILhMGwoVkUyOewKP0dain/tkHtWNL5PZPOPqxCVPiF1QLP18yATD74yScECHg83+ASBx0pxskWAcxsC6DXjSDNZAo882s577hJW9wOSTwVYNSB3SQHMRLiAFnp8oAFVo8ElhiXeyu4aXQWqZej+bvz7RgPpiRrpTXjVKwfzeot9Ge7Nd0CAnCf5Zx6K+qKRpCct0ZnAh9r8czBfkASovEadNJeFd8vyoGg4SQYV4+zlovYNmsNYVzScdwDC3c7NpkEKb1ZmRl9CYg0wlT+vNbTd/eYHIu7FGzy4F18pBWPPxq1AwAH8qPpnT3cW2fsE2gYIeXdF+DBUs9EB0n/eSe97N2blGXgKoeERqrWhHOsd0VcCkQ4sDc42dY4msdqLAY7+SCR3b9lbhtyQ90O1zMOrjQ8iOfDH5zMKGy09FaOylmTR5D7uhoAvCJ8NM4GN2tlo2gDWvRpEZTrWQ0/cTbRQOY9VrQYWeJ1LxqK1hskcGg8VGDU8TbHj+g9lAOoqRUpPMYtq+ZO3UzblVNzw4wDOAghhV6IoCnBklikzw6lRBSFJFcGzjwcPHDvmGC6Xb4kekbsR1FooNGrsaYz5MSd4XwzDSEkQBr6pTdtaEgeKYxjwQ49pYnF8pOxOVUk7AYYV6w== colsond@uvic.ca'
--
-    userid: 'crlb'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0Np20Q4rFkI7E/Vi/08RHWm1i1PAdzXQ848ookdodofiIXuJBozoUgQmVfb/vtt8w7StpJ1Xkj3suXbFOyCW/iJbYPjve91o9Rxllfp0SPu6RV24nrhyCDOYO9DonAnVn4S9+aOVGXcP3+FbmfuvGCWf/QAKnpj+jo2adOO2Ynf/MhpSKMN/yY4lWOdCmAjh+cT7CbHRqFTmhKYBxa5qNR//VO2EGDtAZjSeath8JF0wxDvUBmRqmeoWhSDiYpUpk8kUpewSV23UyI/oVHHGL40wouUZKqU0ewR1gKHQhD9LmZbktXpF8S/Gxziqvsetv25KS4yCd6aFBmZ1byp+9 crlb@heplw34'
--
-    userid: 'danikam1'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJ13KaaMGJ1ifkQpDAuB3CCHEO6wn8XIKJgm5EYBGxEF5uPiyTQlb1/AtwBmruQkPuYJNcfnlG5wk1LTeDBW2Znp5qb3GTnN0zWnj7PmzOKIbH8Wo/sQB3ufW/hA1VorDMXEXM7rCefPhVu/YUoNAnafx4DMX9sszm/BS9O5Z+LprVyJfEaAKH9ZwP15RuzLCB1K4MdbYMULSTcYbdIQ0vBujZz53oRQOEDHfBBrqdiC4MqUfaa6q8OitmglhP5YjYjio1A68kyRwXDuekKhKvP+yqezZZh2PPoKP2q6rHxvfQl2NDJhCmuO4z82iWVTL/RcbGkZEJZhmg1c+oulT1 danikamacdonell@Danikas-MacBook-Pro.local'
--
-    userid: 'frank'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDYwVT+a4+GbQd0ZZY9o/I94T2BQEjpYTV3SM6TgWmtosG7gPZa0LmCSJWDmApHVIw/b6Q6xBVMJvmslRblHpW3vMs5LE2CVTWguXZbp4dKwEeZxPjcdMKPgl9VO2LB2fnltjnvMNsPdzMVviTaQoMhwvRB/vsAW0Mbse5la0CJAogvb5EA++sRvsk+6ftpDTOC1YFdINtaRAUINYv8NwxnEKri82eWE0pV83xLoA4/+YdRRqhPStGRmRoRyn3u4vOdhLlzcBp85xTc56bLvquODYDOTR9NSRvQpCrWHdIXZwFUbMPW6+ONxbNQTE+47QYDgj2i4tq8DX6Z56Q3C5i5FNrbaARnq4ml+bOR/wqCoWmKK3A7vKi7ng/QZjQu0wi9YFT7roU4uXF1hdsFFuIp+zX9kArbbxG+YdE95Ubwfun1qtqKzJr1/QcBn3KZqcrVKzuS6F5lv9s9VP9Ic7Os4wkwAGr1OlhRszZNcMBW/fHXLIlOO59rJclKNX7I+yjhmYa7W+JKrJxCkwzxuTa9J25Loh9v5z9MH9xGGxuk1scmOO7R8wkJjpjgPJqbw6p6VcV8m3cs556BL7c50++JVP3WaJXEoqSRz4x2+qFSfoZdbmR+7iVoPkU83QW3Ae5FoIjU4H4eiAoTkPtftFbe8lIOWIabe5O7b267voisgQ== frank@eva'
--
-    userid: 'mebert'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD1GZnbkRcR8RXilG6P0ga/zv0ubmKI9tguXvnuihUSPkV670D66j/FazU45CLmh4LS9At0oMzsW2aX3SbxhlqL1rfauxxSJRBQr+MeOZ/qmAw3t/l4KdWG40raYa/bS33I9DgCgTVE+6JTpGtudqoHJrmezvmN1Q7ablZHmHHPHCIWyvzA+n9mu25ccui6pFimG1SeI8OJBpNG4UsG8MSrFEOrqq4wnFjHu95SSEy4v/WvKrG6Xu9sLSLeSuOo7RXIEQ9Uh/LT1WV5oTEbFl5FrMqZlNJzFphrDS2kl9dALUDUwaNGM5P3m90EMH3R8aenU/B1LT6XZLQvEX38SQkp mebert@heplw65.phys.uvic.ca'
--
-    userid: 'mhp'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsuHZK7hb5Ve0Q7FHhGd7cUjW+33ZUSkjkSgQ3TvQ5ZMQpRoLenkm/OBxP93gIFNwsdQqbGiMpusfiaJ5Vx/SUdeRX/9P0ULNxkYK4fxUIzOEXSeiUojKvxUMGQjM4fUR8CASKNYnxL65MSYIFrvuOT3Au19fRlv3napXzbvMbjYtOgWdjaZQWfvFUBVtZTASRafBMw44uf9Y/Av2gnD2OlxQ7ijq9zhda2wFLDe4LYDHIzb5NsU7YcYceSMf1dSjiQPMT+bMgvfQmqxD+M5jL+w51sFwuxQCK4UUQfsvv971ewyCHQ+kB8CzrLGfSCkHXeTvOOC0GY8FWC54B6D7RQ== mhp@heplw12.phys.UVic.CA'
--
-    userid: 'rptaylor'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5nCWnNvXUGFgW+1cKinQhulovYs6qjjHTv3A1dRjWMuaXfqlz1udRJfTY/aU2qY9dU0slWFW8YKMx7Qdd3lE/YJ60hu8Q85ewLhwlBN8lNBExsCmiYrP7wOfyUZZgVU0cgEVt1sh0Uh9HhB0VXUUuRNcKt3hM0IM7DbHihbFIOv0/FLmNcWaVVJwtqtyMJoFxBl4Wfpk9xnk1sjrDVaBlxnFexIvifJhW0THY68yqpOapRv0+qgp0lecQWqIKgaGDssCGmi8Yq2Z3o4dZBzOZdJiAN0WHR+UPOfcLw86N0MjwBPOhOnWDnluF9Iys+gMxXj9jkXVhQDEMI8JHIShZ7gRuTkjeJ+1CHVXvBRck4vQQz83qHRQR8DFEofqN1h2a8zLQYQ9n310lxOo1LqS0k6qubrbzRIDweEv/Id/+WihhJvgEV9cho7xvm+Xf/s5k0X0xHKlgqCDh7lN6Aabr9s504xDu/HX+D2+w60HiGtZZC76pW5slCZWHlGNKC9C0l/Toe9UOiupD6JJKSHO6SQkZncSUYYuGWic/zYAImsaThvib9zkPU8j8bckxvvTccz6rP2dS7ASXjz0JFxoM9nKlvnFjRCQLxURrW90+w5Qz+rSeIEuzVOBig+qd+mxgG5awkq8+RrCX067oDl8GFy1RMDtoQGCu23SAkE80EQ== workstation'
--
-    userid: 'rsobie'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAucKrPQuzrcKDndD6hbETQr+KfkPiygCxYZH8Jjk1FX1mClEnF2+xFKZb93fbJoRsxOpKgUW21ADstwnb9x2+OGbWnQ3ii3Dz7Anh0M5UKfplrALGfip3GauuLmBeDl0jPJz7pDGSSzxUKcU9nDlO66Px6egWNaKXAExNxdVYAwO9+EFhZEHGns+/W8907dypn08Y4+MKnAN8DeNaHfwItDtzUPwTM1oUwFmatJ5rOyfYxli5oMFn6hcBEqa0Ol/I//UBDiPTjsvp4OIiW7t24plwfJhp00eKUoIhrpHGMajLYkdRiEzmethGkRQSa83dQV9hx/jYkiy8nXrCCmodiw== rsobie@macsob.phys.UVic.CA'
--
-    userid: 'rsobie'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYR5UINMy2LlnuROtnDJZee7kezzQpSqyfyZ8WYSwwiX05PhRb+ZMVomvyTMxQxt/DD05pbbfD0guEBt1ZEenCotiXHidXXfajjwHOBtAH+xJNFCHvcIkaaF2IJCWYnKudkms+NDEHzvCqOTNF8pjTRGPIuPqV0AmAwf4fEnvkhGs59OpvBG3eze5yBP+/Vy9s3UEV+3OvtWmNDo0HccufeaXNy+CzA9tiF+5AOWiITPde1I6WZmyFK4hUdMC4OR7iHqMvR0E8zOFl4Sa92Wj1+hqN+5Ab4+HPpBPw8zqPtD2MfCy4KC7dg5m+gsLu6gb+vTj3XU0OK0l/w/99ebnJ rsobie@macsob2.phys.uvic.ca'
--
-    userid: 'seuster'
-    key: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt/DIPLcgyqSrVQI0k4GriSadlSJwmbCMaUI7sxpYxhDXQi96Wfi65Tqal6sfltnSyRrblEVzfM8kPMGWadGiu9a4WqvgH9Tspy2BLdkLYY1U4SUR6vs9KSilmZREn3Dn+gWBWF8CNxdsy22IMpgwjsFf3f8pq+a6rYwywNx8j4ym3j+6tnbX1zRgrUIRE0zGYy0Jls6GUnfbYqPCXyF4CbjEHxaoo+alY0GslvafL1h11KtEmYMSr/hHcYEbAL0oUv9q4Xck6XbAxqjrcdp6ePSaP2SsHWQ6w0em028rnUAFdYObUh3b8IJXsv7E4mIp2TB+Zt3aAn0g2yunYXIFB seuster@heplw62'
+    userid: 'example'
+    key: 'ssh-rsa AAAAB3NxaC1yc2EAAAABIwAAAgEA0qtnTxW99ygnBFpf+pnEfeQKR1cAC0Zs9Ent6AxFYa2RyyI524tMXUJzjV/Mk/QVniODdp1LYtl42WKcx3qRJ/oOud4Iqk71ko5VoJmHpiczrQanKMwg6GOxRQ17bLVpNDjJEsrq1rG3YUBtUCW910wm7eqAuXALGjRmtYtqscOi30vbOMyZLmfLyBDqK6bQ1Dz103B+g7eZTfZX3vk1VXBXmlcRJZU9/VCN6SvZhqNyga32BpGURXmf/OgTs/964GLLQhP8yuJe09gZg52E7ap+hvdsx9EnSqGNDdcT3XwM5+nwYzr86glnOUm+u9ridCkS+20QDiWkDueIZRsZqhTiYC5gmz4NwBveiuEDT3zRfsSFdZ8Ea+VB7abWQvZXshJbezCaLr6qhLgvWimmMCg9CN/tWf9gDTcIadOyPJvWNYnwBkcZvo++AXzX2WKpN65L144gxhjMO7ehIrTeLnbyt9Nossd1Bav4DnIlVtbYGRpsNVAbytUxwR4m+0q4v1ChphD33wkA7wuiFQhcej2hq8/zqMPAdG9H+rnwQRr5MD2791JIEfFBwyTY7k9Vrt16W4MVVhQtBJkcEF0M2Ziq++ZLWq3USDdTWAZDBsIzgaiX33bvx/x7OTYp6V7CF/+jCFRW3E4VpcQjKdsqZW3TrHuI0k+B46NkJAZVSe8= example@uvic.ca'
 
 # Some users are privileged.
 i_sudoers:
 -
-    unitid: 'csv2-sa'
-    userid: 'casteels'
--
-    unitid: 'csv2-sa'
-    userid: 'colsond'
--
-    unitid: 'csv2-sa'
-    userid: 'crlb'
--
-    unitid: 'csv2-sa'
-    userid: 'danikam1'
--
-    unitid: 'csv2-sa'
-    userid: 'frank'
--
-    unitid: 'csv2-sa'
-    userid: 'mebert'
--
-    unitid: 'csv2-sa'
-    userid: 'mhp'
--
-    unitid: 'csv2-sa'
-    userid: 'seuster'
+    userid: 'example'
 
 # Defines block devices, filesystems, and mountpoints.
 i_volumes:
@@ -161,7 +70,6 @@ i_firewall: []
 # Public network.
 i_external_connection:
 -
-    unitid: 'csv2-sa'
     nic: 'eth1'
     ipv4: '206.12.154.239'
     ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
@@ -171,7 +79,6 @@ i_external_connection:
 # Private network.
 i_internal_connection:
 -
-    unitid: 'csv2-sa'
     nic: 'eth0'
     ipv4: '10.200.200.239'
     ipv4fqdn: 'csv2-sa'
@@ -181,7 +88,6 @@ i_internal_connection:
 # Define network connections.
 i_connections:
 -
-    unitid: 'csv2-sa'
     nic: 'eth0'
     mac: '52:54:00:3e:55:d9'
     ext: 'n'
@@ -194,7 +100,6 @@ i_connections:
     ipv6len: '-'
     bridge: '-'
 -
-    unitid: 'csv2-sa'
     nic: 'eth1'
     mac: '52:54:00:3e:55:da'
     ext: 'y'
@@ -210,7 +115,6 @@ i_connections:
 # Identify the primary service web page.
 i_service_connection:
 -
-    unitid: 'csv2-sa'
     nic: 'eth1'
     ipv4: '206.12.154.239'
     ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
@@ -220,9 +124,7 @@ i_service_connection:
 # Define domains for which letsencrypt certificates are required.
 i_virtualhosts:
 -
-    unitid: 'csv2-sa'
     virtualhost: 'csv2-sa.heprc.uvic.ca'
 -
-    unitid: 'csv2-sa'
     virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
 
