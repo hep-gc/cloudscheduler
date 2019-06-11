@@ -49,6 +49,13 @@ def callback(ch, method, properties, body):
 
             else:
                 # failed to get condor session
+                results = "Failed to get condor_session"
+                ch.basic_publish(exchange='',
+                    routing_key=properties.reply_to,
+                    properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+                    body=str([1, result]))
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+                return
 
         elif yaml_dict['command'] == 'invalidate':
             # need to pass localhostname, localhost or nothing might also work
@@ -72,7 +79,7 @@ def callback(ch, method, properties, body):
                 ch.basic_publish(exchange='',
                     routing_key=properties.reply_to,
                     properties=pika.BasicProperties(correlation_id=properties.correlation_id),
-                    body=str([1, results])
+                    body=str([1, results]))
                 ch.basic_ack(delivery_tag=method.delivery_tag)
                 return
 
@@ -84,14 +91,14 @@ def callback(ch, method, properties, body):
             ch.basic_publish(exchange='',
                 routing_key=properties.reply_to,
                 properties=pika.BasicProperties(correlation_id=properties.correlation_id),
-                body=str([1, "NOT YET IMPLEMENTED"])
+                body=str([1, "NOT YET IMPLEMENTED"]))
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
         else:
             ch.basic_publish(exchange='',
                 routing_key=properties.reply_to,
                 properties=pika.BasicProperties(correlation_id=properties.correlation_id),
-                body=str([1, "UNKNOWN COMMAND: %s" % yaml_dict['command'] ])
+                body=str([1, "UNKNOWN COMMAND: %s" % yaml_dict['command'] ]))
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
@@ -100,7 +107,7 @@ def callback(ch, method, properties, body):
         ch.basic_publish(exchange='',
             routing_key=properties.reply_to,
             properties=pika.BasicProperties(correlation_id=properties.correlation_id),
-            body=str([1, "NO COMMAND"])
+            body=str([1, "NO COMMAND"]))
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
 
