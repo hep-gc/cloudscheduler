@@ -58,7 +58,7 @@ def main():
         cs_host_ip = '*** unresolved ***'
 
 
-    while(True):
+    while True:
         config.refresh()
         logging.basicConfig(filename=config.categories['csmain']['log_file'],
                             level=config.categories['csmain']['log_level'],
@@ -101,10 +101,13 @@ def main():
             # Setup the resources for group and sort out their group and cloud specific yamls
             try:
                 config.db_open()
-                group_resources = config.db_session.query(view_available_resources).filter(view_available_resources.c.group_name == csgroup.group_name).group_by(view_available_resources.c.cloud_name)
+                group_resources = config.db_session.query(view_available_resources).filter(
+                    view_available_resources.c.group_name == csgroup.group_name).group_by(
+                    view_available_resources.c.cloud_name)
                 Group_metadata = config.db_map.classes.csv2_group_metadata
-                group_yamls = config.db_session.query(Group_metadata).filter(Group_metadata.group_name == csgroup.group_name,
-                                                               Group_metadata.enabled == 1)
+                group_yamls = config.db_session.query(Group_metadata).filter(
+                    Group_metadata.group_name == csgroup.group_name,
+                    Group_metadata.enabled == 1)
             except TimeoutError as ex:
                 log.exception(ex)
                 sys.exit(1)
@@ -199,7 +202,7 @@ def main():
                                   current_flavors[cloud_nm][flavor]['cores'], current_flavors[cloud_nm][flavor]['ram'],
                                   current_flavors[cloud_nm][flavor]['disk'])
                         total_cpus -= current_flavors[cloud_nm][flavor]['cores']
-                        total_ram -=  current_flavors[cloud_nm][flavor]['ram']
+                        total_ram -= current_flavors[cloud_nm][flavor]['ram']
                         total_disk -= current_flavors[cloud_nm][flavor]['disk']
                     log.debug("Resource requests After checking current: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus,
                               total_ram, total_disk)
@@ -247,7 +250,7 @@ def main():
                         for cloud in clouds_matching_new:
                             if cloud.cloud_name in cloud_booted_on:
                                 continue
-                            if cloud_prio == None:
+                            if cloud_prio is None:
                                 cloud_prio = cloud.cloud_priority # Set the lowest priority
                             elif cloud_prio == cloud.cloud_priority:
                                 pass # keep booting VMs on clouds of the same priority if possible
