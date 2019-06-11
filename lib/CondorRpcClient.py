@@ -1,5 +1,6 @@
 import pika
 import uuid
+import ast
 
 
 class CondorRpcClient(object):
@@ -31,7 +32,7 @@ class CondorRpcClient(object):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(
-            exchange=self.queue_name,
+            exchange="",
             routing_key=self.routing_key,
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,
@@ -44,7 +45,8 @@ class CondorRpcClient(object):
         # for a retire it will be a list: [rc, msg]
         # for invalidating classads list will be: [rc, master_result, startd_result]
         # on a failure rc will be 1, and second list member will be error/msg
-        return list(self.response)
+        #return self.response
+        return ast.literal_eval(self.response.decode("utf-8"))
 
 
 #condor_rpc = CondorRpcClient(host="", port=99999999, routing_key="", queue_name="")
