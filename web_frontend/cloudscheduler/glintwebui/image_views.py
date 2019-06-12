@@ -357,8 +357,8 @@ def download_image(request, image_name, group_name=None):
         project=image_info[1],
         username=image_info[2],
         password=image_info[3],
-        project_domain_name=src_img_info[6],
-        user_domain_name=src_img_info[7],
+        project_domain_name=image_info[6],
+        user_domain_name=image_info[7],
         region=image_info[8])
     rcon.download_image(
         image_name=image_name,

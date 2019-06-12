@@ -42,8 +42,8 @@ def image_collection():
         group_list = session.query(Group)
 
         #if there are no active transactions clean up the cache folders
-        if num_tx == 0:
-            do_cache_cleanup()
+        #if num_tx == 0:
+        #    do_cache_cleanup()
 
         for group in group_list:
             logging.debug("Querying group: %s for cloud resources." % group.group_name)
