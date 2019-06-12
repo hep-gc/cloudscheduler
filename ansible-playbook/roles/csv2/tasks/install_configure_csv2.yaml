@@ -334,6 +334,14 @@
       - csjobs.log
       - csstatus.log
       - csmachines.log
+
+- name: create the csv2_htc_agent log files
+  file:
+      path: /var/log/cloudscheduler/{{ item }}
+      owner: condor
+      group: condor
+      state: touch
+  with_items:
       - csv2_htc_agent.log
 
 - name: create the STARTD errors log file
