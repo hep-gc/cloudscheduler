@@ -26,6 +26,7 @@ CREATE TABLE `condor_machines` (
   `name` varchar(128) NOT NULL,
   `machine` varchar(256) DEFAULT NULL,
   `group_name` varchar(32) DEFAULT NULL,
+  `cloud_name` varchar(32) DEFAULT NULL,
   `condor_host` varchar(64) DEFAULT NULL,
   `flavor` varchar(32) DEFAULT NULL,
   `job_id` varchar(128) DEFAULT NULL,
@@ -62,9 +63,9 @@ after insert on condor_machines
 for each row
 begin
     if NEW.slot_type='Partitionable' then
-        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(NEW.machine,'.',1);
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1);
     elseif NEW.slot_type='Dynamic' then
-        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(NEW.machine,'.',1);
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots,0)+1,htcondor_slots_timestamp=unix_timestamp() where hostname=NEW.machine or hostname=substring_index(NEW.machine,'.',1);
     end if;
 end */;;
 DELIMITER ;
@@ -86,9 +87,9 @@ after delete on condor_machines
 for each row
 begin
     if OLD.slot_type='Partitionable' then
-        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(OLD.machine,'.',1);
+        update csv2_vms set htcondor_partitionable_slots=ifnull(htcondor_partitionable_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=OLD.machine or hostname=substring_index(OLD.machine,'.',1);
     elseif OLD.slot_type='Dynamic' then
-        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=substring_index(OLD.machine,'.',1);
+        update csv2_vms set htcondor_dynamic_slots=ifnull(htcondor_dynamic_slots-1,0),htcondor_slots_timestamp=unix_timestamp() where hostname=OLD.machine or hostname=substring_index(OLD.machine,'.',1);
     end if;
 end */;;
 DELIMITER ;
@@ -106,4 +107,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-16 12:39:49
+-- Dump completed on 2019-06-11 13:38:46

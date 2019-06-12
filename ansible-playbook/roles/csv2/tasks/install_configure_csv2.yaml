@@ -107,7 +107,7 @@
   git:
       repo: 'https://github.com/hep-gc/cloudscheduler.git'
       dest: /opt/cloudscheduler/
-      force: yes
+      force: no
       update: yes
       version: "{{ cs_git_branch }}"
 
@@ -247,6 +247,7 @@
     mode: 0644
   with_items:
       - csv2-ec2
+      - csv2-htc-agent
       - csv2-machines
       - csv2-jobs
       - csv2-openstack
@@ -256,7 +257,7 @@
       - csv2-timeseries
       - csv2-watch
 
-- name: copy logrotate file for pollers
+- name: copy logrotate files
   copy:
     remote_src: yes
     src: /opt/cloudscheduler/etc/logrotate.d/{{ item }}
@@ -266,6 +267,7 @@
     mode: 0644
   with_items:
     - csv2-pollers
+    - csv2-htc-agent
 
 - name: install csv2 sudoers
   copy:
@@ -332,6 +334,7 @@
       - csjobs.log
       - csstatus.log
       - csmachines.log
+      - csv2_htc_agent.log
 
 - name: create the STARTD errors log file
   file:
@@ -367,6 +370,7 @@
     state: stopped
   with_items:
       - csv2-ec2
+      - csv2-htc-agent
       - csv2-machines
       - csv2-jobs
       - csv2-openstack
@@ -591,6 +595,7 @@
   - rabbitmq-server
   - celery
   - csv2-ec2
+  - csv2-htc-agent
   - csv2-machines
   - csv2-jobs
   - csv2-openstack
@@ -609,3 +614,4 @@
 #   port: 443
 #   state: started
 #   timeout: 30
+

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import htcondor
 import logging
 import pika
 import socket
+import sys
 import yaml
-import htcondor
 
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
@@ -157,7 +158,8 @@ def get_master_classad(session, machine, hostname):
         if machine is not "":
             condor_classad = session.query(MASTER_TYPE, 'Name=="%s"' % machine)[0]
         else:
-             condor_classad = ession.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
+            condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
+        return condor_classad
     except Exception as exc:
         logging.error("Failed to retrieve classad from condor (index error means no matching classad):")
         logging.error(exc)
@@ -181,6 +183,9 @@ def condor_off(condor_classad):
     try:
         logging.debug("Sending condor_off to %s" % condor_classad)
         master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+        if master_result is None:
+            # None is good in this case it means it was a success
+            master_result = "Success"
         logging.info("Condor_off result: %s" % master_result)
         return master_result
     except Exception as exc:
@@ -196,9 +201,10 @@ def invalidate_startd_classads(session, classad_list):
     return condor_session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
        
 
-# fd = open('/etc/cloudscheduler/csv2_htc_agent.conf')
-fd = open('../etc/cloudscheduler/csv2_htc_agent.conf')
-config = yaml_full_load(fd.read())
+fd = open(sys.argv[1])
+full_config = yaml_full_load(fd.read())
+config = full_config['htc_agent']
+del full_config
 fd.close()
 
 logger = logging.getLogger()
@@ -206,6 +212,8 @@ logging.basicConfig(
     filename=config['log_file'],
     level=config['log_level'],
     format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+
+logger.info('Starting, config_path: %s' % sys.argv[1])
 
 my_host_name = socket.gethostname()
 csv2_queue = '%s_%s' % (config['csv2_queue'], my_host_name)

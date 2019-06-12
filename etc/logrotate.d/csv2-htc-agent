@@ -1,0 +1,10 @@
+/var/log/cloudscheduler/csv2_htc_agent.log {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+
