@@ -23,22 +23,26 @@ select
     case when cv.manual_control = 1 then
         'manual'
     else
-        case when cv.retire > 0 then
-            'retiring'
+        case when cv.status = 'ERROR' then
+            'error'
         else
-            case when cv.status = 'BUILD' then
-                'starting'
+            case when cv.retire > 0 then
+                'retiring'
             else
-                case when cv.status = 'ACTIVE' and htcondor_partitionable_slots is null then
-                    'unregistered'
+                case when cv.status = 'BUILD' then
+                    'starting'
                 else
-                    case when cv.status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
-                        'idle'
+                    case when cv.status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                        'unregistered'
                     else
-                        case when cv.status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
-                            'running'
+                        case when cv.status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                            'idle'
                         else
-                            'error'
+                            case when cv.status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                'running'
+                            else
+                                'error'
+                            end
                         end
                     end
                 end

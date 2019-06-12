@@ -114,22 +114,26 @@ from (
                 case when manual_control = 1 then
                     'manual'
                 else
-                    case when retire > 0 then
-                        'retiring'
+                    case when status = 'ERROR' then
+                        'error'
                     else
-                        case when status = 'BUILD' then
-                            'starting'
+                        case when retire > 0 then
+                            'retiring'
                         else
-                            case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
-                                'unregistered'
+                            case when status = 'BUILD' then
+                                'starting'
                             else
-                                case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
-                                    'idle'
+                                case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                                    'unregistered'
                                 else
-                                    case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
-                                        'running'
+                                    case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                                        'idle'
                                     else
-                                        'error'
+                                        case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                            'running'
+                                        else
+                                            'error'
+                                        end
                                     end
                                 end
                             end

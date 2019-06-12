@@ -149,7 +149,7 @@ def machine_poller():
     inventory = {}
     #delete_interval = config.delete_interval
     delete_cycle = False
-    condor_inventory_built = False
+    #condor_inventory_built = False
     cycle_count = 0
     uncommitted_updates = 0
     failure_dict = {}
@@ -192,9 +192,9 @@ def machine_poller():
                     logging.error(exc)
                     continue
 
-                if not condor_inventory_built:
-                    build_inventory_for_condor(inventory, db_session, CLOUDS)
-                    condor_inventory_built = True
+                #if not condor_inventory_built:
+                #    build_inventory_for_condor(inventory, db_session, CLOUDS)
+                #    condor_inventory_built = True
 
                 # Retrieve machines.
                 try:
@@ -296,7 +296,7 @@ def machine_poller():
                         logging.error(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], "-", r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.log_level<20)):
                         continue
 
                     logging.info("Adding/updating machine %s", r_dict["name"])
