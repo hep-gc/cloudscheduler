@@ -7,7 +7,6 @@
 {% load template_utils %}
 {% load static %}
 
-<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
@@ -141,10 +140,10 @@
     {% for cloud in cloud_list %}
         <div id="{{cloud.cloud_name}}">
 
-        <div class="tab-title">
+        <div>
             <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
 
-            <!--<a href="#delete-{{cloud.cloud_name}}" class="delete-button">-</a>-->
+            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">-</a>
         </div>
 
             <div class="menu-target">
