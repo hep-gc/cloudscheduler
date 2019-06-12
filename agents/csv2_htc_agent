@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import htcondor
 import logging
 import pika
 import socket
+import sys
 import yaml
-import htcondor
 
 MASTER_TYPE = htcondor.AdTypes.Master
 STARTD_TYPE = htcondor.AdTypes.Startd
@@ -200,9 +201,10 @@ def invalidate_startd_classads(session, classad_list):
     return condor_session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
        
 
-# fd = open('/etc/cloudscheduler/csv2_htc_agent.conf')
-fd = open('../etc/cloudscheduler/csv2_htc_agent.conf')
-config = yaml_full_load(fd.read())
+fd = open(sys.argv[1])
+full_config = yaml_full_load(fd.read())
+config = full_config['htc_agent']
+del full_config
 fd.close()
 
 logger = logging.getLogger()
@@ -210,6 +212,8 @@ logging.basicConfig(
     filename=config['log_file'],
     level=config['log_level'],
     format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
+
+logger.info('Starting, config_path: %s' % sys.argv[1])
 
 my_host_name = socket.gethostname()
 csv2_queue = '%s_%s' % (config['csv2_queue'], my_host_name)
