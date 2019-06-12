@@ -5,3 +5,11 @@ database:
     db_port: 3306
     db_name: "csv2"
     db_table: "csv2_configuration"
+
+htc_agent:
+    csv2_host: {{ db_hostname }}
+    csv2_port: 5672
+    csv2_htc_queue_prefix: csv2_htc
+    log_file: /var/log/cloudscheduler/csv2_htc_agent.log
+    log_level: 20
+
