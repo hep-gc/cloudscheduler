@@ -396,12 +396,7 @@ def command_poller():
                     condor_hosts_set.add(group.htcondor_container_hostname)
             uncommitted_updates = 0
             for condor_host in condor_hosts_set:
-                try:
-                    condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue +"_" + condor_host, "csv2_htc_" + condor_host)
-                except Exception as exc:
-                    logging.error("Failed to create condor RPC client, skipping...:")
-                    logging.error(exc)
-                    continue
+                condor_rpc = None
 
                 master_type = htcondor.AdTypes.Master
                 startd_type = htcondor.AdTypes.Startd
@@ -468,6 +463,13 @@ def command_poller():
                         #else:
                         #    condor_classad = condor_session.query(master_type, 'regexp("%s", Name, "i")' % resource.hostname)[0]
                         #master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+                        if condor_rpc is None:
+                            try:
+                                condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
+                            except Exception as exc:
+                                logging.error("Failed to create condor RPC client, skipping...:")
+                                logging.error(exc)
+                                continue
                         command_dict = {
                             'command': "retire",
                             'machine': resource.machine,
@@ -610,6 +612,13 @@ def command_poller():
                         else:
                             logging.info("Removing classads for machine %s" % resource.hostname)
                         try:
+                            if condor_rpc is None:
+                                try:
+                                    condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
+                                except Exception as exc:
+                                    logging.error("Failed to create condor RPC client, skipping...:")
+                                    logging.error(exc)
+                                    continue
                             command_dict = {
                                 'command': "invalidate",
                                 'machine': resource.machine,
