@@ -4,5 +4,6 @@ csv2_web.yaml
 .idea
 lib/schema.py
 web_frontend/cloudscheduler/csv2/static/ace-builds/
+web_frontend/cloudscheduler/csv2/static/plotly.js/
 web_frontend/cloudscheduler/cloudscheduler_web/settings.py
 favicon.ico

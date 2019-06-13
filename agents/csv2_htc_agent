@@ -216,7 +216,7 @@ logging.basicConfig(
 logger.info('Starting, config_path: %s' % sys.argv[1])
 
 my_host_name = socket.gethostname()
-csv2_queue = '%s_%s' % (config['csv2_queue'], my_host_name)
+csv2_queue = '%s_%s' % (config['csv2_htc_queue_prefix'], my_host_name)
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(config['csv2_host'], config['csv2_port']))
 channel = connection.channel()
