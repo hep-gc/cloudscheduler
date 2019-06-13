@@ -465,7 +465,7 @@ def command_poller():
                         #master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
                         if condor_rpc is None:
                             try:
-                                condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue +"_" + condor_host, "csv2_htc_" + condor_host)
+                                condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
                             except Exception as exc:
                                 logging.error("Failed to create condor RPC client, skipping...:")
                                 logging.error(exc)
@@ -614,7 +614,7 @@ def command_poller():
                         try:
                             if condor_rpc is None:
                                 try:
-                                    condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue +"_" + condor_host, "csv2_htc_" + condor_host)
+                                    condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
                                 except Exception as exc:
                                     logging.error("Failed to create condor RPC client, skipping...:")
                                     logging.error(exc)
