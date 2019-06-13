@@ -104,6 +104,12 @@ class EC2Cloud(basecloud.BaseCloud):
             base.prepare(engine, reflect=True)
             db_session = Session(engine)
             vms = base.classes.csv2_vms
+            EC2_STATUS = base.classes.ec2_instance_status_codes
+            ec2_status_dict = {}
+            
+            ec2_status = db_session.query(EC2_STATUS)
+            for row in ec2_status:
+                ec2_status_dict[row.ec2_state] = row.csv2_state
 
             for vm in new_vm['Instances']:
                 self.log.debug(vm)
@@ -120,7 +126,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'hostname': hostname,
                     'vmid': vm['InstanceId'],
                     'spot_instance': flag_spot_instance,
-                    'status': vm['State']['Name'],
+                    'status': ec2_status_dict[vm['State']['Name']],
                     'flavor_id': vm['InstanceType'],
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,
@@ -137,6 +143,12 @@ class EC2Cloud(basecloud.BaseCloud):
             base.prepare(engine, reflect=True)
             db_session = Session(engine)
             vms = base.classes.csv2_vms
+            EC2_STATUS = base.classes.ec2_instance_status_codes
+            ec2_status_dict = {}
+            
+            ec2_status = db_session.query(EC2_STATUS)
+            for row in ec2_status:
+                ec2_status_dict[row.ec2_state] = row.csv2_state
 
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
@@ -152,7 +164,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'vmid': vm['SpotInstanceRequestId'],
                     'hostname': '',
                     'instance_id': '',
-                    'status': vm['State'],
+                    'status': ec2_status_dict[vm['State']['Name']],
                     'flavor_id': vm['LaunchSpecification']['InstanceType'],
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,
