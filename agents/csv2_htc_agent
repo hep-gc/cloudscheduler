@@ -222,7 +222,7 @@ csv2_queue = '%s_%s' % (config['csv2_htc_queue_prefix'], my_host_name)
 #get pid and write out to /tmp/csv2_htc_agent.pid
 mypid =  os.getpid()
 f = open("/tmp/csv2_htc_agent.pid","w")
-f.write(mypid)
+f.write(str(mypid))
 f.close()
  
 
