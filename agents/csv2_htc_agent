@@ -225,7 +225,6 @@ f = open("/tmp/csv2_htc_agent.pid","w")
 f.write(str(mypid))
 f.close()
  
-
 connection = pika.BlockingConnection(pika.ConnectionParameters(config['csv2_host'], config['csv2_port']))
 channel = connection.channel()
 

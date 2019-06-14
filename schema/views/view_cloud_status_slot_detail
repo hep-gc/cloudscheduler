@@ -3,16 +3,8 @@
 */
 create or replace view view_cloud_status_slot_detail as
 select
-case when instr(machine,'--')=0 then
-    "-"
-else
-    substring_index(machine,'--',1)
-end as group_name,
-case when instr(machine,'--')=0 then
-    "-"
-else
-    substring_index(substring_index(machine,'--',2),'--',-1)
-end as cloud_name,
+group_name,
+cloud_name,
 concat(substring(substring_index(name,'@',1),5), ':', slot_CPUs) as slot_tag,
 substring(substring_index(name,'@',1),5) as slot_id,
 slot_CPUs as slot_type,

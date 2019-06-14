@@ -160,7 +160,7 @@ from (
                 sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
                 sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count
             from condor_machines as cm, (select config_value as csv2_host_id from csv2_configuration where category='SQL' and config_key='csv2_host_id') as cnf
-            where machine like concat('%--', csv2_host_id, '--%')
+            where condor_host=csv2_host_id
             group by
                 group_name,
                 cloud_name,
