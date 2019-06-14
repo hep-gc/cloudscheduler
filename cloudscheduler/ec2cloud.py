@@ -2,20 +2,16 @@
 EC2 API Cloud Connector Module. Using Boto
 """
 import time
-import gzip
-import boto3
 import base64
 import logging
-import botocore
 
-from io import StringIO
-from sqlalchemy import create_engine
+import boto3
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 try:
     import basecloud
-except:
+except ImportError:
     import cloudscheduler.basecloud as basecloud
 
 class EC2Cloud(basecloud.BaseCloud):
@@ -27,7 +23,7 @@ class EC2Cloud(basecloud.BaseCloud):
     def __init__(self, resource=None, metadata=None, extrayaml=None):
         """Constructor for ec2 based clouds."""
         basecloud.BaseCloud.__init__(self, name=resource.cloud_name, group = resource.group_name,
-                                                    extrayaml=extrayaml, metadata=metadata)
+                                     extrayaml=extrayaml, metadata=metadata)
         self.log = logging.getLogger(__name__)
         self.username = resource.username  # Access ID
         self.password = resource.password  # Secret key
@@ -49,8 +45,8 @@ class EC2Cloud(basecloud.BaseCloud):
         client = None
         try:
             session = boto3.session.Session(region_name=self.region,
-                                 aws_access_key_id=self.username,
-                                 aws_secret_access_key=self.password)
+                                            aws_access_key_id=self.username,
+                                            aws_secret_access_key=self.password)
             client = session.client('ec2')
         except Exception as ex:
             self.log.exception(ex)
@@ -66,16 +62,18 @@ class EC2Cloud(basecloud.BaseCloud):
         userdata = self.prepare_userdata(yaml_list=user_data_list,
                                          template_dict=template_dict)
         instancetype_dict = self._attr_list_to_dict(job.instance_type)
-        tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join([self.group, self.name, str(self.config.csv2_host_id)])}]}]
+        tags = [{'ResourceType':'instance', 'Tags':[{'Key':'csv2', 'Value':'--'.join(
+            [self.group, self.name, str(self.config.csv2_host_id)])}]}]
         client = self._get_client()
         if not client:
             self.log.error("Failed to get client for ec2. Check Configuration.")
             return -1
 
 
-        # need to check on instance type, if one isn't specified by the job itself we inherit from the cloud (aka the 'flavor' parameter)
+        # need to check on instance type, if one isn't specified by the job itself
+        # we inherit from the cloud (aka the 'flavor' parameter)
         if self.name not in instancetype_dict.keys():
-             instancetype_dict = self._attr_list_to_dict(flavor)
+            instancetype_dict = self._attr_list_to_dict(flavor)
         if self.spot_price <= 0:
             flag_spot_instance = 0
             if self.keyname:
@@ -87,17 +85,22 @@ class EC2Cloud(basecloud.BaseCloud):
             else:
                 new_vm = client.run_instances(ImageId=image, MinCount=1, MaxCount=num,
                                               InstanceType=instancetype_dict[self.name],
-                                              UserData=userdata, SecurityGroups=self.default_security_groups,
+                                              UserData=userdata,
+                                              SecurityGroups=self.default_security_groups,
                                               TagSpecifications=tags)
         else:
             flag_spot_instance = 1
             specs = {'ImageId': image,
                      'InstanceType': instancetype_dict[self.name],
-                     'UserData': base64.b64encode(userdata).decode(),  # Dumb encoding hack required for spot instances since boto behaves different on request_spot vs run_instance
+                     # Dumb encoding hack required for spot instances
+                     # since boto behaves different on request_spot vs run_instance
+                     'UserData': base64.b64encode(userdata).decode(),
                      'SecurityGroups': self.default_security_groups}
             if self.keyname:
                 specs['KeyName'] = self.keyname
-            new_vm = client.request_spot_instances(SpotPrice=str(self.spot_price), Type='one-time', InstanceCount=num, LaunchSpecification=specs)
+            new_vm = client.request_spot_instances(SpotPrice=str(self.spot_price),
+                                                   Type='one-time', InstanceCount=num,
+                                                   LaunchSpecification=specs)
         if 'Instances' in new_vm.keys():
             engine = self._get_db_engine()
             base = automap_base()
@@ -106,16 +109,14 @@ class EC2Cloud(basecloud.BaseCloud):
             vms = base.classes.csv2_vms
             EC2_STATUS = base.classes.ec2_instance_status_codes
             ec2_status_dict = {}
-            
             ec2_status = db_session.query(EC2_STATUS)
             for row in ec2_status:
                 ec2_status_dict[row.ec2_state] = row.csv2_state
 
             for vm in new_vm['Instances']:
                 self.log.debug(vm)
-                hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm.keys() and vm['PublicDnsName'] \
-                    else vm['PrivateDnsName']
-                flag = 0 if 2<=1 else 1
+                hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm.keys() \
+                                                  and vm['PublicDnsName'] else vm['PrivateDnsName']
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
@@ -145,7 +146,6 @@ class EC2Cloud(basecloud.BaseCloud):
             vms = base.classes.csv2_vms
             EC2_STATUS = base.classes.ec2_instance_status_codes
             ec2_status_dict = {}
-            
             ec2_status = db_session.query(EC2_STATUS)
             for row in ec2_status:
                 ec2_status_dict[row.ec2_state] = row.csv2_state
@@ -153,7 +153,7 @@ class EC2Cloud(basecloud.BaseCloud):
             for vm in new_vm['SpotInstanceRequests']:
                 self.log.debug(vm)
                 client.create_tags(Resources=[vm['SpotInstanceRequestId']], Tags=tags[0]['Tags'])
-                self.log.debug("STATE: %s" % vm['State'])
+                self.log.debug("STATE: %s", vm['State'])
                 vm_dict = {
                     'group_name': self.group,
                     'cloud_name': self.name,
@@ -174,4 +174,3 @@ class EC2Cloud(basecloud.BaseCloud):
                 db_session.merge(new_vm)
             db_session.commit()
         self.log.debug('ec2 vm_create')
-
