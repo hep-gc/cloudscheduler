@@ -228,6 +228,8 @@ def main(args):
             ('-r',    '--rotate', False),
             ('-s',    '--server', True),
             ('-sa',   '--server-address', True),
+#           ('-sgc',  '--server-grid-cert', True),
+#           ('-sgk',  '--server-grid-key', True),
             ('-spw',  '--server-password', True),
             ('-sgs',  '--status-global-switch', True),
             ('-sri',  '--status-refresh-interval', True),

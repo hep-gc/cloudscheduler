@@ -13,6 +13,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
     required = []
     options = []
     valid_keys = ['server-address', 'server-password', 'server-user']
+#   valid_keys = ['server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user']
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
         if key[0] in mp:
@@ -255,8 +256,24 @@ def _requests(gvar, request, form_data={}, query_data={}):
         print('Error: user settings for server "%s" does not contain a URL value.' % gvar['pid_defaults']['server'])
         exit(1)
 
-    if gvar['grid_proxy_user']:
-        authentication_method = 'X509'
+    if 'server-user' in gvar['user_settings']:
+        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
+            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
+
+        authentication_method = '%s, <password>' % gvar['user_settings']['server-user']
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
+
+        _r = _function(
+            _request,
+            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+            auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
+            data=_form_data,
+            cookies=gvar['cookies'] 
+            )
+
+    elif gvar['grid_proxy_user']:
+        authentication_method = 'X509 proxy'
 
         _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['grid_proxy_user'])
 
@@ -273,21 +290,25 @@ def _requests(gvar, request, form_data={}, query_data={}):
             print(exc)
             exit(1)
 
-    elif 'server-user' in gvar['user_settings']:
-        if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
-            gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
+    elif os.path.exists('%s/.globus/usercert.pem' % gvar['home_dir']) and \
+        os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
 
-        authentication_method = '%s, <password>' % gvar['user_settings']['server-user']
+        authentication_method = 'X509 cert/key'
 
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], '%s/.globus/usercert.pem' % gvar['home_dir'])
 
-        _r = _function(
-            _request,
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-            auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
-            data=_form_data,
-            cookies=gvar['cookies'] 
-            )
+        try:
+            _r = _function(
+                _request,
+                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+                cert=('%s/.globus/usercert.pem' % gvar['home_dir'], '%s/.globus/userkey.pem' % gvar['home_dir']),
+                data=_form_data,
+                cookies=gvar['cookies']
+                )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
 
     else:
         requests_no_credentials_error(gvar)
@@ -417,12 +438,18 @@ def requests_no_credentials_error(gvar):
 
     print(
         '***\n' \
-        '*** Please identify the URL (\033[1m--server-address\033[0m, eg. "-sa https://mycsv2.example.ca") of the server with which you\n' \
-        '*** wish to communicate. Servers require either grid proxy certificate authentication (\033[1muse grid-proxy-init\033[0m) or\n' \
-        '*** username/password authentication (\033[1m--server-user\033[0m/\033[1m--server-password\033[0m). These options can be saved for multiple\n' \
-        '*** servers by name using the following command:\n' \
+        '*** Please identify the URL (\033[1m--server-address\033[0m, eg. "-sa https://mycsv2.example.ca") of the\n' \
+        '*** server with which you wish to communicate. Servers require one of the following authentication\n' \
+        '*** methods:\n' \
         '***\n' \
-        '***     %s defaults set -s <sever_name> -sa <server_address> ...\n' \
+        '***    o username and password - if none supplied, the cli will attempt to use your\n' \
+        '***    o X509 proxy certificate in the "/tmp" directory, or\n' \
+        '***    o X509 certificate and key  in your "~/.globus" directory\n' \
+        '***\n' \
+        '*** The server address, username, and password options can be saved for multiple servers by name using\n' \
+        '*** the following command:\n' \
+        '***\n' \
+        '***     %s defaults set -s <sever_name> -sa <server_address> -su <username> -spw <password>\n' \
         '***\n' \
         '*** Subsequently, commands will be directed to the last server selected via the (-s | --server) argument.\n' \
         '***\n' \
