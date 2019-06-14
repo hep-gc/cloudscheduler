@@ -1,7 +1,10 @@
 The Ansible playbook contained within this directory will build cloudscheduler version 2
 in a machine with the fully qualified domain name (FQDN) of "csv2-sa.heprc.uvic.ca". To
-reset the FQDN, run "../utilities/reset_stand_alone_hostname". The target machine should
-have the following characteristics:
+reset the FQDN, run:
+
+    ../utilities/reset_stand_alone_hostname
+    
+The target machine should have the following characteristics:
 
    - Real or virtual.
    - At least 2 cores
