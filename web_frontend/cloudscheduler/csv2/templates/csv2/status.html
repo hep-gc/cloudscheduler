@@ -9,6 +9,7 @@
 {% csrf_token %}
 <input type='hidden' name='refresh_interval' value={{status_refresh_interval}} />
 <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
 <script type="text/javascript">

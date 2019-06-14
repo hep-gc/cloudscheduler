@@ -418,65 +418,6 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
 }
 
 
-/*****************************************************************/
-/*                        overlay styling                        */
-/*****************************************************************/
-
-.overlay {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.7);
-  visibility: hidden;
-  opacity: 0;
-  z-index: 2;
-}
-.overlay:target {
-  visibility: visible;
-  opacity: 1;
-}
-
-.popup {
-  position: fixed;
-  padding: 10px;
-  border-radius: 5px;
-  background: #fff;
-  top: 20px;
-  bottom: 20px;
-  right: 20px;
-  left: 20px;
-}
-
-
-.popup .close {
-  position: absolute;
-  top: -15px;
-  right: -15px;
-  font-size: 30px;
-  font-weight: bold;
-  text-decoration: none;
-  color: #333;
-}
-.popup .close:hover {
-  color: #06D85F;
-}
-.popup .content {
-  width: 100%;
-  height: 100%;
-  border: none;
-  overflow: auto;
-}
-
-@media screen and (max-width: 700px){
-  .box{
-    width: 70%;
-  }
-  .popup{
-    width: 70%;
-  }
-}
 
 /*****************************************************************/
 /*                       sys stats styling                       */
