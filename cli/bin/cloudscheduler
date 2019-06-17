@@ -308,7 +308,7 @@ def main(args):
         else:
             if len(os.listdir('%s/.csv2' % gvar['home_dir'])) > 0:
                print('Error: the specified server "%s" does not exist in your defaults.' % gvar['command_args']['server'])
-               exit(1)
+               requests_no_credentials_error(gvar)
 
     else:
         if gvar['pid_defaults']['server'] == '-' and os.path.isfile('%s/.csv2/default_server' % gvar['home_dir']):
