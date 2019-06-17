@@ -374,6 +374,11 @@ def main(args):
         else:
             model_table = table
         
+        # Do we have any data to load?
+        table_data = get_table_data(gvar, table)
+        if len(table_data) < 1:
+            continue
+
         fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
         fd.write('INSERT INTO %s\n' % model_table)
 
@@ -394,7 +399,6 @@ def main(args):
         fd.write('(%s)\nVALUES\n' % ','.join(columns))
 
         # Process local configuration table data.
-        table_data = get_table_data(gvar, table)
         for row_ix in range(len(table_data)):
             row = table_data[row_ix]
             columns=[]
