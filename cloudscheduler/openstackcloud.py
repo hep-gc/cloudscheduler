@@ -49,6 +49,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         self.project = resource.project
         self.userdomainname = resource.user_domain_name
         self.projectdomainname = resource.project_domain_name
+        self.projectdomainid = resource.project_domain_id
         self.session = self._get_auth_version(self.authurl)
         if not self.session:
             raise Exception
@@ -236,7 +237,8 @@ class OpenStackCloud(basecloud.BaseCloud):
         auth = v3.Password(auth_url=self.authurl, username=self.username,
                            password=self.password, project_name=self.project,
                            project_domain_name=self.projectdomainname,
-                           user_domain_name=self.userdomainname, )
+                           user_domain_name=self.userdomainname,
+                           project_domain_id=self.projectdomainid)
         sess = session.Session(auth=auth, verify=self.cacertificate)
         return sess
 

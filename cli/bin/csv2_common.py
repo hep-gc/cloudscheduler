@@ -436,6 +436,14 @@ def requests_no_credentials_error(gvar):
     Print no server or credentials error and exit.
     """
 
+    from getpass import getpass
+    from subprocess import Popen, PIPE
+    import sys
+
+    def sys_cmd(gvar, cmd):
+        p = Popen(cmd)
+        p.communicate()
+
     print(
         '***\n' \
         '*** Please identify the URL (\033[1m--server-address\033[0m, eg. "-sa https://mycsv2.example.ca") of the\n' \
@@ -446,10 +454,10 @@ def requests_no_credentials_error(gvar):
         '***    o X509 proxy certificate in the "/tmp" directory, or\n' \
         '***    o X509 certificate and key  in your "~/.globus" directory\n' \
         '***\n' \
-        '*** The server address, username, and password options can be saved for multiple servers by name using\n' \
-        '*** the following command:\n' \
+        '*** The server address, username, password, and other options can be saved for multiple servers by name\n' \
+        '*** using the following command:\n' \
         '***\n' \
-        '***     %s defaults set -s <sever_name> -sa <server_address> -su <username> -spw <password>\n' \
+        '***     %s defaults set -s <sever_name> -sa <server_address> -su <username> -spw <password> ...\n' \
         '***\n' \
         '*** Subsequently, commands will be directed to the last server selected via the (-s | --server) argument.\n' \
         '***\n' \
@@ -459,7 +467,36 @@ def requests_no_credentials_error(gvar):
         '***\n' \
         '***' % (gvar['command_name'], gvar['command_name'])
         )
-    exit(1)
+
+    if 'server' in gvar['command_args']:
+        interactive = input('\nThe server "%s: is not defined. Would you like to define it interactively? (y|n): ' % gvar['command_args']['server'])
+        if interactive.lower() != 'yes'[:len(interactive)]:
+            exit(1)
+
+        server_name = gvar['command_args']['server']
+    else:
+        interactive = input('\nWould you like to define a server interactively? (y|n): ')
+        if interactive.lower() != 'yes'[:len(interactive)]:
+            exit(1)
+
+        server_name = input('Please enter a server name: ')
+
+    server_address = input("Please enter the CSV2 server's URL (eg. https://example.ca): ")
+
+    x509 = input('Will you be using X509 authentication? (y|n): ')
+    if x509.lower() == 'yes'[:len(interactive)]:
+        sys_cmd(gvar, [sys.argv[0], 'defaults', 'set', '-s', server_name, '-sa', server_address])
+    else:
+        username = input('Please enter your CSV2 username on server "%s": ' % server_address)
+        password = getpass('Please enter your CSV2 password for user "%s" on server "%s": ' % (username, server_address))
+        sys_cmd(gvar, [sys.argv[0], 'defaults', 'set', '-s', server_name, '-sa', server_address, '-su', username, '-spw', password])
+    
+    recmd = input('\nWould you like to re-issue your cloudscheduler command "%s"? (y|n): ' % ' '.join(sys.argv))
+    if interactive.lower() == 'yes'[:len(interactive)]:
+        sys_cmd(gvar, sys.argv)
+        exit(1)
+    else:
+        exit(1)
 
 #-------------------------------------------------------------------------------
               

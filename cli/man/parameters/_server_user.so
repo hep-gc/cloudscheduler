@@ -1,6 +1,6 @@
 .TP
 \fB\-su \fIusername\fR, \fB\-\-server-user \fIusername\fR
 Specifies the user ID to use when authenticating with the cloudscheduler server.
-There is no default.
-If specified, the user must also specify the \fB\-spw\fR option, or a password promp will be issued.
-This option, together with the \fB\-spw\fR option will be ignored if certificate authentication is being used.
+If specified, the user should also specify the \fB\-spw\fR option, or a password promp will be issued.
+The default is to attempt X509 authentication; either your proxy certificate in "/tmp" or, failing that,
+your grid certificate and key in your "~/.globus" directory.
