@@ -1,19 +1,7 @@
 
-
-/*----------footer bar to hold status----------*/
-
-.footer {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 30px;
-  background-color: #efefef;
-  text-align: center;
-  z-index: -10;
-}
-
-/*----------different highligh colours----------*/
+/*****************************************************************/
+/*                  Global colour highlights                     */
+/*****************************************************************/
 
 .highlight1 {
   background-color: lightcyan;
@@ -37,7 +25,26 @@
 
 input:read-only { color:grey; }
 
-/*---------- useful styling classes ----------*/
+
+/*****************************************************************/
+/*                        Message footer                         */
+/*****************************************************************/
+
+
+.footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 30px;
+  background-color: #efefef;
+  text-align: center;
+  z-index: -10;
+}
+
+/*****************************************************************/
+/*                   useful styling classes                      */
+/*****************************************************************/
 
 .left  {
   text-align: left;
@@ -54,14 +61,14 @@ input:read-only { color:grey; }
   text-align: center;
 }
 
-
 .dropdown {
     width: 200px;
     overflow: hidden;
 }
 
-/*----------main div containing page----------*/
-
+/*****************************************************************/
+/*                   main div containing page                    */
+/*****************************************************************/
 
 .main-div {
   position: relative;
@@ -80,4 +87,3 @@ input:read-only { color:grey; }
 .main-div th {
   text-align: right;
 }
-

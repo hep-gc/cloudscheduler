@@ -33,7 +33,16 @@
 <div class="main-div">
     <div class="menu">
     {% for user in user_list %}
-        <div id="{{user.username}}"> <a href="#{{user.username}}" class="menu-link" onclick="save_location('{{user.username}}')">{{user.username}}</a>
+        <div id="{{user.username}}"> 
+
+            <div class="menu2-div">
+                <a href="#{{user.username}}" class="menu2-link" onclick="save_location('{{user.username}}')">{{user.username}}</a>
+
+                <a href="#delete-{{user.username}}" class="delete-link">-</a>
+            </div>
+
+
+        
             
             <div class="menu-target menu-position">
                 <form name="{{user.username}}" action="/user/update/" method="post">
@@ -79,7 +88,7 @@
                         {% endfor %}
 
                         <tr><td><input type="submit" value="Update user" /></td>
-                        <td><a href="#delete-{{user.username}}"><button type="button">Delete</button></a></td></tr>
+                        <td></td></tr>
                     </table>
                 </form>
             </div>

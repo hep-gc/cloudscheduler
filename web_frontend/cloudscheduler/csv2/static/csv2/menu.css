@@ -3,45 +3,32 @@
 /*****************************************************************/
 
 .menu {
-  min-height: 7em;    /* No height: can grow if :target doesn't work */
-  line-height: 1;   /* Easier to calculate with */
-  z-index: 0;     /* So that we can put other things behind */
-  width: 200px; /* Set a width if you like */
+  min-height: 7em;
+  line-height: 1;
+  z-index: 0;
+  width: 200px;
   position: fixed;
 }
+
 .menu  div {
   display: block;
   overflow: auto;
 }
+
 .menu  div:not(:target) a.menu-link {
-  background-color: whitesmoke; /* Background color */
-  color: black; /* Black text color */
-  display: block; /* Make the links appear below each other */
-  padding: 12px; /* Add some padding */
-  text-decoration: none; /* Remove underline from links */
+  background-color: whitesmoke; 
+  color: black; 
+  display: block; 
+  padding: 12px; 
+  text-decoration: none; 
 }
-.menu  div:target a.menu-link {   /* ... to the default item */
-  background-color: maroon; /* Grey background color */
-  color: white; /* Black text color */
-  display: block; /* Make the links appear below each other */
-  padding: 12px; /* Add some padding */
-  text-decoration: none; /* Remove underline from links */
-
-}
-
-.delete-link {
-  position: relative;
-  top: -38px;
-  width: 5px;
-  right: 0px;
-  left: 170px;
-  background-color: red;
-  color: black;
+.menu  div:target a.menu-link {  
+  background-color: maroon; 
+  color: white; 
   display: block;
   padding: 12px;
   text-decoration: none;
 }
-
 
 .menu div.menu-position {
   position: fixed;
@@ -64,3 +51,40 @@
   display:block;
 }
 
+
+/*****************************************************************/
+/*            Alternate menu tab with delete button              */
+/*****************************************************************/
+
+.menu2-div {
+  background-color: maroon;
+}
+
+.menu  div:not(:target) a.menu2-link {
+  background-color: whitesmoke;
+  color: black;
+  display: block;
+  padding: 12px;
+  text-decoration: none;
+}
+.menu  div:target a.menu2-link {
+  background-color: maroon;
+  color: white;
+  display: inline;
+  padding: 12px;
+  text-decoration: none;
+  float: left;
+}
+
+.menu  div:not(:target) a.delete-link {
+  display: none;
+}
+
+.menu  div:target a.delete-link {
+  background-color: red;
+  color: white;
+  display: inline;
+  padding: 12px;
+  text-decoration: none;
+  float: right;
+}
