@@ -1,5 +1,0 @@
-.TP
-\fB\-sC \fIcert\fR, \fB\-\-server-grid-cert \fIcert\fR
-Specifies the location of an x509 grid certificate used to identify the user to the cloudscheduler server.
-There is no default.
-If specified, the user must also specify the \fB\-sK\fR option, in which case certificate authentication will be used and the \fB\-su\fR and the \fB\-spw\fR options will be ignored.
