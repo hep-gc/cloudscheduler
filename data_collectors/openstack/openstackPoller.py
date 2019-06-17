@@ -81,7 +81,8 @@ def _get_openstack_session(cloud):
             password=cloud.password,
             project=cloud.project,
             user_domain=cloud.user_domain_name,
-            project_domain_name=cloud.project_domain_name)
+            project_domain_name=cloud.project_domain_name,
+            project_domain_id=cloud.project_domain_id,)
     if session is False:
         logging.error("Failed to setup session, skipping %s", cloud.cloud_name)
         if version == 2:
@@ -93,7 +94,8 @@ def _get_openstack_session(cloud):
                 (cloud.authurl, cloud.username, cloud.project, cloud.user_domain, cloud.project_domain_name))
     return session
 
-def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default"):
+def _get_openstack_session_v1_v2(auth_url, username, password, project, user_domain="Default", project_domain_name="Default",
+                                 project_domain_id=None):
     authsplit = auth_url.split('/')
     try:
         version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
@@ -122,7 +124,8 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 password=password,
                 project_name=project,
                 user_domain_name=user_domain,
-                project_domain_name=project_domain_name)
+                project_domain_name=project_domain_name,
+                project_domain_id=project_domain_id,)
             sess = session.Session(auth=auth, verify=config.cacerts)
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
