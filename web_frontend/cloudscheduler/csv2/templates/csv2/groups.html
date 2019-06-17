@@ -44,7 +44,7 @@
                 <div class="menu2-div">
                     <a href="#{{group.group_name}}" class="menu2-link" onclick="save_location('{{group.group_name}}')">{{group.group_name}}</a>
 
-                    <a href="#delete-{{group.group_name}}" class="delete-link">-</a>
+                    <a href="#delete-{{group.group_name}}" class="delete-link">&minus;</a>
                 </div>
 
 
@@ -108,7 +108,7 @@
         {% endfor %}
 
 
-        <div id="add-group"> <a href="#add-group" class="menu-link">+</a>
+        <div id="add-group"> <a href="#add-group" class="menu-link add-link">&plus;</a>
             <div class="menu-target menu-position">
                 <form name="add_group" action="/group/add/" method="post">
                     {% csrf_token %}
