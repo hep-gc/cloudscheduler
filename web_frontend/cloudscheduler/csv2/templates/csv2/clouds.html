@@ -145,7 +145,7 @@
         <div class="menu2-div">
             <a href="#{{cloud.cloud_name}}" class="menu2-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
 
-            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">-</a>
+            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">&minus;</a>
         </div>
 
             <div class="menu-target">
@@ -547,7 +547,7 @@
 
         </div>
     {% endfor %}
-        <div id="add-cloud"> <a href="#add-cloud" class="menu-link">+</a>
+        <div id="add-cloud"> <a href="#add-cloud" class="menu-link add-link">&plus;</a>
             <div class="menu-target">
                 <form name="add_cloud" action="/cloud/add/" method="post">
                     {% csrf_token %}

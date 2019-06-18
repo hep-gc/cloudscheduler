@@ -83,8 +83,15 @@
 .menu  div:target a.delete-link {
   background-color: red;
   color: white;
+  font-weight: bold;
+  font-size: 1.2em !important;
   display: inline;
   padding: 12px;
   text-decoration: none;
   float: right;
+}
+
+.add-link {
+  font-weight: bold;
+  font-size: 1.2em !important;
 }

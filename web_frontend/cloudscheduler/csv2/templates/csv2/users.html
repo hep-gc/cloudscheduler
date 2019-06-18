@@ -38,7 +38,7 @@
             <div class="menu2-div">
                 <a href="#{{user.username}}" class="menu2-link" onclick="save_location('{{user.username}}')">{{user.username}}</a>
 
-                <a href="#delete-{{user.username}}" class="delete-link">-</a>
+                <a href="#delete-{{user.username}}" class="delete-link">&minus;</a>
             </div>
 
 
@@ -95,7 +95,7 @@
 
         </div>
     {% endfor %}
-        <div id="add-user"> <a href="#add-user" class="menu-link">+</a>
+        <div id="add-user"> <a href="#add-user" class="menu-link add-link">&plus;</a>
             <div class="menu-target menu-position">
                 <form name="add_user" action="/user/add/" method="post">
                     {% csrf_token %}
