@@ -16,16 +16,18 @@ def main(args):
             'Where:\n' \
             '  <schema_model_fqdn>    - is the FQDN of the host whose global backup is to be used as the database\n' \
             '                           schema model to be replicated.\n\n' \
-            '  -i <input_file_path>   - is the path to an optional input parameter file used to automate the\n' \
-            '                           database upgrade process. Normally, based on table and column names,\n'
+            '  -i <input_file_name>   - is the name of an optional input parameter file, located within\n' \
+            '                           ".../cloudscheduler/schema/db_upgrade", used to automate the\n' \
+            '                           database upgrade process. Normally, based on table and column names,\n' \
             '                           db_upgrade is able to make the target database match the structure\n' \
             '                           and format of the model database. However, when tables or columns are\n' \
             '                           either added or deleted or renamed, user input is required to resolve\n' \
             '                           the discrepencies. This input can either be read interactively from\n' \
             '                           the terminal or from this parameter file.\n\n' \
-            '  -o <output_file_path>  - is the path to an optional output parameter file used to record the\n' \
-            '                           the user''s responses for future automation of the upgrade process (see\n' \
-            '                           "-i" option above).\n\n' \
+            '  -o <output_file_name>  - is the name of an optional output parameter file used to record the\n' \
+            '                           user''s responses for future automation of the upgrade process (see\n' \
+            '                           the "-i" option above). The output file is written to the directory\n' \
+            '                           ".../cloudscheduler/schema/db_upgrade".\n\n' \
             '  -r [live | ]             The "-r" specifies the run mode and is either "live" or anything else\n' \
             '                           (default). Changes to the target database are only made if the run mode\n' \
             '                           is "live".\n'
@@ -43,6 +45,7 @@ def main(args):
     gvar['my_fqdn'] = socket.getfqdn()
     gvar['model_fqdn'] = args[1]
     gvar['backup_dir'] = '%s/schema/schema_backup' % ('/'.join(gvar['path_info'][:gvar['ix']+1]))
+    gvar['db_upgrade_dir'] = '%s/schema/db_upgrade' % ('/'.join(gvar['path_info'][:gvar['ix']+1]))
     gvar['tables'] = {}
     gvar['run_mode'] = 'test'
     gvar['temp_dir'] = tempfile.mkdtemp()
@@ -85,19 +88,21 @@ def main(args):
         if len(args[args_ix]) > 1 and args[args_ix][0] == '-': 
             if args[args_ix][1] == 'i':
                 if len(args) > args_ix + 1:
-                    gvar['input_path'] = args[args_ix+1]
+                    input_name = args[args_ix+1]
                     skip_next = True
                     
-                    if not os.path.isfile(gvar['input_path']):
-                        raise Exception('Input parameter file "%s" does not exist.' % gvar['input_path'])
+                    if input_name.lower() != 'none':
+                        gvar['input_path'] = '%s/%s' % (gvar['db_upgrade_dir'], input_name)
+                        if not os.path.isfile(gvar['input_path']):
+                            raise Exception('Input parameter file "%s" does not exist.' % gvar['input_path'])
 
-                    fd = open(gvar['input_path'])
-                    gvar['input_actions'] = yaml.full_load(fd.read())
-                    fd.close()
+                        fd = open(gvar['input_path'])
+                        gvar['input_actions'] = yaml.full_load(fd.read())
+                        fd.close()
 
             elif args[args_ix][1] == 'o':
                 if len(args) > args_ix + 1:
-                    gvar['output_path'] = args[args_ix+1]
+                    gvar['output_path'] = '%s/%s' % (gvar['db_upgrade_dir'], args[args_ix+1])
                     skip_next = True
 
             elif args[args_ix][1] == 'r':
