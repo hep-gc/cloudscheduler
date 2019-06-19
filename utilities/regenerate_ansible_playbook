@@ -1,4 +1,7 @@
 #!/bin/env python
+###
+### This command requires the heprc Inventory system.
+###
 from subprocess import Popen, PIPE
 import os
 import shutil
@@ -33,7 +36,7 @@ os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-vars.yaml'
 os.remove('%s/cloudscheduler/ansible-playbook/roles/csv2/vars/csv2-sa-secrets.yaml' % gvar['root_dir'])
 
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/addenda' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/roles/csv2/vars/addenda' % gvar['root_dir'])
-shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/README' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/README' % gvar['root_dir'])
+shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/README.md' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/README.md' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/inventory' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/inventory' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa.yaml' % gvar['root_dir'])
 shutil.copyfile('%s/cloudscheduler/.ansible-playbook-templates/csv2-sa-vars.yaml' % gvar['root_dir'], '%s/cloudscheduler/ansible-playbook/csv2-sa-vars.yaml' % gvar['root_dir'])
