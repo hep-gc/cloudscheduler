@@ -6,6 +6,7 @@ ansible_deployment_host_ip: '206.12.154.6'
 
 # CSV2 versions to use.
 cs_git_branch: stable-2.4
+db_upgrade_file: none
 schema_model: stable-2.4
 favicon_colour: red
 
