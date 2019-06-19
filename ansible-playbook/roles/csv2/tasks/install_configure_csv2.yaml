@@ -107,7 +107,7 @@
   git:
       repo: 'https://github.com/hep-gc/cloudscheduler.git'
       dest: /opt/cloudscheduler/
-      force: no
+      force: yes
       update: yes
       version: "{{ cs_git_branch }}"
 
@@ -427,7 +427,7 @@
   when: (local_web is undefined) or (local_web == False)
     
 - name: install csv2 database schema
-  command: /opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -r live
+  command: /opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -i {{ db_upgrade_file }} -r live
 
 - name: generate schema
   command: /opt/cloudscheduler/utilities/generate_schema.py
