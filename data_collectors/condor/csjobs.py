@@ -157,8 +157,10 @@ def job_poller():
                     db_session.merge(new_jsched)
                     uncommitted_updates += 1
 
-                    if fail_count > 3:
+                    if fail_count > 3 and fail_count < 1500:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
+                    elif fail_count > 1500:
+                        logging.critical("Over 1500 failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
 
