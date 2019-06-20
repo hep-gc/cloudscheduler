@@ -1055,7 +1055,7 @@ else if (refresh_interval < 1) stop_refresh;
     <table class="system-services" id="system-services">
 
             <tr>
-                <th colspan="7">CS system services</th>
+                <th colspan="13">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
                 <th colspan="4">CS system resources</th>
             </tr>
@@ -1082,6 +1082,12 @@ else if (refresh_interval < 1) stop_refresh;
                     <span class="red-symbol">&#x2718;</span></td>
                 {% endif %}
 
+                <td data-path="rabbitmq_server_status" class="more-style plottable" tooltip="{{ system_list.rabbitmq_server_msg }}">
+                {% if system_list.rabbitmq_server_status == 1 %}
+                    <span class="green-symbol">&#x2714;</span></td>
+                {% else %}
+                    <span class="red-symbol">&#x2718;</span></td>
+                {% endif %}
 
                 {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
                     <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
@@ -1131,6 +1137,65 @@ else if (refresh_interval < 1) stop_refresh;
                 {% endif %}
 
 
+                {% if system_list.csv2_ec2_status == 1 and system_list.csv2_ec2_error_count == 0%}
+                    <td data-path="csv2_ec2_status" class="more-style plottable" tooltip="{{ system_list.csv2_ec2_msg }}">
+                    <span class="green-symbol">&#x2714;</span></td>
+                {% elif system_list.csv2_ec2_status == 1 and system_list.csv2_ec2_error_count != 0%}
+                    <td data-path="csv2_ec2_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_ec2_error_count}} child process failures. {{ system_list.csv2_ec2_msg }}">
+                    <span class="orange-symbol">&#x2757;</span></td>
+                {% else %}
+                    <td data-path="csv2_ec2_status" class="more-style plottable" tooltip="{{ system_list.csv2_ec2_msg }}">
+                    <span class="red-symbol">&#x2718;</span></td>
+                {% endif %}
+
+
+                {% if system_list.csv2_htc_agent_status == 1 and system_list.csv2_htc_agent_error_count == 0%}
+                    <td data-path="csv2_htc_agent_status" class="more-style plottable" tooltip="{{ system_list.csv2_htc_agent_msg }}">
+                    <span class="green-symbol">&#x2714;</span></td>
+                {% elif system_list.csv2_htc_agent_status == 1 and system_list.csv2_htc_agent_error_count != 0%}
+                    <td data-path="csv2_htc_agent_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_htc_agent_error_count}} child process failures. {{ system_list.csv2_htc_agent_msg }}">
+                    <span class="orange-symbol">&#x2757;</span></td>
+                {% else %}
+                    <td data-path="csv2_htc_agent_status" class="more-style plottable" tooltip="{{ system_list.csv2_htc_agent_msg }}">
+                    <span class="red-symbol">&#x2718;</span></td>
+                {% endif %}
+
+
+                {% if system_list.csv2_glint_status == 1 and system_list.csv2_glint_error_count == 0%}
+                    <td data-path="csv2_glint_status" class="more-style plottable" tooltip="{{ system_list.csv2_glint_msg }}">
+                    <span class="green-symbol">&#x2714;</span></td>
+                {% elif system_list.csv2_glint_status == 1 and system_list.csv2_glint_error_count != 0%}
+                    <td data-path="csv2_glint_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_glint_error_count}} child process failures. {{ system_list.csv2_glint_msg }}">
+                    <span class="orange-symbol">&#x2757;</span></td>
+                {% else %}
+                    <td data-path="csv2_glint_status" class="more-style plottable" tooltip="{{ system_list.csv2_glint_msg }}">
+                    <span class="red-symbol">&#x2718;</span></td>
+                {% endif %}
+
+
+                {% if system_list.csv2_watch_status == 1 and system_list.csv2_watch_error_count == 0%}
+                    <td data-path="csv2_watch_status" class="more-style plottable" tooltip="{{ system_list.csv2_watch_msg }}">
+                    <span class="green-symbol">&#x2714;</span></td>
+                {% elif system_list.csv2_watch_status == 1 and system_list.csv2_watch_error_count != 0%}
+                    <td data-path="csv2_watch_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_watch_error_count}} child process failures. {{ system_list.csv2_watch_msg }}">
+                    <span class="orange-symbol">&#x2757;</span></td>
+                {% else %}
+                    <td data-path="csv2_watch_status" class="more-style plottable" tooltip="{{ system_list.csv2_watch_msg }}">
+                    <span class="red-symbol">&#x2718;</span></td>
+                {% endif %}
+
+
+                {% if system_list.csv2_startd_errors_status == 1 and system_list.csv2_startd_errors_error_count == 0%}
+                    <td data-path="csv2_startd_errors_status" class="more-style plottable" tooltip="{{ system_list.csv2_startd_errors_msg }}">
+                    <span class="green-symbol">&#x2714;</span></td>
+                {% elif system_list.csv2_startd_errors_status == 1 and system_list.csv2_startd_errors_error_count != 0%}
+                    <td data-path="csv2_startd_errors_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_startd_errors_error_count}} child process failures. {{ system_list.csv2_startd_errors_msg }}">
+                    <span class="orange-symbol">&#x2757;</span></td>
+                {% else %}
+                    <td data-path="csv2_startd_errors_status" class="more-style plottable" tooltip="{{ system_list.csv2_startd_errors_msg }}">
+                    <span class="red-symbol">&#x2718;</span></td>
+                {% endif %}
+
 
                 <td class="col-spacer">&nbsp;</td>
 
@@ -1147,10 +1212,16 @@ else if (refresh_interval < 1) stop_refresh;
                 <td>status</td>
                 <td>main</td>
                 <td>database</td>
+                <td>rabbitmq</td>
                 <td>openstack</td>
                 <td>jobs</td>
                 <td>machines</td>
                 <td>timeseries</td>
+                <td>ec2</td>
+                <td>htc</td>
+                <td>glint</td>
+                <td>watch</td>
+                <td>startd</td>
 
                 <td class="col-spacer">&nbsp;</td>
 
