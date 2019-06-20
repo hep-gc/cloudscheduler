@@ -294,7 +294,7 @@ def _requests(gvar, request, form_data={}, query_data={}):
     if 'server-address' not in gvar['user_settings']:
         requests_no_credentials_error(gvar)
 
-    if 'server-user' in gvar['command_args']:
+    if 'server-user' in gvar['user_settings']:
         x509 = None
     else:
         x509 = get_grid_proxy(gvar)
