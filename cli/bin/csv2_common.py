@@ -103,6 +103,45 @@ def _check_keys_for_password(gvar, key):
 
 #-------------------------------------------------------------------------------
 
+def decode(obj):
+    if not obj:
+        return ''
+    elif isinstance(obj, str):
+        return obj 
+    else:
+        return obj.decode('utf-8')
+
+#-------------------------------------------------------------------------------
+              
+def get_grid_proxy(gvar):
+    """
+    If using x509 certificate authentication, return path to proxy certificate. 
+    Otherwise, return None.
+    """
+    
+    import os
+
+    time_left_list = sys_cmd(['grid-proxy-info', '-timeleft'])
+    if time_left_list:
+        try:
+            time_left = int(time_left_list[0])
+        except:
+            time_left = 0
+
+        if time_left > 60:
+            return '/tmp/x509up_u%s' % gvar['uid']
+
+    if os.path.exists('%s/.globus/usercert.pem' % gvar['home_dir']) and \
+        os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
+        x509 = input('Would you like to authenticate with your x509 certificate (%s/.globus/{usercert.pem,userkey.pem})? (y|n): ' % gvar['home_dir'])
+        if x509.lower() == 'yes'[:len(x509)]:
+            if sys_cmd(['grid-proxy-init'], return_stdout_not_rc=False) == 0:
+                return '/tmp/x509up_u%s' % gvar['uid']
+        
+    return None
+    
+#-------------------------------------------------------------------------------
+
 def qc(query, columns, option='keep', filter=None):
     """
     Query Columns takes a row/list of rows and a column/list of columns to keep or
@@ -253,10 +292,32 @@ def _requests(gvar, request, form_data={}, query_data={}):
     EXTRACT_CSRF = str.maketrans('=;', '  ')
 
     if 'server-address' not in gvar['user_settings']:
-        print('Error: user settings for server "%s" does not contain a URL value.' % gvar['pid_defaults']['server'])
-        exit(1)
+        requests_no_credentials_error(gvar)
 
     if 'server-user' in gvar['user_settings']:
+        x509 = None
+    else:
+        x509 = get_grid_proxy(gvar)
+
+    if x509:
+        authentication_method = 'x509 proxy'
+
+        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], x509)
+
+        try:
+            _r = _function(
+                _request,
+                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+                cert=(x509),
+                data=_form_data,
+                cookies=gvar['cookies']
+                )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
+
+    elif 'server-user' in gvar['user_settings']:
         if 'server-password' not in gvar['user_settings'] or gvar['user_settings']['server-password'] == '?':
             gvar['user_settings']['server-password'] = getpass('Enter your %s password for server "%s": ' % (gvar['command_name'], gvar['pid_defaults']['server']))
 
@@ -271,44 +332,6 @@ def _requests(gvar, request, form_data={}, query_data={}):
             data=_form_data,
             cookies=gvar['cookies'] 
             )
-
-    elif gvar['grid_proxy_user']:
-        authentication_method = 'X509 proxy'
-
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['grid_proxy_user'])
-
-        try:
-            _r = _function(
-                _request,
-                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-                cert=(gvar['grid_proxy_user']),
-                data=_form_data,
-                cookies=gvar['cookies']
-                )
-
-        except py_requests.exceptions.SSLError as exc:
-            print(exc)
-            exit(1)
-
-    elif os.path.exists('%s/.globus/usercert.pem' % gvar['home_dir']) and \
-        os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
-
-        authentication_method = 'X509 cert/key'
-
-        _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], '%s/.globus/usercert.pem' % gvar['home_dir'])
-
-        try:
-            _r = _function(
-                _request,
-                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-                cert=('%s/.globus/usercert.pem' % gvar['home_dir'], '%s/.globus/userkey.pem' % gvar['home_dir']),
-                data=_form_data,
-                cookies=gvar['cookies']
-                )
-
-        except py_requests.exceptions.SSLError as exc:
-            print(exc)
-            exit(1)
 
     else:
         requests_no_credentials_error(gvar)
@@ -331,8 +354,8 @@ def _requests(gvar, request, form_data={}, query_data={}):
         gvar['active_group'] = response['active_group']
 
     if 'active_user' in response and 'active_group' in response:
-        if gvar['grid_proxy_user']:
-            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=gvar['grid_proxy_user'], group=response['active_group'])
+        if x509:
+            update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=x509, group=response['active_group'])
         else:
             update_pid_defaults(gvar, server_address=gvar['user_settings']['server-address'], user=response['active_user'], group=response['active_group'])
 
@@ -437,66 +460,63 @@ def requests_no_credentials_error(gvar):
     """
 
     from getpass import getpass
-    from subprocess import Popen, PIPE
     import sys
 
-    def sys_cmd(gvar, cmd):
-        p = Popen(cmd)
-        p.communicate()
+    if 'server_address' in gvar['command_args']:
+        server_address = gvar['command_args']['server_address']
+    else:
+        server_address = input("Please enter the CSV2 server's URL (eg. https://example.ca) that you wish to address: ")
 
     print(
         '***\n' \
-        '*** Please identify the URL (\033[1m--server-address\033[0m, eg. "-sa https://mycsv2.example.ca") of the\n' \
-        '*** server with which you wish to communicate. Servers require one of the following authentication\n' \
-        '*** methods:\n' \
+        '*** Servers require one of the following:\n' \
         '***\n' \
-        '***    o username and password - if none supplied, the cli will attempt to use your\n' \
-        '***    o X509 proxy certificate in the "/tmp" directory, or\n' \
-        '***    o X509 certificate and key  in your "~/.globus" directory\n' \
-        '***\n' \
-        '*** The server address, username, password, and other options can be saved for multiple servers by name\n' \
-        '*** using the following command:\n' \
-        '***\n' \
-        '***     %s defaults set -s <sever_name> -sa <server_address> -su <username> -spw <password> ...\n' \
-        '***\n' \
-        '*** Subsequently, commands will be directed to the last server selected via the (-s | --server) argument.\n' \
-        '***\n' \
-        '*** For more information, enter the following command:\n' \
-        '***\n' \
-        '***     %s -H\n' \
-        '***\n' \
-        '***' % (gvar['command_name'], gvar['command_name'])
+        '***    o x509 certificate authentication, or\n' \
+        '***    o username/password authentication\n' \
+        '***\n' 
         )
 
-    if 'server' in gvar['command_args']:
-        interactive = input('\nThe server "%s: is not defined. Would you like to define it interactively? (y|n): ' % gvar['command_args']['server'])
-        if interactive.lower() != 'yes'[:len(interactive)]:
-            exit(1)
-
-        server_name = gvar['command_args']['server']
-    else:
-        interactive = input('\nWould you like to define a server interactively? (y|n): ')
-        if interactive.lower() != 'yes'[:len(interactive)]:
-            exit(1)
-
-        server_name = input('Please enter a server name: ')
-
-    server_address = input("Please enter the CSV2 server's URL (eg. https://example.ca): ")
-
-    x509 = input('Will you be using X509 authentication? (y|n): ')
-    if x509.lower() == 'yes'[:len(interactive)]:
-        sys_cmd(gvar, [sys.argv[0], 'defaults', 'set', '-s', server_name, '-sa', server_address])
+    x509 = get_grid_proxy(gvar)
+    if x509:
+        print('Proxy certificate found, using x509 authentication.')
     else:
         username = input('Please enter your CSV2 username on server "%s": ' % server_address)
         password = getpass('Please enter your CSV2 password for user "%s" on server "%s": ' % (username, server_address))
-        sys_cmd(gvar, [sys.argv[0], 'defaults', 'set', '-s', server_name, '-sa', server_address, '-su', username, '-spw', password])
-    
-    recmd = input('\nWould you like to re-issue your cloudscheduler command "%s"? (y|n): ' % ' '.join(sys.argv))
-    if interactive.lower() == 'yes'[:len(interactive)]:
-        sys_cmd(gvar, sys.argv)
-        exit(1)
+
+    save_server = input('\nWould you like to save these server settings for future use? (y|n): ')
+    if save_server.lower() == 'yes'[:len(save_server)]:
+        if 'server' in gvar['command_args']:
+            server_name = gvar['command_args']['server']
+        else:
+            server_name = input('Please enter a short server name (eg. dev, prod, etc.): ')
+
+        if x509:
+            print('***\n*** Issuing "cloudscheduler defaults set -s %s ..." to save server address.' % server_name)
+            sys_cmd([sys.argv[0], 'defaults', 'set', '-s', server_name, '-sa', server_address], return_stdout_not_rc=False)
+        else:
+            print('***\n*** Issuing "cloudscheduler defaults set -s %s ..." to save server address, username, and password.' % server_name)
+            sys_cmd([sys.argv[0], 'defaults', 'set', '-s', server_name, '-sa', server_address, '-su', username, '-spw', password], return_stdout_not_rc=False)
+
+        print(
+            '***\n' \
+            '*** To address this server in the future:\n' \
+            '***\n' \
+            '***    cloudscheduler -s %s ...\n' \
+            '***\n' \
+            % server_name
+            )
+
+        if x509:
+            sys_cmd(sys.argv + ['-s', server_name], return_stdout_not_rc=False)
+        else:
+            sys_cmd(sys.argv + ['-s', server_name, '-su', username, '-spw', password], return_stdout_not_rc=False)
+        exit(0)
+
+    if x509:
+        sys_cmd(sys.argv + ['-sa', server_address], return_stdout_not_rc=False)
     else:
-        exit(1)
+        sys_cmd(sys.argv + ['-sa', server_address, '-su', username, '-spw', password], return_stdout_not_rc=False)
+    exit(0)
 
 #-------------------------------------------------------------------------------
               
@@ -940,6 +960,25 @@ def _show_table_set_segment_super_headers(segment):
         segment['headers'].append('   '.join(_show_table_pad(segment['columns'][segment['SH_low_ix']:], segment['table']['headers'], segment['table']['lengths'], justify='centre')))
         segment['super_header_lengths'].append(len(segment['headers'][-1]))
         segment['super_headers'].append(_show_table_pad([column], segment['table']['super_headers'], {column: segment['super_header_lengths'][-1]}, justify='centre')[0])
+
+#-------------------------------------------------------------------------------
+
+def sys_cmd(cmd, return_stdout_not_rc=True):
+
+    from subprocess import Popen, PIPE
+
+    if return_stdout_not_rc:
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode == 0:
+            return decode(stdout).split('\n')
+        else :
+            return None
+
+    else:
+        p = Popen(cmd)
+        p.communicate()
+        return p.returncode
 
 #-------------------------------------------------------------------------------
 
