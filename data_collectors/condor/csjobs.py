@@ -151,7 +151,7 @@ def job_poller():
                     logging.debug(exc)
                     jsched = {
                         "htcondor_fqdn": condor_host,
-                        "status":        0
+                        "condor_status": 0
                     }
                     new_jsched = JOB_SCHED(**jsched)
                     db_session.merge(new_jsched)
@@ -321,7 +321,7 @@ def job_poller():
                         break
                 jsched = {
                     "htcondor_fqdn": condor_host,
-                    "status":        1,
+                    "condor_status": 1,
                     "foreign_jobs":  held_jobs
                 }
                 new_jsched = JOB_SCHED(**jsched)
