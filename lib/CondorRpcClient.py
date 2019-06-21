@@ -1,6 +1,7 @@
 import pika
 import uuid
 import ast
+import time
 
 
 class CondorRpcClient(object):
@@ -28,9 +29,10 @@ class CondorRpcClient(object):
             self.response = body
 
     # perhaps make individual functions for different commands
-    def call(self, yaml):
+    def call(self, yaml, timeout=30):
         self.response = None
         self.corr_id = str(uuid.uuid4())
+        call_time = time.time()
         self.channel.basic_publish(
             exchange="",
             routing_key=self.routing_key,
@@ -40,6 +42,9 @@ class CondorRpcClient(object):
             ),
             body=yaml)
         while self.response is None:
+            if time.time() - call_time >= timeout:
+                # call timed out return a failure
+                return [2, "Request timed out, agent offline or in error"] 
             self.connection.process_data_events()
         # Process responce
         # for a retire it will be a list: [rc, msg]

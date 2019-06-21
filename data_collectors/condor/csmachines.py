@@ -380,6 +380,7 @@ def command_poller():
     GROUPS = config.db_map.classes.csv2_groups
     VM = config.db_map.classes.csv2_vms
     CLOUD = config.db_map.classes.csv2_clouds
+    JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
 
     try:
@@ -476,9 +477,20 @@ def command_poller():
                             'hostname': resource.hostname
                         }
                         command_yaml = yaml.dump(command_dict)
-                        command_results = condor_rpc.call(command_yaml)
+                        command_results = condor_rpc.call(command_yaml, timeout=30)
                         if command_results[0] != 0:
                             # command failed
+                            if command_results[0] == 2:
+                                # timeout on the call, agent problems or offline
+                                logging.error("RPC call timed out, agent offline or in error")
+                                jsched = {
+                                    "htcondor_fqdn": condor_host,
+                                    "agent_status":  1
+                                }
+                                new_jsched = JOB_SCHED(**jsched)
+                                db_session.merge(new_jsched)
+                                uncomitted_updates += 1
+
                             logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
                             logging.error(command_results[1])
@@ -486,7 +498,13 @@ def command_poller():
                         else:
                             #it was successfull
                             logging.debug("retire results: %s" % command_results[1])
-
+                            jsched = {
+                                "htcondor_fqdn": condor_host,
+                                "agent_status":  0
+                            }
+                            new_jsched = JOB_SCHED(**jsched)
+                            db_session.merge(new_jsched)
+                            uncomitted_updates += 1
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire = vm_row.retire + 1
@@ -625,15 +643,34 @@ def command_poller():
                                 'hostname': resource.hostname
                             }
                             command_yaml = yaml.dump(command_dict)
-                            command_results = condor_rpc.call(command_yaml)
+                            command_results = condor_rpc.call(command_yaml, timeout=30)
                             if command_results[0] != 0:
                                 # command failed
+                                if command_results[0] == 2:
+                                    # timeout on the call, agent problems or offline
+                                    logging.error("RPC call timed out, agent offline or in error")
+                                    jsched = {
+                                        "htcondor_fqdn": condor_host,
+                                        "agent_status":  1
+                                    }
+                                    new_jsched = JOB_SCHED(**jsched)
+                                    db_session.merge(new_jsched)
+                                    uncomitted_updates += 1
+                                    continue
                                 logging.error("RPC invalidate failed for machine: %s//%s" % (resource.machine, resource.hostname))
                                 logging.error(command_results[1])
                                 continue
                             else:
                                 #it was successfull
                                 logging.debug("retire results: master: %s  startd: %s" % (command_results[1], command_results[2]))
+                                jsched = {
+                                    "htcondor_fqdn": condor_host,
+                                    "agent_status":  0
+                                }
+                                new_jsched = JOB_SCHED(**jsched)
+                                db_session.merge(new_jsched)
+                                uncomitted_updates += 1
+
                             #if resource.machine is not None and resource.machine is not "":
                             #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
                             #else:
