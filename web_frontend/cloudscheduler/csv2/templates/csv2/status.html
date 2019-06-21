@@ -171,8 +171,7 @@ else if (refresh_interval < 1) stop_refresh;
                     <colgroup>
                         <col class="clear" span="1" />
                         <col class="red" span="1" />
-                        <col class="clear" span="6" />
-                        <col class="extra-row clear" span="2" />
+                        <col class="clear" span="9" />
 
                     </colgroup>
                     <tr class="header-row">
@@ -184,8 +183,9 @@ else if (refresh_interval < 1) stop_refresh;
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
                         <th class="jobs-style">Foreign</th>
-                        <th class="extra-row jobs-style">Condor Status</th>
-                        <th class="extra-row jobs-style">Condor FQDN</th>
+                        <th class="jobs-style">Condor Status</th>
+                        <th class="jobs-style">Agent Status</th>
+                        <th class="jobs-style">Condor FQDN</th>
                     </tr>
 
                     {% for group in job_status_list %}
@@ -235,14 +235,23 @@ else if (refresh_interval < 1) stop_refresh;
                                     <td data-path="{{group.group_name}} jobs_foreign" class="more-style plottable">{{group.foreign}}</td>
                                 {% endif %}
                                 
-                                {% if group.htcondor_status == 0 %}
-                                    {% set status = "Unavailable" %}
-                                {% else %}
-                                    {% set status = "Online" %}
-                                {% endif %}
-                                <td data-path="{{group.group_name}} jobs_htcondor_status" class="extra-row more-style plottable">{{status}}</td>
 
-                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="extra-row more-style">{{group.htcondor_fqdn}}</td>
+                                <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style plottable">
+                                {% if group.htcondor_status == 1 %}
+                                    <span class="green-symbol">&#x2714;</span></td>
+                                {% else %}
+                                    <span class="red-symbol">&#x2718;</span></td>
+                                {% endif %}
+
+                                <td data-path="{{group.group_name}} jobs_agent_status" class="more-style plottable">
+                                {% if group.agent_status == 1 %}
+                                    <span class="green-symbol">&#x2714;</span></td>
+                                {% else %}
+                                    <span class="red-symbol">&#x2718;</span></td>
+                                {% endif %}
+
+
+                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
 
                             </tr>
@@ -251,11 +260,12 @@ else if (refresh_interval < 1) stop_refresh;
                             <tr class="extra-row">
                                 <td></td>
                                 <td></td>
-                                <td colspan="10">
+                                <td colspan="5">
                                     <table class="job-extra-row">
                                         {% for job in job_totals_list %}
                                             {% if job.group_name == group.group_name %}
                                                 <tr>
+
                                                 {% if job.js_idle != 0 %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
                                                 {% else %}
@@ -291,15 +301,16 @@ else if (refresh_interval < 1) stop_refresh;
                                                     <!-- <td class="zero-style">{{ job.js_other }}&#10005;{{ job.request_cpus }}c</td> -->
 
                                                 {% endif %}
+
                                                 </tr>
                                             {% endif %}
                                         {% endfor %}
                                     </table>
                                 </td>
-                            <td></td>
-                            <td></td>
-                            <td class="extra-row"></td>
-
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         {% endif %}
                     {% endfor %}
