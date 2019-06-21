@@ -107,7 +107,7 @@
   git:
       repo: 'https://github.com/hep-gc/cloudscheduler.git'
       dest: /opt/cloudscheduler/
-      force: no
+      force: yes
       update: yes
       version: "{{ cs_git_branch }}"
 
@@ -427,7 +427,7 @@
   when: (local_web is undefined) or (local_web == False)
     
 - name: install csv2 database schema
-  command: /opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -r live
+  command: /opt/cloudscheduler/utilities/db_upgrade {{ schema_model }} -i {{ db_upgrade_file }} -r live
 
 - name: generate schema
   command: /opt/cloudscheduler/utilities/generate_schema.py
@@ -482,9 +482,12 @@
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_groups (group_name, job_cpus, job_ram, job_disk, job_scratch, job_swap, vm_keep_alive) VALUES ("csv2-group", "1", "1000", "5", "0", "0", "0")'
   ignore_errors: True
 
-- name: add metadata file for csv2-group
-  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "default.yaml.j2", "1", "0", LOAD_FILE("/opt/cloudscheduler/default.yaml.j2"), "cloud-config")'
+- name: add metadata files for csv2-group
+  command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "{{ item }}", "1", "0", LOAD_FILE("/opt/cloudscheduler/metadata/{{ item }}"), "cloud-config")'
   ignore_errors: True
+  with_items:
+  - csv2htc.yaml.j2
+  - default.yaml.j2
 
 - name: first time retrieve of amazon ec2 data
   command: "/opt/cloudscheduler/data_collectors/ec2/{{ item }}"

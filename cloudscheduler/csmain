@@ -262,11 +262,10 @@ def main():
                             log.debug("flavor slots: %s", cloud.flavor_slots)
                             log.debug("Using Totals counts: %s", num_vm_jobs_per_flavor_total)
 
-                            num_vms_to_boot = num_vm_jobs_per_flavor_total[cloud.flavor]
+                            num_vms_to_boot = math.floor(num_vm_jobs_per_flavor_total[cloud.flavor])
                             log.debug("Initially try boot: %s based on possible per flavor", num_vms_to_boot)
                             # This is the total wanted, but cloud may not be able to handle that request
-                            num_vms_to_boot = num_vms_to_boot if num_vms_to_boot <= cloud.flavor_slots else cloud.flavor_slots
-                            num_vms_to_boot = math.floor(num_vms_to_boot)
+                            num_vms_to_boot = min([num_vms_to_boot, cloud.flavor_slots, (cloud.VMs_max - cloud.VMs)])
                             log.debug("Try to boot: %s after checking flavor slots.", num_vms_to_boot)
                             if num_vms_to_boot == 0:
                                 cloud_prio = None # reset cloud prio so if no slots on the higher priority clouds can still boot on lower

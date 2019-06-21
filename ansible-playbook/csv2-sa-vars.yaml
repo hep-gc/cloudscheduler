@@ -4,8 +4,12 @@ admin_email: someone@example.ca
 # Change this to the IP of your deployment host.
 ansible_deployment_host_ip: '206.12.154.6'
 
+# Change this to the path of an existing deployment host directory where letsencrypt SSL certificates are to be saved. This directory must be read/writable by the deployment user.
+letsencrypt_archive: '/usr/local/archive/letsencrypt'
+
 # CSV2 versions to use.
 cs_git_branch: stable-2.4
+db_upgrade_file: none
 schema_model: stable-2.4
 favicon_colour: red
 
