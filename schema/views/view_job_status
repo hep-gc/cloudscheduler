@@ -14,7 +14,8 @@ sum(Completed) as Completed,
 sum(Held) as Held,
 sum(Other) as Other,
 js.foreign_jobs as 'foreign',
-js.status as htcondor_status,
+js.condor_status as htcondor_status,
+js.agent_status as agent_status,
 js.htcondor_fqdn
 
 from (
