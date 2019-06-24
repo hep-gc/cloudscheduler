@@ -273,6 +273,10 @@ def main(args):
         'uid': os.getuid(),
         }
     
+    # If it doesn't already exist, generate the bash completion script.
+    if not os.path.isfile('%s/.bash_completion.d/cloudscheduler' % gvar['home_dir']):
+        csv2_helpers.generate_bash_completion_script(gvar)
+
     # Check for interactive parent process and set the pid_file path.
     if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
         gvar['pid_file'] = '-'
