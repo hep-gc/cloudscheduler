@@ -237,14 +237,18 @@ else if (refresh_interval < 1) stop_refresh;
                                 
 
                                 <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style plottable">
-                                {% if group.htcondor_status == 1 %}
+                                {% if group.htcondor_status == -1 %}
+                                    <span class="orange-symbol">?</span></td>
+                                {% elif group.htcondor_status == 1 %}
                                     <span class="green-symbol">&#x2714;</span></td>
                                 {% else %}
                                     <span class="red-symbol">&#x2718;</span></td>
                                 {% endif %}
 
                                 <td data-path="{{group.group_name}} jobs_agent_status" class="more-style plottable">
-                                {% if group.agent_status == 1 %}
+                                {% if group.agent_status == -1 %}
+                                    <span class="orange-symbol">?</span></td>
+                                {% elif group.agent_status == 1 %}
                                     <span class="green-symbol">&#x2714;</span></td>
                                 {% else %}
                                     <span class="red-symbol">&#x2718;</span></td>
@@ -1066,7 +1070,7 @@ else if (refresh_interval < 1) stop_refresh;
     <table class="system-services" id="system-services">
 
             <tr>
-                <th colspan="13">CS system services</th>
+                <th colspan="12">CS system services</th>
                 <th class="col-spacer">&nbsp;</th>
                 <th colspan="4">CS system resources</th>
             </tr>
@@ -1074,137 +1078,125 @@ else if (refresh_interval < 1) stop_refresh;
             <tr>
                 <td data-path="csv2_status_status" class="more-style plottable" tooltip="{{ system_list.csv2_status_msg }}">
                 {% if system_list.csv2_status_status == 1 %}
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
                 <td data-path="csv2_main_status" class="more-style plottable" tooltip="{{ system_list.csv2_main_msg }}">
                 {% if system_list.csv2_main_status == 1 %}
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
                 <td data-path="mariadb_status" class="more-style plottable" tooltip="{{ system_list.mariadb_msg }}">
                 {% if system_list.mariadb_status == 1 %}
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
                 <td data-path="rabbitmq_server_status" class="more-style plottable" tooltip="{{ system_list.rabbitmq_server_msg }}">
                 {% if system_list.rabbitmq_server_status == 1 %}
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% else %}
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
                 {% if system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count == 0%}
                     <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_openstack_status == 1 and system_list.csv2_openstack_error_count != 0%}
                     <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_openstack_error_count}} child process failures. {{ system_list.csv2_openstack_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_openstack_status" class="more-style plottable" tooltip="{{ system_list.csv2_openstack_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count == 0%}
                     <td data-path="csv2_jobs_status" class="more-style plottable" tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_jobs_status == 1 and system_list.csv2_jobs_error_count != 0%}
                     <td data-path="csv2_jobs_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_jobs_error_count}} child process failures. {{ system_list.csv2_jobs_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_jobs_status" class="more-style plottable" tooltip="{{ system_list.csv2_jobs_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count == 0%}
                     <td data-path="csv2_machines_status" class="more-style plottable" tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_machines_status == 1 and system_list.csv2_machines_error_count != 0%}
                     <td data-path="csv2_machines_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_machines_error_count}} child process failures. {{ system_list.csv2_machines_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_machines_status" class="more-style plottable" tooltip="{{ system_list.csv2_machines_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_timeseries_status == 1 and system_list.csv2_timeseries_error_count == 0%}
                     <td data-path="csv2_timeseries_status" class="more-style plottable" tooltip="{{ system_list.csv2_timeseries_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_timeseries_status == 1 and system_list.csv2_timeseries_error_count != 0%}
                     <td data-path="csv2_timeseries_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_timeseries_error_count}} child process failures. {{ system_list.csv2_timeseries_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_timeseries_status" class="more-style plottable" tooltip="{{ system_list.csv2_timeseries_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_ec2_status == 1 and system_list.csv2_ec2_error_count == 0%}
                     <td data-path="csv2_ec2_status" class="more-style plottable" tooltip="{{ system_list.csv2_ec2_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_ec2_status == 1 and system_list.csv2_ec2_error_count != 0%}
                     <td data-path="csv2_ec2_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_ec2_error_count}} child process failures. {{ system_list.csv2_ec2_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_ec2_status" class="more-style plottable" tooltip="{{ system_list.csv2_ec2_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
-                {% endif %}
-
-
-                {% if system_list.csv2_htc_agent_status == 1 and system_list.csv2_htc_agent_error_count == 0%}
-                    <td data-path="csv2_htc_agent_status" class="more-style plottable" tooltip="{{ system_list.csv2_htc_agent_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
-                {% elif system_list.csv2_htc_agent_status == 1 and system_list.csv2_htc_agent_error_count != 0%}
-                    <td data-path="csv2_htc_agent_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_htc_agent_error_count}} child process failures. {{ system_list.csv2_htc_agent_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
-                {% else %}
-                    <td data-path="csv2_htc_agent_status" class="more-style plottable" tooltip="{{ system_list.csv2_htc_agent_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_glint_status == 1 and system_list.csv2_glint_error_count == 0%}
                     <td data-path="csv2_glint_status" class="more-style plottable" tooltip="{{ system_list.csv2_glint_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_glint_status == 1 and system_list.csv2_glint_error_count != 0%}
                     <td data-path="csv2_glint_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_glint_error_count}} child process failures. {{ system_list.csv2_glint_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_glint_status" class="more-style plottable" tooltip="{{ system_list.csv2_glint_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_watch_status == 1 and system_list.csv2_watch_error_count == 0%}
                     <td data-path="csv2_watch_status" class="more-style plottable" tooltip="{{ system_list.csv2_watch_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_watch_status == 1 and system_list.csv2_watch_error_count != 0%}
                     <td data-path="csv2_watch_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_watch_error_count}} child process failures. {{ system_list.csv2_watch_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_watch_status" class="more-style plottable" tooltip="{{ system_list.csv2_watch_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
                 {% if system_list.csv2_startd_errors_status == 1 and system_list.csv2_startd_errors_error_count == 0%}
                     <td data-path="csv2_startd_errors_status" class="more-style plottable" tooltip="{{ system_list.csv2_startd_errors_msg }}">
-                    <span class="green-symbol">&#x2714;</span></td>
+                    <span class="green-symbol bigger">&#x2714;</span></td>
                 {% elif system_list.csv2_startd_errors_status == 1 and system_list.csv2_startd_errors_error_count != 0%}
                     <td data-path="csv2_startd_errors_status" class="more-style plottable" tooltip="Warning! {{system_list.csv2_startd_errors_error_count}} child process failures. {{ system_list.csv2_startd_errors_msg }}">
-                    <span class="orange-symbol">&#x2757;</span></td>
+                    <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
                     <td data-path="csv2_startd_errors_status" class="more-style plottable" tooltip="{{ system_list.csv2_startd_errors_msg }}">
-                    <span class="red-symbol">&#x2718;</span></td>
+                    <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
 
@@ -1229,7 +1221,6 @@ else if (refresh_interval < 1) stop_refresh;
                 <td>machines</td>
                 <td>timeseries</td>
                 <td>ec2</td>
-                <td>htc</td>
                 <td>glint</td>
                 <td>watch</td>
                 <td>startd</td>
@@ -1248,7 +1239,8 @@ else if (refresh_interval < 1) stop_refresh;
 
     <div class="refresh-button">
         <span id="CDTimer"></span>
-        <span class="stop-symbol" onClick="stop_refresh()">&#x270b;</span>
+        <span class="stop-symbol bigger" onClick="stop_refresh()">&#x270b;</span>
+        <span>{{version}}</span>
     </div>
 </div>
 

@@ -423,9 +423,6 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
 /*                       sys stats styling                       */
 /*****************************************************************/
 
-html {
-  height: 100%;
-}
 
 body.status-nav{
   position: absolute;
@@ -470,24 +467,23 @@ body.status-nav{
 
 .green-symbol {
   color: green;
-  font-size: 150% !important;
 }
 
 .orange-symbol {
   color: darkorange;
-  font-size: 100% !important;
 }
 
 .red-symbol {
   color: red;
-  font-size: 150% !important;
 }
 
 .expand-symbol {
   color: black;
-  font-size: 150% !important;
 }
 
+.bigger {
+  font-size: 150% !important;
+}
 
 /*****************************************************************/
 /*                    page refresh styling                       */
