@@ -107,7 +107,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         imageobj = None
         image_dict = self._attr_list_to_dict(job.image)
         try:
-            if job.image and self.name in image_dict.keys():
+            if job.image and self.name in image_dict:
                 imageobj = nova.glance.find_image(image_dict[self.name])
             elif self.default_image:
                 imageobj = nova.glance.find_image(self.default_image)
@@ -129,9 +129,9 @@ class OpenStackCloud(basecloud.BaseCloud):
         instancetype_dict = self._attr_list_to_dict(job.instance_type)
         try:
             #flavor = nova.flavors.find(name=flavor)
-            if instancetype_dict and self.name in instancetype_dict.keys():
+            if instancetype_dict and self.name in instancetype_dict:
                 flavorl = nova.flavors.find(name=instancetype_dict[self.name])
-            elif 'default' in instancetype_dict.keys():
+            elif 'default' in instancetype_dict:
                 flavorl = nova.flavors.find(name=instancetype_dict['default'])
             elif flavor:
                 flavorl = nova.flavors.find(name=flavor.split(':')[1])
@@ -145,7 +145,7 @@ class OpenStackCloud(basecloud.BaseCloud):
         netid = []
         network = None
         network_dict = self._attr_list_to_dict(job.network)
-        if network_dict and self.name in network_dict.keys():
+        if network_dict and self.name in network_dict:
             if len(network_dict[self.name].split('-')) == 5:  # uuid
                 netid = [{'net-id': network_dict[self.name]}]
             else:

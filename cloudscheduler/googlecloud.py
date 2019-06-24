@@ -49,7 +49,7 @@ class GoogleCloud(basecloud.BaseCloud):
         source_image = None
         image_dict = self._attr_list_to_dict(job.image)
         try:
-            if job.image and self.name in image_dict.keys():
+            if job.image and self.name in image_dict:
                 source_image = 1 # TODO how to get the image url from service or line in db
         except ValueError:
             pass

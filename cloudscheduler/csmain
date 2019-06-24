@@ -92,7 +92,7 @@ def main():
 
         for csgroup in csv2groups:
             log.debug("Dealing with current group: %s", csgroup.group_name)
-            if metadata and csgroup.group_name in metadata.keys():
+            if metadata and csgroup.group_name in metadata:
                 pass
             else:
                 log.debug("No metadata/yamls found for group: %s this may cause problem with VMs registering to condor.",
@@ -122,7 +122,7 @@ def main():
 
             cm_group = cloudmanager.CloudManager(name=csgroup.group_name, group_resources=group_resources,
                                                  group_yamls=group_yaml_list,
-                                                 metadata=metadata[csgroup.group_name] if csgroup.group_name in metadata.keys() else None)
+                                                 metadata=metadata[csgroup.group_name] if csgroup.group_name in metadata else None)
             cm_group.setup()
             # At this point I should have a valid set of all the group and cloud specific yaml to use
             # it will still need to be combined with the job yaml - done now in the basecloud prepare_userdata function
