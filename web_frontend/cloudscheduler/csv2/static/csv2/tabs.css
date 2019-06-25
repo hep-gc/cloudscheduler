@@ -82,6 +82,11 @@ table td {
   overflow: hidden;
 }
 
+.exclusions-div {
+  width: 150px;
+  overflow: hidden;
+}
+
 iframe {
   z-index: 1;
   width: 100%;
@@ -96,8 +101,8 @@ iframe {
 .tab2 {
   position: relative;
   margin-bottom: 1px;
-  padding-left: 10;
-  padding-right: 10;
+  padding-left: 10px;
+  padding-right: 10px;
   overflow: hidden;
 }
 .tab2 > input {
@@ -122,10 +127,10 @@ iframe {
 .tab2 input:checked ~ .tab2-content {
   position: fixed;
   max-height: 100vh;
-  top:60;
-  bottom:0;
-  left:380;
-  right:10;
+  top:70px;
+  bottom: 0px;
+  left: 420px;
+  right: 10px;
   overflow: auto;
 }
 
@@ -137,9 +142,9 @@ iframe {
 .tab2 input:checked ~ .tab2-hide {
   position: fixed;
   max-height: 100vh;
-  top: 60px;
-  bottom: 0;
-  right: 0;
+  top: 70px;
+  bottom: 0px;
+  right: 0px;
   width: 1%;
   overflow: auto;
   z-index: 2;
