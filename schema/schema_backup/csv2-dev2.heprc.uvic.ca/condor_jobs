@@ -28,7 +28,7 @@ CREATE TABLE `condor_jobs` (
   `target_clouds` text DEFAULT NULL,
   `target_alias` varchar(32) DEFAULT NULL,
   `job_status` int(11) DEFAULT NULL,
-  `request_cpus` int(11) NOT NULL,
+  `request_cpus` int(11) DEFAULT NULL,
   `request_ram` int(11) DEFAULT NULL,
   `request_disk` int(11) DEFAULT NULL,
   `request_swap` int(11) DEFAULT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE `condor_jobs` (
   `q_date` int(11) DEFAULT NULL,
   `hold_reason_code` tinyint(4) DEFAULT NULL,
   `hold_reason_subcode` tinyint(4) DEFAULT NULL,
-  `last_remote_host` varchar(64) DEFAULT NULL,
+  `last_remote_host` varchar(128) DEFAULT NULL,
   `held_reason` varchar(128) DEFAULT NULL,
   `hold_job_reason` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`global_job_id`)
@@ -65,4 +65,4 @@ CREATE TABLE `condor_jobs` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-05-16 12:39:49
+-- Dump completed on 2019-06-26  9:39:06
