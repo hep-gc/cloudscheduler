@@ -6,18 +6,14 @@
 <head>
 {% load template_utils %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/tabs.css" %}?{{version}}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
+
 <link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
 <script type="text/javascript">
-
     var visited = {};
     var ec2_regions = {{ ec2_regions_list|safe }}
-
     function get_message() {
         if (sessionStorage.getItem("message")){
             document.getElementById("message").innerHTML = sessionStorage.getItem("message");
@@ -25,44 +21,29 @@
             sessionStorage.setItem("message", "");
         }
     }
-
     function meta_fetch(cloudname , metaname) {
-
         var url='/cloud/metadata-fetch?{{active_group}}&cloud_name='+cloudname+'&metadata_name='+metaname
         var frame='editor-'+cloudname+'-'+metaname
-
         if (!visited[frame]){
             document.getElementById(frame).src=url;
             visited[frame]=1;
         }
     }
-
     function meta_add(cloudname) {
-
         var url='/cloud/metadata-new?{{active_group}}&cloud_name='+cloudname
         var frame='editor-'+cloudname+'-add'
-
         document.getElementById(frame).src=url;
     }
-
-
     function check_target(targetname) {
-
         var frame=targetname;
-
         document.getElementById(frame).checked = true;
-
     }
-
-
     function save_location(cloud, tab){
         sessionStorage.setItem("cloud", cloud);
         sessionStorage.setItem("cloud_tab", tab);
     }
-
     function set_location(){
         if(sessionStorage.getItem("cloud") && sessionStorage.getItem("cloud_tab")){
-
             tab = sessionStorage.getItem("cloud") + "-" + sessionStorage.getItem("cloud_tab");
             document.getElementById(tab).checked = true;
             document.location.hash = sessionStorage.getItem("cloud");
@@ -72,63 +53,45 @@
             document.getElementById("{{cloud_list.0.cloud_name}}-settings").checked = true;
         }
     }
-
     function type_select(cloud_type, target_cloud){
-
         var oldRegionEl = document.getElementById(target_cloud+"-region").childNodes[0];
         var newRegionEl = document.createElement('td');
-
         if(cloud_type=="amazon"){
             var arrayLength = ec2_regions.length;
-
             var newHTML = '<select name="region" class="dropdown" id="'+target_cloud+'-selected" onchange=\'set_authurl("'+target_cloud+'")\'>';
-
             for (var i = 0; i < arrayLength; i++){
                 newHTML+='<option value="'+ec2_regions[i].region+'">'+ec2_regions[i].region+'</option>';
             }
-
             newHTML+='</select>';
-
             newRegionEl.innerHTML=newHTML;
             oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
-
             document.getElementById(target_cloud+'-authurl').readOnly = true;
             document.getElementById(target_cloud+'-authurl').value = ec2_regions[0].endpoint;
-
             document.getElementById(target_cloud+'-project').readOnly = true;
             document.getElementById(target_cloud+'-project').value = "N/A";
-
             document.getElementById(target_cloud+'-image').style.display = "block";
             document.getElementById(target_cloud+'-flavor').style.display = "block";
-
         }
         else{
             newRegionEl.innerHTML = '<input type="text" name="region" value=""/>';
             oldRegionEl.parentNode.replaceChild(newRegionEl, oldRegionEl);
-
             document.getElementById(target_cloud+'-authurl').readOnly = false;
             document.getElementById(target_cloud+'-authurl').value = "";
-
             document.getElementById(target_cloud+'-project').readOnly = false;
             document.getElementById(target_cloud+'-project').value = "";
-
             document.getElementById(target_cloud+'-image').style.display = "none";
             document.getElementById(target_cloud+'-flavor').style.display = "none";
         }
     }
-
     function set_authurl(target_cloud){
-
         var arrayLength = ec2_regions.length;
         var selectedRegion = document.getElementById(target_cloud+'-selected').value;
-
         for (var i = 0; i < arrayLength; i++){
             if( ec2_regions[i].region == selectedRegion ){
                 document.getElementById(target_cloud+'-authurl').value = ec2_regions[i].endpoint;
             }
         }
     }
-
 </script>
 
 <script rel="preload" type="text/javascript" src="{% static "ace-builds/src-noconflict/ace.js" %}?{{version}}"></script>
@@ -142,10 +105,10 @@
     {% for cloud in cloud_list %}
         <div id="{{cloud.cloud_name}}">
 
-        <div class="menu2-div">
-            <a href="#{{cloud.cloud_name}}" class="menu2-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
+        <div>
+            <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
 
-            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">&minus;</a>
+            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">-</a>
         </div>
 
             <div class="menu-target">
@@ -450,7 +413,7 @@
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-exclusions" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('{{cloud.cloud_name}}-hide')">
                     <label class="tab-colour" for="{{cloud.cloud_name}}-exclusions">Exclusions</label>
-                    <div class="tab-content">
+                    <div class="tab-content exclusion-div">
 
 
                         <div class="tab2">
@@ -547,7 +510,7 @@
 
         </div>
     {% endfor %}
-        <div id="add-cloud"> <a href="#add-cloud" class="menu-link add-link">&plus;</a>
+        <div id="add-cloud"> <a href="#add-cloud" class="menu-link">+</a>
             <div class="menu-target">
                 <form name="add_cloud" action="/cloud/add/" method="post">
                     {% csrf_token %}
