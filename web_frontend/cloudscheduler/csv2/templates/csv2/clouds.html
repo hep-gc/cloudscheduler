@@ -6,10 +6,12 @@
 <head>
 {% load template_utils %}
 {% load static %}
-
-<link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/tabs.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/editor.css" %}?{{version}}">
-<link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
+<link rel="stylesheet" type="text/css" href="{% static "csv2/clouds.css" %}?{{version}}">
 
 <script type="text/javascript">
 
@@ -140,10 +142,10 @@
     {% for cloud in cloud_list %}
         <div id="{{cloud.cloud_name}}">
 
-        <div>
-            <a href="#{{cloud.cloud_name}}" class="menu-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
+        <div class="menu2-div">
+            <a href="#{{cloud.cloud_name}}" class="menu2-link" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-settings')">{{cloud.cloud_name}}</a>
 
-            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">-</a>
+            <a href="#delete-{{cloud.cloud_name}}" class="delete-link">&minus;</a>
         </div>
 
             <div class="menu-target">
@@ -448,7 +450,7 @@
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-exclusions" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('{{cloud.cloud_name}}-hide')">
                     <label class="tab-colour" for="{{cloud.cloud_name}}-exclusions">Exclusions</label>
-                    <div class="tab-content exclusion-div">
+                    <div class="tab-content">
 
 
                         <div class="tab2">
@@ -545,7 +547,7 @@
 
         </div>
     {% endfor %}
-        <div id="add-cloud"> <a href="#add-cloud" class="menu-link">+</a>
+        <div id="add-cloud"> <a href="#add-cloud" class="menu-link add-link">&plus;</a>
             <div class="menu-target">
                 <form name="add_cloud" action="/cloud/add/" method="post">
                     {% csrf_token %}

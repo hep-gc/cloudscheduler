@@ -762,6 +762,7 @@ def metadata_add(request):
             message = 'cloud metadata file "%s::%s::%s" successfully added.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             context = {
+                'group_name': fields['group_name'],
                 'response_code': 0,
                 'message': message,
             }
@@ -880,8 +881,10 @@ def metadata_delete(request):
             message = 'cloud metadata file "%s::%s::%s" successfully deleted.' % (fields['group_name'], fields['cloud_name'], fields['metadata_name'])
 
             context = {
+                'group_name': fields['group_name'],
                 'response_code': 0,
                 'message': message,
+
             }
             return render(request, 'csv2/reload_parent.html', context)
 

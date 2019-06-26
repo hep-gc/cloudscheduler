@@ -1,0 +1,152 @@
+
+/*****************************************************************/
+/*                    Accordian style tabs                       */
+/*****************************************************************/
+
+.tab {
+  position: relative;
+  margin-bottom: 0px;
+  width: 100%;
+
+  overflow: hidden;
+}
+.tab > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.tab > label {
+  position: relative;
+  display: block;
+  padding: 0 0 0 1em;
+  line-height: 2;
+  cursor: pointer;
+  text-align: center;
+}
+
+.tab-content {
+  position: fixed;
+  left: 220px;
+  top: 70px;
+  bottom:20px;
+  overflow: auto;
+  max-height: 0;
+}
+.blue .tab-content {
+  background: #3498db;
+}
+.tab-content p {
+  margin: 1em;
+}
+/* :checked */
+.tab input:checked ~ .tab-content {
+  max-height: 100vh;
+}
+
+/*default tab colour */
+.tab-colour {
+  background-color: gainsboro;
+  color: black
+}
+
+/* Change tab colour when checked */
+.tab input:checked ~ .tab-colour {
+  background-color: teal;
+  color: white;
+}
+
+.tab > label::after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 3em;
+  height: 3em;
+  line-height: 3;
+  text-align: center;
+}
+.tab > input[type=checkbox] + label::after {
+  content: "+";
+}
+
+.tab > input[type=checkbox]:checked + label::after {
+  content: "-";
+}
+
+table td {
+  vertical-align: top;
+}
+
+.meta-div {
+  width: 150px;
+  overflow: hidden;
+}
+
+.exclusions-div {
+  width: 150px;
+  overflow: hidden;
+}
+
+iframe {
+  z-index: 1;
+  width: 100%;
+  height: 95%;
+  border: 0;
+}
+
+/*****************************************************************/
+/*                       Second level tabs                       */
+/*****************************************************************/
+
+.tab2 {
+  position: relative;
+  margin-bottom: 1px;
+  padding-left: 10px;
+  padding-right: 10px;
+  overflow: hidden;
+}
+.tab2 > input {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+.tab2 > label {
+  position: relative;
+  display: block;
+  padding: 0 0 0 1em;
+  font-weight: bold;
+  line-height: 3;
+  cursor: pointer;
+}
+
+.tab2-content {
+  max-height: 0;
+}
+
+/* :checked */
+.tab2 input:checked ~ .tab2-content {
+  position: fixed;
+  max-height: 100vh;
+  top:70px;
+  bottom: 0px;
+  left: 420px;
+  right: 10px;
+  overflow: auto;
+}
+
+.tab2-hide {
+  max-height: 0;
+}
+
+/* :checked */
+.tab2 input:checked ~ .tab2-hide {
+  position: fixed;
+  max-height: 100vh;
+  top: 70px;
+  bottom: 0px;
+  right: 0px;
+  width: 1%;
+  overflow: auto;
+  z-index: 2;
+}
+
