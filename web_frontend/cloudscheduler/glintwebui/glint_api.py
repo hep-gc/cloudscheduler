@@ -93,7 +93,7 @@ class repo_connector(object):
 
             return image_list
         except Exception as exc:
-            logger.warning("Error proccessing images via glance client, bad url or connection failure:")
+            logger.warning("Error proccessing images via glance client, bad url or connection failure on cloud %s:" % self.auth_url)
             logger.warning(exc)
             return None
 

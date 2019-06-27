@@ -73,11 +73,11 @@ def _tag_instance(tag_dict, instance_id, spot_id, client):
         requests = client.describe_spot_instance_requests()
         instances = requests['SpotInstanceRequests']
         for instance_req in instances:
-            if "Tags" in instance_req.keys():
+            if "Tags" in instance_req:
                 tag_dict[instance_req['SpotInstanceRequestId']] = instance_req['Tags']
 
     #tag the instance if a tag exists for the SIR
-    if spot_id in tag_dict.keys():
+    if spot_id in tag_dict:
         if len(tag_dict[spot_id]) != 0:
             try:
                 logging.info("Tagging spot instance %s with tags: %s" %(instance_id, tag_dict[spot_id]))
@@ -496,23 +496,23 @@ def image_poller():
                             size = 0
                             if image['BlockDeviceMappings']:
                                 for device in image['BlockDeviceMappings']:
-                                    if 'Ebs' in device.keys():
+                                    if 'Ebs' in device:
                                         try:
                                             size += device['Ebs']['VolumeSize']
                                         except:
                                             pass
                             try:
                                 logging.debug("Creating image dictionary for database export")
-                                if 'ImageOwnerAlias' in image.keys():
+                                if 'ImageOwnerAlias' in image:
                                     ioa =  image['ImageOwnerAlias']
                                 else:
                                     ioa = None
-                                if 'Name' in image.keys():
+                                if 'Name' in image:
                                     nm =  image['Name']
                                     logging.debug(image['Name'])
                                 else:
                                     nm = "NoName"
-                                if 'Description' in image.keys():
+                                if 'Description' in image:
                                     desc =  image['Description']
                                 else:
                                     desc = None
@@ -659,7 +659,7 @@ def image_poller():
                         size = 0
                         if image['BlockDeviceMappings']:
                             for device in image['BlockDeviceMappings']:
-                                if 'Ebs' in device.keys():
+                                if 'Ebs' in device:
                                     try:
                                         size += device['Ebs']['VolumeSize']
                                     except:
@@ -672,15 +672,15 @@ def image_poller():
 
                             try:
                                 logging.debug("Creating image dictionary for database export")
-                                if 'ImageOwnerAlias' in image.keys():
+                                if 'ImageOwnerAlias' in image:
                                     ioa =  image['ImageOwnerAlias']
                                 else:
                                     ioa = None
-                                if 'Name' in image.keys():
+                                if 'Name' in image:
                                     nm =  image['Name']
                                 else:
                                     nm = "NoName"
-                                if 'Description' in image.keys():
+                                if 'Description' in image:
                                     desc =  image['Description']
                                 else:
                                     desc = None
@@ -1615,10 +1615,10 @@ def vm_poller():
                             vm_cloud_name = None
                             tags_list = None
                             # check for tags
-                            if "Tags" in vm.keys():
+                            if "Tags" in vm:
                                 tags_list = vm["Tags"]
                             #if there is no tags, check to see if it is an untagged spot instance
-                            elif 'SpotInstanceRequestId' in vm.keys():
+                            elif 'SpotInstanceRequestId' in vm:
                                 tag_dict, tag_list =  _tag_instance(tag_dict, vm['InstanceId'], vm['SpotInstanceRequestId'], nova)
                             # else its is a foreign VM so we can throw an exception
                             else:
@@ -1698,9 +1698,9 @@ def vm_poller():
                         for net in vm['NetworkInterfaces']:
                             for addr in net['PrivateIpAddresses']:
                                 ip_addrs.append(addr['Association']['PublicIp'])
-                        if 'PublicIpAddress' in vm.keys():
+                        if 'PublicIpAddress' in vm:
                             ip_addrs.append(vm['PublicIpAddress'])
-                        if 'PrivateIpAddress' in vm.keys():
+                        if 'PrivateIpAddress' in vm:
                             ip_addrs.append(vm['PrivateIpAddress'])
                         logging.info("VM STATE: %s" % vm['State']['Name'])
                         vm_dict = {
@@ -1711,14 +1711,14 @@ def vm_poller():
                             'project': cloud_obj.project,
                             'cloud_type': 'amazon',
                             'hostname': vm['PublicDnsName'],
-                            'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm.keys() else vm['InstanceId'],                                
+                            'vmid': vm['SpotInstanceRequestId'] if 'SpotInstanceRequestId' in vm else vm['InstanceId'],
                             'status': ec2_status_dict[vm['State']['Name']],
                             'flavor_id': vm['InstanceType'],
                             'vm_ips': str(ip_addrs),
                             'last_updated': new_poll_time
                         }
 
-                        if 'SpotInstanceRequestId' in vm.keys() and 'InstanceId' in vm.keys():
+                        if 'SpotInstanceRequestId' in vm and 'InstanceId' in vm:
                             vm_dict['instance_id'] = vm['InstanceId']
 
                         vm_dict, unmapped = map_attributes(src="ec2_vms", dest="csv2", attr_dict=vm_dict)
@@ -1809,7 +1809,7 @@ def vm_poller():
             logging.debug("Expanding failure_dict")
             new_f_dict = {}
             for cloud in cloud_list:
-                if cloud.cloud_name + cloud.authurl in failure_dict.keys():
+                if cloud.cloud_name + cloud.authurl in failure_dict:
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
             logging.debug("Calling delete function")
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'vmid', new_poll_time, failure_dict=new_f_dict, cloud_type="amazon")

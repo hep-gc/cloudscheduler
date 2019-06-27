@@ -6,7 +6,7 @@
         	sessionStorage.setItem("message", "{{message}}");
 		}
         function reload_parent(){
-            parent.location=window.top.location.pathname;
+            parent.location=window.top.location.pathname+"?{{group_name}}";
         }
         </script>
     </head>

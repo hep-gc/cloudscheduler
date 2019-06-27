@@ -81,6 +81,19 @@ def generate_bash_completion_script(gvar):
     if gvar['retrieve_options']:
         return []
 
+    if not os.path.isdir('%s/.bash_completion.d' % gvar['home_dir']):
+        os.mkdir('%s/.bash_completion.d' % gvar['home_dir'])
+
+        fd = open('%s/.bash_completion' % gvar['home_dir'], 'a')
+        fd.write(
+            'if [ -e ~/.bash_completion.d ]; then\n' \
+            '    for ix in $(ls ~/.bash_completion.d); do\n' \
+            '        . ~/.bash_completion.d/$ix\n' \
+            '    done\n' \
+            'fi\n' 
+            )
+        fd.close()
+
     options = get_option_list(gvar)
 
     arguments = {
@@ -104,46 +117,52 @@ def generate_bash_completion_script(gvar):
         '-vS|--vm-status': '-W "foreign native manual error unregistered retiring running other"',
     }
 
-    print('_cloudscheduler()\n{\n    local cur prev first second objects actions options\n    COMPREPLY=()\n    ' \
+    fd = open('%s/.bash_completion.d/cloudscheduler' % gvar['home_dir'], 'w')
+
+    fd.write('_cloudscheduler()\n{\n    local cur prev first second objects actions options\n    COMPREPLY=()\n    ' \
         'cur="${COMP_WORDS[COMP_CWORD]}"\n    prev="${COMP_WORDS[COMP_CWORD-1]}"\n    first="${COMP_WORDS[1]}"\n    second="${COMP_WORDS[2]}"\n\n    ' \
         '#\n    # Complete the following objects:\n    #\n    ' \
         'objects="%s"\n' % \
         ' '.join(sorted(gvar['actions'].keys()))
     )
 
-    print(
+    fd.write(
         '    #\n    # Complete args and file paths\n    #\n    ' \
         'case "${prev}" in'
     )
 
     for arg in arguments:
-        print(
+        fd.write(
             '        %s)\n            COMPREPLY=( $(compgen %s -- ${cur}) )\n            return 0\n            ;;' % \
             (arg, arguments[arg])
         )
 
-    print(
+    fd.write(
         '        *)\n            ;;\n    esac\n\n    ' \
         '#\n    # For each object, complete the following actions:\n    #\n    case "${first}:${second}" in'
     )
 
     for object in sorted(gvar['actions']):
         for action in sorted(gvar['actions'][object][1].keys()):
-            print('        %s:%s)\n            options="%s"\n' \
+            fd.write('        %s:%s)\n            options="%s"\n' \
                 '            COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )\n' \
                 '            return 0\n            ;;' % \
                 (object, action, ' '.join(options[object][action]))
             )
-        print('        %s:*)\n            actions="%s"\n' \
+        fd.write('        %s:*)\n            actions="%s"\n' \
             '            COMPREPLY=( $(compgen -W "${actions}" -- ${cur}) )\n' \
             '            return 0\n            ;;' % \
             (object, ' '.join(sorted(gvar['actions'][object][1].keys()) + ['--long-help', '--help']))
         )
 
-    print('        *:*)\n            ;;\n    ' \
+    fd.write('        *:*)\n            ;;\n    ' \
         'esac\n\n    COMPREPLY=($(compgen -W "${objects} --long-help --help" -- ${cur}))\n    ' \
         'return 0\n}\ncomplete -o filenames -F _cloudscheduler cloudscheduler'
     )
+
+    fd.close()
+
+    print('Bash completion script generated. To use, start a new shell or source "%s/.bash_completion".' % gvar['home_dir'])
 
 def get_option_list(gvar):
     """
