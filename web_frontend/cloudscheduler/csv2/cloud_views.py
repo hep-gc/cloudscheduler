@@ -884,7 +884,6 @@ def metadata_delete(request):
                 'group_name': fields['group_name'],
                 'response_code': 0,
                 'message': message,
-
             }
             return render(request, 'csv2/reload_parent.html', context)
 
