@@ -112,6 +112,30 @@ def decode(obj):
         return obj.decode('utf-8')
 
 #-------------------------------------------------------------------------------
+
+def get_editor(gvar):
+    from shutil import which
+    import os
+
+    if 'text-editor' in gvar['user_settings']:
+        user_parm = gvar['user_settings']['text-editor']
+    else:
+        user_parm = os.getenv('EDITOR') or os.getenv('VISUAL')
+
+        if not user_parm:
+            print('Error: no editor specified. Use either the "-te" option or set the EDITOR or VISUAL environment variables.')
+            exit(1)
+
+    words = user_parm.split()
+    editor = which(words[0])
+
+    if not editor:
+        print('Error: specified editor "%s" does not exist.' % words[0])
+        exit(1)
+
+    return [editor] + words[1:]
+
+#-------------------------------------------------------------------------------
               
 def get_grid_proxy(gvar):
     """

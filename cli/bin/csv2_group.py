@@ -1,4 +1,4 @@
-from csv2_common import check_keys, requests, show_active_user_groups, show_table, verify_yaml_file
+from csv2_common import check_keys, get_editor, requests, show_active_user_groups, show_table, verify_yaml_file
 from subprocess import Popen, PIPE
 
 import filecmp
@@ -389,14 +389,7 @@ def metadata_edit(gvar):
     fd.close()
 
     # Edit the metadata file.
-
-    editor = ''
-    if 'text-editor' in gvar['user_settings']:
-        editor = gvar['user_settings']['text-editor']
-    else:
-        editor = os.getenv('EDITOR')
-    
-    p = Popen([editor, '%s/%s' % (fetch_dir, response['metadata_name'])])
+    p = Popen(get_editor(gvar) + ['%s/%s' % (fetch_dir, response['metadata_name'])])
     p.communicate()
 
     if filecmp.cmp(
