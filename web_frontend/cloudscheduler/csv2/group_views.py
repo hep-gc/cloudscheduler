@@ -26,6 +26,7 @@ from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
+from cloudscheduler.lib.htc_config import query_htc_gsi
 
 # lno: GV - error code identifier.
 MODID= 'GV'
@@ -341,6 +342,9 @@ def defaults(request, active_user=None, response_code=0, message=None):
             prune=['password']    
             )
 
+        # Check to see if GSI is installed and active:
+        gsi_state = query_htc_gsi()
+
     # Render the page.
     context = {
             'active_user': active_user.username,
@@ -355,6 +359,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
             'security_groups_list': security_groups_list,
             'response_code': rc,
             'message': message,
+            'gsi_state': gsi_state,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
