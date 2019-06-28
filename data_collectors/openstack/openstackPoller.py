@@ -39,6 +39,7 @@ from keystoneauth1 import exceptions
 from novaclient import client as novaclient
 from neutronclient.v2_0 import client as neuclient
 from cinderclient import client as cinclient
+import glanceclient
 
 # The purpose of this file is to get some information from the various registered
 # openstack clouds and place it in a database for use by cloudscheduler
@@ -60,6 +61,10 @@ def _get_neutron_client(session, region=None):
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
+
+def _get_glance_client(session, region=None):
+    glance = glanceclient.Client("2", session=session, region_name=region)
+    return glance
 
 def _get_openstack_session(cloud):
     authsplit = cloud.authurl.split('/')
@@ -372,9 +377,9 @@ def image_poller():
                         continue
 
                     # Retrieve all images for this cloud.
-                    nova = _get_nova_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
+                    glance = _get_glance_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                     try:
-                        image_list =  nova.glance.list()
+                        image_list =  glance.images.list()
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -415,6 +420,7 @@ def image_poller():
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
                                 'container_format': image.container_format,
+                                'cloud_type': "openstack",
                                 'disk_format': image.disk_format,
                                 'min_ram': image.min_ram,
                                 'id': image.id,
@@ -443,7 +449,7 @@ def image_poller():
                                 abort_cycle = True
                                 break
 
-                    del nova
+                    del glance 
                     if abort_cycle:
                         break
 
