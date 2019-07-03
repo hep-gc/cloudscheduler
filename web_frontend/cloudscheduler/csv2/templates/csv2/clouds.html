@@ -38,20 +38,15 @@
     }
 
     function meta_add(cloudname) {
-
         var url='/cloud/metadata-new?{{active_group}}&cloud_name='+cloudname
         var frame='editor-'+cloudname+'-add'
-
         document.getElementById(frame).src=url;
     }
 
 
     function check_target(targetname) {
-
         var frame=targetname;
-
         document.getElementById(frame).checked = true;
-
     }
 
 
@@ -60,9 +55,13 @@
         sessionStorage.setItem("cloud_tab", tab);
     }
 
+    function new_location(){ 
+        sessionStorage.setItem("cloud", document.getElementById("new_cloud").value);
+        sessionStorage.setItem("cloud_tab", "settings");
+    }
+
     function set_location(){
         if(sessionStorage.getItem("cloud") && sessionStorage.getItem("cloud_tab")){
-
             tab = sessionStorage.getItem("cloud") + "-" + sessionStorage.getItem("cloud_tab");
             document.getElementById(tab).checked = true;
             document.location.hash = sessionStorage.getItem("cloud");
@@ -149,7 +148,6 @@
         </div>
 
             <div class="menu-target">
-
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-settings" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'settings'); check_target('{{cloud.cloud_name}}-hide')" checked>
@@ -357,11 +355,6 @@
                                         <input type="number" min="-1" max="{{cloud.cores_max}}" value="{{cloud.cores_ctl}}" name="cores_ctl" title="-1 to use system max" oninput="cores_slider.value=cores_ctl.value" />
                                         / {{cloud.cores_max}}
                                     </td></tr>
-                                    <!--<td>
-                                        {% if cloud.cores_ctl == -1 %}
-                                        Using Quota
-                                        {% endif %}
-                                    </td></tr>-->
 
                                     <tr class="highlight2"><td><label for="ram_ctl">RAM</label></td>
                                     <td>
@@ -369,11 +362,6 @@
                                         <input type="number" min="-1" max="{{cloud.ram_max}}" value="{{cloud.ram_ctl}}" name="ram_ctl" title="-1 to use system max" oninput="ram_slider.value=ram_ctl.value" />
                                         / {{cloud.ram_max}} KB
                                     </td></tr>
-                                    <!--<td>
-                                        {% if cloud.ram_ctl == -1 %}
-                                        Using Quota
-                                        {% endif %}
-                                    </td></tr>-->
 
                                 </table>
                             </td></tr>
@@ -395,16 +383,12 @@
 
                 </div>
 
-
-
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-metadata" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'metadata'); check_target('{{cloud.cloud_name}}-hide')">
                     <label class="tab-colour" for="{{cloud.cloud_name}}-metadata">Metadata</label>
                     <div class="tab-content meta-div">
 
-
                         {% for key, value in metadata_dict.items %}
-
 
                             {% for meta in value|keyvalue:cloud.cloud_name %}
 
@@ -419,10 +403,8 @@
 
                                 </div>
 
-
                             {% endfor %}
                         {% endfor %}
-
 
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-metadata-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
@@ -442,10 +424,7 @@
 
                     </div>
 
-
                 </div>
-
-
 
                 <div class="tab">
                     <input id="{{cloud.cloud_name}}-exclusions" type="radio" name="tabs" onclick="save_location('{{cloud.cloud_name}}', 'exclusions'); check_target('{{cloud.cloud_name}}-hide')">
@@ -531,32 +510,23 @@
                                     </table>
                                 </form>
                             </div>
-
                         </div>
-
                     </div>
-
-
                 </div>
-
-
-
-
-
             </div>
 
         </div>
     {% endfor %}
         <div id="add-cloud"> <a href="#add-cloud" class="menu-link add-link">&plus;</a>
             <div class="menu-target">
-                <form name="add_cloud" action="/cloud/add/" method="post">
+                <form name="add_cloud" action="/cloud/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
                     <div class="menu-position">
                         <table>
                             <input type="hidden" name="group" value="{{active_group}}">
 
                             <tr class="highlight3"><td><label for="cloud_name">Cloud name</label></td>
-                            <td><input type="text" name="cloud_name" value="" /></td></tr>
+                            <td><input type="text" name="cloud_name" id="new_cloud" value="" /></td></tr>
 
 
                             <input type="hidden" name="enabled" value="0" />
@@ -626,8 +596,6 @@
         </div>
     </div>
     {% endfor %}
-
-
 </div>
 
 <div id="vms-overlay" class="overlay">
@@ -636,8 +604,6 @@
         <iframe id="vms-iframe" class="content" src=""></iframe>
     </div>
 </div>
-
-
 
 <div class="footer" id="message">
     {% if response_code == 1 %}
