@@ -19,6 +19,10 @@
             sessionStorage.setItem("alias", alias);
         }
 
+        function new_location(){ 
+            sessionStorage.setItem("alias", document.getElementById("new_alias").value);
+        }
+
         function set_location(){
             if(sessionStorage.getItem("alias")){
                 document.location.hash = sessionStorage.getItem("alias");
@@ -112,7 +116,7 @@
 
         <div id="add-alias"> <a href="#add-alias" class="menu-link">+</a>
             <div class="menu-target menu-position">
-                <form name="add_alias" action="/alias/add/" method="post">
+                <form name="add_alias" action="/alias/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
                     <input type="hidden" name="group" value="{{ active_group }}" />
 
@@ -122,7 +126,7 @@
                                 <label for="alias_name">alias name</label>
                             </td>
                             <td>
-                                <input type="text" name="alias_name" id="" value="" />
+                                <input type="text" name="alias_name" id="new_alias" value="" />
                             </td>
                         </tr>
 

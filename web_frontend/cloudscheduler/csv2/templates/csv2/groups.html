@@ -19,6 +19,10 @@
             sessionStorage.setItem("group", group);
         }
 
+        function new_location(){ 
+            sessionStorage.setItem("group", document.getElementById("new_group").value);
+        }
+
         function set_location(){
             if(sessionStorage.getItem("group")){
                 document.location.hash = sessionStorage.getItem("group");
@@ -110,7 +114,7 @@
 
         <div id="add-group"> <a href="#add-group" class="menu-link add-link">&plus;</a>
             <div class="menu-target menu-position">
-                <form name="add_group" action="/group/add/" method="post">
+                <form name="add_group" action="/group/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
                     <table>
                         <tr class="highlight1">
@@ -118,7 +122,7 @@
                                 <label for="group_name">Group name</label>
                             </td>
                             <td>
-                                <input type="text" name="group_name" id="" value="" />
+                                <input type="text" name="group_name" id="new_group" value="" />
                             </td>
                         </tr>
 

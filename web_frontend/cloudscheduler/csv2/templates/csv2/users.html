@@ -16,6 +16,10 @@
         sessionStorage.setItem("user", user);
     }
 
+    function new_location(){ 
+            sessionStorage.setItem("user", document.getElementById("new_user").value);
+    }
+
     function set_location(){
         if(sessionStorage.getItem("user")){
             document.location.hash = sessionStorage.getItem("user");
@@ -97,11 +101,11 @@
     {% endfor %}
         <div id="add-user"> <a href="#add-user" class="menu-link add-link">&plus;</a>
             <div class="menu-target menu-position">
-                <form name="add_user" action="/user/add/" method="post">
+                <form name="add_user" action="/user/add/" method="post" onsubmit="new_location()">
                     {% csrf_token %}
                     <table>
                         <tr class="highlight1"><td><label for="username">Username</label></td>
-                        <td><input type="text" name="username" id="" value="" /></td></tr>
+                        <td><input type="text" name="username" id="new_user" value="" /></td></tr>
                         <tr class="highlight1"><td><label for="password1">Password</label></td>
                         <td><input type="password" name="password1" id="" value="" /></td></tr>
                         <tr class="highlight1"><td><label for="password2">Confirm Password</label></td>
