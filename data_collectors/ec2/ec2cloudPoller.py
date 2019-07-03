@@ -102,6 +102,8 @@ def check_instance_types(config):
     for region in region_list:
         region_path = json_path + "/" + region.region + "/instance_types.json"
         no_file = False
+        if not os.path.exists(json_path):
+            os.mkdir(json_path)
         if not os.path.exists(json_path + "/" + region.region):
             os.mkdir(json_path + "/" + region.region)
         if not os.path.exists(region_path):
