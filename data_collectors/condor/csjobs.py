@@ -284,7 +284,9 @@ def job_poller():
                     try:
                         job_dict["RequestCpus"] = int(job_dict["RequestCpus"])
                     except Exception as exc:
-                        job_dict.pop("RequestCpus")
+                        logging.info("Request Cpus not set, setting minimum (1)")
+                        job_dict["RequestCpus"] = 1
+
 
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
