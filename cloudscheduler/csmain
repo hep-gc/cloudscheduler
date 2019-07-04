@@ -17,6 +17,7 @@ from sqlalchemy.exc import TimeoutError
 import cloudmanager
 from cloudscheduler.lib.schema import view_idle_vms
 from cloudscheduler.lib.schema import view_groups_of_idle_jobs
+from cloudscheduler.lib.schema import view_active_resource_shortfall
 from cloudscheduler.lib.schema import view_available_resources
 from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
 from cloudscheduler.lib.schema import view_metadata_collation_json
@@ -213,6 +214,7 @@ def main():
                     except:
                         shortfall = []
 
+
                     if len(shortfall) < 1:
                         log.debug('unable to retrieve view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, skiping idle_job_group).',
                             idle_job.group_name,
@@ -220,32 +222,35 @@ def main():
                             idle_job.target_clouds)
                         continue
 
-                    if shortfal[0].cores_shortfall<=0 and shortfal[0].disk_shortfall<=0 and shortfal[0].ram_shortfall<=0:
+                    if shortfall[0].shortfall_cores<=0 and shortfall[0].shortfall_disk<=0 and shortfall[0].shortfall_ram<=0:
                         log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, no shortfall, skipping idle_job_group.',
                             idle_job.group_name,
                             idle_job.target_alias,
                             idle_job.target_clouds,
-                            shortfall[0].cores_shortfall,
-                            shortfall[0].disk_shortfall,
-                            shortfall[0].ram_shortfall)
+                            shortfall[0].shortfall_cores,
+                            shortfall[0].shortfall_disk,
+                            shortfall[0].shortfall_ram)
+###                 else:  # We have enough, wait for things to register
+###                     log.debug("Seem to have enough VMs for the number of idle jobs.")
+                        continue
                         
                     else:
-                        log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continuesi...',
+                        log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
                             idle_job.group_name,
                             idle_job.target_alias,
                             idle_job.target_clouds,
-                            shortfall[0].cores_shortfall,
-                            shortfall[0].disk_shortfall,
-                            shortfall[0].ram_shortfall)
+                            shortfall[0].shortfall_cores,
+                            shortfall[0].shortfall_disk,
+                            shortfall[0].shortfall_ram)
 
                         # Looks like we need more VMs, but how many?
                         for cloud_match in clouds_matching:
 ###                         vm_cpu_total = total_cpus / cloud_match.flavor_cores
 ###                         vm_ram_total = total_ram / cloud_match.flavor_ram
 ###                         vm_disk_total = total_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
-                            vm_cpu_total = shortfall[0].cores_shortfall / cloud_match.flavor_cores
-                            vm_disk_total = shortfall[0].disk_shortfall / cloud_match.flavor_disk if cloud_match.flavor_disk else None
-                            vm_ram_total = shortfall[0].ram_shortfall / cloud_match.flavor_ram
+                            vm_cpu_total = shortfall[0].shortfall_cores / cloud_match.flavor_cores
+                            vm_disk_total = shortfall[0].shortfall_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
+                            vm_ram_total = shortfall[0].shortfall_ram / cloud_match.flavor_ram
 #####################################################
                             vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total)) if vm_disk_total else int(max(vm_cpu_total, vm_ram_total))
                             if vm_jobs_possible_total < 1:
@@ -368,9 +373,6 @@ def main():
                                 # TODO Need logic for re-enable before stopping things and forgetting about them.
                         else:
                             log.debug("Hit the end of clouds_matching_new, anything boot or nothing?")
-                    else:  # We have enough, wait for things to register
-                        log.debug("Seem to have enough VMs for the number of idle jobs.")
-                        continue
 
                 config.db_close()
             except TimeoutError as ex:
