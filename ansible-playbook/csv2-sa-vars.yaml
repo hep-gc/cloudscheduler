@@ -4,10 +4,36 @@ admin_email: someone@example.ca
 # Change this to the IP of your deployment host.
 ansible_deployment_host_ip: '206.12.154.6'
 
+# Change this to the path of an existing deployment host directory where letsencrypt SSL certificates are to be saved. This directory must be read/writable by the deployment user.
+letsencrypt_archive: '/usr/local/archive/letsencrypt'
+
 # CSV2 versions to use.
 cs_git_branch: stable-2.4
+db_upgrade_file: none
 schema_model: stable-2.4
 favicon_colour: red
+
+# By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
+# 
+#    o Obtain/create a grid-mapfile.
+#    o Obtain a grid certficate for the HTCondor server.
+#    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
+#    o Specify the required GSI information (nine items) in this "vars" file, eg:
+#
+#          grid_mapfile: /home/cloud_user/grid_stuff/grid-mapfile
+#
+#          host_cert: /home/cloud_user/grid_stuff/hostcert.pem
+#          host_key: /home/cloud_user/grid_stuff/hostkey.pem
+#
+#          htcondor_gsi_dn: /C=CA/O=Grid/CN=condor/csv2-sa.example.edu
+#          htcondor_cert: /home/cloud_user/grid_stuff/condorcert.pem
+#          htcondor_key: /home/cloud_user/grid_stuff/condorkey.pem
+#
+#          htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/csv2-sa.example.edu
+#          htcondor_worker_cert: /home/cloud_user/grid_stuff/condorworkercert.pem
+#          htcondor_worker_key: /home/cloud_user/grid_stuff/condorworkerkey.pem
+# 
+
 
 # Defines (three) entries to be added to /etc/hosts.
 i_etc_hosts:
