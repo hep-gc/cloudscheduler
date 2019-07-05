@@ -149,7 +149,11 @@ from (
                     ifnull(request_disk / (1024 * 1024),0) as request_disk,
                     ifnull(request_ram,0) as request_ram,
                     ifnull(request_swap,0) as request_swap,
-                    min(q_date) as queue_date,
+                    case when job_status=1 then
+                      min(q_date)
+                    else
+                      unix_timestamp()
+                    end as queue_date,
                     count(1) as count
                 from condor_jobs
                 group by
@@ -216,6 +220,7 @@ from (
     where flavor_priority=1
     group by
         group_name,
+        target_alias,
         target_clouds,
         instance_type,
         requirements,
@@ -231,6 +236,7 @@ from (
     ) as jbf
 group by
     group_name,
+    target_alias,
     target_clouds,
     instance_type,
     requirements,

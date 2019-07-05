@@ -36,7 +36,7 @@ filebeat.prospectors:
   # matching any regular expression from the list.
   #include_lines: ['^ERR', '^WARN']
   include_lines: ['CRITICAL', 'ERROR', 'WARNING', 'INFO']
-  tags: ["logging", "{{csv2_host}}"]
+  tags: ["logging", "csv2", "{{csv2_host}}"]
 
   # Exclude files. A list of regular expressions to match. Filebeat drops the files that
   # are matching any regular expression from the list. By default, no files are dropped.
@@ -74,7 +74,7 @@ filebeat.prospectors:
   multiline.match: after
   multiline.max_lines: 2
   multiline.timeout: 5s
-  tags: ["traceback", "{{csv2_host}}"]
+  tags: ["traceback", "csv2", "{{csv2_host}}"]
 #============================= Filebeat modules ===============================
 
 filebeat.config.modules:
@@ -160,14 +160,17 @@ name: csv2
 #  protocol: "https"
 #  #username: "elastic"
 #  #password: "changeme"
-#  username: "castor"
-#  password: "OhCanadensisMightyAnimal"
 
 #----------------------------- Logstash output --------------------------------
 output.logstash:
   # The Logstash hosts
   hosts: ["elk.heprc.uvic.ca:15044"]
   protocol: "https"
+
+  ssl:
+    enabled: true
+    verification_mode: full
+    certificate_authorities: ["/etc/ssl/certs/ca-bundle.crt"]
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
@@ -179,11 +182,9 @@ output.logstash:
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
 
-setup.kibana:
-  host: "https://206.12.154.225:15601"
+#setup.kibana:
+#  host: "https://206.12.154.225:15601"
 #  host: "https://elk.heprc.uvic.ca:15601"
-  username: "guest"
-  password: "Guest18"
 
 #================================ Logging =====================================
 
