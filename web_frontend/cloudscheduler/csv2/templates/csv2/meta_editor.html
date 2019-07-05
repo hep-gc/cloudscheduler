@@ -27,7 +27,7 @@
         <table>
         {% if message == "new-cloud-metadata" or message == "new-group-metadata"%}
             <tr><td><label for="metadata_name">Metadata Name:</label></td>
-            <td><input type="text" name="metadata_name" value="" /></td>
+            <td><input type="text" name="metadata_name" title="Use j2 extension to render variables" placeholder=".yaml or .j2" value="" /></td>
         {% else %}
             <input type="hidden" name="metadata_name" value="{{ metadata_name }}">
             <tr><td><h2 id="metadata-name">{{ metadata_name }}</h2></td>
@@ -59,7 +59,7 @@
             </td>
 
             <td><label for="priority">Priority:</label></td>
-            <td><input type="number" name="priority" value="{{metadata_priority}}"></td>
+            <td><input type="number" name="priority" title="lower number is greater priority" value="{{metadata_priority}}"></td>
 
 
             <td><label for="mime_type">MIME Type:</label></td>

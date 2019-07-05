@@ -72,7 +72,7 @@ class EC2Cloud(basecloud.BaseCloud):
 
         # need to check on instance type, if one isn't specified by the job itself
         # we inherit from the cloud (aka the 'flavor' parameter)
-        if self.name not in instancetype_dict.keys():
+        if self.name not in instancetype_dict:
             instancetype_dict = self._attr_list_to_dict(flavor)
         if self.spot_price <= 0:
             flag_spot_instance = 0
@@ -101,7 +101,7 @@ class EC2Cloud(basecloud.BaseCloud):
             new_vm = client.request_spot_instances(SpotPrice=str(self.spot_price),
                                                    Type='one-time', InstanceCount=num,
                                                    LaunchSpecification=specs)
-        if 'Instances' in new_vm.keys():
+        if 'Instances' in new_vm:
             engine = self._get_db_engine()
             base = automap_base()
             base.prepare(engine, reflect=True)
@@ -115,7 +115,7 @@ class EC2Cloud(basecloud.BaseCloud):
 
             for vm in new_vm['Instances']:
                 self.log.debug(vm)
-                hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm.keys() \
+                hostname = vm['PublicDnsName'] if 'PublicDnsName' in vm \
                                                   and vm['PublicDnsName'] else vm['PrivateDnsName']
                 vm_dict = {
                     'group_name': self.group,
@@ -136,7 +136,7 @@ class EC2Cloud(basecloud.BaseCloud):
                 new_vm = vms(**vm_dict)
                 db_session.merge(new_vm)
             db_session.commit()
-        elif 'SpotInstanceRequests' in new_vm.keys():
+        elif 'SpotInstanceRequests' in new_vm:
             # TODO Need to attach the tags to the spot instances
 
             engine = self._get_db_engine()

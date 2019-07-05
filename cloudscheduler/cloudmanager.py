@@ -46,14 +46,14 @@ class CloudManager():
                 elif cloud.cloud_type == 'amazon':
                     newcloud = ec2cloud.EC2Cloud(resource=cloud,
                                                  metadata=self.metadata[cloud.cloud_name]
-                                                 if self.metadata and cloud.cloud_name in self.metadata.keys()
-                                                 else None)
+                                                 if self.metadata and cloud.cloud_name in self.metadata
+                                                 else [])
                 else:
                     newcloud = openstackcloud.\
                         OpenStackCloud(resource=cloud,
                                        metadata=self.metadata[cloud.cloud_name]
-                                       if self.metadata and cloud.cloud_name in self.metadata.keys()
-                                       else None)
+                                       if self.metadata and cloud.cloud_name in self.metadata
+                                       else [])
                 if newcloud:
                     self.clouds[newcloud.name] = newcloud
             except Exception as ex:

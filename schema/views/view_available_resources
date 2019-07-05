@@ -27,6 +27,7 @@ fwd.default_keyname,
 fwd.default_network,
 fwd.default_security_groups,
 ifnull(ru.VMs,0) as VMs,
+ifnull(fwd.VMs_max,0) as VMs_max,
 ifnull(fwd.cores_max,0) as cores_max,
 ifnull(ru.cores_used,0) as cores_used,
 ifnull(fwd.cores_foreign,0) as cores_foreign,
@@ -38,7 +39,7 @@ ifnull(ru.swap_used,0) as swap_used,
 fwd.flavor,
 fwd.flavor_id,
 
-case when fwd.cores_max>ifnull(ru.cores_used,0) and fwd.ram_max>ifnull(ru.ram_used,0) then
+case when ifnull(fwd.VMs_max,0)>ifnull(ru.VMs,0) and ifnull(fwd.cores_max,0)>ifnull(ru.cores_used,0) and ifnull(fwd.ram_max,0)>ifnull(ru.ram_used,0) then
     least((fwd.cores_max-ifnull(ru.cores_used,0)) div fwd.flavor_cores, (fwd.ram_max-ifnull(ru.ram_used,0)) div fwd.flavor_ram)
 else
     0
@@ -132,6 +133,8 @@ from (
                     null
                 end
             end as default_security_groups,
+
+            instances_max as VMs_max, 
 
             case when ifnull(cores_ctl,-1)!=-1 then
                 case when ifnull(cores_softmax,-1)!=-1 then

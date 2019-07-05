@@ -1,0 +1,116 @@
+create or replace view view_active_resource_shortfall as
+select
+    cj.group_name,
+    cj.target_alias,
+    cj.target_clouds,
+    ifnull(cj.request_cores,0) as request_cores,
+    ifnull(sum(cv.active_cores),0) as active_cores,
+    ifnull(cj.request_cores,0) - ifnull(sum(cv.active_cores),0) as shortfall_cores,
+    ifnull(cj.request_disk,0) as request_disk,
+    ifnull(sum(cv.active_disk),0) as active_disk,
+    ifnull(cj.request_disk,0) - ifnull(sum(cv.active_disk),0) as shortfall_disk,
+    ifnull(cj.request_ram,0) as request_ram,
+    ifnull(sum(cv.active_ram),0) as active_ram,
+    ifnull(cj.request_ram,0) - ifnull(sum(cv.active_ram),0) as shortfall_ram
+from (
+    select
+        group_name,
+        target_alias,
+        target_clouds,
+        sum(request_cpus) as request_cores,
+        sum(request_disk/(1024*1024)) as request_disk,
+        sum(request_ram) as request_ram
+    from condor_jobs
+    where
+        job_status=1 or
+        job_status=2
+    group by
+        group_name,
+        target_alias,
+        target_clouds
+    ) as cj
+left outer join (
+    select
+        cv.group_name,
+        cv.cloud_name,
+        cca.alias_name as alias,
+        cv.VMs*cf.cores as active_cores,
+        cv.VMs*(cf.disk+cf.ephemeral_disk) as active_disk,
+        cv.VMs*cf.ram as active_ram
+    from (
+        select
+            group_name,
+            cloud_name,
+            flavor_id,
+            sum(VMs) as VMs
+        from (
+            select
+                group_name,
+                cloud_name,
+                flavor_id,
+                case when manual_control = 1 then
+                    'manual'
+                else
+                    case when status = 'ERROR' then
+                        'error'
+                    else
+                        case when retire > 0 then
+                            'retiring'
+                        else
+                            case when status = 'BUILD' then
+                                'starting'
+                            else
+                                case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                                    'unregistered'
+                                else
+                                    case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                                        'idle'
+                                    else
+                                        case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                            'running'
+                                        else
+                                            'error'
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end as poller_status,
+                sum(1) as VMs
+            from csv2_vms
+            group by 
+                group_name,
+                cloud_name,
+                flavor_id,
+                poller_status
+            ) as cv
+        where
+            poller_status='starting' or
+            poller_status='unregistered' or
+            poller_status='idle' or
+            poller_status='running'
+        group by
+            group_name,
+            cloud_name,
+            flavor_id
+        ) as cv
+    left outer join cloud_flavors as cf on
+        cv.group_name=cf.group_name and
+        cv.cloud_name=cf.cloud_name and
+        cv.flavor_id=cf.id
+    left outer join csv2_cloud_aliases as cca on
+        cv.group_name=cca.group_name and
+        cv.cloud_name=cca.cloud_name
+) as cv on
+    (cj.group_name=cv.group_name and cj.target_alias is null and cj.target_clouds is null) or
+    (cj.group_name=cv.group_name and cj.target_alias=cv.alias) or
+    (cj.group_name=cv.group_name and instr(cj.target_clouds, cv.cloud_name)>0)
+group by
+    group_name,
+    target_alias,
+    target_clouds,
+    request_cores,
+    request_disk,
+    request_ram
+;

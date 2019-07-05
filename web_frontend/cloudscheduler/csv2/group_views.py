@@ -26,6 +26,7 @@ from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
+from cloudscheduler.lib.htc_config import query_htc_gsi
 
 # lno: GV - error code identifier.
 MODID= 'GV'
@@ -341,6 +342,9 @@ def defaults(request, active_user=None, response_code=0, message=None):
             prune=['password']    
             )
 
+        # Check to see if GSI is installed and active:
+        gsi_state = query_htc_gsi()
+
     # Render the page.
     context = {
             'active_user': active_user.username,
@@ -355,6 +359,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
             'security_groups_list': security_groups_list,
             'response_code': rc,
             'message': message,
+            'gsi_state': gsi_state,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
@@ -672,7 +677,7 @@ def metadata_add(request):
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/reload_parent.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
+            return render(request, 'csv2/reload_parent.html', {'group_name': fields['group_name'], 'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
 
         else:
             config.db_close()
@@ -732,7 +737,7 @@ def metadata_delete(request):
             )
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/reload_parent.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
+            return render(request, 'csv2/reload_parent.html', {'group_name': fields['group_name'], 'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
 
         else:
             config.db_close()

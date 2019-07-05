@@ -273,20 +273,30 @@ def main(args):
         'uid': os.getuid(),
         }
     
+    # If it doesn't already exist, generate the bash completion script.
+    if not os.path.isfile('%s/.bash_completion.d/cloudscheduler' % gvar['home_dir']):
+        csv2_helpers.generate_bash_completion_script(gvar)
+
     # Check for interactive parent process and set the pid_file path.
     if os.readlink('/proc/%s/fd/0' % os.getppid()).split(':')[0] == 'pipe':
         gvar['pid_file'] = '-'
     else:
         gvar['pid_file'] = '/tmp/.csv2_%s' % os.getppid()
 
-    # Check for authentication by grid proxy certificate.
-    if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):
-        gvar['grid_proxy_user'] = '/tmp/x509up_u%s' % gvar['uid']
-    else:
-        gvar['grid_proxy_user'] = None
+#   # Check for authentication by grid proxy certificate.
+#   if os.path.isfile('/tmp/x509up_u%s' % gvar['uid']):
+#       gvar['grid_proxy_user'] = '/tmp/x509up_u%s' % gvar['uid']
+#   else:
+#       gvar['grid_proxy_user'] = None
 
     # Retrieve arguments.
     gvar['command_args'] = _args(gvar, args[1:])
+
+    # Ensure a minimal user settings exists.
+    if not os.path.exists('%s/.csv2' % gvar['home_dir']):
+        os.makedirs('%s/.csv2' % gvar['home_dir'], mode=0o700)  
+        if gvar['pid_file'] != '-':
+            os.unlink(gvar['pid_file'])
 
     # Retrieve (or initialise) process defaults.
     if os.path.isfile(gvar['pid_file']):
@@ -296,10 +306,6 @@ def main(args):
         fd.close()
     else:
         update_pid_defaults(gvar)
-
-    # Ensure a minimal user settings exists.
-    if not os.path.exists('%s/.csv2' % gvar['home_dir']):
-        os.makedirs('%s/.csv2' % gvar['home_dir'], mode=0o700)  
 
     # Save or load the user's server specification.
     if 'server' in gvar['command_args']:

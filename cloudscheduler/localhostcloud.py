@@ -76,11 +76,11 @@ class LocalHostCloud(basecloud.BaseCloud):
         self.log.debug(image_dict)
         self.log.debug(self.name)
         try:
-            if job.image and self.name in image_dict.keys():
+            if job.image and self.name in image_dict:
                 image = image_dict[self.name]
             elif self.default_image:
                 image = self.default_image
-            elif 'default' in image_dict.keys():
+            elif 'default' in image_dict:
                 image = image_dict['default']
             else:
                 image = csconfig.config.default_image
@@ -132,12 +132,12 @@ class LocalHostCloud(basecloud.BaseCloud):
         network = None
         network_dict = self._attr_list_to_dict(job.network)
         self.log.debug(network_dict)
-        if network_dict and self.name in network_dict.keys():
+        if network_dict and self.name in network_dict:
             if len(network_dict[self.name].split('-')) == 5:  # uuid
                 netid = [{'net-id': network_dict[self.name]}]
             else:
                 network = self._find_network(network_dict[self.name])
-        elif network_dict and 'default' in network_dict.keys():
+        elif network_dict and 'default' in network_dict:
             if len(network_dict['default'].split('-')) == 5: # uuid
                 netid = [{'net-id': network_dict['default']}]
             else:

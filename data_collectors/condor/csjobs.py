@@ -151,14 +151,16 @@ def job_poller():
                     logging.debug(exc)
                     jsched = {
                         "htcondor_fqdn": condor_host,
-                        "status":        0
+                        "condor_status": 0
                     }
                     new_jsched = JOB_SCHED(**jsched)
                     db_session.merge(new_jsched)
                     uncommitted_updates += 1
 
-                    if fail_count > 3:
+                    if fail_count > 3 and fail_count < 1500:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
+                    elif fail_count > 1500:
+                        logging.critical("Over 1500 failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
                     continue
 
 
@@ -279,6 +281,12 @@ def job_poller():
                         job_dict["RequestDisk"] = int(job_dict["RequestDisk"])
                     except Exception as exc:
                         job_dict["RequestDisk"] = int(job_dict["DiskUsage"])
+                    try:
+                        job_dict["RequestCpus"] = int(job_dict["RequestCpus"])
+                    except Exception as exc:
+                        logging.info("Request Cpus not set, setting minimum (1)")
+                        job_dict["RequestCpus"] = 1
+
 
                     job_dict = trim_keys(job_dict, job_attributes)
                     job_dict, unmapped = map_attributes(src="condor", dest="csv2", attr_dict=job_dict)
@@ -319,7 +327,7 @@ def job_poller():
                         break
                 jsched = {
                     "htcondor_fqdn": condor_host,
-                    "status":        1,
+                    "condor_status": 1,
                     "foreign_jobs":  held_jobs
                 }
                 new_jsched = JOB_SCHED(**jsched)
