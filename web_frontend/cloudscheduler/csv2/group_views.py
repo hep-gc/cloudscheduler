@@ -672,7 +672,7 @@ def metadata_add(request):
         rc, msg = config.db_session_execute(table.insert().values(table_fields(fields, table, columns, 'insert')))
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/reload_parent.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
+            return render(request, 'csv2/reload_parent.html', {'group_name': fields['group_name'], 'response_code': 0, 'message': 'group metadata file "%s::%s" successfully added.' % (active_user.active_group, fields['metadata_name'])})
 
         else:
             config.db_close()
@@ -732,7 +732,7 @@ def metadata_delete(request):
             )
         if rc == 0:
             config.db_close(commit=True)
-            return render(request, 'csv2/reload_parent.html', {'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
+            return render(request, 'csv2/reload_parent.html', {'group_name': fields['group_name'], 'response_code': 0, 'message': 'group metadata file "%s::%s" successfully deleted.' % (active_user.active_group, fields['metadata_name'])})
 
         else:
             config.db_close()
