@@ -7,8 +7,8 @@ GRIDMAP = /etc/grid-security/grid-mapfile
 GSI_DAEMON_CERT = /etc/grid-security/condor/condorcert.pem
 GSI_DAEMON_KEY = /etc/grid-security/condor/condorkey.pem
 GSI_DAEMON_TRUSTED_CA_DIR = /etc/grid-security/certificates/
-GSI_DAEMON_NAME = /C=CA/O=Grid/CN=condor/condor.heprc.uvic.ca,/C=CA/O=Grid/CN=condorworker/condor.heprc.uvic.ca
 GSI_DELEGATION_KEYBITS = 1024
+GSI_SKIP_HOST_CHECK=true
 
 # clear out any host-based authorizations
 # (unnecessary if you leave authentication REQUIRED,

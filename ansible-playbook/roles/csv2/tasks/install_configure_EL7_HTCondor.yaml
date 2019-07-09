@@ -1,63 +1,12 @@
 ---
 # install_configure_EL7_HTCondor.yaml
 
-- name: create condor certificate directories
-  file:
-    dest: /etc/grid-security/condor/worker
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
+- name: open HTCondor service port
+  firewalld: zone=public port=9618/tcp  state=enabled immediate=yes permanent=yes
   when: (container is undefined) or (container == False)
 
-- name: install the grid map file
-  copy:
-    src: etc_grid-security_grid-mapfile
-    dest: /etc/grid-security/grid-mapfile
-    owner: root
-    group: root
-    mode: 0644
-  when: (container is undefined) or (container == False)
-
-- name: install condor certificate file
-  copy:
-    src: /root/Downloads/grid-security/condor/condorcert.pem
-    dest: /etc/grid-security/condor/condorcert.pem
-    owner: root
-    group: root
-    mode: 0644
-  when: (container is undefined) or (container == False)
-
-- name: install condor private key file
-  copy:
-    src: /root/Downloads/grid-security/condor/condorkey.pem
-    dest: /etc/grid-security/condor/condorkey.pem
-    owner: root
-    group: root
-    mode: 0600
-  when: (container is undefined) or (container == False)
-
-# name: create condorworker certificate directory
-# file:
-#   dest: /etc/grid-security/condor/worker
-#   state: directory
-
-- name: install condorworker certificate file
-  copy:
-    src: /root/Downloads/grid-security/condor/worker/condorworkercert.pem
-    dest: /etc/grid-security/condor/worker/condorworkercert.pem
-    owner: root
-    group: root
-    mode: 0644
-  when: (container is undefined) or (container == False)
-
-- name: install condorworker private key file
-  copy:
-    src: /root/Downloads/grid-security/condor/worker/condorworkerkey.pem
-    dest: /etc/grid-security/condor/worker/condorworkerkey.pem
-    owner: root
-    group: root
-    mode: 0600
+- name: open HTCondor ephemeral ports
+  firewalld: zone=public port=40000-50000/tcp  state=enabled immediate=yes permanent=yes
   when: (container is undefined) or (container == False)
 
 - name: configure HTCondor repository
@@ -75,14 +24,6 @@
   yum: name={{ item }} state=latest
   with_items:
   - condor-all
-  - fetch-crl
-  - globus-proxy-utils
-
-- name: create an admin proxy certificate
-  command: grid-proxy-init -cert /etc/grid-security/condor/condorcert.pem  -key /etc/grid-security/condor/condorkey.pem  -valid 12000:0
-  args:
-    creates: /tmp/x509up_u0
-  when: (container is undefined) or (container == False)
 
 - name: HTCondor local configuration
   copy:
@@ -95,6 +36,13 @@
   - restart condor
   when: container is undefined
 
+# If you ever use the IP address, change etc_condor_condor_config.local.container to a template.
+# name: Get public IP address
+# ipify_facts:
+# when: 
+# - container is defined
+# - container == True
+
 - name: HTCondor local container configuration
   copy:
     src: etc_condor_condor_config.local.container  
@@ -106,39 +54,6 @@
   - restart condor
   when: container is defined  
 
-- name: Get public IP address
-  ipify_facts:
-  when: 
-  - container is defined
-  - container == True
-
-- name: add line to local config indicating public IP address for container target
-  lineinfile:
-    path: /etc/condor/condor_config.local
-    regexp: '^NETWORK_INTERFACE = '
-    line: 'NETWORK_INTERFACE = {{ ipify_public_ip }}'
-  when: 
-  - container is defined
-  - container == True
-
-- set_fact:
-      gsi_source_file: gsi
-  when: (container is undefined) or (container == False)
-
-- set_fact: 
-      gsi_source_file: gsi.container
-  when: 
-  - container is defined
-  - container == True
-
-- name: do something with both gsi files so they're both included in ansible
-  copy:
-    src: "etc_condor_config.d_{{ item }}"
-    dest: "/jobs"
-  with_items:
-  - gsi
-  - gsi.container
-
 - name: HTCondor configure 
   copy:
     src:  "etc_condor_config.d_{{ item }}"
@@ -149,26 +64,163 @@
   with_items:
   - default_request
   - defrag
-  - gsi
-  - gsi.container
   - ports
   - scaling
   - system_hold
   notify:
   - restart condor
 
-- name: rename gsi target file for container target
-  shell: mv /etc/condor/config.d/gsi.container /etc/condor/config.d/gsi
-  when: 
-  - container is defined
-  - container == True
+- name: install GSI tools
+  yum: name={{ item }} state=latest
+  with_items:
+  - fetch-crl
+  - globus-proxy-utils
+  when:
+  - grid_mapfile is defined or host_cert is defined or htcondor_cert is defined or htcondor_worker_cert is defined
 
-- name: open HTCondor service port
-  firewalld: zone=public port=9618/tcp  state=enabled immediate=yes permanent=yes
-  when: (container is undefined) or (container == False)
+- name: install the grid-mapfile if defined
+  copy:
+    src: "{{ grid_mapfile }}"
+    dest: /etc/grid-security/grid-mapfile
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - grid_mapfile is defined
 
-- name: open HTCondor ephemeral ports
-  firewalld: zone=public port=40000-50000/tcp  state=enabled immediate=yes permanent=yes
-  when: (container is undefined) or (container == False)
+- name: install the host certificate if defined
+  copy:
+    src: "{{ host_cert }}"
+    dest: /etc/grid-security/hostcert.pem
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - host_cert is defined
+
+- name: install the host private key if defined
+  copy:
+    src: "{{ host_key }}"
+    dest: /etc/grid-security/hostkey.pem
+    owner: root
+    group: root
+    mode: 0600
+  when:
+  - host_key is defined
+
+- name: create condor certificate directories
+  file:
+    dest: /etc/grid-security/condor/worker
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when:
+  - htcondor_cert is defined or htcondor_worker_cert is defined
+
+- name: install condor certificate file
+  copy:
+    src: "{{ htcondor_cert }}"
+    dest: /etc/grid-security/condor/condorcert.pem
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - htcondor_cert is defined
+
+- name: install condor private key file
+  copy:
+    src: "{{ htcondor_key }}"
+    dest: /etc/grid-security/condor/condorkey.pem
+    owner: root
+    group: root
+    mode: 0600
+  when:
+  - htcondor_key is defined
+
+- name: install condorworker certificate file
+  copy:
+    src: "{{ htcondor_worker_cert }}"
+    dest: /etc/grid-security/condor/worker/condorworkercert.pem
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - htcondor_worker_cert is defined
+
+- name: install condorworker private key file
+  copy:
+    src: "{{ htcondor_worker_key }}"
+    dest: /etc/grid-security/condor/worker/condorworkerkey.pem
+    owner: root
+    group: root
+    mode: 0600
+  when:
+  - htcondor_worker_key is defined
+
+
+- name: create an admin proxy certificate
+  command: grid-proxy-init -cert /etc/grid-security/condor/condorcert.pem  -key /etc/grid-security/condor/condorkey.pem  -valid 12000:0
+  args:
+    creates: /tmp/x509up_u0
+  when:
+  - htcondor_cert is defined
+
+- name: HTCondor GSI configuration 
+  template:
+    src:  "etc_condor_config.d_{{ item }}.j2"
+    dest: "/etc/condor/config.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+  - gsi
+  notify:
+  - restart condor
+  when:
+  - htcondor_cert is defined or htcondor_worker_cert is defined
+
+- name: create the CSV2 modifiable condor configuration directory
+  file:
+    dest: /var/local/cloudscheduler/etc/condor/config.d
+    state: directory
+    owner: cloudscheduler
+    group: cloudscheduler
+    mode: 0755
+  when:
+  - htcondor_cert is defined or htcondor_worker_cert is defined
+
+- name: create the CSV2 condor gsi_daemon_name template file (used by htc_config)
+  template:
+    src: var_local_cloudscheduler_etc_condor_config.d_htcondor_distinguished_names.j2
+    dest: /var/local/cloudscheduler/etc/condor/config.d/htcondor_distinguished_names
+    owner: cloudscheduler
+    group: cloudscheduler
+    mode: 0644
+  when:
+  - htcondor_cert is defined or htcondor_worker_cert is defined
+
+- name: create the initial (minimal) CSV2 condor gsi_daemon_name template file (used by htc_config)
+  template:
+    src: var_local_cloudscheduler_etc_condor_config.d_htcondor_distinguished_names.j2
+    dest: /var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name
+    owner: cloudscheduler
+    group: cloudscheduler
+    mode: 0644
+  when:
+  - htcondor_cert is defined or htcondor_worker_cert is defined
+
+- name: link to the modifiable condor gsi_daemon_name
+  file:
+    src: /var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name
+    dest: /etc/condor/config.d/gsi_daemon_name
+    state: link
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - restart condor
+  when:
+  - htcondor_cert is defined or htcondor_worker_cert is defined
 
 - meta: flush_handlers
