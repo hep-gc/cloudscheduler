@@ -199,7 +199,7 @@ def invalidate_master_classad(session, classad):
     return session.advertise([classad], "INVALIDATE_MASTER_ADS")
 
 def invalidate_startd_classads(session, classad_list):
-    return condor_session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
+    return session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
        
 
 fd = open(sys.argv[1])
