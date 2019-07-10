@@ -149,11 +149,12 @@
   text-align: center;
   white-space: nowrap;
 }
+/*
 .status-table td a {
   display:block;
   width:100%;
 }
-
+*/
 .status-table td, th {
   padding: 8px;
   text-align: center;
@@ -225,12 +226,12 @@
 .job-extra-row{
   width: 100%;
 }
-
+/*
 td a {
   display:block;
   width:100%;
 }
-
+*/
 .status-table {
   position: relative;
 }
@@ -242,11 +243,11 @@ td a {
   width: 30px;
   max-width: 30px;
 }
-
+/*
 .toggle-box{
   display: none;
 }
-
+*/
 .header-row th {
   border-top: 0px;
 }
@@ -277,6 +278,8 @@ td a {
   color: black;
 }
 
+
+/*
 input.toggle-box:checked ~ .status-table table tr.extra-row {
   display: table-row;
 }
@@ -288,7 +291,7 @@ input.toggle-box:checked ~ .status-table table td.extra-row {
 input.toggle-box:checked ~ .status-table table th.extra-row {
   display: table-cell;
 }
-
+*/
 /*****************************************************************/
 /*                          status styling                       */
 /*****************************************************************/
@@ -477,8 +480,14 @@ body.status-nav{
   color: red;
 }
 
+.row-label {
+  display:inline;
+  text-align: left;
+}
 .expand-symbol {
+  display: inline;
   color: black;
+  text-align: right;
 }
 
 .bigger {
