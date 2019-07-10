@@ -29,8 +29,8 @@ def configure_htc(config, logger=None):
         else:
             return ''
 
-    def sys_cmd(logger, cmd):
-        configure_htc_logger(logger, 'debug', 'sys_cmd: %s' % cmd)
+    def sys_cmd(logger, cmd, comment=''):
+        configure_htc_logger(logger, 'debug', 'sys_cmd: %s %s' % (cmd, comment))
 
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
@@ -68,11 +68,14 @@ def configure_htc(config, logger=None):
             success, stdout = sys_cmd(logger, ['/usr/sbin/condor_reconfig'])
 
         # firewall-cmd rich-rules
+        rr_xref = {}
         new_fw_set = set()
         for fqdn in config.db_connection.execute('select distinct htcondor_fqdn from csv2_groups where htcondor_fqdn is not null'):
             try:
                 ip_addr = socket.gethostbyname(fqdn['htcondor_fqdn'])
-                new_fw_set.add('rule family="ipv4" source address="%s/24" port port="5672" protocol="tcp" accept' % ip_addr)
+                rr = 'rule family="ipv4" source address="%s" port port="5672" protocol="tcp" accept' % ip_addr
+                rr_xref[rr] = fqdn['htcondor_fqdn']
+                new_fw_set.add(rr)
             except:
                 configure_htc_logger(logger, 'warning', 'ignoring HTCondor hostname "%s", unable to resolve .' % fqdn)
 
@@ -87,7 +90,7 @@ def configure_htc(config, logger=None):
                 success, stdout = sys_cmd(logger, ['/usr/bin/sudo', '/bin/firewall-cmd', '--permanent', '--zone', 'public', '--remove-rich-rule', fw_rule])
             
             for fw_rule in new_fw_set - old_fw_set:
-                success, stdout = sys_cmd(logger, ['/usr/bin/sudo', '/bin/firewall-cmd', '--permanent', '--zone', 'public', '--add-rich-rule', fw_rule])
+                success, stdout = sys_cmd(logger, ['/usr/bin/sudo', '/bin/firewall-cmd', '--permanent', '--zone', 'public', '--add-rich-rule', fw_rule], comment='(%s)' % rr_xref[fw_rule])
             
             success, stdout = sys_cmd(logger, ['/usr/bin/sudo', '/bin/firewall-cmd', '--reload'])
 
