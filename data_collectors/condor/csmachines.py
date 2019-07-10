@@ -424,6 +424,7 @@ def command_poller():
                     #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
                     if resource.retire >= 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
+                        #if (resource[6] is None or resource[6]<1): # this statement skips the check from primary slot, normally this code would only execute when it never registered with condor
                             #check if terminate has already been set
                             if resource[9] >= 1:
                                 continue
@@ -701,7 +702,7 @@ def command_poller():
                     except Exception as exc:
                         logging.exception("Failed to commit retire machine, aborting cycle...")
                         logging.error(exc)
-                        del condor_session
+                        #del condor_session
                         config.db_close()
                         del db_session
                         time.sleep(config.sleep_interval_command)
@@ -728,7 +729,8 @@ def command_poller():
                 logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
                 logging.exception(exc)
 
-            del db_session
+            if 'db_session'in locals():
+                del db_session
             time.sleep(config.sleep_interval_command)
 
     except Exception as exc:
