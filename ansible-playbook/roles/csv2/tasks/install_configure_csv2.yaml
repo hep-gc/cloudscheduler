@@ -27,6 +27,7 @@
     path: "{{ item }}"
     state: absent
   with_items:
+  - /etc/condor/config.d/gsi.container
   - /etc/cron.d/csv2-ec2-instance-types
   - /etc/logrotate.d/cspollers.conf
 
@@ -83,21 +84,79 @@
     name: cloudscheduler
   register: cloudsheduler_user
 
-- name: check that a grid proxy exists for root
-  stat:
-    path: /tmp/x509up_u0
-  register: u0_proxy
-
-- name: if the root grid proxy exists, create one for cloudscheduler
-  copy:
-    remote_src: yes
-    src: /tmp/x509up_u0
-    dest: "/tmp/x509up_u{{ cloudsheduler_user.uid }}"
+- name: create the CSV2 modifiable condor configuration directory
+  file:
+    dest: /var/local/cloudscheduler/etc/condor/config.d
+    state: directory
     owner: cloudscheduler
     group: cloudscheduler
-    mode: 0600
+    mode: 0755
   when:
-  - u0_proxy.stat.exists == True
+  - htcondor_cert is defined 
+  - htcondor_worker_cert is defined
+
+- name: create the CSV2 condor gsi_daemon_name template file (used by htc_config)
+  template:
+    src: var_local_cloudscheduler_etc_condor_config.d_htcondor_distinguished_names.j2
+    dest: /var/local/cloudscheduler/etc/condor/config.d/htcondor_distinguished_names
+    owner: cloudscheduler
+    group: cloudscheduler
+    mode: 0644
+  when:
+  - htcondor_cert is defined 
+  - htcondor_worker_cert is defined
+
+- name: create the initial (minimal) CSV2 condor gsi_daemon_name template file (used by htc_config)
+  template:
+    src: var_local_cloudscheduler_etc_condor_config.d_htcondor_distinguished_names.j2
+    dest: /var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name
+    owner: cloudscheduler
+    group: cloudscheduler
+    mode: 0644
+  when:
+  - htcondor_cert is defined 
+  - htcondor_worker_cert is defined
+
+- name: link to the modifiable condor gsi_daemon_name
+  file:
+    src: /var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name
+    dest: /etc/condor/config.d/gsi_daemon_name
+    state: link
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - restart condor
+  when:
+  - htcondor_cert is defined 
+  - htcondor_worker_cert is defined
+
+- name: remove static gsi_daemon_name
+  lineinfile:
+    path: "/etc/condor/config.d/gsi"
+    regexp: '^GSI_DAEMON_NAME'
+    state: absent
+  notify:
+    restart condor
+
+- name: install condor cloudscheduler proxy utility
+  copy:
+    src: usr_local_sbin_create_condor_cloudscheduler_proxy
+    dest: /usr/local/sbin/create_condor_cloudscheduler_proxy
+    owner: root
+    group: root
+    mode: 0700
+  when:
+  - htcondor_cert is defined
+  - htcondor_worker_cert is defined
+
+- name: create an cloudscheduler proxy certificate
+  command: /usr/local/sbin/create_condor_cloudscheduler_proxy
+  args:
+    creates: "/tmp/x509up_u{{ cloudsheduler_user.uid }}"
+  when:
+  - htcondor_cert is defined
+  - htcondor_worker_cert is defined
 
 - name: create celery user
   user:
@@ -178,6 +237,7 @@
     state: enabled
     immediate: true
   when: (container is undefined) or (container == False)
+  ignore_errors: yes
 
 - name: set start condition in default.yaml.j2 for container target
   lineinfile:
@@ -468,23 +528,23 @@
     password: "{{ csv2_default_password }}"
 - name: create csv2_default user for csv2
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_user (username, password, is_superuser, join_date) VALUES ("csv2_default", "{{ blowfish.hash }}", 1, "2018-04-01")'
-  ignore_errors: True
+  ignore_errors: yes
 
 - name: create csv2-group for the default csv2 user
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_groups (group_name, htcondor_fqdn) VALUES ("csv2-group", "{{ condor_manager }}")'
-  ignore_errors: True
+  ignore_errors: yes
 
 - name: add default csv2 user to csv2-group
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_user_groups (username, group_name) VALUES ("csv2_default", "csv2-group")'
-  ignore_errors: True
+  ignore_errors: yes
 
 - name: create a defaults entry for csv2-group
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_groups (group_name, job_cpus, job_ram, job_disk, job_scratch, job_swap, vm_keep_alive) VALUES ("csv2-group", "1", "1000", "5", "0", "0", "0")'
-  ignore_errors: True
+  ignore_errors: yes
 
 - name: add metadata files for csv2-group
   command: mysql -u root --password={{ mariadb_root }} -D csv2 -e 'INSERT INTO csv2_group_metadata (group_name, metadata_name, enabled, priority, metadata, mime_type) VALUES ("csv2-group", "{{ item }}", "1", "0", LOAD_FILE("/opt/cloudscheduler/metadata/{{ item }}"), "cloud-config")'
-  ignore_errors: True
+  ignore_errors: yes
   with_items:
   - csv2htc.yaml.j2
   - default.yaml.j2

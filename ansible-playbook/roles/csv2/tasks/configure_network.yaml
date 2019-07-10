@@ -16,11 +16,13 @@
   firewalld: zone=internal port=0-65535/tcp  state=enabled immediate=yes permanent=yes
   notify:
     - restart firewalld
+  ignore_errors: yes
 
 - name: open internal network ports
   firewalld: zone=internal port=0-65535/udp  state=enabled immediate=yes permanent=yes
   notify:
     - restart firewalld
+  ignore_errors: yes
 
 - name: assign interfaces to internal zone
   firewalld: zone=internal interface={{ item.nic }} state=enabled immediate=yes permanent=yes
@@ -29,6 +31,7 @@
     - item.ext != 'y'
   notify:
     - restart firewalld
+  ignore_errors: yes
 
 - name: assign interfaces to public zone
   firewalld: zone=public interface={{ item.nic }} state=enabled immediate=yes permanent=yes
@@ -37,6 +40,7 @@
     - item.ext == 'y'
   notify:
     - restart firewalld
+  ignore_errors: yes
 
 - name: apply firewall rules.
   firewalld:
@@ -48,6 +52,7 @@
   with_items: "{{ i_firewall }}"
   notify:
     - restart firewalld
+  ignore_errors: yes
 
 - meta: flush_handlers
 

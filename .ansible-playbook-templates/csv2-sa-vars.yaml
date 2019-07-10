@@ -18,22 +18,18 @@ favicon_colour: red
 #    o Obtain/create a grid-mapfile.
 #    o Obtain a grid certficate for the HTCondor server.
 #    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
-#    o Specify the required GSI information (nine items) in this "vars" file, eg:
+#    o Specify the required GSI information (seven items) in this "vars" file, eg:
 #
-#          grid_mapfile: /home/cloud_user/grid_stuff/grid-mapfile
+#      grid_mapfile: /root/grid-security/latest/csv2-sa/grid-mapfile
 #
-#          host_cert: /home/cloud_user/grid_stuff/hostcert.pem
-#          host_key: /home/cloud_user/grid_stuff/hostkey.pem
+#      htcondor_gsi_dn: /C=CA/O=Grid/CN=condor/condor.example.ca
+#      htcondor_cert: /root/grid-security/latest/condor/hostcert.pem
+#      htcondor_key: /root/grid-security/latest/condor/hostkey.pem
 #
-#          htcondor_gsi_dn: /C=CA/O=Grid/CN=condor/csv2-sa.example.edu
-#          htcondor_cert: /home/cloud_user/grid_stuff/condorcert.pem
-#          htcondor_key: /home/cloud_user/grid_stuff/condorkey.pem
-#
-#          htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/csv2-sa.example.edu
-#          htcondor_worker_cert: /home/cloud_user/grid_stuff/condorworkercert.pem
-#          htcondor_worker_key: /home/cloud_user/grid_stuff/condorworkerkey.pem
+#      htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
+#      htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
+#      htcondor_worker_key: /root/grid-security/latest/condorworker/hostkey.pem
 # 
-
 
 # Defines (three) entries to be added to /etc/hosts.
 i_etc_hosts:
