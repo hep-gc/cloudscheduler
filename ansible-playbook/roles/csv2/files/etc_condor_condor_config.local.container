@@ -41,3 +41,14 @@ ALLOW_NEGOTIATOR_SCHEDD = *
 
 # Needed for a container as it doesn't have sys admin capabilities
 DISCARD_SESSION_KEYRING_ON_STARTUP = FALSE
+
+# clear out any host-based authorizations
+# (unnecessary if you leave authentication REQUIRED,
+#  but useful if you make it optional and want to
+#  allow some unauthenticated operations, such as
+#  ALLOW_READ = */*.cs.wisc.edu)
+HOSTALLOW_READ = *
+HOSTALLOW_WRITE = *
+HOSTALLOW_NEGOTIATOR =
+HOSTALLOW_ADMINISTRATOR =
+
