@@ -13,6 +13,24 @@ db_upgrade_file: none
 schema_model: stable-2.4
 favicon_colour: red
 
+# By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
+# 
+#    o Obtain/create a grid-mapfile.
+#    o Obtain a grid certficate for the HTCondor server.
+#    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
+#    o Specify the required GSI information (seven items) in this "vars" file, eg:
+#
+#      grid_mapfile: /root/grid-security/latest/csv2-sa/grid-mapfile
+#
+#      htcondor_gsi_dn: /C=CA/O=Grid/CN=condor/condor.example.ca
+#      htcondor_cert: /root/grid-security/latest/condor/hostcert.pem
+#      htcondor_key: /root/grid-security/latest/condor/hostkey.pem
+#
+#      htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
+#      htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
+#      htcondor_worker_key: /root/grid-security/latest/condorworker/hostkey.pem
+# 
+
 # Defines (three) entries to be added to /etc/hosts.
 i_etc_hosts:
 -
