@@ -4,6 +4,8 @@ import os
 import socket
 
 def configure_htc(config, logger=None):
+    local_dir = '/var/local/cloudscheduler/etc/condor/config.d'
+
     def configure_htc_logger(logger, level, msg):
         if logger:
             if level == 'debug':
@@ -46,16 +48,20 @@ def configure_htc(config, logger=None):
             db_close_on_exit = True
 
         # GSI_DAEMON_NAME
+        fd = open('%s/htcondor_distinguished_names' % local_dir)
+        new_daemon_set = set(fd.read().split('=')[1].strip().split(','))
+        fd.close()
+
         new_daemon_set = set()
         for daemon in config.db_connection.execute('select distinct htcondor_gsi_dn from csv2_groups where htcondor_gsi_dn is not null'):
             new_daemon_set.add(daemon['htcondor_gsi_dn'])
 
-        fd = open('/var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name')
+        fd = open('%s/gsi_daemon_name' % local_dir)
         old_daemon_set = set(fd.read().split('=')[1].strip().split(','))
         fd.close()
 
         if new_daemon_set != old_daemon_set:
-            fd = open('/var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name', 'w')
+            fd = open('%s/gsi_daemon_name' % local_dir, 'w')
             fd.write('GSI_DAEMON_NAME = %s' % ','.join(list(new_daemon_set)))
             fd.close()
             
