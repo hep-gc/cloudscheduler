@@ -11,6 +11,7 @@ from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 from cloudscheduler.lib.schema import view_condor_host
 from cloudscheduler.lib.log_tools import get_frame_info
+from cloudscheduler.lib.htc_config import configure_htc
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
     get_inventory_item_hash_from_database, \
@@ -156,6 +157,7 @@ def machine_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
+        configure_htc(config, logging)
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
