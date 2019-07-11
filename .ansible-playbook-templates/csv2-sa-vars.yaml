@@ -22,9 +22,9 @@ favicon_colour: red
 #
 #      grid_mapfile: /root/grid-security/latest/csv2-sa/grid-mapfile
 #
-#      htcondor_gsi_dn: /C=CA/O=Grid/CN=condor/condor.example.ca
-#      htcondor_cert: /root/grid-security/latest/condor/hostcert.pem
-#      htcondor_key: /root/grid-security/latest/condor/hostkey.pem
+#      htcondor_gsi_dn: /C=CA/O=Grid/CN=csv2-sa.example.ca
+#      htcondor_cert: /root/grid-security/latest/csv2-sa/hostcert.pem
+#      htcondor_key: /root/grid-security/latest/csv2-sa/hostkey.pem
 #
 #      htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
 #      htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
