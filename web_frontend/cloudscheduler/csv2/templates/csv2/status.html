@@ -368,7 +368,7 @@ else if (refresh_interval < 1) stop_refresh;
                     {% endfor %}
 
                     <tr class="bottom-row">
-                        <td colspan="10"></td>
+                        <td colspan="11"></td>
                         <td class="extra-row">&nbsp;</td>
                     </tr>
 
@@ -407,6 +407,19 @@ else if (refresh_interval < 1) stop_refresh;
 
                         <th class="col-spacer">&nbsp;</th>
 
+                        <th class="native-style">Slots</th>
+                        <th class="native-style" colspan="2">
+                            <table>
+                                <tr colspan="2">Slot Cores</tr>
+                                <tr>
+                                    <th>Busy</th>
+                                    <th>Idle</th>
+                                </tr>
+                            </table>
+                        </th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
                         <th class="native-style" colspan="2">
                             <table>
                                 <tr colspan="2">Native Cores</tr>
@@ -441,19 +454,6 @@ else if (refresh_interval < 1) stop_refresh;
                                     <th>VMs</th>
                                     <th>Cores</th>
                                     <th>RAM</th>
-                                </tr>
-                            </table>
-                        </th>
-
-                        <th class="col-spacer">&nbsp;</th>
-
-                        <th class="native-style">Slots</th>
-                        <th class="native-style" colspan="2">
-                            <table>
-                                <tr colspan="2">Slot Cores</tr>
-                                <tr>
-                                    <th>Busy</th>
-                                    <th>Idle</th>
                                 </tr>
                             </table>
                         </th>
@@ -529,7 +529,26 @@ else if (refresh_interval < 1) stop_refresh;
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_in_error" class="more-style plottable" oncontextmenu="javascript:native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=error&hostname=');return false;">{{cloud.VMs_in_error}}</td>
                                     {% endif %}
 
+                                    <td class="col-spacer">&nbsp;</td>
 
+                                    {% if cloud.slot_count == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="zero-style plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="more-style plottable">{{cloud.slot_count}}</td>
+                                    {% endif %}
+
+
+                                    {% if cloud.slot_core_count == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="zero-style plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="more-style plottable">{{cloud.slot_core_count}}</td>
+                                    {% endif %}
+
+                                    {% if cloud.slot_idle_core_count == 0 %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="zero-style plottable">0</td>
+                                    {% else %}
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="more-style plottable">{{cloud.slot_idle_core_count}}</td>
+                                    {% endif %}
 
                                     <td class="col-spacer">&nbsp;</td>
 
@@ -620,29 +639,6 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endwith %}                        
                                     </td>
 
-
-
-                                    <td class="col-spacer">&nbsp;</td>
-
-                                    {% if cloud.slot_count == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="zero-style plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_count" class="more-style plottable">{{cloud.slot_count}}</td>
-                                    {% endif %}
-
-
-                                    {% if cloud.slot_core_count == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="zero-style plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_core_count" class="more-style plottable">{{cloud.slot_core_count}}</td>
-                                    {% endif %}
-
-                                    {% if cloud.slot_idle_core_count == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="zero-style plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} slot_idle_core_count" class="more-style plottable">{{cloud.slot_idle_core_count}}</td>
-                                    {% endif %}
-
                                 </tr>
 
                                 <!-- Cloud status expand row to show details-->
@@ -701,6 +697,24 @@ else if (refresh_interval < 1) stop_refresh;
                                     {% endif %}
                                     </td>
 
+                                    <td class="col-spacer">&nbsp;</td>
+
+                                    <td colspan="2">
+                                        <table>
+                                        
+                                        {% for slot in slot_list %}
+
+                                            {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
+                                            <tr>
+                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                                    <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                                                </tr>
+                                            {% endif %}
+
+                                        {% endfor %}
+                                        </table>
+                                    </td>
+                                    <td><!--Idle--></td>
 
                                     <td class="col-spacer">&nbsp;</td>
 
@@ -763,25 +777,6 @@ else if (refresh_interval < 1) stop_refresh;
                                         {% endwith %}
                                     </td>
 
-
-                                    <td class="col-spacer">&nbsp;</td>
-
-                                    <td colspan="2">
-                                        <table>
-                                        
-                                        {% for slot in slot_list %}
-
-                                            {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
-                                            <tr>
-                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                                    <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                                                </tr>
-                                            {% endif %}
-
-                                        {% endfor %}
-                                        </table>
-                                    </td>
-                                    <td><!--Idle--></td>
                                 </tr>
 
                             {% endif %}
@@ -817,7 +812,7 @@ else if (refresh_interval < 1) stop_refresh;
                         
                      <tr>
                         <td colspan="1" class="row-spacer">&nbsp;</td>
-                        <td class="bold-style">Totals</td>
+                        <td class="bold-style" onclick="toggle_id('expand-totals')">Totals</td>
 
                         {% if group_total.VMs == 0 %}
                             <td data-path="{{group_name}} VMs_total" class="zero-style plottable" oncontextmenu="javascript:return false;">0</td>
@@ -875,6 +870,26 @@ else if (refresh_interval < 1) stop_refresh;
                         {% endif %}
 
 
+                        <td class="col-spacer">&nbsp;</td>
+
+                        {% if group_total.slot_count == 0 %}
+                            <td data-path="{{group_name}} slot_count_total" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{group_name}} slot_count_total" class="more-style plottable">{{group_total.slot_count}}</td>
+                        {% endif %}
+
+
+                        {% if group_total.slot_core_count == 0 %}
+                            <td data-path="{{group_name}} slot_core_count_total" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{group_name}} slot_core_count_total" class="more-style plottable">{{group_total.slot_core_count}}</td>
+                        {% endif %}
+
+                        {% if group_total.slot_idle_core_count == 0 %}
+                            <td data-path="{{group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
+                        {% else %}
+                            <td data-path="{{group_name}} slot_idle_core_count_total" class="more-style plottable">{{group_total.slot_idle_core_count}}</td>
+                        {% endif %}
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -943,34 +958,11 @@ else if (refresh_interval < 1) stop_refresh;
                             {% endwith %}
                         </td>
 
-
-
-                        <td class="col-spacer">&nbsp;</td>
-
-                        {% if group_total.slot_count == 0 %}
-                            <td data-path="{{group_name}} slot_count_total" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{group_name}} slot_count_total" class="more-style plottable">{{group_total.slot_count}}</td>
-                        {% endif %}
-
-
-                        {% if group_total.slot_core_count == 0 %}
-                            <td data-path="{{group_name}} slot_core_count_total" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{group_name}} slot_core_count_total" class="more-style plottable">{{group_total.slot_core_count}}</td>
-                        {% endif %}
-
-                        {% if group_total.slot_idle_core_count == 0 %}
-                            <td data-path="{{group_name}} slot_idle_core_count_total" class="zero-style plottable">0</td>
-                        {% else %}
-                            <td data-path="{{group_name}} slot_idle_core_count_total" class="more-style plottable">{{group_total.slot_idle_core_count}}</td>
-                        {% endif %}
-
                     </tr>
 
 
                     <tr class="extra-row">
-                        <td colspan="1" class="row-spacer">&nbsp;</td>
+                        <td colspan="1" class="row-spacer" id="expand-totals">&nbsp;</td>
                         <td></td>
 
                         <td>
@@ -1021,6 +1013,24 @@ else if (refresh_interval < 1) stop_refresh;
                         {% endif %}
                         </td>
 
+                        <td class="col-spacer">&nbsp;</td>
+
+                        <td colspan="2">
+                            <table>
+
+                            {% for slot in slot_total_list %}
+                            
+                                {% if slot %}
+                                <tr>
+                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
+                                        <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
+                                    </tr>
+                                {% endif %}
+                                
+                            {% endfor %}
+                            </table>
+                        </td>
+                        <td><!--Idle--></td>
 
                         <td class="col-spacer">&nbsp;</td>
 
@@ -1073,24 +1083,7 @@ else if (refresh_interval < 1) stop_refresh;
                             {% endwith %}                    
                         </td>
 
-                        <td class="col-spacer">&nbsp;</td>
-
-                        <td colspan="2">
-                            <table>
-
-                            {% for slot in slot_total_list %}
-                            
-                                {% if slot %}
-                                <tr>
-                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                        <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                                    </tr>
-                                {% endif %}
-                                
-                            {% endfor %}
-                            </table>
-                        </td>
-                        <td><!--Idle--></td>
+                    </tr>
 
 
                     <tr class="bottom-row">
