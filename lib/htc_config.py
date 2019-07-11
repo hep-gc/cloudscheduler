@@ -49,18 +49,20 @@ def configure_htc(config, logger=None):
 
         # GSI_DAEMON_NAME
         fd = open('%s/htcondor_distinguished_names' % local_dir)
-        new_daemon_set = set(fd.read().split('=')[1].strip().split(','))
+        new_daemon_set = set(fd.read().split('=',1)[1].strip().split(','))
         fd.close()
+        configure_htc_logger(logger, 'debug', 'model gsi_daemon_name: %s' % new_daemon_set)
 
         new_daemon_set = set()
         for daemon in config.db_connection.execute('select distinct htcondor_gsi_dn from csv2_groups where htcondor_gsi_dn is not null'):
             new_daemon_set.add(daemon['htcondor_gsi_dn'])
 
         fd = open('%s/gsi_daemon_name' % local_dir)
-        old_daemon_set = set(fd.read().split('=')[1].strip().split(','))
+        old_daemon_set = set(fd.read().split('=',1)[1].strip().split(','))
         fd.close()
 
         if new_daemon_set != old_daemon_set:
+            configure_htc_logger(logger, 'debug', 'new gsi_daemon_name: %s' % new_daemon_set)
             fd = open('%s/gsi_daemon_name' % local_dir, 'w')
             fd.write('GSI_DAEMON_NAME = %s' % ','.join(list(new_daemon_set)))
             fd.close()
