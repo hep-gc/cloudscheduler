@@ -1,1 +1,1 @@
-cloudscheduler ALL=(ALL) NOPASSWD: /bin/systemctl
+cloudscheduler ALL=(ALL) NOPASSWD: /bin/systemctl, /bin/firewall-cmd
