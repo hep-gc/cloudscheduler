@@ -53,7 +53,6 @@ def configure_htc(config, logger=None):
         fd.close()
         configure_htc_logger(logger, 'debug', 'model gsi_daemon_name: %s' % new_daemon_set)
 
-        new_daemon_set = set()
         for daemon in config.db_connection.execute('select distinct htcondor_gsi_dn from csv2_groups where htcondor_gsi_dn is not null'):
             new_daemon_set.add(daemon['htcondor_gsi_dn'])
 
