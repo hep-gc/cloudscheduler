@@ -295,6 +295,8 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
 /*****************************************************************/
 /*                          status styling                       */
 /*****************************************************************/
+
+
 .name-style{
   background-color: maroon;
   color: white;
@@ -480,15 +482,7 @@ body.status-nav{
   color: red;
 }
 
-.row-label {
-  display:inline;
-  text-align: left;
-}
-.expand-symbol {
-  display: inline;
-  color: black;
-  text-align: right;
-}
+
 
 .bigger {
   font-size: 150% !important;
