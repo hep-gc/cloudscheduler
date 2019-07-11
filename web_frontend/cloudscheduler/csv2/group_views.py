@@ -6,6 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
+from cloudscheduler.lib.htc_config import configure_htc
 from cloudscheduler.lib.view_utils import \
     lno,  \
     manage_group_users, \
@@ -219,8 +220,10 @@ def add(request):
             return list(request, active_user=active_user, response_code=1, message='%s group add "%s" failed - %s.' % (lno(MODID), fields['group_name'], msg))
 
 
-        # Commit the updates and return.
-        config.db_close(commit=True)
+        # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
+        config.db_session.commit()
+        configure_htc(config)
+        config.db_close()
         return list(request, active_user=active_user, response_code=0, message='group "%s" successfully added.' % (fields['group_name']))
 
     ### Bad request.
@@ -271,8 +274,10 @@ def defaults(request, active_user=None, response_code=0, message=None):
                 table = tables['csv2_groups']
                 rc, msg = config.db_session_execute(table.update().where(table.c.group_name==active_user.active_group).values(table_fields(fields, table, columns, 'update')))
                 if rc == 0:
+                    # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
                     config.db_session.commit()
                     set_defaults_changed(True)
+                    configure_htc(config)
                     message = 'group defaults "%s" successfully updated.' % (active_user.active_group)
                 else:
                     message = '%s group defaults update "%s" failed - %s.' % (lno(MODID), active_user.active_group, msg)
@@ -541,7 +546,10 @@ def delete(request):
             table.delete(table.c.group_name==fields['group_name'])
             )
         if rc == 0:
-            config.db_close(commit=True)
+            # Commit the deletions, configure condor (gsi_daemon_name, firewall), and return.
+            config.db_session.commit()
+            configure_htc(config)
+            config.db_close()
             return list(request, active_user=active_user, response_code=0, message='group "%s" successfully deleted.' % (fields['group_name']))
         else:
             config.db_close()
@@ -1088,7 +1096,10 @@ def update(request):
                 rc, msg = manage_group_users(config, tables, fields['group_name'], None)
 
         if rc == 0:
-            config.db_close(commit=True)
+            # Commit the updates, configure condor (gsi_daemon_name, firewall), and return.
+            config.db_session.commit()
+            configure_htc(config)
+            config.db_close()
             return list(request, active_user=active_user, response_code=0, message='group "%s" successfully updated.' % (fields['group_name']))
         else:
             config.db_close()
