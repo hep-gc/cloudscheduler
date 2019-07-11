@@ -63,7 +63,7 @@ def configure_htc(config, logger=None):
         if new_daemon_set != old_daemon_set:
             configure_htc_logger(logger, 'debug', 'new gsi_daemon_name: %s' % new_daemon_set)
             fd = open('%s/gsi_daemon_name' % local_dir, 'w')
-            fd.write('GSI_DAEMON_NAME = %s' % ','.join(list(new_daemon_set)))
+            fd.write('GSI_DAEMON_NAME = %s\n' % ','.join(list(new_daemon_set)))
             fd.close()
             
             success, stdout = sys_cmd(logger, ['/usr/sbin/condor_reconfig'])
