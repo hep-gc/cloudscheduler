@@ -1,3 +1,6 @@
+/*
+create or replace view view_t0 as
+*/
 create or replace view view_active_resource_shortfall as
 select
     cj.group_name,
@@ -11,7 +14,9 @@ select
     ifnull(cj.request_disk,0) - ifnull(sum(cv.active_disk),0) as shortfall_disk,
     ifnull(cj.request_ram,0) as request_ram,
     ifnull(sum(cv.active_ram),0) as active_ram,
-    ifnull(cj.request_ram,0) - ifnull(sum(cv.active_ram),0) as shortfall_ram
+    ifnull(cj.request_ram,0) - ifnull(sum(cv.active_ram),0) as shortfall_ram,
+    sum(ifnull(cv.idle,0)) as idle,
+    sum(ifnull(cv.running,0)) as running
 from (
     select
         group_name,
@@ -36,60 +41,76 @@ left outer join (
         cca.alias_name as alias,
         cv.VMs*cf.cores as active_cores,
         cv.VMs*(cf.disk+cf.ephemeral_disk) as active_disk,
-        cv.VMs*cf.ram as active_ram
+        cv.VMs*cf.ram as active_ram,
+        idle,
+        running
     from (
         select
             group_name,
             cloud_name,
             flavor_id,
-            sum(VMs) as VMs
+            sum(VMs) as VMs,
+            sum(idle) as idle,
+            sum(running) as running
         from (
             select
-                group_name,
-                cloud_name,
-                flavor_id,
-                case when manual_control = 1 then
-                    'manual'
+                cv.*,
+                case when poller_status='idle' then
+                    VMs
                 else
-                    case when status = 'ERROR' then
-                        'error'
+                    0
+                end as idle,
+                case when poller_status='running' then
+                    VMs
+                else
+                    0
+                end as running
+            from (
+                select
+                    group_name,
+                    cloud_name,
+                    flavor_id,
+                    case when manual_control = 1 then
+                        'manual'
                     else
-                        case when retire > 0 then
-                            'retiring'
+                        case when status = 'ERROR' then
+                            'error'
                         else
-                            case when status = 'BUILD' then
-                                'starting'
+                            case when retire > 0 then
+                                'retiring'
                             else
-                                case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
-                                    'unregistered'
+                                case when status = 'BUILD' then
+                                    'starting'
                                 else
-                                    case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
-                                        'idle'
+                                    case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                                        'unregistered'
                                     else
-                                        case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
-                                            'running'
+                                        case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                                            'idle'
                                         else
-                                            'error'
+                                            case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                                'running'
+                                            else
+                                                'error'
+                                            end
                                         end
                                     end
                                 end
                             end
                         end
-                    end
-                end as poller_status,
-                sum(1) as VMs
-            from csv2_vms
-            group by 
-                group_name,
-                cloud_name,
-                flavor_id,
-                poller_status
+                    end as poller_status,
+                    sum(1) as VMs
+                from csv2_vms
+                group by 
+                    group_name,
+                    cloud_name,
+                    flavor_id,
+                    poller_status
+                ) as cv
+            where
+                poller_status='idle' or
+                poller_status='running'
             ) as cv
-        where
-            poller_status='starting' or
-            poller_status='unregistered' or
-            poller_status='idle' or
-            poller_status='running'
         group by
             group_name,
             cloud_name,

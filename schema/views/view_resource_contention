@@ -1,0 +1,101 @@
+/*
+create or replace view view_t0 as
+*/
+create or replace view view_resource_contention as
+select
+    authurl,
+    sum(VMs) as VMs,
+    sum(`starting`) as `starting`,
+    sum(unregistered) as unregistered,
+    sum(idle) as idle,
+    sum(running) as running,
+    sum(retiring) as retiring,
+    sum(manual) as manual,
+    sum(error) as error
+from (
+    select
+        group_name,
+        cloud_name,
+        sum(ifnull(VMs,0)) as VMs,
+        sum(ifnull(`starting`,0)) as `starting`,
+        sum(ifnull(unregistered,0)) as unregistered,
+        sum(ifnull(idle,0)) as idle,
+        sum(ifnull(running,0)) as running,
+        sum(ifnull(retiring,0)) as retiring,
+        sum(ifnull(manual,0)) as manual,
+        sum(ifnull(error,0)) as error
+    from (
+        select
+            cv.*,
+            case when poller_status='starting' then
+                VMs
+            end as `starting`,
+            case when poller_status='unregistered' then
+                VMs
+            end as unregistered,
+            case when poller_status='idle' then
+                VMs
+            end as idle,
+            case when poller_status='running' then
+                VMs
+            end as running,
+            case when poller_status='retiring' then
+                VMs
+            end as retiring,
+            case when poller_status='manual' then
+                VMs
+            end as manual,
+            case when poller_status='error' then
+                VMs
+            end as error
+        from (
+            select
+                group_name,
+                cloud_name,
+                case when manual_control = 1 then
+                    'manual'
+                else
+                    case when status = 'ERROR' then
+                        'error'
+                    else
+                        case when retire > 0 then
+                            'retiring'
+                        else
+                            case when status = 'BUILD' then
+                                'starting'
+                            else
+                                case when status = 'ACTIVE' and htcondor_partitionable_slots is null then
+                                    'unregistered'
+                                else
+                                    case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) < 1 then
+                                        'idle'
+                                    else
+                                        case when status = 'ACTIVE' and ifnull(htcondor_dynamic_slots,0) > 0 then
+                                            'running'
+                                        else
+                                            'error'
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end as poller_status,
+                sum(1) as VMs
+            from csv2_vms
+            group by 
+                group_name,
+                cloud_name,
+                poller_status
+            ) as cv
+        ) as cv
+    group by
+        group_name,
+        cloud_name
+) as cv
+left outer join csv2_clouds as cc on
+    cv.group_name=cc.group_name and
+    cv.cloud_name=cc.cloud_name
+group by
+    authurl
+;

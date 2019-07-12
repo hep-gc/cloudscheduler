@@ -18,6 +18,7 @@ import cloudmanager
 from cloudscheduler.lib.schema import view_idle_vms
 from cloudscheduler.lib.schema import view_groups_of_idle_jobs
 from cloudscheduler.lib.schema import view_active_resource_shortfall
+from cloudscheduler.lib.schema import view_resource_contention
 from cloudscheduler.lib.schema import view_available_resources
 from cloudscheduler.lib.schema import view_condor_jobs_group_defaults_applied
 from cloudscheduler.lib.schema import view_metadata_collation_json
@@ -131,8 +132,6 @@ def main():
             # ie just booted machines should register soon so don't boot more VMs for a small number of jobs.
             #verify_idle_jobs(csgroup.group_name) # TODO figure out this old function
 
-#####################################################
-###         current_flavors = count_cloud_flavors(csgroup.group_name, config)
             try:
 
                 config.db_open()
@@ -189,23 +188,6 @@ def main():
                         continue
 
                     num_vm_jobs_per_flavor_total = {}
-###                 total_cpus = idle_job.request_cpus_total
-###                 total_ram = idle_job.request_ram_total
-###                 total_disk = idle_job.request_disk_total
-###                 log.debug("Resource requests for job: Total Cores: %s, Total Mem: %s, Total Disk: %s",
-###                           total_cpus, total_ram, total_disk)
-###                 for flavor in flavor_list:
-###                     cloud_nm, flv_name = flavor.split(':')
-###                     log.debug('subtract existing resources for cloud: %s. %s VMs with flavor: %s, C: %s, M: %s, D: %s',
-###                               cloud_nm, current_flavors[cloud_nm][flavor]['count'], flv_name,
-###                               current_flavors[cloud_nm][flavor]['cores'], current_flavors[cloud_nm][flavor]['ram'],
-###                               current_flavors[cloud_nm][flavor]['disk'])
-###                     total_cpus -= current_flavors[cloud_nm][flavor]['cores']
-###                     total_ram -=  current_flavors[cloud_nm][flavor]['ram']
-###                     total_disk -= current_flavors[cloud_nm][flavor]['disk']
-###                 log.debug("Resource requests After checking current: Total Cores: %s, Total Mem: %s, Total Disk: %s", total_cpus,
-###                           total_ram, total_disk)
-###                 if total_ram > 0 or total_cpus > 0 or total_disk > 0:
                     try:
                         shortfall = list(config.db_session.query(view_active_resource_shortfall).filter(
                             view_active_resource_shortfall.c.group_name == idle_job.group_name,
@@ -230,10 +212,20 @@ def main():
                             shortfall[0].shortfall_cores,
                             shortfall[0].shortfall_disk,
                             shortfall[0].shortfall_ram)
-###                 else:  # We have enough, wait for things to register
-###                     log.debug("Seem to have enough VMs for the number of idle jobs.")
                         continue
                         
+                    idle_VMs_throttle = max(config.categories['csmain']['idle_VMs_throttle'], int(shortfall[0].running/10))
+                    if shortfall[0].idle>=idle_VMs_throttle:
+                        log.debug('Too many idle VMs: group=%s, target_alias=%s, target_clouds=%s, idle=%s, running=%s, calculated throttle=%s configurred throttle=%s, skipping idle_job_group.',
+                            idle_job.group_name,
+                            idle_job.target_alias,
+                            idle_job.target_clouds,
+                            shortfall[0].idle,
+                            shortfall[0].running,
+                            idle_VMs_throttle,
+                            config.categories['csmain']['idle_VMs_throttle'])
+                        continue
+
                     else:
                         log.debug('view_active_resource_shortfall for group=%s, target_alias=%s, target_clouds=%s, cores=%s, disk=%s, ram=%s, too few active resources, processing continues...',
                             idle_job.group_name,
@@ -245,13 +237,9 @@ def main():
 
                         # Looks like we need more VMs, but how many?
                         for cloud_match in clouds_matching:
-###                         vm_cpu_total = total_cpus / cloud_match.flavor_cores
-###                         vm_ram_total = total_ram / cloud_match.flavor_ram
-###                         vm_disk_total = total_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
                             vm_cpu_total = shortfall[0].shortfall_cores / cloud_match.flavor_cores
                             vm_disk_total = shortfall[0].shortfall_disk / cloud_match.flavor_disk if cloud_match.flavor_disk else None
                             vm_ram_total = shortfall[0].shortfall_ram / cloud_match.flavor_ram
-#####################################################
                             vm_jobs_possible_total = int(max(vm_cpu_total, vm_ram_total, vm_disk_total)) if vm_disk_total else int(max(vm_cpu_total, vm_ram_total))
                             if vm_jobs_possible_total < 1:
                                 vm_jobs_possible_total = 1
@@ -288,6 +276,29 @@ def main():
                         cloud_prio = None
 
                         for cloud in clouds_matching_new:
+                            try:
+                                resource = list(config.db_session.query(view_resource_contention).filter(
+                                    view_resource_contention.c.authurl == cloud.authurl))
+                            except:
+                                resource = []
+
+
+                            if len(resource) < 1:
+                                log.debug('unable to retrieve view_resource_contention for group=%s, cloud=%s, authurl=%s, skiping resource).',
+                                    cloud.group_name,
+                                    cloud.cloud_name,
+                                    cloud.authurl)
+                                continue
+
+                            if resource[0].starting + resource[0].unregistered >= config.categories['csmain']['new_VMs_throttle']:
+                                log.debug('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, skipping resource.',
+                                    cloud.group_name,
+                                    cloud.cloud_name,
+                                    resource[0].authurl,
+                                    resource[0].starting,
+                                    resource[0].unregistered)
+                                continue
+
                             if cloud.cloud_name in cloud_booted_on:
                                 continue
                             if cloud_prio == None:
@@ -426,36 +437,6 @@ def verify_idle_jobs(group, config):
     log.debug("Done Verify jobs.")
     return
 
-
-### def count_cloud_flavors(group, config):
-###     """Query the VMs for group and arrange into a dictionary format
-###     of dict[cloud_name][flavor] = count of that flavor
-###     """
-###     log = logging.getLogger(__name__)
-###     try:
-###         config.db_open()
-###         available = config.db_session.query(view_available_resources)\
-###             .filter(view_available_resources.c.group_name == group)
-###         vm_cloud_flavors = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-###         for res in available:
-###             count = res.flavor_VMs - res.flavor_error - res.flavor_retiring
-###             vm_cloud_flavors[res.cloud_name][res.flavor]['count'] = count
-###             vm_cloud_flavors[res.cloud_name][res.flavor]['cores'] = count * res.flavor_cores
-###             vm_cloud_flavors[res.cloud_name][res.flavor]['ram'] = count * res.flavor_ram
-###             vm_cloud_flavors[res.cloud_name][res.flavor]['disk'] = count * res.flavor_disk
-###             vm_cloud_flavors[res.cloud_name][res.flavor]['swap'] = count * res.flavor_swap
-###         log.debug("Done counting current flavors for group: %s.", group)
-###         config.db_close()
-###     except TimeoutError as ex:
-###         log.exception(ex)
-###         sys.exit(1)
-###     except Exception as ex:
-###         log.exception(ex)
-###         config.db_close()
-###         return None
-###     return vm_cloud_flavors
-### 
-### 
 def check_view_idle_vms():
     """Query view_idle_vms and retire as needed."""
     multiprocessing.current_process().name = "csmain_idle_vms"
