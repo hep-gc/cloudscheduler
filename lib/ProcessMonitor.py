@@ -154,8 +154,8 @@ class ProcessMonitor:
         if pid is None:
             for process in self.process_ids:
                 self.logging.debug(process)
-                self.p_cpu_times[process] = [5 * getattr(self.config, "sleep_interval_" + process, 180) , None, 0]
+                self.p_cpu_times[process] = [20 * getattr(self.config, "sleep_interval_" + process, 180) , None, 0] #I've updated this to a 20 times the interval since the sleep window is flexible when under load. If the base cycle time is short this timeout is far too small
         else:
-            # its possible that we dont have a configuration value for whatever new process is getting added, so we'll make the default 15 mins
-            self.p_cpu_times[pid] = [5 * getattr(self.config, "sleep_interval_" + pid, 180), None, 0]
+            # its possible that we dont have a configuration value for whatever new process is getting added, so we'll make the default 30 mins
+            self.p_cpu_times[pid] = [10 * getattr(self.config, "sleep_interval_" + pid, 180), None, 0]
 
