@@ -282,13 +282,23 @@ def main():
                             except:
                                 resource = []
 
-
                             if len(resource) < 1:
-                                log.debug('unable to retrieve view_resource_contention for group=%s, cloud=%s, authurl=%s, skiping resource).',
+                                resource = [type('', (object,), {
+                                    "authurl":cloud.authurl,
+                                    "VMs": 0,
+                                    "starting": 0,
+                                    "unregistered": 0,
+                                    "idle": 0,
+                                    "running": 0,
+                                    "retiring": 0,
+                                    "manual": 0,
+                                    "error": 0
+                                })]
+
+                                log.debug('No active vms for group=%s, cloud=%s, authurl=%s, assuming no contention).',
                                     cloud.group_name,
                                     cloud.cloud_name,
                                     cloud.authurl)
-                                continue
 
                             if resource[0].starting + resource[0].unregistered >= config.categories['csmain']['new_VMs_throttle']:
                                 log.debug('Resource contention: group=%s, cloud=%s, resource=%s, starting=%s, unregistered=%s, skipping resource.',
