@@ -380,8 +380,21 @@ def log_replay(gvar):
 
                 fd.seek(gvar['maps'][mix]['map'][mfix]['cmd'][ix][0])
                 lines = fd.read(rl).split('\n')
-                for ix in range(len(lines)):
-                    report.append(lines[ix])
+                if len(gvar['search_string'])>0 and len(lines)>6 and lines[1][0] == '+' and ''.join(lines).find(gvar['search_string'])>-1:
+                    lines[0] = '%s *** Abbreviated ***' % lines[0]
+                    for ix in range(4):
+                        report.append(lines[ix])
+
+                    for ix in range(4, len(lines)):
+                        if lines[ix].find(gvar['search_string'])>-1:
+                            report.append(lines[ix])
+
+                    report.append(lines[-2])
+                    report.append(lines[-1])
+                    
+                else:
+                    for ix in range(len(lines)):
+                        report.append(lines[ix])
 
         return report
 
@@ -434,29 +447,61 @@ def log_replay(gvar):
         # log files have been rotated, reload the maps and re-align mix/fix.
         return
 
+    def search_bwd(gvar):
+        fix = gvar['fix']
+        mix = gvar['mix']
+        
+        while frame_bwd(gvar):
+            if ''.join(frame_get(gvar)).find(gvar['search_string']) > -1:
+                return True
+            show_menu(gvar)
+            
+        gvar['fix'] = fix
+        gvar['mix'] = mix
+        return  beep()
+
+    def search_fwd(gvar):
+        fix = gvar['fix']
+        mix = gvar['mix']
+        
+        while frame_fwd(gvar):
+            if ''.join(frame_get(gvar)).find(gvar['search_string']) > -1:
+                return True
+            show_menu(gvar)
+            
+        gvar['fix'] = fix
+        gvar['mix'] = mix
+        return  beep()
+
+    def show_menu(gvar):
+        if gvar['search_string'] == '':
+            stdscr.addnstr(gvar['yx'][0]-1, 0, 'REPLAY Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  /-search_string  q-quit' % (gvar['mix']+1, len(gvar['maps']), gvar['maps'][gvar['mix']]['fn'], gvar['fix']+1, len(gvar['maps'][gvar['mix']]['map'])), gvar['yx'][1], curses.A_BOLD)
+        else:
+            stdscr.addnstr(gvar['yx'][0]-1, 0, 'REPLAY Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  S<%s>s  q-quit' % (gvar['mix']+1, len(gvar['maps']), gvar['maps'][gvar['mix']]['fn'], gvar['fix']+1, len(gvar['maps'][gvar['mix']]['map']), gvar['search_string']), gvar['yx'][1], curses.A_BOLD)
+        stdscr.refresh()
+
     gvar['maps'] = maps_map(gvar)
     gvar['mix'] = -1
     maps_load(gvar)
 
     gvar['fix'] = 0
     gvar['mix'] = len(gvar['maps']) - 1
+    gvar['search_string'] = ''
 
     stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0)
-    yx = stdscr.getmaxyx()
+    gvar['yx'] = stdscr.getmaxyx()
 
     try:
         while (True):
-            yx = stdscr.getmaxyx(); # stdscr.nodelay(1)
+            gvar['yx'] = stdscr.getmaxyx(); # stdscr.nodelay(1)
 
             frame_data = frame_get(gvar)
 
             stdscr.clear()
-            for ix in range(min(len(frame_data), yx[0]-2)):
-                stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], yx[1])
+            for ix in range(min(len(frame_data), gvar['yx'][0]-2)):
+                stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], gvar['yx'][1])
 
-            stdscr.addnstr(yx[0]-1, 0, 'REPLAY Map: %s/%s (%s), Frame: %s/%s, Commands: D<day>d  H<hour>h  N<next>n  \u2190\u2191\u2193\u2192Scroll  q-quit' % (gvar['mix']+1, len(gvar['maps']), gvar['maps'][gvar['mix']]['fn'], gvar['fix']+1, len(gvar['maps'][gvar['mix']]['map'])), yx[1], curses.A_BOLD)
-
-            stdscr.refresh()
+            show_menu(gvar)
 
             curses.cbreak()
             input = stdscr.getch()
@@ -491,7 +536,7 @@ def log_replay(gvar):
 
             # Down arror.
             elif input == 258:
-                if gvar['up_down']<len(frame_data)-yx[0]+1:
+                if gvar['up_down']<len(frame_data)-gvar['yx'][0]+1:
                     gvar['up_down'] += 1
                 else:
                     beep()
@@ -516,6 +561,17 @@ def log_replay(gvar):
 
             elif input == ord('q'):
                 break
+
+            elif input == ord('/'):
+                gvar['search_string'] = string_input(gvar, stdscr, 'Search string: ', 64)
+                if len(gvar['search_string'])>0:
+                    search_fwd(gvar)
+
+            elif input == ord('s'):
+                search_fwd(gvar)
+
+            elif input == ord('S'):
+                search_bwd(gvar)
 
         curses.curs_set(1); curses.nocbreak(); stdscr.keypad(0); curses.echo(); curses.endwin()
     except Exception as ex:
@@ -560,7 +616,30 @@ def log_rotate(gvar):
     for fn in obsolete[gvar['db_config'].log_file_retain:]:
         os.remove('%s/%s' % (gvar['log_dir'], fn))
         os.remove('%s/%s%s' % (gvar['log_dir'], fn, gvar['log_file_map_sfx']))
-    
+  
+def string_input(gvar, stdscr, prompt, strlen):
+    y1 = int((gvar['yx'][0]-7)/2)
+    xl = 8+len(prompt)+strlen; 
+    x1 = int((gvar['yx'][1]-xl)/2)
+
+    topbot = '-'*(xl-2)
+    blnkbg = ' '*(xl-2)
+
+    curses.echo() 
+    stdscr.addstr(y1+0, x1, ' '*xl)
+    stdscr.addstr(y1+1, x1, ' +%s+ ' % topbot, curses.A_BOLD)
+    stdscr.addstr(y1+2, x1, ' |%s| ' % blnkbg, curses.A_BOLD)
+    stdscr.addstr(y1+3, x1, ' |%s| ' % blnkbg, curses.A_BOLD)
+    stdscr.addstr(y1+4, x1, ' |%s| ' % blnkbg, curses.A_BOLD)
+    stdscr.addstr(y1+5, x1, ' +%s+ ' % topbot, curses.A_BOLD)
+    stdscr.addstr(y1+6, x1, ' '*xl)
+
+    stdscr.addstr(y1+3, x1+3, prompt, curses.A_BOLD)
+    stdscr.refresh()
+    input = stdscr.getstr(y1+3, x1+3+len(prompt), strlen)
+    curses.noecho() 
+    return input.decode('utf-8')
+
 def real_time_watch(gvar):
     def get_real_time_data_report(gvar):
         report = []
@@ -573,22 +652,22 @@ def real_time_watch(gvar):
 
     frame_data = get_real_time_data_report(gvar)
     stdscr = curses.initscr(); curses.noecho(); curses.cbreak(); stdscr.keypad(1); curses.curs_set(0); stdscr.timeout(1000)
-    yx = stdscr.getmaxyx()
+    gvar['yx'] = stdscr.getmaxyx()
 
     try:
         while (True):
-            yx = stdscr.getmaxyx()
+            gvar['yx'] = stdscr.getmaxyx()
 
             stdscr.clear()
-            if gvar['up_down'] > len(frame_data) - yx[0] + 1:
-                gvar['up_down'] = max(0, len(frame_data) - yx[0] + 1)
+            if gvar['up_down'] > len(frame_data) - gvar['yx'][0] + 1:
+                gvar['up_down'] = max(0, len(frame_data) - gvar['yx'][0] + 1)
 
-            for ix in range(min(len(frame_data), yx[0]-2)):
-                stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], yx[1])
+            for ix in range(min(len(frame_data), gvar['yx'][0]-2)):
+                stdscr.addnstr(ix, 0, frame_data[ix+gvar['up_down']][gvar['left_right']:], gvar['yx'][1])
 
             sleep_time = gvar['db_config'].sleep_time
             while True:
-                stdscr.addnstr(yx[0]-1, 0, 'Watching (%s)  \u2190\u2191\u2193\u2192Scroll  q-quit' % sleep_time, yx[1], curses.A_BOLD)
+                stdscr.addnstr(gvar['yx'][0]-1, 0, 'Watching (%s)  \u2190\u2191\u2193\u2192Scroll  q-quit' % sleep_time, gvar['yx'][1], curses.A_BOLD)
                 stdscr.clrtoeol()
                 stdscr.refresh()
                 curses.cbreak()
@@ -600,7 +679,7 @@ def real_time_watch(gvar):
 
             # Down arror.
             if input == 258:
-                if gvar['up_down']<len(frame_data)-yx[0]+1:
+                if gvar['up_down']<len(frame_data)-gvar['yx'][0]+1:
                     gvar['up_down'] += 1
                 else:
                     beep()
