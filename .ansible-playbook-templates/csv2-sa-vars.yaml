@@ -8,9 +8,9 @@ ansible_deployment_host_ip: '206.12.154.6'
 letsencrypt_archive: '/usr/local/archive/letsencrypt'
 
 # CSV2 versions to use.
-cs_git_branch: stable-2.4
+cs_git_branch: dev
 db_upgrade_file: none
-schema_model: stable-2.4
+schema_model: stable-2.5-rc
 favicon_colour: red
 
 # By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
