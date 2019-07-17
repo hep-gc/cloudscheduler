@@ -491,8 +491,14 @@ def command_poller():
                                     "agent_status":  1
                                 }
                                 new_jsched = JOB_SCHED(**jsched)
-                                db_session.merge(new_jsched)
-                                uncomitted_updates += 1
+                                js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                                if js.count()>0:
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
+                                else:
+                                    config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
 
                             logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
@@ -506,8 +512,14 @@ def command_poller():
                                 "agent_status":  0
                             }
                             new_jsched = JOB_SCHED(**jsched)
-                            db_session.merge(new_jsched)
-                            uncomitted_updates += 1
+                            js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                            if js.count()>0:
+                                config.db_session.merge(new_jsched)
+                                uncommitted_updates += 1
+                            else:
+                                config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                config.db_session.merge(new_jsched)
+                                uncommitted_updates += 1
                         #get vm entry and update retire = 2
                         vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
                         vm_row.retire = vm_row.retire + 1
@@ -657,8 +669,14 @@ def command_poller():
                                         "agent_status":  1
                                     }
                                     new_jsched = JOB_SCHED(**jsched)
-                                    db_session.merge(new_jsched)
-                                    uncomitted_updates += 1
+                                    js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                                    if js.count()>0:
+                                        config.db_session.merge(new_jsched)
+                                        uncommitted_updates += 1
+                                    else:
+                                        config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                        config.db_session.merge(new_jsched)
+                                        uncommitted_updates += 1
                                     continue
                                 logging.error("RPC invalidate failed for machine: %s//%s" % (resource.machine, resource.hostname))
                                 logging.error(command_results[1])
@@ -671,8 +689,14 @@ def command_poller():
                                     "agent_status":  0
                                 }
                                 new_jsched = JOB_SCHED(**jsched)
-                                db_session.merge(new_jsched)
-                                uncomitted_updates += 1
+                                js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                                if js.count()>0:
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
+                                else:
+                                    config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
 
                             #if resource.machine is not None and resource.machine is not "":
                             #    condor_classad = condor_session.query(master_type, 'Name=="%s"' % resource.machine)[0]
