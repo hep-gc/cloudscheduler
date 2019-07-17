@@ -200,6 +200,7 @@ else if (refresh_interval < 1) stop_refresh;
     </button>
 </div>
 
+
 <!-- Status tables-->
     <div class="status-div" id="status">
 
@@ -319,7 +320,7 @@ else if (refresh_interval < 1) stop_refresh;
                                                 <tr>
 
                                                 {% if job.js_idle != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.request_cpus }}c: {{ job.js_idle }}</td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">&nbsp;</td> 
                                                     <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
@@ -701,16 +702,21 @@ else if (refresh_interval < 1) stop_refresh;
 
                                     <td colspan="2">
                                         <table>
-                                        
-                                        {% for slot in slot_list %}
-
+                                        {% for slot in slot_detail %}
                                             {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
                                             <tr>
-                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                                    <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                                                </tr>
+                                                <td>{{slot.type}}c: {{slot.sum}}</td>
+                                                <td>
+                                                    <table>
+                                                    {% for id in slot.list %}
+                                                        <tr><td>
+                                                        {{id}}
+                                                        </td><tr>
+                                                    {% endfor %}
+                                                    </table>
+                                                </td>
+                                            </tr>
                                             {% endif %}
-
                                         {% endfor %}
                                         </table>
                                     </td>
@@ -1016,19 +1022,26 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">
-                            <table>
 
-                            {% for slot in slot_total_list %}
-                            
+                            <table>
+                            {% for slot in slot_detail_total %}
                                 {% if slot %}
                                 <tr>
-                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                        <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                                    </tr>
+                                    <td>{{slot.type}}c: {{slot.sum}}</td>
+                                    <td>
+                                        <table>
+                                        {% for id in slot.list %}
+                                            <tr><td>
+                                            {{id}}
+                                            </td><tr>
+                                        {% endfor %}
+                                        </table>
+                                    </td>
+                                </tr>
                                 {% endif %}
-                                
                             {% endfor %}
                             </table>
+
                         </td>
                         <td><!--Idle--></td>
 
