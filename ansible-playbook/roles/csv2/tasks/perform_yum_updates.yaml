@@ -4,12 +4,6 @@
 - name: disable yum auto_updates
   script: bash-disable_yum_auto_updates creates=/root/ansible_script_logs/bash-disable_yum_auto_updates.log
 
-- name: update certificates
-  yum:
-    name: ca-certificates
-    disablerepo: epel
-    state: latest
-
 - name: update all installed packages
   yum:
     name: '*'
