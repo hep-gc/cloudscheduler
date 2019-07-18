@@ -13,6 +13,13 @@
     state: absent
   with_items: "{{ i_deleted_users }}"
 
+- name: Ensure the default groups exists
+  group:
+    name: "{{ item.group }}"
+    gid: "{{ item.gid }}"
+    state: present
+  with_items: "{{ i_groups }}"
+
 - name: create login IDs and directories
   user:
     name: "{{ item.userid }}"

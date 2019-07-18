@@ -49,6 +49,12 @@ i_etc_hosts:
 # Define obsolete users to remove.
 i_deleted_users: []
 
+# Define groups.
+i_groups:
+-
+    group: 'csv2_users'
+    gid: '1234567'
+
 # Define users.
 i_users:
 -
