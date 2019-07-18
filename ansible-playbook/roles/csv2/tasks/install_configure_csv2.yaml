@@ -52,8 +52,8 @@
     group: root
     mode: 0644
   when:
-  - rabbit_on_local is defined 
-  - rabbit_on_local == true
+  - rabbit_on_localhost is defined 
+  - rabbit_on_localhost == true
 
 - name: install ansible (still uses python 2.7) module prerequisites
   pip:
