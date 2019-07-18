@@ -24,7 +24,7 @@
   user:
     name: "{{ item.userid }}"
     uid: "{{ item.uid }}"
-    group: hep
+    group: "{{ i_groups.0.group }}"
   with_items: "{{ i_users }}"
 
 - name: create user ssh directories
@@ -32,7 +32,7 @@
     path: "/home/{{ item.userid }}/.ssh"
     state: directory
     owner: "{{ item.userid }}"
-    group: hep
+    group: "{{ i_groups.0.group }}"
     mode: 0700
   with_items: "{{ i_users }}"
 
