@@ -12,8 +12,13 @@ cs_git_branch: dev
 db_upgrade_file: none
 schema_model: stable-2.5-rc
 favicon_colour: red
-db_on_localhost: True
+db_on_localhost: true
+
+# If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
 install_phpMyAdmin: False
+
+# If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
+letsencrypt_test: true
 
 # By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
 # 
@@ -155,6 +160,6 @@ i_service_connection:
 i_virtualhosts:
 -
     virtualhost: 'csv2-sa.heprc.uvic.ca'
--
-    virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
+#
+#   virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
 
