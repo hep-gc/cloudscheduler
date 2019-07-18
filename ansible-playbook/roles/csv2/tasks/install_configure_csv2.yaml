@@ -350,15 +350,14 @@
 
 - set_fact:
     db_hostname: "{{ i_external_connection.0.ipv4fqdn }}"
-  when: (local_web is undefined) or (local_web == False)
+  when:
+  - (db_on_localhost is undefined) or (db_on_localhost != True)
 
 - set_fact:
     db_hostname: "localhost"
   when:
-  - container is defined
-  - container == True
-  - local_web is defined
-  - local_web == True
+  - db_on_localhost is defined
+  - db_on_localhost == True
 
 - name: add cloudscheduler yaml config template
   template:
