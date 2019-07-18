@@ -1081,6 +1081,7 @@ def main():
   if _is_executable('pvscan'):
     lines = _execute(SYS, ['pvscan', '-u'])
     for line in lines:
+      UUID = None
       w = line.split(); wl = len(w)
       if wl >=5 and w[0] == 'PV':
         SDx = w[1]; UUID = w[4]
@@ -1092,24 +1093,25 @@ def main():
 
         SYS['PV_xref'][SYS['PVs'][UUID]['device']] = UUID
 
-      sublines = _execute(SYS, ['vgdisplay', '-S', 'pv_uuid=%s' % UUID])
-      for line in sublines:
-        w = line.split(); wl = len(w)
-        if wl >=3 and w[0] == 'VG':
-          if w[1] == 'Name':
-            SYS['PVs'][UUID]['VG'] = w[2] 
-            SYS['VG_xref'][w[2]] = UUID
-          elif w[1] == 'UUID':
-            SYS['PVs'][UUID]['VG_UUID'] = w[2] 
-
-      if SYS['PVs'][UUID]['VG_UUID'] != '-':
-        sublines = _execute(SYS, ["lvdisplay", '-S', 'vg_uuid=%s' % SYS['PVs'][UUID]['VG_UUID']])
+      if UUID:
+        sublines = _execute(SYS, ['vgdisplay', '-S', 'pv_uuid=%s' % UUID])
         for line in sublines:
           w = line.split(); wl = len(w)
-          if wl >=3 and w[0] == 'LV' and w[1] == 'Name':
-            lv = w[2]
-          elif wl >= 3 and w[1] == 'Size':
-            SYS['PVs'][UUID]['LVs'][lv] = int(float(re.sub('[^0-9.]', '', w[2]))*1024)
+          if wl >=3 and w[0] == 'VG':
+            if w[1] == 'Name':
+              SYS['PVs'][UUID]['VG'] = w[2] 
+              SYS['VG_xref'][w[2]] = UUID
+            elif w[1] == 'UUID':
+              SYS['PVs'][UUID]['VG_UUID'] = w[2] 
+
+        if SYS['PVs'][UUID]['VG_UUID'] != '-':
+          sublines = _execute(SYS, ["lvdisplay", '-S', 'vg_uuid=%s' % SYS['PVs'][UUID]['VG_UUID']])
+          for line in sublines:
+            w = line.split(); wl = len(w)
+            if wl >=3 and w[0] == 'LV' and w[1] == 'Name':
+              lv = w[2]
+            elif wl >= 3 and w[1] == 'Size':
+              SYS['PVs'][UUID]['LVs'][lv] = int(float(re.sub('[^0-9.]', '', w[2]))*1024)
 
   # Retrieve current mount information.
   lines = _execute(SYS, ['awk', 'NF>0 && !/^#/', '/etc/fstab'])
