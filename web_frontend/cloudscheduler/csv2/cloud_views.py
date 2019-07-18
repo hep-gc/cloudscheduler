@@ -1249,7 +1249,7 @@ def status(request, group_name=None):
             ]
         })
 
-    cloud_total_list = cloud_status_list_totals[0]
+    cloud_total_list = cloud_status_list_totals
 
     # calculate the group view totals for all rows
     cloud_status_global_totals = qt(cloud_status_list, keys={
