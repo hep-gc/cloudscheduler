@@ -12,7 +12,9 @@ cs_git_branch: dev
 db_upgrade_file: none
 schema_model: stable-2.5-rc
 favicon_colour: red
+
 db_on_localhost: true
+rabbit_on_localhost: true
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
 install_phpMyAdmin: False
