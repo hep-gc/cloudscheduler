@@ -12,6 +12,7 @@ cs_git_branch: dev
 db_upgrade_file: none
 schema_model: stable-2.5-rc
 favicon_colour: red
+install_phpMyAdmin: False
 
 # By default, GSI authentication for HTCondor daemons is disabled. To enable GSI, you must:
 # 

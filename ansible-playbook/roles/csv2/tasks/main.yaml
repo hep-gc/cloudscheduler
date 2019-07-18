@@ -36,6 +36,9 @@
 - import_tasks: install_configure_MariaDB.yaml
 - import_tasks: create_mysqldb_csv2.yaml
 - import_tasks: install_configure_phpmyadmin.yaml
+  when:
+  - install_phpMyAdmin is defined
+  - install_phpMyAdmin == True
 - import_tasks: install_EGI_trust_anchors.yaml
 - import_tasks: install_configure_EL7_HTCondor.yaml
 - import_tasks: install_configure_csv2.yaml
