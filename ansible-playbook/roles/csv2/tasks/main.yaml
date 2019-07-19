@@ -35,6 +35,7 @@
   when: (container is undefined) or (container == False)
 - import_tasks: install_configure_MariaDB.yaml
 - import_tasks: create_mysqldb_csv2.yaml
+- include: install_configure_httpd.yaml
 - import_tasks: install_configure_phpmyadmin.yaml
   when:
   - install_phpMyAdmin is defined
