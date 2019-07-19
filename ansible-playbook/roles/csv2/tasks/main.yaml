@@ -24,7 +24,11 @@
   - local_web == True
 - import_tasks: install_python3.yaml
 - import_tasks: configure_network.yaml
-  when: (container is undefined) or (container == False) or (reconfigure_network is undefined) or (reconfigure_network != false)
+  when:
+  - container is undefined
+  - container != true
+  - reconfigure_network is undefined
+  - reconfigure_network != false
 - import_tasks: install_configure_ntpd.yaml
 - import_tasks: set_root_user_defaults.yaml
 - import_tasks: configure_volumes.yaml
