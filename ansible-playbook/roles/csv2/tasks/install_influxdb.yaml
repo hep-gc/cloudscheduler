@@ -4,7 +4,6 @@
 - name: Install InfluxDB python package.
   pip:
     name: influxdb
-    executable: pip3
 
 - name: Add InfluxDB `repository
   yum_repository:
