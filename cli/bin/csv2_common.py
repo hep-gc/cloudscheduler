@@ -145,7 +145,11 @@ def get_grid_proxy(gvar):
     
     import os
 
-    time_left_list = sys_cmd(['grid-proxy-info', '-timeleft'])
+    try:
+        time_left_list = sys_cmd(['grid-proxy-info', '-timeleft'])
+    except:
+        return None
+
     if time_left_list:
         try:
             time_left = int(time_left_list[0])
