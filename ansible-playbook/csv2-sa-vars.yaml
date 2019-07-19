@@ -93,15 +93,15 @@ i_volumes:
     gbs: '50'
     fstype: 'ext4'
     mountpoint: '/'
--
-    fqdn: 'csv2-sa.heprc.uvic.ca'
-    raid: 'jbod'
-    disks: '1'
-    volumegroup: 'vg_data'
-    logicalvolume: '-'
-    gbs: '50'
-    fstype: 'ext4'
-    mountpoint: '/storage'
+#
+#   fqdn: 'csv2-sa.heprc.uvic.ca'
+#   raid: 'jbod'
+#   disks: '1'
+#   volumegroup: 'vg_data'
+#   logicalvolume: '-'
+#   gbs: '50'
+#   fstype: 'ext4'
+#   mountpoint: '/storage'
 
 i_firewall: []
 
