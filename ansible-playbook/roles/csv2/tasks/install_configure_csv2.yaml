@@ -29,6 +29,7 @@
   with_items:
   - /etc/condor/config.d/gsi.container
   - /etc/cron.d/csv2-ec2-instance-types
+  - /etc/httpd/conf.d/welcome.conf
   - /etc/logrotate.d/cspollers.conf
 
 - name: install libvirt for cloudscheduler main, redis and grid security certificate package
@@ -43,6 +44,17 @@
   - python36u-mod_wsgi
   - apr-util-mysql
   - rabbitmq-server
+
+- name: optionally set the localhost for the rabbitmq-server
+  copy:
+    src: etc_rabbitmq_rabbitmq-env.conf
+    dest: /etc/rabbitmq/rabbitmq-env.conf
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - rabbit_on_localhost is defined 
+  - rabbit_on_localhost == true
 
 - name: install ansible (still uses python 2.7) module prerequisites
   pip:
@@ -307,6 +319,7 @@
     mode: 0644
   with_items:
       - csv2-ec2
+      - csv2-glint
       - csv2-htc-agent
       - csv2-machines
       - csv2-jobs
@@ -349,15 +362,14 @@
 
 - set_fact:
     db_hostname: "{{ i_external_connection.0.ipv4fqdn }}"
-  when: (local_web is undefined) or (local_web == False)
+  when:
+  - (db_on_localhost is undefined) or (db_on_localhost != true)
 
 - set_fact:
     db_hostname: "localhost"
   when:
-  - container is defined
-  - container == True
-  - local_web is defined
-  - local_web == True
+  - db_on_localhost is defined
+  - db_on_localhost == true
 
 - name: add cloudscheduler yaml config template
   template:
@@ -438,6 +450,7 @@
     state: stopped
   with_items:
       - csv2-ec2
+      - csv2-glint
       - csv2-htc-agent
       - csv2-machines
       - csv2-jobs
@@ -666,6 +679,7 @@
   - rabbitmq-server
   - celery
   - csv2-ec2
+  - csv2-glint
   - csv2-htc-agent
   - csv2-machines
   - csv2-jobs

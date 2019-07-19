@@ -1249,7 +1249,7 @@ def status(request, group_name=None):
             ]
         })
 
-    cloud_total_list = cloud_status_list_totals[0]
+    cloud_total_list = cloud_status_list_totals
 
     # calculate the group view totals for all rows
     cloud_status_global_totals = qt(cloud_status_list, keys={
@@ -1324,6 +1324,8 @@ def status(request, group_name=None):
         s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
         slot_list = qt(config.db_connection.execute(s))
 
+
+
     slot_total_list = qt(slot_list, keys={
         'primary': ['group_name', 'slot_type', 'slot_id'],
         'sum': [
@@ -1331,6 +1333,13 @@ def status(request, group_name=None):
             'core_count'
             ]
         })
+
+    # Generate the slot detail values, grouping and summing slots by type.
+
+    slot_detail = gen_slot_detail(slot_list)
+
+    slot_detail_total = gen_slot_detail(slot_total_list)
+
 
     # get job status per group
     if active_user.flag_global_status:
@@ -1432,6 +1441,8 @@ def status(request, group_name=None):
             'system_list' : system_list,
             'slot_list' : slot_list,
             'slot_total_list': slot_total_list,
+            'slot_detail': slot_detail,
+            'slot_detail_total': slot_detail_total,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
@@ -1443,6 +1454,35 @@ def status(request, group_name=None):
 
     config.db_close()
     return render(request, 'csv2/status.html', context)
+
+#-------------------------------------------------------------------------------
+@silkp(name="Generate slot detail list")
+def gen_slot_detail(slot_list):
+
+    # Generate the slot detail value, grouping and summing slots by type.
+    slot_detail = []
+
+    for slot in slot_list:
+
+        count = int(slot['slot_count'])
+        slot_string = slot['slot_id']+': '+str(int(slot['core_count']))
+
+        if not any(s["type"] == count for s in slot_detail):
+        
+            if 'cloud_name' in slot:
+                s = {'group_name': slot['group_name'], 'cloud_name': slot['cloud_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+            else:
+                s = {'group_name': slot['group_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+
+            slot_detail.append(dict(s))
+
+        else:
+            for d in slot_detail:
+                if d['type'] == count:
+                    d['sum'] += int(slot['core_count'])
+                    d['list'].append(slot_string)
+
+    return slot_detail
 
 
 #-------------------------------------------------------------------------------

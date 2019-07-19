@@ -1,3 +1,13 @@
+set_state();
+
+/* Get custom refresh interval, default = 30 seconds*/
+var refresh_interval = parseInt(document.getElementsByName('refresh_interval')[0].value);
+if (!(typeof(refresh_interval) !== 'undefined')) refresh_interval = 30;
+if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
+else if (refresh_interval < 1) stop_refresh;
+
+
+
 /* Timestamp of last refresh*/
 var date = Date.now();
 
@@ -25,6 +35,114 @@ window.onclick = function(event) {
         return;
     }
 }
+
+
+
+/* Refresh status table and system services display*/
+var TimerSwitch = 1;
+var timer_id;
+function set_refresh(time) {
+    TimerSwitch = 1;
+    timer_id = setTimeout(function() {
+
+        refresh_plot();
+        var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+
+        fetch(location.href,{   
+            method: 'GET',
+            headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
+            credentials: 'same-origin',
+        })  
+        .then(function(response){
+            /* Check response status code*/
+            if(response.ok){
+                return response.text();
+            }throw new Error('Could not update status table :( HTTP response not was not OK -> '+response.status);
+        })
+        .then((html) => {
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, "text/html");
+            document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
+            document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
+            TimerVal = refresh_interval;
+            set_refresh(refresh_interval*1000);
+            set_state();
+            checkForExpandedRow();
+            checkForPlottedTraces();
+            initialize();
+        })
+        .catch((error) => {
+            console.warn(error);
+            TimerVal = refresh_interval;
+            set_refresh(refresh_interval*1000);
+        });
+    },time);
+    document.getElementById('vms-iframe').src='';
+}
+
+function stop_refresh() {
+    TimerSwitch = 0;
+    clearTimeout(timer_id);
+    window.stop();
+}
+
+function native_list(url) {
+    stop_refresh();
+    document.getElementById('vms-iframe').src='/vm/list/'+url;
+    window.location.href = "#vms-overlay";
+}
+
+function foreign_list(url) {
+    stop_refresh();
+    document.getElementById('vms-iframe').src='/vm/foreign/'+url;
+    window.location.href = "#vms-overlay";
+}
+
+function toggle_id(name){
+
+    if(document.getElementById(name).style.display == "table-row"){
+        document.getElementById(name).style.display = "none"
+        sessionStorage.setItem(name, 0);
+    }
+    else{
+        document.getElementById(name).style.display = "table-row"
+        sessionStorage.setItem(name, 1);
+    }
+}
+
+function toggle_group(name){
+
+    var n;
+
+    if(document.getElementsByClassName(name)[0].style.display == "table-row"){
+        for(n=0; n<document.getElementsByClassName(name).length; n++){
+            document.getElementsByClassName(name)[n].style.display = "none"
+            sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 0);
+        }
+    }
+    else{
+        for(n=0; n<document.getElementsByClassName(name).length; n++){
+            document.getElementsByClassName(name)[n].style.display = "table-row"
+            sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 1);
+        }
+    }
+}
+
+
+/* Set state of expand row in session storage*/
+function set_state(){
+    var n;
+    var clouds = document.querySelectorAll('[id^="expand-"]');
+
+    for(n=0;n<clouds.length;n++){
+        if(sessionStorage.getItem(clouds[n].id)==1){
+            console.log(clouds[n].id)
+            document.getElementById(clouds[n].id).style.display = "table-row"
+        }
+    }
+}
+
+
 
 /* Add event listeners*/
 function initialize(){

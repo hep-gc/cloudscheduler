@@ -154,8 +154,14 @@ def job_poller():
                         "condor_status": 0
                     }
                     new_jsched = JOB_SCHED(**jsched)
-                    db_session.merge(new_jsched)
-                    uncommitted_updates += 1
+                    js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                    if js.count()>0:
+                        config.db_session.merge(new_jsched)
+                        uncommitted_updates += 1
+                    else:
+                        config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                        config.db_session.merge(new_jsched)
+                        uncommitted_updates += 1
 
                     if fail_count > 3 and fail_count < 1500:
                         logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
@@ -331,8 +337,14 @@ def job_poller():
                     "foreign_jobs":  held_jobs
                 }
                 new_jsched = JOB_SCHED(**jsched)
-                db_session.merge(new_jsched)
-                uncommitted_updates += 1
+                js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                if js.count()>0:
+                    config.db_session.merge(new_jsched)
+                    uncommitted_updates += 1
+                else:
+                    config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                    config.db_session.merge(new_jsched)
+                    uncommitted_updates += 1
 
                         
                 if foreign_jobs > 0:

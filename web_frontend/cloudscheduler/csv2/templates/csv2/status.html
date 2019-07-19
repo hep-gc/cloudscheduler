@@ -12,135 +12,10 @@
 <link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
 <link rel="stylesheet" type="text/css" href="{% static "csv2/status.css" %}?{{version}}">
 
-<script type="text/javascript">
-/* Get custom refresh interval, default = 30 seconds*/
-var refresh_interval = parseInt(document.getElementsByName('refresh_interval')[0].value);
-if (!(typeof(refresh_interval) !== 'undefined')) refresh_interval = 30;
-if (refresh_interval == null || refresh_interval == NaN) refresh_interval = 30;
-else if (refresh_interval < 1) stop_refresh;
-</script>
-
-<script type="text/javascript">
-    set_state();
-    /* Refresh status table and system services display*/
-    var TimerSwitch = 1;
-    var timer_id;
-    function set_refresh(time) {
-        TimerSwitch = 1;
-        timer_id = setTimeout(function() {
-
-            refresh_plot();
-            var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-
-            fetch(location.href,{	
-                method: 'GET',
-                headers: {'Accept': 'text/html', 'X-CSRFToken': csrftoken},
-                credentials: 'same-origin',
-            })	
-            .then(function(response){
-                /* Check response status code*/
-                if(response.ok){
-                    return response.text();
-                }throw new Error('Could not update status table :( HTTP response not was not OK -> '+response.status);
-            })
-            .then((html) => {
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(html, "text/html");
-                document.getElementById("status").innerHTML = doc.getElementById("status").innerHTML;
-                document.getElementById("system-services").innerHTML = doc.getElementById("system-services").innerHTML;
-                TimerVal = refresh_interval;
-                set_refresh(refresh_interval*1000);
-                set_state();
-                checkForExpandedRow();
-                checkForPlottedTraces();
-                initialize();
-            })
-            .catch((error) => {
-                console.warn(error);
-                TimerVal = refresh_interval;
-                set_refresh(refresh_interval*1000);
-            });
-        },time);
-        document.getElementById('vms-iframe').src='';
-    }
-
-    function stop_refresh() {
-        TimerSwitch = 0;
-        clearTimeout(timer_id);
-        window.stop();
-    }
-
-    function native_list(url) {
-        stop_refresh();
-        document.getElementById('vms-iframe').src='/vm/list/'+url;
-        window.location.href = "#vms-overlay";
-    }
-
-    function foreign_list(url) {
-        stop_refresh();
-        document.getElementById('vms-iframe').src='/vm/foreign/'+url;
-        window.location.href = "#vms-overlay";
-    }
-    /*
-    function toggle_state(){
-        if(document.getElementById('toggle-row').checked == true){
-            sessionStorage.setItem("expand", 1);
-        }
-        else{
-            sessionStorage.setItem("expand", 0);
-        }
-    }
-    */
-    function toggle_id(name){
-
-        if(document.getElementById(name).style.display == "table-row"){
-            document.getElementById(name).style.display = "none"
-            sessionStorage.setItem(name, 0);
-        }
-        else{
-            document.getElementById(name).style.display = "table-row"
-            sessionStorage.setItem(name, 1);
-        }
-    }
-
-    function toggle_group(name){
-
-        var n;
-
-        if(document.getElementsByClassName(name)[0].style.display == "table-row"){
-            for(n=0; n<document.getElementsByClassName(name).length; n++){
-                document.getElementsByClassName(name)[n].style.display = "none"
-                sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 0);
-            }
-        }
-        else{
-            for(n=0; n<document.getElementsByClassName(name).length; n++){
-                document.getElementsByClassName(name)[n].style.display = "table-row"
-                sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 1);
-            }
-        }
-    }
-
-
-    /* Set state of expand row in session storage*/
-    function set_state(){
-        var n;
-        var clouds = document.querySelectorAll('[id^="expand-"]');
-
-        for(n=0;n<clouds.length;n++){
-            if(sessionStorage.getItem(clouds[n].id)==1){
-                console.log(clouds[n].id)
-                document.getElementById(clouds[n].id).style.display = "table-row"
-            }
-        }
-    }
-
-</script>
-
 </head>
 
 
-<body class="status-nav">
+<body class="status-nav" onload="set_state();">
 {% spaceless %}
 
 {% if err_message is not None %}
@@ -199,6 +74,7 @@ else if (refresh_interval < 1) stop_refresh;
     <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot
     </button>
 </div>
+
 
 <!-- Status tables-->
     <div class="status-div" id="status">
@@ -319,7 +195,7 @@ else if (refresh_interval < 1) stop_refresh;
                                                 <tr>
 
                                                 {% if job.js_idle != 0 %}
-                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>
+                                                    <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">{{ job.request_cpus }}c: {{ job.js_idle }}</td>
                                                 {% else %}
                                                     <td data-path="{{job.group_name}} jobs_idle_{{job.request_cpus}}core" class="plottable">&nbsp;</td> 
                                                     <!--<td class="zero-style" >{{ job.js_idle }}&#10005;{{ job.request_cpus }}c</td>-->
@@ -701,16 +577,21 @@ else if (refresh_interval < 1) stop_refresh;
 
                                     <td colspan="2">
                                         <table>
-                                        
-                                        {% for slot in slot_list %}
-
+                                        {% for slot in slot_detail %}
                                             {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
                                             <tr>
-                                                    <td data-path="{{slot.group_name}} {{slot.cloud_name}} {{slot.slot_type}}core" class="plottable">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                                    <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                                                </tr>
+                                                <td>{{slot.type}}c: {{slot.sum}}</td>
+                                                <td>
+                                                    <table>
+                                                    {% for id in slot.list %}
+                                                        <tr><td>
+                                                        {{id}}
+                                                        </td><tr>
+                                                    {% endfor %}
+                                                    </table>
+                                                </td>
+                                            </tr>
                                             {% endif %}
-
                                         {% endfor %}
                                         </table>
                                     </td>
@@ -1016,19 +897,26 @@ else if (refresh_interval < 1) stop_refresh;
                         <td class="col-spacer">&nbsp;</td>
 
                         <td colspan="2">
-                            <table>
 
-                            {% for slot in slot_total_list %}
-                            
+                            <table>
+                            {% for slot in slot_detail_total %}
                                 {% if slot %}
                                 <tr>
-                                        <td data-path="{{group_name}} {{slot.slot_type}}core_total">{{ slot.slot_count }}&#10005;{{ slot.slot_type }}c</td>
-                                        <td>{{ slot.core_count }}@{{ slot.slot_id }}</td>
-                                    </tr>
+                                    <td>{{slot.type}}c: {{slot.sum}}</td>
+                                    <td>
+                                        <table>
+                                        {% for id in slot.list %}
+                                            <tr><td>
+                                            {{id}}
+                                            </td><tr>
+                                        {% endfor %}
+                                        </table>
+                                    </td>
+                                </tr>
                                 {% endif %}
-                                
                             {% endfor %}
                             </table>
+
                         </td>
                         <td><!--Idle--></td>
 

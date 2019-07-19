@@ -14,13 +14,18 @@
   httpd_rc=$?
 
   echo "Checking firewall" >> $logfile.partial_log
-  http_fw=0; https_fw=0; for service in $(firewall-cmd --list-services); do
-    if [ "X$service" == 'Xhttp' ]; then
+  if [ -e /usr/bin/firewall-cmd ]; then
+      http_fw=0; https_fw=0; for service in $(firewall-cmd --list-services); do
+        if [ "X$service" == 'Xhttp' ]; then
+          http_fw=1
+        elif [ "X$service" == 'Xhttps' ]; then
+          https_fw=1
+        fi
+      done
+  else
       http_fw=1
-    elif [ "X$service" == 'Xhttps' ]; then
       https_fw=1
-    fi
-  done
+  fi    
 
   if [ $http_fw -eq 0 ]; then
     echo -n "Opening firewall for HTTP... " >> $logfile.partial_log

@@ -81,6 +81,17 @@
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
 
+- name: ensure fetch-crl service is enabled and started
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+  - fetch-crl
+  when:
+  - htcondor_cert is defined
+  - htcondor_worker_cert is defined
+
 - name: HTCondor GSI configuration 
   template:
     src:  etc_condor_config.d_gsi.j2
