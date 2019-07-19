@@ -29,6 +29,7 @@
   with_items:
   - /etc/condor/config.d/gsi.container
   - /etc/cron.d/csv2-ec2-instance-types
+  - /etc/httpd/conf.d/welcome.conf
   - /etc/logrotate.d/cspollers.conf
 
 - name: install libvirt for cloudscheduler main, redis and grid security certificate package
