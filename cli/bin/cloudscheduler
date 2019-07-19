@@ -296,7 +296,10 @@ def main(args):
     if not os.path.exists('%s/.csv2' % gvar['home_dir']):
         os.makedirs('%s/.csv2' % gvar['home_dir'], mode=0o700)  
         if gvar['pid_file'] != '-':
-            os.unlink(gvar['pid_file'])
+            try:
+                os.unlink(gvar['pid_file'])
+            except:
+                pass
 
     # Retrieve (or initialise) process defaults.
     if os.path.isfile(gvar['pid_file']):

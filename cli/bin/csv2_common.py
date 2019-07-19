@@ -145,7 +145,11 @@ def get_grid_proxy(gvar):
     
     import os
 
-    time_left_list = sys_cmd(['grid-proxy-info', '-timeleft'])
+    try:
+        time_left_list = sys_cmd(['grid-proxy-info', '-timeleft'])
+    except:
+        return None
+
     if time_left_list:
         try:
             time_left = int(time_left_list[0])
@@ -349,13 +353,18 @@ def _requests(gvar, request, form_data={}, query_data={}):
 
         _function, _request, _form_data = _requests_insert_controls(gvar, request, form_data, query_data, gvar['user_settings']['server-address'], gvar['user_settings']['server-user'])
 
-        _r = _function(
-            _request,
-            headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
-            auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
-            data=_form_data,
-            cookies=gvar['cookies'] 
-            )
+        try:
+            _r = _function(
+                _request,
+                headers={'Accept': 'application/json', 'Referer': gvar['user_settings']['server-address']},
+                auth=(gvar['user_settings']['server-user'], gvar['user_settings']['server-password']),
+                data=_form_data,
+                cookies=gvar['cookies'] 
+                )
+
+        except py_requests.exceptions.SSLError as exc:
+            print(exc)
+            exit(1)
 
     else:
         requests_no_credentials_error(gvar)
