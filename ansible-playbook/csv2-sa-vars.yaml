@@ -15,6 +15,7 @@ favicon_colour: red
 
 db_on_localhost: true
 rabbit_on_localhost: true
+reconfigure_network: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
 install_phpMyAdmin: False
