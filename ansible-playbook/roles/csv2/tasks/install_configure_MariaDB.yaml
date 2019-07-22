@@ -98,3 +98,5 @@
 
 - name: allow mariadb admin on internal subnet
   script: bash-mariadb_allow_admin_on_internal_subnet "{{ i_internal_connection.0.ipv4fqdn }}" "{{ mariadb_root }}" creates=/root/ansible_script_logs/bash-mariadb_allow_admin_on_internal_subnet.log
+  when:
+  - i_internal_connection.0.ipv4fqdn is defined
