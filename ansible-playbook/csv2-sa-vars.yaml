@@ -116,12 +116,12 @@ i_external_connection:
 
 # Private network.
 i_internal_connection:
-#-
-#    nic: 'eth0'
-#    ipv4: '10.200.200.239'
-#    ipv4fqdn: 'csv2-sa'
-#    ipv6: '-'
-#    ipv6fqdn: '-'
+-
+    nic: 'eth0'
+    ipv4: '127.0.0.1
+    ipv4fqdn: 'csv2-sa'
+    ipv6: '-'
+    ipv6fqdn: '-'
 
 # Define network connections.
 i_connections:
