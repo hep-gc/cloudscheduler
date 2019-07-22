@@ -1249,7 +1249,7 @@ def status(request, group_name=None):
             ]
         })
 
-    cloud_total_list = cloud_status_list_totals
+    cloud_total_list = cloud_status_list_totals[0]
 
     # calculate the group view totals for all rows
     cloud_status_global_totals = qt(cloud_status_list, keys={
@@ -1435,6 +1435,7 @@ def status(request, group_name=None):
             'user_groups': active_user.user_groups,
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
+            'cloud_status_list_totals': cloud_status_list_totals,
             'global_total_list': global_total_list,
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
@@ -1464,23 +1465,25 @@ def gen_slot_detail(slot_list):
 
     for slot in slot_list:
 
-        count = int(slot['slot_count'])
-        slot_string = slot['slot_id']+': '+str(int(slot['core_count']))
+        if 'slot_count' in slot:
 
-        if not any(s["type"] == count for s in slot_detail):
-        
-            if 'cloud_name' in slot:
-                s = {'group_name': slot['group_name'], 'cloud_name': slot['cloud_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+            count = int(slot['slot_count'])
+            slot_string = slot['slot_id']+': '+str(int(slot['core_count']))
+
+            if not any(s["type"] == count for s in slot_detail):
+            
+                if 'cloud_name' in slot:
+                    s = {'group_name': slot['group_name'], 'cloud_name': slot['cloud_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+                else:
+                    s = {'group_name': slot['group_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+
+                slot_detail.append(dict(s))
+
             else:
-                s = {'group_name': slot['group_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
-
-            slot_detail.append(dict(s))
-
-        else:
-            for d in slot_detail:
-                if d['type'] == count:
-                    d['sum'] += int(slot['core_count'])
-                    d['list'].append(slot_string)
+                for d in slot_detail:
+                    if d['type'] == count:
+                        d['sum'] += int(slot['core_count'])
+                        d['list'].append(slot_string)
 
     return slot_detail
 
