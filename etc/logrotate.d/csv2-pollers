@@ -48,3 +48,22 @@
   create 0644 cloudscheduler cloudscheduler
 }
 
+/var/log/cloudscheduler/timeseriesPoller.log {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
+
+/var/log/cloudscheduler/glintPoller.log {
+  weekly
+  su cloudscheduler cloudscheduler
+  notifempty
+  missingok
+  compress
+  copytruncate
+  create 0644 cloudscheduler cloudscheduler
+}
