@@ -87,7 +87,8 @@
     enabled: yes
     state: started
   with_items:
-  - fetch-crl
+  - fetch-crl-boot
+  - fetch-crl-cron
   when:
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
