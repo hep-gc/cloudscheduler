@@ -1300,8 +1300,8 @@ def status(request, group_name=None):
             for total in cloud_status_list_totals:
                 if total['group_name'] == previous_group:
 
-                    # Add a special cloud_name variable to identify the totals row:
-                    total['cloud_name'] = 'Totals'
+                    # Add a blank cloud name so VMs search returns all VMs in group:
+                    total['cloud_name'] = ''
 
                     print('index', index, length)
 

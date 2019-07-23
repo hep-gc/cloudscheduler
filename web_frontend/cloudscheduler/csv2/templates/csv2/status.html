@@ -338,18 +338,20 @@
 
                     {% for cloud in cloud_status_list %}
 
-                        {% if global_flag or not global_flag and cloud.group_name == active_group %}
+                        {% if global_flag or not global_flag and cloud.group_name == active_group and cloud.enabled < 9%}
                             {% if cloud.VMs > 0 %}
                                 
                                 <tr>
                                     <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')">{{cloud.group_name}}</td>
 
-                                {% if cloud.enabled > 0 %}
-                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
+                                {% if cloud.enabled >= 9 %}
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">Totals</td>
+                                {% elif cloud.enabled > 0 %}
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">{{cloud.cloud_name}}</td>
                                 {% else %}
-                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
+                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">{{cloud.cloud_name}}</td>
                                 {% endif %}
-                                    {{cloud.cloud_name}}</td>
+                                    
 
                                     {% if cloud.VMs == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="zero-style plottable" oncontextmenu="javascript:return false;">0</td>
