@@ -290,7 +290,7 @@ def job_poller():
                     try:
                         job_dict["RequestCpus"] = int(job_dict["RequestCpus"])
                     except Exception as exc:
-                        logging.info("Request Cpus not set, setting minimum (1)")
+                        logging.debug("Request Cpus not set, setting minimum (1)")
                         job_dict["RequestCpus"] = 1
 
 
