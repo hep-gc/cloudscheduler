@@ -1285,6 +1285,35 @@ def status(request, group_name=None):
 
     global_total_list = cloud_status_global_totals[0]
 
+
+    previous_group = ''
+    # Loop through the cloud_status_list and insert the totals row after each group of clouds:
+    for index, cloud in enumerate(cloud_status_list):
+
+        # Find the length of the list:
+        length = int(len(cloud_status_list)-1)
+
+        # Insert a totals for if we are at the end of a group of clouds:
+        if ((previous_group != cloud['group_name']) and (index !=0)) or (index == length):
+
+            # Loop through the totals list to find the correct group:
+            for total in cloud_status_list_totals:
+                if total['group_name'] == previous_group:
+
+                    # Add a special cloud_name variable to identify the totals row:
+                    total['cloud_name'] = 'cloud-totals-row'
+
+                    # Insert the totals for at the correct index:
+                    cloud_status_list.insert(index, total.copy())
+        
+        # Break out of the loop when we reach the last entry:
+        if index == length:
+            break
+
+        # Record the current cloud group:
+        previous_group = cloud['group_name']
+
+
     # find the actual cores limit in use
     '''
     cloud_total_list['cores_limit'] = 0
