@@ -2,6 +2,7 @@
 from subprocess import Popen, PIPE
 import os
 import shutil
+import socket
 import sys
 
 def syscmd (gvar, cmd, cwd=None):
@@ -23,38 +24,61 @@ gvar['cmd_path'] = os.path.realpath(sys.argv[0])
 gvar['bread_crumbs'] = gvar['cmd_path'].split('/')
 gvar['bread_crumbs_ix'] = gvar['bread_crumbs'].index('cloudscheduler')
 gvar['root_dir'] = '/'.join(gvar['bread_crumbs'][:gvar['bread_crumbs_ix']+1])
+gvar['deployment_host_ip_addr'] = socket.gethostbyname(socket.gethostname())
 
 fd = open('%s/ansible-playbook/README.md' % gvar['root_dir'])
-old_fqdn = fd.read().split('fully qualified domain name (FQDN) of "')[1].split('"')[0]
+gvar['old_fqdn'] = fd.read().split('fully qualified domain name (FQDN) of "')[1].split('"')[0]
 fd.close()
-words = old_fqdn.split('.')
-old_domain = '.'.join(words[1:])
-old_hostname = words[0]
+words = gvar['old_fqdn'].split('.')
+gvar['old_domain'] = '.'.join(words[1:])
+gvar['old_hostname'] = words[0]
+gvar['old_host_ip_addr'] = socket.gethostbyname(gvar['old_fqdn'])
 
-new_fqdn = input('Please enter the FQDN of the host you wish to build for CSV2? ')
-words = new_fqdn.split('.')
-new_domain = '.'.join(words[1:])
-new_hostname = words[0]
+if len(sys.argv)>1:
+    gvar['new_fqdn'] = sys.argv[1]
+else:
+    gvar['new_fqdn'] = input('Please enter the FQDN of the host you wish to build for CSV2? ')
 
-print('Changing FQDN of stand-alone server from "%s" to "%s".' % (old_fqdn, new_fqdn))
+if gvar['new_fqdn'] == gvar['old_fqdn']:
+    print('New and old FQDNs are the same ("%s").' % gvar['new_fqdn'])
+    exit(1)
 
-syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (old_hostname, new_hostname), 'addenda'], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+try:
+    gvar['new_host_ip_addr'] = socket.gethostbyname(gvar['new_fqdn'])
+except:
+    print('Error: "%s" is not a valid FQDN.' % gvar['new_fqdn'])
+    exit(1)
 
-syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (old_fqdn, new_fqdn), 'README.md'], cwd='%s/ansible-playbook' % gvar['root_dir'])
-syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (old_hostname, new_hostname), 'README.md'], cwd='%s/ansible-playbook' % gvar['root_dir'])
+words = gvar['new_fqdn'].split('.')
+gvar['new_domain'] = '.'.join(words[1:])
+gvar['new_hostname'] = words[0]
 
-syscmd(gvar, ['mv', '%s-secrets.yaml' % old_hostname, '%s-secrets.yaml' % new_hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
-syscmd(gvar, ['rm', '-f', '%s-secrets.yaml' % old_hostname], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
-syscmd(gvar, ['ln', '-s', '../../../%s-secrets.yaml' % new_hostname], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+print('Changing FQDN of stand-alone server from "%s" to "%s".' % (gvar['old_fqdn'], gvar['new_fqdn']))
 
-syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (old_fqdn, new_fqdn), '%s-vars.yaml' % old_hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
-syscmd(gvar, ['sed', '-i', 's/%s-myadmin.%s/%s-myadmin.%s/' % (old_hostname, old_domain, new_hostname, new_domain), '%s-vars.yaml' % old_hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
-syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (old_hostname, new_hostname), '%s-vars.yaml' % old_hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
-syscmd(gvar, ['mv', '%s-vars.yaml' % old_hostname, '%s-vars.yaml' % new_hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
-syscmd(gvar, ['rm', '-f', '%s-vars.yaml' % old_hostname], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
-syscmd(gvar, ['ln', '-s', '../../../%s-vars.yaml' % new_hostname], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (gvar['old_hostname'], gvar['new_hostname']), 'addenda'], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
 
-syscmd(gvar, ['mv', '%s.yaml' % old_hostname, '%s.yaml' % new_hostname], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (gvar['old_fqdn'], gvar['new_fqdn']), 'README.md'], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (gvar['old_hostname'], gvar['new_hostname']), 'README.md'], cwd='%s/ansible-playbook' % gvar['root_dir'])
 
-syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (old_fqdn, new_fqdn), 'inventory'], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['mv', '%s-secrets.yaml' % gvar['old_hostname'], '%s-secrets.yaml' % gvar['new_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['rm', '-f', '%s-secrets.yaml' % gvar['old_hostname']], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+syscmd(gvar, ['ln', '-s', '../../../%s-secrets.yaml' % gvar['new_hostname']], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+
+syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (gvar['old_fqdn'], gvar['new_fqdn']), '%s-vars.yaml' % gvar['old_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['sed', '-i', 's/%s-myadmin.%s/%s-myadmin.%s/' % (gvar['old_hostname'], gvar['old_domain'], gvar['new_hostname'], gvar['new_domain']), '%s-vars.yaml' % gvar['old_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+
+syscmd(gvar, ['sed', '-i', '/ansible_deployment_host_ip:/cansible_deployment_host_ip: \'%s\'' % gvar['deployment_host_ip_addr'], '%s-vars.yaml' % gvar['old_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['sed', '-i', 's/%s/%s/; s/%s/%s/;' % (
+    gvar['old_hostname'],
+    gvar['new_hostname'],
+    gvar['old_host_ip_addr'],
+    gvar['new_host_ip_addr']
+    ), '%s-vars.yaml' % gvar['old_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['mv', '%s-vars.yaml' % gvar['old_hostname'], '%s-vars.yaml' % gvar['new_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+syscmd(gvar, ['rm', '-f', '%s-vars.yaml' % gvar['old_hostname']], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+syscmd(gvar, ['ln', '-s', '../../../%s-vars.yaml' % gvar['new_hostname']], cwd='%s/ansible-playbook/roles/csv2/vars' % gvar['root_dir'])
+
+syscmd(gvar, ['mv', '%s.yaml' % gvar['old_hostname'], '%s.yaml' % gvar['new_hostname']], cwd='%s/ansible-playbook' % gvar['root_dir'])
+
+syscmd(gvar, ['sed', '-i', 's/%s/%s/' % (gvar['old_fqdn'], gvar['new_fqdn']), 'inventory'], cwd='%s/ansible-playbook' % gvar['root_dir'])
 

@@ -5,5 +5,7 @@
   script: bash-disable_yum_auto_updates creates=/root/ansible_script_logs/bash-disable_yum_auto_updates.log
 
 - name: update all installed packages
-  yum: name=* state=latest
+  yum:
+    name: '*'
+    state: latest
 
