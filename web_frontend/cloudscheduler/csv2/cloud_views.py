@@ -1301,7 +1301,15 @@ def status(request, group_name=None):
                 if total['group_name'] == previous_group:
 
                     # Add a special cloud_name variable to identify the totals row:
-                    total['cloud_name'] = 'cloud-totals-row'
+                    total['cloud_name'] = 'Totals'
+
+                    print('index', index, length)
+
+                    # If its the last group, send the enabled flag to 99 so no extra spacer row is added after the totals row:
+                    if index == length:
+                        total['enabled'] = 99
+                    else:
+                        total['enabled'] = 9
 
                     # Insert the totals for at the correct index:
                     cloud_status_list.insert(index, total.copy())

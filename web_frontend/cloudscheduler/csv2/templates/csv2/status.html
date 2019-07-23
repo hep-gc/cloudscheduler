@@ -339,12 +339,12 @@
                     {% for cloud in cloud_status_list %}
 
                         {% if global_flag or not global_flag and cloud.group_name == active_group %}
-                            {% if cloud.enabled == 1 or cloud.VMs > 0 %}
+                            {% if cloud.VMs > 0 %}
                                 
                                 <tr>
                                     <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')">{{cloud.group_name}}</td>
 
-                                {% if cloud.enabled == 1 %}
+                                {% if cloud.enabled > 0 %}
                                     <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
                                 {% else %}
                                     <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
@@ -660,8 +660,25 @@
 
                                 </tr>
 
+
+                                {% if cloud.enabled == 9 %}
+                                    <tr>
+                                        <td colspan="10" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                    </tr>
+                                {% endif %}
+
                             {% endif %}
+
                         {% endif %}
+                    
                     {% endfor %}
 
                     
