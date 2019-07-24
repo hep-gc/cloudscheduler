@@ -10,5 +10,6 @@ Welcome to cloudscheduler's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   _architecture/index
    _database/index
 
