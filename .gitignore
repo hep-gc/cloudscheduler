@@ -2,6 +2,7 @@
 attribute_mapper.yaml
 csv2_web.yaml
 .idea
+docs/build/
 lib/schema.py
 web_frontend/cloudscheduler/csv2/static/ace-builds/
 web_frontend/cloudscheduler/csv2/static/plotly.js/
