@@ -585,9 +585,9 @@
                                                 <td>{{slot.type}}c: {{slot.sum}}</td>
                                                 <td>
                                                     <table>
-                                                    {% for id in slot.list %}
+                                                    {% for id, value in slot.list.items %}
                                                         <tr><td>
-                                                        {{id}}
+                                                        {{id}}: {{value}}
                                                         </td><tr>
                                                     {% endfor %}
                                                     </table>
