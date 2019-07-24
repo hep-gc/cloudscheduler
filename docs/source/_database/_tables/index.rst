@@ -1,0 +1,83 @@
+Tables
+========
+
+Database tables are used to maintain the system configuration and state and are divided 
+into the following catagories:
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Global configuration tables:
+
+   auth_group
+   auth_group_permissions
+   auth_permission
+   auth_user
+   auth_user_groups
+   auth_user_user_permissions
+   csv2_attribute_mapping
+   csv2_cloud_types
+   csv2_configuration
+   csv2_mime_types
+   ec2_image_well_known_owner_aliases
+   ec2_instance_status_codes
+   django_admin_log
+   django_content_type
+   django_migrations
+   django_session
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Local configuration tables:
+
+   archived_condor_jobs
+   archived_condor_machines
+   csv2_cloud_aliases
+   csv2_cloud_flavor_exclusions
+   csv2_cloud_metadata
+   csv2_clouds
+   csv2_group_metadata
+   csv2_group_metadata_exclusions
+   csv2_groups
+   csv2_service_catalog
+   csv2_user
+   csv2_user_groups
+   ec2_image_filters
+   ec2_instance_type_filters
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Ephemeral state data:
+
+   cloud_flavors
+   cloud_images
+   cloud_keypairs
+   cloud_limits
+   cloud_networks
+   cloud_security_groups
+   condor_jobs
+   condor_machines
+   csv2_image_cache
+   csv2_image_pull_requests
+   csv2_image_transactions
+   csv2_job_schedulers
+   csv2_system_status
+   csv2_vms
+   csv2_vms_foreign
+   ec2_regions
+   ec2_images
+   ec2_instance_types
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tables used by other support services::
+
+   silk_profile
+   silk_profile_queries
+   silk_request
+   silk_response
+   silk_sqlquery
+

@@ -10,11 +10,5 @@ Welcome to cloudscheduler's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   _database/index
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
