@@ -1500,6 +1500,7 @@ def gen_slot_detail(slot_list):
     # Generate the slot detail value, grouping and summing slots by type.
     slot_detail = []
 
+    # Loop through all the slots in the list:
     for slot in slot_list:
 
         if 'slot_count' in slot:
@@ -1507,12 +1508,13 @@ def gen_slot_detail(slot_list):
             count = int(slot['slot_count'])
             slot_string = slot['slot_id']+': '+str(int(slot['core_count']))
 
+            # Check if the slot type exists in the slot detail dict
             if not any(s["type"] == count for s in slot_detail):
             
                 if 'cloud_name' in slot:
-                    s = {'group_name': slot['group_name'], 'cloud_name': slot['cloud_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+                    s = {'group_name': slot['group_name'], 'cloud_name': slot['cloud_name'], 'type': count, 'sum': int(slot['core_count']), 'list': {slot['slot_id'] : int(slot['core_count'])} }
                 else:
-                    s = {'group_name': slot['group_name'], 'type': count, 'sum': int(slot['core_count']), 'list': [slot_string] }
+                    s = {'group_name': slot['group_name'], 'type': count, 'sum': int(slot['core_count']), 'list': {slot['slot_id'] : int(slot['core_count']) } }
 
                 slot_detail.append(dict(s))
 
@@ -1520,7 +1522,12 @@ def gen_slot_detail(slot_list):
                 for d in slot_detail:
                     if d['type'] == count:
                         d['sum'] += int(slot['core_count'])
-                        d['list'].append(slot_string)
+
+                        if slot['slot_id'] in d['list']:
+                            d['list'][slot['slot_id']] += int(slot['core_count'])
+                        else:
+                            d['list'][slot['slot_id']] = int(slot['core_count'])
+
 
     return slot_detail
 

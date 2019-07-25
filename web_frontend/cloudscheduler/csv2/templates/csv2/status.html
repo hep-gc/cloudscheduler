@@ -186,7 +186,7 @@
 
                             <!-- Jobs expand row to show cores-->
                             <tr class="extra-row" id="expand-jobs-{{group.group_name}}">
-                                <td></td>
+                                <td onclick="toggle_id('expand-jobs-{{group.group_name}}')"></td>
                                 <td></td>
                                 <td colspan="5">
                                     <table class="job-extra-row">
@@ -521,8 +521,8 @@
 
                                 <!-- Cloud status expand row to show details-->
                                 <tr class="extra-row expand-{{cloud.group_name}}" id="expand-{{cloud.group_name}}-{{cloud.cloud_name}}">
-                                    <td></td>
-                                    <td>
+                                    <td onclick="toggle_group('expand-{{cloud.group_name}}')"></td>
+                                    <td onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">
                                         {% if cloud.enabled == 0 %}
                                             Cloud disabled
                                         {% endif %}
@@ -585,9 +585,9 @@
                                                 <td>{{slot.type}}c: {{slot.sum}}</td>
                                                 <td>
                                                     <table>
-                                                    {% for id in slot.list %}
+                                                    {% for id, value in slot.list.items %}
                                                         <tr><td>
-                                                        {{id}}
+                                                        {{id}}: {{value}}
                                                         </td><tr>
                                                     {% endfor %}
                                                     </table>
@@ -711,7 +711,7 @@
 
                         
                      <tr>
-                        <td colspan="1" class="row-spacer">&nbsp;</td>
+                        <td colspan="1" class="row-spacer" onclick="toggle_id('expand-totals')">&nbsp;</td>
                         <td class="bold-style" onclick="toggle_id('expand-totals')">Totals</td>
 
                         {% if group_total.VMs == 0 %}
@@ -862,8 +862,8 @@
 
 
                     <tr class="extra-row"  id="expand-totals">
-                        <td colspan="1" class="row-spacer">&nbsp;</td>
-                        <td></td>
+                        <td colspan="1" class="row-spacer" onclick="toggle_id('expand-totals')">&nbsp;</td>
+                        <td onclick="toggle_id('expand-totals')"></td>
 
                         <td>
                         {% if group_total.VMs > 0 %}
