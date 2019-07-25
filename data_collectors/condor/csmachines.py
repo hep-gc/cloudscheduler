@@ -425,30 +425,27 @@ def command_poller():
                     # First check the slots to see if its time to terminate this machine
 
                     #check if retire flag set & a successful retire has happened  and  (htcondor_dynamic_slots<1 || NULL) and htcondor_partitionable_slots>0, issue condor_off and increment retire by 1.
-                    if resource.retire > 1:
+                    if resource.retire >= 1:
                         if (resource[6] is None or resource[6]<1) and (resource[5] is None or resource[5]<1):
                         #if (resource[6] is None or resource[6]<1): # this statement skips the check from primary slot, normally this code would only execute when it never registered with condor
                             #check if terminate has already been set
-                            if resource[9] >= 1:
-                                continue
-                            # set terminate=1
-                            # need to get vm classad because we can't update via the view.
-                            try:
-                                logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
-                                vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
-                                vm_row.terminate = 1
-                                vm_row.updater = str(get_frame_info() + ":t1")
-                                db_session.merge(vm_row)
-                                db_session.commit()
-                                #uncommitted_updates = uncommitted_updates + 1
+                            if not resource[9] >= 1:
+                              # set terminate=1
+                              # need to get vm classad because we can't update via the view.
+                              try:
+                                  logging.info("slots are zero or null on %s, setting terminate, last updater: %s" % (resource.hostname, resource.updater))
+                                  vm_row = db_session.query(VM).filter(VM.group_name==resource.group_name, VM.cloud_name==resource.cloud_name, VM.vmid==resource.vmid)[0]
+                                  vm_row.terminate = 1
+                                  vm_row.updater = str(get_frame_info() + ":t1")
+                                  db_session.merge(vm_row)
+                                  db_session.commit()
+                                  #uncommitted_updates = uncommitted_updates + 1
 
-                                # since this vm is already ready for termination we can continue here instead of issuing the condor_off
-                                continue
-                            except Exception as exc:
-                                # unable to get VM row error
-                                logging.exception(exc)
-                                logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
-                                continue
+                              except Exception as exc:
+                                  # unable to get VM row error
+                                  logging.exception(exc)
+                                  logging.error("%s ready to be terminated but unable to locate vm_row" % resource.vmid)
+                                  continue
 
                     if (resource.retire >= 2 and resource.retiring == 1):
                         #resource has already been retired and is in retiring state, skip it
