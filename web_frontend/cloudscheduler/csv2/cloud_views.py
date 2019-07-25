@@ -1388,6 +1388,7 @@ def status(request, group_name=None):
 
     system_list = {}
     # First get rows from csv2_system_status, if rows are out of date, do manual update
+
     s = select([csv2_system_status])
     try:
         query_result = qt(config.db_connection.execute(s))[0]
@@ -1398,54 +1399,38 @@ def status(request, group_name=None):
         else:
             # throw exception
             raise Exception("System status info out of date, need to calculate manually")
+
     except:
-        
         system_list["csv2_status_msg"] = service_msg("csv2-status")
         system_list["csv2_status_status"] = 0
 
-        # Determine the csv2 service statuses and put them in a list
+        db_service_names = {
+                        "csv2-main":        "csv2_main", 
+                        "csv2-openstack":   "csv2_openstack", 
+                        "csv2-jobs":        "csv2_jobs", 
+                        "csv2-machines":    "csv2_machines", 
+                        "csv2-timeseries":  "csv2_timeseries",
+                        "csv2-ec2":         "csv2_ec2",
+                        "csv2-htc-agent":   "csv2_htc_agent",
+                        "csv2-glint":       "csv2_glint",
+                        "csv2-watch":       "csv2_watch",
+                        "csv2-startd-errors":"csv2_startd_errors",
+                        "rabbitmq-server":  "rabbitmq_server",
+                        "mariadb":          "mariadb", 
+                        "condor":           "condor"
+                   }
 
-        system_list["csv2_main_msg"] = service_msg("csv2-main")
-        if 'running' in system_list["csv2_main_msg"]:
-            system_list["csv2_main_status"] = 1
-        else:
-            system_list["csv2_main_status"] = 0
+        #system_list = {'id': 0}
+        for service, service_name in db_service_names.items():
+            system_list[service_name + "_msg"] = service_msg(service)
+            if "running" in system_list[service_name + "_msg"]:
+                system_list[service_name + "_status"] = 1
+                system_list[service_name + "_error_count"] = 0
+            else:
+                system_list[service_name + "_status"] = 0
+                system_list[service_name + "_error_count"] = 1
+                logging.error("Found service %s is dead...", service)
 
-        system_list["csv2_openstack_msg"] = service_msg("csv2-openstack")
-        if 'running' in system_list["csv2_openstack_msg"]:
-            system_list["csv2_openstack_status"] = 1
-        else:
-            system_list["csv2_openstack_status"] = 0
-
-        system_list["csv2_jobs_msg"] = service_msg("csv2-jobs")
-        if 'running' in system_list["csv2_jobs_msg"]:
-            system_list["csv2_jobs_status"] = 1
-        else:
-            system_list["csv2_jobs_status"] = 0
-
-        system_list["csv2_machines_msg"] = service_msg("csv2-machines")
-        if 'running' in system_list["csv2_machines_msg"]:
-            system_list["csv2_machines_status"] = 1
-        else:
-            system_list["csv2_machines_status"] = 0
-
-        system_list["mariadb_msg"] = service_msg("mariadb")
-        if 'running' in system_list["mariadb_msg"]:
-            system_list["mariadb_status"] = 1
-        else:
-            system_list["mariadb_status"] = 0
-
-        system_list["condor_msg"] = service_msg("condor")
-        if 'running' in system_list["condor_msg"]:
-            system_list["condor_status"] = 1
-        else:
-            system_list["condor_status"] = 0
-
-        system_list["csv2_timeseries_msg"] = service_msg("csv2-timeseries")
-        if 'running' in system_list["csv2_timeseries_msg"]:
-            system_list["csv2_timeseries_status"] = 1
-        else:
-            system_list["csv2_timeseries_status"] = 0
 
         # Determine the system load, RAM and disk usage
 
