@@ -24,10 +24,11 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 ALPHABET = string.ascii_letters + string.digits + string.punctuation
 
 
-
+# This dictionary is set up for the initial processing so we dont accidentally overwrite images with the same name
+# after this dict has been generated it is again parsed into a dictionary of lists to make it easier to render in a django template
 # Image Dictionary structure:
 #
-# img_name + checksum { 
+# img_name + "---" + checksum { 
 #    name
 #    cloud_nameX {
 #        status
@@ -67,7 +68,7 @@ ALPHABET = string.ascii_letters + string.digits + string.punctuation
 def _build_image_dict(image_list, transaction_list):
     image_dict = {}
     for image in image_list:
-        if image.name + image.checksum not in image_dict.keys():
+        if image.name + "---" + image.checksum not in image_dict.keys():
             #first time seeing this image, make a new entry
             new_dict = {
                 "name": image.name
@@ -79,10 +80,10 @@ def _build_image_dict(image_list, transaction_list):
                     "message": ""
                 }
             }
-            image_dict[image.name + image.checksum] = new_dict
+            image_dict[image.name + "---" + image.checksum] = new_dict
         else:
             #image already exits, just need to add the cloud name dict for this entry
-            image_dict[image.name + image.checksum]][image.cloud_name] = {
+            image_dict[image.name + "---" + image.checksum]][image.cloud_name] = {
                 "status": "present",
                 "visibility": image.visibility,
                 "id": image.id,
@@ -91,16 +92,16 @@ def _build_image_dict(image_list, transaction_list):
 
     # now that we have a complete picture of the images in the database we need to add the transaction data for pending image transfers
     for tx in transaction_list:
-        if tx.image_name + tx.checksum not in image_dict.keys():
+        if tx.image_name + "---" + tx.checksum not in image_dict.keys():
             # this shouldnt be possible since the image must exist to be transfered
             # only way you could end up here is if multiple deletes were queued on the same image or the image was deleted while this transaction was queued
             # ignore fore now
             continue
         else:
             # update relevent cloud dict
-            if tx.target_cloud_name not in image_dict[tx.image_name + tx.checksum].keys()
+            if tx.target_cloud_name not in image_dict[tx.image_name + "---" + tx.checksum].keys()
                 # make a new dict for it, probably a transfer request, or an upload
-                image_dict[tx.image_name + tx.checksum]][tx.target_cloud_name] = {
+                image_dict[tx.image_name + "---" + tx.checksum]][tx.target_cloud_name] = {
                     "status": tx.status,
                     "visibility": "pending",
                     "id": tx.image_id,
@@ -113,7 +114,28 @@ def _build_image_dict(image_list, transaction_list):
     return image_dict
 
 
-# at a length of 16 with a 94 symbol alphabet we have a N/16^94 chance of a collision
+# The image matrix will be a dinctionary with each value being a list of tuples where the order of the tuples is the order of clouds:
+# matrix[image_name+checksum] = ((status1, message1, visibility1),(status2, message2, visibility2)....(statusN, messageN, visibilityN))
+def image_matrix(image_dict, cloud_list):
+    image_matrix = {}
+
+    for image_key, idict in image_dict:
+        row_list = []
+        for cloud in cloud_list:
+            row_list = [,]
+            if cloud in idict.keys():
+                #image is here
+                row_list.append((image_dict[image_key][cloud.cloud_name]["status"],image_dict[image_key][cloud.cloud_name]["message"],image_dict[image_key][cloud.cloud_name]["visibility"]))
+            else:
+                #image is not here
+                row_list.append(("missing","",""))
+        image_matrix[image_key] = row_list
+
+
+    return image_matrix
+
+
+# at a length of 16 with a 94 symbol alphabet we have a N/16^94 chance of a collision, pretty darn unlikely
 def _generate_tx_id(length=16):
     return ''.join(random.choice(ALPHABET) for i in range(length)) 
 
@@ -129,6 +151,7 @@ def list(request, args=None, response_code=0, message=None):
     config.db_open()
     IMAGES = config.db_map.classes.csv2_images
     IMAGE_TX = config.db_map.classes.csv2_image_transactions
+    CLODUS = config.db_map.classes.csv2_clouds
     db_session = config.db_session
 
     # Retrieve the active user, associated group list and optionally set the active group.
@@ -139,13 +162,32 @@ def list(request, args=None, response_code=0, message=None):
 
     group = active_user.active_group
     images = db_session.query(IMAGES).filter(IMAGES.group_name == group, IMAGES.cloud_type == "openstack")
+    clouds = db_session.query(CLOUDS).filter(CLOUDS.group_name == group, CLOUDS.cloud_type == "openstack")
     pending_tx = db_session.query(IMAGE_TX).filter(IMAGE_TX.taget_group_name == group)
     image_dict = _build_image_dict(images, pending_tx)
 
     #build context and render matrix
 
 
-    return None
+
+    context = {
+        #function specific data
+        'image_dict': image_dict,
+        'cloud_list': clouds,
+
+        #view agnostic data
+        'active_user': active_user.username,
+        'active_group': active_user.active_group,
+        'user_groups': active_user.user_groups,
+        'response_code': rc,
+        'message': msg,
+        'enable_glint': config.enable_glint,
+        'is_superuser': active_user.is_superuser,
+        'version': config.get_version()
+    }
+
+
+    return render(request, 'glintwebui/images.html', context)
 
 
 @silkp(name="Image Transfer")
@@ -159,7 +201,12 @@ def transfer(request, args=None, response_code=0, message=None):
 
     #Double check that the request doesn't exist and that the image is really missing from that cloud
     #if so then check if the image is in the cache, if not queue pull request and finally queue a transfer request
-    return None
+    if request.method == 'POST':
+        return None
+
+    else:
+        #Not a post request, render image page again or do nothing
+        return None
 
 
 @silkp(name="Image Delete")
@@ -173,7 +220,12 @@ def delete(request, args=None, response_code=0, message=None):
 
     #Delete can be done right now without queing up a transaction since it is a fast call to openstack
     #may want to use a timeout for openstack in case it's busy. How long would the user want to wait?
-    return None
+    if request.method == 'POST':
+        return None
+
+    else:
+        #Not a post request, render image page again
+        return None
 
 
 @silkp(name="Image Upload")
@@ -186,7 +238,12 @@ def upload(request, args=None, response_code=0, message=None):
         return render(request, 'glint/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
 
     #Need to queue a transaction after downloading the uploaded image and placing it into the cache
-    return None
+    if request.method == 'POST':
+        return None
+
+    else:
+        #Not a post request, render image page again
+        return None
 
 
 @silkp(name="Image Download")
@@ -198,5 +255,10 @@ def download(request, args=None, response_code=0, message=None):
         config.db_close()
         return render(request, 'glint/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
     #check the cache for the file, if not there queue a pull request and wait for it to appear in the cache then upload to use
-    return None
+    if request.method == 'POST':
+        return None
+
+    else:
+        #Not a post request, render image page again
+        return None
 
