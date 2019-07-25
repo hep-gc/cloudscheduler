@@ -488,7 +488,7 @@ def command_poller():
                                 logging.error("RPC call timed out, agent offline or in error")
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
-                                    "agent_status":  1
+                                    "agent_status":  0
                                 }
                                 new_jsched = JOB_SCHED(**jsched)
                                 js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
@@ -509,7 +509,7 @@ def command_poller():
                             logging.debug("retire results: %s" % command_results[1])
                             jsched = {
                                 "htcondor_fqdn": condor_host,
-                                "agent_status":  0
+                                "agent_status":  1
                             }
                             new_jsched = JOB_SCHED(**jsched)
                             js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
@@ -666,7 +666,7 @@ def command_poller():
                                     logging.error("RPC call timed out, agent offline or in error")
                                     jsched = {
                                         "htcondor_fqdn": condor_host,
-                                        "agent_status":  1
+                                        "agent_status": 0 
                                     }
                                     new_jsched = JOB_SCHED(**jsched)
                                     js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
@@ -678,6 +678,20 @@ def command_poller():
                                         config.db_session.merge(new_jsched)
                                         uncommitted_updates += 1
                                     continue
+                                # if we get here the command successfully reached the agent but something failed on the condor side
+                                jsched = {
+                                    "htcondor_fqdn": condor_host,
+                                    "agent_status":  1
+                                }
+                                new_jsched = JOB_SCHED(**jsched)
+                                js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                                if js.count()>0:
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
+                                else:
+                                    config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                    config.db_session.merge(new_jsched)
+                                 
                                 logging.error("RPC invalidate failed for machine: %s//%s" % (resource.machine, resource.hostname))
                                 logging.error(command_results[1])
                                 continue
@@ -686,7 +700,7 @@ def command_poller():
                                 logging.debug("retire results: master: %s  startd: %s" % (command_results[1], command_results[2]))
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
-                                    "agent_status":  0
+                                    "agent_status":  1
                                 }
                                 new_jsched = JOB_SCHED(**jsched)
                                 js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
