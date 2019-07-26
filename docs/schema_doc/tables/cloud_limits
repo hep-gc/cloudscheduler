@@ -1,0 +1,95 @@
+cloud_limits:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 
+
+        server_meta_max:
+            Format: Integer
+            Synopsis: 
+
+        instances_max:
+            Format: Integer
+            Synopsis: 
+
+        personality_max:
+            Format: Integer
+            Synopsis: 
+
+        image_meta_max:
+            Format: Integer
+            Synopsis: 
+
+        personality_size_max:
+            Format: Integer
+            Synopsis: 
+
+        ram_max:
+            Format: Integer
+            Synopsis: 
+
+        server_groups_max:
+            Format: Integer
+            Synopsis: 
+
+        security_group_rules_max:
+            Format: Integer
+            Synopsis: 
+
+        keypairs_max:
+            Format: Integer
+            Synopsis: 
+
+        security_groups_max:
+            Format: Integer
+            Synopsis: 
+
+        server_group_members_max:
+            Format: Integer
+            Synopsis: 
+
+        floating_ips_max:
+            Format: Integer
+            Synopsis: 
+
+        cores_max:
+            Format: Integer
+            Synopsis: 
+
+        server_groups_used:
+            Format: Integer
+            Synopsis: 
+
+        instances_used:
+            Format: Integer
+            Synopsis: 
+
+        ram_used:
+            Format: Integer
+            Synopsis: 
+
+        security_groups_used:
+            Format: Integer
+            Synopsis: 
+
+        floating_ips_used:
+            Format: Integer
+            Synopsis: 
+
+        cores_used:
+            Format: Integer
+            Synopsis: 
+
+        last_updated:
+            Format: Integer
+            Synopsis: 

@@ -1,0 +1,15 @@
+auth_user_user_permissions:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        user_id:
+            Format: Integer
+            Synopsis: 
+
+        permission_id:
+            Format: Integer
+            Synopsis: 

@@ -1,0 +1,43 @@
+view_foreign_flavors:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        authurl:
+            Format: String
+            Synopsis: 
+
+        region:
+            Format: String
+            Synopsis: 
+
+        project:
+            Format: String
+            Synopsis: 
+
+        flavor_id:
+            Format: String
+            Synopsis: 
+
+        count:
+            Format: Integer
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        cores:
+            Format: Integer
+            Synopsis: 
+
+        ram:
+            Format: Float
+            Synopsis: 

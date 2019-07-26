@@ -1,0 +1,31 @@
+csv2_cloud_metadata:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        metadata_name:
+            Format: String
+            Synopsis: 
+
+        enabled:
+            Format: Boolean
+            Synopsis: 
+
+        priority:
+            Format: Integer
+            Synopsis: 
+
+        metadata:
+            Format: String
+            Synopsis: 
+
+        mime_type:
+            Format: String
+            Synopsis: 

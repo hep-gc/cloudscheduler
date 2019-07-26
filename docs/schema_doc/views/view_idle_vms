@@ -1,0 +1,59 @@
+view_idle_vms:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        come_alive:
+            Format: String
+            Synopsis: 
+
+        job_alive:
+            Format: String
+            Synopsis: 
+
+        error_delay:
+            Format: String
+            Synopsis: 
+
+        keep_alive:
+            Format: Integer
+            Synopsis: 
+
+        vmid:
+            Format: String
+            Synopsis: 
+
+        hostname:
+            Format: String
+            Synopsis: 
+
+        primary_slots:
+            Format: Integer
+            Synopsis: 
+
+        dynamic_slots:
+            Format: Integer
+            Synopsis: 
+
+        retire:
+            Format: Integer
+            Synopsis: 
+
+        terminate:
+            Format: Integer
+            Synopsis: 
+
+        poller_status:
+            Format: String
+            Synopsis: 
+
+        age:
+            Format: Integer
+            Synopsis: 

@@ -1,0 +1,123 @@
+view_cloud_status:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        VMs:
+            Format: Integer
+            Synopsis: 
+
+        VMs_manual:
+            Format: Integer
+            Synopsis: 
+
+        VMs_in_error:
+            Format: Integer
+            Synopsis: 
+
+        VMs_starting:
+            Format: Integer
+            Synopsis: 
+
+        VMs_retiring:
+            Format: Integer
+            Synopsis: 
+
+        VMs_unregistered:
+            Format: Integer
+            Synopsis: 
+
+        VMs_idle:
+            Format: Integer
+            Synopsis: 
+
+        VMs_running:
+            Format: Integer
+            Synopsis: 
+
+        cores_native:
+            Format: Integer
+            Synopsis: 
+
+        ram_native:
+            Format: Float
+            Synopsis: 
+
+        slot_count:
+            Format: Integer
+            Synopsis: 
+
+        slot_core_count:
+            Format: Integer
+            Synopsis: 
+
+        slot_idle_core_count:
+            Format: Integer
+            Synopsis: 
+
+        Foreign_VMs:
+            Format: Integer
+            Synopsis: 
+
+        enabled:
+            Format: Boolean
+            Synopsis: 
+
+        cores_ctl:
+            Format: Integer
+            Synopsis: 
+
+        cores_limit:
+            Format: Integer
+            Synopsis: 
+
+        VMs_quota:
+            Format: Integer
+            Synopsis: 
+
+        VMs_native_foreign:
+            Format: Integer
+            Synopsis: 
+
+        cores_quota:
+            Format: Integer
+            Synopsis: 
+
+        cores_soft_quota:
+            Format: Integer
+            Synopsis: 
+
+        cores_foreign:
+            Format: Integer
+            Synopsis: 
+
+        cores_native_foreign:
+            Format: Integer
+            Synopsis: 
+
+        ram_ctl:
+            Format: Integer
+            Synopsis: 
+
+        ram_limit:
+            Format: Integer
+            Synopsis: 
+
+        ram_quota:
+            Format: Integer
+            Synopsis: 
+
+        ram_foreign:
+            Format: Float
+            Synopsis: 
+
+        ram_native_foreign:
+            Format: Float
+            Synopsis: 

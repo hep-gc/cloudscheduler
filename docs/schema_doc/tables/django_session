@@ -1,0 +1,15 @@
+django_session:
+    Synopsis: 
+    Columns:
+
+        session_key:
+            Format: String
+            Synopsis: 
+
+        session_data:
+            Format: String
+            Synopsis: 
+
+        expire_date:
+            Format: Integer
+            Synopsis: 

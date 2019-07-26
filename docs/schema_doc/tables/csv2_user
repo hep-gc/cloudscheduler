@@ -1,0 +1,35 @@
+csv2_user:
+    Synopsis: 
+    Columns:
+
+        username:
+            Format: String
+            Synopsis: 
+
+        cert_cn:
+            Format: String
+            Synopsis: 
+
+        password:
+            Format: String
+            Synopsis: 
+
+        is_superuser:
+            Format: Boolean
+            Synopsis: 
+
+        join_date:
+            Format: Integer
+            Synopsis: 
+
+        default_group:
+            Format: String
+            Synopsis: 
+
+        flag_global_status:
+            Format: Boolean
+            Synopsis: 
+
+        status_refresh_interval:
+            Format: Integer
+            Synopsis: 

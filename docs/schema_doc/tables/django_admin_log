@@ -1,0 +1,35 @@
+django_admin_log:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        action_time:
+            Format: Integer
+            Synopsis: 
+
+        object_id:
+            Format: String
+            Synopsis: 
+
+        object_repr:
+            Format: String
+            Synopsis: 
+
+        action_flag:
+            Format: Integer
+            Synopsis: 
+
+        change_message:
+            Format: String
+            Synopsis: 
+
+        content_type_id:
+            Format: Integer
+            Synopsis: 
+
+        user_id:
+            Format: Integer
+            Synopsis: 

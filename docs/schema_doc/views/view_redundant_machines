@@ -1,0 +1,27 @@
+view_redundant_machines:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        hostname:
+            Format: String
+            Synopsis: 
+
+        condor_host:
+            Format: String
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        entered_current_state:
+            Format: Integer
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 

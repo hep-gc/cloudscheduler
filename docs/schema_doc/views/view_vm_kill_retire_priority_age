@@ -1,0 +1,43 @@
+view_vm_kill_retire_priority_age:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        vmid:
+            Format: String
+            Synopsis: 
+
+        flavor_id:
+            Format: String
+            Synopsis: 
+
+        machine:
+            Format: String
+            Synopsis: 
+
+        killed:
+            Format: Integer
+            Synopsis: 
+
+        retired:
+            Format: Integer
+            Synopsis: 
+
+        priority:
+            Format: Integer
+            Synopsis: 
+
+        flavor_cores:
+            Format: Integer
+            Synopsis: 
+
+        flavor_ram:
+            Format: Integer
+            Synopsis: 

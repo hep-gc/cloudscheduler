@@ -1,0 +1,235 @@
+view_clouds:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        enabled:
+            Format: Boolean
+            Synopsis: 
+
+        cloud_priority:
+            Format: Integer
+            Synopsis: 
+
+        spot_price:
+            Format: Float
+            Synopsis: 
+
+        vm_flavor:
+            Format: String
+            Synopsis: 
+
+        vm_image:
+            Format: String
+            Synopsis: 
+
+        vm_keep_alive:
+            Format: Integer
+            Synopsis: 
+
+        vm_keyname:
+            Format: String
+            Synopsis: 
+
+        vm_network:
+            Format: String
+            Synopsis: 
+
+        vm_security_groups:
+            Format: String
+            Synopsis: 
+
+        cascading_vm_flavor:
+            Format: String
+            Synopsis: 
+
+        cascading_vm_image:
+            Format: String
+            Synopsis: 
+
+        cascading_vm_keep_alive:
+            Format: Integer
+            Synopsis: 
+
+        cascading_vm_keyname:
+            Format: String
+            Synopsis: 
+
+        cascading_vm_network:
+            Format: String
+            Synopsis: 
+
+        cascading_vm_security_groups:
+            Format: String
+            Synopsis: 
+
+        authurl:
+            Format: String
+            Synopsis: 
+
+        project_domain_name:
+            Format: String
+            Synopsis: 
+
+        project_domain_id:
+            Format: String
+            Synopsis: 
+
+        project:
+            Format: String
+            Synopsis: 
+
+        user_domain_name:
+            Format: String
+            Synopsis: 
+
+        user_domain_id:
+            Format: String
+            Synopsis: 
+
+        username:
+            Format: String
+            Synopsis: 
+
+        password:
+            Format: String
+            Synopsis: 
+
+        keyname:
+            Format: String
+            Synopsis: 
+
+        cacertificate:
+            Format: String
+            Synopsis: 
+
+        region:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 
+
+        ec2_owner_id:
+            Format: String
+            Synopsis: 
+
+        cores_ctl:
+            Format: Integer
+            Synopsis: 
+
+        cores_softmax:
+            Format: Integer
+            Synopsis: 
+
+        cores_max:
+            Format: Integer
+            Synopsis: 
+
+        cores_used:
+            Format: Integer
+            Synopsis: 
+
+        cores_foreign:
+            Format: Integer
+            Synopsis: 
+
+        cores_native:
+            Format: Integer
+            Synopsis: 
+
+        ram_ctl:
+            Format: Integer
+            Synopsis: 
+
+        ram_max:
+            Format: Integer
+            Synopsis: 
+
+        ram_used:
+            Format: Integer
+            Synopsis: 
+
+        ram_foreign:
+            Format: Integer
+            Synopsis: 
+
+        ram_native:
+            Format: Integer
+            Synopsis: 
+
+        instances_max:
+            Format: Integer
+            Synopsis: 
+
+        instances_used:
+            Format: Integer
+            Synopsis: 
+
+        floating_ips_max:
+            Format: Integer
+            Synopsis: 
+
+        floating_ips_used:
+            Format: Integer
+            Synopsis: 
+
+        security_groups_max:
+            Format: Integer
+            Synopsis: 
+
+        security_groups_used:
+            Format: Integer
+            Synopsis: 
+
+        server_groups_max:
+            Format: Integer
+            Synopsis: 
+
+        server_groups_used:
+            Format: Integer
+            Synopsis: 
+
+        image_meta_max:
+            Format: Integer
+            Synopsis: 
+
+        keypairs_max:
+            Format: Integer
+            Synopsis: 
+
+        personality_max:
+            Format: Integer
+            Synopsis: 
+
+        personality_size_max:
+            Format: Integer
+            Synopsis: 
+
+        security_group_rules_max:
+            Format: Integer
+            Synopsis: 
+
+        server_group_members_max:
+            Format: Integer
+            Synopsis: 
+
+        server_meta_max:
+            Format: Integer
+            Synopsis: 
+
+        cores_idle:
+            Format: Integer
+            Synopsis: 
+
+        ram_idle:
+            Format: Integer
+            Synopsis: 

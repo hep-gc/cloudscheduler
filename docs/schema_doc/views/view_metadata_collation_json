@@ -1,0 +1,7 @@
+view_metadata_collation_json:
+    Synopsis: 
+    Columns:
+
+        group_metadata:
+            Format: String
+            Synopsis: 

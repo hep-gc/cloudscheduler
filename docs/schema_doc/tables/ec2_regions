@@ -1,0 +1,15 @@
+ec2_regions:
+    Synopsis: 
+    Columns:
+
+        region:
+            Format: String
+            Synopsis: 
+
+        location:
+            Format: String
+            Synopsis: 
+
+        endpoint:
+            Format: String
+            Synopsis: 

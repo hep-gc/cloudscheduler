@@ -1,0 +1,11 @@
+ec2_instance_status_codes:
+    Synopsis: 
+    Columns:
+
+        ec2_state:
+            Format: String
+            Synopsis: 
+
+        csv2_state:
+            Format: String
+            Synopsis: 

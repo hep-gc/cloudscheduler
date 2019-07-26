@@ -1,0 +1,55 @@
+csv2_attribute_mapping:
+    Synopsis: 
+    Columns:
+
+        csv2:
+            Format: String
+            Synopsis: 
+
+        os_limits:
+            Format: String
+            Synopsis: 
+
+        os_flavors:
+            Format: String
+            Synopsis: 
+
+        os_images:
+            Format: String
+            Synopsis: 
+
+        os_networks:
+            Format: String
+            Synopsis: 
+
+        os_vms:
+            Format: String
+            Synopsis: 
+
+        os_sec_grps:
+            Format: String
+            Synopsis: 
+
+        condor:
+            Format: String
+            Synopsis: 
+
+        ec2_flavors:
+            Format: String
+            Synopsis: 
+
+        ec2_limits:
+            Format: String
+            Synopsis: 
+
+        ec2_regions:
+            Format: String
+            Synopsis: 
+
+        ec2_images:
+            Format: String
+            Synopsis: 
+
+        ec2_vms:
+            Format: String
+            Synopsis: 

@@ -1,0 +1,39 @@
+ec2_instance_type_filters:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        families:
+            Format: String
+            Synopsis: 
+
+        operating_systems:
+            Format: String
+            Synopsis: 
+
+        processors:
+            Format: String
+            Synopsis: 
+
+        processor_manufacturers:
+            Format: String
+            Synopsis: 
+
+        cores:
+            Format: String
+            Synopsis: 
+
+        memory_min_gigabytes_per_core:
+            Format: Integer
+            Synopsis: 
+
+        memory_max_gigabytes_per_core:
+            Format: Integer
+            Synopsis: 

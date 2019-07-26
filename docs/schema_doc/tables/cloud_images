@@ -1,0 +1,55 @@
+cloud_images:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        id:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 
+
+        container_format:
+            Format: String
+            Synopsis: 
+
+        disk_format:
+            Format: String
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        size:
+            Format: Integer
+            Synopsis: 
+
+        visibility:
+            Format: String
+            Synopsis: 
+
+        min_disk:
+            Format: Integer
+            Synopsis: 
+
+        min_ram:
+            Format: Integer
+            Synopsis: 
+
+        checksum:
+            Format: String
+            Synopsis: 
+
+        last_updated:
+            Format: Integer
+            Synopsis: 

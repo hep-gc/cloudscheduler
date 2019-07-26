@@ -1,0 +1,15 @@
+csv2_cloud_aliases:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        alias_name:
+            Format: String
+            Synopsis: 

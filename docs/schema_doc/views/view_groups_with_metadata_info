@@ -1,0 +1,35 @@
+view_groups_with_metadata_info:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        htcondor_fqdn:
+            Format: String
+            Synopsis: 
+
+        htcondor_container_hostname:
+            Format: String
+            Synopsis: 
+
+        htcondor_other_submitters:
+            Format: String
+            Synopsis: 
+
+        metadata_name:
+            Format: String
+            Synopsis: 
+
+        metadata_enabled:
+            Format: Boolean
+            Synopsis: 
+
+        metadata_priority:
+            Format: Integer
+            Synopsis: 
+
+        metadata_mime_type:
+            Format: String
+            Synopsis: 

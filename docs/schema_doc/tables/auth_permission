@@ -1,0 +1,19 @@
+auth_permission:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        content_type_id:
+            Format: Integer
+            Synopsis: 
+
+        codename:
+            Format: String
+            Synopsis: 

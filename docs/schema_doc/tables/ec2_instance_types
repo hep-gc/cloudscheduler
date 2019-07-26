@@ -1,0 +1,39 @@
+ec2_instance_types:
+    Synopsis: 
+    Columns:
+
+        region:
+            Format: String
+            Synopsis: 
+
+        instance_type:
+            Format: String
+            Synopsis: 
+
+        operating_system:
+            Format: String
+            Synopsis: 
+
+        instance_family:
+            Format: String
+            Synopsis: 
+
+        processor:
+            Format: String
+            Synopsis: 
+
+        storage:
+            Format: String
+            Synopsis: 
+
+        cores:
+            Format: Integer
+            Synopsis: 
+
+        memory:
+            Format: Float
+            Synopsis: 
+
+        cost_per_hour:
+            Format: Float
+            Synopsis: 

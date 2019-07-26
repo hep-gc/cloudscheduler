@@ -1,0 +1,127 @@
+csv2_vms:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        region:
+            Format: String
+            Synopsis: 
+
+        vmid:
+            Format: String
+            Synopsis: 
+
+        spot_instance:
+            Format: Boolean
+            Synopsis: 
+
+        instance_id:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 
+
+        vm_ips:
+            Format: String
+            Synopsis: 
+
+        vm_floating_ips:
+            Format: String
+            Synopsis: 
+
+        auth_url:
+            Format: String
+            Synopsis: 
+
+        project:
+            Format: String
+            Synopsis: 
+
+        hostname:
+            Format: String
+            Synopsis: 
+
+        keep_alive:
+            Format: Integer
+            Synopsis: 
+
+        start_time:
+            Format: Integer
+            Synopsis: 
+
+        status:
+            Format: String
+            Synopsis: 
+
+        flavor_id:
+            Format: String
+            Synopsis: 
+
+        task:
+            Format: String
+            Synopsis: 
+
+        power_status:
+            Format: Integer
+            Synopsis: 
+
+        manual_control:
+            Format: Boolean
+            Synopsis: 
+
+        htcondor_startd_errors:
+            Format: String
+            Synopsis: 
+
+        htcondor_startd_time:
+            Format: Integer
+            Synopsis: 
+
+        htcondor_partitionable_slots:
+            Format: Integer
+            Synopsis: 
+
+        htcondor_dynamic_slots:
+            Format: Integer
+            Synopsis: 
+
+        htcondor_slots_timestamp:
+            Format: Integer
+            Synopsis: 
+
+        retire:
+            Format: Integer
+            Synopsis: 
+
+        retire_time:
+            Format: Integer
+            Synopsis: 
+
+        terminate:
+            Format: Integer
+            Synopsis: 
+
+        terminate_time:
+            Format: Integer
+            Synopsis: 
+
+        status_changed_time:
+            Format: Integer
+            Synopsis: 
+
+        last_updated:
+            Format: Integer
+            Synopsis: 
+
+        updater:
+            Format: String
+            Synopsis: 

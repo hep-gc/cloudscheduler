@@ -1,0 +1,15 @@
+csv2_cloud_flavor_exclusions:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        flavor_name:
+            Format: String
+            Synopsis: 

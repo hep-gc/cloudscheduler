@@ -1,0 +1,15 @@
+django_content_type:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        app_label:
+            Format: String
+            Synopsis: 
+
+        model:
+            Format: String
+            Synopsis: 

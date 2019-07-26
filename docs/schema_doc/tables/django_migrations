@@ -1,0 +1,19 @@
+django_migrations:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        app:
+            Format: String
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        applied:
+            Format: Integer
+            Synopsis: 

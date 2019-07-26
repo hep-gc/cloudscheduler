@@ -1,0 +1,59 @@
+view_active_resource_shortfall:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        target_alias:
+            Format: String
+            Synopsis: 
+
+        target_clouds:
+            Format: String
+            Synopsis: 
+
+        request_cores:
+            Format: Integer
+            Synopsis: 
+
+        active_cores:
+            Format: Integer
+            Synopsis: 
+
+        shortfall_cores:
+            Format: Integer
+            Synopsis: 
+
+        request_disk:
+            Format: Integer
+            Synopsis: 
+
+        active_disk:
+            Format: Integer
+            Synopsis: 
+
+        shortfall_disk:
+            Format: Integer
+            Synopsis: 
+
+        request_ram:
+            Format: Integer
+            Synopsis: 
+
+        active_ram:
+            Format: Integer
+            Synopsis: 
+
+        shortfall_ram:
+            Format: Integer
+            Synopsis: 
+
+        idle:
+            Format: Integer
+            Synopsis: 
+
+        running:
+            Format: Integer
+            Synopsis: 

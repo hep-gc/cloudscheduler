@@ -1,0 +1,15 @@
+silk_profile_queries:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        profile_id:
+            Format: Integer
+            Synopsis: 
+
+        sqlquery_id:
+            Format: Integer
+            Synopsis: 

@@ -1,0 +1,7 @@
+csv2_cloud_types:
+    Synopsis: 
+    Columns:
+
+        cloud_type:
+            Format: String
+            Synopsis: 

@@ -1,0 +1,131 @@
+view_groups_of_idle_jobs:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        target_alias:
+            Format: String
+            Synopsis: 
+
+        target_clouds:
+            Format: String
+            Synopsis: 
+
+        instance_type:
+            Format: String
+            Synopsis: 
+
+        requirements:
+            Format: String
+            Synopsis: 
+
+        job_priority:
+            Format: Integer
+            Synopsis: 
+
+        user:
+            Format: String
+            Synopsis: 
+
+        image:
+            Format: String
+            Synopsis: 
+
+        network:
+            Format: String
+            Synopsis: 
+
+        keep_alive:
+            Format: String
+            Synopsis: 
+
+        max_price:
+            Format: String
+            Synopsis: 
+
+        user_data:
+            Format: String
+            Synopsis: 
+
+        job_per_core:
+            Format: Integer
+            Synopsis: 
+
+        request_cpus_min:
+            Format: Integer
+            Synopsis: 
+
+        request_cpus_max:
+            Format: Integer
+            Synopsis: 
+
+        request_cpus_total:
+            Format: Integer
+            Synopsis: 
+
+        request_disk_min:
+            Format: Integer
+            Synopsis: 
+
+        request_disk_max:
+            Format: Integer
+            Synopsis: 
+
+        request_disk_total:
+            Format: Integer
+            Synopsis: 
+
+        request_ram_min:
+            Format: Integer
+            Synopsis: 
+
+        request_ram_max:
+            Format: Integer
+            Synopsis: 
+
+        request_ram_total:
+            Format: Integer
+            Synopsis: 
+
+        request_swap_min:
+            Format: Integer
+            Synopsis: 
+
+        request_swap_max:
+            Format: Integer
+            Synopsis: 
+
+        request_swap_total:
+            Format: Integer
+            Synopsis: 
+
+        queue_date:
+            Format: Integer
+            Synopsis: 
+
+        idle:
+            Format: Integer
+            Synopsis: 
+
+        running:
+            Format: Integer
+            Synopsis: 
+
+        completed:
+            Format: Integer
+            Synopsis: 
+
+        held:
+            Format: Integer
+            Synopsis: 
+
+        other:
+            Format: Integer
+            Synopsis: 
+
+        flavors:
+            Format: String
+            Synopsis: 

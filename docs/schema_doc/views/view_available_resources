@@ -1,0 +1,191 @@
+view_available_resources:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        cloud_priority:
+            Format: Integer
+            Synopsis: 
+
+        region:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 
+
+        spot_price:
+            Format: Float
+            Synopsis: 
+
+        authurl:
+            Format: String
+            Synopsis: 
+
+        cacertificate:
+            Format: String
+            Synopsis: 
+
+        project_domain_name:
+            Format: String
+            Synopsis: 
+
+        project_domain_id:
+            Format: String
+            Synopsis: 
+
+        project:
+            Format: String
+            Synopsis: 
+
+        user_domain_name:
+            Format: String
+            Synopsis: 
+
+        user_domain_id:
+            Format: String
+            Synopsis: 
+
+        username:
+            Format: String
+            Synopsis: 
+
+        password:
+            Format: String
+            Synopsis: 
+
+        default_flavor:
+            Format: String
+            Synopsis: 
+
+        default_image:
+            Format: String
+            Synopsis: 
+
+        default_keep_alive:
+            Format: Integer
+            Synopsis: 
+
+        default_keyname:
+            Format: String
+            Synopsis: 
+
+        default_network:
+            Format: String
+            Synopsis: 
+
+        default_security_groups:
+            Format: String
+            Synopsis: 
+
+        VMs:
+            Format: Integer
+            Synopsis: 
+
+        VMs_max:
+            Format: Integer
+            Synopsis: 
+
+        cores_max:
+            Format: Integer
+            Synopsis: 
+
+        cores_used:
+            Format: Integer
+            Synopsis: 
+
+        cores_foreign:
+            Format: Integer
+            Synopsis: 
+
+        disk_used:
+            Format: Integer
+            Synopsis: 
+
+        ram_max:
+            Format: Float
+            Synopsis: 
+
+        ram_used:
+            Format: Integer
+            Synopsis: 
+
+        ram_foreign:
+            Format: Float
+            Synopsis: 
+
+        swap_used:
+            Format: Integer
+            Synopsis: 
+
+        flavor:
+            Format: String
+            Synopsis: 
+
+        flavor_id:
+            Format: String
+            Synopsis: 
+
+        flavor_slots:
+            Format: Integer
+            Synopsis: 
+
+        flavor_cores:
+            Format: Integer
+            Synopsis: 
+
+        flavor_disk:
+            Format: Integer
+            Synopsis: 
+
+        flavor_ram:
+            Format: Integer
+            Synopsis: 
+
+        flavor_swap:
+            Format: Integer
+            Synopsis: 
+
+        flavor_VMs:
+            Format: Integer
+            Synopsis: 
+
+        flavor_starting:
+            Format: Integer
+            Synopsis: 
+
+        flavor_unregistered:
+            Format: Integer
+            Synopsis: 
+
+        flavor_idle:
+            Format: Integer
+            Synopsis: 
+
+        flavor_running:
+            Format: Integer
+            Synopsis: 
+
+        flavor_retiring:
+            Format: Integer
+            Synopsis: 
+
+        flavor_error:
+            Format: Integer
+            Synopsis: 
+
+        flavor_manual:
+            Format: Integer
+            Synopsis: 
+
+        updater:
+            Format: String
+            Synopsis: 

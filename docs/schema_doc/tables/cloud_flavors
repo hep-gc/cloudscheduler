@@ -1,0 +1,51 @@
+cloud_flavors:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        id:
+            Format: String
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 
+
+        ram:
+            Format: Integer
+            Synopsis: 
+
+        cores:
+            Format: Integer
+            Synopsis: 
+
+        swap:
+            Format: Integer
+            Synopsis: 
+
+        disk:
+            Format: Integer
+            Synopsis: 
+
+        ephemeral_disk:
+            Format: Integer
+            Synopsis: 
+
+        is_public:
+            Format: Boolean
+            Synopsis: 
+
+        last_updated:
+            Format: Integer
+            Synopsis: 

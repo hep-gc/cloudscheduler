@@ -1,0 +1,19 @@
+csv2_job_schedulers:
+    Synopsis: 
+    Columns:
+
+        htcondor_fqdn:
+            Format: String
+            Synopsis: 
+
+        condor_status:
+            Format: Boolean
+            Synopsis: 
+
+        agent_status:
+            Format: Boolean
+            Synopsis: 
+
+        foreign_jobs:
+            Format: Integer
+            Synopsis: 

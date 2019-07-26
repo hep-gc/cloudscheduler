@@ -1,0 +1,35 @@
+ec2_image_filters:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        owner_aliases:
+            Format: String
+            Synopsis: 
+
+        owner_ids:
+            Format: String
+            Synopsis: 
+
+        like:
+            Format: String
+            Synopsis: 
+
+        not_like:
+            Format: String
+            Synopsis: 
+
+        operating_systems:
+            Format: String
+            Synopsis: 
+
+        architectures:
+            Format: String
+            Synopsis: 

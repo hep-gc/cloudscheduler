@@ -1,0 +1,11 @@
+csv2_user_groups:
+    Synopsis: 
+    Columns:
+
+        username:
+            Format: String
+            Synopsis: 
+
+        group_name:
+            Format: String
+            Synopsis: 

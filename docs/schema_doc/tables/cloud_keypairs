@@ -1,0 +1,23 @@
+cloud_keypairs:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        fingerprint:
+            Format: String
+            Synopsis: 
+
+        key_name:
+            Format: String
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 

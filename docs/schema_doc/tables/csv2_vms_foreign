@@ -1,0 +1,27 @@
+csv2_vms_foreign:
+    Synopsis: 
+    Columns:
+
+        authurl:
+            Format: String
+            Synopsis: 
+
+        region:
+            Format: String
+            Synopsis: 
+
+        project:
+            Format: String
+            Synopsis: 
+
+        flavor_id:
+            Format: String
+            Synopsis: 
+
+        count:
+            Format: Integer
+            Synopsis: 
+
+        cloud_type:
+            Format: String
+            Synopsis: 

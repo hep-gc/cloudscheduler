@@ -1,0 +1,27 @@
+view_metadata_collation:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        type:
+            Format: String
+            Synopsis: 
+
+        priority:
+            Format: Integer
+            Synopsis: 
+
+        metadata_name:
+            Format: String
+            Synopsis: 
+
+        mime_type:
+            Format: String
+            Synopsis: 

@@ -1,0 +1,67 @@
+csv2_groups:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        htcondor_fqdn:
+            Format: String
+            Synopsis: 
+
+        htcondor_gsi_dn:
+            Format: String
+            Synopsis: 
+
+        htcondor_container_hostname:
+            Format: String
+            Synopsis: 
+
+        htcondor_other_submitters:
+            Format: String
+            Synopsis: 
+
+        job_cpus:
+            Format: Integer
+            Synopsis: 
+
+        job_ram:
+            Format: Integer
+            Synopsis: 
+
+        job_disk:
+            Format: Integer
+            Synopsis: 
+
+        job_scratch:
+            Format: Integer
+            Synopsis: 
+
+        job_swap:
+            Format: Integer
+            Synopsis: 
+
+        vm_flavor:
+            Format: String
+            Synopsis: 
+
+        vm_image:
+            Format: String
+            Synopsis: 
+
+        vm_keep_alive:
+            Format: Integer
+            Synopsis: 
+
+        vm_keyname:
+            Format: String
+            Synopsis: 
+
+        vm_network:
+            Format: String
+            Synopsis: 
+
+        vm_security_groups:
+            Format: String
+            Synopsis: 

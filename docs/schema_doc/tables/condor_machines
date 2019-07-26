@@ -1,0 +1,95 @@
+condor_machines:
+    Synopsis: 
+    Columns:
+
+        name:
+            Format: String
+            Synopsis: 
+
+        machine:
+            Format: String
+            Synopsis: 
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        condor_host:
+            Format: String
+            Synopsis: 
+
+        flavor:
+            Format: String
+            Synopsis: 
+
+        job_id:
+            Format: String
+            Synopsis: 
+
+        global_job_id:
+            Format: String
+            Synopsis: 
+
+        address:
+            Format: String
+            Synopsis: 
+
+        state:
+            Format: String
+            Synopsis: 
+
+        activity:
+            Format: String
+            Synopsis: 
+
+        vm_type:
+            Format: String
+            Synopsis: 
+
+        my_current_time:
+            Format: Integer
+            Synopsis: 
+
+        entered_current_state:
+            Format: Integer
+            Synopsis: 
+
+        start:
+            Format: String
+            Synopsis: 
+
+        remote_owner:
+            Format: String
+            Synopsis: 
+
+        total_disk:
+            Format: Integer
+            Synopsis: 
+
+        slot_type:
+            Format: String
+            Synopsis: 
+
+        slot_cpus:
+            Format: Integer
+            Synopsis: 
+
+        total_slots:
+            Format: Integer
+            Synopsis: 
+
+        idle_time:
+            Format: Integer
+            Synopsis: 
+
+        deprecated-retire_request_time:
+            Format: Integer
+            Synopsis: 
+
+        deprecated-retired_time:
+            Format: Integer
+            Synopsis: 

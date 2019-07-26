@@ -1,0 +1,11 @@
+auth_group:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 

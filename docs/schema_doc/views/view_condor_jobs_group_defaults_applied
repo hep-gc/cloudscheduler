@@ -1,0 +1,119 @@
+view_condor_jobs_group_defaults_applied:
+    Synopsis: 
+    Columns:
+
+        global_job_id:
+            Format: String
+            Synopsis: 
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        target_clouds:
+            Format: String
+            Synopsis: 
+
+        job_status:
+            Format: Integer
+            Synopsis: 
+
+        request_cpus:
+            Format: Integer
+            Synopsis: 
+
+        request_disk:
+            Format: Integer
+            Synopsis: 
+
+        request_ram:
+            Format: Integer
+            Synopsis: 
+
+        request_swap:
+            Format: Integer
+            Synopsis: 
+
+        requirements:
+            Format: String
+            Synopsis: 
+
+        job_priority:
+            Format: Integer
+            Synopsis: 
+
+        cluster_id:
+            Format: Integer
+            Synopsis: 
+
+        proc_id:
+            Format: Integer
+            Synopsis: 
+
+        user:
+            Format: String
+            Synopsis: 
+
+        image:
+            Format: String
+            Synopsis: 
+
+        instance_type:
+            Format: String
+            Synopsis: 
+
+        network:
+            Format: String
+            Synopsis: 
+
+        keep_alive:
+            Format: String
+            Synopsis: 
+
+        max_price:
+            Format: String
+            Synopsis: 
+
+        user_data:
+            Format: String
+            Synopsis: 
+
+        job_per_core:
+            Format: Integer
+            Synopsis: 
+
+        entered_current_status:
+            Format: Integer
+            Synopsis: 
+
+        q_date:
+            Format: Integer
+            Synopsis: 
+
+        hold_job_reason:
+            Format: String
+            Synopsis: 
+
+        held_reason:
+            Format: String
+            Synopsis: 
+
+        js_idle:
+            Format: Integer
+            Synopsis: 
+
+        js_running:
+            Format: Integer
+            Synopsis: 
+
+        js_completed:
+            Format: Integer
+            Synopsis: 
+
+        js_held:
+            Format: Integer
+            Synopsis: 
+
+        js_other:
+            Format: Integer
+            Synopsis: 

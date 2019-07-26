@@ -1,0 +1,27 @@
+silk_response:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: String
+            Synopsis: 
+
+        status_code:
+            Format: Integer
+            Synopsis: 
+
+        raw_body:
+            Format: String
+            Synopsis: 
+
+        body:
+            Format: String
+            Synopsis: 
+
+        encoded_headers:
+            Format: String
+            Synopsis: 
+
+        request_id:
+            Format: String
+            Synopsis: 

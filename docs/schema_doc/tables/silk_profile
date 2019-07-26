@@ -1,0 +1,51 @@
+silk_profile:
+    Synopsis: 
+    Columns:
+
+        id:
+            Format: Integer
+            Synopsis: 
+
+        name:
+            Format: String
+            Synopsis: 
+
+        start_time:
+            Format: Integer
+            Synopsis: 
+
+        end_time:
+            Format: Integer
+            Synopsis: 
+
+        time_taken:
+            Format: Float
+            Synopsis: 
+
+        file_path:
+            Format: String
+            Synopsis: 
+
+        line_num:
+            Format: Integer
+            Synopsis: 
+
+        end_line_num:
+            Format: Integer
+            Synopsis: 
+
+        func_name:
+            Format: String
+            Synopsis: 
+
+        exception_raised:
+            Format: Boolean
+            Synopsis: 
+
+        dynamic:
+            Format: Boolean
+            Synopsis: 
+
+        request_id:
+            Format: String
+            Synopsis: 

@@ -1,0 +1,23 @@
+view_foreign_resources:
+    Synopsis: 
+    Columns:
+
+        group_name:
+            Format: String
+            Synopsis: 
+
+        cloud_name:
+            Format: String
+            Synopsis: 
+
+        count:
+            Format: Integer
+            Synopsis: 
+
+        cores:
+            Format: Integer
+            Synopsis: 
+
+        ram:
+            Format: Float
+            Synopsis: 
