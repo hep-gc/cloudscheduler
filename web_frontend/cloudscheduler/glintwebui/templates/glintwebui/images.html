@@ -1,0 +1,81 @@
+
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+<head>
+    {% load glint_template_utils %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
+
+    <script type="text/javascript" src="{% static "csv2/common.js" %}?{{version}}"></script>
+
+    <script type="text/javascript">
+
+        function save_location(group){
+            sessionStorage.setItem("group", group);
+        }
+
+        function set_location(){
+            if(sessionStorage.getItem("group")){
+                document.location.hash = sessionStorage.getItem("group");
+            }
+            else{
+                document.location.hash = "{{group_list.0.group_name}}"
+            }
+        }
+
+    </script>
+</head>
+
+
+<body>
+<div class="glinttoolbar"></div>
+
+<div class="image_matrix">
+    <table>
+        <!-- First make headers -->
+        <tr> <th> IMAGES </th>
+            {% for cloud in cloud_list %}
+                <th> {{ cloud.cloud_name }} </th>
+            {% endfor %}
+        </tr>
+        {% for image_key, image_list in image_dict.items %}
+            <tr>
+                <!-- need to make a split template macro to achieve this, may want to only return first token for rendering simplicity -->
+                <th> {{(image_key|first_split:"---")}} </th>
+                <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
+                {% for img_tuple in image_list %}
+                    {% if img_tuple[0] == "missing" %}
+                        <td><button onclick="transfer_req({{image_key}}, {{cloud.cloud_name}}, {{active_group}})">missing</button> </td>
+                    {% elif img_tuple[0] == "present" %}
+                        <td><button onclick="delete_req({{image_key}}, {{cloud.cloud_name}}, {{active_group}})">present</button></td>
+                    {% elif img_tuple[0] == "pending transfer" %}
+                        <td>pending transfer</td>
+                    {% elif img_tuple[0] == "pending delete" %}
+                        <td>pending delete</td>
+                    {% elif img_tuple[0] == "error"%}
+                        <td>error//retry button</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+</body>
+
+
+
+
+<div class="footer"
+    {% if response_code == 1 %}
+        <tr><td><b>Error: {{ message }}</b></td></tr>
+    {% elif message is not None %}
+        <tr><td>{{ message }}</td></tr>
+    {% endif %}
+</div>
