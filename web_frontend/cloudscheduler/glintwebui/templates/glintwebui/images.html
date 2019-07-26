@@ -32,9 +32,9 @@
 
 
 <body>
-<div class="glinttoolbar"></div>
+<div class="glinttoolbar" style="float:left"></div>
 
-<div class="image_matrix">
+<div class="image_matrix" style="float:left">
     <table>
         <!-- First make headers -->
         <tr> <th> IMAGES </th>
@@ -45,18 +45,18 @@
         {% for image_key, image_list in image_dict.items %}
             <tr>
                 <!-- need to make a split template macro to achieve this, may want to only return first token for rendering simplicity -->
-                <th> {{(image_key|first_split:"---")}} </th>
+                <th> {{ image_key|first_split:'---' }} </th>
                 <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
                 {% for img_tuple in image_list %}
-                    {% if img_tuple[0] == "missing" %}
+                    {% if img_tuple.0 == "missing" %}
                         <td><button onclick="transfer_req({{image_key}}, {{cloud.cloud_name}}, {{active_group}})">missing</button> </td>
-                    {% elif img_tuple[0] == "present" %}
+                    {% elif img_tuple.0 == "present" %}
                         <td><button onclick="delete_req({{image_key}}, {{cloud.cloud_name}}, {{active_group}})">present</button></td>
-                    {% elif img_tuple[0] == "pending transfer" %}
+                    {% elif img_tuple.0 == "pending transfer" %}
                         <td>pending transfer</td>
-                    {% elif img_tuple[0] == "pending delete" %}
+                    {% elif img_tuple.0 == "pending delete" %}
                         <td>pending delete</td>
-                    {% elif img_tuple[0] == "error"%}
+                    {% elif img_tuple.0 == "error"%}
                         <td>error//retry button</td>
                     {% endif %}
                 {% endfor %}

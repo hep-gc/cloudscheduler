@@ -8,15 +8,14 @@ register = template.Library()
 def get_item(template_dict, key):    
     return template_dict.get(key)
 
-@register.filter
+@register.filter()
 @stringfilter
 def strip(value):
     return value.replace(" ", "")
 
 
-register.filter(name='first_split')
+@register.filter()
+@stringfilter
 def first_split(value, key):
-    """
-        Returns the first value of the list after splitting
-    """
-    return value.split(key)[0]
+    list = value.split(key)
+    return list[0]
