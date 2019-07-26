@@ -146,7 +146,7 @@
 .status-table table {
   overflow: hidden;
   border-collapse: collapse;
-  text-align: center;
+  /*text-align: center;*/
   white-space: nowrap;
 }
 /*
@@ -157,7 +157,7 @@
 */
 .status-table td, th {
   padding: 8px;
-  text-align: center;
+  /*text-align: center;*/
   border-top: 2px solid #ddd;
   position: relative;
   width: 80px;
@@ -222,6 +222,17 @@
 /*****************************************************************/
 /*                    expanding row styling                      */
 /*****************************************************************/
+
+.float-left{
+  float: left;
+  text-align: left;
+}
+
+.float-right{
+  float: right;
+  text-align: right;
+
+}
 
 .job-extra-row{
   width: 100%;
@@ -346,6 +357,7 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
 
 .zero-style {
   color: grey;
+  text-align: center;
 }
 
 .more-style a {
@@ -354,6 +366,7 @@ input.toggle-box:checked ~ .status-table table th.extra-row {
   font-weight: bold;
 }
 .more-style {
+  text-align: center;
   text-decoration: none;
   color: black;
   font-weight: bold;
