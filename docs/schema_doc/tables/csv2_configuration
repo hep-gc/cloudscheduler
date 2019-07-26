@@ -4,20 +4,32 @@ csv2_configuration:
         The only configuration parameneters that are not stored within this table are those which
         are needed before the database becomes available, eg. the location and credentials of 
         the database itself.
+
+        Configuration items are grouped by category. This allows CSV2 processes to read by 
+        category only those items that are applicable. A single process may retrieve zero, one, 
+        or more categories and may refresh the retrieved values at any time.
     Columns:
 
         category:
             Format: String
             Synopsis: 
+                A label by which to group related configuration items. Often, the name of
+                the corresponding process is used.
 
         config_key:
             Format: String
             Synopsis: 
+               A label identifying a specific configuration item. This value must be unique within
+               the category. When fetched, a reference to this item would be in the form
+               "config.<category>.<config_key>"
 
         config_type:
             Format: String
             Synopsis: 
+               'Is a keyword denoting the type of value. Valid keywords include: **str**, **int**, **float**,
+               etc. When fetched, the config_value is converted to that type of variable.'
 
         config_value:
             Format: String
             Synopsis: 
+                A string representation of the named configuration value.
