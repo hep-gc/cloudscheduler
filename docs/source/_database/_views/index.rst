@@ -13,7 +13,7 @@ data from one or more tables to present and derived or read-only table.
 CSV2 makes extensive use of views for both presentation and decision making.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: The following views are defined:
 
    view_active_resource_shortfall

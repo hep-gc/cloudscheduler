@@ -12,7 +12,7 @@ Database tables are used to maintain the system configuration and state and are 
 into the following catagories:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Global configuration tables:
 
    auth_group
@@ -33,7 +33,7 @@ into the following catagories:
    ec2_instance_status_codes
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Local configuration tables:
 
    archived_condor_jobs
@@ -52,7 +52,7 @@ into the following catagories:
    ec2_instance_type_filters
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Ephemeral state data:
 
    cloud_flavors
@@ -75,7 +75,7 @@ into the following catagories:
    ec2_regions
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Tables used by other support services:
 
    silk_profile
