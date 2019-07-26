@@ -12,3 +12,11 @@ def get_item(template_dict, key):
 @stringfilter
 def strip(value):
     return value.replace(" ", "")
+
+
+register.filter(name='first_split')
+def first_split(value, key):
+    """
+        Returns the first value of the list after splitting
+    """
+    return value.split(key)[0]
