@@ -8,7 +8,7 @@ the user interface.
 .. image:: ArchitectureData.svg
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: The database contains the following entities:
 
    _tables/index
