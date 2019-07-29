@@ -115,7 +115,7 @@
                     {% for group in job_status_list %}
                         {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
-                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')">{{group.group_name}}</td>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div class="float-right">&#x21a8;</div></td>
 
                                 {% if group.Jobs == 0 %}
                                     <td data-path="{{group.group_name}} jobs" class="zero-style plottable">0</td>
@@ -342,14 +342,14 @@
                             {% if cloud.VMs > 0 %}
                                 
                                 <tr>
-                                    <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')">{{cloud.group_name}}</td>
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"><div class="float-left">{{cloud.group_name}}</div><div class="float-right">&#x21a8;</div></td>
 
                                 {% if cloud.enabled >= 9 %}
-                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">Totals</td>
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div><div class="float-right">&#x21a8;</div></td>
                                 {% elif cloud.enabled > 0 %}
-                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">{{cloud.cloud_name}}</td>
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div><div class="float-right">&#x21a8;</div></td>
                                 {% else %}
-                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')">{{cloud.cloud_name}}</td>
+                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div><div class="float-right">&#x21a8;</div></td>
                                 {% endif %}
                                     
 
@@ -712,7 +712,7 @@
                         
                      <tr>
                         <td colspan="1" class="row-spacer" onclick="toggle_id('expand-totals')">&nbsp;</td>
-                        <td class="bold-style" onclick="toggle_id('expand-totals')">Totals</td>
+                        <td class="bold-style" onclick="toggle_id('expand-totals')"><div class="float-left">Totals</div><div class="float-right">&#x21a8;</div></td>
 
                         {% if group_total.VMs == 0 %}
                             <td data-path="{{group_name}} VMs_total" class="zero-style plottable" oncontextmenu="javascript:return false;">0</td>
