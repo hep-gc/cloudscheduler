@@ -63,7 +63,8 @@ def timeseries_data_transfer():
                 'jobs_held',
                 'jobs_other',
                 'jobs_foreign',
-                'jobs_htcondor_status'
+                'jobs_htcondor_status',
+                'jobs_agent_status'
             ]
             service_status_list = [
                 'csv2_main_status',
@@ -118,9 +119,9 @@ def timeseries_data_transfer():
                         column += 1
                         continue
                     if group == '' or None:
-                        new_point = "{0},cloud={1} value={2}i {3}".format(column_list[column], cloud, data, ts)
+                        new_point = "{0},cloud={1} value={2}i {3}".format(column_list[column], cloud, int(data), ts)
                     else:
-                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, data, ts)
+                        new_point = "{0},cloud={1},group={2} value={3}i {4}".format(column_list[column], cloud, group, int(data), ts)
                     data_points.append(new_point)
                     column += 1
 
@@ -128,12 +129,12 @@ def timeseries_data_transfer():
             for line in job_status:
                 column = 0
                 group = line[0]
-                for data in line[1:]:
+                for data in line[1:-1]:
                     # Skip string data. (Do not want to store it in influxdb as it cannot be plotted)
                     if data == -1 or data is None or isinstance(data, str):
                         column += 1
                         continue
-                    new_point = "{0},group={1} value={2}i {3}".format(job_column_list[column], group, data, ts)
+                    new_point = "{0},group={1} value={2}i {3}".format(job_column_list[column], group, int(data), ts)
                     data_points.append(new_point)
                     column += 1
 
@@ -181,7 +182,7 @@ def timeseries_data_transfer():
                 for measurement in list(cloud_total_list.keys())[1:]:
                     if cloud_total_list[measurement] == -1 or cloud_total_list[measurement] is None:
                         continue
-                    new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, cloud_total_list[measurement], ts, '_total')
+                    new_point = "{0}{4},group={1} value={2}i {3}".format(measurement, group, int(cloud_total_list[measurement]), ts, '_total')
                     data_points.append(new_point)
              
             # Get slot type counts details
@@ -196,7 +197,7 @@ def timeseries_data_transfer():
                         ]
                     })
                     for num_cores in slot_cores_list:
-                        new_point = "{0}{5},cloud={1},group={2} value={3}i {4}".format(num_cores['slot_type'], num_cores['cloud_name'], num_cores['group_name'], num_cores['slot_count'], ts, "core") 
+                        new_point = "{0}{5},cloud={1},group={2} value={3}i {4}".format(num_cores['slot_type'], num_cores['cloud_name'], num_cores['group_name'], int(num_cores['slot_count']), ts, "core") 
                         data_points.append(new_point)
             except Exception as exc:
                 logging.error("Unable to get slot core type counts... skipping...")
@@ -223,7 +224,7 @@ def timeseries_data_transfer():
                             if cnt < 2 or job_cores[job_state] == 0:
                                 cnt += 1
                                 continue
-                            new_point = "{0}{1}{2}{3},group={4} value={5}i {6}".format(job_column_list[cnt-1], "_", job_cores['request_cpus'], "core", job_cores['group_name'], job_cores[job_state], ts) 
+                            new_point = "{0}{1}{2}{3},group={4} value={5}i {6}".format(job_column_list[cnt-1], "_", job_cores['request_cpus'], "core", job_cores['group_name'], int(job_cores[job_state]), ts) 
                             data_points.append(new_point)
                             cnt += 1
                 except Exception as exc:
@@ -240,7 +241,7 @@ def timeseries_data_transfer():
                 
             except Exception as exc:
                 logging.error("HTTP POST request failed to InfluxDB...")
-                logging.error(exc)
+                logging.exception(exc)
                 logging.error(r.headers)
                 
             config.db_close()
@@ -252,7 +253,7 @@ def timeseries_data_transfer():
 
         except Exception as exc:
             logging.error("Error during general operations:")
-            logging.error(exc)
+            logging.exception(exc)
             logging.error("Exiting...")
             exit(1)
 
