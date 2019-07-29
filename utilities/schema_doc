@@ -238,7 +238,7 @@ def main(args):
                     if _w[1][:5] == 'char(' or \
                         _w[1][:8] == 'varchar(':
                         _w2 = _w[1].translate(REMOVE_BRACKETS).split()
-                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'String'
+                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'String(%s)' % _w2[1]
 
                     elif _w[1][:4] == 'int(' or \
                     _w[1][:6] == 'bigint' or \
@@ -278,7 +278,7 @@ def main(args):
 #   os.unlink(gvar['tempfile'].name)
 
     if not gvar['csv2_config']:
-        print('WARNING: Documentation generated without access to the database; new and obsolete tables/fields may not be reflected accurately.')
+        print('WARNING: Documentation generated without access to the database; tables/fields may not be reflected accurately.')
 
     if gvar['sphinx']:
         p = Popen(['make', 'html'], cwd='%s/docs' % gvar['base_dir'])
