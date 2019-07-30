@@ -22,8 +22,3 @@ Columns:
    * Format: String(64)
    * Synopsis:
 
-* **region**:
-
-   * Format: String(64)
-   * Synopsis:
-

@@ -57,8 +57,3 @@ Columns:
    * Format: String(128)
    * Synopsis:
 
-* **tx_id**:
-
-   * Format: Integer
-   * Synopsis:
-

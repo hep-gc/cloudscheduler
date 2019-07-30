@@ -8,7 +8,15 @@
 Database Table: csv2_attribute_mapping
 ======================================
 
-
+CSV2 retrieves data from many different sources but needs a consistent way
+to refer to related values. To that end, a naming convention was
+implemented and all values retrieved are re-mapped to a normalized name.
+This table provides the name mapping mattrix, with each column representing a
+source/target and each row the ID of a value to be mapped.
+A process requiring name translation calls a CSV2 library function providing the
+source and target names together with a dictionary of key/value pairs. The
+response is a new dictionary of key/value pairs, where the keys are
+normalized target names, and an error list of undefined (unmapable) names.
 Columns:
 ^^^^^^^^
 
@@ -16,64 +24,59 @@ Columns:
 
    * Format: String(64)
    * Synopsis:
-
-* **csv2**:
-
-   * Format: String(64)
-   * Synopsis:
-
+      This column provides a list of HTCondor classads variable names.
 * **ec2_flavors**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of Amazon EC2 instance-types variable names.
 * **ec2_images**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of Amazon EC2 images variable names.
 * **ec2_limits**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of Amazon EC2 account attributes variable names.
 * **ec2_regions**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of Amazon EC2 regions variable names.
 * **ec2_vms**:
 
    * Format: String(20)
    * Synopsis:
-
+      This column provides a list of Amazon EC2 instances variable names.
 * **os_flavors**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of OpenStack nova-flavors variable names.
 * **os_images**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of OpenStack glance-images variable names.
 * **os_limits**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of OpenStack nova-limits variable names.
 * **os_networks**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of OpenStack neutron-networks variable names.
 * **os_sec_grps**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of OpenStack nova-security-groups variable names.
 * **os_vms**:
 
    * Format: String(64)
    * Synopsis:
-
+      This column provides a list of OpenStack nova-instances variable names.

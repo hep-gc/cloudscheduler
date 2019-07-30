@@ -17,16 +17,6 @@ Columns:
    * Format: String(128)
    * Synopsis:
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **like**:
 
    * Format: String(128)

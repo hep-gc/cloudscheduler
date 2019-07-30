@@ -27,11 +27,6 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **global_job_id**:
-
-   * Format: String(128)
-   * Synopsis:
-
 * **group_name**:
 
    * Format: String(128)

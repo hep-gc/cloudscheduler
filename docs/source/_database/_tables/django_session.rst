@@ -22,8 +22,3 @@ Columns:
    * Format: String
    * Synopsis:
 
-* **session_key**:
-
-   * Format: String(40)
-   * Synopsis:
-

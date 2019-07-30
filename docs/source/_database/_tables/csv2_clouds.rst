@@ -22,11 +22,6 @@ Columns:
    * Format: String
    * Synopsis:
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
@@ -65,11 +60,6 @@ Columns:
 * **floating_ips_ctl**:
 
    * Format: Integer
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
    * Synopsis:
 
 * **image_meta_ctl**:

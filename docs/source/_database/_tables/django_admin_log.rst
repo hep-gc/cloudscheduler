@@ -32,11 +32,6 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **object_id**:
 
    * Format: String

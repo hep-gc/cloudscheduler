@@ -22,11 +22,6 @@ Columns:
    * Format: String
    * Synopsis:
 
-* **id**:
-
-   * Format: String(36)
-   * Synopsis:
-
 * **raw_body**:
 
    * Format: String

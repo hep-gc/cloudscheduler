@@ -17,19 +17,9 @@ Columns:
    * Format: Boolean
    * Synopsis:
 
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **metadata**:
 
    * Format: String
-   * Synopsis:
-
-* **metadata_name**:
-
-   * Format: String(64)
    * Synopsis:
 
 * **mime_type**:

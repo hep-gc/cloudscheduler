@@ -17,8 +17,3 @@ Columns:
    * Format: String(32)
    * Synopsis:
 
-* **ec2_state**:
-
-   * Format: String(32)
-   * Synopsis:
-

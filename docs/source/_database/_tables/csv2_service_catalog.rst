@@ -17,19 +17,9 @@ Columns:
    * Format: Boolean
    * Synopsis:
 
-* **fqdn**:
-
-   * Format: String(128)
-   * Synopsis:
-
 * **last_updated**:
 
    * Format: Integer
-   * Synopsis:
-
-* **service**:
-
-   * Format: String(64)
    * Synopsis:
 
 * **yaml_attribute_name**:

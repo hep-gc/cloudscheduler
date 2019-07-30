@@ -12,8 +12,3 @@ Database Table: csv2_mime_types
 Columns:
 ^^^^^^^^
 
-* **mime_type**:
-
-   * Format: String(32)
-   * Synopsis:
-

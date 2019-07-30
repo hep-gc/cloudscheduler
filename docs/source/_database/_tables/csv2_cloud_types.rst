@@ -12,8 +12,3 @@ Database Table: csv2_cloud_types
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
-
-   * Format: String(32)
-   * Synopsis:
-

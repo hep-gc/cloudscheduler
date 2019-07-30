@@ -12,11 +12,6 @@ Database Table: cloud_networks
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
@@ -25,16 +20,6 @@ Columns:
 * **external_route**:
 
    * Format: Boolean
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **id**:
-
-   * Format: String(128)
    * Synopsis:
 
 * **last_updated**:

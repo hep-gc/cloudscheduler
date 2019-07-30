@@ -17,11 +17,6 @@ Columns:
    * Format: String(64)
    * Synopsis:
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
@@ -33,16 +28,6 @@ Columns:
    * Synopsis:
 
 * **disk_format**:
-
-   * Format: String(128)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **id**:
 
    * Format: String(128)
    * Synopsis:

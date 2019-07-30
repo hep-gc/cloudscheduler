@@ -12,22 +12,7 @@ Database Table: cloud_security_groups
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
-
-   * Format: String(64)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **id**:
 
    * Format: String(64)
    * Synopsis:

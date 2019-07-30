@@ -197,11 +197,6 @@ Columns:
    * Format: Float
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **last_updated**:
 
    * Format: Integer

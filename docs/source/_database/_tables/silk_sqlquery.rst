@@ -17,11 +17,6 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **query**:
 
    * Format: String

@@ -12,11 +12,6 @@ Database Table: csv2_image_cache
 Columns:
 ^^^^^^^^
 
-* **checksum**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **container_format**:
 
    * Format: String(128)
@@ -30,10 +25,5 @@ Columns:
 * **downloaded**:
 
    * Format: Integer
-   * Synopsis:
-
-* **image_name**:
-
-   * Format: String(256)
    * Synopsis:
 

@@ -12,11 +12,6 @@ Database Table: auth_group
 Columns:
 ^^^^^^^^
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **name**:
 
    * Format: String(80)

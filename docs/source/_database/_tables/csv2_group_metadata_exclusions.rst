@@ -12,18 +12,3 @@ Database Table: csv2_group_metadata_exclusions
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **metadata_name**:
-
-   * Format: String(64)
-   * Synopsis:
-

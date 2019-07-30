@@ -17,11 +17,6 @@ Columns:
    * Format: String(128)
    * Synopsis:
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
@@ -30,11 +25,6 @@ Columns:
 * **flavor_id**:
 
    * Format: String(128)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
    * Synopsis:
 
 * **hostname**:
@@ -158,11 +148,6 @@ Columns:
    * Synopsis:
 
 * **vm_ips**:
-
-   * Format: String(128)
-   * Synopsis:
-
-* **vmid**:
 
    * Format: String(128)
    * Synopsis:

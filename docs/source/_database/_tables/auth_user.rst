@@ -27,11 +27,6 @@ Columns:
    * Format: String(30)
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **is_active**:
 
    * Format: Boolean

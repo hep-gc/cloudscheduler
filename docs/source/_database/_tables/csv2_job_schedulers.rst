@@ -27,8 +27,3 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **htcondor_fqdn**:
-
-   * Format: String(128)
-   * Synopsis:
-

@@ -12,11 +12,6 @@ Database Table: csv2_groups
 Columns:
 ^^^^^^^^
 
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **htcondor_container_hostname**:
 
    * Format: String(128)

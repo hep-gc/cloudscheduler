@@ -42,11 +42,6 @@ Columns:
    * Format: String(300)
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **line_num**:
 
    * Format: Integer

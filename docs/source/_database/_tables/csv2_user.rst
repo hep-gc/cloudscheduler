@@ -47,8 +47,3 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **username**:
-
-   * Format: String(32)
-   * Synopsis:
-

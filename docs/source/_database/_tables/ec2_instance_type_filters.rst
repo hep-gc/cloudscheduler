@@ -12,11 +12,6 @@ Database Table: ec2_instance_type_filters
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cores**:
 
    * Format: String(32)
@@ -25,11 +20,6 @@ Columns:
 * **families**:
 
    * Format: String(128)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
    * Synopsis:
 
 * **memory_max_gigabytes_per_core**:

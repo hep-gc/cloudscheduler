@@ -12,11 +12,6 @@ Database Table: cloud_limits
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
@@ -40,11 +35,6 @@ Columns:
 * **floating_ips_used**:
 
    * Format: Integer
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
    * Synopsis:
 
 * **image_meta_max**:

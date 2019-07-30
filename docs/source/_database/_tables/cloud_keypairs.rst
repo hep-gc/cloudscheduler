@@ -12,28 +12,8 @@ Database Table: cloud_keypairs
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
-   * Synopsis:
-
-* **fingerprint**:
-
-   * Format: String(64)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **key_name**:
-
-   * Format: String(32)
    * Synopsis:
 

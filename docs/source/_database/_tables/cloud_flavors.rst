@@ -12,11 +12,6 @@ Database Table: cloud_flavors
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(64)
@@ -35,16 +30,6 @@ Columns:
 * **ephemeral_disk**:
 
    * Format: Integer
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **id**:
-
-   * Format: String(128)
    * Synopsis:
 
 * **is_public**:

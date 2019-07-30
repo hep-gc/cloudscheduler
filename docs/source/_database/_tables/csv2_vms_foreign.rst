@@ -12,11 +12,6 @@ Database Table: csv2_vms_foreign
 Columns:
 ^^^^^^^^
 
-* **authurl**:
-
-   * Format: String(128)
-   * Synopsis:
-
 * **cloud_type**:
 
    * Format: String(32)
@@ -25,20 +20,5 @@ Columns:
 * **count**:
 
    * Format: Integer
-   * Synopsis:
-
-* **flavor_id**:
-
-   * Format: String(128)
-   * Synopsis:
-
-* **project**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **region**:
-
-   * Format: String(32)
    * Synopsis:
 

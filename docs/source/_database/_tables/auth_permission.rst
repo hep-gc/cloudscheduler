@@ -22,11 +22,6 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **name**:
 
    * Format: String(255)

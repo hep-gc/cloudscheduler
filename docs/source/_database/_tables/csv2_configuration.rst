@@ -8,27 +8,26 @@
 Database Table: csv2_configuration
 ==================================
 
-
+The **csv2_configuration** table maintains all the configuration information for CSV2. The only
+configuration parameneters that are not stored within this table are those which
+are needed before the database becomes available, eg. the location and credentials
+of the database itself.
+Configuration items are grouped by category. This allows CSV2 processes to read
+by category only those items that are applicable. A single process may
+retrieve zero, one, or more categories and may refresh the retrieved values
+at any time.
 Columns:
 ^^^^^^^^
-
-* **category**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **config_key**:
-
-   * Format: String(32)
-   * Synopsis:
 
 * **config_type**:
 
    * Format: String(16)
    * Synopsis:
-
+      Is a keyword denoting the type of value. Valid keywords include: **str**,
+      **int**, **float**, etc. When fetched, the config_value is converted to that type
+      of variable.
 * **config_value**:
 
    * Format: String(128)
    * Synopsis:
-
+      A string representation of the named configuration value.

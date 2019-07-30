@@ -12,13 +12,3 @@ Database Table: csv2_user_groups
 Columns:
 ^^^^^^^^
 
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **username**:
-
-   * Format: String(32)
-   * Synopsis:
-

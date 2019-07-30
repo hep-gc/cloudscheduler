@@ -12,22 +12,12 @@ Database Table: ec2_images
 Columns:
 ^^^^^^^^
 
-* **borrower_id**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **description**:
 
    * Format: String(256)
    * Synopsis:
 
 * **disk_format**:
-
-   * Format: String(128)
-   * Synopsis:
-
-* **id**:
 
    * Format: String(128)
    * Synopsis:
@@ -53,11 +43,6 @@ Columns:
    * Synopsis:
 
 * **owner_id**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **region**:
 
    * Format: String(32)
    * Synopsis:

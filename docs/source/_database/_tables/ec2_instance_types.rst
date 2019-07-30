@@ -27,29 +27,14 @@ Columns:
    * Format: String(32)
    * Synopsis:
 
-* **instance_type**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **memory**:
 
    * Format: Float
    * Synopsis:
 
-* **operating_system**:
-
-   * Format: String(32)
-   * Synopsis:
-
 * **processor**:
 
    * Format: String(64)
-   * Synopsis:
-
-* **region**:
-
-   * Format: String(32)
    * Synopsis:
 
 * **storage**:

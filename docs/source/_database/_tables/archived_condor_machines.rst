@@ -67,11 +67,6 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **name**:
-
-   * Format: String(128)
-   * Synopsis:
-
 * **remote_owner**:
 
    * Format: String(128)

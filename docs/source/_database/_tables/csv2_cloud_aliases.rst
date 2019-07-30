@@ -12,18 +12,3 @@ Database Table: csv2_cloud_aliases
 Columns:
 ^^^^^^^^
 
-* **alias_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-

@@ -12,18 +12,3 @@ Database Table: csv2_cloud_flavor_exclusions
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
-
-   * Format: String(32)
-   * Synopsis:
-
-* **flavor_name**:
-
-   * Format: String(128)
-   * Synopsis:
-
-* **group_name**:
-
-   * Format: String(32)
-   * Synopsis:
-

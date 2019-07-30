@@ -17,11 +17,6 @@ Columns:
    * Format: String(100)
    * Synopsis:
 
-* **id**:
-
-   * Format: Integer
-   * Synopsis:
-
 * **model**:
 
    * Format: String(100)

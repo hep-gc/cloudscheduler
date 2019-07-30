@@ -27,11 +27,6 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **id**:
-
-   * Format: String(36)
-   * Synopsis:
-
 * **meta_num_queries**:
 
    * Format: Integer
