@@ -1233,11 +1233,11 @@ def vm_poller():
 
                 if session is False:
                     logging.debug("Failed to establish session with %s::%s::%s, using group %s's credentials skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
-                    if cloud_obj.group_name+auth_url not in failure_dict:
-                        failure_dict[cloud_obj.group_name+auth_url] = 1
+                    if auth_url + cloud_obj.project + cloud_obj.region not in failure_dict:
+                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = 1
                     else:
-                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
-                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #could be configurable
+                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = failure_dict[auth_url + cloud_obj.project + cloud_obj.region] + 1
+                    if failure_dict[auth_url + cloud_obj.project + cloud_obj.region] > 3: #could be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's credentials, manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
                     continue
 
@@ -1249,11 +1249,11 @@ def vm_poller():
                     logging.error("Failed to retrieve VM data for  %s::%s::%s, skipping this cloud..." % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region))
                     logging.error("Exception type: %s" % type(exc))
                     logging.error(exc)
-                    if cloud_obj.group_name+auth_url not in failure_dict:
-                        failure_dict[cloud_obj.group_name+auth_url] = 1
+                    if auth_url + cloud_obj.project + cloud_obj.region not in failure_dict:
+                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = 1
                     else:
-                        failure_dict[cloud_obj.group_name+auth_url] = failure_dict[cloud_obj.group_name+auth_url] + 1
-                    if failure_dict[cloud_obj.group_name+auth_url] > 3: #should be configurable
+                        failure_dict[auth_url + cloud_obj.project + cloud_obj.region] = failure_dict[auth_url + cloud_obj.project + cloud_obj.region] + 1
+                    if failure_dict[auth_url + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                         logging.error("Failure threshhold limit reached for %s::%s::%s, using group %s's crednetials manual action required, skipping" % (cloud_obj.authurl, cloud_obj.project, cloud_obj.region, cloud_obj.group_name))
                     continue
 
@@ -1263,7 +1263,7 @@ def vm_poller():
                     continue
 
                 # if we get here the connection to openstack has been succussful and we can remove the error status
-                failure_dict.pop(cloud_obj.group_name+auth_url, None)
+                failure_dict.pop(auth_url + cloud_obj.project + cloud_obj.region, None)
 
                 # Process VM list for this cloud.
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1445,7 +1445,7 @@ def vm_poller():
             cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
             new_f_dict = {}
             for cloud in cloud_list:
-                key = cloud.group_name + cloud.authurl
+                key = cloud.authurl + cloud.project + cloud.region
                 if key in failure_dict:
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
