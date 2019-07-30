@@ -1,15 +1,19 @@
 csv2_cloud_flavor_exclusions:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         flavor_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
+

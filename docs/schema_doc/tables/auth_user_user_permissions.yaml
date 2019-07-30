@@ -1,15 +1,19 @@
 auth_user_user_permissions:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         user_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         permission_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

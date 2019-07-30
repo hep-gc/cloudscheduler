@@ -1,23 +1,27 @@
 csv2_image_cache:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         image_name:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         checksum:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         container_format:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         disk_format:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         downloaded:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

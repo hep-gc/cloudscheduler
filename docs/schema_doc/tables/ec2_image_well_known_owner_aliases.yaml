@@ -1,7 +1,11 @@
 ec2_image_well_known_owner_aliases:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         alias:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+
+    Columns:
+

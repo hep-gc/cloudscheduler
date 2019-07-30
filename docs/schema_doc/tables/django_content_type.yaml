@@ -1,15 +1,19 @@
 django_content_type:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         app_label:
-            Format: String
-            Synopsis: 
+            Format: String(100)
+            Synopsis:
 
         model:
-            Format: String
-            Synopsis: 
+            Format: String(100)
+            Synopsis:
+

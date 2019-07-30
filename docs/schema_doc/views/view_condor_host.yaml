@@ -1,51 +1,55 @@
 view_condor_host:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         htcondor_fqdn:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         vmid:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         hostname:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         primary_slots:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         dynamic_slots:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         retire:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         retiring:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         terminate:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         machine:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         updater:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+

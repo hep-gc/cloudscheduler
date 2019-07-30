@@ -1,47 +1,51 @@
 auth_user:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         password:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         last_login:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         is_superuser:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         username:
-            Format: String
-            Synopsis: 
+            Format: String(150)
+            Synopsis:
 
         first_name:
-            Format: String
-            Synopsis: 
+            Format: String(30)
+            Synopsis:
 
         last_name:
-            Format: String
-            Synopsis: 
+            Format: String(150)
+            Synopsis:
 
         email:
-            Format: String
-            Synopsis: 
+            Format: String(254)
+            Synopsis:
 
         is_staff:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         is_active:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         date_joined:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

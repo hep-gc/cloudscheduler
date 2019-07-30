@@ -1,47 +1,51 @@
 view_ec2_instance_types:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         region:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         instance_type:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         operating_system:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         instance_family:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         processor:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         storage:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cores:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         memory:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         cost_per_hour:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         memory_per_core:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         processor_manufacturer:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+

@@ -1,51 +1,55 @@
 ec2_images:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         region:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         borrower_id:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+
+    Columns:
 
         owner_id:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         owner_alias:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         disk_format:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         size:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         image_location:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         visibility:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         description:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

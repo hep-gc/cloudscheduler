@@ -1,15 +1,19 @@
 django_session:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         session_key:
-            Format: String
-            Synopsis: 
+            Format: String(40)
+            Synopsis:
+
+    Columns:
 
         session_data:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         expire_date:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

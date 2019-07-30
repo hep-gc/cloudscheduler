@@ -1,51 +1,55 @@
 cloud_flavors:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         cloud_type:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         ram:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         swap:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         disk:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ephemeral_disk:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         is_public:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

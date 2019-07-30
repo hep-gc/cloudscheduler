@@ -1,43 +1,47 @@
 view_foreign_flavors:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         authurl:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         region:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         project:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         flavor_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         cores:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram:
             Format: Float
-            Synopsis: 
+            Synopsis:
+

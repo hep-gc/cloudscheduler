@@ -1,19 +1,23 @@
 auth_permission:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(255)
+            Synopsis:
 
         content_type_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         codename:
-            Format: String
-            Synopsis: 
+            Format: String(100)
+            Synopsis:
+

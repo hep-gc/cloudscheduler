@@ -1,59 +1,63 @@
 view_vm_kill_retire_over_quota:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_type:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         cores:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_ctl:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_softmax:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_native:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_foreign:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram_ctl:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_native:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram_foreign:
             Format: Float
-            Synopsis: 
+            Synopsis:
+

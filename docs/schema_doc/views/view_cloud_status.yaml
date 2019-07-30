@@ -1,123 +1,127 @@
 view_cloud_status:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         VMs:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_manual:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_in_error:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_starting:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_retiring:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_unregistered:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_idle:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_running:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_native:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_native:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         slot_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         slot_core_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         slot_idle_core_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         Foreign_VMs:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         enabled:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         cores_ctl:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_limit:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_quota:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_native_foreign:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_quota:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_soft_quota:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_foreign:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_native_foreign:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_ctl:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_limit:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_quota:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_foreign:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram_native_foreign:
             Format: Float
-            Synopsis: 
+            Synopsis:
+

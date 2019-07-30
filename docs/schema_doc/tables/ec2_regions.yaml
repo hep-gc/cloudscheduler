@@ -1,15 +1,19 @@
 ec2_regions:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         region:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+
+    Columns:
 
         location:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         endpoint:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+

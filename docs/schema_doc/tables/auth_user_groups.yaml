@@ -1,15 +1,19 @@
 auth_user_groups:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         user_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         group_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

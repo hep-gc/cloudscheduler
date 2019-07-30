@@ -1,47 +1,51 @@
 view_job_status:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         Jobs:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         Idle:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         Running:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         Completed:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         Held:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         Other:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         foreign:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         htcondor_status:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         agent_status:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         htcondor_fqdn:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+

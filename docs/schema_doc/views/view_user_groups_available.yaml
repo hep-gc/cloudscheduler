@@ -1,15 +1,19 @@
 view_user_groups_available:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         username:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         available:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+

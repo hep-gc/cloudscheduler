@@ -1,191 +1,195 @@
 view_available_resources:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_priority:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         region:
-            Format: String
-            Synopsis: 
+            Format: String(20)
+            Synopsis:
 
         cloud_type:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         spot_price:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         authurl:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         cacertificate:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         project_domain_name:
-            Format: String
-            Synopsis: 
+            Format: String(20)
+            Synopsis:
 
         project_domain_id:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         project:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         user_domain_name:
-            Format: String
-            Synopsis: 
+            Format: String(20)
+            Synopsis:
 
         user_domain_id:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         username:
-            Format: String
-            Synopsis: 
+            Format: String(20)
+            Synopsis:
 
         password:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         default_flavor:
-            Format: String
-            Synopsis: 
+            Format: String(97)
+            Synopsis:
 
         default_image:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         default_keep_alive:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         default_keyname:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         default_network:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         default_security_groups:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         VMs:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         VMs_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_used:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cores_foreign:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         disk_used:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_max:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram_used:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         ram_foreign:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         swap_used:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor:
-            Format: String
-            Synopsis: 
+            Format: String(161)
+            Synopsis:
 
         flavor_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         flavor_slots:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_cores:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_disk:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_ram:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_swap:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_VMs:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_starting:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_unregistered:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_idle:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_running:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_retiring:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_error:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavor_manual:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         updater:
             Format: String
-            Synopsis: 
+            Synopsis:
+

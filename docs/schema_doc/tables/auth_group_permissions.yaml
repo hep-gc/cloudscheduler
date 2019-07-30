@@ -1,15 +1,19 @@
 auth_group_permissions:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         group_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         permission_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

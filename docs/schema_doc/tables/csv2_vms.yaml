@@ -1,127 +1,131 @@
 csv2_vms:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
-
-        region:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         vmid:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
+
+        region:
+            Format: String(32)
+            Synopsis:
 
         spot_instance:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         instance_id:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         cloud_type:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         vm_ips:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         vm_floating_ips:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         auth_url:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         project:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         hostname:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         keep_alive:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         start_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         status:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         flavor_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         task:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         power_status:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         manual_control:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         htcondor_startd_errors:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         htcondor_startd_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         htcondor_partitionable_slots:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         htcondor_dynamic_slots:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         htcondor_slots_timestamp:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         retire:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         retire_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         terminate:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         terminate_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         status_changed_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         updater:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+

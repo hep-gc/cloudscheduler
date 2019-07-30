@@ -1,43 +1,47 @@
 csv2_image_pull_requests:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         tx_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         target_group_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         target_cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         image_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         image_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         checksum:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         status:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         message:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         request_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         requester:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+

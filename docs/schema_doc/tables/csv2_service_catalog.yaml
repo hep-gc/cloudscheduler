@@ -1,23 +1,27 @@
 csv2_service_catalog:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         service:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         fqdn:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flag_htcondor_allow:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         yaml_attribute_name:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+

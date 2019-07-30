@@ -1,63 +1,67 @@
 view_ec2_images:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         region:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         borrower_id:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         owner_id:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         owner_alias:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         disk_format:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         size:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         image_location:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         visibility:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         description:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         lower_location:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         opsys:
-            Format: String
-            Synopsis: 
+            Format: String(8)
+            Synopsis:
 
         arch:
-            Format: String
-            Synopsis: 
+            Format: String(5)
+            Synopsis:
+

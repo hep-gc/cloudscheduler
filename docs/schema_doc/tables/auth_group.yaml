@@ -1,11 +1,15 @@
 auth_group:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(80)
+            Synopsis:
+

@@ -1,95 +1,99 @@
 condor_machines:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
 
         machine:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         condor_host:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         flavor:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         job_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         global_job_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         address:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         state:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         activity:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         vm_type:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         my_current_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         entered_current_state:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         start:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         remote_owner:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         total_disk:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         slot_type:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         slot_cpus:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         total_slots:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         idle_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         deprecated-retire_request_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         deprecated-retired_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

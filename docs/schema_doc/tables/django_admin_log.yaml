@@ -1,35 +1,39 @@
 django_admin_log:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         action_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         object_id:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         object_repr:
-            Format: String
-            Synopsis: 
+            Format: String(200)
+            Synopsis:
 
         action_flag:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         change_message:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         content_type_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         user_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

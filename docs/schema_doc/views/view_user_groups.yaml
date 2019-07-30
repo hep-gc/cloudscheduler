@@ -1,43 +1,47 @@
 view_user_groups:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         username:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cert_cn:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         password:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         is_superuser:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         join_date:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flag_global_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         status_refresh_interval:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         default_group:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         user_groups:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         available_groups:
             Format: String
-            Synopsis: 
+            Synopsis:
+

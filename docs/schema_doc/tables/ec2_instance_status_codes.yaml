@@ -1,11 +1,15 @@
 ec2_instance_status_codes:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         ec2_state:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+
+    Columns:
 
         csv2_state:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+

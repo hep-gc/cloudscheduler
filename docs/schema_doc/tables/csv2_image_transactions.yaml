@@ -1,43 +1,47 @@
 csv2_image_transactions:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         tx_id:
-            Format: String
-            Synopsis: 
+            Format: String(16)
+            Synopsis:
+
+    Columns:
 
         status:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         message:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         target_group_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         target_cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         image_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         image_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         checksum:
-            Format: Integer
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         request_time:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         requester:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+

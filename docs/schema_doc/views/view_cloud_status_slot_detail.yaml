@@ -1,31 +1,35 @@
 view_cloud_status_slot_detail:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         slot_tag:
-            Format: String
-            Synopsis: 
+            Format: String(392)
+            Synopsis:
 
         slot_id:
-            Format: String
-            Synopsis: 
+            Format: String(380)
+            Synopsis:
 
         slot_type:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         slot_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         core_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

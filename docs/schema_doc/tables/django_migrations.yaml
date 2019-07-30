@@ -1,19 +1,23 @@
 django_migrations:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         app:
-            Format: String
-            Synopsis: 
+            Format: String(255)
+            Synopsis:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(255)
+            Synopsis:
 
         applied:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

@@ -1,39 +1,43 @@
 view_resource_contention:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         authurl:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         VMs:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         starting:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         unregistered:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         idle:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         running:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         retiring:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         manual:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         error:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

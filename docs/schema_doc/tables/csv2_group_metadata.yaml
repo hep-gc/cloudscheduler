@@ -1,27 +1,31 @@
 csv2_group_metadata:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         metadata_name:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+
+    Columns:
 
         enabled:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         priority:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         metadata:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         mime_type:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+

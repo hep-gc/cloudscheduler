@@ -1,7 +1,11 @@
 csv2_mime_types:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         mime_type:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+
+    Columns:
+

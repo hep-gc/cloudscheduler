@@ -1,15 +1,19 @@
 silk_profile_queries:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         profile_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         sqlquery_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

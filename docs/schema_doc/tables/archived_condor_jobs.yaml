@@ -1,107 +1,111 @@
 archived_condor_jobs:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         global_job_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         target_clouds:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         cloud_name:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         job_status:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_cpus:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_ram:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_disk:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_swap:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_scratch:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         requirements:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         job_priority:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         cluster_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         proc_id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         user:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         image:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         instance_type:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         network:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         keep_alive:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         max_price:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         user_data:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         job_per_core:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         entered_current_status:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         q_date:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         hold_job_reason:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         held_reason:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+

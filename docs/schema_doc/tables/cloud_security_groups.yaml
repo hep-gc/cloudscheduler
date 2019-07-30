@@ -1,27 +1,31 @@
 cloud_security_groups:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         id:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
+
+    Columns:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         cloud_type:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

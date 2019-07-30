@@ -1,203 +1,207 @@
 csv2_system_status:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         id:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+
+    Columns:
 
         csv2_main_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_main_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         mariadb_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         mariadb_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_openstack_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_openstack_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_openstack_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_jobs_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_jobs_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_jobs_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_machines_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_machines_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_machines_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_status_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_status_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_status_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_timeseries_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_timeseries_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_timeseries_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_ec2_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_ec2_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_ec2_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_htc_agent_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_htc_agent_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_htc_agent_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_glint_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_glint_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_glint_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_watch_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_watch_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_watch_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         csv2_startd_errors_error_count:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         csv2_startd_errors_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         csv2_startd_errors_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         condor_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         condor_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         rabbitmq_server_status:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         rabbitmq_server_msg:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         load:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram_size:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         ram_used:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         swap:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         swap_size:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         swap_used:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         disk:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         disk_size:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         disk_used:
             Format: Float
-            Synopsis: 
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

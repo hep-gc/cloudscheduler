@@ -1,43 +1,47 @@
 cloud_networks:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
+    Columns:
 
         name:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         cloud_type:
-            Format: String
-            Synopsis: 
+            Format: String(64)
+            Synopsis:
 
         subnets:
-            Format: String
-            Synopsis: 
+            Format: String(256)
+            Synopsis:
 
         tenant_id:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         external_route:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         shared:
             Format: Boolean
-            Synopsis: 
+            Synopsis:
 
         last_updated:
             Format: Integer
-            Synopsis: 
+            Synopsis:
+

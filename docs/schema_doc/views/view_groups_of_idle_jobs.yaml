@@ -1,131 +1,135 @@
 view_groups_of_idle_jobs:
-    Synopsis: 
+    Synopsis:
+
+    Keys:
+
     Columns:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         target_alias:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         target_clouds:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         instance_type:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         requirements:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         job_priority:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         user:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         image:
             Format: String
-            Synopsis: 
+            Synopsis:
 
         network:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         keep_alive:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         max_price:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         user_data:
-            Format: String
-            Synopsis: 
+            Format: String(512)
+            Synopsis:
 
         job_per_core:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_cpus_min:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_cpus_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_cpus_total:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_disk_min:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_disk_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_disk_total:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_ram_min:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_ram_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_ram_total:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_swap_min:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_swap_max:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         request_swap_total:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         queue_date:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         idle:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         running:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         completed:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         held:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         other:
             Format: Integer
-            Synopsis: 
+            Synopsis:
 
         flavors:
             Format: String
-            Synopsis: 
+            Synopsis:
+

@@ -1,35 +1,39 @@
 ec2_image_filters:
-    Synopsis: 
-    Columns:
+    Synopsis:
+
+    Keys:
 
         group_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
 
         cloud_name:
-            Format: String
-            Synopsis: 
+            Format: String(32)
+            Synopsis:
+
+    Columns:
 
         owner_aliases:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         owner_ids:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         like:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         not_like:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         operating_systems:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
 
         architectures:
-            Format: String
-            Synopsis: 
+            Format: String(128)
+            Synopsis:
+
