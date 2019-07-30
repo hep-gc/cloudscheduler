@@ -8,6 +8,7 @@ schema to stdout. To use the schema definitions:
             from lib.schema import <view_or_table_name_1>, <view_or_table_name_2>, ...
 """
 
+from copy import deepcopy
 from shutil import copyfile
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
@@ -61,7 +62,6 @@ def create_RSTs(gvar, type):
                 for ix in range(0, len(words), wpl):
                     fd.write('%s%s\n' % (' '*indent, ' '.join(words[ix:ix+wpl])))
 
-                fd.write('\n')
         else:
             fd.write('\n')
 
@@ -71,22 +71,32 @@ def create_RSTs(gvar, type):
             fd.write(gvar['do_not_edit'] % '%s/%s.rst' % (type, table))
 
             if type == 'tables':
-                if gvar['schema'][type][table]['state'] == 1:
+                if gvar['schema_states']['%s/%s' % (type, table)] == 1:
                     fd.write('Database Table: %s (obsolete)\n%s\n\n' % (table, '='*(len(table)+16)))
                 else:
                     fd.write('Database Table: %s\n%s\n\n' % (table, '='*(len(table)+16)))
             else:
-                if gvar['schema'][type][table]['state'] == 1:
+                if gvar['schema_states']['%s/%s' % (type, table)] == 1:
                     fd.write('Database View: %s (obsolete)\n%s\n\n' % (table, '='*(len(table)+15)))
                 else:
                     fd.write('Database View: %s\n%s\n\n' % (table, '='*(len(table)+15)))
 
             write_RSTs_synopsis(gvar, fd, 0, gvar['schema'][type][table]['Synopsis'])
 
-            fd.write('Columns:\n^^^^^^^^\n\n')
+            fd.write('\nKeys:\n^^^^^^^^\n\n')
+
+            for key in sorted(gvar['schema'][type][table]['Keys']):
+                if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
+                    fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                else:
+                    fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+
+                write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
+
+            fd.write('\nColumns:\n^^^^^^^^\n\n')
 
             for column in sorted(gvar['schema'][type][table]['Columns']):
-                if gvar['schema'][type][table]['Columns'][column]['state'] == 1:
+                if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
                     fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
                 else:
                     fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
@@ -145,6 +155,7 @@ def main(args):
         '..   2. run the utility ".../cloudscheduler/utilities/schema_doc"\n' \
         '..\n\n' % (gvar['base_dir'])
     gvar['schema'] = {'tables': {}, 'views': {}}
+    gvar['schema_states'] = {}
     gvar['tempfile'] = NamedTemporaryFile(delete=False)
 
     try:
@@ -155,6 +166,7 @@ def main(args):
 
     schema_yaml_get(gvar, 'tables')
     schema_yaml_get(gvar, 'views')
+    gvar['schema_copy'] = deepcopy(gvar['schema'])
 
     with open('%s/etc/schema_backup.conf' % gvar['base_dir']) as fd:
         gvar['schema_backup_conf'] = yaml.full_load(fd.read())
@@ -195,9 +207,10 @@ def main(args):
                 type = 'tables'
 
             if table in gvar['schema'][type]:
-                gvar['schema'][type][table]['state'] = 2
+                gvar['schema_states']['%s/%s' % (type, table)] = 2
             else:
-                gvar['schema'][type][table] = {'Synopsis': '', 'Columns': {}, 'state': 0}
+                gvar['schema'][type][table] = {'Synopsis': '', 'Keys': {}, 'Columns': {}}
+                gvar['schema_states']['%s/%s' % (type, table)] = 0
 
             _p1 = Popen(
                 [
@@ -228,17 +241,30 @@ def main(args):
             columns = stdout.decode('ascii').split("\n")
             for _ix in range(1, len(columns)):
                 _w = columns[_ix].split()
-                if len(_w) > 2:
+                if len(_w) > 3 and _w[3] == 'PRI':
+                    coltype = 'Keys'
                     if _w[0] in gvar['schema'][type][table]['Columns']:
-                        gvar['schema'][type][table]['Columns'][_w[0]]['state'] = 2
+                        gvar['schema'][type][table]['Keys'][_w[0]] = gvar['schema'][type][table]['Columns'][_w[0]]
+                        del gvar['schema'][type][table]['Columns'][_w[0]]
+                else:
+                    coltype = 'Columns'
+                    if len(_w) > 0 and _w[0] in gvar['schema'][type][table]['Keys']:
+                        gvar['schema'][type][table]['Columns'][_w[0]] = gvar['schema'][type][table]['Keys'][_w[0]]
+                        del gvar['schema'][type][table]['Keys'][_w[0]]
+
+
+                if len(_w) > 2:
+                    if _w[0] in gvar['schema'][type][table][coltype]:
+                        gvar['schema_states']['%s/%s/%s/%s' % (type, table, coltype, _w[0])] = 2
                     else:
-                        gvar['schema'][type][table]['Columns'][_w[0]] = {'Format': None, 'Synopsis': '', 'state': 0}
+                        gvar['schema'][type][table][coltype][_w[0]] = {'Format': None, 'Synopsis': ''}
+                        gvar['schema_states']['%s/%s/%s/%s' % (type, table, coltype, _w[0])] = 0
 
 
                     if _w[1][:5] == 'char(' or \
                         _w[1][:8] == 'varchar(':
                         _w2 = _w[1].translate(REMOVE_BRACKETS).split()
-                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'String(%s)' % _w2[1]
+                        gvar['schema'][type][table][coltype][_w[0]]['Format'] = 'String(%s)' % _w2[1]
 
                     elif _w[1][:4] == 'int(' or \
                     _w[1][:6] == 'bigint' or \
@@ -247,20 +273,20 @@ def main(args):
                     _w[1][:7] == 'decimal' or \
                     _w[1][:8] == 'smallint' or \
                     _w[1][:9] == 'timestamp':
-                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'Integer'
+                        gvar['schema'][type][table][coltype][_w[0]]['Format'] = 'Integer'
 
                     elif _w[1][:7] == 'tinyint':
-                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'Boolean'
+                        gvar['schema'][type][table][coltype][_w[0]]['Format'] = 'Boolean'
 
                     elif _w[1] == 'text' or \
                     _w[1] == 'tinytext' or \
                     _w[1] == 'longtext' or \
                     _w[1] == 'mediumtext':
-                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'String'
+                        gvar['schema'][type][table][coltype][_w[0]]['Format'] = 'String'
 
                     elif _w[1][:7] == 'double' or \
                     _w[1][:5] == 'float':
-                        gvar['schema'][type][table]['Columns'][_w[0]]['Format'] = 'Float'
+                        gvar['schema'][type][table][coltype][_w[0]]['Format'] = 'Float'
 
                     else:
                         print('Table %s, unknown data type for column: %s' % (table, columns[_ix]))
@@ -293,26 +319,60 @@ def schema_yaml_get(gvar, type):
         default_state = 2
 
 
-    for table in os.listdir('%s/docs/schema_doc/%s' % (gvar['base_dir'], type)):
-        table_path = '%s/docs/schema_doc/%s/%s' % (gvar['base_dir'], type, table)
+    for table_file in os.listdir('%s/docs/schema_doc/%s' % (gvar['base_dir'], type)):
+        table = table_file.split('.')[0]
+        table_path = '%s/docs/schema_doc/%s/%s' % (gvar['base_dir'], type, table_file)
         if os.path.isfile(table_path):
+            print("Reading:", table_path)
             with open(table_path) as fd:
                 table_doc = yaml.full_load(fd.read())
 
             gvar['schema'][type][table] = table_doc[table]
-            gvar['schema'][type][table]['state'] = default_state
+            gvar['schema_states']['%s/%s' % (type, table)] = default_state
 
-            for column in gvar['schema'][type][table]['Columns']:
-                gvar['schema'][type][table]['Columns'][column]['state'] = default_state
+            if 'Keys' in gvar['schema'][type][table] and gvar['schema'][type][table]['Keys']:
+                for key in gvar['schema'][type][table]['Keys']:
+                    gvar['schema_states']['%s/%s/%s/%s' % (type, table, 'Keys', key)] = default_state
+            else:
+                gvar['schema'][type][table]['Keys'] = {}
+
+            if 'Columns' in gvar['schema'][type][table] and gvar['schema'][type][table]['Columns']:
+                for column in gvar['schema'][type][table]['Columns']:
+                    gvar['schema_states']['%s/%s/%s/%s' % (type, table, 'Columns', column)] = default_state
+            else:
+                gvar['schema'][type][table]['Columns'] = {}
 
 def schema_yaml_put(gvar, type):
+    def schema_yaml_put_synopsis(gvar, fd, indent, text):
+        if text:
+            yaml_list = yaml.dump(text).replace('...\n', '').split('\n')
+            for line in yaml_list:
+                fd.write('%s%s\n' % (' '*indent, line.strip()))
+
+        else:
+            fd.write('\n')
+
     for table in gvar['schema'][type]:
-        yaml_path = '%s/docs/schema_doc/%s/%s' % (gvar['base_dir'], type, table)
-        if not os.path.exists(yaml_path):
+        yaml_path = '%s/docs/schema_doc/%s/%s.yaml' % (gvar['base_dir'], type, table)
+        if gvar['schema'][type][table] != gvar['schema_copy'][type][table]:
+            print("Updating:", yaml_path)
+            print("    %s" % gvar['schema'][type][table])
+            print("    %s" % gvar['schema_copy'][type][table])
             with open(yaml_path, 'w') as fd:
-                fd.write('%s:\n    Synopsis: %s\n    Columns:\n' % (table, gvar['schema'][type][table]['Synopsis']))
+                fd.write('%s:\n    Synopsis:\n' % table)
+                schema_yaml_put_synopsis(gvar, fd, 8, gvar['schema'][type][table]['Synopsis'])
+
+                fd.write('    Keys:\n\n')
+
+                for key in gvar['schema'][type][table]['Keys']:
+                    fd.write('        %s:\n            Format: %s\n            Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                    schema_yaml_put_synopsis(gvar, fd, 16, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
+
+                fd.write('    Columns:\n\n')
+
                 for column in gvar['schema'][type][table]['Columns']:
-                    fd.write('\n        %s:\n            Format: %s\n            Synopsis: %s\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format'], gvar['schema'][type][table]['Columns'][column]['Synopsis']))
+                    fd.write('        %s:\n            Format: %s\n            Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+                    schema_yaml_put_synopsis(gvar, fd, 16, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
 
 if __name__ == "__main__":
     main(sys.argv)
