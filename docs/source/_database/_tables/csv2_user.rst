@@ -9,6 +9,16 @@ Database Table: csv2_user
 =========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **username**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

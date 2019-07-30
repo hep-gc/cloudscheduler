@@ -9,6 +9,21 @@ Database Table: csv2_group_metadata
 ===================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **metadata_name**:
+
+   * Format: String(64)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

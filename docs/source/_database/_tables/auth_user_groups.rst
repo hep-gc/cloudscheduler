@@ -9,6 +9,16 @@ Database Table: auth_user_groups
 ================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **id**:
+
+   * Format: Integer
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

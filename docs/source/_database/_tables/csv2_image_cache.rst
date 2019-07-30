@@ -9,6 +9,21 @@ Database Table: csv2_image_cache
 ================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **checksum**:
+
+   * Format: Integer
+   * Synopsis:
+
+* **image_name**:
+
+   * Format: String(256)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

@@ -9,6 +9,16 @@ Database Table: silk_request
 ============================
 
 
+
+Keys:
+^^^^^^^^
+
+* **id**:
+
+   * Format: String(36)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

@@ -9,6 +9,16 @@ Database Table: archived_condor_jobs
 ====================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **global_job_id**:
+
+   * Format: String(128)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

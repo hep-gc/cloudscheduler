@@ -9,6 +9,16 @@ Database Table: condor_jobs
 ===========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **global_job_id**:
+
+   * Format: String(128)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

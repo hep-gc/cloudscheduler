@@ -9,6 +9,21 @@ Database Table: csv2_service_catalog
 ====================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **fqdn**:
+
+   * Format: String(128)
+   * Synopsis:
+
+* **service**:
+
+   * Format: String(64)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

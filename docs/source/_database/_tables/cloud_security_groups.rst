@@ -9,6 +9,26 @@ Database Table: cloud_security_groups
 =====================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **id**:
+
+   * Format: String(64)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

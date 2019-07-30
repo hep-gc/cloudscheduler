@@ -9,6 +9,16 @@ Database Table: django_session
 ==============================
 
 
+
+Keys:
+^^^^^^^^
+
+* **session_key**:
+
+   * Format: String(40)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

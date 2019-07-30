@@ -9,6 +9,16 @@ Database Table: silk_profile_queries
 ====================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **id**:
+
+   * Format: Integer
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

@@ -9,6 +9,26 @@ Database Table: csv2_cloud_flavor_exclusions
 ============================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **flavor_name**:
+
+   * Format: String(128)
+   * Synopsis:
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

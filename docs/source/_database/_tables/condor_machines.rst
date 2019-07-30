@@ -9,6 +9,16 @@ Database Table: condor_machines
 ===============================
 
 
+
+Keys:
+^^^^^^^^
+
+* **name**:
+
+   * Format: String(128)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

@@ -9,6 +9,31 @@ Database Table: csv2_vms_foreign
 ================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **authurl**:
+
+   * Format: String(128)
+   * Synopsis:
+
+* **flavor_id**:
+
+   * Format: String(128)
+   * Synopsis:
+
+* **project**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **region**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

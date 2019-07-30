@@ -9,6 +9,26 @@ Database Table: ec2_images
 ==========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **borrower_id**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **id**:
+
+   * Format: String(128)
+   * Synopsis:
+
+* **region**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

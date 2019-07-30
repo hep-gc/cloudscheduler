@@ -9,6 +9,16 @@ Database Table: csv2_groups
 ===========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

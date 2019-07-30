@@ -9,6 +9,26 @@ Database Table: ec2_instance_types
 ==================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **instance_type**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **operating_system**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **region**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

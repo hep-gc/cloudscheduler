@@ -9,6 +9,21 @@ Database Table: csv2_clouds
 ===========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

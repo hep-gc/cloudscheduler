@@ -9,6 +9,11 @@ Database View: view_active_resource_shortfall
 =============================================
 
 
+
+Keys:
+^^^^^^^^
+
+
 Columns:
 ^^^^^^^^
 

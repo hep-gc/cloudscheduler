@@ -9,6 +9,21 @@ Database Table: ec2_image_filters
 =================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

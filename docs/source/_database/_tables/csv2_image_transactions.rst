@@ -9,6 +9,16 @@ Database Table: csv2_image_transactions
 =======================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **tx_id**:
+
+   * Format: String(16)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

@@ -9,6 +9,16 @@ Database Table: django_migrations
 =================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **id**:
+
+   * Format: Integer
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

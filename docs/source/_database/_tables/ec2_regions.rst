@@ -9,6 +9,16 @@ Database Table: ec2_regions
 ===========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **region**:
+
+   * Format: String(64)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

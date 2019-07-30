@@ -16,6 +16,24 @@ Configuration items are grouped by category. This allows CSV2 processes to read
 by category only those items that are applicable. A single process may
 retrieve zero, one, or more categories and may refresh the retrieved values
 at any time.
+
+Keys:
+^^^^^^^^
+
+* **category**:
+
+   * Format: String(32)
+   * Synopsis:
+      A label by which to group related configuration items. Often, the name
+      of the corresponding process is used.
+* **config_key**:
+
+   * Format: String(32)
+   * Synopsis:
+      A label identifying a specific configuration item. This value must be unique
+      within the category. When fetched, a reference to this item would be
+      in the form "config.<category>.<config_key>"
+
 Columns:
 ^^^^^^^^
 

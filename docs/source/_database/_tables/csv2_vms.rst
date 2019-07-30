@@ -9,6 +9,26 @@ Database Table: csv2_vms
 ========================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **vmid**:
+
+   * Format: String(128)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

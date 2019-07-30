@@ -9,6 +9,16 @@ Database Table: ec2_instance_status_codes
 =========================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **ec2_state**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

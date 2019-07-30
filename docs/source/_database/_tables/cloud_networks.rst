@@ -9,6 +9,26 @@ Database Table: cloud_networks
 ==============================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **group_name**:
+
+   * Format: String(32)
+   * Synopsis:
+
+* **id**:
+
+   * Format: String(128)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

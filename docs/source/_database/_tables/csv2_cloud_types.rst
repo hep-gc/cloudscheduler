@@ -9,6 +9,16 @@ Database Table: csv2_cloud_types
 ================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **cloud_type**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

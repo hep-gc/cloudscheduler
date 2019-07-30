@@ -9,6 +9,16 @@ Database Table: csv2_job_schedulers
 ===================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **htcondor_fqdn**:
+
+   * Format: String(128)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

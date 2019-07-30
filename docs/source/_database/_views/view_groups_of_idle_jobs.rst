@@ -9,6 +9,11 @@ Database View: view_groups_of_idle_jobs
 =======================================
 
 
+
+Keys:
+^^^^^^^^
+
+
 Columns:
 ^^^^^^^^
 

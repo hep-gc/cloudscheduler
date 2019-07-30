@@ -17,6 +17,16 @@ A process requiring name translation calls a CSV2 library function providing the
 source and target names together with a dictionary of key/value pairs. The
 response is a new dictionary of key/value pairs, where the keys are
 normalized target names, and an error list of undefined (unmapable) names.
+
+Keys:
+^^^^^^^^
+
+* **csv2**:
+
+   * Format: String(64)
+   * Synopsis:
+      This column provides a list of CSV2 normalized table column names.
+
 Columns:
 ^^^^^^^^
 

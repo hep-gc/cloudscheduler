@@ -9,6 +9,16 @@ Database Table: auth_user_user_permissions
 ==========================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **id**:
+
+   * Format: Integer
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

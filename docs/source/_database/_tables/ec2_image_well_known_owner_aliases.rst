@@ -9,6 +9,16 @@ Database Table: ec2_image_well_known_owner_aliases
 ==================================================
 
 
+
+Keys:
+^^^^^^^^
+
+* **alias**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 

@@ -9,6 +9,16 @@ Database Table: csv2_mime_types
 ===============================
 
 
+
+Keys:
+^^^^^^^^
+
+* **mime_type**:
+
+   * Format: String(32)
+   * Synopsis:
+
+
 Columns:
 ^^^^^^^^
 
