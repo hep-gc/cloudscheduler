@@ -13,8 +13,10 @@ retrieve configuration data to inform scheduling decisions and users. These conf
 are set by the cloud administrators and not by CSV2. in oder
 to change these values, you will to confer with the target cloud
 support.
+
 The information stored in this table reflect the VM images avialable on
-the targe cloud.
+the target cloud.
+
 
 Keys:
 ^^^^^^^^

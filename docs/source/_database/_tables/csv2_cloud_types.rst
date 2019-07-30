@@ -11,6 +11,7 @@ Database Table: csv2_cloud_types
 This table enumerates supported cloud types, facilitating both selection and validation during
 cloud definition.
 
+
 Keys:
 ^^^^^^^^
 
@@ -23,6 +24,7 @@ Keys:
       new cloud types is incorporated. To see the currently supported cloud types,
       view the the content of this table via the web or command
       line interfaces.
+
 
 Columns:
 ^^^^^^^^
