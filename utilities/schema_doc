@@ -62,6 +62,8 @@ def create_RSTs(gvar, type):
                 for ix in range(0, len(words), wpl):
                     fd.write('%s%s\n' % (' '*indent, ' '.join(words[ix:ix+wpl])))
 
+                fd.write('\n')
+
         else:
             fd.write('\n')
 
@@ -326,6 +328,9 @@ def schema_yaml_get(gvar, type):
             print("Reading:", table_path)
             with open(table_path) as fd:
                 table_doc = yaml.full_load(fd.read())
+
+                if table == 'cloud_images':
+                    print(">>>>>>>>>>>>>>>>>>", table_doc)
 
             gvar['schema'][type][table] = table_doc[table]
             gvar['schema_states']['%s/%s' % (type, table)] = default_state
