@@ -391,9 +391,12 @@ def image_poller():
                         continue
 
                     # Retrieve all images for this cloud.
+                    post_req_time = 0
+                    pre_req_time = time.time() * 1000000 
                     glance = _get_glance_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                     try:
                         image_list =  glance.images.list()
+                        post_req_time = time.time()*1000000
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
@@ -417,6 +420,13 @@ def image_poller():
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
                         failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        # update cloud network status
+                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                        cloud_row.network_up = 1
+                        logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
+                        cloud_row.network_rtt = int(post_req_time - pre_req_time)
+                        db_session.merge(cloud_row)
+                        db_session.commit()
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -489,6 +499,11 @@ def image_poller():
                     key = cloud.authurl + cloud.project + cloud.region
                     if key in failure_dict:
                         new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        # update cloud network status
+                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == cloud.group_name, CLOUD.cloud_name == cloud.cloud_name)[0]
+                        cloud_row.network_up = 0
+                        db_session.merge(cloud_row)
+                        db_session.commit()
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
                 delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=new_f_dict, cloud_type="openstack")
