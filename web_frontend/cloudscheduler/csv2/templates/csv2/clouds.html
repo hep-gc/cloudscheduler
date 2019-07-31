@@ -394,7 +394,7 @@
 
                                 <div class="tab2">
                                     <input id="{{cloud.cloud_name}}-metadata-{{meta}}" type="radio" name="tabs2" onclick="meta_fetch('{{cloud.cloud_name}}', '{{meta}}')">
-                                    <label class="highlight4" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
+                                    <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-{{meta}}">{{meta}}</label>
                                     <div class="tab2-content">
 
                                         <iframe id="editor-{{cloud.cloud_name}}-{{meta}}"  src=""></iframe>
@@ -408,7 +408,7 @@
 
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-metadata-add" type="radio" name="tabs2" onclick="meta_add('{{cloud.cloud_name}}')">
-                            <label class="highlight4" for="{{cloud.cloud_name}}-metadata-add">+</label>
+                            <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-add">+</label>
                             <div class="tab2-content">
 
                                 <iframe id="editor-{{cloud.cloud_name}}-add"  src=""></iframe>
@@ -434,7 +434,7 @@
 
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-metadata-exclusions" type="radio" name="tabs2">
-                            <label class="highlight4" for="{{cloud.cloud_name}}-metadata-exclusions">Default metadata</label>
+                            <label class="tab2-colour" for="{{cloud.cloud_name}}-metadata-exclusions">Default metadata</label>
 
                             <div class="tab2-content">
                                 <form name="{{cloud.cloud_name}}-metadata-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
@@ -466,11 +466,6 @@
 
                             </div>
 
-                            <div class="tab2">
-                                <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
-                                <div class="tab2-hide"></div>
-                            </div>
-
                         </div>
 
                         <br>
@@ -478,7 +473,7 @@
                         <div class="tab2">
 
                             <input id="exclusions-{{cloud.cloud_name}}-flavors" type="radio" name="tabs2">
-                            <label class="highlight4" for="exclusions-{{cloud.cloud_name}}-flavors">Default flavors</label>
+                            <label class="tab2-colour" for="exclusions-{{cloud.cloud_name}}-flavors">Default flavors</label>
 
                             <div class="tab2-content">
                                 <form name="{{cloud.cloud_name}}-flavor-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">
@@ -510,6 +505,7 @@
                                     </table>
                                 </form>
                             </div>
+
                         </div>
                     </div>
                 </div>

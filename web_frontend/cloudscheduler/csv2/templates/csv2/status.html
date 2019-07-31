@@ -451,7 +451,7 @@
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_limit" class="manual-style plottable">{{cloud.cores_limit}}</td>
                                     {% endif %}
                                     
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native" class="plottable">
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native" class="plottable float-center">
                                         {% with total=cloud.ram_quota %}
                                             {% if total == 0 %}
                                                 <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
@@ -809,7 +809,7 @@
                                 <td data-path="{{group_name}} cores_limit_total" class="more-style plottable">{{group_total.cores_limit}}</td>
                             {% endif %}
                         {% endif %}
-                            <td data-path="{{group_name}} ram_native_total" class="plottable">
+                            <td data-path="{{group_name}} ram_native_total" class="plottable float-center">
                                 {% with total=group_total.ram_quota %}
                                     <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native }}"></meter>
                                 {% endwith %}
@@ -830,7 +830,7 @@
                             <td data-path="{{group_name}} cores_foreign_total" class="more-style plottable">{{group_total.cores_foreign}}</td>
                         {% endif %}
 
-                            <td data-path="{{group_name}} ram_foreign_total" class="plottable">
+                            <td data-path="{{group_name}} ram_foreign_total" class="plottable float-center">
                                 {% with total=group_total.ram_quota %}
                                     <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_foreign }}"></meter>
                                 {% endwith %}
@@ -852,7 +852,7 @@
                         {% endif %}
 
 
-                        <td data-path="{{group_name}} ram_native_foreign_total" class="plottable">
+                        <td data-path="{{group_name}} ram_native_foreign_total" class="plottable float-center">
                             {% with total=group_total.ram_quota %}
                                 <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{group_total.ram_quota}}" value="{{ group_total.ram_native_foreign }}"></meter>
                             {% endwith %}
