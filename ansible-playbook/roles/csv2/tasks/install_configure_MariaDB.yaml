@@ -67,7 +67,7 @@
 # - etc_my_cnf_d is defined
 
 - name: ensure mariadb is running and enabled with service
-  service: name=mariadb state=running enabled=yes
+  service: name=mariadb state=restarted enabled=yes
   when: (container is undefined) or (container == False)
 
 - name: ensure mariadb is running and enabled with systemd

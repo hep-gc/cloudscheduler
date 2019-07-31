@@ -14,7 +14,7 @@
   service:
     name: httpd
     enabled: yes
-    state: running
+    state: restarted
   when: (container is undefined) or (container == False)
 
 - name: enable and start httpd
