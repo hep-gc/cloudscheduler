@@ -7,9 +7,11 @@ Welcome to cloudscheduler's documentation!
 ==========================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
+   _getting_started/index
+   _user_guide/index
+   _utilities/index
    _architecture/index
-   _database/index
 
