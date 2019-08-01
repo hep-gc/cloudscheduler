@@ -47,6 +47,9 @@ def main(args):
     if 'csv2_backup_dir' in gvar['schema_config'] and gvar['schema_config']['csv2_backup_dir'] and gvar['schema_config']['csv2_backup_dir'] != 'default':
         gvar['backup_dir'] = '%s/%s' % (gvar['schema_config']['csv2_backup_dir'], socket.getfqdn())
 
+    if not os.path.exists(gvar['backup_dir']):
+        os.makedirs(gvar['backup_dir'], 0o644)
+
     if 'local_backup_dir' in gvar['schema_config']:
         gvar['local_backup_dir'] = '%s/%s' % (gvar['schema_config']['local_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
 
@@ -117,7 +120,7 @@ def main(args):
         print('Failed to retrieve table list.')
         exit(1)
 
-    print('\ncsv2 schema-backup starting...')
+    print('\ncsv2 schema-backup starting...\nglobal backup directory: %s\nlocal backup directory: %s\n' % (gvar['backup_dir'], gvar['local_backup_dir']))
 
     tables = decode(gvar, stdout).split('\n')
     for table in tables:
