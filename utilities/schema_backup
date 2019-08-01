@@ -50,8 +50,8 @@ def main(args):
     if not os.path.exists(gvar['backup_dir']):
         os.makedirs(gvar['backup_dir'], 0o644)
 
-    if 'local_backup_dir' in gvar['schema_config']:
-        gvar['local_backup_dir'] = '%s/%s' % (gvar['schema_config']['local_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+    if 'user_data_backup_dir' in gvar['schema_config']:
+        gvar['user_data_backup_dir'] = '%s/%s' % (gvar['schema_config']['user_data_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
 
     # Read optional arguments:
     skip_next = False 
@@ -120,7 +120,7 @@ def main(args):
         print('Failed to retrieve table list.')
         exit(1)
 
-    print('\ncsv2 schema-backup starting...\nglobal backup directory: %s\nlocal backup directory: %s\n' % (gvar['backup_dir'], gvar['local_backup_dir']))
+    print('\ncsv2 schema-backup starting...\nglobal backup directory: %s\nuser data backup directory: %s\n' % (gvar['backup_dir'], gvar['user_data_backup_dir']))
 
     tables = decode(gvar, stdout).split('\n')
     for table in tables:
@@ -132,18 +132,18 @@ def main(args):
 
     print('\ncsv2 schema-backup starting local backups...')
 
-    if 'local_backup_dir' in gvar and 'local' in gvar['schema_config'] and len(gvar['schema_config']['local']) > 0:
-        os.makedirs(gvar['local_backup_dir'], 0o640)
+    if 'user_data_backup_dir' in gvar and 'local' in gvar['schema_config'] and len(gvar['schema_config']['local']) > 0:
+        os.makedirs(gvar['user_data_backup_dir'], 0o640)
 
         try:
-            os.unlink('%s/latest' % gvar['schema_config']['local_backup_dir'])
+            os.unlink('%s/latest' % gvar['schema_config']['user_data_backup_dir'])
         except:
             pass
 
-        os.symlink(gvar['local_backup_dir'], '%s/latest' % gvar['schema_config']['local_backup_dir'])
+        os.symlink(gvar['user_data_backup_dir'], '%s/latest' % gvar['schema_config']['user_data_backup_dir'])
 
         for table in gvar['schema_config']['local']:
-            backup(gvar, table, gvar['local_backup_dir'], data=True)
+            backup(gvar, table, gvar['user_data_backup_dir'], data=True)
 
     # If model specified, restart the consumers.
     if gvar['model']:
