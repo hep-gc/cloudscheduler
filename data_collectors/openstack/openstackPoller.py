@@ -184,6 +184,7 @@ def flavor_poller():
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_obj =  unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing flavours from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -191,11 +192,11 @@ def flavor_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                             continue
@@ -212,11 +213,11 @@ def flavor_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -228,7 +229,7 @@ def flavor_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(grp_nm+cld_nm, None)
+                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process flavours for this cloud.
@@ -300,8 +301,17 @@ def flavor_poller():
                     time.sleep(config.sleep_interval_flavor)
                     continue
 
+
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud.authurl + cloud.project + cloud.region
+                    if key in failure_dict:
+                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+
                 # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+                delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -362,6 +372,7 @@ def image_poller():
                         unique_cloud_dict[cloud.authurl+cloud.project+cloud.region]['groups'].append((cloud.group_name, cloud.cloud_name))
 
                 for cloud in unique_cloud_dict:
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
                     logging.debug("Processing Images from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
@@ -370,30 +381,33 @@ def image_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
 
                     # Retrieve all images for this cloud.
+                    post_req_time = 0
+                    pre_req_time = time.time() * 1000000 
                     glance = _get_glance_client(session, region=unique_cloud_dict[cloud]['cloud_obj'].region)
                     try:
                         image_list =  glance.images.list()
+                        post_req_time = time.time()*1000000
                     except Exception as exc:
                         logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
                         logging.error(exc)
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -405,7 +419,14 @@ def image_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(grp_nm+cld_nm, None)
+                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
+                        # update cloud network status
+                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                        cloud_row.network_up = 1
+                        logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
+                        cloud_row.network_rtt = int(post_req_time - pre_req_time)
+                        db_session.merge(cloud_row)
+                        db_session.commit()
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -471,9 +492,21 @@ def image_poller():
                     del db_session
                     time.sleep(config.sleep_interval_image)
                     continue
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud.authurl + cloud.project + cloud.region
+                    if key in failure_dict:
+                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                        # update cloud network status
+                        cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == cloud.group_name, CLOUD.cloud_name == cloud.cloud_name)[0]
+                        cloud_row.network_up = 0
+                        db_session.merge(cloud_row)
+                        db_session.commit()
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=failure_dict, cloud_type="openstack")
+                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -535,6 +568,7 @@ def keypair_poller():
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing Key pairs from group:cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -542,11 +576,11 @@ def keypair_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -566,11 +600,11 @@ def keypair_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -578,7 +612,7 @@ def keypair_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(grp_nm+cld_nm, None)
+                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -628,9 +662,18 @@ def keypair_poller():
                     del db_session
                     time.sleep(config.sleep_interval_keypair)
                     continue
+                
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud.authurl + cloud.project + cloud.region
+                    if key in failure_dict:
+                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+
 
                 # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+                delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -692,6 +735,7 @@ def limit_poller():
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing limits from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -699,11 +743,11 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -722,11 +766,11 @@ def limit_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -738,7 +782,7 @@ def limit_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(grp_nm+cld_nm, None)
+                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process limit list for the current cloud.
@@ -789,9 +833,17 @@ def limit_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud.authurl + cloud.project + cloud.region
+                    if key in failure_dict:
+                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+
 
                 # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
-                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+                delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -862,6 +914,7 @@ def network_poller():
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing networks from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -869,11 +922,11 @@ def network_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -888,11 +941,11 @@ def network_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -904,7 +957,7 @@ def network_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(grp_nm+cld_nm, None)
+                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
@@ -962,9 +1015,17 @@ def network_poller():
                     del db_session
                     time.sleep(config.sleep_interval_network)
                     continue
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud.authurl + cloud.project + cloud.region
+                    if key in failure_dict:
+                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+
 
                 # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
-                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
+                delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_close()
                 del db_session
@@ -1029,6 +1090,7 @@ def security_group_poller():
 
                 for cloud in unique_cloud_dict:
                     cloud_name = unique_cloud_dict[cloud]['cloud_obj'].authurl
+                    cloud_obj = unique_cloud_dict[cloud]['cloud_obj']
                     logging.debug("Processing security groups from cloud - %s" % cloud_name)
                     session = _get_openstack_session(unique_cloud_dict[cloud]['cloud_obj'])
                     if session is False:
@@ -1036,11 +1098,11 @@ def security_group_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                             continue
@@ -1057,11 +1119,11 @@ def security_group_poller():
                         for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                             grp_nm = cloud_tuple[0]
                             cld_nm = cloud_tuple[1]
-                            if grp_nm+cld_nm not in failure_dict:
-                                failure_dict[grp_nm+cld_nm] = 1
+                            if cloud_obj.authurl + cloud_obj.project + cloud_obj.region not in failure_dict:
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = 1
                             else:
-                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
-                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] = failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] + 1
+                            if failure_dict[cloud_obj.authurl + cloud_obj.project + cloud_obj.region] > 3: #should be configurable
                                 logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
                                 config.incr_cloud_error(grp_nm, cld_nm)
                         continue
@@ -1073,7 +1135,7 @@ def security_group_poller():
                     for cloud_tuple in unique_cloud_dict[cloud]['groups']:
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
-                        failure_dict.pop(grp_nm+cld_nm, None)
+                        failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     # Process security groups for this cloud.
@@ -1128,6 +1190,13 @@ def security_group_poller():
                     db_session.close()
                     time.sleep(config.sleep_interval_sec_grp)
                     continue
+                # Expand failure dict for deletion schema (key needs to be grp+cloud)
+                cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
+                new_f_dict = {}
+                for cloud in cloud_list:
+                    key = cloud.authurl + cloud.project + cloud.region
+                    if key in failure_dict:
+                        new_f_dict[cloud.group_name+cloud.cloud_name] = 1
 
                 # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
                 delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
