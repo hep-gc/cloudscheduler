@@ -44,6 +44,9 @@ def main(args):
     else:
         gvar['schema_config'] = {'providers': [], 'consumers': [], 'global': [], 'local': [], 'ephemeral': []}
 
+    if 'csv2_backup_dir' in gvar['schema_config'] and gvar['schema_config']['csv2_backup_dir'] and gvar['schema_config']['csv2_backup_dir'] != 'default':
+        gvar['backup_dir'] = '%s/%s' % (gvar['schema_config']['csv2_backup_dir'], socket.getfqdn())
+
     if 'local_backup_dir' in gvar['schema_config']:
         gvar['local_backup_dir'] = '%s/%s' % (gvar['schema_config']['local_backup_dir'], datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
 
