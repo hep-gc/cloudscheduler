@@ -420,9 +420,7 @@ def image_poller():
                         grp_nm = cloud_tuple[0]
                         cld_nm = cloud_tuple[1]
                         failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
-                        # update cloud network status
                         cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
-                        cloud_row.network_up = 1
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
                         cloud_row.network_rtt = int(post_req_time - pre_req_time)
                         db_session.merge(cloud_row)
@@ -499,9 +497,7 @@ def image_poller():
                     key = cloud.authurl + cloud.project + cloud.region
                     if key in failure_dict:
                         new_f_dict[cloud.group_name+cloud.cloud_name] = 1
-                        # update cloud network status
                         cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == cloud.group_name, CLOUD.cloud_name == cloud.cloud_name)[0]
-                        cloud_row.network_up = 0
                         db_session.merge(cloud_row)
                         db_session.commit()
 
@@ -1333,6 +1329,15 @@ def vm_poller():
 
                 # if we get here the connection to openstack has been succussful and we can remove the error status
                 failure_dict.pop(auth_url + cloud_obj.project + cloud_obj.region, None)
+                #update network status
+                for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                    grp_nm = cloud_tuple[0]
+                    cld_nm = cloud_tuple[1]
+                    cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
+                    cloud_row.network_up = 1
+                    db_session.merge(cloud_row)
+                    db_session.commit()
+                    
 
                 # Process VM list for this cloud.
                 # We've decided to remove the variable "status_changed_time" since it was holding the exact same value as "last_updated"
@@ -1517,6 +1522,11 @@ def vm_poller():
                 key = cloud.authurl + cloud.project + cloud.region
                 if key in failure_dict:
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
+                    # update cloud network status
+                    cloud.network_up = 0
+                    db_session.merge(cloud)
+                    db_session.commit()
+
             delete_obsolete_database_items('VM', inventory, db_session, VM, 'hostname', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
 
