@@ -19,6 +19,7 @@ The utilities can be divided into two categories:
    generate_schema.py
    regenerate_ansible_playbook
    schema_backup
+   schema_doc
 
 .. toctree::
    :maxdepth: 1
