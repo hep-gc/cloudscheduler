@@ -613,14 +613,15 @@
                                     <td class="col-spacer">&nbsp;</td>
 
                                     <td colspan="2">
-
-                                    {% if cloud.cores_ctl == -1 and cloud.cores_soft_quota == -1 %}
-                                        <p>Hard max</p>
-                                    {% elif cloud.cores_ctl == -1 and cloud.cores_soft_quota > -1 %}
-                                        <p>Soft max</p>
-                                    {% else%}
-                                        <p>User limit</p>
-                                    {% endif %}
+                                    {% if cloud.enabled < 9%}  
+                                        {% if cloud.cores_ctl == -1 and cloud.cores_soft_quota == -1 %}
+                                            <p>Hard max</p>
+                                        {% elif cloud.cores_ctl == -1 and cloud.cores_soft_quota > -1 %}
+                                            <p>Soft max</p>
+                                        {% else%}
+                                            <p>User limit</p>
+                                        {% endif %}
+                                    {% endif %}  
                                     </td>
                                     <td>
                                         {% with ram=cloud.ram_native total=cloud.ram_quota %}
