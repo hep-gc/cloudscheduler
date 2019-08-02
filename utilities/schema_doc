@@ -346,6 +346,8 @@ def schema_summarize(gvar, type):
 
     def schema_summarize_print_keys_columns(gvar, type, table, coltype):
         for col in  gvar['schema'][type][table][coltype]:
+            gvar['counters'][coltype]['total'] += 1
+
             # New?
             if 'Synopsis' not in gvar['schema'][type][table][coltype][col] or \
                 not isinstance(gvar['schema'][type][table][coltype][col]['Synopsis'], str) or \
