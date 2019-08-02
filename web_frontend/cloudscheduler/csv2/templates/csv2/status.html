@@ -613,13 +613,14 @@
                                     <td class="col-spacer">&nbsp;</td>
 
                                     <td colspan="2">
-
-                                    {% if cloud.cores_ctl == -1 and cloud.cores_soft_quota == -1 %}
-                                        <p>Hard max</p>
-                                    {% elif cloud.cores_ctl == -1 and cloud.cores_soft_quota > -1 %}
-                                        <p>Soft max</p>
-                                    {% else%}
-                                        <p>User limit</p>
+                                    {% if cloud.enabled < 9%}
+                                        {% if cloud.cores_ctl == -1 and cloud.cores_soft_quota == -1 %}
+                                            <p>Hard max</p>
+                                        {% elif cloud.cores_ctl == -1 and cloud.cores_soft_quota > -1 %}
+                                            <p>Soft max</p>
+                                        {% else%}
+                                            <p>User limit</p>
+                                        {% endif %}
                                     {% endif %}
                                     </td>
                                     <td>
