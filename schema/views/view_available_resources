@@ -169,7 +169,9 @@ from (
         left outer join view_foreign_resources as vfr on
             cc.group_name=vfr.group_name and
             cc.cloud_name=vfr.cloud_name
-        where enabled=1
+        where
+            enabled=1 and
+            network_up > 0
         ) as cwd
     join cloud_flavors as cf1 on
         cwd.group_name=cf1.group_name and
