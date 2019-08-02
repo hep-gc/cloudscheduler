@@ -39,7 +39,6 @@ CSV2 makes extensive use of views for both presentation and decision making.
    view_metadata_collation_json
    view_redundant_machines
    view_resource_contention
-   view_t0
    view_user_groups
    view_user_groups_available
    view_vm_kill_retire_over_quota
