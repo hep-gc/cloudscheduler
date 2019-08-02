@@ -13,12 +13,16 @@ Where:
 
 * <model_dir>
 
+..
+
    * is the name of a directory in *.../cloudscheduler/schema/schema_backup*
      containing a database backup to be used as a schema model.
 
 ..
 
 * -i <input_file_name> 
+
+..
 
    * is the name of an optional input parameter file, located within
      ".../cloudscheduler/schema/db_upgrade", used to automate the
@@ -29,6 +33,8 @@ Where:
      the discrepencies. This input can either be read interactively from
      the terminal or from this parameter file.
 
+..
+
 * -o <output_file_name> 
 
 ..
@@ -37,6 +43,8 @@ Where:
      users responses for future automation of the upgrade process (see
      the "-i" option above). The output file is written to the directory
      ".../cloudscheduler/schema/db_upgrade".
+
+..
 
 * -r [live | ]
 
