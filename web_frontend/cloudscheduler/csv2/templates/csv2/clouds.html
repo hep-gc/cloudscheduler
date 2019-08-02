@@ -373,12 +373,12 @@
 
                         </table>
                         </form>
-
+                        <!--
                         <div class="tab2">
                             <input id="{{cloud.cloud_name}}-hide" type="radio" name="tabs2">
                             <div class="tab2-hide"></div>
                         </div>
-
+                        -->
                     </div>
 
                 </div>
@@ -472,8 +472,8 @@
 
                         <div class="tab2">
 
-                            <input id="exclusions-{{cloud.cloud_name}}-flavors" type="radio" name="tabs2">
-                            <label class="tab2-colour" for="exclusions-{{cloud.cloud_name}}-flavors">Default flavors</label>
+                            <input id="{{cloud.cloud_name}}-flavor-exclusions" type="radio" name="tabs2">
+                            <label class="tab2-colour" for="{{cloud.cloud_name}}-flavor-exclusions">Default flavors</label>
 
                             <div class="tab2-content">
                                 <form name="{{cloud.cloud_name}}-flavor-exclusions" action="/cloud/update/#{{cloud.cloud_name}}" method="post">

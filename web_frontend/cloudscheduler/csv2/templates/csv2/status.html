@@ -339,7 +339,7 @@
                     {% for cloud in cloud_status_list %}
 
                         {% if global_flag or not global_flag and cloud.group_name == active_group and cloud.enabled < 9%}
-                            {% if cloud.VMs > 0 %}
+                            {% if cloud.enabled > 0 or cloud.enabled == 0 and cloud.VMs > 0 %}
                                 
                                 <tr>
                                     <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"><div class="float-left">{{cloud.group_name}}</div><div class="float-right">&#x21a8;</div></td>
