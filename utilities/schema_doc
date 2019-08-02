@@ -70,7 +70,7 @@ def create_RSTs(gvar, type):
     for table in sorted(gvar['schema'][type]):
         rst_path = '%s/docs/source/_architecture/_data_services/_database/_%s/%s.rst' % (gvar['base_dir'], type, table)
         with open(gvar['tempfile'].name, 'w') as fd:
-            fd.write(gvar['do_not_edit'] % '%s/%s.rst' % (type, table))
+            fd.write(gvar['do_not_edit'] % '%s/%s.yaml' % (type, table))
 
             if type == 'tables':
                 if gvar['schema_states']['%s/%s' % (type, table)] == 1:
@@ -294,25 +294,107 @@ def main(args):
                         print('Table %s, unknown data type for column: %s' % (table, columns[_ix]))
                         exit(1)
 
-    schema_yaml_put(gvar, 'tables')
-    schema_yaml_put(gvar, 'views')
+    if (len(sys.argv)>1 and sys.argv[1] == 'list') or \
+        (len(sys.argv)>2 and sys.argv[1] == 'show') or \
+        (len(sys.argv)>1 and sys.argv[1] == 'summary'):
 
-    create_index(gvar, 'tables')
-    create_RSTs(gvar, 'tables')
+        schema_summarize(gvar, 'tables')
+        schema_summarize(gvar, 'views')
 
-    create_index(gvar, 'views')
-    create_RSTs(gvar, 'views')
+    elif len(sys.argv)<2:
+        schema_yaml_put(gvar, 'tables')
+        schema_yaml_put(gvar, 'views')
 
-#   os.unlink(gvar['tempfile'].name)
+        create_index(gvar, 'tables')
+        create_RSTs(gvar, 'tables')
 
-    if not gvar['csv2_config']:
-        print('WARNING: Documentation generated without access to the database; tables/fields may not be reflected accurately.')
+        create_index(gvar, 'views')
+        create_RSTs(gvar, 'views')
 
-    if gvar['sphinx']:
-        p = Popen(['make', 'html'], cwd='%s/docs' % gvar['base_dir'])
-        p.communicate()
+        os.unlink(gvar['tempfile'].name)
+
+        if not gvar['csv2_config']:
+            print('WARNING: Documentation generated without access to the database; tables/fields may not be reflected accurately.')
+
+        if gvar['sphinx']:
+            p = Popen(['make', 'html'], cwd='%s/docs' % gvar['base_dir'])
+            p.communicate()
+        else:
+            print('WARNING: "sphinx" is not installed on your system; unable to rebuild the HTML files.')
+
     else:
-        print('WARNING: "sphinx" is not installed on your system; unable to rebuild the HTML files.')
+        print('Invalid options: %s\n\nSynopsis:\n   schema_doc\n   schema_doc list\n   schema_doc show <table_name>\n   schema_doc summary\n\n' % sys.argv[1:])
+
+def schema_summarize(gvar, type):
+    def schema_summarize_print(gvar, table, options, text):
+        if sys.argv[1] in options:
+            if sys.argv[1] != 'show' or (sys.argv[1] == 'show' and sys.argv[2] == table):
+                print(text)
+
+    def schema_summarize_print_label(gvar, type, table):
+        if gvar['labels_printed'][0] == 0:
+            gvar['labels_printed'][0] = 1
+            schema_summarize_print(gvar, table, ['list', 'show'], '%s:' % table)
+
+        if type == 'Keys' and gvar['labels_printed'][1] == 0:
+            gvar['labels_printed'][1] = 1
+            schema_summarize_print(gvar, table, ['show'], '    keys:')
+
+        if type == 'Columns' and gvar['labels_printed'][2] == 0:
+            gvar['labels_printed'][2] = 1
+            schema_summarize_print(gvar, table, ['show'], '    Columns:')
+
+    def schema_summarize_print_keys_columns(gvar, type, table, coltype):
+        for col in  gvar['schema'][type][table][coltype]:
+            # New?
+            if 'Synopsis' not in gvar['schema'][type][table][coltype][col] or \
+                not isinstance(gvar['schema'][type][table][coltype][col]['Synopsis'], str) or \
+                gvar['schema'][type][table][coltype][col]['Synopsis'].strip() == '':
+
+                gvar['counters'][coltype]['new'] += 1
+                schema_summarize_print_label(gvar, coltype, table)
+                schema_summarize_print(gvar, table, ['show'], '        %s, new' % col)
+
+
+            # Obsolete?
+            if gvar['schema_states']['%s/%s/%s/%s' % (type, table, coltype, col)] == 1:
+                gvar['counters'][coltype]['obsolete'] += 1
+                schema_summarize_print_label(gvar, coltype, table)
+                schema_summarize_print(gvar, table, ['show'], '        %s, obsolete' % col)
+                
+
+    gvar['counters'] = {
+        type: {'total': 0, 'new': 0, 'obsolete': 0},
+        'Keys': {'total': 0, 'new': 0, 'obsolete': 0},
+        'Columns': {'total': 0, 'new': 0, 'obsolete': 0}
+        }
+
+
+    for table in  gvar['schema'][type]:
+        gvar['labels_printed'] = [0, 0, 0]
+        gvar['counters'][type]['total'] += 1
+
+        # New?
+        if 'Synopsis' not in gvar['schema'][type][table] or \
+            not isinstance(gvar['schema'][type][table]['Synopsis'], str) or \
+            gvar['schema'][type][table]['Synopsis'].strip() == '':
+
+            gvar['counters'][type]['new'] += 1
+            schema_summarize_print_label(gvar, type, table)
+
+
+        # Obsolete?
+        if gvar['schema_states']['%s/%s' % (type, table)] == 1:
+            gvar['counters'][type]['obsolete'] += 1
+            schema_summarize_print_label(gvar, type, table)
+            
+        schema_summarize_print_keys_columns(gvar, type, table, 'Keys')
+        schema_summarize_print_keys_columns(gvar, type, table, 'Columns')
+
+    schema_summarize_print(gvar, None, ['summary'], '\nSummary:')
+    schema_summarize_print(gvar, None, ['summary'], '    %-6s   -> total: %4d, new: %4d, obsolete: %4d' % (type, gvar['counters'][type]['total'], gvar['counters'][type]['new'], gvar['counters'][type]['obsolete']))
+    schema_summarize_print(gvar, None, ['summary'], '    keys     -> total: %4d, new: %4d, obsolete: %4d' % (gvar['counters']['Keys']['total'], gvar['counters']['Keys']['new'], gvar['counters']['Keys']['obsolete']))
+    schema_summarize_print(gvar, None, ['summary'], '    Columns  -> total: %4d, new: %4d, obsolete: %4d\n' % (gvar['counters']['Columns']['total'], gvar['counters']['Columns']['new'], gvar['counters']['Columns']['obsolete']))
 
 def schema_yaml_get(gvar, type):
     if gvar['csv2_config']:
@@ -325,7 +407,7 @@ def schema_yaml_get(gvar, type):
         table = table_file.split('.')[0]
         table_path = '%s/docs/schema_doc/%s/%s' % (gvar['base_dir'], type, table_file)
         if os.path.isfile(table_path):
-            print("Reading:", table_path)
+#           print("Reading:", table_path)
             with open(table_path) as fd:
                 table_doc = yaml.full_load(fd.read())
 
@@ -356,10 +438,10 @@ def schema_yaml_put(gvar, type):
 
     for table in gvar['schema'][type]:
         yaml_path = '%s/docs/schema_doc/%s/%s.yaml' % (gvar['base_dir'], type, table)
-        if gvar['schema'][type][table] != gvar['schema_copy'][type][table]:
+        if table not in gvar['schema_copy'][type] or \
+            gvar['schema'][type][table] != gvar['schema_copy'][type][table]:
+
             print("Updating:", yaml_path)
-            print("    %s" % gvar['schema'][type][table])
-            print("    %s" % gvar['schema_copy'][type][table])
             with open(yaml_path, 'w') as fd:
                 fd.write('%s:\n    Synopsis:\n' % table)
                 schema_yaml_put_synopsis(gvar, fd, 8, gvar['schema'][type][table]['Synopsis'])
