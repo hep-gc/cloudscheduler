@@ -16,6 +16,8 @@ Where:
    * is the name of a directory in *.../cloudscheduler/schema/schema_backup*
      containing a database backup to be used as a schema model.
 
+..
+
 * -i <input_file_name> 
 
    * is the name of an optional input parameter file, located within
@@ -29,12 +31,16 @@ Where:
 
 * -o <output_file_name> 
 
+..
+
    * is the name of an optional output parameter file used to record the
      users responses for future automation of the upgrade process (see
      the "-i" option above). The output file is written to the directory
      ".../cloudscheduler/schema/db_upgrade".
 
 * -r [live | ]
+
+..
 
    * The "-r" specifies the run mode and is either "live" or anything else
      (default). Changes to the target database are only made if the run mode
