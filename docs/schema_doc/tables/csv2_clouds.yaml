@@ -165,3 +165,11 @@ csv2_clouds:
             Format: Integer
             Synopsis:
 
+        network_up:
+            Format: Boolean
+            Synopsis:
+
+        network_rtt:
+            Format: Integer
+            Synopsis:
+
