@@ -224,6 +224,11 @@
   text-align: right;
 }
 
+.float-center{
+  float: center;
+  text-align: center;
+}
+
 .job-extra-row{
   width: 100%;
   text-align: center;
