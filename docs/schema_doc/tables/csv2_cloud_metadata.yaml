@@ -1,35 +1,51 @@
 csv2_cloud_metadata:
     Synopsis:
+        In order for a Virtual Machine (VM) running on a cloud to be useful in the distributed
+        cloud computing environment, it must be "contextualized". At a minumum, it must register
+        with a condor central manager to receive jobs to execute. This contextualization is 
+        achieved through metadata which is passed to **cloud-init** (`see <https://cloud-init.io/>`).
+        The metadata to be used is saved as files within the database. Metadata can be defined
+        at the group level (applies to all clouds within the group) or in this table at the cloud
+        level. All enabled metadata, both group and cloud, is collated in priority order
+        and passed to cloud-init.
 
     Keys:
 
         group_name:
             Format: String(32)
             Synopsis:
+                Is the name of the owning group.
 
         cloud_name:
             Format: String(32)
             Synopsis:
+                Is the name of the specific cloud to which this metadata file applies.
 
         metadata_name:
             Format: String(64)
             Synopsis:
+                Is the metadata file name.
 
     Columns:
 
         enabled:
             Format: Boolean
             Synopsis:
+                Use this file (enabled=1) or ignore this file (disabled=0).
 
         priority:
             Format: Integer
             Synopsis:
+                An integer (including negative integers) indicating the metadata file priority. Lower numbers have 
+                highter priority and will be included earlier in the collation order.
 
         metadata:
             Format: String
             Synopsis:
+                Text of the actual metadata file.
 
         mime_type:
             Format: String(128)
             Synopsis:
+                The type of metadata file. Vaid types include **cloud-config** and **ucernvm-config**.
 
