@@ -59,16 +59,16 @@ When called with the "-r live" option, **db_upgrade** proceeds as follows:
 
 #. Calls **schema_backup** to save a copy of the old schema.
 #. Redefines all global configuration tables and populates them with values from the model.
-#. Updates all global configuration tables with values ifrom the target which have been modified locally.
-#. Maps the structure of local configuration and ephemeral tables
+#. Updates all global configuration tables with values from the target which have been modified locally.
+#. Maps the structure of local configuration and ephemeral tables.
 #. Scans local configuration and ephemeral maps for tables to add, ignore or rename.
 #. Prints a summary of new or missing tables.
 #. Ignores or renames tables not in the model.
 #. Adds model tables that are not already in the target.
 #. Scans for columns to add, ignore or rename.
-#. Adds, ignores or renames target columns that are not already in the model.'
+#. Adds, ignores or renames target columns that are not already in the model.
 #. Loads local configuration data.
-#. Redefines all views and triggers.
+#. Redefines all triggers and views by call **cstriggers** and **csviews** utilities.
 #. Calls **generate_schema.py.rst** to regenerate the schema definition library code  
    used by other CSV2 services to map the structure of the database.
 
