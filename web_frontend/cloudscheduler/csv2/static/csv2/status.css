@@ -334,7 +334,6 @@
 
 .zero-style {
   color: grey;
-  text-align: center;
 }
 
 .more-style a {
@@ -343,7 +342,6 @@
   font-weight: bold;
 }
 .more-style {
-  text-align: center;
   text-decoration: none;
   color: black;
   font-weight: bold;
@@ -366,6 +364,14 @@
 
 .bold-style{
   font-weight: bold;
+}
+
+.total-row {
+  background-color: azure;
+}
+
+.global-total-row {
+  background-color: lightyellow;
 }
 
 .grey {
