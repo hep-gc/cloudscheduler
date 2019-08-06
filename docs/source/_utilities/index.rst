@@ -18,7 +18,6 @@ The utilities can be divided into two categories:
    db_upgrade
    generate_schema.py
    regenerate_ansible_playbook
-   schema_backup
    schema_doc
 
 .. toctree::
