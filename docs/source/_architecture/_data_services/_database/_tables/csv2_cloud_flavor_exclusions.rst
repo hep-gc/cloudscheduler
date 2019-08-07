@@ -36,7 +36,7 @@ Keys:
 
    * Format: String(32)
    * Synopsis:
-      Is the name of the group owning the flavor exception.
+      Is the name of the group owning the flavor exclusion.
 
 
 Columns:

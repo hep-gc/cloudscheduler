@@ -12,7 +12,7 @@ In order for a Virtual Machine (VM) running on a cloud to
 be useful in the distributed cloud computing environment, it must be "contextualized".
 At a minumum, it must register with a condor central manager to
 receive jobs to execute. This contextualization is achieved through metadata which is
-passed to **cloud-init** (`see <https://cloud-init.io/>`). The metadata to be used is saved
+passed to **cloud-init** (see https://cloudinit.readthedocs.io/en/latest/). The metadata to be used is saved
 as files within the database. Metadata can be defined at the group
 level (applies to all clouds within the group) or in this table
 at the cloud level. All enabled metadata, both group and cloud, is
