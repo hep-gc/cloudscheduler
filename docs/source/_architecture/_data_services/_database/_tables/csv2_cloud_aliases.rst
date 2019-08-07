@@ -14,8 +14,8 @@ use of the **target_alias** Job Description Lanuage (JDL) parameter. An alias ma
 contain one or more clouds and each cloud may be the member
 of zero, one, or more aliases. Job's specifying a target alias will
 be limited to clouds which are members of the specified alias, whereas
-jobs not specify a target_lias are free to execute on any available
-cloud within the CSV2 group.
+jobs not specifying a target alias are free to execute on any
+available cloud within the CSV2 group.
 
 
 Keys:
@@ -32,9 +32,9 @@ Keys:
    * Format: String(32)
    * Synopsis:
       Is the name of a cloud within the owning group, identifying it
-      as emeber of the named alias. One row is created for each
-      member of an alias. When all members of an alias are deleted,
-      the alias is deleted.
+      as a member of the named alias. One row is created for
+      each member of an alias. When all members of an alias are
+      deleted, the alias is deleted.
 
 * **group_name**:
 

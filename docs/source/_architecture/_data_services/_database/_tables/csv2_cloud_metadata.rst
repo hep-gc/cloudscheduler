@@ -33,7 +33,7 @@ Keys:
 
    * Format: String(32)
    * Synopsis:
-      Is the name of the owning group.
+      Is the name of the group owning the metadata file.
 
 * **metadata_name**:
 
