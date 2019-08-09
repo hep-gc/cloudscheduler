@@ -1,33 +1,115 @@
-from __future__ import absolute_import, unicode_literals
-import os
+#new celery_app.py
 import time
-import subprocess
+import os
+import sys
+
 import django
 from django.conf import settings
-
 from celery import Celery
 from celery.utils.log import get_task_logger
-#import glintwebui.config as config
 from cloudscheduler.lib.db_config import Config
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
-
-from glintwebui.glint_api import repo_connector
-from .utils import  jsonify_image_list, update_pending_transactions, get_images_for_group,\
-set_images_for_group, process_pending_transactions, process_state_changes, queue_state_change,\
-find_image_by_name, check_delete_restrictions, decrement_transactions, get_num_transactions,\
-repo_proccesed, check_for_repo_changes, set_collection_task, check_for_image_conflicts,\
-set_conflicts_for_group, check_cached_images, add_cached_image, do_cache_cleanup
+# this should be more specific as we don't need to import private functions, it will likely boil down to trasfer/delete/upload/glance client
+from . import glint_utils
 
 logger = get_task_logger(__name__)
 
+db_category_list = ["general", "glintPoller.py"]
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
 
 # Indicate Celery to use the default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cloudscheduler_web.settings')
 
-#django.setup()
-
 app = Celery('glintv2', broker=config.celery_url, backend=config.celery_backend)
 app.config_from_object('django.conf:settings')
+
+
+#instead of having a task type for each transaction we will split it up into 2 worker types
+# for now i think having 2 of each should be sufficient
+#1)pull requests
+#2)transfer requests
+
+#logic will be similar for both both work off different database tables
+
+
+
+# type 1, pull requests
+@app.task(bind=True)
+def pull_request(self, tx_id):
+    db_category_list = ["glintv2", "general"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
+    PULL_REQ = config.db_map.classes.csv2_image_pull_requests
+    IMG_CACHE = config.db_map.classes.csv2_image_cache
+    CLOUD = config.db_map.classes.csv2_clouds
+    config.db_open()
+    # get tx row from database
+    tx_row = _get_tx_row(PULL_REQ, tx_id, config)
+    # check if the image is in the cache, if so return complete
+    if _check_get_img_cache(IMG_CACHE, tx_row.image_name, tx_row.checksum, config) is None:
+        # Image is already downloaded, we can delete this transaction
+        logger.info("Image %s-%s already in cache, removing transaction." % (tx_row.image_name, tx_row.checksum))
+        try:
+            config.db_session.delete(tx_row)
+            config.db_session.commit()
+            config.db_close()
+            return True
+        except Exception as exc:
+            logger.error("Unable to delete transaction %s-%s due to:" % (tx_row.image_name, tx_row.checksum))
+            logger.error(exc)
+            config.db_close()
+            return False
+
+    # else get the cloud row for the source and create a glance client and call download function
+    else:
+        cloud_row = _get_cloud(CLOUD, tx_row.target_group_name, tx_row.target_cloud_name, config)
+        os_session = glint_utils.get_openstack_session(cloud_row)
+        glance = glint_utils.get_glance_client(os_session, cloud_row.region)
+        result_tuple = glint_utils.download_image(glance, tx_row.image_name, tx_row.image_id, config.image_cache_dir)
+        if result_tuple[0]:
+            # successful download, update the cache and remove transaction
+            cache_dict = {
+                "image_name": tx_row.image_name,
+                "checksum": tx_row.checksum,
+                "container_format": result_tuple[2]
+            }
+            new_cache_item = IMG_CACHE(**cache_dict)
+            config.db_session.merge(new_cache_item)
+
+            logger.info("Download complete, removing transaction")
+            config.db_session.delete(tx_row)
+            config.db_session.commit()
+            config.db_close()
+            return True
+        else:
+            # failed download, report error and update tx status
+            tx_row.message = result_typle[1]
+            tx_row.status = "Failed"
+            config.db_session.merge(tx_row)
+            config.db_session.commit()
+            config.db_close()
+            return False
+
+
+    return None
+
+
+# type 2, transaction requests (transfers)
+
+@app.task(bind=True)
+def tx_request(self, tx_id):
+    db_category_list = ["glintv2", "general"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
+    IMG_TX = config.db_map.classes.csv2_image_transactions
+    IMG_CACHE = db_config.db_map.classes.csv2_image_cache
+    config.db_open()
+    tx_row = _get_tx_row(IMG_TX, tx_id, config)
+    # get tx row from database
+    # triple check target image doesn't exist
+    # if not, check cache for source image, if it's not there check that a pull request is queue'd
+    # if none are queued queue one and wait for it to appear in cache
+    # once image is in cache get the cloud row for the target and call the upload function,
+    # maybe upload cloud image table and return complete
+
+    return None
 
 
 @app.task(bind=True)
@@ -35,185 +117,19 @@ def debug_task(self):
     logger.debug('Request: {0!r}'.format(self.request))
 
 
-# Must find and download the appropriate image (by name) and then upload it
-# to the given image ID
-@app.task(bind=True)
-def transfer_image(self, image_name, image_id, group_name, auth_url, project_tenant, username, password, requesting_user, cloud_name, project_domain_name="Default", user_domain_name="Default", region=None):
-    logger.info("User %s attempting to transfer %s - %s to repo '%s'", \
-        requesting_user, image_name, image_id, project_tenant)
 
-    # Find image by name in another repo where the state=present
-    # returns tuple: (auth_url, tenant, username, password, img_id, checksum)
-    src_img_info = find_image_by_name(group_name=group_name, image_name=image_name)
 
-    if src_img_info is False:
-        logger.error("Could not find suitable source image for transfer, cancelling transfer")
-        decrement_transactions()
-        return False
-
-    #check if this image is cached locally
-    image_path = check_cached_images(image_name, src_img_info[5])
-
-    if image_path is not None:
-        logger.info("Found cached copy at: %s uploading image", image_path)
-        #upload cached image
-        image_path = image_path.rsplit('/', 1)[0]+ "/"
-        logger.info("Uploading Image to %s", project_tenant)
-        dest_rcon = repo_connector(
-            auth_url=auth_url,
-            project=project_tenant,
-            username=username,
-            password=password,
-            project_domain_name=project_domain_name,
-            user_domain_name=user_domain_name,
-            alias=cloud_name,
-            region=region)
-        dest_rcon.upload_image(image_id=image_id, image_name=image_name, scratch_dir=image_path)
-
-        queue_state_change(
-            group_name=group_name,
-            cloud_name=cloud_name,
-            img_id=image_id,
-            state='Present',
-            hidden=None)
-        logger.info("Image transfer finished")
-        decrement_transactions()
-        return True
-
-    else:
-        logger.info("No cached copy found, downloading image")
-        # Download img to the cache folder
-
-        # First check if a file by this name exists in the cache folder
-        image_path = "/var/www/glintv2/scratch/" + image_name
-
-        if os.path.exists(image_path):
-            # Filename exists locally, we need to use a temp folder
-            for x in range(0, 10):
-                #first check if the temp folder exists
-                image_path = "/var/www/glintv2/scratch/" + str(x)
-                if not os.path.exists(image_path):
-                    #create temp folder and break since it is definitly empty
-                    os.makedirs(image_path)
-                    image_path = "/var/www/glintv2/scratch/" + str(x) + "/" + image_name
-                    break
-
-                #then check if the file is in that folder
-                image_path = "/var/www/glintv2/scratch/" + str(x) + "/" + image_name
-                if not os.path.exists(image_path):
-                    break
-
-        # remove file name from path
-        image_path = image_path.rsplit('/', 1)[0]
-        image_path = image_path + "/"
-
-        print("Downloading Image from %s" % src_img_info[1])
-        src_rcon = repo_connector(
-            auth_url=src_img_info[0],
-            project=src_img_info[1],
-            username=src_img_info[2],
-            password=src_img_info[3],
-            user_domain_name=src_img_info[6],
-            project_domain_name=src_img_info[7],
-            region=src_img_info[8])
-        download_result = src_rcon.download_image(
-            image_name=image_name,
-            image_id=src_img_info[4],
-            scratch_dir=image_path)
-        logger.info("Image download finished")
-        logger.info("Download result: %s" % download_result)
-
-        # Upload said image to the new repo
-        logger.info("Uploading Image to %s", project_tenant)
-        dest_rcon = repo_connector(
-            auth_url=auth_url,
-            project=project_tenant,
-            username=username,
-            password=password,
-            project_domain_name=project_domain_name,
-            user_domain_name=user_domain_name,
-            region=region)
-        dest_rcon.upload_image(image_id=image_id, image_name=image_name, scratch_dir=image_path)
-
-        queue_state_change(
-            group_name=group_name,
-            cloud_name=cloud_name,
-            img_id=image_id,
-            state='Present',
-            hidden=None)
-        image_path = image_path + image_name
-        add_cached_image(image_name, src_img_info[5], image_path)
-        decrement_transactions()
-        return True
-
-# Accepts Image info (name, local path, and format), project name, repo object info, and the
-# requesting user. Uploads the given image to the target cloud (repo object)
 #
-@app.task(bind=True)
-def upload_image(self, image_name, image_path, auth_url, project_tenant, username, password, requesting_user, disk_format, container_format, project_domain_name="Default", user_domain_name="Default", region=None):
-    # Upload said image to the new repo
-    logger.info("Attempting to upload Image to %s for user:%s", project_tenant, requesting_user)
-    dest_rcon = repo_connector(
-        auth_url=auth_url,
-        project=project_tenant,
-        username=username,
-        password=password,
-        project_domain_name=project_domain_name,
-        user_domain_name=user_domain_name,
-        region=region)
-    image_id = dest_rcon.upload_image(
-        image_id=None,
-        image_name=image_name,
-        scratch_dir=image_path,
-        disk_format=disk_format,
-        container_format=container_format)
-    img_checksum = dest_rcon.get_checksum(image_id)
+# Helper functions
+#
 
-    if check_cached_images(image_name, img_checksum) is None:
-        #image isn't in cache and it's unique add it to the cache list
-        add_cached_image(image_name, img_checksum, image_path)
+def _get_tx_row(table, tx_id, config):
+    return config.db_session.query(table).get(tx_id)
+
+# returns row of cached image or None if not in cache
+def _check_get_img_cache(cache_tabe, image_name, image_checksum, config):
+    return config.db_session.query(cache_tabe).get(image_name, image_checksum)
 
 
-    logger.info("Image upload finished")
-    decrement_transactions()
-    return True
-
-# Accepts image id, project name, and repo object to delete image ID from.
-@app.task(bind=True)
-def delete_image(self, image_id, image_name, group_name, auth_url, project_tenant, username, password, requesting_user, cloud_name, project_domain_name="Default", user_domain_name="Default", region=None):
-    logger.info("User %s attempting to delete %s - %s from cloud '%s'",\
-        requesting_user, image_name, image_id, project_tenant)
-    if check_delete_restrictions(image_id=image_id, group_name=group_name, cloud_name=cloud_name):
-        rcon = repo_connector(
-            auth_url=auth_url,
-            project=project_tenant,
-            username=username,
-            password=password,
-            project_domain_name=project_domain_name,
-            user_domain_name=user_domain_name,
-            region=region)
-        result = rcon.delete_image(image_id)
-        if result:
-            queue_state_change(
-                group_name=group_name,
-                cloud_name=cloud_name,
-                img_id=image_id,
-                state='deleted',
-                hidden=None)
-            logger.info("Image Delete finished")
-            decrement_transactions()
-            return True
-        logger.error("Unknown error deleting %s  (result = %s)", image_id, result)
-        decrement_transactions()
-        return False
-    else:
-        logger.error(("Delete request violates delete rules,"
-                      "image either shared or the last copy."))
-        queue_state_change(
-            group_name=group_name,
-            cloud_name=cloud_name,
-            img_id=image_id,
-            state='present',
-            hidden=None)
-        decrement_transactions()
-        return False
+def _get_cloud(table, group_name, cloud_name, config):
+    return config.db_session.query(table).get(group_name, cloud_name)

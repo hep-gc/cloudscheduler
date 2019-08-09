@@ -9,10 +9,10 @@ from .__version__ import version
 from django.conf import settings
 db_config = settings.CSV2_CONFIG
 from .glint_utils import get_keypair, delete_keypair, transfer_keypair, \
-                         create_keypair, create_new_keypair, set_user_groups, \
-                         getUser, verifyUser
+                         create_keypair, create_new_keypair, getUser, verifyUser
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
+from cloudscheduler.lib.view_utils import set_user_groups
 
 logger = logging.getLogger('glintv2')
 

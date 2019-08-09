@@ -3,6 +3,30 @@
    {% include "csv2/navigation_bar.html" %}
 {% endblock %}
 
+
+<style>
+.pending {
+    background-color: #EC9600;
+}
+
+.shared {
+    background-color: #FFCD00;
+}
+
+.private {
+    background-color: #4FE53E;
+}
+
+.public {
+    background-color: #FFCD00;
+}
+
+.missing {
+    background-color: #9E9E9E;
+}
+
+</style>
+
 <head>
     {% load glint_template_utils %}
     {% load static %}
@@ -31,10 +55,11 @@
 </head>
 
 
-<body>
+<body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;">
 <div class="glinttoolbar" style="float:left"></div>
 
 <div class="image_matrix" style="float:left">
+    {% csrf_token %}
     <table>
         <!-- First make headers -->
         <tr> <th> IMAGES </th>
@@ -49,15 +74,15 @@
                 <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
                 {% for img_tuple in image_list %}
                     {% if img_tuple.0 == "missing" %}
-                        <td><button onclick="transfer_req({{image_key}}, {{cloud.cloud_name}}, {{active_group}})">missing</button> </td>
+                        <td class="missing"><button onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Transfer</button> </td>
                     {% elif img_tuple.0 == "present" %}
-                        <td><button onclick="delete_req({{image_key}}, {{cloud.cloud_name}}, {{active_group}})">present</button></td>
-                    {% elif img_tuple.0 == "pending transfer" %}
-                        <td>pending transfer</td>
+                        <td class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Delete</button></td>
+                    {% elif img_tuple.0 == "pending" %}
+                        <td class="{{img_tuple.2}}">pending transfer</td>
                     {% elif img_tuple.0 == "pending delete" %}
-                        <td>pending delete</td>
+                        <td class="{{img_tuple.2}}">pending delete</td>
                     {% elif img_tuple.0 == "error"%}
-                        <td>error//retry button</td>
+                        <td class="{{img_tuple.2}}">error//retry button</td>
                     {% endif %}
                 {% endfor %}
             </tr>
@@ -71,11 +96,75 @@
 
 
 
+<footer>
+    <div class="footer"
+        {% if response_code == 1 %}
+            <tr><td><b>Error: {{ message }}</b></td></tr>
+        {% elif message is not None %}
+            <tr><td>{{ message }}</td></tr>
+        {% endif %}
+    </div>
+</footer>
 
-<div class="footer"
-    {% if response_code == 1 %}
-        <tr><td><b>Error: {{ message }}</b></td></tr>
-    {% elif message is not None %}
-        <tr><td>{{ message }}</td></tr>
-    {% endif %}
-</div>
+<script>
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+
+    function transfer_req(image_key, cloud_name, group_name) {
+        var csrftoken = getCookie('csrftoken');
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/images/transfer/", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        xhr.send(JSON.stringify({
+            image_key: image_key,
+            cloud_name: cloud_name,
+            group_name: group_name
+        }));
+    };
+
+
+    function delete_req(image_key, cloud_name, group_name) {
+        var csrftoken = getCookie('csrftoken');
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/images/delete/", false);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        xhr.send(JSON.stringify({
+            image_key: image_key,
+            cloud_name: cloud_name,
+            group_name: group_name
+        }));
+        console.log("SENT POST");
+        console.log(xhr);
+        var resp = xhr.responseText;
+        console.log(resp);
+        var json_response = JSON.parse(resp);
+        var new_msg = json_response.message;
+        console.log(new_msg);
+        var rc = json_response.response_code;
+        if ( rc == 0) {
+            document.getElementsByTagName("footer")[0].getElementsByTagName("div")[0].innerHTML = new_msg;
+        }
+        else {
+            new_msg = "Error: " + new_msg;
+            document.getElementsByTagName("footer")[0].getElementsByTagName("div")[0].innerHTML = new_msg;
+        }
+
+    };
+</script>

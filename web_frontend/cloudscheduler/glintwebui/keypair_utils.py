@@ -62,6 +62,15 @@ def create_new_keypair(key_name, cloud):
         raise
     return new_key
 
+# database must be opened prior to calling these functions
+#
+def getUser(request, db_config):
+    user = request.META.get('REMOTE_USER')
+    Glint_User = db_config.db_map.classes.csv2_user
+    auth_user_list = db_config.db_session.query(Glint_User)
+    for auth_user in auth_user_list:
+        if user == auth_user.cert_cn or user == auth_user.username:
+            return auth_user
 
 def _get_keystone_session(cloud):
     authsplit = cloud.authurl.split('/')
