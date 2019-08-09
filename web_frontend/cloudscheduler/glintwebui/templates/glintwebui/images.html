@@ -74,15 +74,15 @@
                 <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
                 {% for img_tuple in image_list %}
                     {% if img_tuple.0 == "missing" %}
-                        <td class="missing"><button onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Transfer</button> </td>
+                        <td style="text-align:center" class="missing"><button onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Transfer</button> </td>
                     {% elif img_tuple.0 == "present" %}
-                        <td class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Delete</button></td>
+                        <td style="text-align:center" class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Delete</button></td>
                     {% elif img_tuple.0 == "pending" %}
-                        <td class="{{img_tuple.2}}">pending transfer</td>
+                        <td style="text-align:center" class="{{img_tuple.2}}">pending transfer</td>
                     {% elif img_tuple.0 == "pending delete" %}
-                        <td class="{{img_tuple.2}}">pending delete</td>
+                        <td style="text-align:center" class="{{img_tuple.2}}">pending delete</td>
                     {% elif img_tuple.0 == "error"%}
-                        <td class="{{img_tuple.2}}">error//retry button</td>
+                        <td style="text-align:center" class="{{img_tuple.2}}">error//retry button</td>
                     {% endif %}
                 {% endfor %}
             </tr>
