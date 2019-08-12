@@ -240,6 +240,7 @@ def main(args):
             ('-un',   '--username', True),
             ('-uo',   '--user-option', True),
             ('-upw',  '--user-password', True),
+            ('-v',    '--version', False),
             ('-V',    '--view', True),
             ('-VC',   '--view-columns', False),
             ('-vc',   '--vm-cores', True),
@@ -361,8 +362,8 @@ def main(args):
             else:
                 gvar['user_settings'][key] = gvar['command_args'][key]
 
-    # If expose-API specified, determine and display the client version.
-    if gvar['user_settings']['expose-API']:
+    # If version or expose-API specified, determine and display the client version.
+    if gvar['user_settings']['version'] or gvar['user_settings']['expose-API']:
         path_info = sys.path[0].split('/')
         path_info_ix = path_info.index('cloudscheduler')
         cloudscheduler_root_dir = '/'.join(path_info[:path_info_ix+1])
@@ -406,6 +407,8 @@ def main(args):
     else:
         response = requests(gvar, '/settings/prepare/')
 
+        if gvar['user_settings']['version']:
+            print("Cloudscheduler server: %s, %s\n" % (gvar['pid_defaults']['server'], response['version']))
 
 #   print(">>>>>", gvar['active_group'], gvar['super_user'])
 #   gvar['super_user'] = False
