@@ -398,7 +398,7 @@ def main(args):
         else:
             gvar['client_version'] = 'Version: %s + %d commits' % (tag, tag_ix)
                     
-        print("Cloudscheduler command line, %s\n" % gvar['client_version'])
+        print("Cloudscheduler CLI, %s\n" % gvar['client_version'])
 
     # Set non-super_user and no user_groups.
     if gvar['object'] == 'defaults' or gvar['object'] == 'helpers' or gvar['object'] == 'metadata':

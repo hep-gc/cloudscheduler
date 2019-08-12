@@ -12,7 +12,7 @@ def check_keys(gvar, mp, rp, op, not_optional=[], key_map=None, requires_server=
     mandatory = []
     required = []
     options = []
-    valid_keys = ['server-address', 'server-password', 'server-user']
+    valid_keys = ['server-address', 'server-password', 'server-user', 'version']
 #   valid_keys = ['server-address', 'server-grid-cert', 'server-grid-key', 'server-password', 'server-user']
     for key in gvar['command_keys']:
         # 0.short_name, 1.long_name, 2.key_value(bool)
