@@ -15,6 +15,8 @@ select
     ifnull(cj.request_ram,0) as request_ram,
     ifnull(sum(cv.active_ram),0) as active_ram,
     ifnull(cj.request_ram,0) - ifnull(sum(cv.active_ram),0) as shortfall_ram,
+    sum(ifnull(cv.starting,0)) as `starting`,
+    sum(ifnull(cv.unregistered,0)) as unregistered,
     sum(ifnull(cv.idle,0)) as idle,
     sum(ifnull(cv.running,0)) as running
 from (
@@ -42,6 +44,8 @@ left outer join (
         cv.VMs*cf.cores as active_cores,
         cv.VMs*(cf.disk+cf.ephemeral_disk) as active_disk,
         cv.VMs*cf.ram as active_ram,
+        `starting`,
+        unregistered,
         idle,
         running
     from (
@@ -50,11 +54,23 @@ left outer join (
             cloud_name,
             flavor_id,
             sum(VMs) as VMs,
+            sum(`starting`) as `starting`,
+            sum(unregistered) as unregistered,
             sum(idle) as idle,
             sum(running) as running
         from (
             select
                 cv.*,
+                case when poller_status='starting' then
+                    VMs
+                else
+                    0
+                end as `starting`,
+                case when poller_status='unregistered' then
+                    VMs
+                else
+                    0
+                end as unregistered,
                 case when poller_status='idle' then
                     VMs
                 else
@@ -108,6 +124,8 @@ left outer join (
                     poller_status
                 ) as cv
             where
+                poller_status='starting' or
+                poller_status='unregistered' or
                 poller_status='idle' or
                 poller_status='running'
             ) as cv
