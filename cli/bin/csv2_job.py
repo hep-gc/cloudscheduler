@@ -50,7 +50,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jtc', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-jh', '-jI', '-ji', '-jp', '-jR', '-jrc', '-jrd', '-jrr', '-jrs', '-jS', '-jtc', '-ju', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

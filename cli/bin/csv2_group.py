@@ -52,7 +52,7 @@ def add(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -82,7 +82,7 @@ def defaults(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-w', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-w', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -186,7 +186,7 @@ def delete(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-H', '-h','-s', '-xA', '-Y']
+    optional = ['-H', '-h','-s', '-v', '-xA', '-Y']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -233,7 +233,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-gn', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -271,7 +271,7 @@ def update(gvar):
 
     mandatory = ['-gn']
     required = []
-    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-xA']
+    optional = ['-g', '-H', '-h', '-htcf', '-htch', '-htcu', '-jc', '-jd', '-jr', '-js', '-NV', '-ok', '-r', '-s', '-un', '-uo', '-vf', '-vi', '-vka', '-vk', '-vn', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -305,7 +305,7 @@ def metadata_delete(gvar):
 
     mandatory = ['-mn']
     required = []
-    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-xA', '-Y']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -355,7 +355,7 @@ def metadata_edit(gvar):
 
     mandatory = ['-mn']
     required = ['-te']
-    optional = ['-g', '-H', '-h', '-s', '-xA']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -422,7 +422,7 @@ def metadata_list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -462,7 +462,7 @@ def metadata_load(gvar):
 
     mandatory = ['-f', '-mn']
     required = []
-    optional = ['-F', '-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+    optional = ['-F', '-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -519,7 +519,7 @@ def metadata_update(gvar):
 
     mandatory = ['-mn']
     required = []
-    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

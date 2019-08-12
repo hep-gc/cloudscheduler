@@ -1,0 +1,3 @@
+.TP
+.BR "\-v" ", " "\-\-version"
+Requests that the versions of both the CLI client and the targeted server be printed in addition to any other command output.

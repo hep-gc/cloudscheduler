@@ -12,7 +12,7 @@ def config(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cc', '-ckv', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cc', '-ckv', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional

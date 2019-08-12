@@ -66,7 +66,7 @@ def add(gvar):
 
     mandatory = ['-ca', '-cn', '-cP', '-cpw', '-cr', '-ct', '-cU']
     required = []
-    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ce', '-cfe', '-cp', '-cPD', '-cPI', '-csp', '-cUD', '-cUI', '-g', '-ga', '-gme',  '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -96,7 +96,7 @@ def delete(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-xA', '-Y']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -143,7 +143,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -262,7 +262,7 @@ def status(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -340,7 +340,7 @@ def update(gvar):
 
     mandatory = ['-cn']
     required = []
-    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-xA']
+    optional = ['-ca', '-ce', '-cfe', '-cfo', '-cpw', '-cp', '-cP', '-cPD', '-cPI', '-cr', '-csp', '-ct', '-cU', '-cUD', '-cUI', '-g', '-ga', '-gme', '-gmo', '-H', '-h', '-s', '-vc', '-vcs', '-vf', '-vi', '-vk', '-vka', '-vn', '-vr', '-vsg', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -374,7 +374,7 @@ def metadata_collation(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -413,7 +413,7 @@ def metadata_delete(gvar):
 
     mandatory = ['-cn', '-mn']
     required = []
-    optional = ['-g', '-H', '-h', '-s', '-xA', '-Y']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-xA', '-Y']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -464,7 +464,7 @@ def metadata_edit(gvar):
 
     mandatory = ['-cn', '-mn']
     required = ['-te']
-    optional = ['-g', '-H', '-h', '-s', '-xA']
+    optional = ['-g', '-H', '-h', '-s', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -531,7 +531,7 @@ def metadata_list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-mn', '-NV', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -571,7 +571,7 @@ def metadata_load(gvar):
 
     mandatory = ['-cn', '-f', '-mn']
     required = []
-    optional = ['-F', '-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+    optional = ['-F', '-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -630,7 +630,7 @@ def metadata_update(gvar):
 
     mandatory = ['-cn', '-mn']
     required = []
-    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-xA']
+    optional = ['-g', '-H', '-h', '-me', '-mmt', '-mp', '-s', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
