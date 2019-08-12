@@ -422,7 +422,7 @@ def image_poller():
                         failure_dict.pop(cloud_obj.authurl + cloud_obj.project + cloud_obj.region, None)
                         cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
                         logging.debug("pre request time:%s   post request time:%s" % (post_req_time, pre_req_time))
-                        cloud_row.network_rtt = int(post_req_time - pre_req_time)
+                        cloud_row.communication_rt = int(post_req_time - pre_req_time)
                         db_session.merge(cloud_row)
                         db_session.commit()
                         config.reset_cloud_error(grp_nm, cld_nm)
@@ -442,6 +442,7 @@ def image_poller():
                                 'group_name': group_n,
                                 'cloud_name': cloud_n,
                                 'container_format': image.container_format,
+                                'checksum': image.checksum,
                                 'cloud_type': "openstack",
                                 'disk_format': image.disk_format,
                                 'min_ram': image.min_ram,
@@ -1334,7 +1335,7 @@ def vm_poller():
                     grp_nm = cloud_tuple[0]
                     cld_nm = cloud_tuple[1]
                     cloud_row = db_session.query(CLOUD).filter(CLOUD.group_name == grp_nm, CLOUD.cloud_name == cld_nm)[0]
-                    cloud_row.network_up = 1
+                    cloud_row.communication_up = 1
                     db_session.merge(cloud_row)
                     db_session.commit()
                     
@@ -1523,7 +1524,7 @@ def vm_poller():
                 if key in failure_dict:
                     new_f_dict[cloud.group_name+cloud.cloud_name] = 1
                     # update cloud network status
-                    cloud.network_up = 0
+                    cloud.communication_up = 0
                     db_session.merge(cloud)
                     db_session.commit()
 
