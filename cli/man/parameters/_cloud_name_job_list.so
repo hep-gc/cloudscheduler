@@ -1,4 +1,0 @@
-.TP
-\fB\-cn \fIcloud\fR, \fB\-\-cloud-name \fIcloud\fR
-The name of a cloud definition that exists on the csv2 server.
-Filters the job list to only jobs that are running on \fIcloud\fR.
