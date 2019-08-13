@@ -152,11 +152,11 @@ def generate_bash_completion_script(gvar):
         fd.write('        %s:*)\n            actions="%s"\n' \
             '            COMPREPLY=( $(compgen -W "${actions}" -- ${cur}) )\n' \
             '            return 0\n            ;;' % \
-            (object, ' '.join(sorted(gvar['actions'][object][1].keys()) + ['--long-help', '--help']))
+            (object, ' '.join(sorted(gvar['actions'][object][1].keys()) + ['--long-help', '--help', "--version"]))
         )
 
     fd.write('        *:*)\n            ;;\n    ' \
-        'esac\n\n    COMPREPLY=($(compgen -W "${objects} --long-help --help" -- ${cur}))\n    ' \
+        'esac\n\n    COMPREPLY=($(compgen -W "${objects} --long-help --help --version" -- ${cur}))\n    ' \
         'return 0\n}\ncomplete -o filenames -F _cloudscheduler cloudscheduler'
     )
 

@@ -12,7 +12,7 @@ def delete(gvar):
 
     mandatory = ['-s']
     required = []
-    optional = ['-H', '-h', '-Y']
+    optional = ['-H', '-h', '-v', '-Y']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -41,7 +41,7 @@ def list(gvar):
 
     mandatory = []
     required = []
-    optional = ['-H', '-h', '-NV', '-ok', '-r', '-s', '-V', '-VC']
+    optional = ['-H', '-h', '-NV', '-ok', '-r', '-s', '-v', '-V', '-VC']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
