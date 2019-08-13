@@ -358,7 +358,8 @@ def main():
                                              'cs_condor_host_ip': cs_condor_host_ip,
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
                                              'cs_condor_submitters': csgroup.htcondor_other_submitters,
-                                             'cs_cloud_alias': idle_job.target_alias}
+                                             'cs_cloud_alias': idle_job.target_alias,
+                                             'cs_condorworker_cert_days_to_end_of_life': config.condorworker_cert_days_to_eol}
                             template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 

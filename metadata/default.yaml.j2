@@ -79,7 +79,7 @@ write_files:
         if [ $? -eq 0 ]; then 
           openssl x509 -in $cert_file -checkend -1 >/dev/null 2>&1
           if [ $? -eq 0 ]; then 
-            openssl x509 -in $cert_file -checkend $(( 86400 * {{cert_days_to_end_of_life}} )) >/dev/null 2>&1
+            openssl x509 -in $cert_file -checkend $(( 86400 * {{condorworker_cert_days_to_end_of_life}} )) >/dev/null 2>&1
             if [ $? -ne 0 ]; then 
                 P "/CERT/expiring soon" && exit)
             fi
