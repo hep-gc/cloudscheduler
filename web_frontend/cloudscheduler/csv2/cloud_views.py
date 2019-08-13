@@ -1287,21 +1287,15 @@ def status(request, group_name=None):
 
 
     previous_group = ''
-    cloud_count = 0
     # Loop through the cloud_status_list and insert the totals row after each group of clouds:
     for index, cloud in enumerate(cloud_status_list):
 
         # Find the length of the list:
         length = int(len(cloud_status_list)-1)
 
-        # Count rows for cloud
-        if(cloud['enabled'] > 0 or (cloud['enabled'] == 0 and cloud['VMs'] > 0)):
-            cloud_count += 1
-
         # Insert a totals for if we are at the end of a group of clouds:
-        if ((previous_group != cloud['group_name']) and (index !=0) and cloud_count > 1) or (index == length):
+        if ((previous_group != cloud['group_name']) and (index !=0)) or (index == length):
 
-            cloud_count = 0
             # Loop through the totals list to find the correct group:
             for total in cloud_status_list_totals:
                 if total['group_name'] == previous_group:
@@ -1318,7 +1312,11 @@ def status(request, group_name=None):
                         total['enabled'] = 9
 
                     # Insert the totals for at the correct index:
-                    cloud_status_list.insert(index, total.copy())
+
+                    if index==length:
+                        cloud_status_list.append(total.copy())
+                    else:
+                        cloud_status_list.insert(index, total.copy())
         
         # Break out of the loop when we reach the last entry:
         if index == length:
@@ -1435,7 +1433,7 @@ def status(request, group_name=None):
             else:
                 system_list[service_name + "_status"] = 0
                 system_list[service_name + "_error_count"] = 1
-                logging.error("Found service %s is dead...", service)
+                #print("Found service %s is dead...", service)
 
 
         # Determine the system load, RAM and disk usage
