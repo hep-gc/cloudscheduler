@@ -336,7 +336,6 @@
 
                     </tr>
 
-                    {{cloud_status_list}}
                     {% for cloud in cloud_status_list %}
 
                         {% if global_flag or not global_flag and cloud.group_name == active_group and cloud.enabled < 9%}
