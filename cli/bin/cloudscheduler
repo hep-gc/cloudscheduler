@@ -431,7 +431,8 @@ def main(args):
     else:
         csv2_help.help(gvar)
         if not gvar['object']:
-            print('Error: No object specified; use -h or -H for help.')
+            if not gvar['user_settings']['version']:
+                print('Error: No object specified; use -h or -H for help.')
         else:
             print('Error: Invalid object "%s" specified; use -h or -H for help.' % gvar['object'])
         exit(1)
