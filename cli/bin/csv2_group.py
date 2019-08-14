@@ -157,6 +157,20 @@ def defaults(gvar):
 
     show_table(
         gvar,
+        response['keypairs_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'key_name/Key,k',
+            'fingerprint/Fingerprint',
+            'cloud_type/Cloud Type',
+            ],
+        title="Keypairs",
+        optional=True,
+        )
+
+    show_table(
+        gvar,
         response['network_list'],
         [
             'group_name/Group,k',
