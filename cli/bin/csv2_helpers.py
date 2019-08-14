@@ -1,3 +1,4 @@
+from csv2_common import command_hash
 from subprocess import Popen, PIPE
 import os
 
@@ -119,11 +120,13 @@ def generate_bash_completion_script(gvar):
 
     fd = open('%s/.bash_completion.d/cloudscheduler' % gvar['home_dir'], 'w')
 
-    fd.write('_cloudscheduler()\n{\n    local cur prev first second objects actions options\n    COMPREPLY=()\n    ' \
+    fd.write('# %s\n_cloudscheduler()\n{\n    local cur prev first second objects actions options\n    COMPREPLY=()\n    ' \
         'cur="${COMP_WORDS[COMP_CWORD]}"\n    prev="${COMP_WORDS[COMP_CWORD-1]}"\n    first="${COMP_WORDS[1]}"\n    second="${COMP_WORDS[2]}"\n\n    ' \
         '#\n    # Complete the following objects:\n    #\n    ' \
-        'objects="%s"\n' % \
-        ' '.join(sorted(gvar['actions'].keys()))
+        'objects="%s"\n' % (
+            command_hash(gvar),
+            ' '.join(sorted(gvar['actions'].keys()))
+            )
     )
 
     fd.write(
@@ -162,7 +165,7 @@ def generate_bash_completion_script(gvar):
 
     fd.close()
 
-    print('Bash completion script generated. To use, start a new shell or source "%s/.bash_completion".' % gvar['home_dir'])
+    print('***\n*** Bash completion script regenerated. To use, start a new shell or source "%s/.bash_completion".\n***' % gvar['home_dir'])
 
 def get_option_list(gvar):
     """

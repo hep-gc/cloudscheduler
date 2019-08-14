@@ -103,6 +103,28 @@ def _check_keys_for_password(gvar, key):
 
 #-------------------------------------------------------------------------------
 
+def command_hash(gvar):
+    """
+    Return an md5sum of the command directory.
+    """
+
+    from subprocess import Popen, PIPE
+
+    p1 = Popen([
+        'ls',
+        '-l',
+        gvar['command_dir']
+        ], stdout=PIPE, stderr=PIPE)
+
+    p2 = Popen([
+        'md5sum'
+        ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+
+    md5sum, stderr = p2.communicate()
+    return decode(md5sum)[:-4]
+
+#-------------------------------------------------------------------------------
+
 def decode(obj):
     if not obj:
         return ''
