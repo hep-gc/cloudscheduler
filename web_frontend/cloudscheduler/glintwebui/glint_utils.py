@@ -1,6 +1,7 @@
 # glint utils
 
 import logging
+import os
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -112,7 +113,7 @@ def upload_image(glance, image_id, image_name, scratch_dir, disk_format=None, co
         #this is the 2nd part of a transfer not a direct upload
         file_path = scratch_dir + image_name
         glance.images.upload(image_id, open(file_path, 'rb'))
-        return image_id
+        return glance.images.get(image_id)
 
     else:
         #this is a straight upload not part of a transfer
@@ -122,22 +123,24 @@ def upload_image(glance, image_id, image_name, scratch_dir, disk_format=None, co
             container_format=container_format)
         glance.images.upload(image.id, open(scratch_dir, 'rb'))
         logging.info("Upload complete")
-        return image.id
+        return image 
 
 
 # Download an image from the repo, returns True if successful or False if not
 def download_image(glance, image_name, image_id, scratch_dir):
     #open file then write to it
     try:
+        if not os.path.exists(scratch_dir):
+            os.makedirs(scratch_dir)
         file_path = scratch_dir + image_name
         image_file = open(file_path, 'wb')
         for chunk in glance.images.data(image_id):
             image_file.write(bytes(chunk))
         img = glance.images.get(image_id)
 
-        return (True, "Success", img.disk_format)
+        return (True, "Success", img.disk_format, img.container_format)
     except Exception as exc:
-        return (False, exc, "")
+        return (False, exc, "", "")
 
 def delete_image(glance, image_id):
     try:
@@ -159,8 +162,8 @@ def get_checksum(glance, image_id):
 
 
 def delete_keypair(key_name, cloud):
-    sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess, cloud.region)
+    sess = get_openstack_session(cloud)
+    nova = get_nova_client(sess, cloud.region)
 
     keys = nova.keypairs.list()
     for key in keys:
@@ -171,8 +174,8 @@ def delete_keypair(key_name, cloud):
     return False
 
 def get_keypair(keypair_key, cloud):
-    sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess, cloud.region)
+    sess = get_openstack_session(cloud)
+    nova = get_nova_client(sess, cloud.region)
 
     split_key = keypair_key.split(";")
     fingerprint = split_key[0]
@@ -185,15 +188,15 @@ def get_keypair(keypair_key, cloud):
     return None
 
 def transfer_keypair(keypair, cloud):
-    sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess, cloud.region)
+    sess = get_openstack_session(cloud)
+    nova = get_nova_client(sess, cloud.region)
 
     nova.keypairs.create(name=keypair.name, public_key=keypair.public_key)
     return True
 
 def create_keypair(key_name, key_string, cloud):
-    sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess, cloud.region)
+    sess = get_openstack_session(cloud)
+    nova = get_nova_client(sess, cloud.region)
 
     try:
         new_key = nova.keypairs.create(name=key_name, public_key=key_string)
@@ -203,8 +206,8 @@ def create_keypair(key_name, key_string, cloud):
 
 
 def create_new_keypair(key_name, cloud):
-    sess = _get_keystone_session(cloud)
-    nova = _get_nova_client(sess, cloud.region)
+    sess = get_openstack_session(cloud)
+    nova = get_nova_client(sess, cloud.region)
 
     try:
         new_key = nova.keypairs.create(name=key_name)
@@ -223,3 +226,8 @@ def getUser(request, db_config):
 def verifyUser(request, db_config):
     auth_user = getUser(request, db_config)
     return bool(auth_user)
+
+def set_defaults_changed(changed_bool):
+    # this needs a new implementation without redis, it will need to use signaling
+    return True
+
