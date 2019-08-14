@@ -115,7 +115,7 @@
                     {% for group in job_status_list %}
                         {% if global_flag or not global_flag and group.group_name == active_group %}
                             <tr>
-                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div class="float-right">&#x25BE;</div></td>
+                                <td class="group-name bold-style" onclick="toggle_id('expand-jobs-{{group.group_name}}')"><div class="float-left">{{group.group_name}}</div><div id="sym-expand-jobs-{{group.group_name}}" class="float-right">&#x25BE;</div></td>
 
                                 {% if group.Jobs == 0 %}
                                     <td data-path="{{group.group_name}} jobs" class="zero-style float-center plottable">0</td>
@@ -348,19 +348,19 @@
                                 {% endif %}
 
                                 {% if cloud.display == 2%}
-                                    <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"><div class="float-left">{{cloud.group_name}}</div><div class="float-right">&#x25BE;</div></td>
+                                    <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"><div class="float-left">{{cloud.group_name}}</div><div id="sym-expand-{{cloud.group_name}}" class="float-right">&#x25BE;</div></td>
                                 {% else %}
                                     <td class="group-name bold-style" onclick="toggle_group('expand-{{cloud.group_name}}')"></td>
                                 {% endif %}
 
                                 {% if cloud.display >= 9 %}
-                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div><div class="float-right">&#x25BE;</div></td>
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">Totals</div>
                                 {% elif cloud.enabled > 0 %}
-                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div><div class="float-right">&#x25BE;</div></td>
+                                    <td class="bold-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                 {% else %}
-                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div><div class="float-right">&#x25BE;</div></td>
+                                    <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                 {% endif %}
-                                    
+                                    <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
 
                                     {% if cloud.VMs == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
@@ -727,7 +727,7 @@
                         
                      <tr class="global-total-row">
                         <td colspan="1" class="row-spacer" onclick="toggle_id('expand-totals')">&nbsp;</td>
-                        <td class="bold-style" onclick="toggle_id('expand-totals')"><div class="float-left">Totals</div><div class="float-right">&#x25BE;</div></td>
+                        <td class="bold-style" onclick="toggle_id('expand-totals')"><div class="float-left">Totals</div><div  id="sym-expand-totals" class="float-right">&#x25BE;</div></td>
 
                         {% if group_total.VMs == 0 %}
                             <td data-path="{{group_name}} VMs_total" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
