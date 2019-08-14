@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from .__version__ import version
 from django.conf import settings
 db_config = settings.CSV2_CONFIG
-from .glint_utils import get_keypair, delete_keypair, transfer_keypair, \
+from .keypair_utils import get_keypair, delete_keypair, transfer_keypair, \
                          create_keypair, create_new_keypair, getUser, verifyUser
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp

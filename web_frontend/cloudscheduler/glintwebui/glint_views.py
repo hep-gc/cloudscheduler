@@ -22,6 +22,8 @@ from cloudscheduler.lib.view_utils import \
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
+from .celery_app import pull_request, tx_request
+
 logger = logging.getLogger('glintv2')
 ALPHABET = string.ascii_letters + string.digits + string.punctuation
 MODID = "IV"
@@ -127,7 +129,6 @@ def _build_image_matrix(image_dict, cloud_list):
     for image_key in image_dict:
         row_list = []
         for cloud in cloud_list:
-            logger.info("cloud: %s \nkeys: %s" % (cloud.cloud_name, image_dict[image_key].keys()))
             if cloud.cloud_name in image_dict[image_key].keys():
                 #image is here
                 row_list.append((image_dict[image_key][cloud.cloud_name]["status"],image_dict[image_key][cloud.cloud_name]["message"],image_dict[image_key][cloud.cloud_name]["visibility"], cloud.cloud_name))
@@ -185,18 +186,30 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
 #
 #
 #
-def _get_image(config, image_name, image_checksum, group_name):
+def _get_image(config, image_name, image_checksum, group_name, cloud_name=None):
     IMAGES = config.db_map.classes.cloud_images
     db_session = config.db_session
-    if image_checksum is not None:
-        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+    if cloud_name is None:
+        #getting a source image
+        logger.info("Looking for image %s, checksum: %s in group %s" % (image_name, image_checksum, group_name))
+        if image_checksum is not None:
+            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        else:
+            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name)
+        if image_candidates.count() > 0:
+            return image_candidates[0]
+        else:
+            #No image that fits specs
+            return False
     else:
-        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name)
-    if image_candidates.count() > 1:
-        return image_candidates[0]
-    else:
-        #No image that fits specs
-        return False
+        #getting a specific image
+        logger.debug("Retrieving image %s" % image_name)
+        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.cloud_name == cloud_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        if image_candidates.count() > 0:
+            return image_candidates[0]
+        else:
+            #No image that fits specs
+            return False
 
 #
 # Check image cache and queue up a pull request if target image is not present
@@ -214,17 +227,19 @@ def _check_cache(config, image_name, image_checksum, group_name, user):
         # we found something in the cache we can skip queueing a pull request
         return True
     else:
+        logger.info("No image n cache, getting target image for pull request")
         # nothing in the cache lets queue up a pull request
         target_image = _get_image(config, image_name, image_checksum, group_name)
         if target_image is False:
             # unable to find target image
+            logger.info("Unable to find target image")
             return False #maybe raise an error here
 
         PULL_REQ = config.db_map.classes.csv2_image_pull_requests
         # check if a pull request already exists for this image? or just let the workers sort it out?
-        #  #todo?
+        tx_id =  _generate_tx_id()
         preq = {
-            "tx_id": _generate_tx_id(),
+            "tx_id": tx_id,
             "target_group_name": target_image.group_name,
             "target_cloud_name": target_image.cloud_name,
             "image_name": image_name,
@@ -236,6 +251,9 @@ def _check_cache(config, image_name, image_checksum, group_name, user):
         new_preq = PULL_REQ(**preq)
         db_session.merge(new_preq)
         db_session.commit()
+        #pull_request.delay(tx_id = tx_id)
+        pull_request.apply_async((tx_id,), queue='pull_requests')
+
         return True
 
 
@@ -264,7 +282,7 @@ def list(request, args=None, response_code=0, message=None):
     pending_tx = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group)
     image_dict = _build_image_dict(images, pending_tx)
     matrix = _build_image_matrix(image_dict, clouds)
-
+    
     #build context and render matrix
 
 
@@ -310,10 +328,10 @@ def transfer(request, args=None, response_code=0, message=None):
         #    (image_name + '---' + image_checksum, target_cloud, group)
         post_data = json.loads(request.body)
         image_name = ""
+        image_checksum = None
         image_key = post_data.get("image_key")
         target_cloud = post_data.get("cloud_name")
         target_group = post_data.get("group_name")
-        image_checksum = post_data.get("image_checksum")
         key_list = image_key.split("---")
         if len(key_list) != 2:
             if image_checksum is None:
@@ -331,6 +349,7 @@ def transfer(request, args=None, response_code=0, message=None):
         else:
             # key is normal
             image_name = key_list[0]
+            image_checksum = key_list[1]
 
 
         # Double check that the request doesn't exist and that the image is really missing from that cloud
@@ -346,8 +365,9 @@ def transfer(request, args=None, response_code=0, message=None):
         if cache_result is False:
             return HttpResponse('Could not find a source image...')
         target_image = _get_image(config, image_name, image_checksum, target_group)
+        tx_id = _generate_tx_id()
         tx_req = {
-            "tx_id":             _generate_tx_id(),
+            "tx_id":             tx_id,
             "status":            "pending",
             "target_group_name": target_group,
             "target_cloud_name": target_cloud,
@@ -360,6 +380,9 @@ def transfer(request, args=None, response_code=0, message=None):
         db_session.merge(new_tx_req)
         db_session.commit()
         config.db_close()
+        #tx_request.delay(tx_id = tx_id)
+        logger.info("Transfer queued")
+        tx_request.apply_async((tx_id,), queue='tx_requests')
         return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Transfer queued..")})
 
     else:
@@ -388,11 +411,11 @@ def delete(request, args=None, response_code=0, message=None):
         # Should have the following data in POST:
         #    (image_name + '---' + image_checksum, target_cloud, group)
         post_data = json.loads(request.body)
+        image_checksum = ""
         image_name = ""
         image_key = post_data.get("image_key")
         target_cloud = post_data.get("cloud_name")
         target_group = post_data.get("group_name")
-        image_checksum = post_data.get("image_checksum")
         key_list = image_key.split("---")
         if len(key_list) != 2:
             if image_checksum is None:
@@ -410,9 +433,11 @@ def delete(request, args=None, response_code=0, message=None):
         else:
             # key is normal
             image_name = key_list[0]
+            image_checksum = key_list[1]
 
 
-        target_image = _get_image(config, image_name, image_checksum, target_group)
+        logger.error("GETTING IMAGE: %s::%s::%s::%s" % (image_name, image_checksum, target_group, target_cloud))
+        target_image = _get_image(config, image_name, image_checksum, target_group, target_cloud)
         cloud =  db_session.query(CLOUDS).get((target_group, target_cloud))
 
 

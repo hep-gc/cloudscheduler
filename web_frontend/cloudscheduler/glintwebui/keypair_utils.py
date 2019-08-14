@@ -72,6 +72,10 @@ def getUser(request, db_config):
         if user == auth_user.cert_cn or user == auth_user.username:
             return auth_user
 
+def verifyUser(request, db_config):
+    auth_user = getUser(request, db_config)
+    return bool(auth_user)
+
 def _get_keystone_session(cloud):
     authsplit = cloud.authurl.split('/')
     version = int(float(authsplit[-1][1:])) if len(authsplit[-1]) > 0 else int(float(authsplit[-2][1:]))
