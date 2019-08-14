@@ -1295,10 +1295,10 @@ def status(request, group_name=None):
         length = int(len(cloud_status_list)-1)
 
         cloud['display'] = 0
-
+        cloud['tag'] = ''
         # Change the enabled flag to indicate the first row in a group. This row will show the group name, while the others wont.
         if cloud_count == 0:
-            cloud['display'] = 2
+            cloud['display'] = 1
 
 
         # Count rows for cloud
@@ -1315,16 +1315,12 @@ def status(request, group_name=None):
                     # Add a blank cloud name so VMs search returns all VMs in group:
                     total['cloud_name'] = ''
 
-                    print('index', index, length)
-
                     # If its the last group, send the enabled flag to 99 so no extra spacer row is added after the totals row:
-                    if index == length:
-                        total['display'] = 99
-                    else:
-                        total['display'] = 9
+
+                    total['display'] = 9
+                    total['tag'] = '_total'
 
                     # Insert the totals for at the correct index:
-
                     if index==length:
                         cloud_status_list.append(total.copy())
                     else:
@@ -1336,6 +1332,15 @@ def status(request, group_name=None):
 
         # Record the current cloud group:
         previous_group = cloud['group_name']
+
+
+    # Append the global totals list to the main status list:
+    global_total_list['group_name'] = 'groups_total'
+    global_total_list['cloud_name'] = ''
+    global_total_list['display'] = 99
+    global_total_list['tag'] = '_total'
+
+    cloud_status_list.append(global_total_list.copy())
 
 
     # find the actual cores limit in use
