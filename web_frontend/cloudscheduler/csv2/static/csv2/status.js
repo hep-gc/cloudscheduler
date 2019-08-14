@@ -101,10 +101,12 @@ function foreign_list(url) {
 function toggle_id(name){
 
     if(document.getElementById(name).style.display == "table-row"){
+        document.getElementById('sym-'+name).innerHTML = "&#x25BE;"
         document.getElementById(name).style.display = "none"
         sessionStorage.setItem(name, 0);
     }
     else{
+        document.getElementById('sym-'+name).innerHTML = "&#x25B4;"
         document.getElementById(name).style.display = "table-row"
         sessionStorage.setItem(name, 1);
     }
@@ -115,6 +117,8 @@ function toggle_group(name){
     var n;
 
     if(document.getElementsByClassName(name)[0].style.display == "table-row"){
+        document.getElementById('sym-'+name).innerHTML = "&#x25BE;"
+
         for(n=0; n<document.getElementsByClassName(name).length; n++){
             document.getElementsByClassName(name)[n].style.display = "none"
             sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 0);
@@ -122,6 +126,8 @@ function toggle_group(name){
     }
     else{
         for(n=0; n<document.getElementsByClassName(name).length; n++){
+            document.getElementById('sym-'+name).innerHTML = "&#x25B4;"
+
             document.getElementsByClassName(name)[n].style.display = "table-row"
             sessionStorage.setItem(document.getElementsByClassName(name)[n].id, 1);
         }
@@ -138,6 +144,7 @@ function set_state(){
         if(sessionStorage.getItem(clouds[n].id)==1){
             console.log(clouds[n].id)
             document.getElementById(clouds[n].id).style.display = "table-row"
+            document.getElementById('sym-'+clouds[n].id).innerHTML = "&#x25B4;"
         }
     }
 }
