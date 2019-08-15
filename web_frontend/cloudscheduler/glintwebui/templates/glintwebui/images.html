@@ -79,6 +79,8 @@
                         <td style="text-align:center" class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Delete</button></td>
                     {% elif img_tuple.0 == "pending" %}
                         <td style="text-align:center" class="{{img_tuple.2}}">pending transfer</td>
+                    {% elif img_tuple.0 == "claimed" %}
+                        <td style="text-align:center" class="{{img_tuple.2}}">transfering</td>
                     {% elif img_tuple.0 == "pending delete" %}
                         <td style="text-align:center" class="{{img_tuple.2}}">pending delete</td>
                     {% elif img_tuple.0 == "error"%}
