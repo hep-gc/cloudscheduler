@@ -262,7 +262,7 @@ def status(gvar):
 
     mandatory = []
     required = []
-    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-v', '-xA']
+    optional = ['-cn', '-CSEP', '-CSV', '-g', '-H', '-h', '-NV', '-o', '-ok', '-r', '-s', '-V', '-VC', '-v', '-w', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
@@ -331,6 +331,21 @@ def status(gvar):
             'ram_foreign/RAM/Foreign',
         ],
         title="Cloud status",
+        )
+
+    show_table(
+        gvar,
+        response['slot_list'],
+        [
+            'group_name/Group,k',
+            'cloud_name/Cloud,k',
+            'slot_type/Slot Type',
+            'slot_id/Slot ID',
+            'slot_count/Slot Count',
+            'core_count/Slot Cores'
+        ],
+        title="Slot detail",
+        optional=True,
         )
 
 def update(gvar):
