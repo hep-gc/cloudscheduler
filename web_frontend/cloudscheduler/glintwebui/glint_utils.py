@@ -3,6 +3,7 @@
 import logging
 import os
 import string
+import random
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -11,7 +12,6 @@ from novaclient import client as novaclient
 import glanceclient
 
 
-from .celery_app import pull_request
 
 from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
@@ -170,6 +170,10 @@ def get_checksum(glance, image_id):
 def check_cache(config, image_name, image_checksum, group_name, user):
     IMAGE_CACHE = config.db_map.classes.csv2_image_cache
     db_session = config.db_session
+    if isinstance(user, str):
+        username = user
+    else:
+        username = user.username
 
     if image_checksum is not None:
         image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name, IMAGE_CACHE.checksum == image_checksum)
@@ -180,12 +184,13 @@ def check_cache(config, image_name, image_checksum, group_name, user):
         # we found something in the cache we can skip queueing a pull request
         return True
     else:
-        logger.info("No image n cache, getting target image for pull request")
+        from .celery_app import pull_request
+        logging.info("No image n cache, getting target image for pull request")
         # nothing in the cache lets queue up a pull request
-        target_image = _get_image(config, image_name, image_checksum, group_name)
+        target_image = get_image(config, image_name, image_checksum, group_name)
         if target_image is False:
             # unable to find target image
-            logger.info("Unable to find target image")
+            logging.info("Unable to find target image")
             return False #maybe raise an error here
 
         PULL_REQ = config.db_map.classes.csv2_image_pull_requests
@@ -199,7 +204,7 @@ def check_cache(config, image_name, image_checksum, group_name, user):
             "image_id": target_image.id,
             "checksum": target_image.checksum,
             "status": "pending",
-            "requester": user.username,
+            "requester": username,
         }
         new_preq = PULL_REQ(**preq)
         db_session.merge(new_preq)
@@ -208,6 +213,36 @@ def check_cache(config, image_name, image_checksum, group_name, user):
         pull_request.apply_async((tx_id,), queue='pull_requests')
 
         return True
+
+
+#
+#
+#
+def get_image(config, image_name, image_checksum, group_name, cloud_name=None):
+    IMAGES = config.db_map.classes.cloud_images
+    db_session = config.db_session
+    if cloud_name is None:
+        #getting a source image
+        logging.info("Looking for image %s, checksum: %s in group %s" % (image_name, image_checksum, group_name))
+        if image_checksum is not None:
+            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        else:
+            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name)
+        if image_candidates.count() > 0:
+            return image_candidates[0]
+        else:
+            #No image that fits specs
+            return False
+    else:
+        #getting a specific image
+        logging.debug("Retrieving image %s" % image_name)
+        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.cloud_name == cloud_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        if image_candidates.count() > 0:
+            return image_candidates[0]
+        else:
+            #No image that fits specs
+            return False
+
 
 # at a length of 16 with a 94 symbol alphabet we have a N/16^94 chance of a collision, pretty darn unlikely
 def generate_tx_id(length=16):

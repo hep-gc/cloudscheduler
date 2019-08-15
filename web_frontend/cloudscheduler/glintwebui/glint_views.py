@@ -2,8 +2,6 @@ import json
 import time
 import logging
 import os
-import string
-import random
 
 from django.conf import settings
 config = settings.CSV2_CONFIG
@@ -13,7 +11,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from .glint_utils import get_openstack_session, get_glance_client, delete_image
+from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image
 
 from cloudscheduler.lib.view_utils import \
     render, \
@@ -179,34 +177,6 @@ def _check_image(config, target_group, target_cloud, image_name, image_checksum)
     
 
 #
-#
-#
-def _get_image(config, image_name, image_checksum, group_name, cloud_name=None):
-    IMAGES = config.db_map.classes.cloud_images
-    db_session = config.db_session
-    if cloud_name is None:
-        #getting a source image
-        logger.info("Looking for image %s, checksum: %s in group %s" % (image_name, image_checksum, group_name))
-        if image_checksum is not None:
-            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
-        else:
-            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name)
-        if image_candidates.count() > 0:
-            return image_candidates[0]
-        else:
-            #No image that fits specs
-            return False
-    else:
-        #getting a specific image
-        logger.debug("Retrieving image %s" % image_name)
-        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.cloud_name == cloud_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
-        if image_candidates.count() > 0:
-            return image_candidates[0]
-        else:
-            #No image that fits specs
-            return False
-
-#
 # Djnago View Functions
 #
 
@@ -310,11 +280,11 @@ def transfer(request, args=None, response_code=0, message=None):
         # if we get here everything is golden and we can queue up tha transfer request, but first lets check if the image
         # is in the cache or we should queue up a pull request, check cache returns True if it is found/queued or false
         # if it was unable to find the image
-        cache_result = glint_utils.check_cache(config, image_name, image_checksum, target_group, active_user)
+        cache_result = check_cache(config, image_name, image_checksum, target_group, active_user)
         if cache_result is False:
             return HttpResponse('Could not find a source image...')
-        target_image = _get_image(config, image_name, image_checksum, target_group)
-        tx_id = glint_utils.generate_tx_id()
+        target_image = get_image(config, image_name, image_checksum, target_group)
+        tx_id = generate_tx_id()
         tx_req = {
             "tx_id":             tx_id,
             "status":            "pending",
@@ -386,7 +356,7 @@ def delete(request, args=None, response_code=0, message=None):
 
 
         logger.error("GETTING IMAGE: %s::%s::%s::%s" % (image_name, image_checksum, target_group, target_cloud))
-        target_image = _get_image(config, image_name, image_checksum, target_group, target_cloud)
+        target_image = get_image(config, image_name, image_checksum, target_group, target_cloud)
         cloud =  db_session.query(CLOUDS).get((target_group, target_cloud))
 
 
