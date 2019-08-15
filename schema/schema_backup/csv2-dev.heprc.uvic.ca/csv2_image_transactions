@@ -1,8 +1,8 @@
--- MySQL dump 10.17  Distrib 10.3.15-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.17  Distrib 10.3.17-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: csv2
 -- ------------------------------------------------------
--- Server version	10.3.15-MariaDB
+-- Server version	10.3.17-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -25,12 +25,12 @@ DROP TABLE IF EXISTS `csv2_image_transactions`;
 CREATE TABLE `csv2_image_transactions` (
   `tx_id` varchar(16) CHARACTER SET utf16 NOT NULL,
   `status` varchar(128) CHARACTER SET utf8 NOT NULL,
-  `message` varchar(128) CHARACTER SET utf16 NOT NULL,
+  `message` varchar(128) CHARACTER SET utf16 DEFAULT NULL,
   `target_group_name` varchar(128) CHARACTER SET utf8 NOT NULL,
   `target_cloud_name` varchar(128) CHARACTER SET utf8 NOT NULL,
   `image_name` varchar(128) CHARACTER SET utf8 NOT NULL,
   `image_id` varchar(128) CHARACTER SET utf8 NOT NULL,
-  `checksum` varchar(64) NOT NULL,
+  `checksum` varchar(64) CHARACTER SET utf8 NOT NULL,
   `request_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `requester` varchar(64) CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`tx_id`)
@@ -46,4 +46,4 @@ CREATE TABLE `csv2_image_transactions` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-08-01  8:12:35
+-- Dump completed on 2019-08-15 12:28:37
