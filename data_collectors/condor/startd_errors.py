@@ -7,6 +7,7 @@ import os
 import sys
 
 from cloudscheduler.lib.db_config import Config
+from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 def startd_poller():
@@ -36,14 +37,17 @@ def startd_poller():
 
             vms_in_error = {}
             for line in ssl_access_log.split('\n'):
-                if '/STARTD/' in line:
-                    ignore, ignore, ignore, hostname, ignore, errors = line.split('/', 5)
+                if '/CERT/' in line or '/STARTD/' in line:
+                    ignore, ignore, ignore, hostname, type, errors = line.split('/', 5)
                     errors, ignore = errors.split(' ',1)
-                    vms_in_error[hostname] = errors[:VMS.htcondor_startd_errors.property.columns[0].type.length]
+                    vms_in_error[hostname] = {'type': type, 'errors': errors[:VMS.htcondor_startd_errors.property.columns[0].type.length]}
 
             if len(vms_in_error) > 0:
                 for hostname in sorted(vms_in_error):
-                      config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp() where hostname="%s"' % (vms_in_error[hostname], hostname))
+                      if vms_in_error[hostname]['type'] == 'CERT':
+                          config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp(),retire=retire+1,updater="%s" where hostname="%s"' % (vms_in_error[hostname]['errors'], str(get_frame_info() + ":r+"), hostname))
+                      elif vms_in_error[hostname]['type'] == 'STARTD':
+                          config.db_session.execute('update csv2_vms set htcondor_startd_errors="%s",htcondor_startd_time=unix_timestamp() where hostname="%s"' % (vms_in_error[hostname]['errors'], hostname))
 
                 config.db_session.commit()
 

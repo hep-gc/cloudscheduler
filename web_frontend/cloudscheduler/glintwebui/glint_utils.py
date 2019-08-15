@@ -2,6 +2,7 @@
 
 import logging
 import os
+import string
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -9,9 +10,12 @@ from keystoneauth1 import exceptions
 from novaclient import client as novaclient
 import glanceclient
 
+
+from .celery_app import pull_request
+
 from cloudscheduler.lib.db_config import Config
 config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
-
+ALPHABET = string.ascii_letters + string.digits + string.punctuation
 
 def get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
@@ -160,6 +164,54 @@ def get_checksum(glance, image_id):
     image = glance.images.get(image_id)
     return image['checksum']
 
+#
+# Check image cache and queue up a pull request if target image is not present
+#
+def check_cache(config, image_name, image_checksum, group_name, user):
+    IMAGE_CACHE = config.db_map.classes.csv2_image_cache
+    db_session = config.db_session
+
+    if image_checksum is not None:
+        image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name, IMAGE_CACHE.checksum == image_checksum)
+    else:
+        image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name)
+
+    if image.count() > 0:
+        # we found something in the cache we can skip queueing a pull request
+        return True
+    else:
+        logger.info("No image n cache, getting target image for pull request")
+        # nothing in the cache lets queue up a pull request
+        target_image = _get_image(config, image_name, image_checksum, group_name)
+        if target_image is False:
+            # unable to find target image
+            logger.info("Unable to find target image")
+            return False #maybe raise an error here
+
+        PULL_REQ = config.db_map.classes.csv2_image_pull_requests
+        # check if a pull request already exists for this image? or just let the workers sort it out?
+        tx_id =  generate_tx_id()
+        preq = {
+            "tx_id": tx_id,
+            "target_group_name": target_image.group_name,
+            "target_cloud_name": target_image.cloud_name,
+            "image_name": image_name,
+            "image_id": target_image.id,
+            "checksum": target_image.checksum,
+            "status": "pending",
+            "requester": user.username,
+        }
+        new_preq = PULL_REQ(**preq)
+        db_session.merge(new_preq)
+        db_session.commit()
+        #pull_request.delay(tx_id = tx_id)
+        pull_request.apply_async((tx_id,), queue='pull_requests')
+
+        return True
+
+# at a length of 16 with a 94 symbol alphabet we have a N/16^94 chance of a collision, pretty darn unlikely
+def generate_tx_id(length=16):
+    return ''.join(random.choice(ALPHABET) for i in range(length)) 
 
 def delete_keypair(key_name, cloud):
     sess = get_openstack_session(cloud)
@@ -173,13 +225,9 @@ def delete_keypair(key_name, cloud):
 
     return False
 
-def get_keypair(keypair_key, cloud):
+def get_keypair(key_name, cloud):
     sess = get_openstack_session(cloud)
     nova = get_nova_client(sess, cloud.region)
-
-    split_key = keypair_key.split(";")
-    fingerprint = split_key[0]
-    key_name = split_key[1]
 
     keys = nova.keypairs.list()
     for key in keys:

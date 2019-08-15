@@ -359,7 +359,8 @@ def main():
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
                                              'cs_condor_submitters': csgroup.htcondor_other_submitters,
                                              'cs_cloud_alias': idle_job.target_alias,
-                                             'cs_condorworker_cert_days_to_end_of_life': config.condorworker_cert_days_to_eol}
+                                             'cs_condorworker_cert_days_to_end_of_life': config.categories['csmain']['condorworker_cert_days_to_eol'],
+                                             'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs']}
                             template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 

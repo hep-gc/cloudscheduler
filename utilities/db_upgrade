@@ -69,8 +69,8 @@ def main(args):
     else:
         gvar['schema_config'] = {'providers': [], 'consumers': [], 'global': [], 'local': [], 'ephemeral': [], 'ignore': []}
 
-    if 'local_backup_dir' in gvar['schema_config']:
-        gvar['local_backup_dir'] = '%s/%s' % (gvar['schema_config']['local_backup_dir'], 'latest')
+    if 'user_data_backup_dir' in gvar['schema_config']:
+        gvar['user_data_backup_dir'] = '%s/%s' % (gvar['schema_config']['user_data_backup_dir'], 'latest')
     else:
         print('Error: schema backup configuration does not contain a local backup directory.')
         exit(1)
@@ -630,7 +630,7 @@ def get_column_widths(gvar, fqdn, table):
 
 def get_table_data(gvar, table):
     table_data = []
-    table_path = '%s/%s' % (gvar['local_backup_dir'], table) 
+    table_path = '%s/%s' % (gvar['user_data_backup_dir'], table) 
     if os.path.isfile(table_path):
         fd = open(table_path)
         while True:

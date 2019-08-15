@@ -112,7 +112,7 @@ from (
     ifnull(user_domain_id, '') as user_domain_id,
     username,
     password,
-    keyname,
+#   keyname,
     cacertificate,
     cc.region,
     cc.cloud_type,

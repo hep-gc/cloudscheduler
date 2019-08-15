@@ -25,7 +25,6 @@ from cloudscheduler.lib.web_profiler import silk_profile as silkp
 from .celery_app import pull_request, tx_request
 
 logger = logging.getLogger('glintv2')
-ALPHABET = string.ascii_letters + string.digits + string.punctuation
 MODID = "IV"
 
 # This dictionary is set up for the initial processing so we dont accidentally overwrite images with the same name
@@ -141,10 +140,6 @@ def _build_image_matrix(image_dict, cloud_list):
     return image_matrix
 
 
-# at a length of 16 with a 94 symbol alphabet we have a N/16^94 chance of a collision, pretty darn unlikely
-def _generate_tx_id(length=16):
-    return ''.join(random.choice(ALPHABET) for i in range(length)) 
-
 
 # Checks if the image already exists for target cloud, and if it doesnt it also checks that this
 #   transfer request doesn't already exist (and isn't in an error state)
@@ -210,52 +205,6 @@ def _get_image(config, image_name, image_checksum, group_name, cloud_name=None):
         else:
             #No image that fits specs
             return False
-
-#
-# Check image cache and queue up a pull request if target image is not present
-#
-def _check_cache(config, image_name, image_checksum, group_name, user):
-    IMAGE_CACHE = config.db_map.classes.csv2_image_cache
-    db_session = config.db_session
-
-    if image_checksum is not None:
-        image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name, IMAGE_CACHE.checksum == image_checksum)
-    else:
-        image = db_session.query(IMAGE_CACHE).filter(IMAGE_CACHE.image_name == image_name)
-
-    if image.count() > 0:
-        # we found something in the cache we can skip queueing a pull request
-        return True
-    else:
-        logger.info("No image n cache, getting target image for pull request")
-        # nothing in the cache lets queue up a pull request
-        target_image = _get_image(config, image_name, image_checksum, group_name)
-        if target_image is False:
-            # unable to find target image
-            logger.info("Unable to find target image")
-            return False #maybe raise an error here
-
-        PULL_REQ = config.db_map.classes.csv2_image_pull_requests
-        # check if a pull request already exists for this image? or just let the workers sort it out?
-        tx_id =  _generate_tx_id()
-        preq = {
-            "tx_id": tx_id,
-            "target_group_name": target_image.group_name,
-            "target_cloud_name": target_image.cloud_name,
-            "image_name": image_name,
-            "image_id": target_image.id,
-            "checksum": target_image.checksum,
-            "status": "pending",
-            "requester": user.username,
-        }
-        new_preq = PULL_REQ(**preq)
-        db_session.merge(new_preq)
-        db_session.commit()
-        #pull_request.delay(tx_id = tx_id)
-        pull_request.apply_async((tx_id,), queue='pull_requests')
-
-        return True
-
 
 #
 # Djnago View Functions
@@ -361,11 +310,11 @@ def transfer(request, args=None, response_code=0, message=None):
         # if we get here everything is golden and we can queue up tha transfer request, but first lets check if the image
         # is in the cache or we should queue up a pull request, check cache returns True if it is found/queued or false
         # if it was unable to find the image
-        cache_result = _check_cache(config, image_name, image_checksum, target_group, active_user)
+        cache_result = glint_utils.check_cache(config, image_name, image_checksum, target_group, active_user)
         if cache_result is False:
             return HttpResponse('Could not find a source image...')
         target_image = _get_image(config, image_name, image_checksum, target_group)
-        tx_id = _generate_tx_id()
+        tx_id = glint_utils.generate_tx_id()
         tx_req = {
             "tx_id":             tx_id,
             "status":            "pending",

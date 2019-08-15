@@ -1550,6 +1550,67 @@ def vm_poller():
         del db_session
 
 
+# This function still needs imports from glintwebui/glint_utils.py
+# it also needs logic to actually queue image transfers (look at glint_views)
+def defaults_replication():
+    multiprocessing.current_process().name = "Defaults Replication"
+    db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager"]
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
+    GROUPS = config.db_map.classes.csv2_groups
+    CLOUDS = config.db_map.classes.csv2_clouds
+    KEYPAIRS = config.db_map.classes.cloud_keypairs
+    IMAGES = config.db_map.classes.cloud_images
+    while True:
+        config.db_open()
+        db_session = config.db_session
+        group_list = db_session.query(GROUPS)
+        for group in group_list:
+            src_keypair = None
+            default_image_name = group.vm_image
+            default_key_name = group.vm_keyname
+            cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack")
+            for cloud in cloud_list:
+                # if there is a default image for the group, check for default image in the cloud
+                if default_image_name is not None:
+                    images = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.cloud_name == cloud.cloud_name, IMAGES.name == default_image_name)
+                    if images.count() == 0:
+                        # gasp, image isn't there, lets queue up a transfer.
+                        # TODO
+                        pass
+                else:
+                    logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+
+                # now lets check keys- if there is a default key, check the keys for the cloud
+                if default_key_name is not None:
+                    keys = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.cloud_name == cloud.cloud_name, KEYPAIRS.key_name == default_key_name)
+                    if keys.count() == 0:
+                        # gasp again, keypair isn't present, keypairs are fast so lets just go ahead and do the transfer
+                        if src_keypair == None:
+                            # we haven't dug up a source keypair yet so lets grab one
+                            db_keypair = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.key_name == default_key_name).first()
+                            src_cloud = db_session.query(CLOUDS).get((db_keypair.group_name, db_keypair.cloud_name))
+                            src_keypair = get_keypair(default_key_name, src_cloud)
+                            if src_keypair == None:
+                                #we couldn't find a source keypair for this group, yikes
+                                logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
+                                break
+                            #transfer keypair
+                            logging.info("Source keypair found, uploading new keypair")
+                            try:
+                                transfer_keypair(src_keypair, src_cloud)
+                                logging.info("Keypair %s transferred to cloud %s successfully" % (default_key_name, cloud.cloud_name))
+                            except Exception as exc:
+                                logging.error("Keypair transfer failed:")
+                                logging.error(exc)
+
+                else:
+                    logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
+                    
+        time.sleep(300) # this will need to be updated to have a smarter wakeup once signaling has been implemented
+
+
+
+
 def service_registrar():
     multiprocessing.current_process().name = "Service Registrar"
 
