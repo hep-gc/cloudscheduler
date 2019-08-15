@@ -1,7 +1,7 @@
 # Cloud Scheduler version 2
 
 A re-design and re-write of Cloud Scheduler in Python 3. Documentation for the new system may be found at
-![readthedocs](https://cloudscheduler.readthedocs.io).
+[readthedocs](https://cloudscheduler.readthedocs.io).
 
 For installation, please follow the instructions ![here](ansible-playbook/README.md).
 
