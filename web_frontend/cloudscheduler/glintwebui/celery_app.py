@@ -235,7 +235,7 @@ def _check_cache(image_name, checksum, group_name, config):
     else:
         PULL_REQ = config.db_map.classes.csv2_image_pull_requests
         #check if there is a pull request not in fail state for this image
-        req = config.db_session.query(PULL_REQ).filter(PULL_REQ.image_name == image_name, PULL_REQ.checksum.checksum == checksum)
+        req = config.db_session.query(PULL_REQ).filter(PULL_REQ.image_name == image_name, PULL_REQ.checksum == checksum)
         #if there isn't queue a pull request and return None
 
         #if there IS then just return none

@@ -173,13 +173,9 @@ def delete_keypair(key_name, cloud):
 
     return False
 
-def get_keypair(keypair_key, cloud):
+def get_keypair(key_name, cloud):
     sess = get_openstack_session(cloud)
     nova = get_nova_client(sess, cloud.region)
-
-    split_key = keypair_key.split(";")
-    fingerprint = split_key[0]
-    key_name = split_key[1]
 
     keys = nova.keypairs.list()
     for key in keys:
