@@ -127,7 +127,7 @@ def tx_request(self, tx_id):
         # try every 15s for 10 mins to get the image from the cache
         while image is None:
             time.sleep(15)
-            image = _check_cache(tx_row.image_name, tx_row.checksum, config)
+            image = _check_cache(tx_row.image_name, tx_row.checksum, tx_row.target_group_name, config)
             sleep_itterations = sleep_itterations + 1
             if sleep_itterations > 40:
                 # we've waited 10 minutes for the download, put this transaction into error state and move on
