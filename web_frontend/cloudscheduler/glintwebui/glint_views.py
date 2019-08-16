@@ -187,6 +187,7 @@ def list(request, args=None, response_code=0, message=None):
     IMAGES = config.db_map.classes.cloud_images
     IMAGE_TX = config.db_map.classes.csv2_image_transactions
     CLOUDS = config.db_map.classes.csv2_clouds
+    GROUPS = config.db_map.classes.csv2_groups
     db_session = config.db_session
 
     # Retrieve the active user, associated group list and optionally set the active group.
@@ -198,6 +199,14 @@ def list(request, args=None, response_code=0, message=None):
     group = active_user.active_group
     images = db_session.query(IMAGES).filter(IMAGES.group_name == group, IMAGES.cloud_type == "openstack")
     clouds = db_session.query(CLOUDS).filter(CLOUDS.group_name == group, CLOUDS.cloud_type == "openstack")
+    defaults = db_session.query(GROUPS).get(group)
+    if defaults.vm_image is None or defaults.vm_image=="":
+        default_image = None
+    else:   
+        default_image = defaults.vm_image
+
+
+
     pending_tx = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group)
     image_dict = _build_image_dict(images, pending_tx)
     matrix = _build_image_matrix(image_dict, clouds)
@@ -210,6 +219,7 @@ def list(request, args=None, response_code=0, message=None):
         #function specific data
         'image_dict': matrix,
         'cloud_list': clouds,
+        'default_image': default_image,
 
         #view agnostic data
         'active_user': active_user.username,
@@ -236,7 +246,7 @@ def transfer(request, args=None, response_code=0, message=None):
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+        return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s' % (lno(MODID), msg)}))
 
     if request.method == 'POST':
         IMAGES = config.db_map.classes.cloud_images
@@ -260,7 +270,7 @@ def transfer(request, args=None, response_code=0, message=None):
                 image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
                 if len(image_candidates) > 1:
                     #ambiguous image name, need a checksum
-                    return HttpResponse('Ambiguous image name, please provide checksum') 
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
                     image_checksum = image_candidates[0].checksum
             # Once we get here we have the checksum so assign the image_name and continue as normal
@@ -275,14 +285,14 @@ def transfer(request, args=None, response_code=0, message=None):
         # if so then check if the image is in the cache, if not queue pull request and finally queue a transfer request
         if not _check_image(config, target_group, target_cloud, image_name, image_checksum):
             # Image or request already exists, return  with message
-            return HttpResponse('Image request exists or image already on cloud')
+            return HttpResponse(json.dumps({'response_code': 1,  'message': '%s %s'  % (lno(MODID), 'Image request exists or image already on cloud')}))
 
         # if we get here everything is golden and we can queue up tha transfer request, but first lets check if the image
         # is in the cache or we should queue up a pull request, check cache returns True if it is found/queued or false
         # if it was unable to find the image
         cache_result = check_cache(config, image_name, image_checksum, target_group, active_user)
         if cache_result is False:
-            return HttpResponse('Could not find a source image...')
+            return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Could not find a source image...")}))
         target_image = get_image(config, image_name, image_checksum, target_group)
         tx_id = generate_tx_id()
         tx_req = {
@@ -302,7 +312,7 @@ def transfer(request, args=None, response_code=0, message=None):
         #tx_request.delay(tx_id = tx_id)
         logger.info("Transfer queued")
         tx_request.apply_async((tx_id,), queue='tx_requests')
-        return render(request, 'glintwebui/images.html', {'response_code': 0, 'message': '%s %s' % (lno(MODID), "Transfer queued..")})
+        return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer queued..'}))
 
     else:
         #Not a post request, render image page again or do nothing
@@ -344,7 +354,7 @@ def delete(request, args=None, response_code=0, message=None):
                 image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
                 if len(image_candidates) > 1:
                     #ambiguous image name, need a checksum
-                    return HttpResponse('Ambiguous image name, please provide checksum') 
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
                 else:
                     image_checksum = image_candidates[0].checksum
             # Once we get here we have the checksum so assign the image_name and continue as normal
@@ -413,4 +423,149 @@ def download(request, args=None, response_code=0, message=None):
     else:
         #Not a post request, render image page again
         return None
+
+
+
+@silkp(name="Retry Tansaction")
+@requires_csrf_token
+def retry(request, args=None, response_code=0, message=None):
+    config.db_open()
+    db_session = config.db_session
+    IMAGES = config.db_map.classes.cloud_images
+    CLOUDS = config.db_map.classes.csv2_clouds
+    IMG_TX = config.db_map.classes.csv2_image_transactions
+
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return None
+
+    if request.method == 'POST':
+        # Should have the following data in POST:
+        #    (image_name + '---' + image_checksum, target_cloud, group)
+        post_data = json.loads(request.body)
+        image_checksum = ""
+        image_name = ""
+        image_key = post_data.get("image_key")
+        target_cloud = post_data.get("cloud_name")
+        target_group = post_data.get("group_name")
+        key_list = image_key.split("---")
+        if len(key_list) != 2:
+            if image_checksum is None:
+                # we don't have the image checksum so we need to try and figure out what it is via the database
+                # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
+                # checksum and continue as normal
+                image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
+                if len(image_candidates) > 1:
+                    #ambiguous image name, need a checksum
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
+                else:
+                    image_checksum = image_candidates[0].checksum
+            # Once we get here we have the checksum so assign the image_name and continue as normal
+            image_name = image_key
+        else:
+            # key is normal
+            image_name = key_list[0]
+            image_checksum = key_list[1]
+        
+        image_tx = config.db_session.query(IMG_TX).filter(IMG_TX.image_name == image_name, IMG_TX.checksum == image_checksum, IMG_TX.target_cloud_name == target_cloud, IMG_TX.target_group_name == target_group)
+        if image_tx.count() == 0:
+            # no transaction found
+            logger.error("No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud))
+            return HttpResponse(json.dumps({'response_code': 1, 'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
+        elif image_tx.count() == 1:
+            #found the bugger, lets update the status to pending and queue a new transaction
+            redo_tx = image_tx[0]
+            redo_tx.status = "pending"
+            redo_tx.message = "Retrying..."
+            config.db_session.merge(redo_tx)
+            config.db_session.commit()
+            tx_request.apply_async((redo_tx.tx_id,), queue='tx_requests')
+            logger.info("Transfer re-queued")
+            config.db_close()
+            return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer re-queued..'}))
+        else:
+            #if we get here it means we have multiple identical transactions queue'd up so lets report the error and just take the first one
+            logger.warning("Multiple identical transactions found, there is probably a database issue or a problem with defaults replication")
+            redo_tx = image_tx[0]
+            redo_tx.status = "pending"
+            redo_tx.message = "Retrying..."
+            config.db_session.merge(redo_tx)
+            config.db_session.commit()
+            tx_request.apply_async((redo_tx.tx_id,), queue='tx_requests')
+            logger.info("Transfer re-queued")
+            config.db_close()
+            return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transfer re-queued..'}))
+    else:
+        #not a post
+        return None
+
+
+@silkp(name="Clear Tansaction")
+@requires_csrf_token
+def clear(request, args=None, response_code=0, message=None):
+    config.db_open()
+    db_session = config.db_session
+    IMAGES = config.db_map.classes.cloud_images
+    CLOUDS = config.db_map.classes.csv2_clouds
+    IMG_TX = config.db_map.classes.csv2_image_transactions
+
+    rc, msg, active_user = set_user_groups(config, request, super_user=False)
+    if rc != 0:
+        config.db_close()
+        return None
+
+    if request.method == 'POST':
+        # Should have the following data in POST:
+        #    (image_name + '---' + image_checksum, target_cloud, group)
+        post_data = json.loads(request.body)
+        image_checksum = ""
+        image_name = ""
+        image_key = post_data.get("image_key")
+        target_cloud = post_data.get("cloud_name")
+        target_group = post_data.get("group_name")
+        key_list = image_key.split("---")
+        if len(key_list) != 2:
+            if image_checksum is None:
+                # we don't have the image checksum so we need to try and figure out what it is via the database
+                # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
+                # checksum and continue as normal
+                image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == target_group, IMAGES.name == image_key)
+                if len(image_candidates) > 1:
+                    #ambiguous image name, need a checksum
+                    return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
+                else:
+                    image_checksum = image_candidates[0].checksum
+            # Once we get here we have the checksum so assign the image_name and continue as normal
+            image_name = image_key
+        else:
+            # key is normal
+            image_name = key_list[0]
+            image_checksum = key_list[1]
+        
+        image_tx = config.db_session.query(IMG_TX).filter(IMG_TX.image_name == image_name, IMG_TX.checksum == image_checksum, IMG_TX.target_cloud_name == target_cloud, IMG_TX.target_group_name == target_group)
+        if image_tx.count() == 0:
+            # no transaction found
+            return HttpResponse(json.dumps({'response_code': 0, 'message': "No transaction found for image:%s on group::cloud: %s::%s" % (image_name, target_group, target_cloud)}))
+        elif image_tx.count() == 1:
+            #found the bugger, lets update the status to pending and queue a new transaction
+            tx = image_tx[0]
+            config.db_session.delete(tx)
+            config.db_session.commit()
+            logger.info("Transaction Removed")
+            config.db_close()
+            return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transaction removed'}))
+        else:
+            #if we get here it means we have multiple identical transactions queue'd up so lets report how many we found and remove them 
+            logger.warning("Multiple identical transactions found (%s), there is probably a database issue or a problem with defaults replication" % image_tx.count())
+            tx = image_tx[0]
+            config.db_session.delete(tx)
+            config.db_session.commit()
+            logger.info("Transfer re-queued")
+            config.db_close()
+            return HttpResponse(json.dumps({'response_code': 0, 'message': 'Transaction removed'}))
+    else:
+        #not a post
+        return None
+
 
