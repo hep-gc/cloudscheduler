@@ -288,6 +288,8 @@ function selectRange(range){
 
 /* Toggle plotted traces and initialize/show plot if not yet created*/
 function togglePlot(trace){
+    trace.dataset.path = trace.dataset.path.replace("  "," ")
+
     if(TSPlot.showing == true){
         /* Check if trace is already plotted*/
         var x;
@@ -437,6 +439,7 @@ function parseData(responsedata){
 
 /* Fetch trace data from db and add to plot*/
 function getTraceData(trace, showing){
+    trace.dataset.path = trace.dataset.path.replace("  "," ")
     if(window.location.pathname == "/cloud/status/") var newpath = "plot";
     else var newpath = "/cloud/status/plot";
     var nullvalues = [];
@@ -502,6 +505,7 @@ function getTraceData(trace, showing){
             sessionStorage.setItem("traces", JSON.stringify(trace_array));
         }
     })
+    
     .catch(function(error){
         if(showing == false) document.getElementById("plot").style.display = 'none';
         console.warn(error);	
@@ -515,6 +519,11 @@ function checkForPlottedTraces(){
         var plotted_traces = JSON.parse(sessionStorage.getItem("traces"));
         if (plotted_traces != null){
             for(var x = 0; x < plotted_traces.length; x++){
+
+                if(plotted_traces[x].split(" ", 1) == 'groups_total'){
+                    plotted_traces[x] = plotted_traces[x].replace(" ","  ")
+                }
+
                 var stat = document.querySelectorAll('td[data-path="'+plotted_traces[x]+'"]');
                 for(var k = 0; k < stat.length; k++){
                     stat[k].classList.toggle("plotted");
