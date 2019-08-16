@@ -1335,7 +1335,7 @@ def status(request, group_name=None):
 
 
     # Append the global totals list to the main status list:
-    global_total_list['group_name'] = 'groups_total'
+    global_total_list['group_name'] = ''
     global_total_list['cloud_name'] = ''
     global_total_list['display'] = 99
     global_total_list['tag'] = '_total'
