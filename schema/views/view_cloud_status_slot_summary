@@ -9,7 +9,7 @@ select
     cm.VMs,
     cm.active as 'Active_CPUs', 
     cm.idle as 'Idle_CPUs', 
-    round(cm.idle*100/(cm.VMs*cf.cores),1) as 'Idle_Percent'
+    round(cm.idle*100/(cm.active+cm.idle),1) as 'Idle_Percent'
 from (
     select
         group_name,
