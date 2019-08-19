@@ -1,0 +1,54 @@
+/*
+** Count the slots of each size.
+*/
+create or replace view view_cloud_status_slot_summary as
+select
+    cm.group_name,
+    cm.cloud_name,
+    concat(cm.flavor, ' (', cf.cores, ')') as flavor,
+    cm.VMs,
+    cm.active as 'Active_CPUs', 
+    cm.idle as 'Idle_CPUs', 
+    round(cm.idle*100/(cm.VMs*cf.cores),1) as 'Idle_Percent'
+from (
+    select
+        group_name,
+        cloud_name,
+        flavor,
+        sum(VMs) as VMs,
+        sum(active) as active,
+        sum(idle) as idle
+    from (
+        select
+            group_name,
+            cloud_name,
+            substring_index(flavor, ':', -1) as flavor,
+            sum(1) as VMs,
+            0 as active,
+            sum(slot_cpus) as idle
+        from condor_machines
+        where
+            slot_type='partitionable'
+        group by group_name,cloud_name,substring_index(flavor, ':', -1)
+        union all select
+            group_name,
+            cloud_name,
+            substring_index(flavor, ':', -1) as flavor,
+            0 as VMs,
+            sum(slot_cpus) as active,
+            0 as idle
+        from condor_machines
+        where
+            slot_type='dynamic'
+        group by group_name,cloud_name,substring_index(flavor, ':', -1)
+    ) as cm
+    group by
+        group_name,
+        cloud_name,
+        flavor
+) as cm
+left outer join cloud_flavors as cf on
+    cm.group_name=cf.group_name and
+    cm.cloud_name=cf.cloud_name and
+    cm.flavor=cf.name
+;

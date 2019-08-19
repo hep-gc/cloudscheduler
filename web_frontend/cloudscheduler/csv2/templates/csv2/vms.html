@@ -126,7 +126,7 @@
                 <th onclick="sortTable(7)">Retire &#8597;</th>
                 <th onclick="sortTable(8)">Terminate &#8597;</th>
                 <th onclick="sortTableNum(9)">Age &#8597;</th>
-
+                <th onclick="sortTable(10)">STARTD Errors &#8597;</th>
               </tr>
             <!-- In order to get the y-scroll on the left, the order of the columns is inverted. -->
 
@@ -148,7 +148,7 @@
                   <td>{{vm.retire}}</td>
                   <td>{{vm.terminate}}</td>
                   <td>{{vm.age}}</td>
- 
+                  <td>{{vm.htcondor_startd_errors}}</td>
                 </tr>
               {% endfor %}
 
