@@ -8,10 +8,10 @@ config = settings.CSV2_CONFIG
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import requires_csrf_token
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 
-from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image
+from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image, download_image
 
 from cloudscheduler.lib.view_utils import \
     render, \
@@ -340,7 +340,7 @@ def delete(request, args=None, response_code=0, message=None):
         # Should have the following data in POST:
         #    (image_name + '---' + image_checksum, target_cloud, group)
         post_data = json.loads(request.body)
-        image_checksum = ""
+        image_checksum = None
         image_name = ""
         image_key = post_data.get("image_key")
         target_cloud = post_data.get("cloud_name")
@@ -410,19 +410,91 @@ def upload(request, args=None, response_code=0, message=None):
 
 @silkp(name="Image Download")
 @requires_csrf_token
-def download(request, args=None, response_code=0, message=None):
+def download(request, group_name, image_key, args=None, response_code=0, message=None):
+    config.db_open()
+    db_session = config.db_session
+    IMAGES = config.db_map.classes.cloud_images
+    CACHE_IMAGES = config.db_map.classes.csv2_image_cache
+    CLOUD = config.db_map.classes.csv2_clouds
 
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
         return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
-    #check the cache for the file, if not there queue a pull request and wait for it to appear in the cache then upload to use
-    if request.method == 'POST':
-        return None
+
+    # unbox request and figure out if we've got the image in the cache
+    image_name = None
+    image_checksum = None
+    key_list = image_key.split("---")
+    if len(key_list) != 2:
+        if image_checksum is None:
+            # we don't have the image checksum so we need to try and figure out what it is via the database
+            # if it is an ambiguous image name we can't fufill the request otherwise we can fill in the
+            # checksum and continue as normal
+            image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_key)
+            if len(image_candidates) > 1:
+                return HttpResponse(json.dumps({'response_code': 1, 'message': '%s %s' % (lno(MODID), "Ambigous image name, please remove duplicate names or provide a checksum")}))
+            else:
+                image_checksum = image_candidates[0].checksum
+        # Once we get here we have the checksum so assign the image_name and continue as normal
+        image_name = image_key
+    else:
+        # key is normal
+        image_name = key_list[0]
+        image_checksum = key_list[1]
+
+
+    #if the image is not in the cache, download it and update the cache table
+    cached_images = db_session.query(CACHE_IMAGES).filter(CACHE_IMAGES.image_name == image_name, CACHE_IMAGES.checksum == image_checksum)
+    if cached_images.count() > 0:
+        # we've got the image cached already, we can go ahead and serve from this file
+        image_path = config.image_cache_dir + image_name + "---" + image_checksum
+        response = StreamingHttpResponse((line for line in open(image_path, 'rb')))
+        response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
+        response['Content-Length'] = os.path.getsize(image_path)
+        config.db_close()
+        return response
+
 
     else:
-        #Not a post request, render image page again
-        return None
+        # we need to download the image first and update the cache
+        # find a source image
+        image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group_name, IMAGES.name == image_name, IMAGES.checksum == image_checksum)
+        if image_candidates.count() == 0:
+            # we didnt find a source
+            return False # report error
+        else:
+            src_image = image_candidates[0]
+        cloud_row = config.db_session.query(CLOUD).get((group_name, src_image.cloud_name))
+        os_session = get_openstack_session(cloud_row)
+        glance = get_glance_client(os_session, cloud_row.region)
+        result_tuple = download_image(glance, image_name, src_image.id, image_checksum, config.image_cache_dir)
+        if result_tuple[0]:
+            # successful download, update the cache and remove transaction
+            cache_dict = {
+                "image_name": image_name,
+                "checksum": image_checksum,
+                "container_format": result_tuple[3],
+                "disk_format": result_tuple[2]
+            }
+            new_cache_item = CACHE_IMAGES(**cache_dict)
+            config.db_session.merge(new_cache_item)
+            config.db_session.commit()
+            # ok we've got the image we can finally serve it up
+            image_path = config.image_cache_dir + image_name + "---" + image_checksum
+            response = StreamingHttpResponse((line for line in open(image_path, 'rb')))
+            response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
+            response['Content-Length'] = os.path.getsize(image_path)
+            config.db_close()
+            return response
+
+
+        else:
+            # Download failed for whatever reason, update message and return to images page
+            # check result_tuple for error message
+            return None
+
+    return None
 
 
 

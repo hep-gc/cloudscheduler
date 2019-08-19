@@ -112,10 +112,10 @@ def create_placeholder_image(glance, image_name, disk_format, container_format):
 
 # Upload an image to repo, returns image id if successful
 # if there is no image_id it is a direct upload and no placeholder exists
-def upload_image(glance, image_id, image_name, scratch_dir, disk_format=None, container_format=None):
+def upload_image(glance, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format=None):
     if image_id is not None:
         #this is the 2nd part of a transfer not a direct upload
-        file_path = scratch_dir + image_name
+        file_path = scratch_dir + image_name + "---" + image_checksum
         glance.images.upload(image_id, open(file_path, 'rb'))
         return glance.images.get(image_id)
 
@@ -131,12 +131,12 @@ def upload_image(glance, image_id, image_name, scratch_dir, disk_format=None, co
 
 
 # Download an image from the repo, returns True if successful or False if not
-def download_image(glance, image_name, image_id, scratch_dir):
+def download_image(glance, image_name, image_id, image_checksum, scratch_dir):
     #open file then write to it
     try:
         if not os.path.exists(scratch_dir):
             os.makedirs(scratch_dir)
-        file_path = scratch_dir + image_name
+        file_path = scratch_dir + image_name + "---" + image_checksum
         image_file = open(file_path, 'wb')
         for chunk in glance.images.data(image_id):
             image_file.write(bytes(chunk))
