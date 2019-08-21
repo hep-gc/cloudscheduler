@@ -826,6 +826,8 @@ def set_user_groups(config, request, super_user=True):
                     self.available_groups = []
 
                 self.flag_global_status = user['flag_global_status']
+                #self.flag_status_slot_detail = user['flag_status_slot_detail']
+                self.flag_status_slot_detail = 1
                 self.status_refresh_interval = user['status_refresh_interval']
 
                 self.args = []
