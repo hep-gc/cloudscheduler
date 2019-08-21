@@ -1,7 +1,7 @@
 /*
 ** Count the slots of each size.
 **
-** On the cloud status web page, when csv2_user, flag_show_slot_flavo=0 is set:
+** On the cloud status web page, when csv2_user, flag_show_slot_flavor=0 is set:
 **
 **        Slot Cores - Busy: 36, Idle: 4 (10.0%)
 **        
