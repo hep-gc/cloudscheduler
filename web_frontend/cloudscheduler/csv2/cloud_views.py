@@ -1343,20 +1343,6 @@ def status(request, group_name=None):
     cloud_status_list.append(global_total_list.copy())
 
 
-    # find the actual cores limit in use
-    '''
-    cloud_total_list['cores_limit'] = 0
-    n=0
-    for cloud in cloud_status_list:
-        if cloud['cores_ctl'] == -1:
-            cloud_status_list[n]['cores_limit'] = cloud['cores_native']
-        else:
-            cloud_status_list[n]['cores_limit'] = cloud['cores_ctl']
-
-        cloud_total_list['cores_limit'] += cloud_status_list[n]['cores_limit']
-        n=n+1
-    '''
-
     job_cores_list_totals = qt(job_cores_list, keys={
         'primary': [
             'group_name',
@@ -1374,29 +1360,92 @@ def status(request, group_name=None):
     job_totals_list = job_cores_list_totals
 
 
-    # get slot type counts
+    # Get slot type counts
     if active_user.flag_global_status:
         s = select([view_cloud_status_slot_detail])
-        slot_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        slot_detail_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
     else:
         s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
-        slot_list = qt(config.db_connection.execute(s))
+        slot_detail_list = qt(config.db_connection.execute(s))
 
 
-
-    slot_total_list = qt(slot_list, keys={
-        'primary': ['group_name', 'slot_type', 'slot_id'],
+    # Calculate the group totals:
+    slot_detail_total_list = qt(slot_detail_list, keys={
+        'primary': ['group_name','slot_type', 'slot_id'],
         'sum': [
             'slot_count',
             'core_count'
             ]
         })
 
+    # Calculate the global totals:
+    slot_detail_global_total_list = qt(slot_detail_list, keys={
+        'primary': ['slot_type', 'slot_id'],
+        'sum': [
+            'slot_count',
+            'core_count'
+            ]
+        })
+
+    # Append the totals to the main list:
+    for slot in slot_detail_total_list:
+        slot['cloud_name']=''
+        slot_detail_list.append(slot.copy())
+
+    # Append the GLOBAL totals to the main list:
+    for slot in slot_detail_global_total_list:
+        slot['group_name']=''
+        slot['cloud_name']=''
+        slot_detail_list.append(slot.copy())
+
+
     # Generate the slot detail values, grouping and summing slots by type.
 
-    slot_detail = gen_slot_detail(slot_list)
+    #slot_detail = gen_slot_detail(slot_list)
 
-    slot_detail_total = gen_slot_detail(slot_total_list)
+    #slot_detail_total = gen_slot_detail(slot_total_list)
+
+
+    # get slot summary
+    if active_user.flag_global_status:
+        s = select([view_cloud_status_slot_summary])
+        slot_summary_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+    else:
+        s = select([view_cloud_status_slot_summary]).where(view_cloud_status_slot_summary.c.group_name == active_user.active_group)
+        slot_summary_list = qt(config.db_connection.execute(s))
+    
+    # Calculate the group totals:
+    slot_summary_total_list = qt(slot_summary_list, keys={
+        'primary': ['group_name', 'flavor'],
+        'sum': [
+            'VMs',
+            'Active_CPUs',
+            'Idle_CPUs',
+            'Idle_Percent'
+            ]
+        })
+
+    # Calculate the GLOBAL totals:
+    slot_summary_global_total_list = qt(slot_summary_list, keys={
+        'primary': ['flavor'],
+        'sum': [
+            'VMs',
+            'Active_CPUs',
+            'Idle_CPUs',
+            'Idle_Percent'
+            ]
+        })
+
+    # Append the group totals to the main list:
+    for slot in slot_summary_total_list:
+        slot['cloud_name']=''
+        slot_summary_list.append(slot.copy())
+
+    # Append the GLOBAL totals to the main list:
+    for slot in slot_summary_global_total_list:
+        slot['group_name']=''        
+        slot['cloud_name']=''
+        slot_summary_list.append(slot.copy())
 
 
     # get job status per group
@@ -1478,19 +1527,25 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'cloud_status_list_totals': cloud_status_list_totals,
-            'global_total_list': global_total_list,
+            #'global_total_list': global_total_list,
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
             'system_list' : system_list,
-            'slot_list' : slot_list,
-            'slot_total_list': slot_total_list,
-            'slot_detail': slot_detail,
-            'slot_detail_total': slot_detail_total,
+            'slot_detail_list' : slot_detail_list,
+            'slot_detail_total_list': slot_detail_total_list,
+            'slot_summary_list' : slot_summary_list,
+            'slot_summary_total_list': slot_summary_total_list,           
+            #'slot_detail': slot_detail,
+            #'slot_detail_total': slot_detail_total,
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
+            #'slot_summary_flag': active_user.flag_status_slot_summary,
+            #'slot_detail_flag': active_user.flag_status_slot_detail,
+            'slot_summary_flag': 1,
+            'slot_detail_flag': 1,
             'status_refresh_interval': active_user.status_refresh_interval,
             'version': config.get_version()
         }
@@ -1499,6 +1554,7 @@ def status(request, group_name=None):
     return render(request, 'csv2/status.html', context)
 
 #-------------------------------------------------------------------------------
+'''
 @silkp(name="Generate slot detail list")
 def gen_slot_detail(slot_list):
 
@@ -1535,8 +1591,7 @@ def gen_slot_detail(slot_list):
 
 
     return slot_detail
-
-
+'''
 #-------------------------------------------------------------------------------
 
 @silkp(name="Cloud Plot")
