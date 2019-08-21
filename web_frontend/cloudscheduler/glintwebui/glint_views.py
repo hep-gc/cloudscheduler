@@ -1,7 +1,7 @@
-import json
 import time
 import logging
 import os
+import json
 
 from django.conf import settings
 config = settings.CSV2_CONFIG
@@ -11,7 +11,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
 
-from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image, download_image
+from .glint_utils import get_openstack_session, get_glance_client, delete_image, check_cache, generate_tx_id, get_image, download_image, upload_image
 
 from cloudscheduler.lib.view_utils import \
     render, \
@@ -195,6 +195,7 @@ def list(request, args=None, response_code=0, message=None):
     if rc != 0:
         config.db_close()
         return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
+    msg=message
 
     group = active_user.active_group
     images = db_session.query(IMAGES).filter(IMAGES.group_name == group, IMAGES.cloud_type == "openstack")
@@ -390,22 +391,344 @@ def delete(request, args=None, response_code=0, message=None):
         return None
 
 
-@silkp(name="Image Upload")
+@silkp(name='Image Upload')
 @requires_csrf_token
-def upload(request, args=None, response_code=0, message=None):
+def upload(request, group_name=None):
+    config.db_open()
+
+    IMAGES = config.db_map.classes.cloud_images
+    IMAGE_TX = config.db_map.classes.csv2_image_transactions
+    CLOUDS = config.db_map.classes.csv2_clouds
+    CACHE_IMAGES = config.db_map.classes.csv2_image_cache
+    logger.error("enter upload")
+    logger.info(group_name)
 
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
         config.db_close()
-        return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
-
-    #Need to queue a transaction after downloading the uploaded image and placing it into the cache
-    if request.method == 'POST':
+        #return render(request, 'glintwebui/images.html', {'response_code': 1, 'message': '%s %s' % (lno(MODID), msg)})
         return None
+    try:
+        image_file = request.FILES['myfile']
+    except Exception:
+        # no file means it's not a POST or it's an upload by URL
+        image_file = False
 
+    if request.method == 'POST' and image_file:
+        logger.info("Got upload post")
+        logger.info("File to upload: %s" % image_file.name)
+
+        if group_name is None:
+            # need to figure out where to get group name
+            logger.error("No group name, using user's default")
+            group_name = active_user.default_group
+
+        #process image upload
+        image_file = request.FILES['myfile']
+        file_path = config.image_cache_dir + image_file.name # This file will have to be renamed with the checksum after uploading to a cloud
+
+        #before we save it locally let us check if it is already in the repos
+        cloud_name_list = request.POST.getlist('clouds')
+        image_list = config.db_session.query(IMAGES).filter(IMAGES.name == image_file.name, IMAGES.group_name == group_name)
+        bad_clouds = []
+        if image_list.count() > 0:
+            #we've got some images by this name already lets see if any are in the target clouds
+            for image in image_list:
+                if image.cloud_name in cloud_name_list:
+                    bad_clouds.append(image.cloud_name)
+        if len(bad_clouds) > 0:
+            for cloud in bad_clouds:
+                cloud_name_list.remove(cloud)
+            msg = ("Upload failed for one or more projects because the image name was already in use.")
+
+        if len(cloud_name_list) == 0:
+            #if we have eliminated all the target clouds, return with error message
+            msg = "Upload failed to all target projects because the image name was already in use."
+            cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
+            context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': cloud_list.count(),
+                'redirect': "false",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': rc,
+                'message': msg,
+                'enable_glint': config.enable_glint,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+            config.db_close()
+            return render(request, 'glintwebui/upload_image.html', context)
+
+        #And finally before we save locally double check that file doesn't already exist
+        if os.path.exists(file_path):
+            # Filename exists locally, lets add some random suffix and check again
+            suffix = 1
+            new_path = file_path + str(suffix)
+            while os.path.exists(new_path):
+                suffix = suffix + 1
+                new_path = file_path + str(suffix)
+            file_path = new_path
+            
+
+        disk_format = request.POST.get('disk_format')
+        with open(file_path, 'wb+') as destination:
+            for chunk in image_file.chunks():
+                destination.write(chunk)
+
+        # Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
+        # get a cloud of of the list, first one is fine
+        target_cloud_name = cloud_name_list[0]
+        # get the cloud row for this cloud
+        target_cloud = config.db_session.query(CLOUDS).get((group_name, target_cloud_name))
+        os_session = get_openstack_session(target_cloud)
+        glance = get_glance_client(os_session, target_cloud.region)
+
+        logger.info("uploading image %s to cloud %s" % (image_file.name, target_cloud_name))
+
+        image = upload_image(glance, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
+        logger.info("Upload result: %s" % image)
+        # now we have the os image object, lets rename the file and add it to out cache
+        cache_path = config.image_cache_dir + image_file.name + "---" + image.checksum
+        os.rename(file_path, cache_path)
+
+        cache_dict = {
+                "image_name": image_file.name,
+                "checksum": image.checksum,
+                "container_format": image.container_format,
+                "disk_format": image.disk_format
+        }
+        new_cache_item = CACHE_IMAGES(**cache_dict)
+        config.db_session.merge(new_cache_item)
+        config.db_session.commit()
+
+        #now we need to queue transfer requests for the remaining clouds
+        cloud_name_list.remove(target_cloud_name)
+        if len(cloud_name_list) == 0:
+            # we are done and can return successfully
+            cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
+            context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': cloud_list.count(),
+                'redirect': "true",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': rc,
+                'message': "Upload Successful, returning to images...",
+                'enable_glint': config.enable_glint,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+            config.db_close()
+            return render(request, 'glintwebui/upload_image.html', context)
+
+        else:
+            # loop over remaining clouds and queue transfers
+            for cloud in cloud_name_list:
+                tx_id = generate_tx_id()
+                tx_req = {
+                    "tx_id":             tx_id,
+                    "status":            "pending",
+                    "target_group_name": group_name,
+                    "target_cloud_name": cloud,
+                    "image_name":        image_file.name,
+                    "image_id":          image.id,
+                    "checksum":          image.checksum,
+                    "requester":         active_user.username,
+                }
+                new_tx_req = IMAGE_TX(**tx_req)
+                db_session.merge(new_tx_req)
+                logger.info("Transfer queued")
+                tx_request.apply_async((tx_id,), queue='tx_requests')
+
+        #return to project details page with message
+        config.db_close()
+        msg="Uploads successfully queued, returning to images..."
+        cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
+        context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': cloud_list.count(),
+                'redirect': "true",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': rc,
+                'message': msg,
+                'enable_glint': config.enable_glint,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+        }
+        config.db_close()
+        return render(request, 'glintwebui/upload_image.html', context)
+
+    elif request.method == 'POST' and request.POST.get('myfileurl'):
+        if group_name is None:
+
+            logger.error("No group name, using user's default")
+            group_name = active_user.default_group
+
+
+        #download the image
+        img_url = request.POST.get('myfileurl')
+        image_name = img_url.rsplit("/", 1)[-1]
+        logger.info("File to upload: %s" % image_name)
+        file_path = config.image_cache_dir + image_name # This file will have to be renamed with the checksum after uploading to a cloud
+
+        # check if a file with that name already exists
+        if os.path.exists(file_path):
+            # Filename exists locally, lets add some suffix and check again
+            suffix = 1
+            new_path = file_path + str(suffix)
+            while os.path.path.exists(new_path):
+                suffix = suffix + 1
+                new_path = file_path + str(suffix)
+            file_path = new_path
+
+        #before we save it locally let us check if it is already in the repos
+        cloud_name_list = request.POST.getlist('clouds')
+        image_list = config.db_session.query(IMAGES).filter(IMAGES.image_name == image_file.name, IMAGES.group_name == group_name)
+        bad_clouds = []
+        if image_list.count() > 0:
+            #we've got some images by this name already lets see if any are in the target clouds
+            for image in image_list:
+                if image.cloud_name in cloud_name_list:
+                    bad_clouds.append(image.cloud_name)
+        if len(bad_clouds) > 0:
+            for cloud in bad_clouds:
+                cloud_name_list.remove(cloud)
+            msg = ("Upload failed for one or more projects because the image name was already in use.")
+
+        if len(cloud_name_list) == 0:
+            #if we have eliminated all the target clouds, return with error message
+            message = ("Upload failed to all target projects because the image name was already in use.")
+            cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
+            context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': cloud_list.count(),
+                'redirect': "false",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': rc,
+                'message': msg,
+                'enable_glint': config.enable_glint,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+            config.db_close()
+            return render(request, 'glintwebui/upload_image.html', context)
+            
+
+        image_data = urllib3.urlopen(img_url)
+
+        with open(file_path, "wb") as image_file:
+            image_file.write(image_data.read())
+
+        disk_format = request.POST.get('disk_format')
+        
+        #Now we have a source file we need to upload it to one of the clouds to get a checksum so we can queue up transfer requests
+        # get a cloud of of the list, first one is fine
+        target_cloud_name = cloud_name_list[0]
+        # get the cloud row for this cloud
+        target_cloud = config.db_session.query(CLOUDS).get((group_name, target_cloud_name))
+        os_session = get_openstack_session(target_cloud)
+        glance = get_glance_client(os_session, target_cloud.region)
+
+        image = upload_image(glance, None, image_file.name, file_path, request.POST.get('disk_format'))
+        # now we have the os image object, lets rename the file and add it to out cache
+        cache_path = config.image_cache_dir + image_file.name + "---" + image.checksum
+        os.rename(file_path, cache_path)
+
+        cache_dict = {
+                "image_name": image_file.name,
+                "checksum": image.checksum,
+                "container_format": image.container_format,
+                "disk_format": image.disk_format
+        }
+        new_cache_item = CACHE_IMAGES(**cache_dict)
+        config.db_session.merge(new_cache_item)
+        config.db_session.commit()
+
+        #now we need to queue transfer requests for the remaining clouds
+        cloud_name_list.remove(target_cloud_name)
+        if len(cloud_name_list) == 0:
+            # we are done and can return successfully
+            pass
+        else:
+            # loop over remaining clouds and queue transfers
+            for cloud in cloud_name_list:
+                tx_id = generate_tx_id()
+                tx_req = {
+                    "tx_id":             tx_id,
+                    "status":            "pending",
+                    "target_group_name": group_name,
+                    "target_cloud_name": cloud,
+                    "image_name":        image_file.name,
+                    "image_id":          image.id,
+                    "checksum":          image.checksum,
+                    "requester":         active_user.username,
+                }
+                new_tx_req = IMAGE_TX(**tx_req)
+                db_session.merge(new_tx_req)
+                logger.info("Transfer queued")
+                tx_request.apply_async((tx_id,), queue='tx_requests')
+
+        #return to project details page with message
+        cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
+        context = {
+                'group_name': group_name,
+                'cloud_list': cloud_list,
+                'max_repos': cloud_list.count(),
+                'redirect': "true",
+
+                #view agnostic data
+                'active_user': active_user.username,
+                'active_group': active_user.active_group,
+                'user_groups': active_user.user_groups,
+                'response_code': rc,
+                'message': "Uploads queued successfully, returning to images...",
+                'enable_glint': config.enable_glint,
+                'is_superuser': active_user.is_superuser,
+                'version': config.get_version()
+            }
+        config.db_close()
+        return render(request, 'glintwebui/upload_image.html', context)
     else:
-        #Not a post request, render image page again
-        return None
+        #render page to upload image
+        cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
+        context = {
+            'group_name': group_name,
+            'cloud_list': cloud_list,
+            'max_repos': cloud_list.count(),
+            'redirect': "false",
+
+            #view agnostic data
+            'active_user': active_user.username,
+            'active_group': active_user.active_group,
+            'user_groups': active_user.user_groups,
+            'response_code': rc,
+            'message': msg,
+            'enable_glint': config.enable_glint,
+            'is_superuser': active_user.is_superuser,
+            'version': config.get_version()
+        }
+        config.db_close()
+        return render(request, 'glintwebui/upload_image.html', context)
+
 
 
 @silkp(name="Image Download")

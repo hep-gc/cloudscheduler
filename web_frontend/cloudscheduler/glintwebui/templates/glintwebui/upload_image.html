@@ -22,13 +22,43 @@
 
 </style>
 
+{% block navbar %}
+   {% include "csv2/navigation_bar.html" %}
+{% endblock %}
+
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/common.css" %}?{{version}}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/menu.css" %}?{{version}}">
+    <link rel="stylesheet" type="text/css" href="{% static "csv2/overlay.css" %}?{{version}}">
+
+    <script type="text/javascript" src="{% static "csv2/common.js" %}?{{version}}"></script>
+
+    <script type="text/javascript">
+
+        function save_location(group){
+            sessionStorage.setItem("group", group); 
+        }
+
+        function set_location(){
+            if(sessionStorage.getItem("group")){
+                document.location.hash = sessionStorage.getItem("group");
+            }
+            else{
+                document.location.hash = "{{group_list.0.group_name}}"
+            }
+        }
+
+    </script>
+</head>
+
+
+<body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;">
 <div class="image upload">
-	{% if message is not None%}
-		<p style="color:red; font-weight:bold">{{message}}</p>
-	{% endif%}
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}
-	<table style="width: 30%;">
+	<table style="width: 110%;">
 		<tr id="imagefromfile">
 			<td><label for="myfile">Image File:</label></td>
 			<td><input type="file" name="myfile">
@@ -68,8 +98,8 @@
 					</div>
 					<div>
 						<select id="rightValues" size="{{max_repos}}" multiple>
-							{% for repo in image_dict %}
-								<option>{{repo}}</option>
+							{% for cloud in cloud_list %}
+								<option>{{cloud.cloud_name}}</option>
 							{% endfor %}
 						</select>
 					</div>
@@ -77,11 +107,23 @@
 			</td>
 		</tr>
 		
-		<tr><td/><td><a href="/images/"><input type="button" value="Cancel"/></a><button style="float:right" type="submit">Upload</button></td></tr>
+		<tr><td/><td><a href="/images/"><input type="button" value="Cancel"/></a><button style="float:right" onclick='submit_upload()'>Upload</button></td></tr>
 	</table>
 	</form>
 
 </div>
+
+</body>
+
+<footer>
+    <div class="footer">
+        {% if response_code == 1 %} 
+            <tr><td><b>Error: {{ message }}</b></td></tr>
+        {% elif message is not None %} 
+            <tr><td><b>{{ message }}</b></td></tr>
+        {% endif %}
+    </div>  
+</footer>
 
 
 <script>
@@ -115,5 +157,26 @@ $("#rightValues").change(function () {
     var selectedItem = $("#rightValues option:selected");
     $("#txtRight").val(selectedItem.text());
 });
+
+
+function submit_upload() {
+    //
+
+
+}
+
+
+if({{ redirect }} == true){
+
+    // Your application has indicated there's an error
+    window.setTimeout(function(){
+
+        // Move to a new location or you can do something else
+        window.location.href = "/images/?{{ group_name }}";
+
+    }, 5000);
+
+}
+
 
 </script>
