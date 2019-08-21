@@ -1,0 +1,58 @@
+/*
+** Count the slots of each size.
+**
+** On the cloud status web page, when csv2_user, flag_show_slot_flavor=1 is set:
+**
+**        Flavor: m1.large (8), Slot Cores - Busy: 36, Idle: 4 (10.0%)
+**        
+**            8 core slot totals - slots: 2, cores: 16                    ###
+**                Id Slots Cores
+**               1_1    2     16                      
+**        
+**            1 core slot totals - slots: 20, cores: 20                   ### View used for these lines.
+**                Id Slots Cores
+**               1_1    3      3
+**               1_2    2      2
+**               1_3    3      3
+**               1_4    3      3
+**               1_5    1      1
+**               1_6    3      3
+**               1_7    2      2
+**               1_8    3      3
+*/
+create or replace view view_cloud_status_flavor_slot_detail_summary as
+select
+    cm.group_name,
+    cm.cloud_name,
+    concat(cm.flavor, ' (', cf.cores, ')') as flavor,
+    slot_type,
+    cm.core_count
+from (
+    select
+        group_name,
+        cloud_name,
+        flavor,
+        slot_type,
+        sum(core_count) as core_count
+    from (
+        select
+            group_name,
+            cloud_name,
+            substring_index(flavor, ':', -1) as flavor,
+            slot_cpus as slot_type,
+            slot_cpus as core_count
+        from condor_machines
+        where
+            slot_type='dynamic'
+    ) as cm
+    group by
+        group_name,
+        cloud_name,
+        flavor,
+        slot_type
+) as cm
+left outer join cloud_flavors as cf on
+    cm.group_name=cf.group_name and
+    cm.cloud_name=cf.cloud_name and
+    cm.flavor=cf.name
+;
