@@ -112,7 +112,7 @@ def create_placeholder_image(glance, image_name, disk_format, container_format):
 
 # Upload an image to repo, returns image id if successful
 # if there is no image_id it is a direct upload and no placeholder exists
-def upload_image(glance, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format=None):
+def upload_image(glance, image_id, image_name, scratch_dir, image_checksum=None, disk_format=None, container_format="bare"):
     if image_id is not None:
         #this is the 2nd part of a transfer not a direct upload
         file_path = scratch_dir + image_name + "---" + image_checksum
@@ -127,7 +127,7 @@ def upload_image(glance, image_id, image_name, scratch_dir, image_checksum=None,
             container_format=container_format)
         glance.images.upload(image.id, open(scratch_dir, 'rb'))
         logging.info("Upload complete")
-        return image 
+        return glance.images.get(image.id) 
 
 
 # Download an image from the repo, returns True if successful or False if not

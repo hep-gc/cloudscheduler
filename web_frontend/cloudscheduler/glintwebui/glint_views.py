@@ -400,8 +400,6 @@ def upload(request, group_name=None):
     IMAGE_TX = config.db_map.classes.csv2_image_transactions
     CLOUDS = config.db_map.classes.csv2_clouds
     CACHE_IMAGES = config.db_map.classes.csv2_image_cache
-    logger.error("enter upload")
-    logger.info(group_name)
 
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
     if rc != 0:
@@ -415,7 +413,6 @@ def upload(request, group_name=None):
         image_file = False
 
     if request.method == 'POST' and image_file:
-        logger.info("Got upload post")
         logger.info("File to upload: %s" % image_file.name)
 
         if group_name is None:
@@ -532,6 +529,7 @@ def upload(request, group_name=None):
 
         else:
             # loop over remaining clouds and queue transfers
+            logger.info("Queuing additonal uploads...")
             for cloud in cloud_name_list:
                 tx_id = generate_tx_id()
                 tx_req = {
@@ -545,12 +543,12 @@ def upload(request, group_name=None):
                     "requester":         active_user.username,
                 }
                 new_tx_req = IMAGE_TX(**tx_req)
-                db_session.merge(new_tx_req)
-                logger.info("Transfer queued")
+                config.db_session.merge(new_tx_req)
+                config.db_session.commit()
+                logger.info("Transfer id:%s queued" % tx_id)
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
         #return to project details page with message
-        config.db_close()
         msg="Uploads successfully queued, returning to images..."
         cloud_list = config.db_session.query(CLOUDS).filter(CLOUDS.group_name == group_name, CLOUDS.cloud_type == "openstack")
         context = {
@@ -683,8 +681,9 @@ def upload(request, group_name=None):
                     "requester":         active_user.username,
                 }
                 new_tx_req = IMAGE_TX(**tx_req)
-                db_session.merge(new_tx_req)
-                logger.info("Transfer queued")
+                config.db_session.merge(new_tx_req)
+                config.db_session.commit()
+                logger.info("Transfer id:%s queued" % tx_id)
                 tx_request.apply_async((tx_id,), queue='tx_requests')
 
         #return to project details page with message
