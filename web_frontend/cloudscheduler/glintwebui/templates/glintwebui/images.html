@@ -3,6 +3,7 @@
    {% include "csv2/navigation_bar.html" %}
 {% endblock %}
 
+<link rel="stylesheet" href="/static/glintwebui/css/glint_matrix.css">
 
 <style>
 .pending {
@@ -14,7 +15,7 @@
 }
 
 .shared {
-    background-color: #FFCD00;
+    background-color: #4FE53E;
 }
 
 .private {
@@ -25,9 +26,10 @@
     background-color: #FFCD00;
 }
 
-.missing {
-    background-color: #9E9E9E;
+.button {
+    font-size: 20px !important;
 }
+
 
 </style>
 
@@ -89,13 +91,13 @@
                 <!-- img tuples have the following format: (status, message, visibility) where status' are missing, present, pending delete, pending transfer, error-->
                 {% for img_tuple in image_list %}
                     {% if img_tuple.0 == "missing" %}
-                        <td title="{{img_tuple.1}}" style="text-align:center" class="missing"><button onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Transfer</button> </td>
+                        <td title="{{img_tuple.1}}" style="text-align:center" class="missing"><button onclick='transfer_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>O</button> </td>
                     {% elif img_tuple.0 == "present" %}
                         <!-- If image is here and the visibility is shared, we can't delete it so grey out the button -->
                         {% if img_tuple.2 == "public" %}
-                            <td title="Can't delete public images" style="text-align:center" class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")' disabled>Delete</button></td>
+                            <td title="Can't delete public images" style="text-align:center" class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")' disabled>✔️</button></td>
                         {% else %}
-                            <td title="{{img_tuple.1}}" style="text-align:center" class="{{img_tuple.2}}"><button onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Delete</button></td>
+                            <td title="{{img_tuple.1}}" style="text-align:center" class="{{img_tuple.2}}"><button class="button" title="Delete image" onclick='delete_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>✔️</button></td>
                         {% endif %}
                     {% elif img_tuple.0 == "pending" %}
                         <td title="{{img_tuple.1}}" style="text-align:center" class="{{img_tuple.2}}">pending transfer</td>
@@ -104,7 +106,7 @@
                     {% elif img_tuple.0 == "pending delete" %}
                         <td title="{{img_tuple.1}}" style="text-align:center" class="{{img_tuple.2}}">pending delete</td>
                     {% elif img_tuple.0 == "error"%}
-                        <td title="Error: {{img_tuple.1}}" style="text-align:center" class="error"><button onclick='retry_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Retry</button><button onclick='clear_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>Clear</button></td>
+                        <td title="Error: {{img_tuple.1}}" style="text-align:center" class="error"><button title="Retry request" onclick='retry_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>↻</button><button title="Clear request" onclick='clear_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>✘</button></td>
                     {% endif %}
                 {% endfor %}
             </tr>
@@ -177,30 +179,32 @@
 
 
     function delete_req(image_key, cloud_name, group_name) {
-        var csrftoken = getCookie('csrftoken');
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/images/delete/", false);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        xhr.send(JSON.stringify({
-            image_key: image_key,
-            cloud_name: cloud_name,
-            group_name: group_name
-        }));
-        var resp = xhr.responseText;
-        console.log(resp);
-        var json_response = JSON.parse(resp);
-        var new_msg = json_response.message;
-        console.log(new_msg);
-        var rc = json_response.response_code;
-        if ( rc == 0) {
-            document.getElementsByTagName("footer")[0].getElementsByTagName("div")[0].innerHTML = new_msg;
+        if (confirm("Are you sure you want to delete: " + image_key + "on: " + cloud_name) == true) {
+            var csrftoken = getCookie('csrftoken');
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/images/delete/", false);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.send(JSON.stringify({
+                image_key: image_key,
+                cloud_name: cloud_name,
+                group_name: group_name
+            }));
+            var resp = xhr.responseText;
+            console.log(resp);
+            var json_response = JSON.parse(resp);
+            var new_msg = json_response.message;
+            console.log(new_msg);
+            var rc = json_response.response_code;
+            if ( rc == 0) {
+                document.getElementsByTagName("footer")[0].getElementsByTagName("div")[0].innerHTML = new_msg;
+            }
+            else {
+                new_msg = "Error: " + new_msg;
+                document.getElementsByTagName("footer")[0].getElementsByTagName("div")[0].innerHTML = new_msg;
+            }
+            setTimeout("location.href = '/images/?{{active_group}}'",3000);
         }
-        else {
-            new_msg = "Error: " + new_msg;
-            document.getElementsByTagName("footer")[0].getElementsByTagName("div")[0].innerHTML = new_msg;
-        }
-        setTimeout("location.href = '/images/?{{active_group}}'",3000);
     };
 
 
