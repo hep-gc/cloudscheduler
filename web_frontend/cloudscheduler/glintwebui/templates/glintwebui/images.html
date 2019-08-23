@@ -106,7 +106,9 @@
                     {% elif img_tuple.0 == "pending delete" %}
                         <td title="{{img_tuple.1}}" style="text-align:center" class="{{img_tuple.2}}">pending delete</td>
                     {% elif img_tuple.0 == "error"%}
-                        <td title="Error: {{img_tuple.1}}" style="text-align:center" class="error"><button title="Retry request" onclick='retry_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>↻</button><button title="Clear request" onclick='clear_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>✘</button></td>
+                        <td title="Error: {{img_tuple.1}}" style="text-align:center" class="error"><button title="Retry request
+Error: {{img_tuple.1}}" onclick='retry_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>↻</button><button title="Clear request
+Error: {{img_tuple.1}}" onclick='clear_req("{{image_key}}", "{{img_tuple.3}}", "{{active_group}}")'>✘</button></td>
                     {% endif %}
                 {% endfor %}
             </tr>
