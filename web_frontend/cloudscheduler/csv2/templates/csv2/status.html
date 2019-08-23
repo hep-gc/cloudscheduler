@@ -614,11 +614,11 @@
                                                     {% for summary in flavor_slot_detail_summary %}
                                                         {% if summary.group_name == cloud.group_name and summary.cloud_name == cloud.cloud_name and summary.flavor == slot.flavor %}
 
-                                                        <tr>
-                                                            <td></td>
-                                                            <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
-                                                        </tr>
                                                         {% if slot_detail_flag %}                                            
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
+                                                            </tr>
                                                             <tr>
                                                                 <td></td>
                                                                 <td></td>
@@ -639,8 +639,8 @@
                                                                 </tr>
                                                                 {% endif %}
                                                             {% endfor %}
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
                                                         {% endif %}
-                                                        <tr><td colspan="4">&nbsp;</td></tr>
 
                                                     {% endif %}
                                                 {% endfor %}
@@ -662,11 +662,12 @@
                                                     {% for summary in slot_detail_summary %}
                                                         {% if summary.group_name == cloud.group_name and summary.cloud_name == cloud.cloud_name %}
 
-                                                        <tr>
-                                                            <td></td>
-                                                            <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
-                                                        </tr>
                                                         {% if slot_detail_flag %}                                            
+
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
+                                                            </tr>
                                                             <tr>
                                                                 <td></td>
                                                                 <td></td>
@@ -687,8 +688,8 @@
                                                                 </tr>
                                                                 {% endif %}
                                                             {% endfor %}
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
                                                         {% endif %}
-                                                        <tr><td colspan="4">&nbsp;</td></tr>
 
                                                     {% endif %}
                                                 {% endfor %}
