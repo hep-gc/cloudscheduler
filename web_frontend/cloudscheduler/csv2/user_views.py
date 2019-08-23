@@ -62,11 +62,12 @@ UNPRIVILEGED_USER_KEYS = {
         'password2':               'password2',
         'status_refresh_interval': 'integer',
         'flag_global_status':      'dboolean',
+        'flag_show_slot_detail':   'dboolean',
+        'flag_show_slot_flavors':  'dboolean',
+        'csrfmiddlewaretoken':     'ignore',
+        'group':                   'ignore',
 
-        'csrfmiddlewaretoken': 'ignore',
-        'group':               'ignore',
-
-        'username':            'reject',
+        'username':                'reject',
         },
     }
 
