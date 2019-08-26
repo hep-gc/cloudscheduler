@@ -17,7 +17,7 @@ from cloudscheduler.lib.view_utils import \
     render, \
     lno, \
     set_user_groups
-
+from cloudscheduler.lib.attribute_mapper import map_attributes
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
 
 from .celery_app import pull_request, tx_request
@@ -489,6 +489,35 @@ def upload(request, group_name=None):
 
         image = upload_image(glance, None, image_file.name, file_path, disk_format=request.POST.get('disk_format'))
         logger.info("Upload result: %s" % image)
+        # add it to the csv2_images table
+        if image.size == "":
+            size = 0
+        else:
+            size = image.size
+        new_image_dict = {
+            'group_name': target_cloud.group_name,
+            'cloud_name': target_cloud.cloud_name,
+            'container_format': image.container_format,
+            'checksum': image.checksum,
+            'cloud_type': "openstack",
+            'disk_format': image.disk_format,
+            'min_ram': image.min_ram,
+            'id': image.id,
+            'size': size,
+            'visibility': image.visibility,
+            'min_disk': image.min_disk,
+            'name': image.name,
+            'last_updated': time.time()
+        }
+        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict)
+        if unmapped:
+            logging.error("Unmapped attributes found during mapping, discarding:")
+            logging.error(unmapped)
+        new_image = IMAGES(**new_image_dict)
+        config.db_session.merge(new_image)
+        config.db_session.commit()
+
+
         # now we have the os image object, lets rename the file and add it to out cache
         cache_path = config.image_cache_dir + image_file.name + "---" + image.checksum
         os.rename(file_path, cache_path)
@@ -647,6 +676,33 @@ def upload(request, group_name=None):
         glance = get_glance_client(os_session, target_cloud.region)
 
         image = upload_image(glance, None, image_file.name, file_path, request.POST.get('disk_format'))
+        # add it to the csv2_images table
+        if image.size == "":
+            size = 0
+        else:
+            size = image.size
+        new_image_dict = {
+            'group_name': target_cloud.group_name,
+            'cloud_name': target_cloud.cloud_name,
+            'container_format': image.container_format,
+            'checksum': image.checksum,
+            'cloud_type': "openstack",
+            'disk_format': image.disk_format,
+            'min_ram': image.min_ram,
+            'id': image.id,
+            'size': size,
+            'visibility': image.visibility,
+            'min_disk': image.min_disk,
+            'name': image.name,
+            'last_updated': time.time()
+        }
+        img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=new_image_dict)
+        if unmapped:
+            logging.error("Unmapped attributes found during mapping, discarding:")
+            logging.error(unmapped)
+        new_image = IMAGES(**new_image_dict)
+        config.db_session.merge(new_image)
+        config.db_session.commit()
         # now we have the os image object, lets rename the file and add it to out cache
         cache_path = config.image_cache_dir + image_file.name + "---" + image.checksum
         os.rename(file_path, cache_path)
