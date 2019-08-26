@@ -215,8 +215,8 @@
 /*****************************************************************/
 
 .float-left{
-  float: left !important;
-  text-align: left !important;
+  float: left;
+  text-align: left;
 }
 
 .float-right{
@@ -247,6 +247,10 @@
 .extra-row a {
   text-decoration: none;
   color: black;
+}
+
+.slot-summary {
+  text-align: left;
 }
 
 .slot-detail td {
