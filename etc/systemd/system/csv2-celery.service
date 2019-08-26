@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=forking
-User=root
-Group=celery
+User=cloudscheduler
+Group=cloudscheduler
 EnvironmentFile=-/etc/cloudscheduler/celery
 WorkingDirectory=/opt/cloudscheduler/web_frontend/cloudscheduler
 ExecStart=/bin/sh -c '${CELERY_BIN} multi start $CELERYD_NODES  \
