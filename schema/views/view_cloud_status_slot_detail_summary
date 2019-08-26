@@ -25,12 +25,14 @@ select
     group_name,
     cloud_name,
     slot_type,
+    sum(slot_count) as slot_count,
     sum(core_count) as core_count
 from (
     select
         group_name,
         cloud_name,
         slot_cpus as slot_type,
+        1 as slot_count,
         slot_cpus as core_count
     from condor_machines
     where
