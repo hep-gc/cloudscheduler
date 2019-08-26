@@ -619,7 +619,7 @@
                                                                 <td></td>
                                                                 <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
                                                             </tr>
-                                                            <tr>
+                                                            <tr class="slot-detail">
                                                                 <td></td>
                                                                 <td></td>
                                                                 <td><b>ID</b></td>
@@ -629,7 +629,7 @@
                                                             {% for detail in flavor_slot_detail %}
                                                                 {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type %}
 
-                                                                <tr>
+                                                                <tr class="slot-detail">
                                                                     <!--<td>{{detail.slot_type}}</td>-->
                                                                     <td></td>
                                                                     <td></td>
@@ -668,7 +668,7 @@
                                                                 <td></td>
                                                                 <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
                                                             </tr>
-                                                            <tr>
+                                                            <tr class="slot-detail">
                                                                 <td></td>
                                                                 <td></td>
                                                                 <td><b>ID</b></td>
@@ -678,7 +678,7 @@
                                                             {% for detail in slot_detail %}
                                                                 {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type %}
 
-                                                                <tr>
+                                                                <tr class="slot-detail">
                                                                     <!--<td>{{detail.slot_type}}</td>-->
                                                                     <td></td>
                                                                     <td></td>

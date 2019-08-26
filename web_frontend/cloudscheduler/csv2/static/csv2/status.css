@@ -215,8 +215,8 @@
 /*****************************************************************/
 
 .float-left{
-  float: left;
-  text-align: left;
+  float: left !important;
+  text-align: left !important;
 }
 
 .float-right{
@@ -249,7 +249,7 @@
   color: black;
 }
 
-.slot-detail table{
+.slot-detail td {
   text-align: center;
 }
 
