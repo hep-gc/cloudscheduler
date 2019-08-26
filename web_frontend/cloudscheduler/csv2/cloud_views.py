@@ -1359,16 +1359,58 @@ def status(request, group_name=None):
 
     job_totals_list = job_cores_list_totals
 
+    '''
+    view_cloud_status_flavor_slot_detail
+    view_cloud_status_flavor_slot_detail_summary
+    view_cloud_status_flavor_slot_summary
+    view_cloud_status_slot_detail
+    view_cloud_status_slot_detail_summary
+    view_cloud_status_slot_summary
+    '''
 
     # Get slot type counts
     if active_user.flag_global_status:
+
+        s = select([view_cloud_status_flavor_slot_detail])
+        flavor_slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = select([view_cloud_status_flavor_slot_detail_summary])
+        flavor_slot_detail_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = select([view_cloud_status_flavor_slot_summary])
+        flavor_slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
         s = select([view_cloud_status_slot_detail])
-        slot_detail_list = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+        slot_detail = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = select([view_cloud_status_slot_detail_summary])
+        slot_detail_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
+        s = select([view_cloud_status_slot_summary])
+        slot_summary = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], ["mygroups"], aliases=GROUP_ALIASES, and_or='or'))
+
     else:
+
+        s = select([view_cloud_status_flavor_slot_detail]).where(view_cloud_status_flavor_slot_detail.c.group_name == active_user.active_group)
+        flavor_slot_detail = qt(config.db_connection.execute(s))
+
+        s = select([view_cloud_status_flavor_slot_detail_summary]).where(view_cloud_status_flavor_slot_detail_summary.c.group_name == active_user.active_group)
+        flavor_slot_detail_summary = qt(config.db_connection.execute(s))
+        
+        s = select([view_cloud_status_flavor_slot_summary]).where(view_cloud_status_flavor_slot_summary.c.group_name == active_user.active_group)
+        flavor_slot_summary = qt(config.db_connection.execute(s))
+        
         s = select([view_cloud_status_slot_detail]).where(view_cloud_status_slot_detail.c.group_name == active_user.active_group)
-        slot_detail_list = qt(config.db_connection.execute(s))
+        slot_detail = qt(config.db_connection.execute(s))
+        
+        s = select([view_cloud_status_slot_detail_summary]).where(view_cloud_status_slot_detail_summary.c.group_name == active_user.active_group)
+        slot_detail_summary = qt(config.db_connection.execute(s))
+        
+        s = select([view_cloud_status_slot_summary]).where(view_cloud_status_slot_summary.c.group_name == active_user.active_group)
+        slot_summary = qt(config.db_connection.execute(s))
 
 
+    '''
     # Calculate the group totals:
     slot_detail_total_list = qt(slot_detail_list, keys={
         'primary': ['group_name','slot_type', 'slot_id'],
@@ -1377,6 +1419,7 @@ def status(request, group_name=None):
             'core_count'
             ]
         })
+
 
     # Calculate the global totals:
     slot_detail_global_total_list = qt(slot_detail_list, keys={
@@ -1413,7 +1456,7 @@ def status(request, group_name=None):
     else:
         s = select([view_cloud_status_slot_summary]).where(view_cloud_status_slot_summary.c.group_name == active_user.active_group)
         slot_summary_list = qt(config.db_connection.execute(s))
-    
+
     # Calculate the group totals:
     slot_summary_total_list = qt(slot_summary_list, keys={
         'primary': ['group_name', 'flavor'],
@@ -1432,9 +1475,8 @@ def status(request, group_name=None):
             'VMs',
             'Active_CPUs',
             'Idle_CPUs',
-            'Idle_Percent'
-            ]
-        })
+
+
 
     # Append the group totals to the main list:
     for slot in slot_summary_total_list:
@@ -1447,7 +1489,7 @@ def status(request, group_name=None):
         slot['cloud_name']=''
         slot_summary_list.append(slot.copy())
 
-
+    '''
     # get job status per group
     if active_user.flag_global_status:
         s = select([view_job_status])
@@ -1531,21 +1573,26 @@ def status(request, group_name=None):
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
             'system_list' : system_list,
-            'slot_detail_list' : slot_detail_list,
-            'slot_detail_total_list': slot_detail_total_list,
-            'slot_summary_list' : slot_summary_list,
-            'slot_summary_total_list': slot_summary_total_list,           
+            #'slot_detail_list' : slot_detail_list,
+            #'slot_detail_total_list': slot_detail_total_list,
+            #'slot_summary_list' : slot_summary_list,
+            #'slot_summary_total_list': slot_summary_total_list,           
             #'slot_detail': slot_detail,
             #'slot_detail_total': slot_detail_total,
+            'flavor_slot_detail': flavor_slot_detail,
+            'flavor_slot_detail_summary': flavor_slot_detail_summary,
+            'flavor_slot_summary': flavor_slot_summary,
+            'slot_detail': slot_detail,
+            'slot_detail_summary': slot_detail_summary,
+            'slot_summary': slot_summary,
+
             'response_code': 0,
             'message': None,
             'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
-            #'slot_summary_flag': active_user.flag_status_slot_summary,
-            #'slot_detail_flag': active_user.flag_status_slot_detail,
-            'slot_summary_flag': 1,
-            'slot_detail_flag': 1,
+            'slot_detail_flag': active_user.flag_show_slot_detail,
+            'slot_flavor_flag': active_user.flag_show_slot_flavors,
             'status_refresh_interval': active_user.status_refresh_interval,
             'version': config.get_version()
         }

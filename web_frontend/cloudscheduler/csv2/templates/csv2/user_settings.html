@@ -56,6 +56,26 @@
                         </td></tr>
 
 
+                        <input type="hidden" name="flag_show_slot_detail" value="0"/>
+                        <tr class="highlight3"><td><label for="flag_show_slot_detail">Enabled slot detail on status page</label></td>
+                        <td>
+                        {% if user.flag_show_slot_detail == 1%}
+                            <input type="checkbox" name="flag_show_slot_detail" value="1" checked/>
+                        {% else %}
+                            <input type="checkbox" name="flag_show_slot_detail" value="1" />
+                        {% endif %}
+                        </td></tr>
+
+                        <input type="hidden" name="flag_show_slot_flavors" value="0"/>
+                        <tr class="highlight3"><td><label for="flag_show_slot_flavors">Enabled slot flavor info on status page</label></td>
+                        <td>
+                        {% if user.flag_show_slot_flavors == 1%}
+                            <input type="checkbox" name="flag_show_slot_flavors" value="1" checked/>
+                        {% else %}
+                            <input type="checkbox" name="flag_show_slot_flavors" value="1" />
+                        {% endif %}
+                        </td></tr>
+
                         <tr class="highlight3"><td><label for="status_refresh_interval">Status refresh interval (sec)</label></td>
                         <td><input type="number" name="status_refresh_interval" value="{{user.status_refresh_interval}}" /></td></tr>
 
