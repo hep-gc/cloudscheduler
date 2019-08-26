@@ -19,7 +19,7 @@ from cloudscheduler.lib.poller_functions import \
     build_inventory_for_condor, \
     start_cycle, \
     wait_cycle
-from cloudscheduler.lib.CondorRpcClient import CondorRpcClient
+from cloudscheduler.lib.rpc_client import RPC
 
 from keystoneclient.auth.identity import v2, v3
 from keystoneauth1 import session
@@ -466,7 +466,7 @@ def command_poller():
                         #master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
                         if condor_rpc is None:
                             try:
-                                condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
+                                condor_rpc = RPC(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
                             except Exception as exc:
                                 logging.error("Failed to create condor RPC client, skipping...:")
                                 logging.error(exc)
@@ -478,9 +478,10 @@ def command_poller():
                         }
                         command_yaml = yaml.dump(command_dict)
                         command_results = condor_rpc.call(command_yaml, timeout=30)
-                        if command_results[0] != 0:
+                        if command_results is None or command_results[0] != 0:
                             # command failed
-                            if command_results[0] == 2:
+                            if command_results == None:
+                                # we got a timeout
                                 # timeout on the call, agent problems or offline
                                 logging.error("RPC call timed out, agent offline or in error")
                                 jsched = {
@@ -499,7 +500,8 @@ def command_poller():
 
                             logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
-                            logging.error(command_results[1])
+                            if command_results is not None:
+                                logging.error(command_results[1])
                             continue
                         else:
                             #it was successfull
@@ -644,7 +646,7 @@ def command_poller():
                         try:
                             if condor_rpc is None:
                                 try:
-                                    condor_rpc = CondorRpcClient(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
+                                    condor_rpc = RPC(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
                                 except Exception as exc:
                                     logging.error("Failed to create condor RPC client, skipping...:")
                                     logging.error(exc)
@@ -656,9 +658,9 @@ def command_poller():
                             }
                             command_yaml = yaml.dump(command_dict)
                             command_results = condor_rpc.call(command_yaml, timeout=30)
-                            if command_results[0] != 0:
+                            if command_results is None or command_results[0] != 0:
                                 # command failed
-                                if command_results[0] == 2:
+                                if command_results is None:
                                     # timeout on the call, agent problems or offline
                                     logging.error("RPC call timed out, agent offline or in error")
                                     jsched = {
@@ -690,7 +692,8 @@ def command_poller():
                                     config.db_session.merge(new_jsched)
                                  
                                 logging.error("RPC invalidate failed for machine: %s//%s" % (resource.machine, resource.hostname))
-                                logging.error(command_results[1])
+                                if command_results is not None:
+                                    logging.error(command_results[1])
                                 continue
                             else:
                                 #it was successfull
