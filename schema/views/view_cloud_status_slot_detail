@@ -34,6 +34,6 @@ where
 group by
     group_name,
     cloud_name,
-    slot_type,
-    slot_id
+    slot_cpus,
+    substring(substring_index(name,'@',1),5)
 ;

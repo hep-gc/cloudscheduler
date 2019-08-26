@@ -16,7 +16,7 @@
 
 
 <body class="status-nav" onload="set_state();">
-{% spaceless %}
+
 
 {% if err_message is not None %}
     <p style="color:red;">{{err_message}}</p>
@@ -74,10 +74,6 @@
     <button id="close-plot" class="close-btn" onclick="TSPlot.hide()">Close Plot
     </button>
 </div>
-
-...{{slot_summary_flag}}...
-<br>
-...{{slot_detail_flag}}...
 
 <!-- Status tables-->
     <div class="status-div" id="status">
@@ -601,71 +597,112 @@
 
                                     <td class="col-spacer">&nbsp;</td>
 
-                                    <td colspan="3" class="slot_detail">
-                                    {% if slot_summary_flag %}    
-                                        {% if cloud.slot_count > 0 or cloud.slot_idle_core_count > 0 %}
-                                            <table>
-                                                <tr>
-                                                    <th>Flavor</th>
-                                                    <th>VMs</th>
-                                                    <th>Active CPUs</th>
-                                                    <th>Idle CPUs</th>
-                                                    <th>Idle %</th>
-                                                </tr>
-                                            {% for slot in slot_summary_list %}
+                                    <td colspan="3" class="slot-detail">  
+
+                                        <table>
+
+                                        {% if slot_flavor_flag %}
+                                            {% for slot in flavor_slot_summary %}
+
                                                 {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
-                                                <tr>
-                                                    <td>{{slot.flavor}}</td>
-                                                    <td>{{slot.VMs}}</td>
-                                                    <td>{{slot.Active_CPUs}}</td>
-                                                    <td>{{slot.Idle_CPUs}}</td>
-                                                    <td>{{slot.Idle_Percent}}</td>
-                                                </tr>
+
+                                                    <tr>
+                                                        <td colspan="5" class="float-left">Flavor: {{slot.flavor}} Busy: {{slot.busy}} Idle: {{slot.idle}} ({{slot.idle_percent}} %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    {% for summary in flavor_slot_detail_summary %}
+                                                        {% if summary.group_name == cloud.group_name and summary.cloud_name == cloud.cloud_name and summary.flavor == slot.flavor %}
+
+                                                        {% if slot_detail_flag %}                                            
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            {% for detail in flavor_slot_detail %}
+                                                                {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type %}
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>{{detail.slot_type}}</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>{{detail.slot_id}}</td>
+                                                                    <td>{{detail.slot_count}}</td>
+                                                                    <td>{{detail.core_count}}</td>
+                                                                </tr>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        {% endif %}
+
+                                                    {% endif %}
+                                                {% endfor %}
+
                                                 {% endif %}
                                             {% endfor %}
-                                            </table>
+                                        
+                                        {% else %}
+
+                                            {% for slot in slot_summary %}
+
+                                                {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
+
+                                                    <tr>
+                                                        <td colspan="5">Busy: {{slot.busy}} Idle: {{slot.idle}} ({{slot.idle_percent}} %)</td>
+                                                    </tr>
+                                                    <tr><td colspan="5">&nbsp;</td></tr>
+
+                                                    {% for summary in slot_detail_summary %}
+                                                        {% if summary.group_name == cloud.group_name and summary.cloud_name == cloud.cloud_name %}
+
+                                                        {% if slot_detail_flag %}                                            
+
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="4">{{summary.slot_type}} core slot totals - slots: {{summary.slot_count}} cores: {{summary.core_count}}</td>
+                                                            </tr>
+                                                            <tr class="slot-detail">
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td><b>ID</b></td>
+                                                                <td><b>Slots</b></td>
+                                                                <td><b>Cores</b></td>
+                                                            </tr>
+                                                            {% for detail in slot_detail %}
+                                                                {% if detail.group_name == cloud.group_name and detail.cloud_name == cloud.cloud_name and detail.slot_type == summary.slot_type %}
+
+                                                                <tr class="slot-detail">
+                                                                    <!--<td>{{detail.slot_type}}</td>-->
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>{{detail.slot_id}}</td>
+                                                                    <td>{{detail.slot_count}}</td>
+                                                                    <td>{{detail.core_count}}</td>
+                                                                </tr>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            <tr><td colspan="4">&nbsp;</td></tr>
+                                                        {% endif %}
+
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% endif %}
+                                            {% endfor %}
+
+
                                         {% endif %}
-                                    {% endif %}
-                                    {% if slot_detail_flag %}
-                                        {% if cloud.slot_count > 0%}
-                                            <table>
-                                                <tr>
-                                                    <th>ID</th>
-                                                    <th>Type</th>
-                                                    <th>Slots</th>
-                                                    <th>Cores</th>
-                                                </tr>
-                                            {% for slot in slot_detail_list %}
-                                                {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
-                                                <tr>
-                                                    <td>{{slot.slot_id}}</td>
-                                                    <td>{{slot.slot_type}}</td>
-                                                    <td>{{slot.slot_count}}</td>
-                                                    <td>{{slot.core_count}}</td>
-                                                </tr>
-                                                {% endif %}
-                                            {% endfor %}
-                                            <!--
-                                            {% for slot in slot_detail %}
-                                                {% if slot.group_name == cloud.group_name and slot.cloud_name == cloud.cloud_name %}
-                                                <tr>
-                                                    <td>{{slot.type}}c: {{slot.sum}}</td>
-                                                    <td>
-                                                        <table>
-                                                        {% for id, value in slot.list.items %}
-                                                            <tr><td>
-                                                            {{id}}: {{value}}
-                                                            </td><tr>
-                                                        {% endfor %}
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                                {% endif %}
-                                            {% endfor %}
-                                            -->
-                                            </table>
-                                        {% endif %}
-                                    {% endif %}
+
+
+
+                                        </table>
                                     </td>
 
                                     <td class="col-spacer">&nbsp;</td>
@@ -988,6 +1025,6 @@
     } CountDown();
 </script>
 
-{% endspaceless %}
+
 </body>
 </html>
