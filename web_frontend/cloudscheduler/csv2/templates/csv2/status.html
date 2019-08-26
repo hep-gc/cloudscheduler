@@ -890,18 +890,6 @@
                 {% endif %}
 
 
-                {% if system_list.csv2_glint_status == 1 and system_list.csv2_glint_error_count == 0%}
-                    <td data-path="csv2_glint_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_glint_msg }}">
-                    <span class="green-symbol bigger">&#x2714;</span></td>
-                {% elif system_list.csv2_glint_status == 1 and system_list.csv2_glint_error_count != 0%}
-                    <td data-path="csv2_glint_status" class="more-style float-center plottable" tooltip="Warning! {{system_list.csv2_glint_error_count}} child process failures. {{ system_list.csv2_glint_msg }}">
-                    <span class="orange-symbol bigger">&#x2757;</span></td>
-                {% else %}
-                    <td data-path="csv2_glint_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_glint_msg }}">
-                    <span class="red-symbol bigger">&#x2718;</span></td>
-                {% endif %}
-
-
                 {% if system_list.csv2_watch_status == 1 and system_list.csv2_watch_error_count == 0%}
                     <td data-path="csv2_watch_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_watch_msg }}">
                     <span class="green-symbol bigger">&#x2714;</span></td>
@@ -947,7 +935,6 @@
                 <td>machines</td>
                 <td>timeseries</td>
                 <td>ec2</td>
-                <td>glint</td>
                 <td>watch</td>
                 <td>startd</td>
 
