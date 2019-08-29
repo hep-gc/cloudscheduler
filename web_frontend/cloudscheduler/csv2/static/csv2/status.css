@@ -249,7 +249,11 @@
   color: black;
 }
 
-.slot_detail table{
+.slot-summary {
+  text-align: left;
+}
+
+.slot-detail td {
   text-align: center;
 }
 

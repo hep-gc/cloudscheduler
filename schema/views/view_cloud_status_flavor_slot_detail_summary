@@ -26,6 +26,7 @@ select
     cm.cloud_name,
     concat(cm.flavor, ' (', cf.cores, ')') as flavor,
     slot_type,
+    cm.slot_count,
     cm.core_count
 from (
     select
@@ -33,6 +34,7 @@ from (
         cloud_name,
         flavor,
         slot_type,
+        sum(slot_count) as slot_count,
         sum(core_count) as core_count
     from (
         select
@@ -40,6 +42,7 @@ from (
             cloud_name,
             substring_index(flavor, ':', -1) as flavor,
             slot_cpus as slot_type,
+            1 as slot_count,
             slot_cpus as core_count
         from condor_machines
         where
