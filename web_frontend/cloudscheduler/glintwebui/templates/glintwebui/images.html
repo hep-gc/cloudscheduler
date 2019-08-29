@@ -63,10 +63,17 @@
 
 <body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;">
 <div>
-<div class="glinttoolbar" style="float:left">
+<div class="glinttoolbar" style="float:left; margin-bottom:5px;"">
     <table style="border:none"><tr>
         <td style="border:none"> <input type="text" id="image_search" onkeyup="image_search()" autofocus="autofocus" placeholder="Search by Image Name"> </td>
         <td ><input type="button" value="+Upload Image" onclick="window.location.href='/images/upload_image/{{active_group}}/?{{active_group}}'"></td>
+        <td class="private"> </td>
+        <td>Private Image</td>
+        <td class="public"> </td>
+        <td>Public/Shared Image</td>
+        <td class="error"> </td>
+        <td>Transaction Error</td>
+    </tr></table>
     </tr></table>
 </div>
 
