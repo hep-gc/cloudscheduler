@@ -385,6 +385,9 @@ def command_poller():
     JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
 
+    cycle_count = 0
+
+
     try:
         while True:
             logging.debug("Beginning command consumer cycle")
@@ -400,6 +403,59 @@ def command_poller():
             uncommitted_updates = 0
             for condor_host in condor_hosts_set:
                 condor_rpc = None
+                # check on agent satus every ~5 cycles
+                if cycle_count >= 5:
+                    try:
+                        condor_rpc = RPC(config.amqp_host, config.amqp_port, config.amqp_queue_prefix +"_" + condor_host, "csv2_htc_" + condor_host)
+                    except Exception as exc:
+                        logging.error("Failed to create condor RPC client, skipping...:")
+                        logging.error(exc)
+                        continue
+                    command_dict = {
+                        'command': "noop",
+                    }
+                    command_yaml = yaml.dump(command_dict)
+                    command_results = condor_rpc.call(command_yaml, timeout=30)
+                    if command_results is None or command_results[0] != 0:
+                        # command failed
+                        if command_results == None:
+                            # we got a timeout
+                            # timeout on the call, agent problems or offline
+                            logging.error("RPC call timed out, agent offline or in error")
+                            jsched = {
+                                "htcondor_fqdn": condor_host,
+                                "agent_status":  0
+                            }
+                            new_jsched = JOB_SCHED(**jsched)
+                            js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                            if js.count()>0:
+                                config.db_session.merge(new_jsched)
+                                uncommitted_updates += 1
+                            else:
+                                config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                config.db_session.merge(new_jsched)
+                                uncommitted_updates += 1
+
+                        logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
+                        #logging.error(command_results)
+                        if command_results is not None:
+                            logging.error(command_results[1])
+                        continue
+                    else:
+                        #it was successfull
+                        jsched = {
+                            "htcondor_fqdn": condor_host,
+                            "agent_status":  1
+                        }
+                        new_jsched = JOB_SCHED(**jsched)
+                        js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                        if js.count()>0:
+                            config.db_session.merge(new_jsched)
+                            uncommitted_updates += 1
+                        else:
+                            config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                            config.db_session.merge(new_jsched)
+                            uncommitted_updates += 1
 
                 master_type = htcondor.AdTypes.Master
                 startd_type = htcondor.AdTypes.Startd
@@ -559,7 +615,6 @@ def command_poller():
             # invalidate classads related to that vm
             
             for condor_host in condor_hosts_set:
-                # Query database for machines with no associated VM.
                 master_list = []
                 startd_list = []
                 #get list of vm/machines from this condor host
@@ -799,7 +854,12 @@ def command_poller():
                 #    logging.info("condor_advertise result for master ads: %s", master_advertise_result)
 
             logging.debug("Completed command consumer cycle")
-            #del condor_session
+            cycle_count = cycle_count + 1
+            # Every ~5 cycles check
+            if cycle_count > 5:
+                cycle_count = 0
+
+            
             try:
                 config.db_close(commit=True)
             except Exception as exc:

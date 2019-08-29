@@ -172,6 +172,16 @@ def callback(ch, method, properties, body):
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
+        elif yaml_dict['command'] == 'noop':
+            # this is just a test to make sure agent is still available
+            result = [0, "Noop success"]
+            ch.basic_publish(exchange='',
+                    routing_key=properties.reply_to,
+                    properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+                    body=yaml.dump(result))
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            return
+
         else:
             ch.basic_publish(exchange='',
                 routing_key=properties.reply_to,
