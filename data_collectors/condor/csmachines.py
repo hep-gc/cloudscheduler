@@ -226,9 +226,9 @@ def machine_poller():
                                     fail_count = failure_dict[group.group_name]
 
                     logging.error("Failed to get machines from condor collector object, aborting poll on host %s" % condor_host)
-                    logging.exception(exc)
+                    logging.error(exc)
                     if fail_count > 3:
-                        logging.critical("%s failed polls on host: %s, Configuration error or condor issues" % (fail_count, condor_host))
+                        logging.critical("More than 3 consecutive failed polls on host: %s, Configuration error or condor issues" % condor_host)
                     continue
 
                 abort_cycle = False
@@ -436,10 +436,7 @@ def command_poller():
                                 config.db_session.merge(new_jsched)
                                 uncommitted_updates += 1
 
-                        logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
-                        #logging.error(command_results)
-                        if command_results is not None:
-                            logging.error(command_results[1])
+                        logging.error("RPC noop failed, agent offline or in error")
                         continue
                     else:
                         #it was successfull
