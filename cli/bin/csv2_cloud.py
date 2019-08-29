@@ -303,6 +303,8 @@ def status(gvar):
             'default_flavor/Flavor/Defaults',
             'default_image/Image/Defaults',
             'keep_alive/Keep Alive/Defaults',
+            'communication_up/Up/Communications',
+            'communication_rt/Request Time/Communications',
             'VMs_quota/Quota/VMs',
             'VMs/Total/VMs',
             'VMs_starting/Starting/VMs',
@@ -331,21 +333,6 @@ def status(gvar):
             'ram_foreign/RAM/Foreign',
         ],
         title="Cloud status",
-        )
-
-    show_table(
-        gvar,
-        response['slot_list'],
-        [
-            'group_name/Group,k',
-            'cloud_name/Cloud,k',
-            'slot_type/Slot Type',
-            'slot_id/Slot ID',
-            'slot_count/Slot Count',
-            'core_count/Slot Cores'
-        ],
-        title="Slot detail",
-        optional=True,
         )
 
 def update(gvar):
