@@ -8,6 +8,8 @@ select
     n02.*,
     ifnull(vfr.count,0) as Foreign_VMs,
     cc.enabled,
+    cc.communication_up,
+    cc.communication_rt,
     cores_ctl,
 
     case when cores_ctl=-1 then
