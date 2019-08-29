@@ -16,6 +16,8 @@ from cloudscheduler.lib.schema import view_vm_kill_retire_over_quota
 from cloudscheduler.lib.view_utils import kill_retire
 from cloudscheduler.lib.log_tools import get_frame_info
 
+from glintwebui.glint_utils import get_keypair, transfer_keypair, generate_tx_id, check_cache
+from glintwebui.celery_app import tx_request
 
 from cloudscheduler.lib.poller_functions import \
     delete_obsolete_database_items, \
@@ -28,7 +30,7 @@ from cloudscheduler.lib.poller_functions import \
 #   set_inventory_group_and_cloud, \
 #   set_inventory_item, \
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.sql import func
@@ -428,49 +430,56 @@ def image_poller():
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
-                    for image in image_list:
-                        if image.size == "":
-                            size = 0
-                        else:
-                            size = image.size
+                    try:
+                      for image in image_list:
+                          if image.size == "":
+                              size = 0
+                          else:
+                              size = image.size
 
-                        for groups in unique_cloud_dict[cloud]['groups']:
-                            group_n = groups[0]
-                            cloud_n = groups[1]
+                          for groups in unique_cloud_dict[cloud]['groups']:
+                              group_n = groups[0]
+                              cloud_n = groups[1]
 
-                            img_dict = {
-                                'group_name': group_n,
-                                'cloud_name': cloud_n,
-                                'container_format': image.container_format,
-                                'checksum': image.checksum,
-                                'cloud_type': "openstack",
-                                'disk_format': image.disk_format,
-                                'min_ram': image.min_ram,
-                                'id': image.id,
-                                'size': size,
-                                'visibility': image.visibility,
-                                'min_disk': image.min_disk,
-                                'name': image.name,
-                                'last_updated': new_poll_time
-                                }
+                              img_dict = {
+                                  'group_name': group_n,
+                                  'cloud_name': cloud_n,
+                                  'container_format': image.container_format,
+                                  'checksum': image.checksum,
+                                  'cloud_type': "openstack",
+                                  'disk_format': image.disk_format,
+                                  'min_ram': image.min_ram,
+                                  'id': image.id,
+                                  'size': size,
+                                  'visibility': image.visibility,
+                                  'min_disk': image.min_disk,
+                                  'name': image.name,
+                                  'last_updated': new_poll_time
+                                  }
 
-                            img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                              img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                              if unmapped:
+                                  logging.error("Unmapped attributes found during mapping, discarding:")
+                                  logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                                continue
+                              if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                                  continue
 
-                            new_image = IMAGE(**img_dict)
-                            try:
-                                db_session.merge(new_image)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
+                              new_image = IMAGE(**img_dict)
+                              try:
+                                  db_session.merge(new_image)
+                                  uncommitted_updates += 1
+                              except Exception as exc:
+                                  logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
+                                  logging.error(exc)
+                                  abort_cycle = True
+                                  break
+                    except Exception as exc:
+                        logging.error("Error proccessing image_list for cloud %s" % cloud_n)
+                        logging.error(exc)
+                        logging.error("Skipping cloud...")
+                        continue
+                        
 
                     del glance 
                     if abort_cycle:
@@ -1550,22 +1559,22 @@ def vm_poller():
         del db_session
 
 
-# This function still needs imports from glintwebui/glint_utils.py
-# it also needs logic to actually queue image transfers (look at glint_views)
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
     db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
     GROUPS = config.db_map.classes.csv2_groups
     CLOUDS = config.db_map.classes.csv2_clouds
     KEYPAIRS = config.db_map.classes.cloud_keypairs
     IMAGES = config.db_map.classes.cloud_images
+    IMAGE_TX = config.db_map.classes.csv2_image_transactions
     while True:
         config.db_open()
         db_session = config.db_session
         group_list = db_session.query(GROUPS)
         for group in group_list:
             src_keypair = None
+            src_image = None
             default_image_name = group.vm_image
             default_key_name = group.vm_keyname
             cloud_list = db_session.query(CLOUDS).filter(CLOUDS.group_name == group.group_name, CLOUDS.cloud_type == "openstack")
@@ -1575,8 +1584,53 @@ def defaults_replication():
                     images = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.cloud_name == cloud.cloud_name, IMAGES.name == default_image_name)
                     if images.count() == 0:
                         # gasp, image isn't there, lets queue up a transfer.
-                        # TODO
-                        pass
+                        if src_image is None:
+                           image_candidates = db_session.query(IMAGES).filter(IMAGES.group_name == group.group_name, IMAGES.name == default_image_name) 
+                           img_count = image_candidates.count()
+                           if img_count == 0:
+                               #default image not defined
+                               logging.error("Default image %s not present on any openstack clouds in group %s. Failed to replicate default image." % (default_image_name, group.group_name))
+                               continue
+                           elif img_count > 1:
+                               logging.warning("More than one candidate image with name %s" % default_image_name)
+                               src_image = image_candidates[0]
+                               logging.warning("selecting candidate with checksum: %s" % src_image.checksum)
+                           else:
+                               # no ambiguity about default image, simply select it
+                               src_image = image_candidates[0]
+                        # We've got a source image, time to queue a transfer
+                        # but first check the cache to see if we need to queue a pull request
+                        cache_result = check_cache(config, default_image_name, src_image.checksum, src_image.group_name, "cloudscheduler")
+                        if cache_result is False:
+                            #Something went wrong checking the cache or queueing a pull request
+                            logging.error("Failure checking cache or queuing pull request for image: %s" % default_image_name)
+                            logging.error("...continuing to queue transfer (transfer task will queue up a pull request if needed)")
+                        #Once here the image is in the cache of a pull request has been queued so we can go ahead and queue the transfer
+
+                        #on second thought lets check to see we don't already have one queue'd up so we don't bombard the request queue
+                        pending_xfers = db_session.query(IMAGE_TX).filter(IMAGE_TX.target_group_name == group.group_name, IMAGE_TX.target_cloud_name == cloud.cloud_name, IMAGE_TX.image_name == default_image_name, or_(IMAGE_TX.status == "pending", IMAGE_TX.status == "error"))
+                        if pending_xfers.count() > 0:
+                            logging.info("Default image (%s) transfer already queued for cloud: %s... skipping" % (default_image_name, cloud.cloud_name))
+                            continue
+                        tx_id = generate_tx_id()
+                        tx_req = {
+                            "tx_id":             tx_id,
+                            "status":            "pending",
+                            "target_group_name": group.group_name,
+                            "target_cloud_name": cloud.cloud_name,
+                            "image_name":        default_image_name,
+                            "image_id":          src_image.id,
+                            "checksum":          src_image.checksum,
+                            "requester":         "cloudscheduler",
+                        }
+                        new_tx_req = IMAGE_TX(**tx_req)
+                        db_session.merge(new_tx_req)
+                        db_session.commit()
+                        #tx_request.delay(tx_id = tx_id)
+                        logging.info("Transfer queued")
+                        tx_request.apply_async((tx_id,), queue='tx_requests')
+
+                        
                 else:
                     logging.info("No default image for group %s, skipping image transfers for cloud %s" % (group.group_name, cloud.cloud_name))
 
@@ -1605,7 +1659,9 @@ def defaults_replication():
 
                 else:
                     logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
-                    
+        
+        db_session.commit()
+        config.db_close()
         time.sleep(300) # this will need to be updated to have a smarter wakeup once signaling has been implemented
 
 
@@ -1648,6 +1704,7 @@ def service_registrar():
 
 if __name__ == '__main__':
     process_ids = {
+        'defaults_replication':  defaults_replication,
         'flavor':                flavor_poller,
         'image':                 image_poller,
         'keypair':               keypair_poller,
