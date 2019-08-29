@@ -266,11 +266,13 @@
                   <colgroup>
                     <col class="clear" span="1"/>
                     <col class="grey" span="1"/>
-                    <col class="clear" span="22"/>
+                    <col class="clear" span="24"/>
                   </colgroup>
                     <tr class="header-row">
                         <th class="group-name jobs-style">Group</th>
                         <th class="name-style">Clouds</th>
+                        <th class="jobs-style">RTT (ms)</th>
+                        <th class="col-spacer">&nbsp;</th>
                         <th class="native-style">VMs</th>
                         <th class="native-style">Starting</th>
                         <th class="native-style">Unreg.</th>
@@ -364,6 +366,23 @@
                                     <td class="disabled-style" onclick="toggle_id('expand-{{cloud.group_name}}-{{cloud.cloud_name}}')"><div class="float-left">{{cloud.cloud_name}}</div>
                                 {% endif %}
                                     <div id="sym-expand-{{cloud.group_name}}-{{cloud.cloud_name}}" class="float-right">&#x25BE;</div></td>
+
+
+
+                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} communication_rt{{cloud.tag}}" class="float-center plottable" oncontextmenu="javascript:return false;">
+                                    {% if cloud.display < 9 %}
+                                        {% if cloud.communication_up == 1 %}
+                                            {{cloud.communication_rt}}
+                                        {% else %}
+                                            &#x1F6AB;
+                                        {% endif %}
+                                    {% endif %}
+                                    </td>
+
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
 
                                     {% if cloud.VMs == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
@@ -547,6 +566,18 @@
                                             Cloud disabled
                                         {% endif %}
                                     </td>
+
+                                    <td>
+                                    {% if cloud.display < 9 %}
+                                        {% if cloud.communication_up == 0 %}
+                                            Network down
+                                        {% endif %}
+                                    {% endif %}
+                                    </td>
+
+
+                                    <td class="col-spacer">&nbsp;</td>
+
                                     <td>
                                     {% if cloud.VMs > 0 %}
                                         <a onclick="native_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&poller_status=&hostname=')" href="#vms-overlay">&#x2637;</a>
@@ -774,7 +805,9 @@
 
                                 {% if cloud.display == 9 %}
                                     <tr>
-                                        <td colspan="10" class="row-spacer">&nbsp;</td>
+                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        <td class="col-spacer">&nbsp;</td>
+                                        <td colspan="8" class="row-spacer">&nbsp;</td>
                                         <td class="col-spacer">&nbsp;</td>
                                         <td colspan="3" class="row-spacer">&nbsp;</td>
                                         <td class="col-spacer">&nbsp;</td>
@@ -793,7 +826,9 @@
 
                     
                     <tr>
-                        <td colspan="10" class="row-spacer">&nbsp;</td>
+                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        <td class="col-spacer">&nbsp;</td>
+                        <td colspan="8" class="row-spacer">&nbsp;</td>
                         <td class="col-spacer">&nbsp;</td>
                         <td colspan="3" class="row-spacer">&nbsp;</td>
                         <td class="col-spacer">&nbsp;</td>

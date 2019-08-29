@@ -134,11 +134,9 @@
   white-space: nowrap;
 }
 
-
 .status-table th {
   font-weight: bold;
 }
-
 
 .status-table table {
   overflow: hidden;
@@ -215,18 +213,18 @@
 /*****************************************************************/
 
 .float-left{
-  float: left;
-  text-align: left;
+  float: left !important;
+  text-align: left !important;
 }
 
 .float-right{
-  float: right;
-  text-align: right;
+  float: right !important;
+  text-align: right !important;
 }
 
 .float-center{
-  float: center;
-  text-align: center;
+  float: center !important;
+  text-align: center !important;
 }
 
 .job-extra-row{
