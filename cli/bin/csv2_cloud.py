@@ -335,21 +335,6 @@ def status(gvar):
         title="Cloud status",
         )
 
-    show_table(
-        gvar,
-        response['slot_list'],
-        [
-            'group_name/Group,k',
-            'cloud_name/Cloud,k',
-            'slot_type/Slot Type',
-            'slot_id/Slot ID',
-            'slot_count/Slot Count',
-            'core_count/Slot Cores'
-        ],
-        title="Slot detail",
-        optional=True,
-        )
-
 def update(gvar):
     """
     Modify a cloud in the active group.
