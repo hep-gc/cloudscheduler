@@ -303,6 +303,8 @@ def status(gvar):
             'default_flavor/Flavor/Defaults',
             'default_image/Image/Defaults',
             'keep_alive/Keep Alive/Defaults',
+            'communication_up/Up/Communications',
+            'communication_rt/Request Time/Communications',
             'VMs_quota/Quota/VMs',
             'VMs/Total/VMs',
             'VMs_starting/Starting/VMs',
