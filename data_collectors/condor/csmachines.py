@@ -934,7 +934,7 @@ if __name__ == '__main__':
         procMon.start_all()
         while True:
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
