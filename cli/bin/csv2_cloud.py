@@ -289,6 +289,8 @@ def status(gvar):
             'Running',
             'Completed',
             'Other',
+            'condor_days_left/Condor/Days Left on Certificates',
+            'worker_days_left/Worker/Days Left on Certificates',
         ],
         title="Job status",
         )
