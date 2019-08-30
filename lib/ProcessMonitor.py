@@ -5,6 +5,8 @@ import time
 import datetime
 import subprocess
 import psutil
+import os
+import sys
 
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
@@ -22,8 +24,8 @@ class ProcessMonitor:
         self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size, refreshable=True)
         self.logging = logging.getLogger()
         logging.basicConfig(
-            filename=self.config.log_file,
-            level=self.config.log_level,
+            filename=self.config.categories[os.path.basename(sys.argv[0])]["log_file"],
+            level=self.config.categories[os.path.basename(sys.argv[0])]["log_level"],
             format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
         self.orange_count_row = orange_count_row
         self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 1, 0)
@@ -65,10 +67,10 @@ class ProcessMonitor:
     def restart_process(self, process):
         # Capture tail of log when process has to restart
         try:
-            proc = subprocess.Popen(['tail', '-n', '50', self.config[os.path.basename(sys.argv[0])]["log_file"], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(['tail', '-n', '50', self.config.categories[os.path.basename(sys.argv[0])]["log_file"]], stdout=subprocess.PIPE)
             lines = proc.stdout.readlines()
             timestamp = str(datetime.date.today())
-            with open(''.join([self.config[os.path.basename(sys.argv[0])]["log_file"], '-crash-', timestamp]), 'wb') as f:
+            with open(''.join([self.config.categories[os.path.basename(sys.argv[0])]["log_file"], '-crash-', timestamp]), 'wb') as f:
                 for line in lines:
                     f.write(line)
         except Exception as ex:
@@ -110,7 +112,7 @@ class ProcessMonitor:
                     self.logging.info("Restarting %s process", process)
                 #self._cleanup_event_pids(process)
                 self.restart_process(process)
-                time.sleep(self.config["ProcessMonitor"]["sleep_interval_main_short"])
+                time.sleep(self.config.categories["ProcessMonitor"]["sleep_interval_main_short"])
             p = psutil.Process(self.processes[process].pid)
         if orange:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+2)
@@ -119,7 +121,7 @@ class ProcessMonitor:
 
 
     def _cleanup_event_pids(self, pid):
-        path = self.config["ProcessMonitor"]["signal_registry"]
+        path = self.config.categories["ProcessMonitor"]["signal_registry"]
         event_dirs = os.walk(path)
         for epath in event_dirs:
             pid_path = epath[0] + "/" + pid
