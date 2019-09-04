@@ -1,15 +1,16 @@
 /*
 ** List all group resources (clouds) with VM & resource counts.
+create or replace view view_t2 as
 */
 create or replace view view_cloud_status as
 
-/* n01 - Apply group and cloud defaults */
 select
-    n02.*,
+    cc.*,
+    ifnull(cs.slot_count, 0) as slot_count,
+    ifnull(cs.slot_core_count, 0) as slot_core_count,
+    ifnull(cs.slot_idle_core_count, 0) as slot_idle_core_count,
     ifnull(vfr.count,0) as Foreign_VMs,
-    cc.enabled,
-    cc.communication_up,
-    cc.communication_rt,
+    enabled,
     cores_ctl,
 
     case when cores_ctl=-1 then
@@ -32,7 +33,7 @@ select
     ifnull(cl.cores_max,0) as cores_quota,
     cores_softmax as cores_soft_quota,
     ifnull(vfr.cores,0) as cores_foreign,
-    ifnull(n02.cores_native,0)+ifnull(vfr.cores,0) as cores_native_foreign,
+    ifnull(cc.cores_native,0)+ifnull(vfr.cores,0) as cores_native_foreign,
     ram_ctl,
 
     case when ram_ctl=-1 then
@@ -43,76 +44,55 @@ select
 
     ifnull(cl.ram_max,0) as ram_quota,
     ifnull(vfr.ram,0) as ram_foreign,
-    ifnull(n02.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign
-
+    ifnull(cc.ram_native,0)+ifnull(vfr.ram,0) as ram_native_foreign
 from (
-    /* n02 - Retrieve all (native) VMs with condor slot information */
     select
-        n03.group_name,
-        n03.cloud_name,
-        ifnull(sum(n03.VMs),0) as VMs,
-        ifnull(sum(n03.VMs_manual),0) as VMs_manual,
-        ifnull(sum(n03.VMs_in_error),0) as VMs_in_error,
-        ifnull(sum(n03.VMs_starting),0) as VMs_starting,
-        ifnull(sum(n03.VMs_retiring),0) as VMs_retiring,
-        ifnull(sum(n03.VMs_unregistered),0) as VMs_unregistered,
-        ifnull(sum(n03.VMs_idle),0) as VMs_idle,
-        ifnull(sum(n03.VMs_running),0) as VMs_running,
-        ifnull(sum(n03.cores_native),0) as cores_native,
-        ifnull(sum(n03.ram_native),0) as ram_native,
-        ifnull(sum(n03.slot_count),0) as slot_count,
-        ifnull(sum(n03.slot_core_count),0) as slot_core_count,
-        ifnull(sum(n03.slot_idle_core_count),0) as slot_idle_core_count
+        cc.group_name,
+        cc.cloud_name,
+        sum(VMs) as VMs,
+
+        sum(case when cc.poller_status='manual'       then VMs else 0 end) as VMs_manual,
+        sum(case when cc.poller_status='error'        then VMs else 0 end) as VMs_in_error,
+        sum(case when cc.poller_status='starting'     then VMs else 0 end) as VMs_starting,
+        sum(case when cc.poller_status='retiring'     then VMs else 0 end) as VMs_retiring,
+        sum(case when cc.poller_status='unregistered' then VMs else 0 end) as VMs_unregistered,
+        sum(case when cc.poller_status='idle'         then VMs else 0 end) as VMs_idle,
+        sum(case when cc.poller_status='running'      then VMs else 0 end) as VMs_running,
+
+        case when ei.instance_type is null then
+            ifnull(sum(cf.cores*VMs), 0)
+        else
+            ifnull(sum(ei.cores*VMs), 0)
+        end as cores_native,
+
+        case when ei.instance_type is null then
+            ifnull(sum(cf.ram * VMs), 0)
+        else
+            ifnull(sum(ei.memory * 1024 * VMs), 0)
+        end as ram_native
+
     from (
-        /* n03 - Retrieve all (native) VMs with condor slot information */
         select
             group_name,
             cloud_name,
-            0 as VMs,
-            0 as cores_native,
-            0 as ram_native,
-            0 as VMs_manual,
-            0 as VMs_in_error,
-            0 as VMs_starting,
-            0 as VMs_retiring,
-            0 as VMs_unregistered,
-            0 as VMs_idle,
-            0 as VMs_running,
-            0 as slot_count,
-            0 as slot_core_count,
-            0 as slot_idle_core_count
-        from csv2_clouds as cc   
-        union all select
-            cv.group_name,
-            cv.cloud_name,
-            sum(cv.VMs) as VMs,
-
-            case when ei.instance_type is null then
-                sum(cf.cores)
-            else
-                sum(ei.cores)
-            end as cores_native,
-
-            case when ei.instance_type is null then
-                sum(cf.ram)
-            else
-                sum(ei.memory * 1024)
-            end as ram_native,
-
-            sum(case when cv.poller_status='manual'       then 1 else 0 end) as VMs_manual,
-            sum(case when cv.poller_status='error'        then 1 else 0 end) as VMs_in_error,
-            sum(case when cv.poller_status='starting'     then 1 else 0 end) as VMs_starting,
-            sum(case when cv.poller_status='retiring'     then 1 else 0 end) as VMs_retiring,
-            sum(case when cv.poller_status='unregistered' then 1 else 0 end) as VMs_unregistered,
-            sum(case when cv.poller_status='idle'         then 1 else 0 end) as VMs_idle,
-            sum(case when cv.poller_status='running'      then 1 else 0 end) as VMs_running,
-            sum(slot_count) as slot_count,
-            sum(slot_core_count) as slot_core_count,
-            sum(slot_idle_core_count) as slot_idle_core_count
+            region,
+            flavor_id,
+            poller_status,
+            sum(VMs) as VMs
         from (
             select
-                *,
-                1 as VMs,
+                group_name,
+                cloud_name,
+                'dummy' as region,
+                'dummy' as flavor_id,
+                'dummy' as poller_status,
+                0 as VMs
+            from csv2_clouds
+            union all select
+                group_name,
+                cloud_name,
+                region,
+                flavor_id,
                 case when manual_control = 1 then
                     'manual'
                 else
@@ -141,52 +121,51 @@ from (
                             end
                         end
                     end
-                end as poller_status
+                end as poller_status,
+                1 as VMs
             from csv2_vms
         ) as cv
-        left outer join cloud_flavors as cf on
-            cv.group_name=cf.group_name and
-            cv.cloud_name=cf.cloud_name and
-            cv.flavor_id=cf.id
-        left outer join ec2_instance_types as ei on
-            cv.region=ei.region and
-            cv.flavor_id=ei.instance_type
-        left outer join (
-            /* n04 - Retrieve (native) condor slot information */
-            select
-                group_name,
-                cloud_name,
-                machine,
-                substring_index(machine, '.', 1) as hostname,
-                sum(case when slot_type='Dynamic' then 1 else 0 end) as slot_count,
-                sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
-                sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count
-            from condor_machines as cm, (select config_value as csv2_host_id from csv2_configuration where category='SQL' and config_key='csv2_host_id') as cnf
-            where condor_host=csv2_host_id
-            group by
-                group_name,
-                cloud_name,
-                hostname
-            ) as n04 on
-            cv.group_name=n04.group_name and
-            cv.cloud_name=n04.cloud_name and
-            (cv.hostname=n04.machine or cv.hostname=n04.hostname)
-        group by
-            cv.group_name,
-            cv.cloud_name,
-            cv.poller_status
-        ) as n03 
+        group by 
+            group_name,
+            cloud_name,
+            region,
+            flavor_id,
+            poller_status
+    ) as cc
+    left outer join cloud_flavors as cf on
+        cc.group_name=cf.group_name and
+        cc.cloud_name=cf.cloud_name and
+        cc.flavor_id=cf.id
+    left outer join ec2_instance_types as ei on
+        cc.region=ei.region and
+        cc.flavor_id=ei.instance_type
     group by
-        n03.group_name,
-        n03.cloud_name
-    ) as n02 
-left outer join csv2_clouds as cc on
-    n02.group_name=cc.group_name and
-    n02.cloud_name=cc.cloud_name
-left outer join cloud_limits as cl on
-    n02.group_name=cl.group_name and
-    n02.cloud_name=cl.cloud_name
+        cc.group_name,
+        cc.cloud_name
+) as cc
+left outer join (
+    select
+        group_name,
+        cloud_name,
+        sum(case when slot_type='Dynamic' then 1 else 0 end) as slot_count,
+        sum(case when slot_type='Dynamic' and state='Claimed' then slot_cpus else 0 end) as slot_core_count,
+        sum(case when state!='Claimed' then slot_cpus else 0 end) as slot_idle_core_count
+    from condor_machines as cm, (select config_value as csv2_host_id from csv2_configuration where category='SQL' and config_key='csv2_host_id') as cnf
+    where condor_host=csv2_host_id
+    group by
+        group_name,
+        cloud_name
+) as cs on
+    cc.group_name=cs.group_name and
+    cc.cloud_name=cs.cloud_name 
 left outer join view_foreign_resources as vfr on
-    n02.group_name=vfr.group_name and
-    n02.cloud_name=vfr.cloud_name
+    cc.group_name=vfr.group_name and
+    cc.cloud_name=vfr.cloud_name
+left outer join csv2_clouds as cc2 on
+    cc.group_name=cc2.group_name and
+    cc.cloud_name=cc2.cloud_name
+left outer join cloud_limits as cl on
+    cc.group_name=cl.group_name and
+    cc.cloud_name=cl.cloud_name
 ;
+
