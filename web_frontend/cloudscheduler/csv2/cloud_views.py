@@ -1285,54 +1285,32 @@ def status(request, group_name=None):
 
     global_total_list = cloud_status_global_totals[0]
 
+    cloud_status_list_totals_xref = {}
+    for ix in range(len(cloud_status_list_totals)):
+        cloud_status_list_totals_xref[cloud_status_list_totals[ix]['group_name']] = ix
+        cloud_status_list_totals[ix]['cloud_name'] = ''
+        cloud_status_list_totals[ix]['display'] = 9
+        cloud_status_list_totals[ix]['tag'] = '_total'
 
-    previous_group = ''
+    current_group = ''
     cloud_count = 0
     # Loop through the cloud_status_list and insert the totals row after each group of clouds:
     for index, cloud in enumerate(cloud_status_list):
-
-        # Find the length of the list:
-        length = int(len(cloud_status_list)-1)
-
-        cloud['display'] = 0
         cloud['tag'] = ''
-        # Change the enabled flag to indicate the first row in a group. This row will show the group name, while the others wont.
-        if cloud_count == 0:
+        if current_group == cloud['group_name']:
+            if 'display' not in cloud:
+                cloud['display'] = 0
+        else:
             cloud['display'] = 1
+            if current_group != '':
+                ix = cloud_status_list_totals_xref[current_group]
+                cloud_status_list.insert(index, cloud_status_list_totals[ix].copy())
 
+            current_group = cloud['group_name']
 
-        # Count rows for cloud
-        cloud_count += 1
-
-        # Insert a totals for if we are at the end of a group of clouds:
-        if ((previous_group != cloud['group_name']) and (index !=0)) or (index == length):
-
-            cloud_count = 0
-            # Loop through the totals list to find the correct group:
-            for total in cloud_status_list_totals:
-                if total['group_name'] == previous_group:
-
-                    # Add a blank cloud name so VMs search returns all VMs in group:
-                    total['cloud_name'] = ''
-
-                    # If its the last group, send the enabled flag to 99 so no extra spacer row is added after the totals row:
-
-                    total['display'] = 9
-                    total['tag'] = '_total'
-
-                    # Insert the totals for at the correct index:
-                    if index==length:
-                        cloud_status_list.append(total.copy())
-                    else:
-                        cloud_status_list.insert(index, total.copy())
-        
-        # Break out of the loop when we reach the last entry:
-        if index == length:
-            break
-
-        # Record the current cloud group:
-        previous_group = cloud['group_name']
-
+    if current_group != '':
+        ix = cloud_status_list_totals_xref[current_group]
+        cloud_status_list.append(cloud_status_list_totals[ix].copy())
 
     # Append the global totals list to the main status list:
     global_total_list['group_name'] = ''

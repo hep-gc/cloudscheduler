@@ -54,7 +54,7 @@
 </head>
 
 
-<body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;">
+<body style="position: absolute; top: 62px; padding-bottom: 129px; overflow: auto;" class="images-nav" onpageshow="set_location()">
 <div class="image upload">
 	<form method="post" action="/images/upload_image/{{group_name}}/" enctype="multipart/form-data">
 	{% csrf_token %}

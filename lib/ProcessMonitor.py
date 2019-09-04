@@ -5,6 +5,8 @@ import time
 import datetime
 import subprocess
 import psutil
+import os
+import sys
 
 from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.poller_functions import set_orange_count
@@ -12,7 +14,6 @@ from cloudscheduler.lib.poller_functions import set_orange_count
 class ProcessMonitor:
     config = None
     processes = {}
-    p_cpu_times = {}
     process_ids = {}
     orange_count_row = None
     previous_orange_count = 0
@@ -20,16 +21,15 @@ class ProcessMonitor:
     logging = None
 
     def __init__(self, config_params, pool_size, orange_count_row, process_ids=None):
-        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size)
+        self.config = Config('/etc/cloudscheduler/cloudscheduler.yaml', config_params, pool_size=pool_size, refreshable=True)
         self.logging = logging.getLogger()
         logging.basicConfig(
-            filename=self.config.log_file,
-            level=self.config.log_level,
+            filename=self.config.categories[os.path.basename(sys.argv[0])]["log_file"],
+            level=self.config.categories[os.path.basename(sys.argv[0])]["log_level"],
             format='%(asctime)s - %(processName)-12s - %(levelname)s - %(message)s')
         self.orange_count_row = orange_count_row
         self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, orange_count_row, 1, 0)
         self.process_ids = process_ids
-        self._init_cpu_sleep_time()
 
     def get_process_ids(self):
         return self.process_ids
@@ -67,10 +67,10 @@ class ProcessMonitor:
     def restart_process(self, process):
         # Capture tail of log when process has to restart
         try:
-            proc = subprocess.Popen(['tail', '-n', '50', self.config.log_file], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(['tail', '-n', '50', self.config.categories[os.path.basename(sys.argv[0])]["log_file"]], stdout=subprocess.PIPE)
             lines = proc.stdout.readlines()
             timestamp = str(datetime.date.today())
-            with open(''.join([self.config.log_file, '-crash-', timestamp]), 'wb') as f:
+            with open(''.join([self.config.categories[os.path.basename(sys.argv[0])]["log_file"], '-crash-', timestamp]), 'wb') as f:
                 for line in lines:
                     f.write(line)
         except Exception as ex:
@@ -112,25 +112,8 @@ class ProcessMonitor:
                     self.logging.info("Restarting %s process", process)
                 #self._cleanup_event_pids(process)
                 self.restart_process(process)
-                time.sleep(self.config.sleep_interval_main_short)
+                time.sleep(self.config.categories["ProcessMonitor"]["sleep_interval_main_short"])
             p = psutil.Process(self.processes[process].pid)
-            if self.p_cpu_times[process][1] is None:
-                self.p_cpu_times[process][1] = p.cpu_times()[0]
-            else:
-                if p.cpu_times()[0] == self.p_cpu_times[process][1]:
-                    # time hasn't changed since last check, lets count up
-                    self.p_cpu_times[process][2] += self.config.sleep_interval_main_long
-                else:
-                    # process had some cpu time, must be running, reset timeout count
-                    self.p_cpu_times[process][2] = 0
-                    self.p_cpu_times[process][1] = p.cpu_times()[0]
-                if self.p_cpu_times[process][2] > self.p_cpu_times[process][0]:
-                    self.logging.info("Process non-responsive - restarting %s process", process)
-                    self.p_cpu_times[process][2] = 0
-                    orange = True
-                    del self.processes[process]
-                    self.restart_process(process)
-                    time.sleep(self.config.sleep_interval_main_short)
         if orange:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+2)
         else:
@@ -138,24 +121,9 @@ class ProcessMonitor:
 
 
     def _cleanup_event_pids(self, pid):
-        path = self.config.signal_registry
+        path = self.config.categories["ProcessMonitor"]["signal_registry"]
         event_dirs = os.walk(path)
         for epath in event_dirs:
             pid_path = epath[0] + "/" + pid
             if os.path.isfile(pid_path):
                 os.unlink(pid_path)
-
-    # initializes sleep times for all current pids for the purpose of determining a reasonable length of time to decide if a process is deadlocked
-    # a good estimate is 5 times the regular sleep time as the sleep time will grow if the system is under heavy load, we'll decide that something
-    # has gone wrong if a process hasnt had cpu time in 5 * sleep_interval
-    #
-    # If passed a pid it will only add that one instead of calculating for all proccesses
-    def _init_cpu_sleep_time(self, pid=None):
-        if pid is None:
-            for process in self.process_ids:
-                self.logging.debug(process)
-                self.p_cpu_times[process] = [20 * getattr(self.config, "sleep_interval_" + process, 180) , None, 0] #I've updated this to a 20 times the interval since the sleep window is flexible when under load. If the base cycle time is short this timeout is far too small
-        else:
-            # its possible that we dont have a configuration value for whatever new process is getting added, so we'll make the default 30 mins
-            self.p_cpu_times[pid] = [10 * getattr(self.config, "sleep_interval_" + pid, 180), None, 0]
-
