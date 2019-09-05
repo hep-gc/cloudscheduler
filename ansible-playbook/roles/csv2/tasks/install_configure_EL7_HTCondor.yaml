@@ -122,8 +122,8 @@
   file:
     dest: /etc/grid-security/condor/worker
     state: directory
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0755
   when:
   - htcondor_cert is defined
@@ -133,8 +133,8 @@
   copy:
     src: "{{ htcondor_cert }}"
     dest: /etc/grid-security/condor/condorcert.pem
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0644
   when:
   - htcondor_cert is defined
@@ -144,8 +144,8 @@
   copy:
     src: "{{ htcondor_key }}"
     dest: /etc/grid-security/condor/condorkey.pem
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0600
   when:
   - htcondor_cert is defined
@@ -155,8 +155,8 @@
   copy:
     src: "{{ htcondor_worker_cert }}"
     dest: /etc/grid-security/condor/worker/condorworkercert.pem
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0644
   when:
   - htcondor_cert is defined
@@ -166,8 +166,8 @@
   copy:
     src: "{{ htcondor_worker_key }}"
     dest: /etc/grid-security/condor/worker/condorworkerkey.pem
-    owner: root
-    group: root
+    owner: condor
+    group: condor
     mode: 0600
   when:
   - htcondor_cert is defined
