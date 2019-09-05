@@ -62,7 +62,7 @@ def job_poller():
     uncommitted_updates = 0
     failure_dict = {}
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4, refreshable=True)
 
 
     JOB = config.db_map.classes.condor_jobs
@@ -302,7 +302,7 @@ def job_poller():
                         logging.error(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    if test_and_set_inventory_item_hash(inventory, job_dict["group_name"], "-", job_dict["global_job_id"], job_dict, new_poll_time, debug_hash=(config.categories["csjobs.py"]["log_level"]<20)):
                         continue
 
                     logging.debug("Adding job %s", job_dict["global_job_id"])
@@ -390,7 +390,7 @@ def job_poller():
                     logging.error("Failed to commit new jobs, aborting cycle...")
                     logging.error(exc)
                     config.db_close()
-                    time.sleep(config.sleep_interval_job)
+                    time.sleep(config.categories["csjobs.py"]["sleep_interval_job"])
                     continue
 
             if delete_cycle:
@@ -401,10 +401,10 @@ def job_poller():
             config.db_close()
             del db_session
             cycle_count = cycle_count + 1
-            if cycle_count >= config.delete_cycle_interval:
+            if cycle_count >= config.categories["csjobs.py"]["delete_cycle_interval"]:
                 delete_cycle = True
                 cycle_count = 0
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_job)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["csjobs.py"]["sleep_interval_job"])
 
     except Exception as exc:
         logging.exception("Job Poller while loop exception, process terminating...")
@@ -415,7 +415,7 @@ def job_poller():
 def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4, refreshable=True)
     Job = config.db_map.classes.condor_jobs
     GROUPS = config.db_map.classes.csv2_groups
 
@@ -477,7 +477,7 @@ def command_poller():
                     del condor_session
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_command)
+                    time.sleep(config.categories["csjobs.py"]["sleep_interval_command"])
                     continue
 
             if uncommitted_updates > 0:
@@ -489,12 +489,12 @@ def command_poller():
                     del condor_session
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_command)
+                    time.sleep(config.categories["csjobs.py"]["sleep_interval_command"])
                     continue
 
             logging.debug("Completed command consumer cycle")
             config.db_close()
-            time.sleep(config.sleep_interval_command)
+            time.sleep(config.categories["csjobs.py"]["sleep_interval_command]")
 
     except Exception as exc:
         logging.exception("Job poller while loop exception, process terminating...")
@@ -508,7 +508,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4, refreshable=True)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -531,7 +531,7 @@ def service_registrar():
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
             return -1
-        time.sleep(config.sleep_interval_registrar)
+        time.sleep(config.categories["general"]["sleep_interval_registrar"])
 
     return -1
 
@@ -544,7 +544,7 @@ if __name__ == '__main__':
         'registrar': service_registrar,
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general"], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general", "ProcessMonitor"], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
@@ -557,7 +557,7 @@ if __name__ == '__main__':
         procMon.start_all()
         while True:
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
             
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
