@@ -116,7 +116,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.cacerts)
+            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -133,7 +133,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name,
                 project_domain_id=project_domain_id,)
-            sess = session.Session(auth=auth, verify=config.cacerts)
+            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
@@ -147,7 +147,7 @@ def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -161,7 +161,7 @@ def flavor_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning flavor poller cycle")
@@ -271,7 +271,7 @@ def flavor_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, flavor.name, flav_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, flavor.name, flav_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                                 continue
 
                             new_flav = FLAVOR(**flav_dict)
@@ -300,7 +300,7 @@ def flavor_poller():
 
                 if abort_cycle:
                     db_session.close()
-                    time.sleep(config.sleep_interval_flavor)
+                    time.sleep(config.categories["openstackPoller.py"]["sleep_interval_flavor"])
                     continue
 
 
@@ -318,7 +318,7 @@ def flavor_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_flavor)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_flavor"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -337,7 +337,7 @@ def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
 
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
@@ -351,7 +351,7 @@ def image_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
@@ -462,7 +462,7 @@ def image_poller():
                                   logging.error("Unmapped attributes found during mapping, discarding:")
                                   logging.error(unmapped)
 
-                              if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                              if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                                   continue
 
                               new_image = IMAGE(**img_dict)
@@ -498,7 +498,7 @@ def image_poller():
                 if abort_cycle:
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_image)
+                    time.sleep(config.categories["openstackPoller.py"]["sleep_interval_image"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -517,7 +517,7 @@ def image_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_image)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_image"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -538,7 +538,7 @@ def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
     
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -551,7 +551,7 @@ def keypair_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             try:    
                 logging.debug("Beginning keypair poller cycle")
@@ -636,7 +636,7 @@ def keypair_poller():
                             }
                             
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key.name, key_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                                 continue
 
                             new_key = KEYPAIR(**key_dict)
@@ -666,7 +666,7 @@ def keypair_poller():
                 if abort_cycle:
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_keypair)
+                    time.sleep(config.categories["openstackPoller.py"]["sleep_interval_keypair"])
                     continue
                 
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
@@ -684,7 +684,7 @@ def keypair_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_keypair)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_keypair"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -703,7 +703,7 @@ def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -716,7 +716,7 @@ def limit_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
@@ -805,12 +805,12 @@ def limit_poller():
                             logging.error("Unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                             continue
 
                         for limit in limits_dict:
                             if "-1" in str(limits_dict[limit]):
-                                limits_dict[limit] = config.no_limit_default
+                                limits_dict[limit] = config.categories["openstackPoller.py"]["no_limit_default"]
                         limits_dict["cloud_type"] = "openstack"
 
                         new_limits = LIMIT(**limits_dict)
@@ -827,7 +827,7 @@ def limit_poller():
                     if abort_cycle:
                         config.db_close()
                         del db_session
-                        time.sleep(config.sleep_interval_limit)
+                        time.sleep(config.categories["openstackPoller.py"]["sleep_interval_limit"])
                         continue
 
                     if uncommitted_updates > 0:
@@ -854,7 +854,7 @@ def limit_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_limit)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_limit"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -883,7 +883,7 @@ def network_poller():
     #    )
     #Base.prepare(db_engine, reflect=True)
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -896,7 +896,7 @@ def network_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -989,7 +989,7 @@ def network_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['name'], network_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['name'], network_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                                 continue
 
                             new_network = NETWORK(**network_dict)
@@ -1019,7 +1019,7 @@ def network_poller():
                 if abort_cycle:
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_network)
+                    time.sleep(config.categories["openstackPoller.py"]["sleep_interval_network"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -1036,7 +1036,7 @@ def network_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_network)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_network"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -1071,7 +1071,7 @@ def security_group_poller():
     register_signal_receiver(config, "update_csv2_clouds")
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1165,7 +1165,7 @@ def security_group_poller():
                                 logging.error("Unmapped attributes found during mapping, discarding:")
                                 logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["id"], sec_grp_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                                 continue
 
                             new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
@@ -1194,7 +1194,7 @@ def security_group_poller():
 
                 if abort_cycle:
                     db_session.close()
-                    time.sleep(config.sleep_interval_sec_grp)
+                    time.sleep(config.categories["openstackPoller.py"]["sleep_interval_sec_grp"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
@@ -1210,7 +1210,7 @@ def security_group_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_security_group)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_security_group"])
 
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
@@ -1242,7 +1242,7 @@ def vm_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8, refreshable=True)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1254,7 +1254,7 @@ def vm_poller():
     failure_dict = {}
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.log_level<20), cloud_type="openstack")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1383,8 +1383,8 @@ def vm_poller():
                                     'flavor_id': vm.flavor["id"]
                                 }
                             continue
-                        elif int(host_tokens[2]) != int(config.csv2_host_id):
-                            logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm.name))
+                        elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
+                            logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.categories["SQL"]["csv2_host_id"], vm.name))
                             if auth_url + "--" + vm.flavor["id"] in for_vm_dict:
                                 for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] = for_vm_dict[auth_url + "--" + vm.flavor["id"]]["count"] + 1
                             else:
@@ -1447,7 +1447,7 @@ def vm_poller():
                         logging.error("unmapped attributes found during mapping, discarding:")
                         logging.error(unmapped)
 
-                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                    if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm.name, vm_dict, new_poll_time, debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20)):
                         continue
 
                     new_vm = VM(**vm_dict)
@@ -1459,7 +1459,7 @@ def vm_poller():
                         logging.error(exc)
                         abort_cycle = True
                         break
-                    if uncommitted_updates >= config.batch_commit_size:
+                    if uncommitted_updates >= config.categories["openstackPoller.py"]["batch_commit_size"]:
                         try:
                             db_session.commit()
                             logging.debug("Comitted %s VMs" % uncommitted_updates)
@@ -1519,7 +1519,7 @@ def vm_poller():
             if abort_cycle:
                 config.db_close()
                 del db_session
-                time.sleep(config.sleep_interval_vm)
+                time.sleep(config.categories["openstackPoller.py"]["sleep_interval_vm"])
                 continue
 
             # Scan the OpenStack VMs in the database, removing each one that is not in the inventory.
@@ -1550,7 +1550,7 @@ def vm_poller():
             logging.debug("Completed VM poller cycle")
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_vm)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"])
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
@@ -1562,7 +1562,7 @@ def vm_poller():
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
     db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     GROUPS = config.db_map.classes.csv2_groups
     CLOUDS = config.db_map.classes.csv2_clouds
     KEYPAIRS = config.db_map.classes.cloud_keypairs
@@ -1672,7 +1672,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -1696,7 +1696,7 @@ def service_registrar():
             logging.error(exc)
             return -1
 
-        time.sleep(config.sleep_interval_registrar)
+        time.sleep(config.categories["general"]["sleep_interval_registrar"])
 
     return -1
 
@@ -1714,7 +1714,7 @@ if __name__ == '__main__':
         'registrar':             service_registrar,
         'security_group_poller': security_group_poller
     }
-    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
     procMon = ProcessMonitor(config_params=db_categories, pool_size=9, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
     config = procMon.get_config()
@@ -1730,7 +1730,7 @@ if __name__ == '__main__':
         procMon.start_all()
         while True:
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
