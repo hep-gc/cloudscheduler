@@ -72,7 +72,7 @@ def job_poller():
     JOB_SCHED = config.db_map.classes.csv2_job_schedulers
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, JOB, 'global_job_id', debug_hash=(config.categories["csjobs.py"]["log_level"]<20))
         while True:
             #
             # Setup - initialize condor and database objects and build user-group list
@@ -494,7 +494,7 @@ def command_poller():
 
             logging.debug("Completed command consumer cycle")
             config.db_close()
-            time.sleep(config.categories["csjobs.py"]["sleep_interval_command]")
+            time.sleep(config.categories["csjobs.py"]["sleep_interval_command"])
 
     except Exception as exc:
         logging.exception("Job poller while loop exception, process terminating...")
