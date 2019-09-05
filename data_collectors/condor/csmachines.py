@@ -85,7 +85,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.catagories["csmachines.py"]["cacerts"])
+            sess = session.Session(auth=auth, verify=config.categories["csmachines.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -101,7 +101,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 project_name=project,
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name)
-            sess = session.Session(auth=auth, verify=config.catagories["csmachines.py"]["cacerts"])
+            sess = session.Session(auth=auth, verify=config.categories["csmachines.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
@@ -156,7 +156,7 @@ def machine_poller():
     failure_dict = {}
 
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.log_level<20))
+        inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["csmachines.py"]["log_level"]<20))
         configure_htc(config, logging)
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
@@ -270,8 +270,8 @@ def machine_poller():
                             machine_errors["badgrp"] = machine_errors["badgrp"] + 1
                         continue
                     # check cs host
-                    if str(r_dict['cs_host_id']) != str(config.catagories["SQL"]["csv2_host_id"]):
-                        logging.debug("Skipping resource with bad cs_host_id: %s, should be %s" % (r_dict['cs_host_id'], config.catagories["SQL"]["csv2_host_id"]))
+                    if str(r_dict['cs_host_id']) != str(config.categories["SQL"]["csv2_host_id"]):
+                        logging.debug("Skipping resource with bad cs_host_id: %s, should be %s" % (r_dict['cs_host_id'], config.categories["SQL"]["csv2_host_id"]))
                         forgein_machines = forgein_machines + 1
                         if "badgrp" not in machine_errors:
                             machine_errors["badgrp"] = 1
@@ -298,7 +298,7 @@ def machine_poller():
                         logging.error(unmapped)
 
                     # Check if this item has changed relative to the local cache, skip it if it's unchanged
-                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.catagories["csmachines.py"]["log_level"]<20)):
+                    if test_and_set_inventory_item_hash(inventory, r_dict["group_name"], r_dict["cloud_name"], r_dict["name"], r_dict, new_poll_time, debug_hash=(config.categories["csmachines.py"]["log_level"]<20)):
                         continue
 
                     logging.info("Adding/updating machine %s", r_dict["name"])
@@ -349,7 +349,7 @@ def machine_poller():
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
                     config.db_close()
-                    time.sleep(config.catagories["csmachines.py"]["sleep_interval_machine"])
+                    time.sleep(config.categories["csmachines.py"]["sleep_interval_machine"])
                     continue
 
             if delete_cycle:
@@ -360,11 +360,11 @@ def machine_poller():
             if 'db_session' in locals():
                 del db_session
             cycle_count = cycle_count + 1
-            if cycle_count > config.catagories["csmachines.py"]["delete_cycle_interval"]:
+            if cycle_count > config.categories["csmachines.py"]["delete_cycle_interval"]:
                 delete_cycle = True
                 cycle_count = 0
             
-            wait_cycle(cycle_start_time, poll_time_history, config.catagories["csmachines.py"]["sleep_interval_machine"])
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["csmachines.py"]["sleep_interval_machine"])
 
     except Exception as exc:
         logging.exception("Machine poller while loop exception, process terminating...")
@@ -376,7 +376,7 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP"], pool_size=6)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP"], pool_size=6, refreshable=True)
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
@@ -406,7 +406,7 @@ def command_poller():
                 # check on agent satus every ~5 cycles
                 if cycle_count >= 5:
                     try:
-                        condor_rpc = RPC(config.catagories["AMQP"]["host"], config.catagories["AMQP"]["port"], config.catagories["AMQP"]["queue_prefix_htc"] +"_" + condor_host, "csv2_htc_" + condor_host)
+                        condor_rpc = RPC(config.categories["AMQP"]["host"], config.categories["AMQP"]["port"], config.categories["AMQP"]["queue_prefix_htc"] +"_" + condor_host, "csv2_htc_" + condor_host)
                     except Exception as exc:
                         logging.error("Failed to create condor RPC client, skipping...:")
                         logging.error(exc)
@@ -504,7 +504,7 @@ def command_poller():
                         #resource has already been retired and is in retiring state, skip it
                         continue
 
-                    if config.catagories["csmachines.py"]["retire_off"]:
+                    if config.categories["csmachines.py"]["retire_off"]:
                         logging.critical("Retires disabled, normal operation would retire %s" % resource.hostname)
                         continue
 
@@ -519,7 +519,7 @@ def command_poller():
                         #master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
                         if condor_rpc is None:
                             try:
-                                condor_rpc = RPC(config.catagories["AMQP"]["host"], config.catagories["AMQP"]["port"], config.catagories["AMQP"]["queue_prefix_htc"] +"_" + condor_host, "csv2_htc_" + condor_host)
+                                condor_rpc = RPC(config.categories["AMQP"]["host"], config.categories["AMQP"]["port"], config.categories["AMQP"]["queue_prefix_htc"] +"_" + condor_host, "csv2_htc_" + condor_host)
                             except Exception as exc:
                                 logging.error("Failed to create condor RPC client, skipping...:")
                                 logging.error(exc)
@@ -578,7 +578,7 @@ def command_poller():
                         vm_row.updater = str(get_frame_info() + ":r+")
                         db_session.merge(vm_row)
                         uncommitted_updates = uncommitted_updates + 1
-                        if uncommitted_updates >= config.catagories["csmachines.py"]["batch_commit_size"]:
+                        if uncommitted_updates >= config.categories["csmachines.py"]["batch_commit_size"]:
                             try:
                                 db_session.commit()
                                 uncommitted_updates = 0
@@ -602,7 +602,7 @@ def command_poller():
                     #del condor_session
                     config.db_close()
                     del db_session
-                    time.sleep(config.catagories["csmachines.py"]["sleep_interval_command"])
+                    time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
                     continue
 
             # Now do the same thing for vms that need to be terminated
@@ -645,7 +645,7 @@ def command_poller():
                         if session is False:
                             continue
                      
-                        if config.catagories["csmachines.py"]["terminate_off"]:
+                        if config.categories["csmachines.py"]["terminate_off"]:
                             logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                             continue
 
@@ -698,7 +698,7 @@ def command_poller():
                         try:
                             if condor_rpc is None:
                                 try:
-                                    condor_rpc = RPC(config.catagories["AMQP"]["host"], config.catagories["AMQP"]["port"], config.catagories["AMQP"]["queue_prefix_htc"] +"_" + condor_host, "csv2_htc_" + condor_host)
+                                    condor_rpc = RPC(config.categories["AMQP"]["host"], config.categories["AMQP"]["port"], config.categories["AMQP"]["queue_prefix_htc"] +"_" + condor_host, "csv2_htc_" + condor_host)
                                 except Exception as exc:
                                     logging.error("Failed to create condor RPC client, skipping...:")
                                     logging.error(exc)
@@ -783,7 +783,7 @@ def command_poller():
                             break
 
                     elif cloud.cloud_type == "amazon":
-                        if config.catagoires["csmachines.py"]["terminate_off"]:
+                        if config.categories["csmachines.py"]["terminate_off"]:
                             logging.critical("Terminates disabled, normal operation would terminate %s" % vm_row.hostname)
                             continue
                         #terminate the vm
@@ -834,7 +834,7 @@ def command_poller():
                         #del condor_session
                         config.db_close()
                         del db_session
-                        time.sleep(config.catagoires["csmachines.py"]["sleep_interval_command"])
+                        time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
                         continue
 
                 if abort_cycle:
@@ -865,7 +865,7 @@ def command_poller():
 
             if 'db_session'in locals():
                 del db_session
-            time.sleep(config.catagoires["csmachines.py"]["sleep_interval_command"])
+            time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
 
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
@@ -904,7 +904,7 @@ def service_registrar():
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
             return -1
-        time.sleep(config.catagories["general"]["sleep_interval_registrar"])
+        time.sleep(config.categories["general"]["sleep_interval_registrar"])
 
     return -1
 
