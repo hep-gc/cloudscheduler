@@ -318,6 +318,7 @@
     group: root
     mode: 0644
   with_items:
+      - csv2-condor-gsi
       - csv2-ec2
       - csv2-glint
       - csv2-htc-agent
@@ -449,6 +450,7 @@
     enabled: yes
     state: stopped
   with_items:
+      - csv2-condor-gsi
       - csv2-ec2
       - csv2-glint
       - csv2-htc-agent
@@ -678,6 +680,7 @@
   - redis
   - rabbitmq-server
   - celery
+  - csv2-condor-gsi
   - csv2-ec2
   - csv2-glint
   - csv2-htc-agent
