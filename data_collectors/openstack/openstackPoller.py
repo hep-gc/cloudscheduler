@@ -1056,7 +1056,7 @@ def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
     CLOUD = config.db_map.classes.csv2_clouds
