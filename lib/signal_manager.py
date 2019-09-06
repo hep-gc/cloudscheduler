@@ -15,7 +15,7 @@ def register_signal_receiver(config, event):
     fd.write(start_time)
     fd.close()
 
-    fd = open(config.signal_manager_log_file, 'a')
+    fd = open(config.categories["signal_manager"]["signal_manager_log_file"], 'a')
     fd.write('%s signal_manager: process ID "%s" added to registry "%s".\n' % (datetime.datetime.now(), pid, registry))
     fd.close()
 
@@ -42,7 +42,7 @@ def send_signals(config, event, signal_name='sigint'):
         try:
             start_time, registration = get_pid_info(pid, registry)
         except Exception as exc:
-            fd = open(config.signal_manager_log_file, 'a')
+            fd = open(config.categories["signal_manager"]["signal_manager_log_file"], 'a')
             fd.write('%s signal_manager: process ID "%s" does not exitst in /proc/, unregistering \n' % (datetime.datetime.now(), pid))
             fd.close()
             unregister(config, registry, process_id)
@@ -54,7 +54,7 @@ def send_signals(config, event, signal_name='sigint'):
 
         if start_time == registered_start_time:
             os.kill(pid, signals['ids'][signal])
-            fd = open(config.signal_manager_log_file, 'a')
+            fd = open(config.categories["signal_manager"]["signal_manager_log_file"], 'a')
             fd.write('%s signal_manager: "%s" sent to process ID "%s".' % (datetime.datetime.now(), signal, pid))
             fd.close()
         else:
@@ -62,12 +62,12 @@ def send_signals(config, event, signal_name='sigint'):
 
 def unregister(config, registry, pid):
     os.unlink('%s/%s' % (registry, pid))
-    fd = open(config.signal_manager_log_file, 'a')
+    fd = open(config.categories["signal_manager"]["signal_manager_log_file"], 'a')
     fd.write('%s signal_manager: process ID "%s" removed from registry "%s".' % (datetime.datetime.now(), pid, registry))
     fd.close()
 
 def verify_signal_registry(config, event):
-    registry = '%s/%s' % (config.signal_registry, event)
+    registry = '%s/%s' % (config.categories["signal_manager"]["signal_registry"], event)
     if os.path.isdir(registry):
         return registry
 
