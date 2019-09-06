@@ -805,7 +805,7 @@ def keypair_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name',
-                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
+                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning keypair poller cycle")
@@ -967,7 +967,7 @@ def limit_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-',
-                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
+                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
