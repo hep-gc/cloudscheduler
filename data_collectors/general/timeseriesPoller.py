@@ -32,7 +32,7 @@ def timeseries_data_transfer():
     # A new row will also need to be added to csv2_system_status to track any crashes/errors that occur in this file
     # once that new row is added you will need to replace "N/A" with the name of the column for
     # "orange_count_row" in ProccessMonitor initialization in __main__
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), refreshable=True)
 
 
     cycle_start_time = 0
@@ -45,6 +45,7 @@ def timeseries_data_transfer():
 
             #DO ALL THE THINGS
             config.db_open()
+            config.refresh()
             db_session = config.db_session
             
             STATUS = config.db_map.classes.csv2_system_status
@@ -248,7 +249,7 @@ def timeseries_data_transfer():
             del db_session
             
             
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["timeseriesPoller.py"]["sleep_interval_status"])
 
 
         except Exception as exc:
@@ -266,7 +267,7 @@ if __name__ == '__main__':
         'timeseries data transfer': timeseries_data_transfer,
     }
     
-    procMon = ProcessMonitor(config_params=os.path.basename(sys.argv[0]), pool_size=3, orange_count_row='csv2_timeseries_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=3, orange_count_row='csv2_timeseries_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
 
@@ -277,8 +278,9 @@ if __name__ == '__main__':
         #start processes
         procMon.start_all()
         while True:
+            config.refresh()
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")

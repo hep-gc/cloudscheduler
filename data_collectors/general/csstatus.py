@@ -65,7 +65,7 @@ def status_poller():
     #        )
     #    )
     #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]))
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), refreshable=True)
 
     STATUS = config.db_map.classes.csv2_system_status
 
@@ -78,6 +78,7 @@ def status_poller():
 
     try:
         while True:
+            config.refresh()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             # id will always be zero because we only ever want one row of these
             system_dict = {'id': 0}
@@ -116,7 +117,7 @@ def status_poller():
                 del db_session
                 exit(1)
 
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_status)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["csstatus.py"]["sleep_interval_status"])
     except Exception as exc:
         logging.exception("Problem during general execution:")
         logging.exception(exc)
@@ -132,7 +133,7 @@ if __name__ == '__main__':
         'status': status_poller,
     }
 
-    procMon = ProcessMonitor(config_params=os.path.basename(sys.argv[0]), pool_size=8, orange_count_row='csv2_status_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "ProcessMonitor"], pool_size=8, orange_count_row='csv2_status_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
 
@@ -143,8 +144,9 @@ if __name__ == '__main__':
         #start processes
         procMon.start_all()
         while True:
+            config.refresh()
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")

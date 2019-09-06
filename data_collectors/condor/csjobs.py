@@ -79,6 +79,7 @@ def job_poller():
             #
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
+            config.refresh()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
@@ -423,6 +424,7 @@ def command_poller():
         while True:
             logging.debug("Beginning command consumer cycle")
             config.db_open()
+            config.refresh()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
             condor_hosts_set = set() # use a set here so we dont re-query same host if multiple groups have same host
@@ -516,6 +518,7 @@ def service_registrar():
 
     while True:
         config.db_open()
+        config.refresh()
 
         service_dict = {
             "service":             service_name,
@@ -556,6 +559,7 @@ if __name__ == '__main__':
         #start processes
         procMon.start_all()
         while True:
+            config.refresh()
             procMon.check_processes()
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
             

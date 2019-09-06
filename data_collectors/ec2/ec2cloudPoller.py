@@ -214,6 +214,7 @@ def ec2_filterer():
     while True:
         try:
             config.db_open()
+            config.refresh()
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             cloud_list = config.db_session.query(CLOUD).filter(CLOUD.cloud_type == "amazon")
 
@@ -407,6 +408,7 @@ def image_poller():
                 logging.debug("Beginning image poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
+                config.refresh()
                 db_session = config.db_session
 
                 abort_cycle = False
@@ -809,6 +811,7 @@ def keypair_poller():
                 logging.debug("Beginning keypair poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
+                config.refresh()
                 db_session = config.db_session
 
                 abort_cycle = False
@@ -970,6 +973,7 @@ def limit_poller():
                 logging.debug("Beginning limit poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
+                config.refresh()
                 db_session = config.db_session
 
                 abort_cycle = False
@@ -1157,6 +1161,7 @@ def network_poller():
                 logging.debug("Beginning network poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
+                config.refresh()
                 db_session = config.db_session
 
                 abort_cycle = False
@@ -1332,6 +1337,7 @@ def security_group_poller():
                 logging.debug("Beginning security group poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
                 config.db_open()
+                config.refresh()
                 db_session = config.db_session
 
                 abort_cycle = False
@@ -1512,6 +1518,7 @@ def vm_poller():
             logging.debug("Beginning VM poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
             config.db_open()
+            config.refresh()
             db_session = config.db_session
 
             # For each amazon region, retrieve and process VMs.
@@ -1837,6 +1844,7 @@ def service_registrar():
 
     while True:
         config.db_open()
+        config.refresh()
 
         service_dict = {
             "service": service_name,
@@ -1887,6 +1895,7 @@ if __name__ == '__main__':
         # start processes
         procMon.start_all()
         while True:
+            config.refresh()
             procMon.check_processes()
             time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
