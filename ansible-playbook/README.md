@@ -17,7 +17,7 @@ Once CentOS has been installed, modify the "secrets" and the "vars" within
 this directory to contain appropriate values. Comments within the files should explain what
 is required. The playbook can then be applied with the following command:
 
-    ansible-playbook -e addenda=addenda -i inventory csv2-sa.yaml
+    ansible-playbook -e addenda=addenda -i inventory csv2-sa.yaml -u root
 
 When the installation completes, point your browser at "https://your_fqdn" and login with
 "csv2-default" user and the password you set in "secrets".
