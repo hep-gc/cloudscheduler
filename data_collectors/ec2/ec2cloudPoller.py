@@ -96,7 +96,7 @@ def check_instance_types(config):
     db_session = config.db_session
     seven_days_ago = time.time() - 60*60*24*7
 
-    json_path = config.region_flavor_file_location
+    json_path = config.categories["ec2cloudPoller.py"]["region_flavor_file_location"]
     region_list = db_session.query(REGIONS)
 
     for region in region_list:
@@ -200,7 +200,7 @@ def refresh_instance_types(config, file_path, region):
 def ec2_filterer():
     multiprocessing.current_process().name = "EC2 Filterer"    
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True)
     CLOUD = config.db_map.classes.csv2_clouds
     FLAVOR = config.db_map.classes.cloud_flavors
     IMAGE = config.db_map.classes.cloud_images
@@ -325,7 +325,7 @@ def ec2_filterer():
 
             #need to add signaling
             config.db_close()
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_filterer)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_filterer"])
 
 
 
@@ -341,7 +341,7 @@ def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=20, refreshable=True)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -357,7 +357,7 @@ def flavor_poller():
 
 
     while True:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.log_level<20), cloud_type='amazon')
+        inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type='amazon')
         try:
             #poll flavors
             logging.debug("Beginning flavor poller cycle")
@@ -370,7 +370,7 @@ def flavor_poller():
 
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_flavor)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_flavor"])
 
 
         except Exception as exc:
@@ -384,7 +384,7 @@ def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
 
     EC2_IMAGE = config.db_map.classes.ec2_images
     IMAGE = config.db_map.classes.cloud_images
@@ -744,7 +744,7 @@ def image_poller():
                 if abort_cycle:
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_image)
+                    time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_image"])
                     continue
 
                 # Since this table isn't directly tied to groups, our standard hashing strategy wont work here.
@@ -767,7 +767,7 @@ def image_poller():
                 config.db_close() 
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_image)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_image"])
                 except KeyboardInterrupt:
                     # sigint received, cancel the sleep and start the loop
                     continue
@@ -789,7 +789,7 @@ def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -890,7 +890,7 @@ def keypair_poller():
                             }
 
                             if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, key['KeyName'], key_dict,
-                                                                new_poll_time, debug_hash=(config.log_level < 20)):
+                                                                new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
 
                             new_key = KEYPAIR(**key_dict)
@@ -921,7 +921,7 @@ def keypair_poller():
                 if abort_cycle:
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_keypair)
+                    time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_keypair"])
                     continue
 
                 # Scan the EC2 keypairs in the database, removing each one that was not updated in the inventory.
@@ -931,7 +931,7 @@ def keypair_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_keypair)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_keypair"])
                 except KeyboardInterrupt:
                     # sigint received, cancel the sleep and start the loop
                     continue
@@ -950,7 +950,7 @@ def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -1076,12 +1076,12 @@ def limit_poller():
                             logging.error(unmapped)
 
                         if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, '-', limits_dict,
-                                                            new_poll_time, debug_hash=(config.log_level < 20)):
+                                                            new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                             continue
 
                         for limit in limits_dict:
                             if "-1" in str(limits_dict[limit]):
-                                limits_dict[limit] = config.no_limit_default
+                                limits_dict[limit] = config.categories["ec2cloudPoller.py"]["no_limit_default"]
 
                         new_limits = LIMIT(**limits_dict)
                         try:
@@ -1098,7 +1098,7 @@ def limit_poller():
                     if abort_cycle:
                         config.db_close()
                         del db_session
-                        time.sleep(config.sleep_interval_limit)
+                        time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_limit"])
                         continue
 
                     if uncommitted_updates > 0:
@@ -1118,7 +1118,7 @@ def limit_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_limit)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_limit"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -1135,19 +1135,9 @@ def limit_poller():
 
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
-    # Base = automap_base()
-    # db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    # Base.prepare(db_engine, reflect=True)
+
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -1161,7 +1151,7 @@ def network_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name',
-                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
+                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
@@ -1259,7 +1249,7 @@ def network_poller():
 
                             if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, network['Description'],
                                                                 network_dict, new_poll_time,
-                                                                debug_hash=(config.log_level < 20)):
+                                                                debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
 
                             new_network = NETWORK(**network_dict)
@@ -1290,7 +1280,7 @@ def network_poller():
                 if abort_cycle:
                     config.db_close()
                     del db_session
-                    time.sleep(config.sleep_interval_network)
+                    time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_network"])
                     continue
 
                 # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
@@ -1300,7 +1290,7 @@ def network_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_network)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_network"])
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
@@ -1320,7 +1310,7 @@ def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
     CLOUD = config.db_map.classes.csv2_clouds
@@ -1336,7 +1326,7 @@ def security_group_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id',
-                                                          debug_hash=(config.log_level < 20), cloud_type='amazon')
+                                                          debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20), cloud_type='amazon')
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
@@ -1432,7 +1422,7 @@ def security_group_poller():
 
                             if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, sec_grp["GroupId"],
                                                                 sec_grp_dict, new_poll_time,
-                                                                debug_hash=(config.log_level < 20)):
+                                                                debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"] < 20)):
                                 continue
 
                             new_sec_grp = SECURITY_GROUP(**sec_grp_dict)
@@ -1464,7 +1454,7 @@ def security_group_poller():
 
                 if abort_cycle:
                     db_session.close()
-                    time.sleep(config.sleep_interval_sec_grp)
+                    time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"])
                     continue
 
                 # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
@@ -1474,7 +1464,7 @@ def security_group_poller():
                 config.db_close()
                 del db_session
                 try:
-                    wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_sec_grp)
+                    wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_sec_grp"])
 
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
@@ -1495,7 +1485,7 @@ def security_group_poller():
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8, refreshable=True)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1515,7 +1505,7 @@ def vm_poller():
     config.db_close()
     
     try:
-        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.log_level<20), cloud_type="amazon")
+        inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'vmid', debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20), cloud_type="amazon")
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
@@ -1650,8 +1640,8 @@ def vm_poller():
                                         'flavor_id': vm['InstanceType']
                                     }
                                 continue
-                            elif int(host_tokens[2]) != int(config.csv2_host_id):
-                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.csv2_host_id, vm['PublicDnsName']))
+                            elif int(host_tokens[2]) != int(config.categories["SQL"]["csv2_host_id"]):
+                                logging.debug("csv2 host id from host does not match (should be %s), marking %s as foreign vm" % (config.categories["SQL"]["csv2_host_id"], vm['PublicDnsName']))
                                 if auth_url + "--" + vm['InstanceType'] in for_vm_dict:
                                     for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] = for_vm_dict[auth_url + "--" + vm['InstanceType']]["count"] + 1
                                 else:
@@ -1728,7 +1718,7 @@ def vm_poller():
                             logging.error("unmapped attributes found during mapping, discarding:")
                             logging.error(unmapped)
 
-                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                        if test_and_set_inventory_item_hash(inventory, vm_group_name, vm_cloud_name, vm_dict['vmid'], vm_dict, new_poll_time, debug_hash=(config.categories["ec2cloudPoller.py"]["log_level"]<20)):
                             continue
 
                         new_vm = VM(**vm_dict)
@@ -1740,7 +1730,7 @@ def vm_poller():
                             logging.error(exc)
                             abort_cycle = True
                             break
-                        if uncommitted_updates >= config.batch_commit_size:
+                        if uncommitted_updates >= config.categories["ec2cloudPoller.py"]["batch_commit_size"]:
                             try:
                                 db_session.commit()
                                 logging.info("Comitted %s VMs" % uncommitted_updates)
@@ -1802,7 +1792,7 @@ def vm_poller():
             if abort_cycle:
                 config.db_close()
                 del db_session
-                time.sleep(config.sleep_interval_vm)
+                time.sleep(config.categories["ec2cloudPoller.py"]["sleep_interval_vm"])
                 continue
 
             # Scan the VMs in the database, removing each one that is not in the inventory.
@@ -1825,7 +1815,7 @@ def vm_poller():
             logging.debug("Completed VM poller cycle")
             config.db_close()
             del db_session
-            wait_cycle(cycle_start_time, poll_time_history, config.sleep_interval_vm)
+            wait_cycle(cycle_start_time, poll_time_history, config.categories["ec2cloudPoller.py"]["sleep_interval_vm"])
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
@@ -1839,7 +1829,7 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
@@ -1863,7 +1853,7 @@ def service_registrar():
             logging.error(exc)
             return -1
 
-        time.sleep(config.sleep_interval_registrar)
+        time.sleep(config.categories["general"]["sleep_interval_registrar"])
 
     return -1
 
@@ -1882,7 +1872,7 @@ if __name__ == '__main__':
         'filterer': ec2_filterer,
         'security_group_poller': security_group_poller
     }
-    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
+    db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
     procMon = ProcessMonitor(config_params=db_categories, pool_size=9,
                              orange_count_row='csv2_ec2_error_count', process_ids=process_ids)
     config = procMon.get_config()
@@ -1898,7 +1888,7 @@ if __name__ == '__main__':
         procMon.start_all()
         while True:
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories["ProcessMonitor"]["sleep_interval_main_long"])
 
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
