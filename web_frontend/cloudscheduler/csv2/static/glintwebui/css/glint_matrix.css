@@ -3,9 +3,6 @@ table, th, td {
     border-collapse: collapse;
     padding: 8px;
 }
-th {
-    text-align: right;
-}
 
 #account_table{
     border: none;
@@ -16,12 +13,19 @@ th {
 .image_matrix th {
     padding-top: 12px;
     padding-bottom: 12px;
-    text-align: left;
+    text-align: center;
     background-color: #4CAF50;
     color: black;
 }
 
-.image_matrix tr:hover {background-color: #ddd;}
+.image_matrix td:hover {
+    border: 1px solid black;
+}
+
+.image_matrix tr:hover {
+    background-color: #ddd;
+    border: 1px solid black;
+}
 
 .public {
     background-color: #FFFF63;
