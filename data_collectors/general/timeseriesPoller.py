@@ -22,6 +22,11 @@ from sqlalchemy.sql import select
 from sqlalchemy.ext.automap import automap_base
 
 
+def _cast_int(variable):
+    if variable is None:
+        return 0
+    else:
+        return int(variable)
 
 def timeseries_data_transfer():
 
@@ -130,23 +135,23 @@ def timeseries_data_transfer():
             for line in job_status:
                 group = line.group_name
                
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[0], group, int(line.Jobs), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[0], group, _cast_int(line.Jobs), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[1], group, int(line.Idle), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[1], group, _cast_int(line.Idle), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[2], group, int(line.Running), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[2], group, _cast_int(line.Running), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[3], group, int(line.Completed), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[3], group, _cast_int(line.Completed), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[4], group, int(line.Held), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[4], group, _cast_int(line.Held), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[5], group, int(line.Other), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[5], group, _cast_int(line.Other), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[6], group, int(line.foreign), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[6], group, _cast_int(line.foreign), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, int(line.htcondor_status), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, _cast_int(line.htcondor_status), ts)
                 data_points.append(new_point)
-                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[8], group, int(line.agent_status), ts)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[8], group, _cast_int(line.agent_status), ts)
                 data_points.append(new_point)
 
 
