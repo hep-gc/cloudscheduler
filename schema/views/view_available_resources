@@ -57,7 +57,9 @@ ifnull(fru.flavor_running,0) as flavor_running,
 ifnull(fru.flavor_retiring,0) as flavor_retiring,
 ifnull(fru.flavor_error,0) as flavor_error,
 ifnull(fru.flavor_manual,0) as flavor_manual,
-fru.updater
+fru.updater,
+fwd.worker_cert,
+fwd.worker_key
 
 from (
     /* fwd - flavors with defaults */
@@ -158,7 +160,9 @@ from (
                 ram_max-ifnull(vfr.ram,0)
             end as ram_max,
 
-            vfr.ram as ram_foreign
+            vfr.ram as ram_foreign,
+            cw.worker_cert,
+            cw.worker_key
 
         from csv2_clouds as cc
         left outer join csv2_groups as cg on
@@ -169,9 +173,16 @@ from (
         left outer join view_foreign_resources as vfr on
             cc.group_name=vfr.group_name and
             cc.cloud_name=vfr.cloud_name
+        left outer join condor_worker_gsi as cw on
+            cg.htcondor_fqdn=cw.htcondor_fqdn
+        join csv2_configuration as gsi on
+            gsi.category='GSI' and
+            gsi.config_key='cert_days_left_bad'
         where
             enabled=1 and
-            communication_up > 0
+            communication_up > 0 and
+            (cg.htcondor_gsi_dn is null or (cg.htcondor_gsi_eol-unix_timestamp()) div 86400>gsi.config_value) and
+            (cw.worker_dn is null or (cw.worker_eol-unix_timestamp()) div 86400>gsi.config_value)
         ) as cwd
     join cloud_flavors as cf1 on
         cwd.group_name=cf1.group_name and
