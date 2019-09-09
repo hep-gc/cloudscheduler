@@ -134,11 +134,11 @@
     src: /var/local/cloudscheduler/etc/condor/config.d/gsi_daemon_name
     dest: /etc/condor/config.d/gsi_daemon_name
     state: link
-    owner: root
-    group: root
+    owner: cloudscheduler
+    group: cloudscheduler
     mode: 0644
   notify:
-  - restart condor
+  - reconfigure condor
   when:
   - htcondor_cert is defined 
   - htcondor_worker_cert is defined
@@ -149,7 +149,7 @@
     regexp: '^GSI_DAEMON_NAME'
     state: absent
   notify:
-    restart condor
+    reconfigure condor
 
 - name: install condor cloudscheduler proxy utility
   copy:
@@ -160,7 +160,7 @@
     mode: 0700
   when:
   - htcondor_cert is defined
-  - htcondor_worker_cert is defined
+  - htcondor_key is defined
 
 - name: create an cloudscheduler proxy certificate
   command: /usr/local/sbin/create_condor_cloudscheduler_proxy
@@ -168,7 +168,7 @@
     creates: "/tmp/x509up_u{{ cloudsheduler_user.uid }}"
   when:
   - htcondor_cert is defined
-  - htcondor_worker_cert is defined
+  - htcondor_key is defined
 
 - name: create celery user
   user:
@@ -318,7 +318,6 @@
     group: root
     mode: 0644
   with_items:
-      - csv2-condor-gsi
       - csv2-ec2
       - csv2-glint
       - csv2-htc-agent
@@ -450,7 +449,6 @@
     enabled: yes
     state: stopped
   with_items:
-      - csv2-condor-gsi
       - csv2-ec2
       - csv2-glint
       - csv2-htc-agent
@@ -680,7 +678,6 @@
   - redis
   - rabbitmq-server
   - celery
-  - csv2-condor-gsi
   - csv2-ec2
   - csv2-glint
   - csv2-htc-agent
