@@ -1,3 +1,4 @@
+import logging
 import pika
 import time
 import uuid
@@ -10,6 +11,7 @@ class RPC(object):
     #    routing key and queue name could be the same
     #    instead of key/queuename perhaps just host and prefix (prefix defiend in config + relevant condor host)
     def __init__(self, host, port, routing_key, queue_name):
+        logging.getLogger("pika").setLevel(logging.ERROR)
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(host))
         self.channel = self.connection.channel()
@@ -28,7 +30,7 @@ class RPC(object):
         if self.corr_id == props.correlation_id:
             self.response = body
 
-    def call(self, msg, timeout=30):
+    def call(self, msg, timeout=5):
         if isinstance(msg, str):
             body = msg
         else:
