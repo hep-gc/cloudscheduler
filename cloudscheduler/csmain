@@ -359,8 +359,10 @@ def main():
                                              'cs_condor_name': csgroup.htcondor_container_hostname,
                                              'cs_condor_submitters': csgroup.htcondor_other_submitters,
                                              'cs_cloud_alias': idle_job.target_alias,
-                                             'cs_condorworker_cert_days_to_end_of_life': config.categories['csmain']['condorworker_cert_days_to_eol'],
-                                             'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs']}
+                                             'cs_condorworker_cert_days_to_end_of_life': config.categories['GSI']['cert_days_left_good'],
+                                             'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs'],
+                                             'cs_condorworker_cert': cloud.worker_cert,
+                                             'cs_condorworker_key': cloud.worker_key}
                             template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 
@@ -573,7 +575,7 @@ if __name__ == '__main__':
         #'unregistered_vms': check_unregistered_machines,  #  No longer dealing with killing VMs.
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain"], pool_size=15,
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain", 'GSI', 'ProcessMonitor'], pool_size=15,
                              orange_count_row='csv2_scheduler_error_count', process_ids=process_ids)
     config = procMon.get_config()
     log = procMon.get_logging()
@@ -589,7 +591,7 @@ if __name__ == '__main__':
         procMon.start_all()
         while True:
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
 
     except (SystemExit, KeyboardInterrupt):
         log.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
