@@ -124,8 +124,8 @@ def callback(ch, method, properties, body):
             logger.info('command: query_condor_cert')
 
             result = {
-                'eol': '-',
-                'subject': '-'
+                'eol': 0,
+                'subject': None
                 }
 
             p1 = Popen([
@@ -135,11 +135,16 @@ def callback(ch, method, properties, body):
             stdout, stderr = p1.communicate()
 
             if p1.returncode == 0:
-                cert = decode(stdout).strip()
-            else:
-                cert = config['gsi_default_condor_cert']
+                condor_hostcert = decode(stdout).strip()
 
-            result['subject'], result['eol'] = get_gsi_cert_subject_and_eol(cert)
+            elif 'condor_hostcert' in config:
+                condor_hostcert = config['condor_hostcert']
+
+            else:
+                condor_hostcert = None
+
+            if condor_hostcert:
+                result['subject'], result['eol'] = get_gsi_cert_subject_and_eol(condor_hostcert)
 
             ch.basic_publish(exchange='',
                 routing_key=properties.reply_to,
@@ -153,17 +158,19 @@ def callback(ch, method, properties, body):
             
             result = {
                 'cert': None,
-                'eol': None,
+                'eol': 0,
                 'key': None,
                 'subject': None
                 }
 
-            cert = config['gsi_default_condor_worker_cert']
-            result['subject'], result['eol'] = get_gsi_cert_subject_and_eol(cert)
-            result['cert'] = zip_base64(cert)
+            if 'condor_worker_cert' in config:
+                result['subject'], result['eol'] = get_gsi_cert_subject_and_eol(config['condor_worker_cert'])
+                result['cert'] = zip_base64(config['condor_worker_cert'])
 
-            key = config['gsi_default_condor_worker_key']
-            result['key'] = zip_base64(key)
+            if 'condor_worker_key' in config:
+                result['key'] = zip_base64(config['condor_worker_key'])
+                if result['key'] == 'unreadable':
+                    result['eol'] = -999999
 
             ch.basic_publish(exchange='',
                 routing_key=properties.reply_to,
@@ -199,6 +206,20 @@ def callback(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
 
+def condor_off(condor_classad):
+    try:
+        logging.debug("Sending condor_off to %s" % condor_classad)
+        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
+        if master_result is None:
+            # None is good in this case it means it was a success
+            master_result = "Success"
+        logging.info("Condor_off result: %s" % master_result)
+        return master_result
+    except Exception as exc:
+        logging.error("Condor off failed:")
+        logging.error(exc)
+        return False
+
 def decode(obj):
     if not obj:
         return ''
@@ -207,34 +228,20 @@ def decode(obj):
     else:
         return obj.decode('utf-8')
 
-def yaml_full_load(yaml_string):
-    if hasattr(yaml, 'full_load'):
-        return yaml.full_load(yaml_string)
-    else:
-        return yaml.load(yaml_string)
-
-def zip_base64(path):
-    if os.path.isfile(path):
-        p1 = Popen([
-            'zip',
-            '-r',
-            '-',
-            path
-            ], stdout=PIPE, stderr=PIPE)
-
-        p2 = Popen([
-            'base64'
-            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = p2.communicate()
-
-        if p2.returncode == 0:
-            return decode(stdout)
-        else:
-            logger.error('function: zip_base64(base64), cert: %s, rc: %s, stdout: %s, stderr: %s' % (path, p2.returncode, decode(stdout), decode(stderr)))
-
-    return None
+def get_condor_session(hostname=None):
+    try:
+        condor_session = htcondor.Collector(hostname)
+        return condor_session
+    except Exception as exc:
+        logging.exception("Failed to get condor session for %s:" % hostname)
+        logging.error(exc)
+        return False
 
 def get_gsi_cert_subject_and_eol(cert):
+    if not os.access(cert, os.R_OK):
+        logger.warning('function: get_gsi_cert_subject_and_eol, pem: %s is unreadable.' % cert)
+        return 'unreadable', -999999
+
     if os.path.isfile(cert):
         p1 = Popen([
             'openssl',
@@ -278,15 +285,6 @@ def get_gsi_cert_subject_and_eol(cert):
 
     return None, None
 
-def get_condor_session(hostname=None):
-    try:
-        condor_session = htcondor.Collector(hostname)
-        return condor_session
-    except Exception as exc:
-        logging.exception("Failed to get condor session for %s:" % hostname)
-        logging.error(exc)
-        return False
-        
 
 def get_master_classad(session, machine, hostname):
     try:
@@ -314,27 +312,42 @@ def get_startd_classads(session, machine):
         return False
 
 
-def condor_off(condor_classad):
-    try:
-        logging.debug("Sending condor_off to %s" % condor_classad)
-        master_result = htcondor.send_command(condor_classad, htcondor.DaemonCommands.DaemonsOffPeaceful)
-        if master_result is None:
-            # None is good in this case it means it was a success
-            master_result = "Success"
-        logging.info("Condor_off result: %s" % master_result)
-        return master_result
-    except Exception as exc:
-        logging.error("Condor off failed:")
-        logging.error(exc)
-        return False
-
-
 def invalidate_master_classad(session, classad):
     return session.advertise([classad], "INVALIDATE_MASTER_ADS")
 
 def invalidate_startd_classads(session, classad_list):
     return session.advertise(classad_list, "INVALIDATE_STARTD_ADS")
        
+def yaml_full_load(yaml_string):
+    if hasattr(yaml, 'full_load'):
+        return yaml.full_load(yaml_string)
+    else:
+        return yaml.load(yaml_string)
+
+def zip_base64(path):
+    if not os.access(path, os.R_OK):
+        logger.warning('function: zip_base64, pem: %s is unreadable.' % path)
+        return 'unreadable'
+
+    if os.path.isfile(path):
+        p1 = Popen([
+            'zip',
+            '-r',
+            '-',
+            path
+            ], stdout=PIPE, stderr=PIPE)
+
+        p2 = Popen([
+            'base64'
+            ], stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p2.communicate()
+
+        if p2.returncode == 0:
+            return decode(stdout)
+        else:
+            logger.error('function: zip_base64, pem: %s, rc: %s, stdout: %s, stderr: %s' % (path, p2.returncode, decode(stdout), decode(stderr)))
+
+    return None
 
 fd = open(sys.argv[1])
 full_config = yaml_full_load(fd.read())
