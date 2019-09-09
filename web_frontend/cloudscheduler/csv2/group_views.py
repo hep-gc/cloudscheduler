@@ -6,7 +6,7 @@ from django.views.decorators.csrf import requires_csrf_token
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
-from cloudscheduler.lib.htc_config import configure_htc
+from cloudscheduler.lib.htc_config import configure_htc, query_htc_gsi
 from cloudscheduler.lib.view_utils import \
     lno,  \
     manage_group_users, \
@@ -17,7 +17,7 @@ from cloudscheduler.lib.view_utils import \
     table_fields, \
     validate_by_filtered_table_entries, \
     validate_fields
-from glintwebui.utils import set_defaults_changed
+from glintwebui.glint_utils import set_defaults_changed
 from collections import defaultdict
 import bcrypt
 
@@ -27,7 +27,6 @@ from cloudscheduler.lib.schema import *
 import sqlalchemy.exc
 
 from cloudscheduler.lib.web_profiler import silk_profile as silkp
-from cloudscheduler.lib.htc_config import query_htc_gsi
 
 # lno: GV - error code identifier.
 MODID= 'GV'
