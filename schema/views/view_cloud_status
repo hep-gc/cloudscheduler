@@ -11,6 +11,8 @@ select
     ifnull(cs.slot_idle_core_count, 0) as slot_idle_core_count,
     ifnull(vfr.count,0) as Foreign_VMs,
     enabled,
+    communication_up,
+    communication_rt,
     cores_ctl,
 
     case when cores_ctl=-1 then
