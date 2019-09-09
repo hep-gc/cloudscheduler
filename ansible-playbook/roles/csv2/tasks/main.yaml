@@ -11,6 +11,7 @@
 - import_tasks: configure_etc_hosts.yaml
 - import_tasks: configure_sshd.yaml
   when: (container is undefined) or (container == False)
+- import_tasks: configure_root_mail_forwarding.yaml
 - import_tasks: create_installation_directories.yaml
 - import_tasks: configure_other_required_repositories.yaml
 - import_tasks: perform_yum_updates.yaml
