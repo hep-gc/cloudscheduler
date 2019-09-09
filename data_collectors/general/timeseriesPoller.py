@@ -128,16 +128,27 @@ def timeseries_data_transfer():
 
             # Parse job status data into line protocol for influxdb
             for line in job_status:
-                column = 0
-                group = line[0]
-                for data in line[1:-1]:
-                    # Skip string data. (Do not want to store it in influxdb as it cannot be plotted)
-                    if data == -1 or data is None or isinstance(data, str):
-                        column += 1
-                        continue
-                    new_point = "{0},group={1} value={2}i {3}".format(job_column_list[column], group, int(data), ts)
-                    data_points.append(new_point)
-                    column += 1
+                group = line.group_name
+               
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[0], group, int(line.Jobs), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[1], group, int(line.Idle), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[2], group, int(line.Running), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[3], group, int(line.Completed), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[4], group, int(line.Held), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[5], group, int(line.Other), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[6], group, int(line.foreign), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[7], group, int(line.htcondor_status), ts)
+                data_points.append(new_point)
+                new_point = "{0},group={1} value={2}i {3}".format(job_column_list[8], group, int(line.agent_status), ts)
+                data_points.append(new_point)
+
 
             # Collect group totals
             for group in groups:
