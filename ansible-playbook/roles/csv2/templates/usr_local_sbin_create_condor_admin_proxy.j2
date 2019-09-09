@@ -1,5 +1,5 @@
 #!/bin/bash
-    M=$(/usr/bin/grid-proxy-init  -cert /etc/grid-security/condor/condorcert.pem -key /etc/grid-security/condor/condorkey.pem -valid 720:00 2>&1)
+    M=$(/usr/bin/grid-proxy-init  -cert /etc/grid-security/hostcert.pem -key /etc/grid-security/hostkey.pem -valid 720:00 2>&1)
     if [ "$?" -eq "0" ]; then
         if [ -e /usr/local/sbin/create_condor_cloudscheduler_proxy ]; then
             /usr/local/sbin/create_condor_cloudscheduler_proxy
