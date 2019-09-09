@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import os
 import socket
 
-def configure_htc(config, logger=None):
+def configure_htc(config, logger=None, other_dns=[]):
     local_dir = '/var/local/cloudscheduler/etc/condor/config.d'
 
     def configure_htc_logger(logger, level, msg):
@@ -48,17 +48,19 @@ def configure_htc(config, logger=None):
             db_close_on_exit = True
 
         # GSI_DAEMON_NAME
-        fd = open('%s/htcondor_distinguished_names' % local_dir)
-        new_daemon_set = set(fd.read().split('=',1)[1].strip().split(','))
-        fd.close()
-        configure_htc_logger(logger, 'debug', 'model gsi_daemon_name: %s' % new_daemon_set)
+        new_daemon_set = set(other_dns)
+        for daemon in config.db_connection.execute('select distinct htcondor_gsi_dn as dn from csv2_groups where htcondor_gsi_dn is not null union all select distinct worker_dn as dn from condor_worker_gsi where worker_dn is not null order by dn;'):
+            new_daemon_set.add(daemon['dn'])
 
-        for daemon in config.db_connection.execute('select distinct htcondor_gsi_dn from csv2_groups where htcondor_gsi_dn is not null'):
-            new_daemon_set.add(daemon['htcondor_gsi_dn'])
-
-        fd = open('%s/gsi_daemon_name' % local_dir)
-        old_daemon_set = set(fd.read().split('=',1)[1].strip().split(','))
-        fd.close()
+        if os.path.exists('%s/gsi_daemon_name' % local_dir):
+            with open('%s/gsi_daemon_name' % local_dir) as fd:
+                phrases = fd.read().split('=',1)
+                if len(phrases)>1:
+                    old_daemon_set = set(phrases[1].strip().split(','))
+                else:
+                    old_daemon_set = set()
+        else:
+            old_daemon_set = set()
 
         if new_daemon_set != old_daemon_set:
             configure_htc_logger(logger, 'debug', 'new gsi_daemon_name: %s' % new_daemon_set)
