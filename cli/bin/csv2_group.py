@@ -272,7 +272,9 @@ def list(gvar):
         group_list,
         [
             'group_name/Group,k',
-            'htcondor_fqdn/HTCondor FQDN',
+            'htcondor_fqdn/FQDN/HTCondor',
+            'htcondor_container_hostname/Container Hostname/HTCondor',
+            'htcondor_other_submitters/Other Submitters/HTCondor',
             'metadata_names/Metadata Filenames',
             ],
         title="Groups",
