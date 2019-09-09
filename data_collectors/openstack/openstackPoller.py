@@ -1650,6 +1650,10 @@ def defaults_replication():
                         if src_keypair == None:
                             # we haven't dug up a source keypair yet so lets grab one
                             db_keypair = db_session.query(KEYPAIRS).filter(KEYPAIRS.group_name == group.group_name, KEYPAIRS.key_name == default_key_name).first()
+                            if db_keypair == None:
+                                #we couldn't find a source keypair for this group, yikes
+                                logging.error("Unable to locate a source keypair: %s for group %s, skipping group." % (default_key_name, group.group_name))
+                                break
                             src_cloud = db_session.query(CLOUDS).get((db_keypair.group_name, db_keypair.cloud_name))
                             src_keypair = get_keypair(default_key_name, src_cloud)
                             if src_keypair == None:
