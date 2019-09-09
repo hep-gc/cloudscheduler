@@ -35,7 +35,7 @@
     group: root
     mode: 0644
   notify:
-  - restart condor
+  - reconfigure condor
   when: container is undefined
 
 # If you ever use the IP address, change etc_condor_condor_config.local.container to a template.
@@ -53,7 +53,7 @@
     group: root
     mode: 0644
   notify:
-  - restart condor
+  - reconfigure condor
   when: container is defined  
 
 - name: HTCondor configure 
@@ -70,7 +70,7 @@
   - scaling
   - system_hold
   notify:
-  - restart condor
+  - reconfigure condor
 
 - name: install GSI tools
   yum: name={{ item }} state=latest
@@ -81,14 +81,36 @@
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
 
-- name: ensure fetch-crl service is enabled and started
+- name: ensure fetch-crl-boot service is enabled and started
+  service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  ignore_errors: yes
+  with_items:
+  - fetch-crl-boot
+  when:
+  - htcondor_cert is defined
+  - htcondor_worker_cert is defined
+
+- name: ensure fetch-crl-cron service is enabled and started
   service:
     name: "{{ item }}"
     enabled: yes
     state: started
   with_items:
-  - fetch-crl-boot
   - fetch-crl-cron
+  when:
+  - htcondor_cert is defined
+  - htcondor_worker_cert is defined
+
+- name: make sure fetch-crl is quiet about unsuccessful CRL validations
+  copy:
+    src:  etc_fetch-crl.d_noerrors.conf
+    dest: /etc/fetch-crl.d/noerrors.conf
+    owner: root
+    group: root
+    mode: 0644
   when:
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
@@ -101,7 +123,7 @@
     group: root
     mode: 0644
   notify:
-  - restart condor
+  - reconfigure condor
   when:
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
@@ -117,6 +139,28 @@
   - grid_mapfile is defined
   - htcondor_cert is defined
   - htcondor_worker_cert is defined
+
+- name: install host certificate file
+  copy:
+    src: "{{ htcondor_cert }}"
+    dest: /etc/grid-security/hostcert.pem
+    owner: root
+    group: root
+    mode: 0644
+  when:
+  - htcondor_cert is defined
+  - htcondor_key is defined
+
+- name: install host private key file
+  copy:
+    src: "{{ htcondor_key }}"
+    dest: /etc/grid-security/hostkey.pem
+    owner: root
+    group: root
+    mode: 0400
+  when:
+  - htcondor_cert is defined
+  - htcondor_key is defined
 
 - name: create condor certificate directories
   file:
@@ -138,7 +182,9 @@
     mode: 0644
   when:
   - htcondor_cert is defined
+  - htcondor_key is defined
   - htcondor_worker_cert is defined
+  - htcondor_worker_key is defined
 
 - name: install condor private key file
   copy:
@@ -146,10 +192,12 @@
     dest: /etc/grid-security/condor/condorkey.pem
     owner: condor
     group: condor
-    mode: 0600
+    mode: 0400
   when:
   - htcondor_cert is defined
+  - htcondor_key is defined
   - htcondor_worker_cert is defined
+  - htcondor_worker_key is defined
 
 - name: install condorworker certificate file
   copy:
@@ -160,7 +208,9 @@
     mode: 0644
   when:
   - htcondor_cert is defined
+  - htcondor_key is defined
   - htcondor_worker_cert is defined
+  - htcondor_worker_key is defined
 
 - name: install condorworker private key file
   copy:
@@ -168,10 +218,12 @@
     dest: /etc/grid-security/condor/worker/condorworkerkey.pem
     owner: condor
     group: condor
-    mode: 0600
+    mode: 0400
   when:
   - htcondor_cert is defined
+  - htcondor_key is defined
   - htcondor_worker_cert is defined
+  - htcondor_worker_key is defined
 
 - name: install condor admin proxy utility
   template:
@@ -182,7 +234,7 @@
     mode: 0700
   when:
   - htcondor_cert is defined
-  - htcondor_worker_cert is defined
+  - htcondor_key is defined
 
 - name: install condor proxy crontab
   copy:
@@ -193,7 +245,7 @@
     mode: 0700
   when:
   - htcondor_cert is defined
-  - htcondor_worker_cert is defined
+  - htcondor_key is defined
 
 - name: create an admin proxy certificate
   command: /usr/local/sbin/create_condor_admin_proxy
@@ -201,6 +253,13 @@
     creates: /tmp/x509up_u0
   when:
   - htcondor_cert is defined
-  - htcondor_worker_cert is defined
+  - htcondor_key is defined
+
+- name: ensure HTCondor is running
+  service:
+    name: condor
+    enabled: yes
+    state: started
+  ignore_errors: yes
 
 - meta: flush_handlers

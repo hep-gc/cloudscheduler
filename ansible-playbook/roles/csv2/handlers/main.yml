@@ -1,6 +1,6 @@
 ---
 
-- include: restart_condor.yaml
+- include: reconfigure_condor.yaml
 - include: restart_firewalld.yaml
 - include: restart_httpd.yaml
 - include: restart_mariadb.yaml
