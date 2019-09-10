@@ -17,7 +17,11 @@ js.foreign_jobs as 'foreign',
 ifnull(js.condor_status,-1) as htcondor_status,
 ifnull(js.agent_status,-1) as agent_status,
 js.htcondor_fqdn,
-(cg.htcondor_gsi_eol-unix_timestamp()) div 86400 as condor_days_left,
+case when htcondor_gsi_dn is null then
+    null
+else
+    (cg.htcondor_gsi_eol-unix_timestamp()) div 86400
+end as condor_days_left,
 (cw.worker_eol-unix_timestamp()) div 86400 as worker_days_left
 
 from (
