@@ -34,7 +34,7 @@ def main():
     """
     multiprocessing.current_process().name = "csmain"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'csmain', pool_size=25, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['csmain', 'GSI'], pool_size=25, refreshable=True)
     config.db_engine.dispose()
     if not config:
         print("Problem loading config file.")
@@ -575,7 +575,7 @@ if __name__ == '__main__':
         #'unregistered_vms': check_unregistered_machines,  #  No longer dealing with killing VMs.
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain", 'GSI', 'ProcessMonitor'], pool_size=15,
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "csmain", 'ProcessMonitor'], pool_size=15,
                              orange_count_row='csv2_scheduler_error_count', process_ids=process_ids)
     config = procMon.get_config()
     log = procMon.get_logging()
