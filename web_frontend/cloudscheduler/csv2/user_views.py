@@ -369,7 +369,7 @@ def settings(request, active_user=None, response_code=0, message=None):
             'user_list': user_list,
             'response_code': rc,
             'message': msg,
-            'enable_glint': config.enable_glint,
+            'enable_glint': config..categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
