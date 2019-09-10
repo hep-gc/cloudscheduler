@@ -1566,7 +1566,7 @@ def status(request, group_name=None):
 
             'response_code': 0,
             'message': None,
-            'enable_glint': config.categories["web_frontend"["enable_glint"],
+            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
             'slot_detail_flag': active_user.flag_show_slot_detail,
