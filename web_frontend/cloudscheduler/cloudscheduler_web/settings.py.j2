@@ -28,7 +28,7 @@ SECRET_KEY = 'sa$jy+6m=w$nn=1i*=7_i)=p21ubbw65=(*(ubuo!fhy-zf$$='
 DEBUG = True
 
 # Profiling
-if config..categories["web_frontend"]["enable_profiling"]:
+if config.categories["web_frontend"]["enable_profiling"]:
     SILKY_PYTHON_PROFILER = True
     SILKY_PYTHON_PROFILER_BINARY = True
     SILKY_PYTHON_PROFILER_RESULT_PATH = "/var/www/silkydata/"
@@ -62,7 +62,7 @@ LOGGING = {
         'applogfile': {
             'level':'INFO',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': config..categories["web_frontend"]["log_file"],
+            'filename': config.categories["web_frontend"]["log_file"],
             'maxBytes': 1024*1024*15, # 15MB
             'backupCount': 10,
             'formatter': 'simple'
@@ -78,7 +78,7 @@ LOGGING = {
 
 
 # Application definition
-if config..categories["web_frontend"]["enable_profiling"]:
+if config.categories["web_frontend"]["enable_profiling"]:
     INSTALLED_APPS = [
         'silk',
         'csv2.apps.Csv2Config',
@@ -101,11 +101,11 @@ else:
         'django.contrib.staticfiles',
         'mathfilters',
     ]
-if config..categories["web_frontend"]["enable_glint"]:
+if config.categories["web_frontend"]["enable_glint"]:
     INSTALLED_APPS.append('glintwebui.apps.GlintwebuiConfig')
 
 
-if config..categories["web_frontend"]["enable_profiling"]:
+if config.categories["web_frontend"]["enable_profiling"]:
     MIDDLEWARE = [
         'silk.middleware.SilkyMiddleware',
         'django.middleware.security.SecurityMiddleware',
