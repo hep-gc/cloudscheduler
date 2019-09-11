@@ -71,7 +71,7 @@ if __name__ == '__main__':
         'startd':   startd_poller,
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general"], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general", 'ProcessMonitor'], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         procMon.start_all()
         while True:
             procMon.check_processes()
-            time.sleep(config.sleep_interval_main_long)
+            time.sleep(config.categories['ProcessMonitor']['sleep_interval_main_long'])
             
     except (SystemExit, KeyboardInterrupt):
         logging.error("Caught KeyboardInterrupt, shutting down threads and exiting...")
