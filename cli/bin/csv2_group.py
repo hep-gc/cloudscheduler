@@ -115,8 +115,8 @@ def defaults(gvar):
         [
             'group_name/Group,k',
             'htcondor_fqdn/FQDN/HTCondor',
-            'htcondor_name/Name/HTCondor',
-            'htcondor_other_submitters/Users/HTCondor',
+            'htcondor_container_hostname/Container Hostname/HTCondor',
+            'htcondor_other_submitters/Other Submitters/HTCondor',
             'vm_flavor/Flavor/VM',
             'vm_image/Image/VM',
             'vm_keep_alive/Keep Alive/VM',

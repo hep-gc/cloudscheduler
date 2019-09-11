@@ -364,7 +364,7 @@ def defaults(request, active_user=None, response_code=0, message=None):
             'response_code': rc,
             'message': message,
             'gsi_state': gsi_state,
-            'enable_glint': config.enable_glint,
+            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -645,7 +645,7 @@ def list(request, active_user=None, response_code=0, message=None):
             'current_group': current_group,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint,
+            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -796,7 +796,7 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None):
                     'mime_types_list': mime_types_list,
                     'response_code': response_code,
                     'message': message,
-                    'enable_glint': config.enable_glint,
+                    'enable_glint': config.categories["web_frontend"]["enable_glint"],
                     'is_superuser': active_user.is_superuser,
                     'version': config.get_version()
                     }
@@ -843,7 +843,7 @@ def metadata_list(request):
             'group_metadata_list': group_metadata_list,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint,
+            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -882,7 +882,7 @@ def metadata_new(request):
         'mime_types_list': mime_types_list,
         'response_code': 0,
         'message': "new-group-metadata",
-        'enable_glint': config.enable_glint,
+        'enable_glint': config.categories["web_frontend"]["enable_glint"],
         'is_superuser': active_user.is_superuser,
         'version': config.get_version()
         }
@@ -945,7 +945,7 @@ def metadata_query(request):
             'metadata_exists': metadata_exists,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint,
+            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
