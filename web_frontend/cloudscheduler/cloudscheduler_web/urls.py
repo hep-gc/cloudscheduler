@@ -23,10 +23,10 @@ urlpatterns = [
     url(r'^', include('csv2.urls')),
 ]
 
-if settings.CSV2_CONFIG.enable_profiling:
+if settings.CSV2_CONFIG.categories["web_frontend"]["enable_profiling"]:
     urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
 
-if settings.CSV2_CONFIG.enable_glint:
+if settings.CSV2_CONFIG.categories["web_frontend"]["enable_glint"]:
     urlpatterns = [
         url(r'^images/', include('glintwebui.image_urls')),
         url(r'^keypairs/', include('glintwebui.keypair_urls')),
