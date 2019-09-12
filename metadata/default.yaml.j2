@@ -96,14 +96,23 @@ write_files:
             msg_post "/GSInone"
           fi
         fi
+
+        if [ -e /usr/local/sbin/apel_accounting.sh ]; then
+            IFS=$'\n' lines=($(/usr/local/sbin/apel_accounting.sh))
+            size=${#lines[@]}
+            (( size -= 1 ))
+            for ix in $(seq 0 $size); do
+                msg_post "/${lines[$ix]}"
+            done
+        fi
     owner: root:root
     permissions: 0700
-    path: /root/csv2HTC
+    path: /usr/local/sbin/csv2_vm_data
 -   content: |
-        */5 * * * * root /root/csv2HTC
+        */5 * * * * root /usr/local/sbin/csv2_vm_data
     owner: root:root
     permissions: 0600
-    path: /etc/cron.d/csv2HTC
+    path: /etc/cron.d/csv2_vm_data
 runcmd:                                                                                                                                                             
  - [ service, condor, restart ]              
 
