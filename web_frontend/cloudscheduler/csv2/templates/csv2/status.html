@@ -974,14 +974,14 @@
                 {% endif %}
 
 
-                {% if system_list.csv2_startd_errors_status == 1 and system_list.csv2_startd_errors_error_count == 0%}
-                    <td data-path="csv2_startd_errors_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_startd_errors_msg }}">
+                {% if system_list.csv2_vm_data_status == 1 and system_list.csv2_vm_data_error_count == 0%}
+                    <td data-path="csv2_vm_data_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_vm_data_msg }}">
                     <span class="green-symbol bigger">&#x2714;</span></td>
-                {% elif system_list.csv2_startd_errors_status == 1 and system_list.csv2_startd_errors_error_count != 0%}
-                    <td data-path="csv2_startd_errors_status" class="more-style float-center plottable" tooltip="Warning! {{system_list.csv2_startd_errors_error_count}} child process failures. {{ system_list.csv2_startd_errors_msg }}">
+                {% elif system_list.csv2_vm_data_status == 1 and system_list.csv2_vm_data_error_count != 0%}
+                    <td data-path="csv2_vm_data_status" class="more-style float-center plottable" tooltip="Warning! {{system_list.csv2_vm_data_error_count}} child process failures. {{ system_list.csv2_vm_data_msg }}">
                     <span class="orange-symbol bigger">&#x2757;</span></td>
                 {% else %}
-                    <td data-path="csv2_startd_errors_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_startd_errors_msg }}">
+                    <td data-path="csv2_vm_data_status" class="more-style float-center plottable" tooltip="{{ system_list.csv2_vm_data_msg }}">
                     <span class="red-symbol bigger">&#x2718;</span></td>
                 {% endif %}
 
@@ -1008,7 +1008,7 @@
                 <td>timeseries</td>
                 <td>ec2</td>
                 <td>watch</td>
-                <td>startd</td>
+                <td>VMdata</td>
 
                 <td class="col-spacer">&nbsp;</td>
 

@@ -36,7 +36,7 @@ def _service_msg(service_name):
 def status_poller():
     multiprocessing.current_process().name = "Status Poller"
 
-    services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines", "csv2-status", "csv2-timeseries", "csv2-ec2", "csv2-htc-agent", "csv2-watch", "csv2-startd-errors", "rabbitmq-server", "mariadb", "condor"]
+    services = ["csv2-main", "csv2-openstack", "csv2-jobs", "csv2-machines", "csv2-status", "csv2-timeseries", "csv2-ec2", "csv2-htc-agent", "csv2-watch", "csv2-vm-data", "rabbitmq-server", "mariadb", "condor"]
     db_service_names = {
                         "csv2-main":        "csv2_main", 
                         "csv2-openstack":   "csv2_openstack", 
@@ -47,7 +47,7 @@ def status_poller():
                         "csv2-ec2":         "csv2_ec2",
                         "csv2-htc-agent":   "csv2_htc_agent",
                         "csv2-watch":       "csv2_watch",
-                        "csv2-startd-errors":"csv2_startd_errors",
+                        "csv2-vm-data":     "csv2_vm_data",
                         "rabbitmq-server":  "rabbitmq_server",
                         "mariadb":          "mariadb", 
                         "condor":           "condor"
