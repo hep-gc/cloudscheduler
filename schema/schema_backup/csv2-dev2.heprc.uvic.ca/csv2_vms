@@ -39,6 +39,7 @@ CREATE TABLE `csv2_vms` (
   `start_time` int(11) DEFAULT 0,
   `status` varchar(32) DEFAULT NULL,
   `flavor_id` varchar(128) DEFAULT NULL,
+  `image_id` char(128) DEFAULT NULL,
   `task` varchar(32) DEFAULT NULL,
   `power_status` int(11) DEFAULT NULL,
   `manual_control` tinyint(1) NOT NULL DEFAULT 0,
@@ -70,8 +71,8 @@ DELIMITER ;;
 after insert on csv2_vms
 for each row
 begin
-    insert into apel_accounting (group_name, cloud_name, hostname, cloud_type, region, flavor_id, vmid, start_time)  
-     values (NEW.group_name, NEW.cloud_name, NEW.hostname, NEW.cloud_type, NEW.region, NEW.flavor_id, NEW.vmid, NEW.start_time);
+    insert into apel_accounting (group_name, cloud_name, hostname, cloud_type, region, flavor_id, image_id, vmid, start_time)  
+     values (NEW.group_name, NEW.cloud_name, NEW.hostname, NEW.cloud_type, NEW.region, NEW.flavor_id, NEW.image_id, NEW.vmid, NEW.start_time);
 end */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -108,4 +109,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-12  8:10:02
+-- Dump completed on 2019-09-12 14:20:59
