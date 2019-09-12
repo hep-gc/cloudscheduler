@@ -11,7 +11,7 @@ from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
 def vm_data_poller():
-    multiprocessing.current_process().name = "StartD error poller"
+    multiprocessing.current_process().name = "VM data poller"
 
     config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4, refreshable=True)
     VMS = config.db_map.classes.csv2_vms
@@ -19,7 +19,7 @@ def vm_data_poller():
 
     try:
         while True:
-            logging.debug("Beginning StartD error poller cycle")
+            logging.debug("Beginning VM data poller cycle")
             config.refresh()
 
             config.db_open()
@@ -85,12 +85,12 @@ def vm_data_poller():
             config.db_close()
             checkpoint += ssl_access_log_size
 
-            logging.debug("Completed StartD error poller cycle")
+            logging.debug("Completed VM data poller cycle")
             config.db_close()
             time.sleep(config.categories['vm_data_via_https.py']['sleep_interval'])
 
     except Exception as exc:
-        logging.exception("StartD error poller, while loop exception, process terminating...")
+        logging.exception("VM data poller, while loop exception, process terminating...")
         logging.error(exc)
         del condor_session
         db_session.close()
