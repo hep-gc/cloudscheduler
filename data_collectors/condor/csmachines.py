@@ -603,7 +603,6 @@ def command_poller():
                     logging.error(exc)
                     #del condor_session
                     config.db_close()
-                    del db_session
                     time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
                     continue
 

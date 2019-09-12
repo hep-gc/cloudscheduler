@@ -601,6 +601,7 @@ def list(request, active_user=None, response_code=0, message=None):
 
     # open the database.
     config.db_open()
+    config.refresh()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if active_user is None:
