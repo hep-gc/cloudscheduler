@@ -4,7 +4,7 @@ from keystoneauth1 import exceptions
 from novaclient import client as novaclient
 
 from cloudscheduler.lib.db_config import Config
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', 'web_frontend', pool_size=2, max_overflow=10, refreshable=True)
 
 
 
@@ -87,7 +87,7 @@ def _get_keystone_session(cloud):
                 username=cloud.username,
                 password=cloud.password,
                 tenant_name=cloud.project)
-            sess = session.Session(auth=auth, verify=config.cert_auth_bundle_path)
+            sess = session.Session(auth=auth, verify=config.categories["web_frontend"]["cert_auth_bundle_path"])
         except Exception as exc:
             print("Problem importing keystone modules, and getting session: %s" % exc)
         return sess
@@ -101,7 +101,7 @@ def _get_keystone_session(cloud):
                 project_name=cloud.project,
                 user_domain_name=cloud.user_domain_name,
                 project_domain_name=cloud.project_domain_name)
-            sess = session.Session(auth=auth, verify=config.cert_auth_bundle_path)
+            sess = session.Session(auth=auth, verify=config.categories["web_frontend"]["cert_auth_bundle_path"])
         except Exception as exc:
             print("Problem importing keystone modules, and getting session: %s" % exc)
         return sess

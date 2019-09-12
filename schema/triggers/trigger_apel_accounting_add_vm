@@ -1,0 +1,9 @@
+delimiter //
+create or replace trigger trigger_apel_accounting_add_vm
+after insert on csv2_vms
+for each row
+begin
+    insert into apel_accounting (group_name, cloud_name, hostname, cloud_type, region, flavor_id, vmid, start_time)  
+     values (NEW.group_name, NEW.cloud_name, NEW.hostname, NEW.cloud_type, NEW.region, NEW.flavor_id, NEW.vmid, NEW.start_time);
+end; //
+delimiter ;

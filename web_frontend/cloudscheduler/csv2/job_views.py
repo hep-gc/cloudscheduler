@@ -103,7 +103,7 @@ def list(request):
             'job_list': job_list,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.enable_glint,
+            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
