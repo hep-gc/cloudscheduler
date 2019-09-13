@@ -1195,6 +1195,7 @@ def status(request, group_name=None):
 
     # open the database.
     config.db_open()
+    config.refresh()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     rc, msg, active_user = set_user_groups(config, request, super_user=False)
@@ -1505,7 +1506,7 @@ def status(request, group_name=None):
                         "csv2-htc-agent":   "csv2_htc_agent",
                         "csv2-glint":       "csv2_glint",
                         "csv2-watch":       "csv2_watch",
-                        "csv2-startd-errors":"csv2_startd_errors",
+                        "csv2-vm-data":     "csv2_vm_data",
                         "rabbitmq-server":  "rabbitmq_server",
                         "mariadb":          "mariadb", 
                         "condor":           "condor"
