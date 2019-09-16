@@ -69,3 +69,7 @@ csv2_groups:
             Format: String(128)
             Synopsis:
 
+        htcondor_gsi_eol:
+            Format: Integer
+            Synopsis:
+

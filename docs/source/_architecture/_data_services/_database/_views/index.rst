@@ -17,10 +17,16 @@ CSV2 makes extensive use of views for both presentation and decision making.
    :caption: The following views are defined:
 
    view_active_resource_shortfall
+   view_apel_accounting
    view_available_resources
    view_cloud_aliases
    view_cloud_status
+   view_cloud_status_flavor_slot_detail
+   view_cloud_status_flavor_slot_detail_summary
+   view_cloud_status_flavor_slot_summary
    view_cloud_status_slot_detail
+   view_cloud_status_slot_detail_summary
+   view_cloud_status_slot_summary
    view_clouds
    view_clouds_with_metadata_info
    view_clouds_with_metadata_names

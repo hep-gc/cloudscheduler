@@ -132,17 +132,17 @@ Columns:
    * Format: Boolean
    * Synopsis:
 
-* **csv2_startd_errors_error_count**:
+* **csv2_startd_errors_error_count** (obsolete):
 
    * Format: Integer
    * Synopsis:
 
-* **csv2_startd_errors_msg**:
+* **csv2_startd_errors_msg** (obsolete):
 
    * Format: String(512)
    * Synopsis:
 
-* **csv2_startd_errors_status**:
+* **csv2_startd_errors_status** (obsolete):
 
    * Format: Boolean
    * Synopsis:
@@ -173,6 +173,21 @@ Columns:
    * Synopsis:
 
 * **csv2_timeseries_status**:
+
+   * Format: Boolean
+   * Synopsis:
+
+* **csv2_vm_data_error_count**:
+
+   * Format: Integer
+   * Synopsis:
+
+* **csv2_vm_data_msg**:
+
+   * Format: String(512)
+   * Synopsis:
+
+* **csv2_vm_data_status**:
 
    * Format: Boolean
    * Synopsis:

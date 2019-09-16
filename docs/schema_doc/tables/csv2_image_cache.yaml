@@ -8,7 +8,7 @@ csv2_image_cache:
             Synopsis:
 
         checksum:
-            Format: Integer
+            Format: String(64)
             Synopsis:
 
     Columns:

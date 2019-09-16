@@ -77,6 +77,11 @@ Columns:
    * Format: Integer
    * Synopsis:
 
+* **starting**:
+
+   * Format: Integer
+   * Synopsis:
+
 * **target_alias**:
 
    * Format: String(32)
@@ -85,5 +90,10 @@ Columns:
 * **target_clouds**:
 
    * Format: String
+   * Synopsis:
+
+* **unregistered**:
+
+   * Format: Integer
    * Synopsis:
 

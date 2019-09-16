@@ -37,6 +37,11 @@ Columns:
    * Format: String(128)
    * Synopsis:
 
+* **htcondor_gsi_eol**:
+
+   * Format: Integer
+   * Synopsis:
+
 * **htcondor_other_submitters**:
 
    * Format: String(128)

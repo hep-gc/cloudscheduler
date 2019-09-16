@@ -252,3 +252,13 @@ Columns:
    * Format: String(20)
    * Synopsis:
 
+* **worker_cert**:
+
+   * Format: String
+   * Synopsis:
+
+* **worker_key**:
+
+   * Format: String
+   * Synopsis:
+
