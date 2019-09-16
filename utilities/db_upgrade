@@ -368,12 +368,14 @@ def main(args):
             ('action' not in gvar['tables'][my_hostname][table] and len(gvar['tables'][my_hostname][table]['differences']) < 1):
             continue
 
+        print(">>>>>>>>>>>>>>>>>>>>>> 1", table)
         redefine_table(gvar, table)
 
         if table in gvar['schema_config']['ephemeral'] or \
             'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'add':
             continue
 
+        print(">>>>>>>>>>>>>>>>>>>>>> 2", table)
         if 'action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'rename':
             model_table = gvar['tables'][my_hostname][table]['action'][1]
         else:
@@ -384,6 +386,7 @@ def main(args):
         if len(table_data) < 1:
             continue
 
+        print(">>>>>>>>>>>>>>>>>>>>>> 3", table)
         fd = open('%s/%s' % (gvar['temp_dir'], table), 'w')
         fd.write('INSERT INTO %s\n' % model_table)
 
@@ -394,6 +397,7 @@ def main(args):
             if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
                 continue
 
+        print(">>>>>>>>>>>>>>>>>>>>>> 4", table)
             if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
                 model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
             else:
@@ -412,6 +416,7 @@ def main(args):
                 if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
                     continue
 
+        print(">>>>>>>>>>>>>>>>>>>>>> 5", table)
                 if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
                     model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
                 else:
@@ -491,10 +496,12 @@ def main(args):
             else:
                 fd.write('(%s);\n' % ','.join(columns))
 
+        print(">>>>>>>>>>>>>>>>>>>>>> 6", table)
         fd.close()
 
         if gvar['run_mode'] == 'live':
             print('   Loading "%s", rows=%s, columns=%s.' % (table, len(table_data), len(columns)))
+            print(">>>>>>>>>>>>>>>>>>>>>> 7", table)
             p1 = Popen([
                 'cat',
                 '/%s/%s' % (gvar['temp_dir'], table)
@@ -510,6 +517,7 @@ def main(args):
             stdout, stderr = p2.communicate()
             if p2.returncode != 0:
                 raise Exception('Failed to load data into "%s" - %s' % (table, stderr))
+        print(">>>>>>>>>>>>>>>>>>>>>> 8", table)
         else:
             print('   TEST MODE, skip loading "%s", rows=%s, columns=%s.' % (table, len(table_data), len(columns)))
 
