@@ -1440,6 +1440,7 @@ def vm_poller():
                         'cloud_type': "openstack",
                         'hostname': vm.name,
                         'vmid': vm.id,
+                        'image_id': vm.image['id'],
                         'status': vm.status,
                         'flavor_id': vm.flavor["id"],
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
