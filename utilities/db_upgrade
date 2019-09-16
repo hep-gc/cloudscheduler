@@ -397,7 +397,7 @@ def main(args):
             if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'ignore':
                 continue
 
-        print(">>>>>>>>>>>>>>>>>>>>>> 4", table)
+            print(">>>>>>>>>>>>>>>>>>>>>> 4", table)
             if col in gvar['tables'][my_hostname][table]['cola'] and gvar['tables'][my_hostname][table]['cola'][col][0] == 'rename':
                 model_col = gvar['tables'][my_hostname][table]['cola'][col][1]
             else:
