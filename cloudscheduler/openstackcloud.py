@@ -206,6 +206,7 @@ class OpenStackCloud(basecloud.BaseCloud):
                     'vmid': vm.id,
                     'status': vm.status,
                     'flavor_id': vm.flavor["id"],
+                    'image_id': vm.image["id"],
                     'task': vm.__dict__.get("OS-EXT-STS:task_state"),
                     'power_status': vm.__dict__.get("OS-EXT-STS:power_state"),
                     'last_updated': int(time.time()),

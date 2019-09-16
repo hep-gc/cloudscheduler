@@ -23,13 +23,13 @@ def condor_gsi_poller():
     new_poll_time = 0
     poll_time_history = [0,0,0,0]
 
+    config.db_open()
+
     try:
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
             config.refresh()
-
-            config.db_open()
 
             condor_dict = get_condor_dict(config, logging)
 
@@ -59,7 +59,7 @@ def condor_gsi_poller():
                 else:
                     logging.warning('Condor host: "%s", request timed out.' % condor)
 
-            config.db_close()
+            config.db_session.rollback()
 
             wait_cycle(cycle_start_time, poll_time_history, config.categories['condor_gsi.py']['sleep_interval_condor_gsi'])
 
