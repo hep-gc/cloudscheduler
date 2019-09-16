@@ -365,6 +365,7 @@ def main(args):
     print('\n11. Loading local configuration data.')
     print(">>>>>>>>>>>>>>>>>>>>>> 1", gvar['schema_config']['local'], gvar['schema_config']['ephemeral'])
     for table in sorted(gvar['schema_config']['local'] + gvar['schema_config']['ephemeral']):
+        print(">>>>>>>>>>>>>>>>>>>>>> 1", gvar['tables'][my_hostname][table])
         if ('action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore') or \
             ('action' not in gvar['tables'][my_hostname][table] and len(gvar['tables'][my_hostname][table]['differences']) < 1):
             continue
