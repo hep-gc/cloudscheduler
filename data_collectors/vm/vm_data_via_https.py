@@ -44,23 +44,23 @@ def vm_data_poller():
                     vms_in_error[hostname] = {'type': type, 'errors': errors[:VMS.htcondor_startd_errors.property.columns[0].type.length]}
 
                 elif '/APEL_ACCOUNTING=' in line:
+                    ignore, ignore, ignore, hostname, apel_accounting, ignore = line.replace('\\','').replace(' HTTP', '/HTTP').split('/', 5)
+                    
                     group_name = None
                     cloud_name = None
-                    key_values = []
+                    keys = ['hostname="%s"' % hostname]
+                    values = ['last_update=unix_timestamp()']
 
-                    ignore, ignore, ignore, hostname, apel_accounting = line.split('/', 4)
-                    for key_val in apel_accounting[17:].split(','):
+                    for key_val in apel_accounting[16:].split(','):
                         key, val = key_val.split(':', 1)
                         if val and val != '':
-                            if key == 'group_name':
-                                group_name = val
-                            elif key == 'cloud_name':
-                                cloud_name = val
+                            if key == 'group_name' or key == 'cloud_name':
+                                keys.append('%s=%s' % (key, val))
                             else:
-                                key_values.append('%s=%s' % (key, val))
+                                values.append('%s=%s' % (key, val))
 
-                    if group_name and cloud_name and len(key_values) > 0:
-                        apel_updates.append('update apel_accounting set %s where group_name=%s and cloud_name=%s and hostname="%s";' % (','.join(key_values), group_name, cloud_name, hostname))
+                    if len(keys) == 3 and len(values) > 1:
+                        apel_updates.append('update apel_accounting set %s where %s;' % (','.join(values), ' and '.join(keys)))
 
             updates = 0
             if len(vms_in_error) > 0:
@@ -81,6 +81,7 @@ def vm_data_poller():
                 
             if updates > 0:
                 config.db_session.commit()
+                logging.info('%s updates commited.' % updates)
 
             config.db_close()
             checkpoint += ssl_access_log_size

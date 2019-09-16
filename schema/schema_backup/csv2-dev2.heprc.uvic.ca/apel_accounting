@@ -35,10 +35,9 @@ CREATE TABLE `apel_accounting` (
   `vmid` varchar(128) DEFAULT NULL,
   `start_time` int(11) NOT NULL DEFAULT 0,
   `end_time` int(11) NOT NULL DEFAULT 0,
-  `cpu_count` int(11) NOT NULL DEFAULT 0,
+  `last_update` int(11) NOT NULL DEFAULT 0,
   `cpu_time` int(11) NOT NULL DEFAULT 0,
-  `disk` int(11) NOT NULL DEFAULT 0,
-  `ram` int(11) NOT NULL DEFAULT 0,
+  `network_type` varchar(32) DEFAULT NULL,
   `rx` int(11) NOT NULL DEFAULT 0,
   `tx` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`group_name`,`cloud_name`,`hostname`)
@@ -54,4 +53,4 @@ CREATE TABLE `apel_accounting` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-12  8:10:01
+-- Dump completed on 2019-09-13 14:07:49

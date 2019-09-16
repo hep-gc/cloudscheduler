@@ -310,7 +310,4 @@ def verifyUser(request, db_config):
     auth_user = getUser(request, db_config)
     return bool(auth_user)
 
-def set_defaults_changed(changed_bool):
-    # this needs a new implementation without redis, it will need to use signaling
-    return True
 

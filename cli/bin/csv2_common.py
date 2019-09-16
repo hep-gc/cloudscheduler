@@ -185,8 +185,11 @@ def get_grid_proxy(gvar):
         os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
         x509 = input('Would you like to authenticate with your x509 certificate (%s/.globus/{usercert.pem,userkey.pem})? (y|n): ' % gvar['home_dir'])
         if x509.lower() == 'yes'[:len(x509)]:
-            if sys_cmd(['grid-proxy-init'], return_stdout_not_rc=False) == 0:
-                return '/tmp/x509up_u%s' % gvar['uid']
+            for ix in range(3):
+                if sys_cmd(['grid-proxy-init'], return_stdout_not_rc=False) == 0:
+                    return '/tmp/x509up_u%s' % gvar['uid']
+                print('Invalid GRID pass phrase, %s of 3 attemps.' % (ix+1))
+            exit(1)
         
     return None
     
