@@ -14,7 +14,7 @@ schema_model: stable-2.6
 favicon_colour: red
 
 # Set  schema_backup tar file to install on host machine
-backup_path: '/hepuer/mfens98/csv2-cont-backups.tar'
+backup_path: '/tmp/test/csv2-cont-backups.tar'
 
 db_on_localhost: true
 rabbit_on_localhost: true
