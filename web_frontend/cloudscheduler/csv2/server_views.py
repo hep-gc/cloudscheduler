@@ -141,7 +141,6 @@ def configuration(request):
             'config_categories': config_categories,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
