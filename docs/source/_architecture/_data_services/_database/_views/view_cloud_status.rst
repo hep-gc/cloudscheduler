@@ -77,6 +77,16 @@ Columns:
    * Format: String(32)
    * Synopsis:
 
+* **communication_rt**:
+
+   * Format: Integer
+   * Synopsis:
+
+* **communication_up**:
+
+   * Format: Boolean
+   * Synopsis:
+
 * **cores_ctl**:
 
    * Format: Integer

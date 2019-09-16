@@ -15,7 +15,7 @@ Keys:
 
 * **checksum**:
 
-   * Format: Integer
+   * Format: String(64)
    * Synopsis:
 
 * **image_name**:

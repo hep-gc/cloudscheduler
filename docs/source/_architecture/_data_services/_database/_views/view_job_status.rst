@@ -52,6 +52,11 @@ Columns:
    * Format: Integer
    * Synopsis:
 
+* **condor_days_left**:
+
+   * Format: Integer
+   * Synopsis:
+
 * **foreign**:
 
    * Format: Integer
@@ -68,6 +73,11 @@ Columns:
    * Synopsis:
 
 * **htcondor_status**:
+
+   * Format: Integer
+   * Synopsis:
+
+* **worker_days_left**:
 
    * Format: Integer
    * Synopsis:

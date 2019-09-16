@@ -1,0 +1,27 @@
+condor_worker_gsi:
+    Synopsis:
+
+    Keys:
+
+        htcondor_fqdn:
+            Format: String(128)
+            Synopsis:
+
+    Columns:
+
+        worker_dn:
+            Format: String(128)
+            Synopsis:
+
+        worker_eol:
+            Format: Integer
+            Synopsis:
+
+        worker_cert:
+            Format: String
+            Synopsis:
+
+        worker_key:
+            Format: String
+            Synopsis:
+
