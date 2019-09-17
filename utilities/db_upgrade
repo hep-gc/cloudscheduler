@@ -150,6 +150,8 @@ def main(args):
 
         else:
             print('\n1. Defining tables for new database from model.')
+            print('%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'])
+            print('%s/%s' % (gvar['user_data_backup_dir'], gvar['my_fqdn'])
             for table in os.listdir('%s/%s' % (gvar['backup_dir'], gvar['model_fqdn'])):
                 if table not in gvar['schema_config']['ignore'] and os.path.isfile('%s/%s/%s' % (gvar['backup_dir'], gvar['model_fqdn'], table)):
                     define_table(gvar, table)
