@@ -1,0 +1,35 @@
+view_cloud_status_flavor_slot_detail:
+    Synopsis:
+
+    Keys:
+
+    Columns:
+
+        group_name:
+            Format: String(32)
+            Synopsis:
+
+        cloud_name:
+            Format: String(32)
+            Synopsis:
+
+        flavor:
+            Format: String(46)
+            Synopsis:
+
+        slot_type:
+            Format: Integer
+            Synopsis:
+
+        slot_id:
+            Format: String(380)
+            Synopsis:
+
+        slot_count:
+            Format: Integer
+            Synopsis:
+
+        core_count:
+            Format: Integer
+            Synopsis:
+

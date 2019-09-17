@@ -44,7 +44,7 @@ KEYS = {
 KEYS_SU = {
     # Named argument formats (anything else is a string).
     'format': {
-        'all':                 'boolean',
+        'all':                 'dboolean',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },

@@ -10,26 +10,64 @@ from cloudscheduler.lib.db_config import Config
 from cloudscheduler.lib.log_tools import get_frame_info
 from cloudscheduler.lib.ProcessMonitor import ProcessMonitor
 
+def apel_accounting_cleanup():
+    multiprocessing.current_process().name = "APEL Accounting Cleanup"
+
+    my_config_category = os.path.basename(sys.argv[0])
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', my_config_category, pool_size=4, refreshable=True)
+
+    config.db_open()
+
+    try:
+        while True:
+            logging.debug("Beginning APEL Accounting Cleanup cycle")
+            config.refresh()
+
+            obsolete_apel_accounting_rows = time.time() - (86400 * config.categories[my_config_category]['apel_accounting_keep_alive_days'])
+
+            try:
+                result = config.db_session.execute('delete from apel_accounting where last_update<%s' % obsolete_apel_accounting_rows)
+                config.db_session.commit()
+                logging.info('APEL accounting, %s rows deleted.' % result.rowcount)
+
+            except Exception as ex:
+                logging.error('Delete of obsolete APEL accounting rows failed: %s' % ex)
+
+            config.db_session.rollback()
+            logging.debug("Completed APEL Accounting Cleanup cycle")
+            time.sleep(config.categories[my_config_category]['sleep_interval_apel_cleanup'])
+
+    except Exception as exc:
+        logging.exception("VM data poller, while loop exception, process terminating...")
+        logging.error(exc)
+        del condor_session
+        db_session.close()
+
 def vm_data_poller():
     multiprocessing.current_process().name = "VM data poller"
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', os.path.basename(sys.argv[0]), pool_size=4, refreshable=True)
+    my_config_category = os.path.basename(sys.argv[0])
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', my_config_category, pool_size=4, refreshable=True)
     VMS = config.db_map.classes.csv2_vms
-    checkpoint = 0
+
+    if os.path.isfile(config.categories[my_config_category]['vm_data_poller_checkpoint']):
+        with open(config.categories[my_config_category]['vm_data_poller_checkpoint']) as fd:
+            checkpoint = int(fd.read())
+    else:
+        checkpoint = 0
+
+    config.db_open()
 
     try:
         while True:
             logging.debug("Beginning VM data poller cycle")
             config.refresh()
 
-            config.db_open()
-
-            ssl_access_log_size = os.stat(config.categories['vm_data_via_https.py']['ssl_access_log']).st_size
+            ssl_access_log_size = os.stat(config.categories[my_config_category]['ssl_access_log']).st_size
             if checkpoint > ssl_access_log_size:
                 checkpoint = 0
 
-
-            with open(config.categories['vm_data_via_https.py']['ssl_access_log']) as fd:
+            with open(config.categories[my_config_category]['ssl_access_log']) as fd:
                 fd.seek(checkpoint)
                 ssl_access_log =fd.read()
 
@@ -81,14 +119,16 @@ def vm_data_poller():
                 
             if updates > 0:
                 config.db_session.commit()
-                logging.info('%s updates commited.' % updates)
 
-            config.db_close()
+            logging.info('%s updates commited.' % updates)
+
+            config.db_session.rollback()
             checkpoint += ssl_access_log_size
+            with open(config.categories[my_config_category]['vm_data_poller_checkpoint'], 'w') as fd:
+                fd.write(str(checkpoint))
 
             logging.debug("Completed VM data poller cycle")
-            config.db_close()
-            time.sleep(config.categories['vm_data_via_https.py']['sleep_interval'])
+            time.sleep(config.categories[my_config_category]['sleep_interval_vm_data'])
 
     except Exception as exc:
         logging.exception("VM data poller, while loop exception, process terminating...")
@@ -96,14 +136,15 @@ def vm_data_poller():
         del condor_session
         db_session.close()
 
-
 if __name__ == '__main__':
 
     process_ids = {
-        'vm_data':   vm_data_poller,
+        'apel_cleanup':   apel_accounting_cleanup,
+        'vm_data':        vm_data_poller,
     }
 
-    procMon = ProcessMonitor(config_params=[os.path.basename(sys.argv[0]), "general", 'ProcessMonitor'], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
+    my_config_category = os.path.basename(sys.argv[0])
+    procMon = ProcessMonitor(config_params=[my_config_category, "general", 'ProcessMonitor'], pool_size=4, orange_count_row='csv2_jobs_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

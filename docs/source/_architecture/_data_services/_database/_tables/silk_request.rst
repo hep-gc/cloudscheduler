@@ -5,7 +5,7 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_request
+Database Table: silk_request (obsolete)
 ============================
 
 
@@ -13,7 +13,7 @@ Database Table: silk_request
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (obsolete):
 
    * Format: String(36)
    * Synopsis:
@@ -22,82 +22,82 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **body**:
+* **body** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **encoded_headers**:
+* **encoded_headers** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **end_time**:
+* **end_time** (obsolete):
 
    * Format: Integer
    * Synopsis:
 
-* **meta_num_queries**:
+* **meta_num_queries** (obsolete):
 
    * Format: Integer
    * Synopsis:
 
-* **meta_time**:
+* **meta_time** (obsolete):
 
    * Format: Float
    * Synopsis:
 
-* **meta_time_spent_queries**:
+* **meta_time_spent_queries** (obsolete):
 
    * Format: Float
    * Synopsis:
 
-* **method**:
+* **method** (obsolete):
 
    * Format: String(10)
    * Synopsis:
 
-* **num_sql_queries**:
+* **num_sql_queries** (obsolete):
 
    * Format: Integer
    * Synopsis:
 
-* **path**:
+* **path** (obsolete):
 
    * Format: String(190)
    * Synopsis:
 
-* **prof_file**:
+* **prof_file** (obsolete):
 
    * Format: String(300)
    * Synopsis:
 
-* **pyprofile**:
+* **pyprofile** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **query_params**:
+* **query_params** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **raw_body**:
+* **raw_body** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **start_time**:
+* **start_time** (obsolete):
 
    * Format: Integer
    * Synopsis:
 
-* **time_taken**:
+* **time_taken** (obsolete):
 
    * Format: Float
    * Synopsis:
 
-* **view_name**:
+* **view_name** (obsolete):
 
    * Format: String(190)
    * Synopsis:

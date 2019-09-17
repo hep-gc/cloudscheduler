@@ -15,7 +15,7 @@ Keys:
 
 * **tx_id**:
 
-   * Format: Integer
+   * Format: String(16)
    * Synopsis:
 
 
@@ -24,7 +24,7 @@ Columns:
 
 * **checksum**:
 
-   * Format: Integer
+   * Format: String(64)
    * Synopsis:
 
 * **image_id**:

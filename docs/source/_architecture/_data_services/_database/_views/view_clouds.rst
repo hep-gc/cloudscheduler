@@ -147,7 +147,7 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **keyname**:
+* **keyname** (obsolete):
 
    * Format: String(20)
    * Synopsis:

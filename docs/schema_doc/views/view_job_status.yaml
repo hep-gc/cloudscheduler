@@ -49,3 +49,11 @@ view_job_status:
             Format: String(128)
             Synopsis:
 
+        condor_days_left:
+            Format: Integer
+            Synopsis:
+
+        worker_days_left:
+            Format: Integer
+            Synopsis:
+

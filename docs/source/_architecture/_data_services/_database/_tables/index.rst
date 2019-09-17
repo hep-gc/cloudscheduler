@@ -25,6 +25,7 @@ into the following catagories:
    csv2_cloud_types
    csv2_configuration
    csv2_mime_types
+   csv2_timestamps
    django_admin_log
    django_content_type
    django_migrations
@@ -63,6 +64,7 @@ into the following catagories:
    cloud_security_groups
    condor_jobs
    condor_machines
+   condor_worker_gsi
    csv2_image_cache
    csv2_image_pull_requests
    csv2_image_transactions
