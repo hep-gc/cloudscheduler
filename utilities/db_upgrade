@@ -133,20 +133,16 @@ def main(args):
 
     ####
     if db_is_new:
-        if os.path.isdir(gvar['backup_dir'], gvar['my_fqdn']) and os.path.isdir(gvar['user_data_backup_dir'], gvar['my_fqdn']):
-
-#           action = get_action
-#           action = get_action(gvar, 'Do you want to load your previous tables and data into the new database? ', ['yes', 'no'])
-#           if action == 'yes':
+        if os.path.isdir('%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'])) and os.path.isdir(gvar['user_data_backup_dir']):
 
             print('\n1. Defining tables for new database from previous backup of this host.')
             for table in os.listdir('%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'])):
                 if table not in gvar['schema_config']['ignore'] and os.path.isfile('%s/%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'], table)):
                     define_table(gvar, table, backup_dir='/%s/%s' % (gvar['backup_dir'], gvar['my_fqdn']))
 
-            for table in os.listdir('%s/%s' % (gvar['user_data_backup_dir'], gvar['my_fqdn'])):
-                if table not in gvar['schema_config']['ignore'] and os.path.isfile('%s/%s/%s' % (gvar['user_data_backup_dir'], gvar['my_fqdn'], table)):
-                    define_table(gvar, table, backup_dir='/%s/%s' % (gvar['user_data_backup_dir'], gvar['my_fqdn']))
+            for table in os.listdir(gvar['user_data_backup_dir']):
+                if table not in gvar['schema_config']['ignore'] and os.path.isfile('%s/%s' % (gvar['user_data_backup_dir'], table)):
+                    define_table(gvar, table, backup_dir=gvar['user_data_backup_dir'])
 
         else:
             print('\n1. Defining tables for new database from model.')
