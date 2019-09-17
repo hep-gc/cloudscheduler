@@ -133,7 +133,7 @@ def main(args):
 
     ####
     if db_is_new:
-        if os.path.isdir(gvar['backup_dir'], gvar['my_fqdn']) and os.path.isdir(gvar['user_data_backup_dir'], gvar['my_fqdn']):
+        if os.path.isdir('%s/%s' % (gvar['backup_dir'], gvar['my_fqdn'])) and os.path.isdir('%s/%s' % (gvar['user_data_backup_dir'], gvar['my_fqdn'])):
 
 #           action = get_action
 #           action = get_action(gvar, 'Do you want to load your previous tables and data into the new database? ', ['yes', 'no'])
