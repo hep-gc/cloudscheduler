@@ -55,9 +55,9 @@ CREATE TABLE `csv2_system_status` (
   `csv2_watch_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_watch_status` tinyint(4) NOT NULL DEFAULT 0,
   `csv2_watch_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
-  `csv2_startd_errors_error_count` int(11) NOT NULL DEFAULT 0,
-  `csv2_startd_errors_status` tinyint(4) NOT NULL DEFAULT 0,
-  `csv2_startd_errors_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
+  `csv2_vm_data_error_count` int(11) NOT NULL DEFAULT 0,
+  `csv2_vm_data_status` tinyint(4) NOT NULL DEFAULT 0,
+  `csv2_vm_data_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
   `condor_status` tinyint(1) NOT NULL DEFAULT 0,
   `condor_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
   `rabbitmq_server_status` tinyint(4) NOT NULL DEFAULT 0,
@@ -86,4 +86,4 @@ CREATE TABLE `csv2_system_status` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-08-15 12:28:37
+-- Dump completed on 2019-09-12 14:20:59
