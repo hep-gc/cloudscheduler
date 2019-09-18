@@ -1,0 +1,31 @@
+view_cloud_status_flavor_slot_summary:
+    Synopsis:
+
+    Keys:
+
+    Columns:
+
+        group_name:
+            Format: String(32)
+            Synopsis:
+
+        cloud_name:
+            Format: String(32)
+            Synopsis:
+
+        flavor:
+            Format: String(46)
+            Synopsis:
+
+        busy:
+            Format: Integer
+            Synopsis:
+
+        idle:
+            Format: Integer
+            Synopsis:
+
+        idle_percent:
+            Format: Integer
+            Synopsis:
+

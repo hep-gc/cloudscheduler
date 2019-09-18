@@ -137,7 +137,6 @@ def images(request, message=None, response_code=0):
             'alias_list': alias_list,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -272,7 +271,6 @@ def instance_types(request, message=None, response_code=0):
             'cores_list': cores_list,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }

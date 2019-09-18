@@ -12,6 +12,7 @@ import sys
 import yaml
 import json
 
+import csv2_accounting
 import csv2_alias
 import csv2_cloud
 import csv2_defaults
@@ -40,6 +41,12 @@ def main(args):
         'active_group': '-',
         'action': None,
         'actions': {
+            'accounting': [
+                False, # super_user?
+                {
+                    'apel':                               csv2_accounting.apel,
+                    }
+                ],
             'alias': [
                 False, # super_user?
                 {
@@ -151,6 +158,7 @@ def main(args):
             },
         'command_keys': (
             # short_name, long_name, key_value(T)/boolean(F)
+            ('-a',    '--all', False),
             ('-an',   '--alias-name', True),
             ('-bk',   '--backup-key', True),
             ('-br',   '--backup-repository', True),

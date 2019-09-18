@@ -129,6 +129,7 @@ class EC2Cloud(basecloud.BaseCloud):
                     'spot_instance': flag_spot_instance,
                     'status': ec2_status_dict[vm['State']['Name']],
                     'flavor_id': vm['InstanceType'],
+                    'image_id': vm['ImageId'],
                     'last_updated': int(time.time()),
                     'keep_alive': self.keep_alive,
                     'start_time': int(time.time()),

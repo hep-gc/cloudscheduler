@@ -57,7 +57,6 @@ def manage_keys(request, group_name=None, message=None):
         "key_dict": key_dict,
         "active_group": group_name,
         "message": message,
-        "enable_glint": True,
         "user_groups": user_groups,
         "num_clouds": num_clouds
     }

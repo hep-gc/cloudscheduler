@@ -14,7 +14,7 @@ import glanceclient
 
 
 from cloudscheduler.lib.db_config import Config
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', ['general', 'openstackPoller.py', 'web_frontend'], pool_size=2, max_overflow=10, refreshable=True)
 ALPHABET = string.ascii_letters + string.digits + string.punctuation
 
 def get_nova_client(session, region=None):
@@ -73,7 +73,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 username=username,
                 password=password,
                 tenant_name=project)
-            sess = session.Session(auth=auth, verify=config.cacerts)
+            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s::%s" % (auth_url, exc))
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s", (auth_url, username, project))
@@ -90,7 +90,7 @@ def _get_openstack_session_v1_v2(auth_url, username, password, project, user_dom
                 user_domain_name=user_domain,
                 project_domain_name=project_domain_name,
                 project_domain_id=project_domain_id,)
-            sess = session.Session(auth=auth, verify=config.cacerts)
+            sess = session.Session(auth=auth, verify=config.categories["openstackPoller.py"]["cacerts"])
         except Exception as exc:
             logging.error("Problem importing keystone modules, and getting session for grp:cloud - %s: %s", exc)
             logging.error("Connection parameters: \n authurl: %s \n username: %s \n project: %s \n user_domain: %s \n project_domain: %s", (auth_url, username, project, user_domain, project_domain_name))
@@ -310,7 +310,4 @@ def verifyUser(request, db_config):
     auth_user = getUser(request, db_config)
     return bool(auth_user)
 
-def set_defaults_changed(changed_bool):
-    # this needs a new implementation without redis, it will need to use signaling
-    return True
 

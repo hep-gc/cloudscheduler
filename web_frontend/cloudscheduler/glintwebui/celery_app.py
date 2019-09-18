@@ -15,12 +15,12 @@ from . import glint_utils
 logger = get_task_logger(__name__)
 
 db_category_list = ["general", "glintPoller.py"]
-config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4)
+config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=4, refreshable=True)
 
 # Indicate Celery to use the default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cloudscheduler_web.settings')
 
-app = Celery('glintv2', broker=config.celery_url, backend=config.celery_backend)
+app = Celery('glintv2', broker=config.categories["glintPoller.py"]["celery_url"], backend=config.categories["glintPoller.py"]["celery_backend"])
 app.config_from_object('django.conf:settings')
 
 
@@ -37,7 +37,7 @@ app.config_from_object('django.conf:settings')
 @app.task(bind=True)
 def pull_request(self, tx_id):
     db_category_list = ["glintv2", "general", "glintPoller.py"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     PULL_REQ = config.db_map.classes.csv2_image_pull_requests
     IMG_CACHE = config.db_map.classes.csv2_image_cache
     CLOUD = config.db_map.classes.csv2_clouds
@@ -64,7 +64,7 @@ def pull_request(self, tx_id):
         cloud_row = _get_cloud(CLOUD, tx_row.target_group_name, tx_row.target_cloud_name, config)
         os_session = glint_utils.get_openstack_session(cloud_row)
         glance = glint_utils.get_glance_client(os_session, cloud_row.region)
-        result_tuple = glint_utils.download_image(glance, tx_row.image_name, tx_row.image_id, tx_row.checksum, config.image_cache_dir)
+        result_tuple = glint_utils.download_image(glance, tx_row.image_name, tx_row.image_id, tx_row.checksum, config.categories["glintPoller.py"]["image_cache_dir"])
         if result_tuple[0]:
             # successful download, update the cache and remove transaction
             cache_dict = {
@@ -99,7 +99,7 @@ def pull_request(self, tx_id):
 @app.task(bind=True)
 def tx_request(self, tx_id):
     db_category_list = ["glintv2", "general", "glintPoller.py"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     IMG_TX = config.db_map.classes.csv2_image_transactions
     IMG_CACHE = config.db_map.classes.csv2_image_cache
     CLOUD = config.db_map.classes.csv2_clouds
@@ -147,7 +147,7 @@ def tx_request(self, tx_id):
         os_session = glint_utils.get_openstack_session(cloud)
         glance = glint_utils.get_glance_client(os_session, cloud.region)
         image_id = glint_utils.create_placeholder_image(glance, image.image_name, image.disk_format, image.container_format)
-        uploaded_image = glint_utils.upload_image(glance, image_id, image.image_name, config.image_cache_dir, tx_row.checksum, image.disk_format, image.container_format)  
+        uploaded_image = glint_utils.upload_image(glance, image_id, image.image_name, config.categories["glintPoller.py"]["image_cache_dir"], tx_row.checksum, image.disk_format, image.container_format)  
     except Exception as exc:
         logger.error("Upload failed:")
         print("Upload failed:")

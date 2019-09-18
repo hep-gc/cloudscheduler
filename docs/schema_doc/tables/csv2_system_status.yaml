@@ -205,3 +205,15 @@ csv2_system_status:
             Format: Integer
             Synopsis:
 
+        csv2_vm_data_error_count:
+            Format: Integer
+            Synopsis:
+
+        csv2_vm_data_status:
+            Format: Boolean
+            Synopsis:
+
+        csv2_vm_data_msg:
+            Format: String(512)
+            Synopsis:
+

@@ -5,7 +5,7 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_response
+Database Table: silk_response (obsolete)
 =============================
 
 
@@ -13,7 +13,7 @@ Database Table: silk_response
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (obsolete):
 
    * Format: String(36)
    * Synopsis:
@@ -22,27 +22,27 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **body**:
+* **body** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **encoded_headers**:
+* **encoded_headers** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **raw_body**:
+* **raw_body** (obsolete):
 
    * Format: String
    * Synopsis:
 
-* **request_id**:
+* **request_id** (obsolete):
 
    * Format: String(36)
    * Synopsis:
 
-* **status_code**:
+* **status_code** (obsolete):
 
    * Format: Integer
    * Synopsis:

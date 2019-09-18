@@ -193,3 +193,11 @@ view_available_resources:
             Format: String
             Synopsis:
 
+        worker_cert:
+            Format: String
+            Synopsis:
+
+        worker_key:
+            Format: String
+            Synopsis:
+

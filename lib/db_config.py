@@ -167,13 +167,6 @@ class Config:
 
     def get_config_by_category(self, categories):
 
-        # If closed, open the database.
-        if self.db_connection:
-            close_on_exit = False
-        else:
-            close_on_exit = True
-            self.db_open()
-
         # Retrieve the configuration for the specified category.
         if isinstance(categories, str):
             category_list = [ categories ]
@@ -185,6 +178,7 @@ class Config:
             if category in target_dict:
                 continue
 
+            target_dict['__timestamp__'] = {'last_updated': time.time()}
             target_dict[category] = {}
 
             rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
@@ -202,9 +196,6 @@ class Config:
                     target_dict[category][row.config_key] = None
                 else:
                     target_dict[category][row.config_key] = row.config_value
-
-        if close_on_exit:
-            self.db_close()
 
         return target_dict
 
@@ -232,8 +223,19 @@ class Config:
 #-------------------------------------------------------------------------------
 
     def refresh(self):
-        self.categories = self.get_config_by_category(list(self.categories.keys()))
+        # If closed, open the database.
+        if self.db_connection:
+            close_on_exit = False
+        else:
+            close_on_exit = True
+            self.db_open()
 
+        timestamps = self.db_connection.execute('select last_updated from csv2_timestamps where entity="csv2_configuration";')
+        if timestamps.rowcount < 1 or timestamps.first()['last_updated'] > self.categories['__timestamp__']['last_updated']:
+            self.categories = self.get_config_by_category(list(self.categories.keys()))
+
+        if close_on_exit:
+            self.db_close()
 
 #-------------------------------------------------------------------------------
 

@@ -147,7 +147,7 @@ def flavor_poller():
     multiprocessing.current_process().name = "Flavor Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
 
     FLAVOR = config.db_map.classes.cloud_flavors
     CLOUD = config.db_map.classes.csv2_clouds
@@ -163,10 +163,10 @@ def flavor_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, FLAVOR, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
         while True:
+            config.db_open()
             try:
                 logging.debug("Beginning flavor poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
                 config.refresh()
                 db_session = config.db_session
 
@@ -316,8 +316,7 @@ def flavor_poller():
                 # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
                 delete_obsolete_database_items('Flavor', inventory, db_session, FLAVOR, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_flavor"])
                 except KeyboardInterrupt:
@@ -332,13 +331,12 @@ def flavor_poller():
         logging.exception("Flavor poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 def image_poller():
     multiprocessing.current_process().name = "Image Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
 
     IMAGE = config.db_map.classes.cloud_images
     CLOUD = config.db_map.classes.csv2_clouds
@@ -353,11 +351,11 @@ def image_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, IMAGE, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
+        config.db_open()
         while True:
             try:
                 logging.debug("Beginning image poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
                 config.refresh()
                 db_session = config.db_session
 
@@ -498,8 +496,7 @@ def image_poller():
                             break
 
                 if abort_cycle:
-                    config.db_close()
-                    del db_session
+                    config.db_session.rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_image"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
@@ -516,8 +513,7 @@ def image_poller():
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
                 delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_image"])
                 except KeyboardInterrupt:
@@ -533,14 +529,13 @@ def image_poller():
         logging.exception("Image poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 # Retrieve keypairs.
 def keypair_poller():
     multiprocessing.current_process().name = "Keypair Poller"
     
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     KEYPAIR = config.db_map.classes.cloud_keypairs
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -554,11 +549,11 @@ def keypair_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, KEYPAIR, 'key_name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
+        config.db_open()
         while True:
             try:    
                 logging.debug("Beginning keypair poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
                 config.refresh()
                 db_session = config.db_session
 
@@ -667,8 +662,7 @@ def keypair_poller():
                             break
 
                 if abort_cycle:
-                    config.db_close()
-                    del db_session
+                    config.db_session.rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_keypair"])
                     continue
                 
@@ -684,8 +678,7 @@ def keypair_poller():
                 # Scan the OpenStack keypairs in the database, removing each one that was not updated in the inventory.
                 delete_obsolete_database_items('Keypair', inventory, db_session, KEYPAIR, 'key_name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_keypair"])
                 except KeyboardInterrupt:
@@ -700,13 +693,12 @@ def keypair_poller():
         logging.exception("Keypair poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 def limit_poller():
     multiprocessing.current_process().name = "Limit Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     LIMIT = config.db_map.classes.cloud_limits
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -720,11 +712,11 @@ def limit_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, LIMIT, '-', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
+        config.db_open()
         while True:
             try:
                 logging.debug("Beginning limit poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
                 config.refresh()
                 db_session = config.db_session
 
@@ -829,8 +821,7 @@ def limit_poller():
 
                     del nova
                     if abort_cycle:
-                        config.db_close()
-                        del db_session
+                        config.db_session.rollback()
                         time.sleep(config.categories["openstackPoller.py"]["sleep_interval_limit"])
                         continue
 
@@ -855,8 +846,7 @@ def limit_poller():
                 # Scan the OpenStack flavors in the database, removing each one that was` not iupdated in the inventory.
                 delete_obsolete_database_items('Limit', inventory, db_session, LIMIT, '-', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_limit"])
                 except KeyboardInterrupt:
@@ -871,7 +861,6 @@ def limit_poller():
         logging.exception("Limit poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 def network_poller():
     multiprocessing.current_process().name = "Network Poller"
@@ -887,7 +876,7 @@ def network_poller():
     #    )
     #Base.prepare(db_engine, reflect=True)
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=333, refreshable=True)
     NETWORK = config.db_map.classes.cloud_networks
     CLOUD = config.db_map.classes.csv2_clouds
 
@@ -901,11 +890,11 @@ def network_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, NETWORK, 'name', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
+        config.db_open()
         while True:
             try:
                 logging.debug("Beginning network poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
                 config.refresh()
                 db_session = config.db_session
 
@@ -1022,8 +1011,7 @@ def network_poller():
                             break
 
                 if abort_cycle:
-                    config.db_close()
-                    del db_session
+                    config.db_session.rollback()
                     time.sleep(config.categories["openstackPoller.py"]["sleep_interval_network"])
                     continue
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
@@ -1038,8 +1026,7 @@ def network_poller():
                 # Scan the OpenStack networks in the database, removing each one that was not updated in the inventory.
                 delete_obsolete_database_items('Network', inventory, db_session, NETWORK, 'name', poll_time=new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_network"])
                 except KeyboardInterrupt:
@@ -1054,14 +1041,13 @@ def network_poller():
         logging.exception("Network poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 def security_group_poller():
     multiprocessing.current_process().name = "Security Group Poller"
 
     db_category_list = [os.path.basename(sys.argv[0]), "general", "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
 
     SECURITY_GROUP = config.db_map.classes.cloud_security_groups
     CLOUD = config.db_map.classes.csv2_clouds
@@ -1077,11 +1063,11 @@ def security_group_poller():
 
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, SECURITY_GROUP, 'id', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
+        config.db_open()
         while True:
             try:
                 logging.debug("Beginning security group poller cycle")
                 new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-                config.db_open()
                 config.refresh()
                 db_session = config.db_session
 
@@ -1213,8 +1199,7 @@ def security_group_poller():
                 # Scan the OpenStack sec_grps in the database, removing each one that was not iupdated in the inventory.
                 delete_obsolete_database_items('sec_grp', inventory, db_session, SECURITY_GROUP, 'id', poll_time=new_poll_time, failure_dict=failure_dict, cloud_type="openstack")
 
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 try:
                     wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_security_group"])
 
@@ -1231,24 +1216,13 @@ def security_group_poller():
         logging.exception("sec_grp poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 
 def vm_poller():
     multiprocessing.current_process().name = "VM Poller"
-    #Base = automap_base()
-    #db_engine = create_engine(
-    #    'mysql://%s:%s@%s:%s/%s' % (
-    #        config.db_user,
-    #        config.db_password,
-    #        config.db_host,
-    #        str(config.db_port),
-    #        config.db_name
-    #        )
-    #    )
-    #Base.prepare(db_engine, reflect=True)
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=8, refreshable=True)
+
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=3, refreshable=True)
     VM = config.db_map.classes.csv2_vms
     FVM = config.db_map.classes.csv2_vms_foreign
     GROUP = config.db_map.classes.csv2_groups
@@ -1261,12 +1235,12 @@ def vm_poller():
     
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, VM, 'hostname', debug_hash=(config.categories["openstackPoller.py"]["log_level"]<20), cloud_type="openstack")
+        config.db_open()
         while True:
             # This cycle should be reasonably fast such that the scheduler will always have the most
             # up to date data during a given execution cycle.
             logging.debug("Beginning VM poller cycle")
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
-            config.db_open()
             config.refresh()
             db_session = config.db_session
 
@@ -1440,6 +1414,7 @@ def vm_poller():
                         'cloud_type': "openstack",
                         'hostname': vm.name,
                         'vmid': vm.id,
+                        'image_id': vm.image['id'],
                         'status': vm.status,
                         'flavor_id': vm.flavor["id"],
                         'task': vm.__dict__.get("OS-EXT-STS:task_state"),
@@ -1524,8 +1499,7 @@ def vm_poller():
 
 
             if abort_cycle:
-                config.db_close()
-                del db_session
+                config.db_session.rollback()
                 time.sleep(config.categories["openstackPoller.py"]["sleep_interval_vm"])
                 continue
 
@@ -1555,28 +1529,27 @@ def vm_poller():
 
 
             logging.debug("Completed VM poller cycle")
-            config.db_close()
-            del db_session
+            config.db_session.rollback()
             wait_cycle(cycle_start_time, poll_time_history, config.categories["openstackPoller.py"]["sleep_interval_vm"])
 
     except Exception as exc:
         logging.exception("VM poller cycle while loop exception, process terminating...")
         logging.error(exc)
         config.db_close()
-        del db_session
 
 
 def defaults_replication():
     multiprocessing.current_process().name = "Defaults Replication"
     db_category_list = [os.path.basename(sys.argv[0]), "general", "glintPoller.py" "signal_manager"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     GROUPS = config.db_map.classes.csv2_groups
     CLOUDS = config.db_map.classes.csv2_clouds
     KEYPAIRS = config.db_map.classes.cloud_keypairs
     IMAGES = config.db_map.classes.cloud_images
     IMAGE_TX = config.db_map.classes.csv2_image_transactions
+
+    config.db_open()
     while True:
-        config.db_open()
         config.refresh()
         db_session = config.db_session
         group_list = db_session.query(GROUPS)
@@ -1673,7 +1646,6 @@ def defaults_replication():
                     logging.info("No default keypair for group %s, skipping keypair transfers for cloud %s" % (group.group_name, cloud.cloud_name))
         
         db_session.commit()
-        config.db_close()
         time.sleep(300) # this will need to be updated to have a smarter wakeup once signaling has been implemented
 
 
@@ -1684,14 +1656,14 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=8, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
     service_name = "csv2-openstack"
 
+    config.db_open()
     while True:
-        config.db_open()
         config.refresh()
 
         service_dict = {
@@ -1703,7 +1675,7 @@ def service_registrar():
         service = SERVICE_CATALOG(**service_dict)
         try:
             config.db_session.merge(service)
-            config.db_close(commit=True)
+            config.db_session.commit()
         except Exception as exc:
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
@@ -1729,7 +1701,7 @@ if __name__ == '__main__':
     }
     db_categories = [os.path.basename(sys.argv[0]), "general", "signal_manager", "ProcessMonitor"]
 
-    procMon = ProcessMonitor(config_params=db_categories, pool_size=9, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_categories, pool_size=3, orange_count_row='csv2_openstack_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()

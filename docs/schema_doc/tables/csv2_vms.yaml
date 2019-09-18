@@ -129,3 +129,7 @@ csv2_vms:
             Format: String(128)
             Synopsis:
 
+        image_id:
+            Format: String(128)
+            Synopsis:
+

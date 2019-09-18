@@ -228,7 +228,6 @@ def list(request, args=None, response_code=0, message=None):
         'user_groups': active_user.user_groups,
         'response_code': rc,
         'message': msg,
-        'enable_glint': config.enable_glint,
         'is_superuser': active_user.is_superuser,
         'version': config.get_version()
     }
@@ -422,7 +421,7 @@ def upload(request, group_name=None):
 
         #process image upload
         image_file = request.FILES['myfile']
-        file_path = config.image_cache_dir + image_file.name # This file will have to be renamed with the checksum after uploading to a cloud
+        file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name # This file will have to be renamed with the checksum after uploading to a cloud
 
         #before we save it locally let us check if it is already in the repos
         cloud_name_list = request.POST.getlist('clouds')
@@ -454,7 +453,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': msg,
-                'enable_glint': config.enable_glint,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -519,7 +517,7 @@ def upload(request, group_name=None):
 
 
         # now we have the os image object, lets rename the file and add it to out cache
-        cache_path = config.image_cache_dir + image_file.name + "---" + image.checksum
+        cache_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name + "---" + image.checksum
         os.rename(file_path, cache_path)
 
         cache_dict = {
@@ -549,7 +547,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': "Upload Successful, returning to images...",
-                'enable_glint': config.enable_glint,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -592,7 +589,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': msg,
-                'enable_glint': config.enable_glint,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
         }
@@ -610,7 +606,7 @@ def upload(request, group_name=None):
         img_url = request.POST.get('myfileurl')
         image_name = img_url.rsplit("/", 1)[-1]
         logger.info("File to upload: %s" % image_name)
-        file_path = config.image_cache_dir + image_name # This file will have to be renamed with the checksum after uploading to a cloud
+        file_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_name # This file will have to be renamed with the checksum after uploading to a cloud
 
         # check if a file with that name already exists
         if os.path.exists(file_path):
@@ -652,7 +648,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': msg,
-                'enable_glint': config.enable_glint,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -704,7 +699,7 @@ def upload(request, group_name=None):
         config.db_session.merge(new_image)
         config.db_session.commit()
         # now we have the os image object, lets rename the file and add it to out cache
-        cache_path = config.image_cache_dir + image_file.name + "---" + image.checksum
+        cache_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_file.name + "---" + image.checksum
         os.rename(file_path, cache_path)
 
         cache_dict = {
@@ -756,7 +751,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': "Uploads queued successfully, returning to images...",
-                'enable_glint': config.enable_glint,
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -777,7 +771,6 @@ def upload(request, group_name=None):
             'user_groups': active_user.user_groups,
             'response_code': rc,
             'message': msg,
-            'enable_glint': config.enable_glint,
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -826,7 +819,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
     cached_images = db_session.query(CACHE_IMAGES).filter(CACHE_IMAGES.image_name == image_name, CACHE_IMAGES.checksum == image_checksum)
     if cached_images.count() > 0:
         # we've got the image cached already, we can go ahead and serve from this file
-        image_path = config.image_cache_dir + image_name + "---" + image_checksum
+        image_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_name + "---" + image_checksum
         response = StreamingHttpResponse((line for line in open(image_path, 'rb')))
         response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
         response['Content-Length'] = os.path.getsize(image_path)
@@ -846,7 +839,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
         cloud_row = config.db_session.query(CLOUD).get((group_name, src_image.cloud_name))
         os_session = get_openstack_session(cloud_row)
         glance = get_glance_client(os_session, cloud_row.region)
-        result_tuple = download_image(glance, image_name, src_image.id, image_checksum, config.image_cache_dir)
+        result_tuple = download_image(glance, image_name, src_image.id, image_checksum, config.categories["glintPoller.py"]["image_cache_dir"])
         if result_tuple[0]:
             # successful download, update the cache and remove transaction
             cache_dict = {
@@ -859,7 +852,7 @@ def download(request, group_name, image_key, args=None, response_code=0, message
             config.db_session.merge(new_cache_item)
             config.db_session.commit()
             # ok we've got the image we can finally serve it up
-            image_path = config.image_cache_dir + image_name + "---" + image_checksum
+            image_path = config.categories["glintPoller.py"]["image_cache_dir"] + image_name + "---" + image_checksum
             response = StreamingHttpResponse((line for line in open(image_path, 'rb')))
             response['Content-Disposition'] = "attachment; filename={0}".format(image_name)
             response['Content-Length'] = os.path.getsize(image_path)
