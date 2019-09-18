@@ -553,6 +553,22 @@ def command_poller():
 
                             logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
+                            if command_results[0] == 2:
+                                #condor error, report the failure
+                                jsched = {
+                                    "htcondor_fqdn": condor_host,
+                                    "agent_status":  0
+                                }
+                                new_jsched = JOB_SCHED(**jsched)
+                                js = config.db_session.query(JOB_SCHED).filter(JOB_SCHED.htcondor_fqdn==condor_host)
+                                if js.count()>0:
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
+                                else:
+                                    config.db_session.execute('insert into csv2_job_schedulers (htcondor_fqdn) values("%s")' % condor_host)
+                                    config.db_session.merge(new_jsched)
+                                    uncommitted_updates += 1
+
                             if command_results is not None:
                                 logging.error(command_results[1])
                             continue

@@ -1087,7 +1087,19 @@ def verify_yaml_file(file_path):
         (len(file_path) > 5 and file_path[-5:] == '.yaml') or \
         (len(file_path) > 7 and file_path[-7:] == '.yml.j2') or \
         (len(file_path) > 8 and file_path[-8:] == '.yaml.j2'):
-        result = _yaml_load_and_verify(file_string)
+        try:
+            result = _yaml_load_and_verify(file_string)
+        except Exception as ex:
+            if (len(file_path) > 7 and file_path[-7:] == '.yml.j2') or \
+                (len(file_path) > 8 and file_path[-8:] == '.yaml.j2'):
+
+                print('WARNING: Jinja2 yaml template fails yaml validation, %s' % ex)
+                print('         ... upload continuing...')
+                result[0] = 'alright'
+            else:
+                print('ERROR: yaml file fails yaml validation, %s' % ex)
+                exit(1)
+
         if not result[0]:
             print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
             exit(1)
