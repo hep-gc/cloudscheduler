@@ -226,6 +226,7 @@ def main(args):
             ('-js',   '--job-swap', True),
             ('-jtc',  '--job-target-clouds', True),
             ('-ju',   '--job-user', True),
+            ('-lu',   '--last-update', True),
             ('-me',   '--metadata-enabled', True),
             ('-mmt',  '--metadata-mime-type', True),
             ('-mn',   '--metadata-name', True),
