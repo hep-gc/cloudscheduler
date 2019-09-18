@@ -36,6 +36,7 @@ MODID = '$$'
 KEYS = {
     # Named argument formats (anything else is a string).
     'format': {
+        'last_update':         'integer',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
@@ -45,6 +46,7 @@ KEYS_SU = {
     # Named argument formats (anything else is a string).
     'format': {
         'all':                 'dboolean',
+        'last_update':         'integer',
         'csrfmiddlewaretoken': 'ignore',
         'group':               'ignore',
         },
@@ -77,17 +79,18 @@ def apel(request, args=None, response_code=0, message=None):
             return render(request, 'csv2/vms.html', {'response_code': 1, 'message': '%s vm list, %s' % (lno(MODID), msg)})
 
     # Retrieve VM information.
-    s = select([view_apel_accounting])
+    table = view_apel_accounting
+    if 'last_update' in fields:
+        s = select([table]).where(table.c.last_update>fields['last_update'])
+    else:
+        s = select([table])
 
     if 'all' in fields and fields['all'] == True:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>> ALL", fields['all'])
         apel_accounting = qt(config.db_connection.execute(s))
     else:
         if active_user.flag_global_status:
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>> GLOBAL", qt_filter_get(['group_name'], {'group_name': active_user.user_groups}))
             apel_accounting = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], {'group_name': active_user.user_groups}))
         else:
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>> SINGLE", qt_filter_get(['group_name'], {'group_name': active_user.active_group}))
             apel_accounting = qt(config.db_connection.execute(s), filter=qt_filter_get(['group_name'], {'group_name': active_user.active_group}))
 
     config.db_close()
