@@ -26,7 +26,7 @@ def apel_accounting_cleanup():
             obsolete_apel_accounting_rows = time.time() - (86400 * config.categories[my_config_category]['apel_accounting_keep_alive_days'])
 
             try:
-                result = config.db_session.execute('delete from apel_accounting where last_update<%s' % obsolete_apel_accounting_rows)
+                result = config.db_session.execute('delete from apel_accounting where (last_update>0 and last_update<%s) or (last_update<1 and start_time<%s);' % (obsolete_apel_accounting_rows, obsolete_apel_accounting_rows))
                 config.db_session.commit()
                 logging.info('APEL accounting, %s rows deleted.' % result.rowcount)
 
