@@ -9,7 +9,7 @@ letsencrypt_archive: '/usr/local/archive/letsencrypt'
 
 # CSV2 versions to use.
 cs_git_branch: stable-2.6
-db_upgrade_file: none
+db_upgrade_file: stable-2.5.0-to-stable-2.6.0
 schema_model: stable-2.6
 favicon_colour: red
 
@@ -21,7 +21,7 @@ rabbit_on_localhost: true
 reconfigure_network: false
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
-install_phpMyAdmin: False
+install_phpMyAdmin: True
 
 # If you decide to install phpMyAdmin, you will also need an SSL certificate for the domain/virtual host (see i_virtualhosts, below).
 letsencrypt_test: false
@@ -166,6 +166,6 @@ i_service_connection:
 i_virtualhosts:
 -
     virtualhost: 'csv2-sa.heprc.uvic.ca'
-#
-#   virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
+
+    virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
 
