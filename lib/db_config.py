@@ -178,7 +178,8 @@ class Config:
             if category in target_dict:
                 continue
 
-            target_dict[category] = {'__timestamp__' = {'last_updated': time.time()}}
+            target_dict['__timestamp__'] = {'last_updated': time.time()}
+            target_dict[category] = {}
 
             rows = self.db_session.query(self.db_map.classes[self.db_table]).filter(
                 self.db_map.classes[self.db_table].category == category
@@ -230,8 +231,8 @@ class Config:
             self.db_open()
 
         timestamps = self.db_connection.execute('select last_updated from csv2_timestamps where entity="csv2_configuration";')
-            if len(timestamps) < 1 or timestamps[0]['last_updated'] > self.categories['__timestamp__']['last_updated']:
-                self.categories = self.get_config_by_category(list(self.categories.keys()))
+        if timestamps.rowcount < 1 or timestamps.first()['last_updated'] > self.categories['__timestamp__']['last_updated']:
+            self.categories = self.get_config_by_category(list(self.categories.keys()))
 
         if close_on_exit:
             self.db_close()

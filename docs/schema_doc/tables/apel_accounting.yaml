@@ -1,0 +1,75 @@
+apel_accounting:
+    Synopsis:
+
+    Keys:
+
+        group_name:
+            Format: String(32)
+            Synopsis:
+
+        cloud_name:
+            Format: String(32)
+            Synopsis:
+
+        hostname:
+            Format: String(128)
+            Synopsis:
+
+    Columns:
+
+        cloud_type:
+            Format: String(32)
+            Synopsis:
+
+        region:
+            Format: String(32)
+            Synopsis:
+
+        flavor_id:
+            Format: String(128)
+            Synopsis:
+
+        image_id:
+            Format: String(128)
+            Synopsis:
+
+        benchmark_type:
+            Format: String(32)
+            Synopsis:
+
+        benchmark:
+            Format: Integer
+            Synopsis:
+
+        vmid:
+            Format: String(128)
+            Synopsis:
+
+        start_time:
+            Format: Integer
+            Synopsis:
+
+        end_time:
+            Format: Integer
+            Synopsis:
+
+        last_update:
+            Format: Integer
+            Synopsis:
+
+        cpu_time:
+            Format: Integer
+            Synopsis:
+
+        network_type:
+            Format: String(32)
+            Synopsis:
+
+        rx:
+            Format: Integer
+            Synopsis:
+
+        tx:
+            Format: Integer
+            Synopsis:
+

@@ -42,7 +42,7 @@ Columns:
    * Format: String(380)
    * Synopsis:
 
-* **slot_tag**:
+* **slot_tag** (obsolete):
 
    * Format: String(392)
    * Synopsis:

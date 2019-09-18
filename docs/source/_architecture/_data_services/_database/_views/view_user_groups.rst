@@ -37,6 +37,16 @@ Columns:
    * Format: Boolean
    * Synopsis:
 
+* **flag_show_slot_detail**:
+
+   * Format: Boolean
+   * Synopsis:
+
+* **flag_show_slot_flavors**:
+
+   * Format: Boolean
+   * Synopsis:
+
 * **is_superuser**:
 
    * Format: Boolean

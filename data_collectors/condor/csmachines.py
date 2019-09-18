@@ -137,7 +137,7 @@ def machine_poller():
                            "Start", "RemoteOwner", "SlotType", "TotalSlots", "group_name", \
                            "cloud_name", "cs_host_id", "condor_host", "flavor", "TotalDisk"]
 
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=6, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "SQL"], pool_size=3, refreshable=True)
 
 
     RESOURCE = config.db_map.classes.condor_machines
@@ -158,10 +158,10 @@ def machine_poller():
     try:
         inventory = get_inventory_item_hash_from_database(config.db_engine, RESOURCE, 'name', debug_hash=(config.categories["csmachines.py"]["log_level"]<20))
         configure_htc(config, logging)
+        config.db_open()
         while True:
             new_poll_time, cycle_start_time = start_cycle(new_poll_time, cycle_start_time)
 
-            config.db_open()
             config.refresh()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
@@ -339,7 +339,7 @@ def machine_poller():
                            
                 if abort_cycle:
                     del condor_session
-                    config.db_close()
+                    config.db_session.rollback()
                     break
 
             if 'db_session'in locals() and uncommitted_updates > 0:
@@ -349,7 +349,7 @@ def machine_poller():
                 except Exception as exc:
                     logging.exception("Failed to commit machine updates, aborting cycle...")
                     logging.error(exc)
-                    config.db_close()
+                    config.db_session.rollback()
                     time.sleep(config.categories["csmachines.py"]["sleep_interval_machine"])
                     continue
 
@@ -357,9 +357,7 @@ def machine_poller():
                 # Check for deletes
                 delete_obsolete_database_items('Machines', inventory, db_session, RESOURCE, 'name', poll_time=new_poll_time, failure_dict=failure_dict)
                 delete_cycle = False
-            config.db_close(commit=True)
-            if 'db_session' in locals():
-                del db_session
+            config.db_session.commit()
             cycle_count = cycle_count + 1
             if cycle_count > config.categories["csmachines.py"]["delete_cycle_interval"]:
                 delete_cycle = True
@@ -377,7 +375,7 @@ def command_poller():
     multiprocessing.current_process().name = "Command Poller"
 
     # database setup
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP"], pool_size=6, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', [os.path.basename(sys.argv[0]), "AMQP"], pool_size=3, refreshable=True)
 
     Resource = config.db_map.classes.condor_machines
     GROUPS = config.db_map.classes.csv2_groups
@@ -390,9 +388,9 @@ def command_poller():
 
 
     try:
+        config.db_open()
         while True:
             logging.debug("Beginning command consumer cycle")
-            config.db_open()
             config.refresh()
             db_session = config.db_session
             groups = db_session.query(GROUPS)
@@ -601,8 +599,7 @@ def command_poller():
                 except Exception as exc:
                     logging.exception("Failed to commit retire machine, aborting cycle...")
                     logging.error(exc)
-                    #del condor_session
-                    config.db_close()
+                    config.db_session.rollback()
                     time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
                     continue
 
@@ -832,9 +829,7 @@ def command_poller():
                     except Exception as exc:
                         logging.exception("Failed to commit retire machine, aborting cycle...")
                         logging.error(exc)
-                        #del condor_session
-                        config.db_close()
-                        del db_session
+                        config.db_session.rollback()
                         time.sleep(config.categories["csmachines.py"]["sleep_interval_command"])
                         continue
 
@@ -859,7 +854,7 @@ def command_poller():
 
             
             try:
-                config.db_close(commit=True)
+                config.db_session.commit()
             except Exception as exc:
                 logging.error("Error during final commit, likely that a vm was removed from database before final terminate update was comitted..")
                 logging.exception(exc)
@@ -871,7 +866,6 @@ def command_poller():
     except Exception as exc:
         logging.exception("Command consumer while loop exception, process terminating...")
         logging.error(exc)
-        config.db_close()
 
 
 
@@ -881,14 +875,14 @@ def service_registrar():
 
     # database setup
     db_category_list = [os.path.basename(sys.argv[0]), "general"]
-    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=6, refreshable=True)
+    config = Config('/etc/cloudscheduler/cloudscheduler.yaml', db_category_list, pool_size=3, refreshable=True)
     SERVICE_CATALOG = config.db_map.classes.csv2_service_catalog
 
     service_fqdn = socket.gethostname()
     service_name = "csv2-machines"
 
+    config.db_open()
     while True:
-        config.db_open()
         config.refresh()
 
         service_dict = {
@@ -901,7 +895,7 @@ def service_registrar():
         service = SERVICE_CATALOG(**service_dict)
         try:
             config.db_session.merge(service)
-            config.db_close(commit=True)
+            config.db_session.commit()
         except Exception as exc:
             logging.exception("Failed to merge service catalog entry, aborting...")
             logging.error(exc)
@@ -923,7 +917,7 @@ if __name__ == '__main__':
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
 
-    procMon = ProcessMonitor(config_params=db_category_list, pool_size=4, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
+    procMon = ProcessMonitor(config_params=db_category_list, pool_size=333, orange_count_row='csv2_machines_error_count', process_ids=process_ids)
     config = procMon.get_config()
     logging = procMon.get_logging()
     version = config.get_version()
