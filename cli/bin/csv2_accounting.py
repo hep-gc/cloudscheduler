@@ -7,6 +7,7 @@ import os
 KEY_MAP = {
     '-a':  'all',
     '-g':   'group',
+    '-lu':  'last_update',
     }
 
 COMMAS_TO_NL = str.maketrans(',','\n')
@@ -19,7 +20,7 @@ def apel(gvar):
 
     mandatory = []
     required = []
-    optional = ['-a', '-CSEP', '-CSV', '-g', '-H', '-h', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-v', '-xA']
+    optional = ['-a', '-CSEP', '-CSV', '-g', '-H', '-h', '-lu', '-ok', '-r', '-s', '-V', '-VC', '-NV', '-w', '-v', '-xA']
 
     if gvar['retrieve_options']:
         return mandatory + required + optional
