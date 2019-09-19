@@ -349,6 +349,17 @@ def main():
                                 cs_condor_host_ip = socket.gethostbyname(csgroup.htcondor_fqdn)
                             except:
                                 cs_condor_host_ip = '*** unresolved **'
+
+                            if cloud.worker_cert[-1] == '\n':
+                                cloud_worker_cert = cloud.worker_cert[:-1].replace('\n', '\n        ')
+                            else:
+                                cloud_worker_cert = cloud.worker_cert.replace('\n', '\n        ')
+
+                            if cloud.worker_key[-1] == '\n':
+                                cloud_worker_key = cloud.worker_key[:-1].replace('\n', '\n        ')
+                            else:
+                                cloud_worker_key = cloud.worker_key.replace('\n', '\n        ')
+
                             template_dict = {'cs_user': usertmp,
                                              'cs_host': cs_host,
                                              'cs_host_id': config.csv2_host_id,
@@ -361,8 +372,8 @@ def main():
                                              'cs_cloud_alias': idle_job.target_alias,
                                              'cs_condorworker_cert_days_to_end_of_life': config.categories['GSI']['cert_days_left_good'],
                                              'cs_condorworker_optional_gsi_messages': config.categories['csmain']['condorworker_optional_gsi_msgs'],
-                                             'cs_condorworker_cert': cloud.worker_cert,
-                                             'cs_condorworker_key': cloud.worker_key}
+                                             'cs_condorworker_cert': cloud_worker_cert,
+                                             'cs_condorworker_key': cloud_worker_key}
                             template_dict.update(service_catalog_yaml_fqdns)
                             log.debug(template_dict)
 

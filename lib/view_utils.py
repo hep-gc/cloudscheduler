@@ -1192,9 +1192,7 @@ def validate_fields(config, request, fields, tables, active_user):
                     if filename in request.POST:
                         # Verify yaml files.
                         if (len(request.POST[filename]) > 4 and request.POST[filename][-4:] == '.yml') or \
-                            (len(request.POST[filename]) > 5 and request.POST[filename][-5:] == '.yaml') or \
-                            (len(request.POST[filename]) > 7 and request.POST[filename][-7:] == '.yml.j2') or \
-                            (len(request.POST[filename]) > 8 and request.POST[filename][-8:] == '.yaml.j2'):
+                            (len(request.POST[filename]) > 5 and request.POST[filename][-5:] == '.yaml'):
 
                             import yaml
 
@@ -1204,6 +1202,8 @@ def validate_fields(config, request, fields, tables, active_user):
                                 return 1, 'yaml value specified for "%s (%s)" is invalid - scanner error - %s' % (field, filename, ex), None, None, None
                             except yaml.parser.ParserError as ex:
                                 return 1, 'yaml value specified for "%s (%s)" is invalid - parser error - %s' % (field, filename, ex), None, None, None
+                            except Exception as ex:
+                                return 1, 'yaml value specified for "%s (%s)" is invalid - unknown error - %s' % (field, filename, ex), None, None, None
 
                 elif Formats[field] == 'password':
                     rc, value = _validate_fields_pw_check(request.POST[field])
