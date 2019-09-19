@@ -173,6 +173,9 @@ class OpenStackCloud(basecloud.BaseCloud):
         except novaclient.exceptions.OverLimit as ex:
             self.log.exception(ex)
             raise novaclient.exceptions.OverLimit
+        except novaclient.exceptions.Conflict as ex:
+            self.log.error(ex)
+            raise novaclient.exceptions.Conflict
         except Exception as ex:
             self.log.exception(ex)
             raise Exception
