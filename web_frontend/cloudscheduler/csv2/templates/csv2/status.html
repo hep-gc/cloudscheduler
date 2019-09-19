@@ -106,7 +106,10 @@
                         <th class="jobs-style">Completed</th>
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
-                        <th class="jobs-style">Foreign</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="foreign-style">Foreign</th>
 
                         <th class="col-spacer">&nbsp;</th>
 
@@ -157,6 +160,8 @@
                                 {% else %}
                                     <td data-path="{{group.group_name}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
                                 {% endif %}
+
+                                <td class="col-spacer">&nbsp;</td>
                                 
                                 {% if group.foreign == 0 %}
                                     <td data-path="{{group.group_name}} jobs_foreign" class="zero-style float-center plottable">0</td>
@@ -275,6 +280,9 @@
                                         {% endfor %}
                                     </table>
                                 </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
                                 <td></td>
 
                                 <td class="col-spacer">&nbsp;</td>
