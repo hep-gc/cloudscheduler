@@ -342,9 +342,8 @@ def zip_base64(path):
 
     if os.path.isfile(path):
         p1 = Popen([
-            'zip',
-            '-r',
-            '-',
+            'gzip',
+            '-c',
             path
             ], stdout=PIPE, stderr=PIPE)
 
