@@ -107,9 +107,12 @@
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
                         <th class="jobs-style">Foreign</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="jobs-style">Condor FQDN</th>
                         <th class="jobs-style">Condor Status</th>
                         <th class="jobs-style">Agent Status</th>
-                        <th class="jobs-style">Condor FQDN</th>
                         <th class="jobs-style">Condor Cert</th>
                         <th class="jobs-style">Worker Cert</th>
                     </tr>
@@ -160,7 +163,10 @@
                                 {% else %}
                                     <td data-path="{{group.group_name}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
                                 {% endif %}
-                                
+
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
                                 <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable">
                                 {% if group.htcondor_status == -1 %}
@@ -180,8 +186,6 @@
                                     <span class="red-symbol">&#x2718;</span></td>
                                 {% endif %}
 
-
-                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
                                 {% trans "yes" as can_start_vms %}
                                 {% trans "no" as no %}
@@ -272,18 +276,21 @@
                                     </table>
                                 </td>
                                 <td></td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="more-style float-center">
+                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
                                 {% if group.condor_days_left %}
-                                    {{group.condor_days_left}}
+                                    Days left:<br>{{group.condor_days_left}}
                                 {% else %}
                                     </td>
                                 {% endif %}
-                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="more-style float-center">
+                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="zero-style float-center">
                                 {% if group.worker_days_left %}
-                                    {{group.worker_days_left}}
+                                    Days left:<br>{{group.worker_days_left}}
                                 {% else %}
                                     </td>
                                 {% endif %}
