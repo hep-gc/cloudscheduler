@@ -1,3 +1,4 @@
+{% load i18n %} 
 {% block navbar %}
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
@@ -109,6 +110,8 @@
                         <th class="jobs-style">Condor Status</th>
                         <th class="jobs-style">Agent Status</th>
                         <th class="jobs-style">Condor FQDN</th>
+                        <th class="jobs-style">Condor Cert</th>
+                        <th class="jobs-style">Worker Cert</th>
                     </tr>
 
                     {% for group in job_status_list %}
@@ -180,6 +183,40 @@
 
                                 <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
+                                {% trans "yes" as can_start_vms %}
+                                {% trans "no" as no %}
+
+                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="more-style float-center">
+                                {% if not group.condor_days_left %}
+                                    <span class="green-symbol">-</span></td>
+                                {% elif group.condor_days_left > gsi_config.cert_days_left_good %}
+                                    <span class="green-symbol">&#x2714;</span></td>
+                                {% elif group.condor_days_left > gsi_config.cert_days_left_bad %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="orange-symbol">?</span></td>
+                                {% else %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="red-symbol">&#x2718; {{group.condor_days_left}} {{gsi_config.cert_days_left_good}} {{gsi_config.cert_days_left_bad}}</span></td>
+                                {% endif %}
+
+                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="more-style float-center">
+                                {% if not group.worker_days_left %}
+                                    <span class="green-symbol">-</span></td>
+                                {% elif group.worker_days_left > gsi_config.cert_days_left_good %}
+                                    <span class="green-symbol">&#x2714;</span></td>
+                                {% elif group.worker_days_left > gsi_config.cert_days_left_bad %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="orange-symbol">?</span></td>
+                                {% else %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="red-symbol">&#x2718; {{group.worker_days_left}} {{gsi_config.cert_days_left_good}} {{gsi_config.cert_days_left_bad}}</span></td>
+                                {% endif %}
+
+                                {% if can_start_vms == no %}
+                                    <td data-path="{{group.group_name}} jobs_cannot_start_vms" class="red-symbol">The certificates will not allow VMs to be started!</td>
+                                {% endif %}
+
+
 
                             </tr>
 
@@ -238,6 +275,18 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
+                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="more-style float-center">
+                                {% if group.condor_days_left %}
+                                    {{group.condor_days_left}}
+                                {% else %}
+                                    </td>
+                                {% endif %}
+                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="more-style float-center">
+                                {% if group.worker_days_left %}
+                                    {{group.worker_days_left}}
+                                {% else %}
+                                    </td>
+                                {% endif %}
                             </tr>
                         {% endif %}
                     {% endfor %}
