@@ -409,48 +409,63 @@ def image_poller():
                         config.reset_cloud_error(grp_nm, cld_nm)
 
                     uncommitted_updates = 0
-                    for image in image_list:
-                        if image.size == "":
-                            size = 0
-                        else:
-                            size = image.size
+                    try:
+                        for image in image_list:
+                            if image.size == "":
+                                size = 0
+                            else:
+                                size = image.size
 
-                        for groups in unique_cloud_dict[cloud]['groups']:
-                            group_n = groups[0]
-                            cloud_n = groups[1]
+                            for groups in unique_cloud_dict[cloud]['groups']:
+                                group_n = groups[0]
+                                cloud_n = groups[1]
 
-                            img_dict = {
-                                'group_name': group_n,
-                                'cloud_name': cloud_n,
-                                'container_format': image.container_format,
-                                'cloud_type': "openstack",
-                                'disk_format': image.disk_format,
-                                'min_ram': image.min_ram,
-                                'id': image.id,
-                                'size': size,
-                                'visibility': image.visibility,
-                                'min_disk': image.min_disk,
-                                'name': image.name,
-                                'last_updated': new_poll_time
-                                }
+                                img_dict = {
+                                    'group_name': group_n,
+                                    'cloud_name': cloud_n,
+                                    'container_format': image.container_format,
+                                    'cloud_type': "openstack",
+                                    'disk_format': image.disk_format,
+                                    'min_ram': image.min_ram,
+                                    'id': image.id,
+                                    'size': size,
+                                    'visibility': image.visibility,
+                                    'min_disk': image.min_disk,
+                                    'name': image.name,
+                                    'last_updated': new_poll_time
+                                    }
 
-                            img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
-                            if unmapped:
-                                logging.error("Unmapped attributes found during mapping, discarding:")
-                                logging.error(unmapped)
+                                img_dict, unmapped = map_attributes(src="os_images", dest="csv2", attr_dict=img_dict)
+                                if unmapped:
+                                    logging.error("Unmapped attributes found during mapping, discarding:")
+                                    logging.error(unmapped)
 
-                            if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
-                                continue
+                                if test_and_set_inventory_item_hash(inventory, group_n, cloud_n, image.id, img_dict, new_poll_time, debug_hash=(config.log_level<20)):
+                                    continue
 
-                            new_image = IMAGE(**img_dict)
-                            try:
-                                db_session.merge(new_image)
-                                uncommitted_updates += 1
-                            except Exception as exc:
-                                logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
-                                logging.error(exc)
-                                abort_cycle = True
-                                break
+                                new_image = IMAGE(**img_dict)
+                                try:
+                                    db_session.merge(new_image)
+                                    uncommitted_updates += 1
+                                except Exception as exc:
+                                    logging.exception("Failed to merge image entry for %s::%s::%s:" % (group_n, cloud_n, image.name))
+                                    logging.error(exc)
+                                    abort_cycle = True
+                                    break
+                    except Exception as exc:
+                        logging.error("Failed to retrieve image data for %s, skipping this cloud..." % cloud_name)
+                        logging.error(exc)
+                        for cloud_tuple in unique_cloud_dict[cloud]['groups']:
+                            grp_nm = cloud_tuple[0]
+                            cld_nm = cloud_tuple[1]
+                            if grp_nm+cld_nm not in failure_dict:
+                                failure_dict[grp_nm+cld_nm] = 1
+                            else:
+                                failure_dict[grp_nm+cld_nm] = failure_dict[grp_nm+cld_nm] + 1
+                            if failure_dict[grp_nm+cld_nm] > 3: #should be configurable
+                                logging.error("Failure threshhold limit reached for %s, manual action required, reporting cloud error" % grp_nm+cld_nm)
+                                config.incr_cloud_error(grp_nm, cld_nm)
+                        continue
 
                     del glance 
                     if abort_cycle:
@@ -482,10 +497,15 @@ def image_poller():
                 except KeyboardInterrupt:
                     # sigint recieved, cancel the sleep and start the loop
                     continue
+                
             except KeyboardInterrupt:
                 # sigint recieved, cancel the sleep and start the loop
                 logging.error("Recieved wake-up signal during regular execution, resetting and continuing")
                 continue
+            #except Exception as exc:
+            #    logging.error("General exception in Image poller, potentially a problem with a registered cloud:")
+            #    logging.error(exc)
+            #    continue
 
 
     except Exception as exc:
