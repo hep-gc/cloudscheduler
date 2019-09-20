@@ -1,7 +1,8 @@
 from django.conf.urls import url
 from django.urls import path
 
-from . import alias_views, \
+from . import accounting_views, \
+    alias_views, \
     cloud_views, \
     ec2_views, \
     group_views, \
@@ -15,6 +16,8 @@ urlpatterns = [
 
     path('',                                       cloud_views.status),
 
+
+    path('accounting/apel/',                       accounting_views.apel),
 
     path('alias/add/',                             alias_views.add),
     path('alias/list/',                            alias_views.list),

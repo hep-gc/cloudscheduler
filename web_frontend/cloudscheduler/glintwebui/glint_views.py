@@ -228,7 +228,6 @@ def list(request, args=None, response_code=0, message=None):
         'user_groups': active_user.user_groups,
         'response_code': rc,
         'message': msg,
-        'enable_glint': config.categories["web_frontend"]["enable_glint"],
         'is_superuser': active_user.is_superuser,
         'version': config.get_version()
     }
@@ -454,7 +453,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': msg,
-                'enable_glint': config.categories["web_frontend"]["enable_glint"],
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -549,7 +547,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': "Upload Successful, returning to images...",
-                'enable_glint': config.categories["web_frontend"]["enable_glint"],
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -592,7 +589,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': msg,
-                'enable_glint': config.categories["web_frontend"]["enable_glint"],
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
         }
@@ -652,7 +648,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': msg,
-                'enable_glint': config.categories["web_frontend"]["enable_glint"],
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -756,7 +751,6 @@ def upload(request, group_name=None):
                 'user_groups': active_user.user_groups,
                 'response_code': rc,
                 'message': "Uploads queued successfully, returning to images...",
-                'enable_glint': config.categories["web_frontend"]["enable_glint"],
                 'is_superuser': active_user.is_superuser,
                 'version': config.get_version()
             }
@@ -777,7 +771,6 @@ def upload(request, group_name=None):
             'user_groups': active_user.user_groups,
             'response_code': rc,
             'message': msg,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }

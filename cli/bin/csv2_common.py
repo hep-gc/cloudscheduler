@@ -185,8 +185,11 @@ def get_grid_proxy(gvar):
         os.path.exists('%s/.globus/userkey.pem' % gvar['home_dir']):
         x509 = input('Would you like to authenticate with your x509 certificate (%s/.globus/{usercert.pem,userkey.pem})? (y|n): ' % gvar['home_dir'])
         if x509.lower() == 'yes'[:len(x509)]:
-            if sys_cmd(['grid-proxy-init'], return_stdout_not_rc=False) == 0:
-                return '/tmp/x509up_u%s' % gvar['uid']
+            for ix in range(3):
+                if sys_cmd(['grid-proxy-init'], return_stdout_not_rc=False) == 0:
+                    return '/tmp/x509up_u%s' % gvar['uid']
+                print('Invalid GRID pass phrase, %s of 3 attemps.' % (ix+1))
+            exit(1)
         
     return None
     
@@ -1081,10 +1084,10 @@ def verify_yaml_file(file_path):
 
     # Verify yaml files.
     if (len(file_path) > 4 and file_path[-4:] == '.yml') or \
-        (len(file_path) > 5 and file_path[-5:] == '.yaml') or \
-        (len(file_path) > 7 and file_path[-7:] == '.yml.j2') or \
-        (len(file_path) > 8 and file_path[-8:] == '.yaml.j2'):
+        (len(file_path) > 5 and file_path[-5:] == '.yaml'):
+
         result = _yaml_load_and_verify(file_string)
+
         if not result[0]:
             print('Error: Invalid yaml file "%s": %s' % (result[1], result[2]))
             exit(1)
@@ -1116,4 +1119,6 @@ def _yaml_load_and_verify(yaml_string):
         return [0, 'scanner error', ex]
     except yaml.parser.ParserError as ex:
         return [0, 'parser error', ex]
+    except Exception as ex:
+        return [0, 'unknown error', ex]
 

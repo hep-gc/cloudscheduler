@@ -4,7 +4,7 @@ csv2_image_pull_requests:
     Keys:
 
         tx_id:
-            Format: Integer
+            Format: String(16)
             Synopsis:
 
     Columns:
@@ -26,7 +26,7 @@ csv2_image_pull_requests:
             Synopsis:
 
         checksum:
-            Format: Integer
+            Format: String(64)
             Synopsis:
 
         status:

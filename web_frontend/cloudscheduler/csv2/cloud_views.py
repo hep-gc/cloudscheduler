@@ -601,7 +601,6 @@ def list(request, active_user=None, response_code=0, message=None):
 
     # open the database.
     config.db_open()
-    config.refresh()
 
     # Retrieve the active user, associated group list and optionally set the active group.
     if active_user is None:
@@ -706,7 +705,6 @@ def list(request, active_user=None, response_code=0, message=None):
             'current_cloud': current_cloud,
             'response_code': response_code,
             'message': message,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -813,7 +811,6 @@ def metadata_collation(request):
             'cloud_metadata_list': cloud_metadata_list,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -944,7 +941,6 @@ def metadata_fetch(request, response_code=0, message=None, metadata_name=None, c
                     'mime_types_list': mime_types_list,
                     'response_code': response_code,
                     'message': message,
-                    'enable_glint': config.categories["web_frontend"]["enable_glint"],
                     'is_superuser': active_user.is_superuser,
                     'version': config.get_version()
                     }
@@ -1007,7 +1003,6 @@ def metadata_list(request):
             'cloud_metadata_names': cloud_metadata_names,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -1047,7 +1042,6 @@ def metadata_new(request):
             'mime_types_list': mime_types_list,
             'response_code': 0,
             'message': "new-cloud-metadata",
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
             }
@@ -1116,7 +1110,6 @@ def metadata_query(request):
             'metadata_exists': metadata_exists,
             'response_code': 0,
             'message': None,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'version': config.get_version()
         }
@@ -1219,108 +1212,113 @@ def status(request, group_name=None):
         s = select([view_condor_jobs_group_defaults_applied]).where(view_condor_jobs_group_defaults_applied.c.group_name == active_user.active_group)
         job_cores_list = qt(config.db_connection.execute(s))
     
-    # calculate the totals for all rows
-    cloud_status_list_totals = qt(cloud_status_list, keys={
-        'primary': ['group_name'],
-        'sum': [
-            'VMs',
-            'VMs_starting',
-            'VMs_unregistered',
-            'VMs_idle',
-            'VMs_running',
-            'VMs_retiring',
-            'VMs_manual',
-            'VMs_in_error',
-            'Foreign_VMs',
-            'cores_limit',
-            'cores_foreign',
-            'cores_idle',
-            'cores_native',
-            'cores_native_foreign',
-            'cores_quota',
-            'ram_quota',
-            'ram_foreign',
-            'ram_idle',
-            'ram_native',
-            'ram_native_foreign',
-            'VMs_quota',
-            'VMs_native_foreign', 
-            'slot_count',
-            'slot_core_count',
-            'slot_idle_core_count'
-            ]
-        })
+    if len(cloud_status_list) < 1:
+        cloud_total_list = []
+        cloud_status_list_totals = []
 
-    cloud_total_list = cloud_status_list_totals[0]
+    else:
+        # calculate the totals for all rows
+        cloud_status_list_totals = qt(cloud_status_list, keys={
+            'primary': ['group_name'],
+            'sum': [
+                'VMs',
+                'VMs_starting',
+                'VMs_unregistered',
+                'VMs_idle',
+                'VMs_running',
+                'VMs_retiring',
+                'VMs_manual',
+                'VMs_in_error',
+                'Foreign_VMs',
+                'cores_limit',
+                'cores_foreign',
+                'cores_idle',
+                'cores_native',
+                'cores_native_foreign',
+                'cores_quota',
+                'ram_quota',
+                'ram_foreign',
+                'ram_idle',
+                'ram_native',
+                'ram_native_foreign',
+                'VMs_quota',
+                'VMs_native_foreign', 
+                'slot_count',
+                'slot_core_count',
+                'slot_idle_core_count'
+                ]
+            })
 
-    # calculate the group view totals for all rows
-    cloud_status_global_totals = qt(cloud_status_list, keys={
-        'primary': [],
-        'sum': [
-            'VMs',
-            'VMs_starting',
-            'VMs_unregistered',
-            'VMs_idle',
-            'VMs_running',
-            'VMs_retiring',
-            'VMs_manual',
-            'VMs_in_error',
-            'Foreign_VMs',
-            'cores_limit',
-            'cores_foreign',
-            'cores_idle',
-            'cores_native',
-            'cores_native_foreign',
-            'cores_quota',
-            'ram_quota',
-            'ram_foreign',
-            'ram_idle',
-            'ram_native',
-            'ram_native_foreign',
-            'VMs_quota',
-            'VMs_native_foreign',
-            'slot_count',
-            'slot_core_count',
-            'slot_idle_core_count'
-            ]
-        })
+        cloud_total_list = cloud_status_list_totals[0]
 
-    global_total_list = cloud_status_global_totals[0]
+        # calculate the group view totals for all rows
+        cloud_status_global_totals = qt(cloud_status_list, keys={
+            'primary': [],
+            'sum': [
+                'VMs',
+                'VMs_starting',
+                'VMs_unregistered',
+                'VMs_idle',
+                'VMs_running',
+                'VMs_retiring',
+                'VMs_manual',
+                'VMs_in_error',
+                'Foreign_VMs',
+                'cores_limit',
+                'cores_foreign',
+                'cores_idle',
+                'cores_native',
+                'cores_native_foreign',
+                'cores_quota',
+                'ram_quota',
+                'ram_foreign',
+                'ram_idle',
+                'ram_native',
+                'ram_native_foreign',
+                'VMs_quota',
+                'VMs_native_foreign',
+                'slot_count',
+                'slot_core_count',
+                'slot_idle_core_count'
+                ]
+            })
 
-    cloud_status_list_totals_xref = {}
-    for ix in range(len(cloud_status_list_totals)):
-        cloud_status_list_totals_xref[cloud_status_list_totals[ix]['group_name']] = ix
-        cloud_status_list_totals[ix]['cloud_name'] = ''
-        cloud_status_list_totals[ix]['display'] = 9
-        cloud_status_list_totals[ix]['tag'] = '_total'
+        global_total_list = cloud_status_global_totals[0]
 
-    current_group = ''
-    cloud_count = 0
-    # Loop through the cloud_status_list and insert the totals row after each group of clouds:
-    for index, cloud in enumerate(cloud_status_list):
-        cloud['tag'] = ''
-        if current_group == cloud['group_name']:
-            if 'display' not in cloud:
-                cloud['display'] = 0
-        else:
-            cloud['display'] = 1
-            if current_group != '':
-                ix = cloud_status_list_totals_xref[current_group]
-                cloud_status_list.insert(index, cloud_status_list_totals[ix].copy())
+        cloud_status_list_totals_xref = {}
+        for ix in range(len(cloud_status_list_totals)):
+            cloud_status_list_totals_xref[cloud_status_list_totals[ix]['group_name']] = ix
+            cloud_status_list_totals[ix]['cloud_name'] = ''
+            cloud_status_list_totals[ix]['display'] = 9
+            cloud_status_list_totals[ix]['tag'] = '_total'
 
-            current_group = cloud['group_name']
+        current_group = ''
+        cloud_count = 0
+        # Loop through the cloud_status_list and insert the totals row after each group of clouds:
+        for index, cloud in enumerate(cloud_status_list):
+            cloud['tag'] = ''
+            if current_group == cloud['group_name']:
+                if 'display' not in cloud:
+                    cloud['display'] = 0
+            else:
+                cloud['display'] = 1
+                if current_group != '':
+                    ix = cloud_status_list_totals_xref[current_group]
+                    cloud_status_list.insert(index, cloud_status_list_totals[ix].copy())
 
-    if current_group != '':
-        ix = cloud_status_list_totals_xref[current_group]
-        cloud_status_list.append(cloud_status_list_totals[ix].copy())
+                current_group = cloud['group_name']
 
-    # Append the global totals list to the main status list:
-    global_total_list['group_name'] = ''
-    global_total_list['cloud_name'] = ''
-    global_total_list['display'] = 99
-    global_total_list['tag'] = '_total'
+        if current_group != '':
+            ix = cloud_status_list_totals_xref[current_group]
+            cloud_status_list.append(cloud_status_list_totals[ix].copy())
 
-    cloud_status_list.append(global_total_list.copy())
+        # Append the global totals list to the main status list:
+        global_total_list['group_name'] = ''
+        global_total_list['cloud_name'] = ''
+        global_total_list['display'] = 99
+        global_total_list['tag'] = '_total'
+
+        cloud_status_list.append(global_total_list.copy())
 
 
     job_cores_list_totals = qt(job_cores_list, keys={
@@ -1469,6 +1467,7 @@ def status(request, group_name=None):
         slot['cloud_name']=''
         slot_summary_list.append(slot.copy())
 
+
     '''
     # get job status per group
     if active_user.flag_global_status:
@@ -1478,8 +1477,11 @@ def status(request, group_name=None):
         s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
         job_status_list = qt(config.db_connection.execute(s))
 
-    system_list = {}
+    # Get GSI configuration variables.
+    gsi_config = config.get_config_by_category('GSI')
+
     # First get rows from csv2_system_status, if rows are out of date, do manual update
+    system_list = {}
 
     s = select([csv2_system_status])
     try:
@@ -1504,9 +1506,8 @@ def status(request, group_name=None):
                         "csv2-timeseries":  "csv2_timeseries",
                         "csv2-ec2":         "csv2_ec2",
                         "csv2-htc-agent":   "csv2_htc_agent",
-                        "csv2-glint":       "csv2_glint",
                         "csv2-watch":       "csv2_watch",
-                        "csv2-vm-data":     "csv2_vm_data",
+                        "csv2-startd-errors":"csv2_startd_errors",
                         "rabbitmq-server":  "rabbitmq_server",
                         "mariadb":          "mariadb", 
                         "condor":           "condor"
@@ -1540,8 +1541,6 @@ def status(request, group_name=None):
         system_list["disk_size"] = round(psutil.disk_usage('/').total/1000000000 , 1)
         system_list["disk_used"] = round(psutil.disk_usage('/').used/1000000000 , 1)
 
-
-
     context = {
             'active_user': active_user.username,
             'active_group': active_user.active_group,
@@ -1549,6 +1548,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'cloud_status_list_totals': cloud_status_list_totals,
+            'gsi_config': gsi_config['GSI'],
             #'global_total_list': global_total_list,
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
@@ -1565,12 +1565,11 @@ def status(request, group_name=None):
             'slot_detail': slot_detail,
             'slot_detail_summary': slot_detail_summary,
             'slot_summary': slot_summary,
-
             'response_code': 0,
             'message': None,
-            'enable_glint': config.categories["web_frontend"]["enable_glint"],
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
+            'foreign_global_vms_flag': active_user.flag_show_foreign_global_vms,
             'slot_detail_flag': active_user.flag_show_slot_detail,
             'slot_flavor_flag': active_user.flag_show_slot_flavors,
             'status_refresh_interval': active_user.status_refresh_interval,

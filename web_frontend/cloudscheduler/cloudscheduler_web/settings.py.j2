@@ -100,10 +100,8 @@ else:
         'django.contrib.messages',
         'django.contrib.staticfiles',
         'mathfilters',
+        'glintwebui.apps.GlintwebuiConfig',
     ]
-if config.categories["web_frontend"]["enable_glint"]:
-    INSTALLED_APPS.append('glintwebui.apps.GlintwebuiConfig')
-
 
 if config.categories["web_frontend"]["enable_profiling"]:
     MIDDLEWARE = [

@@ -21,14 +21,10 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('csv2.urls')),
+    url(r'^images/', include('glintwebui.image_urls')),
+    url(r'^keypairs/', include('glintwebui.keypair_urls')),
 ]
 
 if settings.CSV2_CONFIG.categories["web_frontend"]["enable_profiling"]:
     urlpatterns += [url(r'^silk/', include('silk.urls', namespace='silk'))]
-
-if settings.CSV2_CONFIG.categories["web_frontend"]["enable_glint"]:
-    urlpatterns = [
-        url(r'^images/', include('glintwebui.image_urls')),
-        url(r'^keypairs/', include('glintwebui.keypair_urls')),
-    ] + urlpatterns
 

@@ -1,0 +1,8 @@
+delimiter //
+create or replace trigger trigger_csv2_configuration_update
+after update on csv2_configuration
+for each row
+begin
+    update csv2_timestamps set last_updated=unix_timestamp() where entity='csv2_configuration';
+end; //
+delimiter ;

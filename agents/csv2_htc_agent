@@ -22,6 +22,14 @@ def callback(ch, method, properties, body):
             if session:
                 try:
                     classad = get_master_classad(session, yaml_dict['machine'], yaml_dict['hostname'])
+                    if classad == -1:
+                        #there was a condor error
+                        ch.basic_publish(exchange='',
+                             routing_key=properties.reply_to,
+                             properties=pika.BasicProperties(correlation_id=properties.correlation_id),
+                             body=yaml.dump([2, "Condor error"]))
+                        ch.basic_ack(delivery_tag=method.delivery_tag)
+                        return
                     if not classad:
                         #classad not in condor
                         logging.error("Classad not found for %s//%s" % (yaml_dict['machine'], yaml_dict['hostname']))
@@ -44,7 +52,7 @@ def callback(ch, method, properties, body):
                         return
                     else:
                         #failed to issue condor off
-                        result = "Failed to get issue condor_off"
+                        result = "Failed to issue condor_off"
                         ch.basic_publish(exchange='',
                             routing_key=properties.reply_to,
                             properties=pika.BasicProperties(correlation_id=properties.correlation_id),
@@ -293,9 +301,12 @@ def get_master_classad(session, machine, hostname):
         else:
             condor_classad = session.query(MASTER_TYPE, 'regexp("%s", Name, "i")' % hostname)[0]
         return condor_classad
+    except IndexError:
+        logging.error("Failed to retrieve classad from condor. No matching classad")
     except Exception as exc:
-        logging.error("Failed to retrieve classad from condor (index error means no matching classad):")
+        logging.error("Failed to retrieve classad from condor. Communication error :")
         logging.error(exc)
+        return -1
     return False
 
 
@@ -331,9 +342,8 @@ def zip_base64(path):
 
     if os.path.isfile(path):
         p1 = Popen([
-            'zip',
-            '-r',
-            '-',
+            'gzip',
+            '-c',
             path
             ], stdout=PIPE, stderr=PIPE)
 
