@@ -826,6 +826,7 @@ def set_user_groups(config, request, super_user=True):
                     self.available_groups = []
 
                 self.flag_global_status = user['flag_global_status']
+                self.flag_show_foreign_global_vms = user['flag_show_foreign_global_vms']
                 self.flag_show_slot_detail = user['flag_show_slot_detail']
                 self.flag_show_slot_flavors = user['flag_show_slot_flavors']
                 self.status_refresh_interval = user['status_refresh_interval']
