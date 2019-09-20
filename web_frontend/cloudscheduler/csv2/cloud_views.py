@@ -1565,11 +1565,11 @@ def status(request, group_name=None):
             'slot_detail': slot_detail,
             'slot_detail_summary': slot_detail_summary,
             'slot_summary': slot_summary,
-
             'response_code': 0,
             'message': None,
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
+            'foreign_global_vms_flag': active_user.flag_show_foreign_global_vms,
             'slot_detail_flag': active_user.flag_show_slot_detail,
             'slot_flavor_flag': active_user.flag_show_slot_flavors,
             'status_refresh_interval': active_user.status_refresh_interval,
