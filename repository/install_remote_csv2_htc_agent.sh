@@ -21,6 +21,8 @@
         exit 1
     fi
     
+    curl -o /usr/local/sbin/create_condor_proxy   https://csv2-dev2.heprc.uvic.ca/repo/create_condor_proxy.sh
+    curl -o /etc/cron.d/create_condor_proxy       https://csv2-dev2.heprc.uvic.ca/repo/create_condor_proxy.cron
     curl -o /usr/local/sbin/csv2_htc_agent        https://csv2-dev2.heprc.uvic.ca/repo/csv2_htc_agent
     curl -o /usr/local/etc/csv2_htc_agent.conf    https://csv2-dev2.heprc.uvic.ca/repo/csv2_htc_agent.conf
 
