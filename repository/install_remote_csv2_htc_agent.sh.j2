@@ -15,41 +15,74 @@
     echo ''
     echo 'then running a couple of systemd/service commands.'
 
-    if [ $EUID != 0 ]; then
+    condor_user=$(ps -C condor_master -o user h)
+    if [ $? == 0 ]; then
+        condor_uid=$(id $condor_user >/dev/null 2>&1)
+    else
+        condor_user=''
+    fi
+
+    if [ $EUID != 0 ] || [ "$condor_user" == '' ]; then
         echo ''
-        echo 'Unfortunately, you need to be running as root in order to use it.'
+        echo 'Unfortunately, you need to be running as root in order to use it and HTCondor needs to be running.'
         exit 1
+    fi
+
+    cs_uid=$(id cloudschedulerx >/dev/null 2>&1)
+    if [ $? != 0 ]; then
+        echo ''
+        echo "The user 'cloudscheduler' does not exist. If you would like cloudscheduler files to be owned by this user, we"
+        echo "will need to define it and add the user '$condor_user' to the cloudscheduler group. Otherwise, the files will be"
+        echo "owned by the user '$condor_user'."
+
+        while true; do
+            read -p "Define user cloudscheduler? (y | n) " yes_or_no
+            case $yes_or_no in
+                [Yy]* )
+                    cs_user='cloudscheduler'
+                    useradd $cs_user 2>/dev/null
+                    usermod -a -G $cs_user $condor_user 2>/dev/null
+                    exit;;
+                [Nn]* )
+                    cs_user=$condor_user
+                    exit;;
+                * ) echo "Please answer 'y' or 'n'.";;
+            esac
+        done
     fi
     
     curl -o /usr/local/sbin/create_condor_proxy   https://{{ i_service_connection[0].ipv4fqdn }}/repo/create_condor_proxy.sh
+    sed -i "s/__condor_uid__/$condor_uid/g" /usr/local/sbin/create_condor_proxy
     chmod 0700 /usr/local/sbin/create_condor_proxy
 
     curl -o /etc/cron.d//create_condor_proxy      https://{{ i_service_connection[0].ipv4fqdn }}/repo/create_condor_proxy.cron
     chmod 0600 /etc/cron.d//create_condor_proxy
 
     curl -o /usr/local/sbin/csv2_htc_agent        https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2_htc_agent
-    chown condor.condor /usr/local/sbin/csv2_htc_agent
-    chmod 0700 /usr/local/sbin/csv2_htc_agent
+    chown ${cs_user}.${cs_user) /usr/local/sbin/csv2_htc_agent
+    chmod 0754 /usr/local/sbin/csv2_htc_agent
 
     curl -o /usr/local/etc/csv2_htc_agent.conf    https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2_htc_agent.conf
-    chown condor.condor /usr/local/etc/csv2_htc_agent.conf
-    chmod 0600 /usr/local/sbin/csv2_htc_agent.conf
+    chown ${cs_user}.${cs_user) /usr/local/etc/csv2_htc_agent.conf
+    chmod 0644 /usr/local/sbin/csv2_htc_agent.conf
 
     mkdir -p /var/log/cloudscheduler
-    chown cloudscheduler.condor /var/log/cloudscheduler
-    chmod 0744 condor.condor /var/log/cloudscheduler
+    chown $cs_user.$cs_user /var/log/cloudscheduler
+    chmod 0774 /var/log/cloudscheduler
 
     which systemctl
     if [ $? == 0 ]; then
 	curl -o /etc/systemd/system/csv2-htc-agent.service https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2-htc-agent.service
+        sed -i "s/__condor_user__/$condor_user/g" /etc/systemd/system/csv2-htc-agent.service
         systemctl enable csv2-htc-agent
         systemctl start csv2-htc-agent
         systemctl status csv2-htc-agent
 
     else
 	curl -o /etc/init.d/csv2-htc-agent https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2-htc-agent.initd
+        sed -i "s/__condor_user__/$condor_user/g" /etc/init.d/csv2-htc-agent
         chkconfig --add csv2-htc-agent
         service csv2-htc-agent start
-        ps -ef | grep htc_a | grep -v grep
+        service csv2-htc-agent status
 
     fi
