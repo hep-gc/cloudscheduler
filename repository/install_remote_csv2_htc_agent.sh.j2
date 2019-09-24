@@ -21,12 +21,23 @@
         exit 1
     fi
     
+    curl -o /usr/local/sbin/create_condor_proxy   https://{{ i_service_connection[0].ipv4fqdn }}/repo/create_condor_proxy.sh
+    chmod 0700 /usr/local/sbin/create_condor_proxy
+
+    curl -o /etc/cron.d//create_condor_proxy      https://{{ i_service_connection[0].ipv4fqdn }}/repo/create_condor_proxy.cron
+    chmod 0600 /etc/cron.d//create_condor_proxy
+
     curl -o /usr/local/sbin/csv2_htc_agent        https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2_htc_agent
+    chown condor.condor /usr/local/sbin/csv2_htc_agent
+    chmod 0700 /usr/local/sbin/csv2_htc_agent
+
     curl -o /usr/local/etc/csv2_htc_agent.conf    https://{{ i_service_connection[0].ipv4fqdn }}/repo/csv2_htc_agent.conf
+    chown condor.condor /usr/local/etc/csv2_htc_agent.conf
+    chmod 0600 /usr/local/sbin/csv2_htc_agent.conf
 
     mkdir -p /var/log/cloudscheduler
     chown cloudscheduler.condor /var/log/cloudscheduler
-    chmod 0664 cloudscheduler.condor /var/log/cloudscheduler
+    chmod 0744 condor.condor /var/log/cloudscheduler
 
     which systemctl
     if [ $? == 0 ]; then
