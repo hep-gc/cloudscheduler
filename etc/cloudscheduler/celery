@@ -9,7 +9,7 @@ CELERYD_PREFETCH_MULTIPLIER=1
 
 # Absolute path to "manage.py"
 #CELERY_BIN="python3 /opt/cloudscheduler/web_frontend/cloudscheduler/manage.py"
-CELERY_BIN="/usr/local/bin/celery"
+CELERY_BIN=$(which celery)
 
 # Where to chdir at start. This could be the root of a virtualenv.
 CELERYD_CHDIR="/opt/cloudscheduler/web_frontend/cloudscheduler/glintwebui"
