@@ -23,7 +23,7 @@ function sys_cmd {
     echo 'installation commands but execute nothing (see lines #7-10).'
     echo ''
 
-    cs_uid=$(id cloudschedulerx >/dev/null 2>&1)
+    cs_uid=$(id -u cloudscheduler 2>/dev/null)
     if [ $? != 0 ]; then
         echo "The user 'cloudscheduler' does not exist. If you would like cloudscheduler files to be owned by this user, we"
         echo "will need to define it and add the user '$condor_user' to the cloudscheduler group. Otherwise, the files will be"
