@@ -4,6 +4,8 @@ csv2_web.yaml
 .idea
 docs/build/
 lib/schema.py
+repository/csv2_htc_agent.conf
+repository/install_remote_csv2_htc_agent.sh
 web_frontend/cloudscheduler/csv2/static/ace-builds/
 web_frontend/cloudscheduler/csv2/static/plotly.js/
 web_frontend/cloudscheduler/cloudscheduler_web/settings.py
