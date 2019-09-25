@@ -9,9 +9,10 @@ function sys_cmd {
         $*
     fi
 }
-    condor_user=$(ps -C condor_master -o user h)
+    new_condor_user=$(ps -C condor_master -o user h)
     if [ $? == 0 ]; then
-        condor_uid=$(id -u $condor_user 2>/dev/null)
+        condor_user="$new_condor_user"
+        condor_uid=$(id -u "$condor_user" 2>/dev/null)
     fi
 
     echo ''
@@ -38,11 +39,11 @@ function sys_cmd {
                     echo -e "\no Define the cloudscheduler user and add the condor user to the cloudscheduler group."
                     cs_user='cloudscheduler'
                     sys_cmd useradd $cs_user
-                    sys_cmd usermod -a -G $cs_user $condor_user 
+                    sys_cmd usermod -a -G "$cs_user" "$condor_user"
                     break;;
                 [Nn]* )
                     switch='n'
-                    cs_user=$condor_user
+                    cs_user="$condor_user"
                     break;;
                 * ) echo "Please answer 'y' or 'n'.";;
             esac
