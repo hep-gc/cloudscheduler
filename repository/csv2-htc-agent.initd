@@ -6,7 +6,7 @@
 
 # Source function library.
 . /etc/init.d/functions
-PATH=/bin:/sbin/:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+PATH=/usr/local/sbin:/sbin:/usr/sbin:/usr/local/bin:/bin:/usr/bin
 
 exec="$(which csv2_htc_agent)"
 config="/usr/local/etc/csv2_htc_agent.conf"
