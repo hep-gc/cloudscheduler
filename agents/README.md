@@ -9,7 +9,7 @@ You can review the installation command with the following:
 
     curl https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh | less
     
-or install csv2_htc_agent by piping the script to bash:
+or install csv2_htc_agent on your remote HTCondor host by piping the script to bash:
 
     curl https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh | bash
 
