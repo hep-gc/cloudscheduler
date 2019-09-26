@@ -379,7 +379,8 @@ def main(args):
     for table in sorted(gvar['schema_config']['local'] + gvar['schema_config']['ephemeral']):
         print(">>>>>>>>>>>>>>>>>>>>>> 1", gvar['tables'][my_hostname][table])
         if ('action' in gvar['tables'][my_hostname][table] and gvar['tables'][my_hostname][table]['action'][0] == 'ignore') or \
-            ('action' not in gvar['tables'][my_hostname][table] and len(gvar['tables'][my_hostname][table]['differences']) < 1):
+            ('action' not in gvar['tables'][my_hostname][table] and
+            ('differences' not in gvar['tables'][my_hostname][table] or len(gvar['tables'][my_hostname][table]['differences']) < 1)):
             continue
 
         print(">>>>>>>>>>>>>>>>>>>>>> 1", table)

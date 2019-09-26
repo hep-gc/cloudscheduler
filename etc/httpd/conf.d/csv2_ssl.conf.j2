@@ -53,6 +53,15 @@ DBDExptime 300
     </Directory>
 
 
+    Alias /repo/  /opt/cloudscheduler/repository/
+    <Directory /opt/cloudscheduler/repository/>
+        Options All Indexes FollowSymLinks
+        #Order allow,deny
+        #Allow from all
+        Require all granted 
+    </Directory>
+
+
     # General setup for the virtual host, inherited from global configuration
     #DocumentRoot "/var/www/html"
     #ServerName www.example.com:443

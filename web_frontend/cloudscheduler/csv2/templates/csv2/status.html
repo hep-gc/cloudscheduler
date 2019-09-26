@@ -1,3 +1,4 @@
+{% load i18n %} 
 {% block navbar %}
     {% include "csv2/navigation_bar.html" %}
 {% endblock %}
@@ -105,10 +106,18 @@
                         <th class="jobs-style">Completed</th>
                         <th class="jobs-style">Held</th>
                         <th class="jobs-style">Other</th>
-                        <th class="jobs-style">Foreign</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="foreign-style">Foreign</th>
+
+                        <th class="col-spacer">&nbsp;</th>
+
+                        <th class="jobs-style">Condor FQDN</th>
                         <th class="jobs-style">Condor Status</th>
                         <th class="jobs-style">Agent Status</th>
-                        <th class="jobs-style">Condor FQDN</th>
+                        <th class="jobs-style">Condor Cert</th>
+                        <th class="jobs-style">Worker Cert</th>
                     </tr>
 
                     {% for group in job_status_list %}
@@ -151,13 +160,18 @@
                                 {% else %}
                                     <td data-path="{{group.group_name}} jobs_other" class="more-style float-center plottable">{{group.Other}}</td>
                                 {% endif %}
+
+                                <td class="col-spacer">&nbsp;</td>
                                 
                                 {% if group.foreign == 0 %}
                                     <td data-path="{{group.group_name}} jobs_foreign" class="zero-style float-center plottable">0</td>
                                 {% else %}
                                     <td data-path="{{group.group_name}} jobs_foreign" class="more-style float-center plottable">{{group.foreign}}</td>
                                 {% endif %}
-                                
+
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
 
                                 <td data-path="{{group.group_name}} jobs_htcondor_status" class="more-style float-center plottable">
                                 {% if group.htcondor_status == -1 %}
@@ -178,9 +192,38 @@
                                 {% endif %}
 
 
-                                <td data-path="{{group.group_name}} jobs_htcondor_fqdn" class="more-style">{{group.htcondor_fqdn}}</td>
+                                {% trans "yes" as can_start_vms %}
+                                {% trans "no" as no %}
 
+                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="more-style float-center">
+                                {% if not group.condor_days_left %}
+                                    <span class="green-symbol">-</span></td>
+                                {% elif group.condor_days_left > gsi_config.cert_days_left_good %}
+                                    <span class="green-symbol">&#x2714;</span></td>
+                                {% elif group.condor_days_left > gsi_config.cert_days_left_bad %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="orange-symbol">?</span></td>
+                                {% else %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="red-symbol">&#x2718; {{group.condor_days_left}} {{gsi_config.cert_days_left_good}} {{gsi_config.cert_days_left_bad}}</span></td>
+                                {% endif %}
 
+                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="more-style float-center">
+                                {% if not group.worker_days_left %}
+                                    <span class="green-symbol">-</span></td>
+                                {% elif group.worker_days_left > gsi_config.cert_days_left_good %}
+                                    <span class="green-symbol">&#x2714;</span></td>
+                                {% elif group.worker_days_left > gsi_config.cert_days_left_bad %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="orange-symbol">?</span></td>
+                                {% else %}
+                                    {% trans "no" as can_start_vms %}
+                                    <span class="red-symbol">&#x2718; {{group.worker_days_left}} {{gsi_config.cert_days_left_good}} {{gsi_config.cert_days_left_bad}}</span></td>
+                                {% endif %}
+
+                                {% if can_start_vms == no %}
+                                    <td data-path="{{group.group_name}} jobs_cannot_start_vms" class="red-symbol">The certificates will not allow VMs to be started!</td>
+                                {% endif %}
                             </tr>
 
                             <!-- Jobs expand row to show cores-->
@@ -234,10 +277,28 @@
                                         {% endfor %}
                                     </table>
                                 </td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
+                                <td></td>
+
+                                <td class="col-spacer">&nbsp;</td>
+
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
+                                <td data-path="{{group.group_name}} jobs_condor_days_left" class="zero-style float-center">
+                                {% if group.condor_days_left %}
+                                    Days left:<br>{{group.condor_days_left}}
+                                {% else %}
+                                    </td>
+                                {% endif %}
+                                <td data-path="{{group.group_name}} jobs_worker_days_left" class="zero-style float-center">
+                                {% if group.worker_days_left %}
+                                    Days left:<br>{{group.worker_days_left}}
+                                {% else %}
+                                    </td>
+                                {% endif %}
                             </tr>
                         {% endif %}
                     {% endfor %}
@@ -308,33 +369,33 @@
                         </th>
                         <th class="native-style">RAM</th>
 
-                        <th class="col-spacer">&nbsp;</th>
-                        
-                        <th class="foreign-style" colspan="3">
-                            <table>
-                                <tr colspan="3">Foreign</tr>
-                                <tr>
-                                    <th>VMs</th>
-                                    <th>Cores</th>
-                                    <th>RAM</th>
-                                </tr>
-                            </table>
-                        </th>
+                        {% if foreign_global_vms_flag %}
+                            <th class="col-spacer">&nbsp;</th>
+                            
+                            <th class="foreign-style" colspan="3">
+                                <table>
+                                    <tr colspan="3">Foreign</tr>
+                                    <tr>
+                                        <th>VMs</th>
+                                        <th>Cores</th>
+                                        <th>RAM</th>
+                                    </tr>
+                                </table>
+                            </th>
 
-                        <th class="col-spacer">&nbsp;</th>
+                            <th class="col-spacer">&nbsp;</th>
 
-
-                        <th class="total-style" colspan="3">
-                            <table>
-                                <tr colspan="3">Global</tr>
-                                <tr>
-                                    <th>VMs</th>
-                                    <th>Cores</th>
-                                    <th>RAM</th>
-                                </tr>
-                            </table>
-                        </th>
-
+                            <th class="total-style" colspan="3">
+                                <table>
+                                    <tr colspan="3">Global</tr>
+                                    <tr>
+                                        <th>VMs</th>
+                                        <th>Cores</th>
+                                        <th>RAM</th>
+                                    </tr>
+                                </table>
+                            </th>
+                        {% endif %}
                     </tr>
 
                     
@@ -461,7 +522,6 @@
 
                                     <td class="col-spacer">&nbsp;</td>
 
-
                                     {% if cloud.cores_native == 0 %}
                                         <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native{{cloud.tag}}" class="zero-style float-center plottable">0</td>
                                     {% elif cloud.cores_ctl == -1 %}
@@ -493,61 +553,62 @@
                                     </td>
 
 
-                                    <td class="col-spacer">&nbsp;</td>
+                                    {% if foreign_global_vms_flag %}
+                                        <td class="col-spacer">&nbsp;</td>
 
 
-                                    {% if cloud.Foreign_VMs == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view=0');return false;">{{ cloud.Foreign_VMs }}</td>
+                                        {% if cloud.Foreign_VMs == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="zero-style float-center plottable" oncontextmenu="javascript:return false;">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} Foreign_VMs{{cloud.tag}}" class="more-style float-center plottable" oncontextmenu="javascript:foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view=0');return false;">{{ cloud.Foreign_VMs }}</td>
+                                        {% endif %}
+
+
+
+                                        {% if cloud.cores_foreign == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign{{cloud.tag}}" class="more-style float-center plottable">{{ cloud.cores_foreign }}</td>
+                                        {% endif %}
+
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign{{cloud.tag}}" class="float-center plottable">
+                                            {% with total=cloud.ram_quota %}
+                                                {% if total == 0 %}
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                {% else %}
+                                                    <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_foreign }}"></meter>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+
+                                        <td class="col-spacer">&nbsp;</td>
+
+                                        {% if cloud.VMs_native_foreign == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign{{cloud.tag}}" class="more-style float-center plottable">{{ cloud.VMs_native_foreign }}</td>
+                                        {% endif %}
+
+
+
+                                        {% if cloud.cores_native_foreign == 0 %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
+                                        {% else %}
+                                            <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="more-style float-center plottable">{{ cloud.cores_native_foreign }}</td>
+                                        {% endif %}
+
+
+
+                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign{{cloud.tag}}" class="float-center plottable">
+                                            {% with total=cloud.ram_quota %}
+                                                {% if total == 0 %}
+                                                    <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
+                                                {% else %}
+                                                    <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_native_foreign }}"></meter>
+                                                {% endif %}
+                                            {% endwith %}                        
+                                        </td>
                                     {% endif %}
-
-
-
-                                    {% if cloud.cores_foreign == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_foreign{{cloud.tag}}" class="more-style float-center plottable">{{ cloud.cores_foreign }}</td>
-                                    {% endif %}
-
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_foreign{{cloud.tag}}" class="float-center plottable">
-                                        {% with total=cloud.ram_quota %}
-                                            {% if total == 0 %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
-                                            {% else %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_foreign }}"></meter>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-
-                                    <td class="col-spacer">&nbsp;</td>
-
-                                    {% if cloud.VMs_native_foreign == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} VMs_native_foreign{{cloud.tag}}" class="more-style float-center plottable">{{ cloud.VMs_native_foreign }}</td>
-                                    {% endif %}
-
-
-
-                                    {% if cloud.cores_native_foreign == 0 %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="zero-style float-center plottable">0</td>
-                                    {% else %}
-                                        <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} cores_native_foreign{{cloud.tag}}" class="more-style float-center plottable">{{ cloud.cores_native_foreign }}</td>
-                                    {% endif %}
-
-
-
-                                    <td data-path="{{cloud.group_name}} {{cloud.cloud_name}} ram_native_foreign{{cloud.tag}}" class="float-center plottable">
-                                        {% with total=cloud.ram_quota %}
-                                            {% if total == 0 %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="0" high="0" max="1" value="0"></meter>
-                                            {% else %}
-                                                <meter class="ram-meter" min="0" low="0" optimum="{{total|mul:0.5}}" high="{{total|mul:0.9}}" max="{{total}}" value="{{ cloud.ram_native_foreign }}"></meter>
-                                            {% endif %}
-                                        {% endwith %}                        
-                                    </td>
-
                                 </tr>
 
                                 <!-- Cloud status expand row to show details-->
@@ -761,45 +822,46 @@
                                         {% endwith %}
                                     </td>
 
-                                    <td class="col-spacer">&nbsp;</td>
+                                    {% if foreign_global_vms_flag %}
+                                        <td class="col-spacer">&nbsp;</td>
 
-                                    <td><!--Foreign VMs-->
-                                        {% if cloud.Foreign_VMs > 0 %}
-                                            <a onclick="foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view=0')" href="#vms-overlay">&#x2630;</a>
-                                        {% endif %}
-                                    </td>
-                                    <td><!--Foreign Cores--></td>
-                                    <td>
-                                        {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
-                                            {% if cloud.ram_quota > 1048576 %}
-                                                {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
-                                            {% else %}
-                                                {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                        <td><!--Foreign VMs-->
+                                            {% if cloud.Foreign_VMs > 0 %}
+                                                <a onclick="foreign_list('?{{cloud.group_name}}&cloud_name={{cloud.cloud_name}}&global_view=0')" href="#vms-overlay">&#x2630;</a>
                                             {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td class="col-spacer">&nbsp;</td>
+                                        </td>
+                                        <td><!--Foreign Cores--></td>
+                                        <td>
+                                            {% with ram=cloud.ram_foreign total=cloud.ram_quota %}
+                                                {% if cloud.ram_quota > 1048576 %}
+                                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                                {% else %}
+                                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td class="col-spacer">&nbsp;</td>
 
-                                    <td>{{cloud.VMs_native_foreign}} / {{cloud.VMs_quota}}</td>
+                                        <td>{{cloud.VMs_native_foreign}} / {{cloud.VMs_quota}}</td>
 
 
-                                    <td>{{cloud.cores_native_foreign}} / 
-                                        {% if cloud.cores_quota >= 999999999 %}
-                                            &#x221E;
-                                        {% else %}
-                                            {{cloud.cores_quota}}
-                                        {% endif %}
-                                    </td>                                 
-                                    <td>
-                                        {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
-                                            {% if cloud.ram_quota > 1048576 %}
-                                                {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                        <td>{{cloud.cores_native_foreign}} / 
+                                            {% if cloud.cores_quota >= 999999999 %}
+                                                &#x221E;
                                             {% else %}
-                                                {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                                {{cloud.cores_quota}}
                                             {% endif %}
-                                        {% endwith %}
-                                    </td>
-
+                                        </td>                                 
+                                        <td>
+                                            {% with ram=cloud.ram_native_foreign total=cloud.ram_quota %}
+                                                {% if cloud.ram_quota > 1048576 %}
+                                                    {{ ram|div:1048576|floatformat:1}} / {{ total|div:1048576|floatformat:1 }} TB
+                                                {% else %}
+                                                    {{ ram|div:1024|floatformat:1 }} / {{ total|div:1024|floatformat:1 }} GB
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                    {% endif %}
                                 </tr>
 
 
@@ -812,10 +874,12 @@
                                         <td colspan="3" class="row-spacer">&nbsp;</td>
                                         <td class="col-spacer">&nbsp;</td>
                                         <td colspan="3" class="row-spacer">&nbsp;</td>
-                                        <td class="col-spacer">&nbsp;</td>
-                                        <td colspan="3" class="row-spacer">&nbsp;</td>
-                                        <td class="col-spacer">&nbsp;</td>
-                                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        {% if foreign_global_vms_flag %}
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                            <td class="col-spacer">&nbsp;</td>
+                                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                                        {% endif %}
                                     </tr>
                                 {% endif %}
 
@@ -833,10 +897,12 @@
                         <td colspan="3" class="row-spacer">&nbsp;</td>
                         <td class="col-spacer">&nbsp;</td>
                         <td colspan="3" class="row-spacer">&nbsp;</td>
-                        <td class="col-spacer">&nbsp;</td>
-                        <td colspan="3" class="row-spacer">&nbsp;</td>
-                        <td class="col-spacer">&nbsp;</td>
-                        <td colspan="3" class="row-spacer">&nbsp;</td>
+                        {% if foreign_global_vms_flag %}
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                            <td class="col-spacer">&nbsp;</td>
+                            <td colspan="3" class="row-spacer">&nbsp;</td>
+                        {% endif %}
                     </tr>
 
 

@@ -1477,8 +1477,11 @@ def status(request, group_name=None):
         s = select([view_job_status]).where(view_job_status.c.group_name == active_user.active_group)
         job_status_list = qt(config.db_connection.execute(s))
 
-    system_list = {}
+    # Get GSI configuration variables.
+    gsi_config = config.get_config_by_category('GSI')
+
     # First get rows from csv2_system_status, if rows are out of date, do manual update
+    system_list = {}
 
     s = select([csv2_system_status])
     try:
@@ -1545,6 +1548,7 @@ def status(request, group_name=None):
             'cloud_status_list': cloud_status_list,
             'cloud_total_list': cloud_total_list,
             'cloud_status_list_totals': cloud_status_list_totals,
+            'gsi_config': gsi_config['GSI'],
             #'global_total_list': global_total_list,
             'job_status_list': job_status_list,
             'job_totals_list': job_totals_list,
@@ -1561,11 +1565,11 @@ def status(request, group_name=None):
             'slot_detail': slot_detail,
             'slot_detail_summary': slot_detail_summary,
             'slot_summary': slot_summary,
-
             'response_code': 0,
             'message': None,
             'is_superuser': active_user.is_superuser,
             'global_flag': active_user.flag_global_status,
+            'foreign_global_vms_flag': active_user.flag_show_foreign_global_vms,
             'slot_detail_flag': active_user.flag_show_slot_detail,
             'slot_flavor_flag': active_user.flag_show_slot_flavors,
             'status_refresh_interval': active_user.status_refresh_interval,
