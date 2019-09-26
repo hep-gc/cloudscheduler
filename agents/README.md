@@ -1,4 +1,4 @@
-# Cloud Scheduler version 2
+# Cloud Scheduler version 2 Agents
 
 A csv2_htc_agent is required for each HTCondor instance using CSV2's VM provisioning. 
 Every instance of CSV2 has HTCondor and this agent installed and running. If you wish 
