@@ -7,7 +7,7 @@ need to install csv2_htc_agent on that machine.
 
 To install csv2_htc_agent, issue the following command on your remote HTCondor host::
 
-curl https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh | bash
+    curl https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh | bash
 
 The script will explain what is required and what it does. If the requirements are met,
 the csv2_htc_agent service will be installed and started..  
