@@ -1,0 +1,33 @@
+#!/bin/bash
+  PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
+  cmd=`basename $0`
+  logfile="/root/ansible_script_logs/$cmd"
+
+  rc=0
+
+  mysql_host=$1
+  mysql_root_password=$2
+
+  IFS='.'
+  x=`getent hosts $mysql_host | awk '{print \$1}'`
+  y=($x)
+  mysql_subnet=${y[0]}'.'${y[1]}'.'${y[2]}'.%'
+  unset IFS
+
+  echo `date` "Running $0, granting privileges to root@${mysql_subnet}." > ${logfile}.partial_log 2>&1
+
+  mysql -uroot -p"$mysql_root_password" -e "grant all on *.* to 'root'@'$mysql_subnet' identified by '$mysql_root_password' with grant option;" \
+    >>${logfile}.partial_log 2>&1 \
+    || rc=1
+
+  mysql -uroot -p"$mysql_root_password" -e "flush privileges;" \
+    >>${logfile}.partial_log 2>&1 \
+    || rc=1
+
+  if [ $rc == 0 ]; then 
+    mv ${logfile}.partial_log ${logfile}.log
+  else
+    echo "WARNING: script failure, see ${logfile}.partial_log"
+    exit 1
+  fi

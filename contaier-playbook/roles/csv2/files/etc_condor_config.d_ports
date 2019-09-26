@@ -1,0 +1,3 @@
+# Ephemeral Condor Ports
+LOWPORT = 40000
+HIGHPORT = 50000

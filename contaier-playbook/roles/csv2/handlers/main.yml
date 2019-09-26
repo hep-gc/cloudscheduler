@@ -1,0 +1,10 @@
+---
+
+- include: reconfigure_condor.yaml
+- include: restart_firewalld.yaml
+- include: restart_httpd.yaml
+- include: restart_mariadb.yaml
+- include: restart_network.yaml
+- include: restart_ntpd.yaml
+- include: restart_sshd.yaml
+- include: run_get_letsencrypt_cert.yaml

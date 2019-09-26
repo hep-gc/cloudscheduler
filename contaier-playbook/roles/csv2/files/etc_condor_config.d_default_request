@@ -1,0 +1,10 @@
+# default number of CPUs per job
+JOB_DEFAULT_REQUESTCPUS = 1
+
+# Default job memory request in Mbytes
+JOB_DEFAULT_REQUESTMEMORY = 2000
+
+# default job disk request in kbytes
+JOB_DEFAULT_REQUESTDISK = 15000000
+
+CLAIM_PARTITIONABLE_LEFTOVERS = TRUE

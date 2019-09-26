@@ -1,0 +1,49 @@
+#!/usr/bin/expect -f
+log_file /root/ansible_script_logs/expect-mariadb_secure_database.log
+set mysql_root [lindex $argv 0]
+set mysql_root_original [lindex $argv 1]
+set c_1 0
+spawn /usr/bin/mysql_secure_installation
+expect { 
+    "Enter current password for root" {
+        if { $c_1 == 0 } {
+            send "\r"
+        } elseif { $c_1 == 1} {
+            send "$mysql_root\r"
+        } elseif { $c_1 == 2} {
+            send "$mysql_root_original\r"
+        } else {
+            send_user "\n*** Failed to set mysql password ***\n"
+            exit 1
+        }
+        set c_1 "[expr ($c_1 + 1)]"
+        exp_continue
+    } "Set root password?" {
+        send "y\r"
+        exp_continue
+    } "Change the root password?" {
+        send "y\r"
+        exp_continue
+    } "New password" {
+        send "$mysql_root\r"
+        exp_continue
+    } "Re-enter new password" {
+        send "$mysql_root\r"
+        exp_continue
+    } "Remove anonymous users" {
+        send "y\r"
+        exp_continue
+    } "Disallow root login remotely" {
+        send "y\r"
+        exp_continue
+    } "Remove test database and access to it" {
+        send "y\r"
+        exp_continue
+    } "Reload privilege tables now" {
+        send "y\r"
+        exp_continue
+    } "Thanks for using MariaDB!" {
+        exit
+    }
+}
+

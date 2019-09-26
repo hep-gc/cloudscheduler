@@ -1,0 +1,27 @@
+#!/bin/bash
+  PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
+  cmd=`basename $0`
+  logfile="/root/ansible_script_logs/$cmd"
+
+  rc=0
+
+  # no parameters
+
+  now=`date +%Y%m%d.%H%M%S`
+
+  echo `date` "Running $0" > ${logfile}.partial_log 2>&1
+
+  echo -e "\n1. mv ca-bundle.crt ca-bundle.crt-${now}" >>${logfile}.partial_log
+  mv ca-bundle.crt ca-bundle.crt-${now}
+
+  echo -e "\n1. cat GridCanada.pem >> ca-bundle.crt" >>${logfile}.partial_log
+  cat /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/grid-security/certificates/GridCanada.pem >/etc/pki/tls/certs/ca-bundle.crt
+    >>${logfile}.partial_log 2>&1 \
+
+  if [ $rc == 0 ]; then 
+    mv ${logfile}.partial_log ${logfile}.log
+  else
+    echo "WARNING: script failure, see ${logfile}.partial_log"
+    exit 1
+  fi

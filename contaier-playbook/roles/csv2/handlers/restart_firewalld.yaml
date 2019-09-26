@@ -1,0 +1,4 @@
+---
+# restart_firewalld.yaml
+- name: restart firewalld
+  service: name=firewalld enabled=yes state=restarted

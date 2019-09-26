@@ -2,19 +2,22 @@
 admin_email: mfens98@uvic.ca
 
 # Change this to the IP of your deployment host.
-ansible_deployment_host_ip: '206.12.154.6'
+ansible_deployment_host_ip: '127.0.1.1'
 
 # Change this to the path of an existing deployment host directory where letsencrypt SSL certificates are to be saved. This directory must be read/writable by the deployment user.
 letsencrypt_archive: '/usr/local/archive/letsencrypt'
 
+# Are you running ansible inside a container?
+container: True
+
 # CSV2 versions to use.
-cs_git_branch: csv2-container
-db_upgrade_file: none
+cs_git_branch: stable-2.6
+db_upgrade_file: stable-2.5.0-to-stable-2.6.0
 schema_model: stable-2.6
 favicon_colour: red
 
 # Set  schema_backup tar file to install on host machine
-backup_path: '/tmp/test/csv2-cont-backups.tar.gz'
+backup_path: '/tmp/test/csv2-cont-backups.tar'
 
 db_on_localhost: true
 rabbit_on_localhost: true
@@ -33,11 +36,11 @@ letsencrypt_test: false
 #    o Obtain a grid certficate to be used by all HTCondor workers (VMs).
 #    o Specify the required GSI information (seven items) in this "vars" file, eg:
 #
-#      grid_mapfile: /root/grid-security/latest/csv2-sa/grid-mapfile
+#      grid_mapfile: /root/grid-security/latest/csv2-cont/grid-mapfile
 #
-#      htcondor_gsi_dn: /C=CA/O=Grid/CN=csv2-sa.example.ca
-#      htcondor_cert: /root/grid-security/latest/csv2-sa/hostcert.pem
-#      htcondor_key: /root/grid-security/latest/csv2-sa/hostkey.pem
+#      htcondor_gsi_dn: /C=CA/O=Grid/CN=csv2-cont.example.ca
+#      htcondor_cert: /root/grid-security/latest/csv2-cont/hostcert.pem
+#      htcondor_key: /root/grid-security/latest/csv2-cont/hostkey.pem
 #
 #      htcondor_worker_gsi_dn: /C=CA/O=Grid/CN=condorworker/condor.example.ca
 #      htcondor_worker_cert: /root/grid-security/latest/condorworker/hostcert.pem
@@ -48,15 +51,15 @@ letsencrypt_test: false
 i_etc_hosts:
 #-
 #    # a private IP (v4)
-#    fqdn: 'csv2-sa'
+#    fqdn: 'csv2-cont'
 #    ip: '10.200.200.239'
 -
     # a public IP (v4)
-    fqdn: 'csv2-sa.heprc.uvic.ca'
-    ip: '206.12.154.239'
+    fqdn: 'csv2-cont.heprc.uvic.ca'
+    ip: '206.12.154.222'
 #-
 #    # a public IP (v6)
-#    fqdn: 'csv2-sa.heprc6.uvic.ca'
+#    fqdn: 'csv2-cont.heprc6.uvic.ca'
 #    ip: '2607:f8f0:c10:70f3:2::239'
 
 # Define obsolete users to remove.
@@ -88,7 +91,7 @@ i_sudoers:
 # Defines block devices, filesystems, and mountpoints.
 i_volumes:
 -
-    fqdn: 'csv2-sa.heprc.uvic.ca'
+    fqdn: 'csv2-cont.heprc.uvic.ca'
     raid: 'jbod'
     disks: '0'
     volumegroup: 'vg_root'
@@ -97,7 +100,7 @@ i_volumes:
     fstype: 'ext4'
     mountpoint: '/'
 #
-#   fqdn: 'csv2-sa.heprc.uvic.ca'
+#   fqdn: 'csv2-cont.heprc.uvic.ca'
 #   raid: 'jbod'
 #   disks: '1'
 #   volumegroup: 'vg_data'
@@ -112,17 +115,17 @@ i_firewall: []
 i_external_connection:
 -
     nic: 'eth1'
-    ipv4: '206.12.154.239'
-    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
+    ipv4: '206.12.154.222'
+    ipv4fqdn: 'csv2-cont.heprc.uvic.ca'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'csv2-sa.heprc6.uvic.ca'
+#    ipv6fqdn: 'csv2-cont.heprc6.uvic.ca'
 
 # Private network.
 i_internal_connection:
 -
     nic: 'eth0'
     ipv4: '127.0.0.1'
-    ipv4fqdn: 'csv2-sa'
+    ipv4fqdn: 'csv2-cont'
 #    ipv6: '-'
 #    ipv6fqdn: '-'
 
@@ -145,7 +148,7 @@ i_connections:
     mac: '52:54:00:3e:55:da'
     ext: 'y'
     mtu: '9000'
-    ipv4: '206.12.154.239'
+    ipv4: '206.12.154.222'
     ipv4mask: '255.255.255.0'
     ipv4gw: '206.12.154.254'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
@@ -157,15 +160,15 @@ i_connections:
 i_service_connection:
 -
     nic: 'eth1'
-    ipv4: '206.12.154.239'
-    ipv4fqdn: 'csv2-sa.heprc.uvic.ca'
+    ipv4: '206.12.154.222'
+    ipv4fqdn: 'csv2-cont.heprc.uvic.ca'
 #    ipv6: '2607:f8f0:c10:70f3:2::239'
-#    ipv6fqdn: 'csv2-sa.heprc6.uvic.ca'
+#    ipv6fqdn: 'csv2-cont.heprc6.uvic.ca'
 
 # Define domains for which letsencrypt certificates are required.
 i_virtualhosts:
 -
-    virtualhost: 'csv2-sa.heprc.uvic.ca'
-
-    virtualhost: 'csv2-sa-myadmin.heprc.uvic.ca'
+    virtualhost: 'csv2-cont.heprc.uvic.ca'
+-    
+    virtualhost: 'csv2-cont-myadmin.heprc.uvic.ca'
 
