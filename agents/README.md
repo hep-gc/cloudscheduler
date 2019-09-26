@@ -5,13 +5,14 @@ Every instance of CSV2 has HTCondor and this agent installed and running. If you
 CSV2 to provision VMs for your stand-alone (remote) HTCondor job scheduler, you will
 need to install csv2_htc_agent on that machine. 
 
-You can review the installation command with the following:
+You can download the installation script with the following command:
 
-    curl https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh | less
+    curl -o install_remote_csv2_htc_agent.sh https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh 
     
-or install csv2_htc_agent on your remote HTCondor host by piping the script to bash:
+to check what it is doing. To install the HTCondor Agent, do the following:
 
-    curl https://<fqdn_of_the_csv2_host>/repo/install_remote_csv2_htc_agent.sh | bash
+    chmod +x install_remote_csv2_htc_agent.sh 
+    ./install_remote_csv2_htc_agent.sh 
 
 The script will explain what is required and what it does. If the requirements are met,
 the csv2_htc_agent service will be installed and started..  
