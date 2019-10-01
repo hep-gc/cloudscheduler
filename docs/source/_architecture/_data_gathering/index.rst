@@ -2,8 +2,8 @@ Data Gathering
 ==============
 
 
- System data regarding the state of cloudscheduler and the interfaced systems is gathered via a fleet of pollers implemented in python. This data is stored in a MariaDB database for use by all of the cloudscheduler services.
- Each poller is responsible for a different subset of data which is outlined in more detail on the pages linked below.
+System data regarding the state of cloudscheduler and the interfaced systems is gathered via a fleet of pollers implemented in python. This data is stored in a MariaDB database for use by all of the cloudscheduler services.
+Each poller is responsible for a different subset of data which is outlined in more detail on the pages linked below.
 
 .. toctree::
    :maxdepth: 2
