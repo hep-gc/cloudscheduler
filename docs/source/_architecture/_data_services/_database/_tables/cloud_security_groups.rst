@@ -25,16 +25,21 @@ Keys:
 
    * Format: String(32)
    * Synopsis:
+      Name of the cloud that the security group was queried from.
 
 * **group_name**:
 
    * Format: String(32)
    * Synopsis:
+      Group name associated with the cloud the security group was queried from.
 
 * **id**:
 
    * Format: String(64)
    * Synopsis:
+      Unique ID of the security group. This ID is from the source
+      cloud and may not be unique with respect to entries from different
+      clouds.
 
 
 Columns:
@@ -44,14 +49,18 @@ Columns:
 
    * Format: String(64)
    * Synopsis:
+      Type of cloud the security group was queried from.
 
 * **last_updated**:
 
    * Format: Integer
    * Synopsis:
+      Timestamp in seconds since epoch representing the last time the security group
+      was updated in csv2.
 
 * **name**:
 
    * Format: String(64)
    * Synopsis:
+      Name of the security group as defined in the cloud.
 

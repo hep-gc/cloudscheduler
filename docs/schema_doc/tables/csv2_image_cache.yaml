@@ -19,11 +19,11 @@ csv2_image_cache:
         container_format:
             Format: String(128)
             Synopsis:
-                Format of the image container, typically support: AMI, ARI, AKI, Bare, Docker, OVA, OVF
+                "Format of the image container, typically support: AMI, ARI, AKI, Bare, Docker, OVA, OVF"
         disk_format:
             Format: String(128)
             Synopsis:
-                Format of the disk used by the image, supports: AMI, ARI, AKI, VHD, VMDK, RAW, QCOW2, VHDX, VDI, ISO, and Ploop
+                "Format of the disk used by the image, supports: AMI, ARI, AKI, VHD, VMDK, RAW, QCOW2, VHDX, VDI, ISO, and Ploop"
 
         downloaded:
             Format: Integer

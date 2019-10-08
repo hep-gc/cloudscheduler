@@ -5,7 +5,7 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_sqlquery (obsolete)
+Database Table: silk_sqlquery
 =============================
 
 
@@ -13,7 +13,7 @@ Database Table: silk_sqlquery (obsolete)
 Keys:
 ^^^^^^^^
 
-* **id** (obsolete):
+* **id**:
 
    * Format: Integer
    * Synopsis:
@@ -22,32 +22,32 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **end_time** (obsolete):
+* **end_time**:
 
    * Format: Integer
    * Synopsis:
 
-* **query** (obsolete):
+* **query**:
 
    * Format: String
    * Synopsis:
 
-* **request_id** (obsolete):
+* **request_id**:
 
    * Format: String(36)
    * Synopsis:
 
-* **start_time** (obsolete):
+* **start_time**:
 
    * Format: Integer
    * Synopsis:
 
-* **time_taken** (obsolete):
+* **time_taken**:
 
    * Format: Float
    * Synopsis:
 
-* **traceback** (obsolete):
+* **traceback**:
 
    * Format: String
    * Synopsis:

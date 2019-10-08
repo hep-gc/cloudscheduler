@@ -17,6 +17,10 @@ Keys:
 
    * Format: String(16)
    * Synopsis:
+      A string representing the unique ID of a pull request. Consists of
+      a randomly generated string of length 16 using standard python letters, numbers,
+      and punctuation. These should be unique to each transaction and the chance
+      of a collision is 1/68^16.
 
 
 Columns:
@@ -26,44 +30,54 @@ Columns:
 
    * Format: String(64)
    * Synopsis:
+      MD5 checksum of the source image to be uploaded.
 
 * **image_id**:
 
    * Format: String(128)
    * Synopsis:
+      Openstack ID of the source image to be uploaded.
 
 * **image_name**:
 
    * Format: String(128)
    * Synopsis:
+      Name of the image to be uploaded.
 
 * **message**:
 
    * Format: String(128)
    * Synopsis:
+      String containing any error messages encountered while processing the pull request.
 
 * **request_time**:
 
    * Format: Integer
    * Synopsis:
+      Timestamp in seconds from epoch of when the request was queued.
 
 * **requester**:
 
    * Format: String(64)
    * Synopsis:
+      Username of the user who queued the pull request.
 
 * **status**:
 
    * Format: String(128)
    * Synopsis:
+      Current status of the transaction request to be displayed on the web
+      display.
 
 * **target_cloud_name**:
 
    * Format: String(128)
    * Synopsis:
+      Name of the cloud the image should be uploaded to.
 
 * **target_group_name**:
 
    * Format: String(128)
    * Synopsis:
+      Name of the group the image should be uploaded to.
 

@@ -3,13 +3,13 @@ csv2_timestamps:
 
     Keys:
 
-        entity:
-            Format: String(64)
-            Synopsis:
-
     Columns:
 
         last_updated:
             Format: Integer
+            Synopsis:
+
+        entity:
+            Format: String(64)
             Synopsis:
 

@@ -13,14 +13,14 @@ Database Table: csv2_timestamps
 Keys:
 ^^^^^^^^
 
+
+Columns:
+^^^^^^^^
+
 * **entity**:
 
    * Format: String(64)
    * Synopsis:
-
-
-Columns:
-^^^^^^^^
 
 * **last_updated**:
 

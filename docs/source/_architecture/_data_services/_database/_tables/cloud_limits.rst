@@ -25,11 +25,13 @@ Keys:
 
    * Format: String(32)
    * Synopsis:
+      Name of the cloud the limits were queried from.
 
 * **group_name**:
 
    * Format: String(32)
    * Synopsis:
+      Group name associated with the cloud the limit was queried from.
 
 
 Columns:
@@ -39,104 +41,131 @@ Columns:
 
    * Format: String(64)
    * Synopsis:
+      Type of cloud the limits were queried from (Openstack, Amazon, etc)
 
 * **cores_max**:
 
    * Format: Integer
    * Synopsis:
+      Total number of cores available for the registered cloud tenant/project.
 
 * **cores_used**:
 
    * Format: Integer
    * Synopsis:
+      Total number of CPU cores in use by the registered tenant/project.
 
 * **floating_ips_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of available floating IPs as defined by the cloud
 
 * **floating_ips_used**:
 
    * Format: Integer
    * Synopsis:
+      Total number of floating IPs in use by the registered tenant/project.
 
 * **image_meta_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of metadata entries that can be associated with a machine
+      image as defined by the cloud.
 
 * **instances_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of active instances as defined by the cloud.
 
 * **instances_used**:
 
    * Format: Integer
    * Synopsis:
+      Total number of active instances in use by the registered tenant/project.
 
 * **keypairs_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of keypairs allowed to be stored under the registered cloud
+      tenant/project.
 
 * **last_updated**:
 
    * Format: Integer
    * Synopsis:
+      Timestamp in seconds from epoch representing the last time the limits were
+      queried and updated.
 
 * **personality_max**:
 
    * Format: Integer
    * Synopsis:
+      Man number of personality files that can be injected into a server
+      as defined by the cloud.
 
 * **personality_size_max**:
 
    * Format: Integer
    * Synopsis:
+      Max size of server personality files in bytes.
 
 * **ram_max**:
 
    * Format: Integer
    * Synopsis:
+      Total amount of ram available for the registered cloud tenant/project.
 
 * **ram_used**:
 
    * Format: Integer
    * Synopsis:
+      Total amount of RAM in use by the registered tenant/project in Megabytes.
 
 * **security_group_rules_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of security group rules allowed for a security group as
+      defined by the cloud.
 
 * **security_groups_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of security groups available for the registered cloud tenant/project.
 
 * **security_groups_used**:
 
    * Format: Integer
    * Synopsis:
+      Total number of security groups in use by the registered tenant/project.
 
 * **server_group_members_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of servers per server group as defined by the cloud.
 
 * **server_groups_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of server groups available for the registered cloud tenant/project.
 
 * **server_groups_used**:
 
    * Format: Integer
    * Synopsis:
+      Total number of server groups in use for the registered tenant/project.
 
 * **server_meta_max**:
 
    * Format: Integer
    * Synopsis:
+      Max number of metadata entries that can be associated with a server
+      as defined by the cloud.
 
