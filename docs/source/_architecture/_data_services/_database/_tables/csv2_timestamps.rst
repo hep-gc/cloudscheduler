@@ -30,5 +30,6 @@ Columns:
 
    * Format: Integer
    * Synopsis:
-      The number of seconds since the epoch when this significant event occurred.
+      The number of seconds since the epoch when this significant event last
+      occurred.
 
