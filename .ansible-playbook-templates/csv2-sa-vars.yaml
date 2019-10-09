@@ -8,7 +8,7 @@ ansible_deployment_host_ip: '206.12.154.6'
 letsencrypt_archive: '/usr/local/archive/letsencrypt'
 
 # CSV2 versions to use.
-cs_git_branch: csv2-container
+cs_git_branch: stable-2.6.0
 db_upgrade_file: none
 schema_model: stable-2.6
 favicon_colour: red
