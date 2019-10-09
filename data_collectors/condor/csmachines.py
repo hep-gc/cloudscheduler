@@ -34,6 +34,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.ext.automap import automap_base
 
 
+AGENT_VERSION = 0
+
 def _get_nova_client(session, region=None):
     nova = novaclient.Client("2", session=session, region_name=region, timeout=10)
     return nova
@@ -440,6 +442,16 @@ def command_poller():
                         continue
                     else:
                         #it was successfull
+                        # lets check the agent version via the hash that was returned.
+                        try:
+                           if command_results[2] != AGENT_VERSION:
+                               #Log error and change agent status?
+                               logging.critical("Remote agent version mismatch on condor host: %s, check local repo for code changes or update remote agent" % condor_host)
+
+                        except Exception as exc:
+                           # we could end up here if there is a really old agent that doesn't support version matching
+                           logging.critical("Remote agent running old version that doesnt support version checking, agent on %s should be updated" % condor_host)
+                             
                         jsched = {
                             "htcondor_fqdn": condor_host,
                             "agent_status":  1
@@ -533,6 +545,7 @@ def command_poller():
                         command_results = condor_rpc.call(command_yaml, timeout=30)
                         if command_results is None or command_results[0] != 0:
                             # command failed
+                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             if command_results == None:
                                 # we got a timeout
                                 # timeout on the call, agent problems or offline
@@ -551,9 +564,8 @@ def command_poller():
                                     config.db_session.merge(new_jsched)
                                     uncommitted_updates += 1
 
-                            logging.error("RPC retire failed for machine: %s//%s" % (resource.machine, resource.hostname))
                             #logging.error(command_results)
-                            if command_results[0] == 2:
+                            elif command_results[0] == 2:
                                 #condor error, report the failure
                                 jsched = {
                                     "htcondor_fqdn": condor_host,
@@ -930,6 +942,9 @@ if __name__ == '__main__':
         'machine':    machine_poller,
         'registrar':  service_registrar,
     }
+    
+    with open("/opt/cloudscheduler/agents/csv2_htc_agent") as fd:
+        AGENT_VERSION = sum(fd.read().encode())
 
     db_category_list = [os.path.basename(sys.argv[0]), "ProcessMonitor", "general", "signal_manager"]
 
