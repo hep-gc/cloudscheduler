@@ -118,6 +118,7 @@ class ProcessMonitor:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count+2)
         else:
             self.previous_orange_count, self.current_orange_count = set_orange_count(self.logging, self.config, self.orange_count_row, self.previous_orange_count, self.current_orange_count-1)
+        logging.debug("Current error count:%s" % self.current_orange_count)
 
 
     def _cleanup_event_pids(self, pid):

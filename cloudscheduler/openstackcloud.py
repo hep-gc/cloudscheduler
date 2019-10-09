@@ -119,7 +119,7 @@ class OpenStackCloud(basecloud.BaseCloud):
             self.log.exception("Endpoint not found, region problem")
             return -1
         except novaclient.exceptions.NotFound as ex:
-            self.log.exception("Problem finding image. Error: %s", ex)
+            self.log.exception("Problem finding image. Error: %s on cloud: %s" % (ex, self.name))
         if not imageobj:
             self.log.debug("Unable to find an image to use")
             return -1
