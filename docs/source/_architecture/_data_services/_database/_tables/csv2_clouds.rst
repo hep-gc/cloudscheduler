@@ -63,11 +63,18 @@ Columns:
 
    * Format: Integer
    * Synopsis:
+      The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically issue trivial requests to
+      determine what should be a consistent request time. The reult of these
+      timing tests are recoreded in milli-seconds. Fluctuations in the results could be
+      the consequence of either network contention or contention on the target cloud.
 
 * **communication_up**:
 
    * Format: Boolean
    * Synopsis:
+      The CSV2 cloud pollers (csv2-openstack, csve-ec2, etc.) periodically polls clouds for information.
+      If polling attempts are successful, this boolean will be set to 1.
+      Otherwise, it is set to zero.
 
 * **cores_ctl**:
 
@@ -122,6 +129,8 @@ Columns:
 
    * Format: Integer
    * Synopsis:
+      System maintained timestamp indicating the time of the last polling error received
+      from the cloud.
 
 * **floating_ips_ctl**:
 
@@ -141,36 +150,17 @@ Columns:
    * Synopsis:
       Currently not used.
 
-* **keyname** (obsolete):
-
-   * Format: String(20)
-   * Synopsis:
-      Obsolete.
-
 * **keypairs_ctl**:
 
    * Format: Integer
    * Synopsis:
       Currently not used.
 
-* **network_rtt** (obsolete):
-
-   * Format: Integer
-   * Synopsis:
-      System maintained integer recording the last round trip time, in micro-seconds, of
-      a relatively static cloud information query.
-
-* **network_up** (obsolete):
-
-   * Format: Boolean
-   * Synopsis:
-      System maintained switch indicating that CSV2 is able (network_up=1) or unable (network_up=0)
-      to communicate with the cloud.
-
 * **obsolete_keyname**:
 
    * Format: String(20)
    * Synopsis:
+      Not used.
 
 * **password**:
 
