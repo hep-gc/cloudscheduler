@@ -8,6 +8,7 @@
 Database Table: archived_condor_machines
 ========================================
 
+Not used.
 
 
 Keys:
@@ -17,6 +18,7 @@ Keys:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 
 Columns:
@@ -26,94 +28,113 @@ Columns:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **address**:
 
    * Format: String(512)
    * Synopsis:
+      Not used.
 
 * **condor_host**:
 
    * Format: String(64)
    * Synopsis:
+      Not used.
 
 * **entered_current_state**:
 
    * Format: Integer
    * Synopsis:
+      Not used.
 
 * **flavor**:
 
    * Format: String(32)
    * Synopsis:
+      Not used.
 
 * **global_job_id**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **group_name**:
 
    * Format: String(32)
    * Synopsis:
+      Not used.
 
 * **idle_time**:
 
    * Format: Integer
    * Synopsis:
+      Not used.
 
 * **job_id**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **machine**:
 
    * Format: String(256)
    * Synopsis:
+      Not used.
 
 * **my_current_time**:
 
    * Format: Integer
    * Synopsis:
+      Not used.
 
 * **remote_owner**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **retire_request_time**:
 
    * Format: Integer
    * Synopsis:
+      Not used.
 
 * **retired_time**:
 
    * Format: Integer
    * Synopsis:
+      Not used.
 
 * **slot_type**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **start**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **state**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 
 * **total_slots**:
 
    * Format: Integer
    * Synopsis:
+      Not used.
 
 * **vm_type**:
 
    * Format: String(128)
    * Synopsis:
+      Not used.
 

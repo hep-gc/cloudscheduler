@@ -1,111 +1,138 @@
 archived_condor_jobs:
     Synopsis:
+        Not used.
 
     Keys:
 
         global_job_id:
             Format: String(128)
             Synopsis:
+                Not used.
 
     Columns:
 
         group_name:
             Format: String(128)
             Synopsis:
+                Not used.
 
         target_clouds:
             Format: String
             Synopsis:
+                Not used.
 
         cloud_name:
             Format: String
             Synopsis:
+                Not used.
 
         job_status:
             Format: Integer
             Synopsis:
+                Not used.
 
         request_cpus:
             Format: Integer
             Synopsis:
+                Not used.
 
         request_ram:
             Format: Integer
             Synopsis:
+                Not used.
 
         request_disk:
             Format: Integer
             Synopsis:
+                Not used.
 
         request_swap:
             Format: Integer
             Synopsis:
+                Not used.
 
         request_scratch:
             Format: Integer
             Synopsis:
+                Not used.
 
         requirements:
             Format: String(512)
             Synopsis:
+                Not used.
 
         job_priority:
             Format: Integer
             Synopsis:
+                Not used.
 
         cluster_id:
             Format: Integer
             Synopsis:
+                Not used.
 
         proc_id:
             Format: Integer
             Synopsis:
+                Not used.
 
         user:
             Format: String(512)
             Synopsis:
+                Not used.
 
         image:
             Format: String
             Synopsis:
+                Not used.
 
         instance_type:
             Format: String(512)
             Synopsis:
+                Not used.
 
         network:
             Format: String(512)
             Synopsis:
+                Not used.
 
         keep_alive:
             Format: String(512)
             Synopsis:
+                Not used.
 
         max_price:
             Format: String(512)
             Synopsis:
+                Not used.
 
         user_data:
             Format: String(512)
             Synopsis:
+                Not used.
 
         job_per_core:
             Format: Integer
             Synopsis:
+                Not used.
 
         entered_current_status:
             Format: Integer
             Synopsis:
+                Not used.
 
         q_date:
             Format: Integer
             Synopsis:
+                Not used.
 
         hold_job_reason:
             Format: String(64)
             Synopsis:
+                Not used.
 
         held_reason:
             Format: String(64)
             Synopsis:
+                Not used.
 
