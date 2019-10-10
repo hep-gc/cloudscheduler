@@ -1,8 +1,0 @@
-127.0.0.1                        localhost loopback
-::1                              ip6-localhost ip6-loopback
-
-{{ ansible_deployment_host_ip.ljust(32) }} ansible-host
-
-{% for item in i_etc_hosts %}
-{{ item.ip.ljust(32) }} {{ item.fqdn }}
-{% endfor %}
