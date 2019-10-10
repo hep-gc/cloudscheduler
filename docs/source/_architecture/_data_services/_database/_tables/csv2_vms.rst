@@ -77,7 +77,7 @@ Columns:
    * Format: Integer
    * Synopsis:
 
-* **image_id**:
+* **image_id** (obsolete):
 
    * Format: String(128)
    * Synopsis:

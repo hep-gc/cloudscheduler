@@ -8,6 +8,12 @@
 Database Table: condor_jobs
 ===========================
 
+For each group defined the job poller will query the associated condor
+instance for it's complete list of jobs. It will then parse the
+job list and extract all valid csv2 jobs (jobs with a valid
+group_name and user combination) and insert them into this table. The main
+cloudscheduler task then uses the information in this table to boot appropriate
+virtual machines to run these jobs.
 
 
 Keys:
@@ -17,6 +23,7 @@ Keys:
 
    * Format: String(128)
    * Synopsis:
+      The global unique identifer of the job classad as defined by condor.
 
 
 Columns:

@@ -8,6 +8,8 @@
 Database Table: csv2_timestamps
 ===============================
 
+This table is used maintain timestamps for significant events. The significant event
+is identified by a unique string termed the "entity".
 
 
 Keys:
@@ -17,6 +19,8 @@ Keys:
 
    * Format: String(64)
    * Synopsis:
+      A unique string identifying/describing a significant event for which a timestamp needs
+      to be maintained.
 
 
 Columns:
@@ -26,4 +30,6 @@ Columns:
 
    * Format: Integer
    * Synopsis:
+      The number of seconds since the epoch when this significant event last
+      occurred.
 

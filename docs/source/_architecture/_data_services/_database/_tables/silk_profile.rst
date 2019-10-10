@@ -5,7 +5,7 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_profile (obsolete)
+Database Table: silk_profile
 ============================
 
 
@@ -13,7 +13,7 @@ Database Table: silk_profile (obsolete)
 Keys:
 ^^^^^^^^
 
-* **id** (obsolete):
+* **id**:
 
    * Format: Integer
    * Synopsis:
@@ -22,57 +22,57 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **dynamic** (obsolete):
+* **dynamic**:
 
    * Format: Boolean
    * Synopsis:
 
-* **end_line_num** (obsolete):
+* **end_line_num**:
 
    * Format: Integer
    * Synopsis:
 
-* **end_time** (obsolete):
+* **end_time**:
 
    * Format: Integer
    * Synopsis:
 
-* **exception_raised** (obsolete):
+* **exception_raised**:
 
    * Format: Boolean
    * Synopsis:
 
-* **file_path** (obsolete):
+* **file_path**:
 
    * Format: String(300)
    * Synopsis:
 
-* **func_name** (obsolete):
+* **func_name**:
 
    * Format: String(300)
    * Synopsis:
 
-* **line_num** (obsolete):
+* **line_num**:
 
    * Format: Integer
    * Synopsis:
 
-* **name** (obsolete):
+* **name**:
 
    * Format: String(300)
    * Synopsis:
 
-* **request_id** (obsolete):
+* **request_id**:
 
    * Format: String(36)
    * Synopsis:
 
-* **start_time** (obsolete):
+* **start_time**:
 
    * Format: Integer
    * Synopsis:
 
-* **time_taken** (obsolete):
+* **time_taken**:
 
    * Format: Float
    * Synopsis:

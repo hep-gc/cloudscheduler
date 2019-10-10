@@ -56,6 +56,7 @@ into the following catagories:
    :maxdepth: 1
    :caption: Ephemeral state data:
 
+   apel_accounting
    cloud_flavors
    cloud_images
    cloud_keypairs

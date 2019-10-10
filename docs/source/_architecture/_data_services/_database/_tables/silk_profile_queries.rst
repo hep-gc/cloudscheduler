@@ -5,7 +5,7 @@
 ..   2. run the utility ".../cloudscheduler/utilities/schema_doc"
 ..
 
-Database Table: silk_profile_queries (obsolete)
+Database Table: silk_profile_queries
 ====================================
 
 
@@ -13,7 +13,7 @@ Database Table: silk_profile_queries (obsolete)
 Keys:
 ^^^^^^^^
 
-* **id** (obsolete):
+* **id**:
 
    * Format: Integer
    * Synopsis:
@@ -22,12 +22,12 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **profile_id** (obsolete):
+* **profile_id**:
 
    * Format: Integer
    * Synopsis:
 
-* **sqlquery_id** (obsolete):
+* **sqlquery_id**:
 
    * Format: Integer
    * Synopsis:

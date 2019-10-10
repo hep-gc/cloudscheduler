@@ -6,42 +6,52 @@ csv2_image_pull_requests:
         tx_id:
             Format: String(16)
             Synopsis:
+                A string representing the unique ID of a pull request. Consists of a randomly generated string of length 16 using standard python letters, numbers, and punctuation. These should be unique to each transaction and the chance of a collision is 1/68^16.
 
     Columns:
 
         target_group_name:
             Format: String(128)
             Synopsis:
+                Name of the group the image should be downloaded from.
 
         target_cloud_name:
             Format: String(128)
             Synopsis:
+                Name of the cloud the image should be downloaded from.
 
         image_name:
             Format: String(128)
             Synopsis:
+                Name of the the image to be downloaded in the request.
 
         image_id:
             Format: String(128)
             Synopsis:
+                Openstack-ID of the image to be downloaded in the request.
 
         checksum:
             Format: String(64)
             Synopsis:
+                MD5 checksum of the image to be downloaded.
 
         status:
             Format: String(32)
             Synopsis:
+                Current status of the pull request (currently not displayed anywhere in the UI).
 
         message:
             Format: String(512)
             Synopsis:
+                String containing any error messages encountered while processing the pull request.
 
         request_time:
             Format: Integer
             Synopsis:
+                Timestamp in seconds from epoch of when the request was queued.
 
         requester:
             Format: String(64)
             Synopsis:
+                Username of the user who queued the pull request.
 

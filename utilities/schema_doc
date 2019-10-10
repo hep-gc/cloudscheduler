@@ -55,8 +55,8 @@ def create_RSTs(gvar, type):
     def write_RSTs_synopsis(gvar, fd, indent, text):
         wpl = 12
 
-        if text and len(text.strip())>0:
-            paras = text.strip().split('\n')
+        if text and len(str(text).strip())>0:
+            paras = str(text).strip().split('\n')
             for para in paras:
                 words = para.split()
                 for ix in range(0, len(words), wpl):
@@ -68,6 +68,9 @@ def create_RSTs(gvar, type):
             fd.write('\n')
 
     for table in sorted(gvar['schema'][type]):
+        if not gvar['schema'][type][table]:
+            continue
+
         rst_path = '%s/docs/source/_architecture/_data_services/_database/_%s/%s.rst' % (gvar['base_dir'], type, table)
         with open(gvar['tempfile'].name, 'w') as fd:
             fd.write(gvar['do_not_edit'] % '%s/%s.yaml' % (type, table))
@@ -209,7 +212,10 @@ def main(args):
                 type = 'tables'
 
             if table in gvar['schema'][type]:
-                gvar['schema_states']['%s/%s' % (type, table)] = 2
+                if gvar['schema'][type][table]:
+                    gvar['schema_states']['%s/%s' % (type, table)] = 2
+                else:
+                    continue
             else:
                 gvar['schema'][type][table] = {'Synopsis': '', 'Keys': {}, 'Columns': {}}
                 gvar['schema_states']['%s/%s' % (type, table)] = 0
@@ -411,7 +417,12 @@ def schema_yaml_get(gvar, type):
         if os.path.isfile(table_path):
 #           print("Reading:", table_path)
             with open(table_path) as fd:
-                table_doc = yaml.full_load(fd.read())
+                try:
+                    table_doc = yaml.full_load(fd.read())
+                except Exception as ex:
+                    print('Skipping invalid yaml "%s": %s' % (table_path, ex))
+                    gvar['schema'][type][table] = {}
+                    continue
 
             gvar['schema'][type][table] = table_doc[table]
             gvar['schema_states']['%s/%s' % (type, table)] = default_state
@@ -439,6 +450,9 @@ def schema_yaml_put(gvar, type):
             fd.write('\n')
 
     for table in gvar['schema'][type]:
+        if not gvar['schema'][type][table]:
+            continue
+
         yaml_path = '%s/docs/schema_doc/%s/%s.yaml' % (gvar['base_dir'], type, table)
         if table not in gvar['schema_copy'][type] or \
             gvar['schema'][type][table] != gvar['schema_copy'][type][table]:
