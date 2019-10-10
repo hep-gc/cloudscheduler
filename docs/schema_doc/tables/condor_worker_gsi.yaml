@@ -1,27 +1,39 @@
 condor_worker_gsi:
     Synopsis:
+        Maintained by the csv2-condor-gsi poller, this table maintains information about condor worker ceretificates that are required by HTCondor instances that enable GSI authentication.
+        For such HTCondor instnces, valid certificsates are required for both the server and any of its' workers.
+        Without them, communication between the various HTCondor components is impossible.
+        CSV2 by defaut provides an HTCondor instance with GSI enabled and it also provides tables, functions and processes to ease the management of GSI credentials.
+       
+        In addition to maintaining the condor worker certificate information in this table, the csv2-condor-worker-gsi poller also maintains relevant server certificate information in the CSV2 table csv2_groups.
+
+        This informaaion is required of the local, default HTCondor server and any remote, GSI enabled HTCondor servers and each of these servers will require an instance of the csv2-htc-agent running on the hosting machinei.  
 
     Keys:
 
         htcondor_fqdn:
             Format: String(128)
             Synopsis:
+                Is the Fully Qualified Domain Name (FQDN) of the HTCondor server.
 
     Columns:
 
         worker_dn:
             Format: String(128)
             Synopsis:
+                Is the distinquished name of the condor worker cert of the corresponding HTCondor instance. This value is added to the configuration of the local default HTCondor instance automatically by CSV2 processes to allow remote condor instances communication privileges with local HTCondor components. 
 
         worker_eol:
             Format: Integer
             Synopsis:
-
+                "Is the number of days left in the life of the condor worker certificate. CSV2 defines two thesholdsfor certificate validity: 'cert_days_left_bad' (default 7) and 'cert_days_left_good' (default 28). When the certificate has less the cert_days_left_good remaining, a warning will be displayed on the status page. When the certifi cate has less the cert_days_left_bad remaining, an error will be displayed on the status page, and CSV2 will no longer manage VMs for this HTCondor instance."
         worker_cert:
             Format: String
             Synopsis:
+               "Is the gzipped/base64 representation of the worker certificate for an HTCondor instance. This value is passed to jinja2 metadata templates as the variable '{{ cs_condorworker_cert }}' by the scheduler when preparing metadata files for VM contextualization."
 
         worker_key:
             Format: String
             Synopsis:
+               "Is the gzipped/base64 representation of the worker key for an HTCondor instance. This value is passed to jinja2 metadata templates as the variable '{{ cs_condorworker_key }}' by the scheduler when preparing metadata files for VM contextualization."
 
