@@ -159,7 +159,7 @@ def get_real_time_data(gvar):
                 '-u',
                 gvar['db_config'].db_config['db_user'],
                 '-p%s' % gvar['db_config'].db_config['db_password'],
-                '-h%s' % gvar['db_config'].db_config['db_password'],
+                '-h%s' % gvar['db_config'].db_config['db_host'],
                 gvar['db_config'].db_config['db_name'],
                 '-t',
                 '-e',
