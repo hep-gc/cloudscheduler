@@ -1,0 +1,9 @@
+---
+# file: create_installation_directories.yaml - yyyy
+
+- name: create downloads directory
+  file: path=/root/Downloads state=directory owner=root group=root mode=0700
+
+- name: create ansible script log directory
+  file: path=/root/ansible_script_logs state=directory owner=root group=root mode=0700
+

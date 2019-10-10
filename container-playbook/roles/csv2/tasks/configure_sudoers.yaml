@@ -1,0 +1,11 @@
+---
+# file: configure_sudoers.yaml
+
+- name: configure sudoers
+  template:
+    src: etc_sudoers.d.j2
+    dest: "/etc/sudoers.d/{{ item.userid }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items: "{{ i_sudoers }}"

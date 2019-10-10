@@ -1,0 +1,13 @@
+---
+# restart_httpd.yaml
+- name: restart httpd with service
+  service: name=httpd enabled=yes state=restarted
+  listen: restart httpd
+  when: (container is undefined) or (container == False)
+
+- name: restart httpd with systemd
+  systemd: name=httpd enabled=yes state=restarted
+  listen: restart httpd
+  when: 
+  - container is defined
+  - container == True

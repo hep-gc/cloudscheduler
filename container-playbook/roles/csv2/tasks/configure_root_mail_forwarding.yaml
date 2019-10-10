@@ -1,0 +1,11 @@
+---
+# configure_root_mail_forwarding.yaml, depends on variable "admin_email"
+
+- name: configure root mail forwarding
+  template:
+    src: root_forward.j2
+    dest: /root/.forward
+    owner: root
+    group: root
+    mode: 0600
+

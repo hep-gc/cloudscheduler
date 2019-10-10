@@ -1,0 +1,33 @@
+##  What machine is your central manager?
+CONDOR_HOST = $(FULL_HOSTNAME)
+
+## Pool's short description
+COLLECTOR_NAME = IAAS Production Pool
+
+#DAEMON_LIST = $(DAEMON_LIST), COLLECTOR, NEGOTIATOR
+DAEMON_LIST = COLLECTOR, MASTER, NEGOTIATOR, SCHEDD
+
+##  When is this machine willing to start a job? 
+START = TRUE
+SUSPEND = FALSE
+PREEMPT = FALSE
+KILL = FALSE
+
+## Disable UID_DOMAIN check when submit a job
+TRUST_UID_DOMAIN = TRUE
+
+#ALL_DEBUG  = D_HOSTNAME
+
+#SPOOL		= /storage/condor/spool
+#EXECUTE		= /storage/condor/execute
+#DELEGATE_JOB_GSI_CREDENTIALS_LIFETIME = 0
+
+ALLOW_READ = *
+ALLOW_WRITE = *
+
+#FLOCK_TO = htcs-s1.heprc.uvic.ca
+#FLOCK_COLLECTOR_HOSTS = $(FLOCK_TO)
+#FLOCK_NEGOTIATOR_HOSTS = $(FLOCK_TO)
+#HOSTALLOW_NEGOTIATOR_SCHEDD = $(COLLECTOR_HOST), $(FLOCK_NEGOTIATOR_HOSTS)
+
+CONDOR_Q_ONLY_MY_JOBS = False

@@ -1,0 +1,6 @@
+---
+# file: set_root_user_default.yaml
+
+- name: set an editing profile for root
+  copy: src=root_.exrc dest=/root/.exrc owner=root group=root mode=0644
+

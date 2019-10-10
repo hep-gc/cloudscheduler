@@ -1,0 +1,6 @@
+---
+# Retrieve SSL certificates.
+
+- name: run get_letsencrypt_cert
+  command: "/usr/local/sbin/get_letsencrypt_cert {{ letsencrypt_test }}"
+
