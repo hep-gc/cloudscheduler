@@ -8,6 +8,8 @@
 Database Table: csv2_job_schedulers
 ===================================
 
+Maintained automatically by CSV2 processes, this table reflects the current state of
+all attached job schedulers.
 
 
 Keys:
@@ -17,6 +19,8 @@ Keys:
 
    * Format: String(128)
    * Synopsis:
+      This is the Fully Qualified Domain Name (FQDN) of an HTCondor job
+      scheduler.
 
 
 Columns:
@@ -26,14 +30,23 @@ Columns:
 
    * Format: Boolean
    * Synopsis:
+      The CSV2 VM data poller will set this field to 1 if
+      it succeeds in polling the csv2-htc-agent associated with this job scheduler. Otherwise,
+      it will be set to 0.
 
 * **condor_status**:
 
    * Format: Boolean
    * Synopsis:
+      The CSV2 job and machine pollers will set this field to 1
+      if they succeed in polling this job scheduler. Otherwise, it will be
+      set to 0.
 
 * **foreign_jobs**:
 
    * Format: Integer
    * Synopsis:
+      The CSV2 job poller will set this field to the number of
+      foreign jobs (jobs not owned by this CSV2 instance) queued to the
+      job scheduler.
 
