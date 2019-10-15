@@ -8,6 +8,13 @@
 Database Table: csv2_vms_foreign
 ================================
 
+The cloud pollers maintain this table to keep track of used, unavailable
+resources on clouds. A CSV2 instance, say "MY_CSV2", connects to clouds with
+user supplied credentials. If someone else, including another instance of CSV2, connects
+to a cloud using the same credentials and instantiates VMs, the resources
+consumed will not be associated with MY_CSV2 but they will, however, be
+unavailable to MY_CSV2. It is these "foreign" VMs that are being accounted
+for in this table.
 
 
 Keys:
@@ -17,21 +24,26 @@ Keys:
 
    * Format: String(128)
    * Synopsis:
+      Is the authoriztion URL of the cloud funning the foreign VMs.
 
 * **flavor_id**:
 
    * Format: String(128)
    * Synopsis:
+      Is the flavor ID of the VMs being counted.
 
 * **project**:
 
    * Format: String(32)
    * Synopsis:
+      Is the project used to authenticate with the cloud in order to
+      retrieve the VM list.
 
 * **region**:
 
    * Format: String(32)
    * Synopsis:
+      Is the region within the cloud.
 
 
 Columns:
@@ -41,9 +53,11 @@ Columns:
 
    * Format: String(32)
    * Synopsis:
+      Is the cloud type.
 
 * **count**:
 
    * Format: Integer
    * Synopsis:
+      Is the number of VMs on the cloud of this flavor ID.
 

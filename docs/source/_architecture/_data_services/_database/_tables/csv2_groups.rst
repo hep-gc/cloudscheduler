@@ -38,8 +38,7 @@ Keys:
 
    * Format: String(32)
    * Synopsis:
-      Is a unique arbitrary short name identifying the group and possibly its'
-      purpose.
+      Is a unique arbitrary short name identifying the group.
 
 
 Columns:
