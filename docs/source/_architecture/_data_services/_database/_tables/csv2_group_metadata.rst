@@ -48,11 +48,14 @@ Columns:
 * **mime_type** (String(128)):
 
       Is a valid mime type (see the table csv2_mime_types) determining the way
-      in which CSV2 handles this file. "Examples of mime_type are:"
+      in which CSV2 handles this file. Examples of mime_type are:
 
       o cloud-config - yaml files passed to cloud-init.
 
       o ucernvm-config - a CernVM parameter file (see CernVM documentation).
+
+      For a complete list refer to the content of the CSV2 table
+      csv2_mime_types.
 
 * **priority** (Integer):
 
