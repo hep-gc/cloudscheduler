@@ -13,22 +13,16 @@ Database Table: auth_group_permissions
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **group_id**:
+* **group_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **permission_id**:
+* **permission_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

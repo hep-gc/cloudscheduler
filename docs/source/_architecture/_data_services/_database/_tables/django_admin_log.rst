@@ -13,47 +13,31 @@ Database Table: django_admin_log
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **action_flag**:
+* **action_flag** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **action_time**:
+* **action_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **change_message**:
+* **change_message** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **content_type_id**:
+* **content_type_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **object_id**:
+* **object_id** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **object_repr**:
+* **object_repr** (String(200)):
 
-   * Format: String(200)
-   * Synopsis:
 
-* **user_id**:
+* **user_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

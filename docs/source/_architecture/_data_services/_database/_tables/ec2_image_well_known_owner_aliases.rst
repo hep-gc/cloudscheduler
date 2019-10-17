@@ -13,10 +13,8 @@ Database Table: ec2_image_well_known_owner_aliases
 Keys:
 ^^^^^^^^
 
-* **alias**:
+* **alias** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
 
 Columns:

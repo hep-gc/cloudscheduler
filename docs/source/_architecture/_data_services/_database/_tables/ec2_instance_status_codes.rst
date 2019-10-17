@@ -13,17 +13,13 @@ Database Table: ec2_instance_status_codes
 Keys:
 ^^^^^^^^
 
-* **ec2_state**:
+* **ec2_state** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **csv2_state**:
+* **csv2_state** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

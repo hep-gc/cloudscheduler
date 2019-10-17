@@ -14,163 +14,111 @@ Not used.
 Keys:
 ^^^^^^^^
 
-* **global_job_id**:
+* **global_job_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Not used.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String):
 
-   * Format: String
-   * Synopsis:
       Not used.
 
-* **cluster_id**:
+* **cluster_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **entered_current_status**:
+* **entered_current_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **group_name**:
+* **group_name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Not used.
 
-* **held_reason**:
+* **held_reason** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Not used.
 
-* **hold_job_reason**:
+* **hold_job_reason** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Not used.
 
-* **image**:
+* **image** (String):
 
-   * Format: String
-   * Synopsis:
       Not used.
 
-* **instance_type**:
+* **instance_type** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 
-* **job_per_core**:
+* **job_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **job_priority**:
+* **job_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **job_status**:
+* **job_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **keep_alive**:
+* **keep_alive** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 
-* **max_price**:
+* **max_price** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 
-* **network**:
+* **network** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 
-* **proc_id**:
+* **proc_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **q_date**:
+* **q_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **request_cpus**:
+* **request_cpus** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **request_disk**:
+* **request_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **request_ram**:
+* **request_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **request_scratch**:
+* **request_scratch** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **request_swap**:
+* **request_swap** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Not used.
 
-* **requirements**:
+* **requirements** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 
-* **target_clouds**:
+* **target_clouds** (String):
 
-   * Format: String
-   * Synopsis:
       Not used.
 
-* **user**:
+* **user** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 
-* **user_data**:
+* **user_data** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Not used.
 

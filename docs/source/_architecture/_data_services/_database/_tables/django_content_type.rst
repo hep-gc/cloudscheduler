@@ -13,22 +13,16 @@ Database Table: django_content_type
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **app_label**:
+* **app_label** (String(100)):
 
-   * Format: String(100)
-   * Synopsis:
 
-* **model**:
+* **model** (String(100)):
 
-   * Format: String(100)
-   * Synopsis:
 

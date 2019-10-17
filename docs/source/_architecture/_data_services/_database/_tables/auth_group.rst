@@ -13,17 +13,13 @@ Database Table: auth_group
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **name**:
+* **name** (String(80)):
 
-   * Format: String(80)
-   * Synopsis:
 

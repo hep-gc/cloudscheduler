@@ -13,22 +13,16 @@ Database Table: auth_user_groups
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **group_id**:
+* **group_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **user_id**:
+* **user_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

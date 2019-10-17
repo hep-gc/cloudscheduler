@@ -17,63 +17,39 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **dynamic_slots**:
+* **dynamic_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **hostname**:
+* **hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **machine**:
+* **machine** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **primary_slots**:
+* **primary_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **retire**:
+* **retire** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **retiring**:
+* **retiring** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **terminate**:
+* **terminate** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **updater**:
+* **updater** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **vmid**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

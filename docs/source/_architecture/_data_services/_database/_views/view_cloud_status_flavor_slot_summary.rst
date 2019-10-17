@@ -17,33 +17,21 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **busy**:
+* **busy** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **flavor**:
+* **flavor** (String(46)):
 
-   * Format: String(46)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **idle**:
+* **idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **idle_percent**:
+* **idle_percent** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

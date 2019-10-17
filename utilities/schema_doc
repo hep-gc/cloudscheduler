@@ -92,9 +92,11 @@ def create_RSTs(gvar, type):
 
             for key in sorted(gvar['schema'][type][table]['Keys']):
                 if gvar['schema_states']['%s/%s/Keys/%s' % (type, table, key)] == 1:
-                    fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+#                   fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                    fd.write('* **%s** (%s, obsolete):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
                 else:
-                    fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+#                   fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
+                    fd.write('* **%s** (%s):\n\n' % (key, gvar['schema'][type][table]['Keys'][key]['Format']))
 
                 write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Keys'][key]['Synopsis'])
 
@@ -102,9 +104,11 @@ def create_RSTs(gvar, type):
 
             for column in sorted(gvar['schema'][type][table]['Columns']):
                 if gvar['schema_states']['%s/%s/Columns/%s' % (type, table, column)] == 1:
-                    fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+#                   fd.write('* **%s** (obsolete):\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+                    fd.write('* **%s** (%s, obsolete):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
                 else:
-                    fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+#                   fd.write('* **%s**:\n\n   * Format: %s\n   * Synopsis:\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
+                    fd.write('* **%s** (%s):\n\n' % (column, gvar['schema'][type][table]['Columns'][column]['Format']))
 
                 write_RSTs_synopsis(gvar, fd, 6, gvar['schema'][type][table]['Columns'][column]['Synopsis'])
 

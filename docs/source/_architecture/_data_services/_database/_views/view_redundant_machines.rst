@@ -17,33 +17,21 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **condor_host**:
+* **condor_host** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **entered_current_state**:
+* **entered_current_state** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **hostname**:
+* **hostname** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **name**:
+* **name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

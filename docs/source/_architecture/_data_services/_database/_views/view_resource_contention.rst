@@ -17,48 +17,30 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **VMs**:
+* **VMs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **authurl**:
+* **authurl** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **error**:
+* **error** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **idle**:
+* **idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **manual**:
+* **manual** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **retiring**:
+* **retiring** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **running**:
+* **running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **starting**:
+* **starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **unregistered**:
+* **unregistered** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

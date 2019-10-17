@@ -13,37 +13,25 @@ Database Table: silk_response
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (String(36)):
 
-   * Format: String(36)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **body**:
+* **body** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **encoded_headers**:
+* **encoded_headers** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **raw_body**:
+* **raw_body** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **request_id**:
+* **request_id** (String(36)):
 
-   * Format: String(36)
-   * Synopsis:
 
-* **status_code**:
+* **status_code** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

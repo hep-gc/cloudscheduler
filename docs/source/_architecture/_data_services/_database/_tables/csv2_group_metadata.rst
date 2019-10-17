@@ -22,41 +22,31 @@ group and cloud, is collated in priority order and passed to cloud-init.
 Keys:
 ^^^^^^^^
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       is the name of the group owning the metadata.
 
-* **metadata_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Is the arbitrary unique name (within the group) of the metadata.
 
 
 Columns:
 ^^^^^^^^
 
-* **enabled**:
+* **enabled** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       If set to 0, the metadata file is disabled and will not
       be used. If set to 1, the metadata file is enabled and
       will be passed to cloud-init in priority order.
 
-* **metadata**:
+* **metadata** (String):
 
-   * Format: String
-   * Synopsis:
       Is the metadata. It's format is dependent on the application that consumes
       it (see "mime_type" below).
 
-* **mime_type**:
+* **mime_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is a valid mime type (see the table csv2_mime_types) determining the way
       in which CSV2 handles this file. "Examples of mime_type are:"
 
@@ -64,10 +54,8 @@ Columns:
 
       o ucernvm-config - a CernVM parameter file (see CernVM documentation).
 
-* **priority**:
+* **priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Is a positive/negative integer specifying the metadata priority. Lower numbers have highr
       priority. The default is 0.
 

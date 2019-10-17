@@ -13,22 +13,16 @@ Database Table: ec2_regions
 Keys:
 ^^^^^^^^
 
-* **region**:
+* **region** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **endpoint**:
+* **endpoint** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **location**:
+* **location** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 

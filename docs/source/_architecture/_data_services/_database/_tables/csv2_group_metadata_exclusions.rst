@@ -23,23 +23,17 @@ cloud except cloud "X".
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Is the name of the cloud iwithin the group for which the
       named metadata is not applicable.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Is the name of the group owning the metadata.
 
-* **metadata_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Is the name of the metadata.
 
 

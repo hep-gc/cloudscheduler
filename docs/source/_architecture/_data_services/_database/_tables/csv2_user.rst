@@ -20,10 +20,8 @@ authentication and authorization controls.
 Keys:
 ^^^^^^^^
 
-* **username**:
+* **username** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Is the CSV2 login ID of the user. Usernames are created by
       super users.
 
@@ -31,80 +29,60 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cert_cn**:
+* **cert_cn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       If the user provides their x509 grid certificate Common Name (CN), users
       can authenticate using their certificatesr. In which case, the user will not
       be prompted for their CSV2 password.
 
-* **default_group**:
+* **default_group** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       A user preference indicating their default group of all the groups they
       are a member of.
 
-* **flag_global_status**:
+* **flag_global_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       A user preference selecting the format of the status page. If set
       to 0, only the user current group information will appear on the
       status page. If set to 1, the status page will display all
       the groups of which the user is a member.
 
-* **flag_show_foreign_global_vms**:
+* **flag_show_foreign_global_vms** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       A user preference modifying the format of the status page. If set
       to 0, foreign and global VM information will not be displayed. If
       set to 1, foreign and global VM information will be displayed.
 
-* **flag_show_slot_detail**:
+* **flag_show_slot_detail** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       A user preference specifying the information the expanded VM status is to
       display. If set to 0, only a slot summary will be displayed.
       If set to 1, the slot summary together with the slot detail
       will be displayed.
 
-* **flag_show_slot_flavors**:
+* **flag_show_slot_flavors** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       A user preference specifying the format of the slot summary. If set
       to 0, the slot summary will not contain any flavor information. If
       set to 1, the slot summary will contain flavor information.
 
-* **is_superuser**:
+* **is_superuser** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       If set to 1, the user is considered a super user and
       has all rights and privileges. Otherwise, the user is a normal user
       and only has privileges within a group.
 
-* **join_date**:
+* **join_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       A system generated timestamp indicating when this username was first added.
 
-* **password**:
+* **password** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is the user password to authenticate with CSV2. If the user is
       not authenticating with any other methd, CSV2 will prompt the user for
       this value.
 
-* **status_refresh_interval**:
+* **status_refresh_interval** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       A user preference specifying the number of seconds between status page refreshes.
 

@@ -13,67 +13,43 @@ Database Table: silk_profile
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **dynamic**:
+* **dynamic** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **end_line_num**:
+* **end_line_num** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **end_time**:
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **exception_raised**:
+* **exception_raised** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **file_path**:
+* **file_path** (String(300)):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **func_name**:
+* **func_name** (String(300)):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **line_num**:
+* **line_num** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **name**:
+* **name** (String(300)):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **request_id**:
+* **request_id** (String(36)):
 
-   * Format: String(36)
-   * Synopsis:
 
-* **start_time**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **time_taken**:
+* **time_taken** (Float):
 
-   * Format: Float
-   * Synopsis:
 

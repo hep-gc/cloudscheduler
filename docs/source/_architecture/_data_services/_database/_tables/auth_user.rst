@@ -13,62 +13,40 @@ Database Table: auth_user
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **date_joined**:
+* **date_joined** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **email**:
+* **email** (String(254)):
 
-   * Format: String(254)
-   * Synopsis:
 
-* **first_name**:
+* **first_name** (String(30)):
 
-   * Format: String(30)
-   * Synopsis:
 
-* **is_active**:
+* **is_active** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **is_staff**:
+* **is_staff** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **is_superuser**:
+* **is_superuser** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **last_login**:
+* **last_login** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **last_name**:
+* **last_name** (String(150)):
 
-   * Format: String(150)
-   * Synopsis:
 
-* **password**:
+* **password** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **username**:
+* **username** (String(150)):
 
-   * Format: String(150)
-   * Synopsis:
 

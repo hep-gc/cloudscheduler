@@ -18,10 +18,8 @@ of metadata.
 Keys:
 ^^^^^^^^
 
-* **mime_type**:
+* **mime_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       This string represents a valid metadata file type.
 
 

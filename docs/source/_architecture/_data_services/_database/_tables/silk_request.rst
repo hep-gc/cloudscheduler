@@ -13,92 +13,58 @@ Database Table: silk_request
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (String(36)):
 
-   * Format: String(36)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **body**:
+* **body** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **encoded_headers**:
+* **encoded_headers** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **end_time**:
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **meta_num_queries**:
+* **meta_num_queries** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **meta_time**:
+* **meta_time** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **meta_time_spent_queries**:
+* **meta_time_spent_queries** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **method**:
+* **method** (String(10)):
 
-   * Format: String(10)
-   * Synopsis:
 
-* **num_sql_queries**:
+* **num_sql_queries** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **path**:
+* **path** (String(190)):
 
-   * Format: String(190)
-   * Synopsis:
 
-* **prof_file**:
+* **prof_file** (String(300)):
 
-   * Format: String(300)
-   * Synopsis:
 
-* **pyprofile**:
+* **pyprofile** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **query_params**:
+* **query_params** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **raw_body**:
+* **raw_body** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **start_time**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **time_taken**:
+* **time_taken** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **view_name**:
+* **view_name** (String(190)):
 
-   * Format: String(190)
-   * Synopsis:
 

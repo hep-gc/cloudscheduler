@@ -13,42 +13,28 @@ Database Table: silk_sqlquery
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **end_time**:
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **query**:
+* **query** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **request_id**:
+* **request_id** (String(36)):
 
-   * Format: String(36)
-   * Synopsis:
 
-* **start_time**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **time_taken**:
+* **time_taken** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **traceback**:
+* **traceback** (String):
 
-   * Format: String
-   * Synopsis:
 

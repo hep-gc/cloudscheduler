@@ -17,43 +17,27 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **htcondor_container_hostname**:
+* **htcondor_container_hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_other_submitters**:
+* **htcondor_other_submitters** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **metadata_enabled**:
+* **metadata_enabled** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **metadata_mime_type**:
+* **metadata_mime_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **metadata_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **metadata_priority**:
+* **metadata_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

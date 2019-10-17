@@ -17,313 +17,189 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **authurl**:
+* **authurl** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **cacertificate**:
+* **cacertificate** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **cascading_vm_flavor**:
+* **cascading_vm_flavor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cascading_vm_image**:
+* **cascading_vm_image** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cascading_vm_keep_alive**:
+* **cascading_vm_keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cascading_vm_keyname**:
+* **cascading_vm_keyname** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cascading_vm_network**:
+* **cascading_vm_network** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cascading_vm_security_groups**:
+* **cascading_vm_security_groups** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cloud_priority**:
+* **cloud_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cores_ctl**:
+* **cores_ctl** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_foreign**:
+* **cores_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_idle**:
+* **cores_idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_max**:
+* **cores_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_native**:
+* **cores_native** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_softmax**:
+* **cores_softmax** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_used**:
+* **cores_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ec2_owner_id**:
+* **ec2_owner_id** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **enabled**:
+* **enabled** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **floating_ips_max**:
+* **floating_ips_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **floating_ips_used**:
+* **floating_ips_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **image_meta_max**:
+* **image_meta_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **instances_max**:
+* **instances_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **instances_used**:
+* **instances_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **keyname** (obsolete):
+* **keyname** (String(20), obsolete):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **keypairs_max**:
+* **keypairs_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **metadata_enabled**:
+* **metadata_enabled** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **metadata_mime_type**:
+* **metadata_mime_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **metadata_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **metadata_priority**:
+* **metadata_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **password**:
+* **password** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **personality_max**:
+* **personality_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **personality_size_max**:
+* **personality_size_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **project**:
+* **project** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **project_domain_id**:
+* **project_domain_id** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **project_domain_name**:
+* **project_domain_name** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **ram_ctl**:
+* **ram_ctl** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_foreign**:
+* **ram_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_idle**:
+* **ram_idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_max**:
+* **ram_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_native**:
+* **ram_native** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_used**:
+* **ram_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **region**:
+* **region** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **security_group_rules_max**:
+* **security_group_rules_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **security_groups_max**:
+* **security_groups_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **security_groups_used**:
+* **security_groups_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **server_group_members_max**:
+* **server_group_members_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **server_groups_max**:
+* **server_groups_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **server_groups_used**:
+* **server_groups_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **server_meta_max**:
+* **server_meta_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **spot_price**:
+* **spot_price** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **user_domain_id**:
+* **user_domain_id** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **user_domain_name**:
+* **user_domain_name** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **username**:
+* **username** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **vm_flavor**:
+* **vm_flavor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **vm_image**:
+* **vm_image** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **vm_keep_alive**:
+* **vm_keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **vm_keyname**:
+* **vm_keyname** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **vm_network**:
+* **vm_network** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **vm_security_groups**:
+* **vm_security_groups** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

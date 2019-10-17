@@ -13,52 +13,34 @@ Database Table: ec2_instance_type_filters
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **cores**:
+* **cores** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **families**:
+* **families** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **memory_max_gigabytes_per_core**:
+* **memory_max_gigabytes_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **memory_min_gigabytes_per_core**:
+* **memory_min_gigabytes_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **operating_systems**:
+* **operating_systems** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **processor_manufacturers**:
+* **processor_manufacturers** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **processors**:
+* **processors** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

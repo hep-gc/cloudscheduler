@@ -17,18 +17,12 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **alias_name**:
+* **alias_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **clouds**:
+* **clouds** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

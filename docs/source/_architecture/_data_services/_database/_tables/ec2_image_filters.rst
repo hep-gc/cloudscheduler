@@ -13,47 +13,31 @@ Database Table: ec2_image_filters
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **architectures**:
+* **architectures** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **like**:
+* **like** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **not_like**:
+* **not_like** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **operating_systems**:
+* **operating_systems** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **owner_aliases**:
+* **owner_aliases** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **owner_ids**:
+* **owner_ids** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

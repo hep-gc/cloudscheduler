@@ -17,68 +17,42 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **Completed**:
+* **Completed** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **Held**:
+* **Held** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **Idle**:
+* **Idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **Jobs**:
+* **Jobs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **Other**:
+* **Other** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **Running**:
+* **Running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **agent_status**:
+* **agent_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **condor_days_left**:
+* **condor_days_left** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **foreign**:
+* **foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_status**:
+* **htcondor_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **worker_days_left**:
+* **worker_days_left** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

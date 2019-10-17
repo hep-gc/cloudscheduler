@@ -28,37 +28,29 @@ an instance of the csv2-htc-agent running on the hosting machinei.
 Keys:
 ^^^^^^^^
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is the Fully Qualified Domain Name (FQDN) of the HTCondor server.
 
 
 Columns:
 ^^^^^^^^
 
-* **worker_cert**:
+* **worker_cert** (String):
 
-   * Format: String
-   * Synopsis:
       Is the gzipped/base64 representation of the worker certificate for an HTCondor instance.
       This value is passed to jinja2 metadata templates as the variable '{{
       cs_condorworker_cert }}' by the scheduler when preparing metadata files for VM contextualization.
 
-* **worker_dn**:
+* **worker_dn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is the distinquished name of the condor worker cert of the corresponding
       HTCondor instance. This value is added to the configuration of the local
       default HTCondor instance automatically by CSV2 processes to allow remote condor instances
       communication privileges with local HTCondor components.
 
-* **worker_eol**:
+* **worker_eol** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Is the number of days left in the life of the condor
       worker certificate. CSV2 defines two thesholdsfor certificate validity: 'cert_days_left_bad' (default 7) and
       'cert_days_left_good' (default 28). When the certificate has less the cert_days_left_good remaining, a
@@ -67,10 +59,8 @@ Columns:
       status page, and CSV2 will no longer manage VMs for this HTCondor
       instance.
 
-* **worker_key**:
+* **worker_key** (String):
 
-   * Format: String
-   * Synopsis:
       Is the gzipped/base64 representation of the worker key for an HTCondor instance.
       This value is passed to jinja2 metadata templates as the variable '{{
       cs_condorworker_key }}' by the scheduler when preparing metadata files for VM contextualization.

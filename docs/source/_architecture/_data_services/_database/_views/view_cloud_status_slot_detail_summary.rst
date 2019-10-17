@@ -17,28 +17,18 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **core_count**:
+* **core_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **slot_count**:
+* **slot_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **slot_type**:
+* **slot_type** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

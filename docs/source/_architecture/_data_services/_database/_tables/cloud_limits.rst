@@ -21,151 +21,105 @@ target cloud account.
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Name of the cloud the limits were queried from.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud the limit was queried from.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Type of cloud the limits were queried from (Openstack, Amazon, etc)
 
-* **cores_max**:
+* **cores_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total number of cores available for the registered cloud tenant/project.
 
-* **cores_used**:
+* **cores_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total number of CPU cores in use by the registered tenant/project.
 
-* **floating_ips_max**:
+* **floating_ips_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of available floating IPs as defined by the cloud
 
-* **floating_ips_used**:
+* **floating_ips_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total number of floating IPs in use by the registered tenant/project.
 
-* **image_meta_max**:
+* **image_meta_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of metadata entries that can be associated with a machine
       image as defined by the cloud.
 
-* **instances_max**:
+* **instances_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of active instances as defined by the cloud.
 
-* **instances_used**:
+* **instances_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total number of active instances in use by the registered tenant/project.
 
-* **keypairs_max**:
+* **keypairs_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of keypairs allowed to be stored under the registered cloud
       tenant/project.
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Timestamp in seconds from epoch representing the last time the limits were
       queried and updated.
 
-* **personality_max**:
+* **personality_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Man number of personality files that can be injected into a server
       as defined by the cloud.
 
-* **personality_size_max**:
+* **personality_size_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max size of server personality files in bytes.
 
-* **ram_max**:
+* **ram_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total amount of ram available for the registered cloud tenant/project.
 
-* **ram_used**:
+* **ram_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total amount of RAM in use by the registered tenant/project in Megabytes.
 
-* **security_group_rules_max**:
+* **security_group_rules_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of security group rules allowed for a security group as
       defined by the cloud.
 
-* **security_groups_max**:
+* **security_groups_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of security groups available for the registered cloud tenant/project.
 
-* **security_groups_used**:
+* **security_groups_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total number of security groups in use by the registered tenant/project.
 
-* **server_group_members_max**:
+* **server_group_members_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of servers per server group as defined by the cloud.
 
-* **server_groups_max**:
+* **server_groups_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of server groups available for the registered cloud tenant/project.
 
-* **server_groups_used**:
+* **server_groups_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Total number of server groups in use for the registered tenant/project.
 
-* **server_meta_max**:
+* **server_meta_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Max number of metadata entries that can be associated with a server
       as defined by the cloud.
 

@@ -13,27 +13,19 @@ Database Table: django_migrations
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **app**:
+* **app** (String(255)):
 
-   * Format: String(255)
-   * Synopsis:
 
-* **applied**:
+* **applied** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **name**:
+* **name** (String(255)):
 
-   * Format: String(255)
-   * Synopsis:
 

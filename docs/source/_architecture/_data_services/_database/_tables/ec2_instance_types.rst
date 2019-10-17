@@ -13,52 +13,34 @@ Database Table: ec2_instance_types
 Keys:
 ^^^^^^^^
 
-* **instance_type**:
+* **instance_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **operating_system**:
+* **operating_system** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cost_per_hour**:
+* **cost_per_hour** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **instance_family**:
+* **instance_family** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **memory**:
+* **memory** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **processor**:
+* **processor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **storage**:
+* **storage** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

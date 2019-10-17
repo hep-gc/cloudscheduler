@@ -17,68 +17,42 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **available_groups**:
+* **available_groups** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **cert_cn**:
+* **cert_cn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **default_group**:
+* **default_group** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **flag_global_status**:
+* **flag_global_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **flag_show_foreign_global_vms**:
+* **flag_show_foreign_global_vms** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **flag_show_slot_detail**:
+* **flag_show_slot_detail** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **flag_show_slot_flavors**:
+* **flag_show_slot_flavors** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **is_superuser**:
+* **is_superuser** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **join_date**:
+* **join_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **password**:
+* **password** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **status_refresh_interval**:
+* **status_refresh_interval** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **user_groups**:
+* **user_groups** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **username**:
+* **username** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

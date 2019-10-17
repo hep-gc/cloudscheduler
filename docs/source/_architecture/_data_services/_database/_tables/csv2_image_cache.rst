@@ -16,39 +16,29 @@ or as a part of a transfer request.
 Keys:
 ^^^^^^^^
 
-* **checksum**:
+* **checksum** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       A number representing the MD5 checksum of the image file.
 
-* **image_name**:
+* **image_name** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
       Name of the image as specified by the file name,
 
 
 Columns:
 ^^^^^^^^
 
-* **container_format**:
+* **container_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Format of the image container, typically support: AMI, ARI, AKI, Bare, Docker,
       OVA, OVF
 
-* **disk_format**:
+* **disk_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Format of the disk used by the image, supports: AMI, ARI, AKI,
       VHD, VMDK, RAW, QCOW2, VHDX, VDI, ISO, and Ploop
 
-* **downloaded**:
+* **downloaded** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       A timestamp representing the date it was downloaded onto the csv2 machine.
 

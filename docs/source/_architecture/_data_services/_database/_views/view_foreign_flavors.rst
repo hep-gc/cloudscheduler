@@ -17,53 +17,33 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **authurl**:
+* **authurl** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **count**:
+* **count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_id**:
+* **flavor_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **name**:
+* **name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **project**:
+* **project** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **ram**:
+* **ram** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

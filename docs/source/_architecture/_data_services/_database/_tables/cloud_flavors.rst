@@ -21,22 +21,16 @@ the target cloud.
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Name of the cloud a flavor entry was queried from.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud a flavor was queried from.
 
-* **id**:
+* **id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Unique ID of the flavor. This ID is from the source cloud
       and may not be unique with respect to entries from different clouds.
 
@@ -44,58 +38,40 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Type of cloud the flavour is from (openstack, amazon, etc)
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Number of cpu cores assigned to the flavor.
 
-* **disk**:
+* **disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Amount of disk space assigned to the flavor in Gigabytes.
 
-* **ephemeral_disk**:
+* **ephemeral_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Amount of ephemeral disk space assigned to the flavor in Gigabytes.
 
-* **is_public**:
+* **is_public** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
       Interger boolean representing if the flavor is publicly available or not.
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Timestamp in seconds since epoch representing the last time the flavor was
       updated.
 
-* **name**:
+* **name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Name of the flavor.
 
-* **ram**:
+* **ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Amount of RAM assigned to the flavor in Megabytes.
 
-* **swap**:
+* **swap** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Amount of swap space assigned to the flavor in Megabytes.
 

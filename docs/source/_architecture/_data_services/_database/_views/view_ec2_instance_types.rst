@@ -17,58 +17,36 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cost_per_hour**:
+* **cost_per_hour** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **instance_family**:
+* **instance_family** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **instance_type**:
+* **instance_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **memory**:
+* **memory** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **memory_per_core**:
+* **memory_per_core** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **operating_system**:
+* **operating_system** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **processor**:
+* **processor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **processor_manufacturer**:
+* **processor_manufacturer** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **storage**:
+* **storage** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

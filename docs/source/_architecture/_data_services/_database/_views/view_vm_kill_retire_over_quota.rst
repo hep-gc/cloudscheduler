@@ -17,73 +17,45 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_ctl**:
+* **cores_ctl** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_foreign**:
+* **cores_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_max**:
+* **cores_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_native**:
+* **cores_native** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_softmax**:
+* **cores_softmax** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **ram**:
+* **ram** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_ctl**:
+* **ram_ctl** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_foreign**:
+* **ram_foreign** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_max**:
+* **ram_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_native**:
+* **ram_native** (Float):
 
-   * Format: Float
-   * Synopsis:
 

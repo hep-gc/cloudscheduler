@@ -17,33 +17,21 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **metadata_name**:
+* **metadata_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **mime_type**:
+* **mime_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **priority**:
+* **priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **type**:
+* **type** (String(5)):
 
-   * Format: String(5)
-   * Synopsis:
 

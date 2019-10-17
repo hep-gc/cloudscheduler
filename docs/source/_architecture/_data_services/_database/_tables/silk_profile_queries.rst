@@ -13,22 +13,16 @@ Database Table: silk_profile_queries
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **profile_id**:
+* **profile_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **sqlquery_id**:
+* **sqlquery_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

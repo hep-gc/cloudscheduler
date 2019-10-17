@@ -17,163 +17,99 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **Foreign_VMs**:
+* **Foreign_VMs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs**:
+* **VMs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_idle**:
+* **VMs_idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_in_error**:
+* **VMs_in_error** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_manual**:
+* **VMs_manual** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_native_foreign**:
+* **VMs_native_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_quota**:
+* **VMs_quota** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_retiring**:
+* **VMs_retiring** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_running**:
+* **VMs_running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_starting**:
+* **VMs_starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_unregistered**:
+* **VMs_unregistered** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **communication_rt**:
+* **communication_rt** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **communication_up**:
+* **communication_up** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **cores_ctl**:
+* **cores_ctl** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_foreign**:
+* **cores_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_limit**:
+* **cores_limit** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_native**:
+* **cores_native** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_native_foreign**:
+* **cores_native_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_quota**:
+* **cores_quota** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_soft_quota**:
+* **cores_soft_quota** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **enabled**:
+* **enabled** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **ram_ctl**:
+* **ram_ctl** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_foreign**:
+* **ram_foreign** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_limit**:
+* **ram_limit** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **ram_native**:
+* **ram_native** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_native_foreign**:
+* **ram_native_foreign** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_quota**:
+* **ram_quota** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **slot_core_count**:
+* **slot_core_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **slot_count**:
+* **slot_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **slot_idle_core_count**:
+* **slot_idle_core_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

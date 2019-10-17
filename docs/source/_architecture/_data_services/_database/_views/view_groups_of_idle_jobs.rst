@@ -17,163 +17,99 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **completed**:
+* **completed** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavors**:
+* **flavors** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **held**:
+* **held** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **idle**:
+* **idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **image**:
+* **image** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **instance_type**:
+* **instance_type** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **job_per_core**:
+* **job_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **job_priority**:
+* **job_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **keep_alive**:
+* **keep_alive** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **max_price**:
+* **max_price** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **network**:
+* **network** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **other**:
+* **other** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **queue_date**:
+* **queue_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_cpus_max**:
+* **request_cpus_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_cpus_min**:
+* **request_cpus_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_cpus_total**:
+* **request_cpus_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_disk_max**:
+* **request_disk_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_disk_min**:
+* **request_disk_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_disk_total**:
+* **request_disk_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_ram_max**:
+* **request_ram_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_ram_min**:
+* **request_ram_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_ram_total**:
+* **request_ram_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_swap_max**:
+* **request_swap_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_swap_min**:
+* **request_swap_min** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_swap_total**:
+* **request_swap_total** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **requirements**:
+* **requirements** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **running**:
+* **running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **target_alias**:
+* **target_alias** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **target_clouds**:
+* **target_clouds** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **user**:
+* **user** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **user_data**:
+* **user_data** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 

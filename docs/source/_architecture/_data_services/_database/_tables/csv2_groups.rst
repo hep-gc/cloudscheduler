@@ -34,82 +34,62 @@ not modifiable by users.
 Keys:
 ^^^^^^^^
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Is a unique arbitrary short name identifying the group.
 
 
 Columns:
 ^^^^^^^^
 
-* **htcondor_container_hostname**:
+* **htcondor_container_hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       User supplied container name if CSV2 is running in a container.
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is the Fully Qualified Domain Name of the server hosting the HTCondor
       job scheduler serving this group. Members may override this setting.
 
-* **htcondor_gsi_dn**:
+* **htcondor_gsi_dn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       If the HTCondor job scheduler has GSI authentication enabled (the dsefault job
       scheduler does), CSV2 processes will populate this field with the Destinquished Name
       (DN) of the HTCondor certificate. It cannot be modified by members.
 
-* **htcondor_gsi_eol**:
+* **htcondor_gsi_eol** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If the HTCondor job scheduler has GSI authentication enabled (the dsefault job
       scheduler does), CSV2 processes will populate this field with the the number
       of days remaining for the HTCondor certificate. It cannot be modified. by
       members
 
-* **htcondor_other_submitters**:
+* **htcondor_other_submitters** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       This user supplied field maintains a comma seperated list of user IDs,
       each of which is not a member of the group but are
       allowed to submit jobs on behalf of the group.
 
-* **job_cpus**:
+* **job_cpus** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If not specified in the Job Definition File (JDL), this is the
       default value for the job parameter "request_cpus" for any job submitted for
       this group.
 
-* **job_disk**:
+* **job_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If not specified in the Job Definition File (JDL), this, together with
       "job_scratch" is the default value for the job parameter "request_disk" for any
       job submitted for this group. The value is specified in gigabytes.
 
-* **job_ram**:
+* **job_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If not specified in the Job Definition File (JDL), this is the
       default value for the job parameter "request_ram" for any job submitted for
       this group. The value is specified in megabytes.
 
-* **job_scratch**:
+* **job_scratch** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If not specified in the Job Definition File (JDL), this, together with
       "job_disk" is the default value for the job parameter "request_disk" for any
       job submitted for this group. The value is specified in gigabytes. If
@@ -117,57 +97,43 @@ Columns:
       value for the job parameter "request_disk" for any job submitted for this
       group. The value is specified in gigabytes.
 
-* **job_swap**:
+* **job_swap** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If not specified in the Job Definition File (JDL), this is the
       default value for the job parameter "request_swap" for any job submitted for
       this group. The value is specified in gigabytes.
 
-* **vm_flavor**:
+* **vm_flavor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       If not specified in the Job Definition File (JDL), and no defaults
       is specified for the cloud, this field provides the default VM flavor
       for jobs submitted to this group
 
-* **vm_image**:
+* **vm_image** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       If not specified in the Job Definition File (JDL), and no defaults
       is specified for the cloud, this field provides the default VM (kernel)
       image for jobs submitted to this group
 
-* **vm_keep_alive**:
+* **vm_keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       If no default is specified for the cloud, this field provides the
       default "keep_alive" time for VMs started for this group
 
-* **vm_keyname**:
+* **vm_keyname** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       If not specified in the Job Definition File (JDL), and no defaults
       is specified for the cloud, this field provides the default VM key-pair
       for jobs submitted to this group
 
-* **vm_network**:
+* **vm_network** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       If not specified in the Job Definition File (JDL), and no defaults
       is specified for the cloud, this field provides the default VM network
       for jobs submitted to this group
 
-* **vm_security_groups**:
+* **vm_security_groups** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       If not specified in the Job Definition File (JDL), and no defaults
       is specified for the cloud, this field provides the default comma seperated
       list of security groups for jobs submitted to this group

@@ -13,10 +13,8 @@ Database Table: csv2_image_transactions
 Keys:
 ^^^^^^^^
 
-* **tx_id**:
+* **tx_id** (String(16)):
 
-   * Format: String(16)
-   * Synopsis:
       A string representing the unique ID of a pull request. Consists of
       a randomly generated string of length 16 using standard python letters, numbers,
       and punctuation. These should be unique to each transaction and the chance
@@ -26,58 +24,40 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **checksum**:
+* **checksum** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       MD5 checksum of the source image to be uploaded.
 
-* **image_id**:
+* **image_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Openstack ID of the source image to be uploaded.
 
-* **image_name**:
+* **image_name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Name of the image to be uploaded.
 
-* **message**:
+* **message** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       String containing any error messages encountered while processing the pull request.
 
-* **request_time**:
+* **request_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Timestamp in seconds from epoch of when the request was queued.
 
-* **requester**:
+* **requester** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Username of the user who queued the pull request.
 
-* **status**:
+* **status** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Current status of the transaction request to be displayed on the web
       display.
 
-* **target_cloud_name**:
+* **target_cloud_name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Name of the cloud the image should be uploaded to.
 
-* **target_group_name**:
+* **target_group_name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Name of the group the image should be uploaded to.
 

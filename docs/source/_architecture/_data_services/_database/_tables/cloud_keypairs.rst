@@ -21,37 +21,27 @@ on the target cloud.
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Name of the cloud the keypair was queried from.
 
-* **fingerprint**:
+* **fingerprint** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       String containing the fingerprint of the keypair.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud the keypair was queried from.
 
-* **key_name**:
+* **key_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Name of the keypair as defined by the cloud.
 
 
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Type of cloud the keypair was queried from.
 

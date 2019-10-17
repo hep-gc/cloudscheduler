@@ -15,10 +15,8 @@ cloud definition.
 Keys:
 ^^^^^^^^
 
-* **cloud_type**:
+* **cloud_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       An arbitrary string, which is intended to be self-explanatory, denoting a cloud
       type. New values will be added by the developers as support for
       new cloud types is incorporated. To see the currently supported cloud types,

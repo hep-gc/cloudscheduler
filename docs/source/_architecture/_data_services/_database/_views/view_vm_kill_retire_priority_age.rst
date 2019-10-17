@@ -17,53 +17,33 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **flavor_cores**:
+* **flavor_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_id**:
+* **flavor_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **flavor_ram**:
+* **flavor_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **killed**:
+* **killed** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **machine**:
+* **machine** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **priority**:
+* **priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **retired**:
+* **retired** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **vmid**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

@@ -21,22 +21,16 @@ the target cloud.
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Name of the cloud that the security group was queried from.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Group name associated with the cloud the security group was queried from.
 
-* **id**:
+* **id** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Unique ID of the security group. This ID is from the source
       cloud and may not be unique with respect to entries from different
       clouds.
@@ -45,22 +39,16 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Type of cloud the security group was queried from.
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Timestamp in seconds since epoch representing the last time the security group
       was updated in csv2.
 
-* **name**:
+* **name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Name of the security group as defined in the cloud.
 

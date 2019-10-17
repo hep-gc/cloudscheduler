@@ -17,83 +17,51 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **active_cores**:
+* **active_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **active_disk**:
+* **active_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **active_ram**:
+* **active_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **idle**:
+* **idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_cores**:
+* **request_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_disk**:
+* **request_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_ram**:
+* **request_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **running**:
+* **running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **shortfall_cores**:
+* **shortfall_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **shortfall_disk**:
+* **shortfall_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **shortfall_ram**:
+* **shortfall_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **starting**:
+* **starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **target_alias**:
+* **target_alias** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **target_clouds**:
+* **target_clouds** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **unregistered**:
+* **unregistered** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

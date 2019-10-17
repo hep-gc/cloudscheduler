@@ -19,23 +19,17 @@ which updates the reporting VM's accounting record with the latest information.
 Keys:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       The short name of the cloud running the VM. This name is
       assigned by the members (users) of the when they added the cloud.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       The CSV2 name of the group owning the VM.
 
-* **hostname**:
+* **hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The short hostname of the VM. This is generally created automatically by
       CSV2.
 
@@ -43,90 +37,62 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **benchmark**:
+* **benchmark** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The benchmark score achieved by the VM.
 
-* **benchmark_type**:
+* **benchmark_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       A string indicating the type of benchmark being used by the VM.
 
-* **cloud_type**:
+* **cloud_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       The type of cloud the VM is running on.
 
-* **cpu_time**:
+* **cpu_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The total amount of the processor time used by the VM.
 
-* **end_time**:
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The termination time of the VM in epoch seconds.
 
-* **flavor_id**:
+* **flavor_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The flavor ID (instance type) employed by the VM. The flavor determines
       the resources (CPU, RAM, etc.) available to the VM.
 
-* **image_id**:
+* **image_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The ID of the (kernel) image being used by the VM.
 
-* **last_update**:
+* **last_update** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The time of the last periodic update from the VM in epoch
       seconds.
 
-* **network_type**:
+* **network_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       A string indicating the type of network being used by the VM
       (refer to the cloud provider documentation).
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       The cloud's region (refer to the cloud providers documentation).
 
-* **rx**:
+* **rx** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The number of megabytes of network traffic received by the VM.
 
-* **start_time**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The instantiation time of the VM in epoch seconds.
 
-* **tx**:
+* **tx** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The number of megabytes of network traffic sent by the VM.
 
-* **vmid**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The VM ID assigned to the VM by the cloud.
 

@@ -17,73 +17,45 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **age**:
+* **age** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **come_alive**:
+* **come_alive** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **dynamic_slots**:
+* **dynamic_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **error_delay**:
+* **error_delay** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **hostname**:
+* **hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **job_alive**:
+* **job_alive** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **keep_alive**:
+* **keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **poller_status**:
+* **poller_status** (String(12)):
 
-   * Format: String(12)
-   * Synopsis:
 
-* **primary_slots**:
+* **primary_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **retire**:
+* **retire** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **terminate**:
+* **terminate** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **vmid**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

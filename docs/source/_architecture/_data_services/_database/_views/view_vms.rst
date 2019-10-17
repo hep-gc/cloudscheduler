@@ -17,228 +17,138 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **age**:
+* **age** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **auth_url**:
+* **auth_url** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **condor_slots**:
+* **condor_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **condor_slots_used**:
+* **condor_slots_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **disk**:
+* **disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **entered_current_state**:
+* **entered_current_state** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_id**:
+* **flavor_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **flavor_name**:
+* **flavor_name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **foreign_vm**:
+* **foreign_vm** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **hostname**:
+* **hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_dynamic_slots**:
+* **htcondor_dynamic_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **htcondor_partitionable_slots**:
+* **htcondor_partitionable_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **htcondor_slots_timestamp**:
+* **htcondor_slots_timestamp** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **htcondor_startd_errors**:
+* **htcondor_startd_errors** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **htcondor_startd_time**:
+* **htcondor_startd_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **idle_time**:
+* **idle_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **instance_id**:
+* **instance_id** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **keep_alive**:
+* **keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **machine**:
+* **machine** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **manual_control**:
+* **manual_control** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **my_current_time**:
+* **my_current_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **poller_status**:
+* **poller_status** (String(12)):
 
-   * Format: String(12)
-   * Synopsis:
 
-* **power_status**:
+* **power_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **project**:
+* **project** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **ram**:
+* **ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **retire**:
+* **retire** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **retire_time**:
+* **retire_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **spot_instance**:
+* **spot_instance** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
 
-* **start_time**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **status**:
+* **status** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **status_changed_time**:
+* **status_changed_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **swap**:
+* **swap** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **task**:
+* **task** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **terminate**:
+* **terminate** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **terminate_time**:
+* **terminate_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **updater**:
+* **updater** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **vm_floating_ips**:
+* **vm_floating_ips** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **vm_ips**:
+* **vm_ips** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **vmid**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

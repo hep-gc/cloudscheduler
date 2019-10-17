@@ -17,38 +17,24 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **core_count**:
+* **core_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **slot_count**:
+* **slot_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **slot_id**:
+* **slot_id** (String(380)):
 
-   * Format: String(380)
-   * Synopsis:
 
-* **slot_tag** (obsolete):
+* **slot_tag** (String(392), obsolete):
 
-   * Format: String(392)
-   * Synopsis:
 
-* **slot_type**:
+* **slot_type** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 

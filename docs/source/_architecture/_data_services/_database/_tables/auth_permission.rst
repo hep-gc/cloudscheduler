@@ -13,27 +13,19 @@ Database Table: auth_permission
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **codename**:
+* **codename** (String(100)):
 
-   * Format: String(100)
-   * Synopsis:
 
-* **content_type_id**:
+* **content_type_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **name**:
+* **name** (String(255)):
 
-   * Format: String(255)
-   * Synopsis:
 

@@ -13,22 +13,16 @@ Database Table: django_session
 Keys:
 ^^^^^^^^
 
-* **session_key**:
+* **session_key** (String(40)):
 
-   * Format: String(40)
-   * Synopsis:
 
 
 Columns:
 ^^^^^^^^
 
-* **expire_date**:
+* **expire_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **session_data**:
+* **session_data** (String):
 
-   * Format: String
-   * Synopsis:
 

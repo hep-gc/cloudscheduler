@@ -8,37 +8,41 @@
 Database Table: csv2_service_catalog
 ====================================
 
+This service catalog table provides a registry for CSV2 processes to advertise
+their location. Since CSV2 processes are not reqired to run on a
+single machine, nor are they necessarily restricted to one instance, this table
+identifies what is runnong where. Processes register themselves when they start.
+
+Currently, the only use made of this information is by the scheduler
+which passes a subset of the information to jinja2 temples in preparation
+for VM contextualization.
 
 
 Keys:
 ^^^^^^^^
 
-* **fqdn**:
+* **fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
+      Is the Fully Qualified Domain Name (FQDN) of the host running this
+      service. This field is passed to templates as values of jinja2 variables.
 
-* **service**:
+* **service** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the name of the service.
 
 
 Columns:
 ^^^^^^^^
 
-* **flag_htcondor_allow**:
+* **flag_htcondor_allow** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      Deprecated.
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is the time this entry was last updated.
 
-* **yaml_attribute_name**:
+* **yaml_attribute_name** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
+      Is the advertised, jinja2 variable name passed to templates.
 

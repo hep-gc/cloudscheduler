@@ -17,18 +17,12 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **available**:
+* **available** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **username**:
+* **username** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 

@@ -22,17 +22,13 @@ at any time.
 Keys:
 ^^^^^^^^
 
-* **category**:
+* **category** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       A label by which to group related configuration items. Often, the name
       of the corresponding process is used.
 
-* **config_key**:
+* **config_key** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       A label identifying a specific configuration item. This value must be unique
       within the category. When fetched, a reference to this item would be
       in the form "config.<category>.<config_key>"
@@ -41,17 +37,13 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **config_type**:
+* **config_type** (String(16)):
 
-   * Format: String(16)
-   * Synopsis:
       Is a keyword denoting the type of value. Valid keywords include: **str**,
       **int**, **float**, etc. When fetched, the config_value is converted to that type
       of variable.
 
-* **config_value**:
+* **config_value** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       A string representation of the named configuration value.
 

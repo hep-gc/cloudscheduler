@@ -17,78 +17,48 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **arch**:
+* **arch** (String(5)):
 
-   * Format: String(5)
-   * Synopsis:
 
-* **borrower_id**:
+* **borrower_id** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **description**:
+* **description** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **disk_format**:
+* **disk_format** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **id**:
+* **id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **image_location**:
+* **image_location** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **last_updated**:
+* **last_updated** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **lower_location**:
+* **lower_location** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **name**:
+* **name** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **opsys**:
+* **opsys** (String(8)):
 
-   * Format: String(8)
-   * Synopsis:
 
-* **owner_alias**:
+* **owner_alias** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **owner_id**:
+* **owner_id** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **size**:
+* **size** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **visibility**:
+* **visibility** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

@@ -17,8 +17,6 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **group_metadata**:
+* **group_metadata** (String):
 
-   * Format: String
-   * Synopsis:
 

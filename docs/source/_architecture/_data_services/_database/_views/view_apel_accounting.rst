@@ -17,113 +17,69 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **benchmark**:
+* **benchmark** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **benchmark_type**:
+* **benchmark_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cloud_type**:
+* **cloud_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cores**:
+* **cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cpu_time**:
+* **cpu_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **disk**:
+* **disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **end_time**:
+* **end_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor**:
+* **flavor** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **flavor_id**:
+* **flavor_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **hostname**:
+* **hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **image**:
+* **image** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
 
-* **image_id**:
+* **image_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **last_update**:
+* **last_update** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **network_type**:
+* **network_type** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **ram**:
+* **ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **region**:
+* **region** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **rx**:
+* **rx** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **start_time**:
+* **start_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **tx**:
+* **tx** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **vmid**:
+* **vmid** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 

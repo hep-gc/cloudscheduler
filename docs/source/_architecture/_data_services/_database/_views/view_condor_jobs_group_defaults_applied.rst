@@ -17,148 +17,90 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **cluster_id**:
+* **cluster_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **entered_current_status**:
+* **entered_current_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **global_job_id**:
+* **global_job_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **held_reason**:
+* **held_reason** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **hold_job_reason**:
+* **hold_job_reason** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **image**:
+* **image** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **instance_type**:
+* **instance_type** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **job_per_core**:
+* **job_per_core** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **job_priority**:
+* **job_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **job_status**:
+* **job_status** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **js_completed**:
+* **js_completed** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **js_held**:
+* **js_held** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **js_idle**:
+* **js_idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **js_other**:
+* **js_other** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **js_running**:
+* **js_running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **keep_alive**:
+* **keep_alive** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **max_price**:
+* **max_price** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **network**:
+* **network** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **proc_id**:
+* **proc_id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **q_date**:
+* **q_date** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_cpus**:
+* **request_cpus** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_disk**:
+* **request_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_ram**:
+* **request_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **request_swap**:
+* **request_swap** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **requirements**:
+* **requirements** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **target_clouds**:
+* **target_clouds** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **user**:
+* **user** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 
-* **user_data**:
+* **user_data** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
 

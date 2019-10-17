@@ -17,248 +17,150 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **VMs**:
+* **VMs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **VMs_max**:
+* **VMs_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **authurl**:
+* **authurl** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **cacertificate**:
+* **cacertificate** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **cloud_priority**:
+* **cloud_priority** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cloud_type**:
+* **cloud_type** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **cores_foreign**:
+* **cores_foreign** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_max**:
+* **cores_max** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **cores_used**:
+* **cores_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **default_flavor**:
+* **default_flavor** (String(97)):
 
-   * Format: String(97)
-   * Synopsis:
 
-* **default_image**:
+* **default_image** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **default_keep_alive**:
+* **default_keep_alive** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **default_keyname**:
+* **default_keyname** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **default_network**:
+* **default_network** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **default_security_groups**:
+* **default_security_groups** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **disk_used**:
+* **disk_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor**:
+* **flavor** (String(161)):
 
-   * Format: String(161)
-   * Synopsis:
 
-* **flavor_VMs**:
+* **flavor_VMs** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_cores**:
+* **flavor_cores** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_disk**:
+* **flavor_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_error**:
+* **flavor_error** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_id**:
+* **flavor_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **flavor_idle**:
+* **flavor_idle** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_manual**:
+* **flavor_manual** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_ram**:
+* **flavor_ram** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_retiring**:
+* **flavor_retiring** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_running**:
+* **flavor_running** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_slots**:
+* **flavor_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_starting**:
+* **flavor_starting** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_swap**:
+* **flavor_swap** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **flavor_unregistered**:
+* **flavor_unregistered** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **password**:
+* **password** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **project**:
+* **project** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **project_domain_id**:
+* **project_domain_id** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **project_domain_name**:
+* **project_domain_name** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **ram_foreign**:
+* **ram_foreign** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_max**:
+* **ram_max** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **ram_used**:
+* **ram_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **region**:
+* **region** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **spot_price**:
+* **spot_price** (Float):
 
-   * Format: Float
-   * Synopsis:
 
-* **swap_used**:
+* **swap_used** (Integer):
 
-   * Format: Integer
-   * Synopsis:
 
-* **updater**:
+* **updater** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **user_domain_id**:
+* **user_domain_id** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
 
-* **user_domain_name**:
+* **user_domain_name** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **username**:
+* **username** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
 
-* **worker_cert**:
+* **worker_cert** (String):
 
-   * Format: String
-   * Synopsis:
 
-* **worker_key**:
+* **worker_key** (String):
 
-   * Format: String
-   * Synopsis:
 

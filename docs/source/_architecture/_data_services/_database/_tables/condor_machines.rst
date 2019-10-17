@@ -26,10 +26,8 @@ a VM.
 Keys:
 ^^^^^^^^
 
-* **name**:
+* **name** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is the HTCondor unique partition name for this partition and takes the
       form "<slot_identifier>@<fqdn_of_the_vm>".
 
@@ -37,144 +35,100 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **activity**:
+* **activity** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The HTCondor assigned activity of the partitions (eg. "Busy", "Retiring", etc.)
 
-* **address**:
+* **address** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
       Is the HTCondor Connection Broker (CCB) address of this partition.
 
-* **cloud_name**:
+* **cloud_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       Is the short name of the cloud running the VM which hosts
       this partition/machine.
 
-* **condor_host**:
+* **condor_host** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       Is a hash of the CSV2 servers's FQDN that created the VM
       which is running this partition. This hash is used to determine whether
       CSV2 "owns" this partition.
 
-* **deprecated-retire_request_time**:
+* **deprecated-retire_request_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       No longer used.
 
-* **deprecated-retired_time**:
+* **deprecated-retired_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       No longer used.
 
-* **entered_current_state**:
+* **entered_current_state** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Is the time in epoch seconds the partition entered its current state.
 
-* **flavor**:
+* **flavor** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       The flavor of the VM running this partition.
 
-* **global_job_id**:
+* **global_job_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The HTCondor global job ID of the job running in this partition.
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
       The name of the CSV2 group that owns the HTCondor machine.
 
-* **idle_time**:
+* **idle_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Normally NULL.
 
-* **job_id**:
+* **job_id** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The job ID (cluster and process ID) of the job running in
       this partition. For primary partitions, this field will always be NULL.
 
-* **machine**:
+* **machine** (String(256)):
 
-   * Format: String(256)
-   * Synopsis:
       Is the HTCondor unique machine name running this partition and takes the
       form "fqdn_of_the_vm>". Note, all partitions running on the same VM will have
       the same machine name but unique names (distinguished by the "slotr_identifier").
 
-* **my_current_time**:
+* **my_current_time** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The current time within the partition.
 
-* **remote_owner**:
+* **remote_owner** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       is the identity of the submitting user and takes the form "<user_id>@<fqdn_of_submitting_host>".
 
-* **slot_cpus**:
+* **slot_cpus** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Is the number of CPUs assigned to the partition.
 
-* **slot_type**:
+* **slot_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Indicates whether this is a "Partitionable" or a "Dynamic" slot.
 
-* **start**:
+* **start** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       Is a string representing a start condition expression and takes the form
       "(Owner == <some_user>)".
 
-* **state**:
+* **state** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       The HTCondor assigned state of the partitions (eg. "Claimed", "Idle", etc.)
 
-* **total_disk**:
+* **total_disk** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       The total bytes of disk space used by the partition.
 
-* **total_slots**:
+* **total_slots** (Integer):
 
-   * Format: Integer
-   * Synopsis:
       Is the total number of partitions running on the VM. Each partition
       running on the VM will report the same number, regardless of the
       slot type.
 
-* **vm_type**:
+* **vm_type** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
       No longer used.
 

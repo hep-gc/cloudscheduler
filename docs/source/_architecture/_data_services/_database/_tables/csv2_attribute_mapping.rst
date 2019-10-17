@@ -23,85 +23,59 @@ normalized target names, and an error list of undefined (unmapable) names.
 Keys:
 ^^^^^^^^
 
-* **csv2**:
+* **csv2** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of CSV2 normalized table column names.
 
 
 Columns:
 ^^^^^^^^
 
-* **condor**:
+* **condor** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of HTCondor classads variable names.
 
-* **ec2_flavors**:
+* **ec2_flavors** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of Amazon EC2 instance-types variable names.
 
-* **ec2_images**:
+* **ec2_images** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of Amazon EC2 images variable names.
 
-* **ec2_limits**:
+* **ec2_limits** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of Amazon EC2 account attributes variable names.
 
-* **ec2_regions**:
+* **ec2_regions** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of Amazon EC2 regions variable names.
 
-* **ec2_vms**:
+* **ec2_vms** (String(20)):
 
-   * Format: String(20)
-   * Synopsis:
       This column provides a list of Amazon EC2 instances variable names.
 
-* **os_flavors**:
+* **os_flavors** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of OpenStack nova-flavors variable names.
 
-* **os_images**:
+* **os_images** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of OpenStack glance-images variable names.
 
-* **os_limits**:
+* **os_limits** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of OpenStack nova-limits variable names.
 
-* **os_networks**:
+* **os_networks** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of OpenStack neutron-networks variable names.
 
-* **os_sec_grps**:
+* **os_sec_grps** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of OpenStack nova-security-groups variable names.
 
-* **os_vms**:
+* **os_vms** (String(64)):
 
-   * Format: String(64)
-   * Synopsis:
       This column provides a list of OpenStack nova-instances variable names.
 

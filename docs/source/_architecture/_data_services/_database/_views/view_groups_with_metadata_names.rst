@@ -17,28 +17,18 @@ Keys:
 Columns:
 ^^^^^^^^
 
-* **group_name**:
+* **group_name** (String(32)):
 
-   * Format: String(32)
-   * Synopsis:
 
-* **htcondor_container_hostname**:
+* **htcondor_container_hostname** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_fqdn**:
+* **htcondor_fqdn** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **htcondor_other_submitters**:
+* **htcondor_other_submitters** (String(128)):
 
-   * Format: String(128)
-   * Synopsis:
 
-* **metadata_names**:
+* **metadata_names** (String):
 
-   * Format: String
-   * Synopsis:
 
