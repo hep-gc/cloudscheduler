@@ -53,3 +53,7 @@ view_user_groups:
             Format: Boolean
             Synopsis:
 
+        flag_show_foreign_global_vms:
+            Format: Boolean
+            Synopsis:
+

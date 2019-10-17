@@ -117,6 +117,11 @@ Columns:
    * Format: Integer
    * Synopsis:
 
+* **image_id**:
+
+   * Format: String(128)
+   * Synopsis:
+
 * **instance_id**:
 
    * Format: String(64)

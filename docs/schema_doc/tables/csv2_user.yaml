@@ -45,3 +45,7 @@ csv2_user:
             Format: Boolean
             Synopsis:
 
+        flag_show_foreign_global_vms:
+            Format: Boolean
+            Synopsis:
+

@@ -37,6 +37,11 @@ Columns:
    * Format: Boolean
    * Synopsis:
 
+* **flag_show_foreign_global_vms**:
+
+   * Format: Boolean
+   * Synopsis:
+
 * **flag_show_slot_detail**:
 
    * Format: Boolean

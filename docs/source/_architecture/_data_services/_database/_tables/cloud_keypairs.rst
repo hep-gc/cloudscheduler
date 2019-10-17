@@ -38,7 +38,7 @@ Keys:
 
 * **key_name**:
 
-   * Format: String(32)
+   * Format: String(64)
    * Synopsis:
 
 

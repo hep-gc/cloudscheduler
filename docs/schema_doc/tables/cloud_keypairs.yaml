@@ -23,7 +23,7 @@ cloud_keypairs:
             Synopsis:
 
         key_name:
-            Format: String(32)
+            Format: String(64)
             Synopsis:
 
     Columns:

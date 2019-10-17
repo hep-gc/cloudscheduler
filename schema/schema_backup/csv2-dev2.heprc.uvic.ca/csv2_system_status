@@ -37,6 +37,9 @@ CREATE TABLE `csv2_system_status` (
   `csv2_machines_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_machines_status` tinyint(1) NOT NULL DEFAULT 0,
   `csv2_machines_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
+  `csv2_condor_gsi_error_count` tinyint(1) NOT NULL,
+  `csv2_condor_gsi_status` varchar(512) NOT NULL,
+  `csv2_condor_gsi_msg` int(11) NOT NULL,
   `csv2_status_error_count` int(11) NOT NULL DEFAULT 0,
   `csv2_status_status` tinyint(4) NOT NULL DEFAULT 0,
   `csv2_status_msg` varchar(512) CHARACTER SET utf8 DEFAULT NULL,
@@ -86,4 +89,4 @@ CREATE TABLE `csv2_system_status` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-12 14:20:59
+-- Dump completed on 2019-10-17  9:50:48
