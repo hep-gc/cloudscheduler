@@ -8,12 +8,12 @@ csv2_system_status:
 
         The csv2-system-status poller periodically checks the status of CSV2 services maintaining the
         following fields:
-        \n   o xxx_status and xxx_msg, where 'xxx' is a service name
-        \n   o load
-        \n   o disk, disk_size, disk_used
-        \n   o ram, ram_size, ram_used
-        \n   o swap, swap_size, swap_used
-        \n   o last_updated
+        \n* xxx_status and xxx_msg, where 'xxx' is a service name)
+        \n* load)
+        \n* disk, disk_size, disk_used)
+        \n* ram, ram_size, ram_used)
+        \n* swap, swap_size, swap_used)
+        \n* last_updated)
        
         In addition, many of the services are multi-process services with a parent process calling the
         CSV2 library function 'ProcessMonitor' to instantiate and monitor its data gathering child processes.
@@ -59,7 +59,7 @@ csv2_system_status:
         csv2_openstack_error_count:
             Format: Integer
             Synopsis:
-                transient poller error count (see table synopsis, paragraph 3).
+                transient poller error count maintained by the ProcessMonitor (see above).
 
         csv2_openstack_status:
             Format: Boolean

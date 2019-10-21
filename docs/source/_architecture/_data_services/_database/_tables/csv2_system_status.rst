@@ -16,17 +16,17 @@ columns indicating the status of the service.
 The csv2-system-status poller periodically checks the status of CSV2 services maintaining the
 following fields:
 
-o xxx_status and xxx_msg, where 'xxx' is a service name
+* xxx_status and xxx_msg, where 'xxx' is a service name)
 
-o load
+* load)
 
-o disk, disk_size, disk_used
+* disk, disk_size, disk_used)
 
-o ram, ram_size, ram_used
+* ram, ram_size, ram_used)
 
-o swap, swap_size, swap_used
+* swap, swap_size, swap_used)
 
-o last_updated
+* last_updated)
 
 In addition, many of the services are multi-process services with a parent
 process calling the CSV2 library function 'ProcessMonitor' to instantiate and monitor its
@@ -64,7 +64,7 @@ Columns:
 
 * **csv2_ec2_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_ec2_msg** (String(512)):
 
@@ -78,7 +78,7 @@ Columns:
 
 * **csv2_glint_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_glint_msg** (String(512)):
 
@@ -92,7 +92,7 @@ Columns:
 
 * **csv2_htc_agent_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_htc_agent_msg** (String(512)):
 
@@ -106,7 +106,7 @@ Columns:
 
 * **csv2_jobs_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_jobs_msg** (String(512)):
 
@@ -120,7 +120,7 @@ Columns:
 
 * **csv2_machines_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_machines_msg** (String(512)):
 
@@ -144,7 +144,7 @@ Columns:
 
 * **csv2_openstack_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_openstack_msg** (String(512)):
 
@@ -158,7 +158,7 @@ Columns:
 
 * **csv2_status_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_status_msg** (String(512)):
 
@@ -172,7 +172,7 @@ Columns:
 
 * **csv2_timeseries_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_timeseries_msg** (String(512)):
 
@@ -186,7 +186,7 @@ Columns:
 
 * **csv2_vm_data_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_vm_data_msg** (String(512)):
 
@@ -200,7 +200,7 @@ Columns:
 
 * **csv2_watch_error_count** (Integer):
 
-      transient poller error count (see table synopsis, paragraph 3).
+      transient poller error count maintained by the ProcessMonitor (see above).
 
 * **csv2_watch_msg** (String(512)):
 
