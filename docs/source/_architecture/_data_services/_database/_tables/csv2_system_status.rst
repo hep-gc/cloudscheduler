@@ -8,277 +8,271 @@
 Database Table: csv2_system_status
 ==================================
 
+This table maintains the status of CSV2 services and is used to
+indicate the 'health' of the CSV2 system. The table has a single
+row. Within this row, each service represented will have one or more
+columns indicating the status of the service.
+
+The csv2-system-status poller periodically checks the status of CSV2 services maintaining the
+following fields:
+
+o xxx_status and xxx_msg, where 'xxx' is a service name
+
+o load
+
+o disk, disk_size, disk_used
+
+o ram, ram_size, ram_used
+
+o swap, swap_size, swap_used
+
+o last_updated
+
+In addition, many of the services are multi-process services with a parent
+process calling the CSV2 library function 'ProcessMonitor' to instantiate and monitor its
+data gathering child processes. Services of this kind will have an error
+count ('xxx_error_count') maintained by the parent process/ProcessMonitor which increments and decrements this
+counter depending on whether child errors are observed or not during its'
+monitoring cycle. Each time a child process error is observed, the count
+is incremented by one. Otherwise, any count greater than zero is decremented
+by one. Low counts are considered normal, since transient polling error may
+arise from may sources. However, counts equal or greater than the PrcosessMonitor's
+configurable 'orange_threshold' constitute a warning which are high-lighted by the User Interface
+(UI).
 
 
 Keys:
 ^^^^^^^^
 
-* **id**:
+* **id** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      Is a unique numeric key for the status record.
 
 
 Columns:
 ^^^^^^^^
 
-* **condor_msg**:
+* **condor_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **condor_status**:
+* **condor_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_ec2_error_count**:
+* **csv2_ec2_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_ec2_msg**:
+* **csv2_ec2_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_ec2_status**:
+* **csv2_ec2_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_glint_error_count**:
+* **csv2_glint_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_glint_msg**:
+* **csv2_glint_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_glint_status**:
+* **csv2_glint_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_htc_agent_error_count**:
+* **csv2_htc_agent_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_htc_agent_msg**:
+* **csv2_htc_agent_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_htc_agent_status**:
+* **csv2_htc_agent_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_jobs_error_count**:
+* **csv2_jobs_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_jobs_msg**:
+* **csv2_jobs_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_jobs_status**:
+* **csv2_jobs_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_machines_error_count**:
+* **csv2_machines_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_machines_msg**:
+* **csv2_machines_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_machines_status**:
+* **csv2_machines_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_main_msg**:
+* **csv2_main_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_main_status**:
+* **csv2_main_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_openstack_error_count**:
+* **csv2_openstack_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_openstack_msg**:
+* **csv2_openstack_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_openstack_status**:
+* **csv2_openstack_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_startd_errors_error_count** (obsolete):
+* **csv2_status_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_startd_errors_msg** (obsolete):
+* **csv2_status_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_startd_errors_status** (obsolete):
+* **csv2_status_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_status_error_count**:
+* **csv2_timeseries_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_status_msg**:
+* **csv2_timeseries_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_status_status**:
+* **csv2_timeseries_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_timeseries_error_count**:
+* **csv2_vm_data_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_timeseries_msg**:
+* **csv2_vm_data_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_timeseries_status**:
+* **csv2_vm_data_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_vm_data_error_count**:
+* **csv2_watch_error_count** (Integer):
 
-   * Format: Integer
-   * Synopsis:
+      transient poller error count (see table synopsis, paragraph 3).
 
-* **csv2_vm_data_msg**:
+* **csv2_watch_msg** (String(512)):
 
-   * Format: String(512)
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **csv2_vm_data_status**:
+* **csv2_watch_status** (Boolean):
 
-   * Format: Boolean
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **csv2_watch_error_count**:
+* **disk** (Float):
 
-   * Format: Integer
-   * Synopsis:
+      The percentage of disk used on the CSV2 server.
 
-* **csv2_watch_msg**:
+* **disk_size** (Float):
 
-   * Format: String(512)
-   * Synopsis:
+      The size of disk on the CSV2 server.
 
-* **csv2_watch_status**:
+* **disk_used** (Float):
 
-   * Format: Boolean
-   * Synopsis:
+      The size of used disk on the CSV2 server.
 
-* **disk**:
+* **last_updated** (Integer):
 
-   * Format: Float
-   * Synopsis:
+      The time the status record was last updated.
 
-* **disk_size**:
+* **load** (Float):
 
-   * Format: Float
-   * Synopsis:
+      The current load average on the CSV2 server.
 
-* **disk_used**:
+* **mariadb_msg** (String(512)):
 
-   * Format: Float
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **last_updated**:
+* **mariadb_status** (Boolean):
 
-   * Format: Integer
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **load**:
+* **rabbitmq_server_msg** (String(512)):
 
-   * Format: Float
-   * Synopsis:
+      A detailed status message indicating the service run time or the failure
+      time.
 
-* **mariadb_msg**:
+* **rabbitmq_server_status** (Boolean):
 
-   * Format: String(512)
-   * Synopsis:
+      If set to 1, the service is up. Otherwise, no part of
+      the service is running.
 
-* **mariadb_status**:
+* **ram** (Float):
 
-   * Format: Boolean
-   * Synopsis:
+      The percentage of RAM used on the CSV2 server.
 
-* **rabbitmq_server_msg**:
+* **ram_size** (Float):
 
-   * Format: String(512)
-   * Synopsis:
+      The size of RAM on the CSV2 server.
 
-* **rabbitmq_server_status**:
+* **ram_used** (Float):
 
-   * Format: Boolean
-   * Synopsis:
+      The size of used RAM on the CSV2 server.
 
-* **ram**:
+* **swap** (Float):
 
-   * Format: Float
-   * Synopsis:
+      The percentage of swap space used on the CSV2 server.
 
-* **ram_size**:
+* **swap_size** (Float):
 
-   * Format: Float
-   * Synopsis:
+      The size of swap space on the CSV2 server.
 
-* **ram_used**:
+* **swap_used** (Float):
 
-   * Format: Float
-   * Synopsis:
-
-* **swap**:
-
-   * Format: Float
-   * Synopsis:
-
-* **swap_size**:
-
-   * Format: Float
-   * Synopsis:
-
-* **swap_used**:
-
-   * Format: Float
-   * Synopsis:
+      The size of used swap space on the CSV2 server.
 
