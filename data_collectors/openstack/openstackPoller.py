@@ -502,6 +502,7 @@ def image_poller():
                 # Expand failure dict for deletion schema (key needs to be grp+cloud)
                 cloud_list = db_session.query(CLOUD).filter(CLOUD.cloud_type == "openstack")
                 new_f_dict = {}
+                logging.debug("Proccessing failure, failure_dict: %s" % failure_dict)
                 for cloud in cloud_list:
                     key = cloud.authurl + cloud.project + cloud.region
                     if key in failure_dict:
@@ -511,7 +512,8 @@ def image_poller():
                         db_session.commit()
 
                 # Scan the OpenStack images in the database, removing each one that is not in the inventory.
-                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', failure_dict=new_f_dict, cloud_type="openstack")
+                logging.info("Doing deletes, omitting failures: %s" % new_f_dict)
+                delete_obsolete_database_items('Image', inventory, db_session, IMAGE, 'id', new_poll_time, failure_dict=new_f_dict, cloud_type="openstack")
 
                 config.db_session.rollback()
                 try:
