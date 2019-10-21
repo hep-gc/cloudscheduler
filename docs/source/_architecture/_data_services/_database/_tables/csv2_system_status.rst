@@ -16,17 +16,17 @@ columns indicating the status of the service.
 The csv2-system-status poller periodically checks the status of CSV2 services maintaining the
 following fields:
 
-* xxx_status and xxx_msg, where 'xxx' is a service name)
+* xxx_status and xxx_msg, where 'xxx' is a service name
 
-* load)
+* load
 
-* disk, disk_size, disk_used)
+* disk, disk_size, disk_used
 
-* ram, ram_size, ram_used)
+* ram, ram_size, ram_used
 
-* swap, swap_size, swap_used)
+* swap, swap_size, swap_used
 
-* last_updated)
+* last_updated
 
 In addition, many of the services are multi-process services with a parent
 process calling the CSV2 library function 'ProcessMonitor' to instantiate and monitor its
