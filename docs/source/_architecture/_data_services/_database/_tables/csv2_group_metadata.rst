@@ -13,10 +13,13 @@ be useful in the distributed cloud computing environment, it must be "contextual
 At a minumum, it must register with a condor central manager to
 receive jobs to execute. This contextualization is achieved through metadata which is
 passed to **cloud-init** (see https://cloudinit.readthedocs.io/en/latest/). The metadata to be used is saved
-as files within the database. Metadata can be defined in this table,
-at the group level (applies to all clouds within the group) or
-in the table csv2_cloud_metadata at the cloud level. All enabled metadata, both
-group and cloud, is collated in priority order and passed to cloud-init.
+as files within the database. Metadata can be defined at the group
+level (applies to all clouds within the group) or specific to each
+cloud. All enabled metadata, both group and cloud level metadata, is collated
+in priority order and passed to cloud-init.
+
+This table maintains group level metadata applicable to all clouds within the
+group.
 
 
 Keys:
@@ -24,11 +27,12 @@ Keys:
 
 * **group_name** (String(32)):
 
-      is the name of the group owning the metadata.
+      Is the name of the group owning the metadata file.
 
 * **metadata_name** (String(64)):
 
-      Is the arbitrary unique name (within the group) of the metadata.
+      Is the arbitrary unique name, within the group's metadata files, of this
+      metadata file.
 
 
 Columns:
@@ -47,8 +51,8 @@ Columns:
 
 * **mime_type** (String(128)):
 
-      Is a valid mime type (see the table csv2_mime_types) determining the way
-      in which CSV2 handles this file. Examples of mime_type are:
+      Is a valid mime type determining the way in which CSV2 handles
+      this file. Examples of mime_type are:
 
       o cloud-config - yaml files passed to cloud-init.
 
@@ -59,6 +63,6 @@ Columns:
 
 * **priority** (Integer):
 
-      Is a positive/negative integer specifying the metadata priority. Lower numbers have highr
-      priority. The default is 0.
+      An integer (including negative integers) indicating the metadata file priority. Lower numbers
+      have highter priority and will be included earlier in the collation order.
 
